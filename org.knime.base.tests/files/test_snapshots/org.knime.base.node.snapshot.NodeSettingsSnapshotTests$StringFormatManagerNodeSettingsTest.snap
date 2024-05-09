@@ -196,7 +196,7 @@
             "title" : "Show first characters",
             "description" : "Select the number of characters that should be retained at the <b>start</b> of the string. If a string's length is longer than the permitted length, it will be truncated. This does not change the data, but only the way the strings are being displayed in views.\n",
             "default" : 500,
-            "minimum" : 0
+            "minimum" : 0.0
           },
           "nLastChars" : {
             "type" : "integer",
@@ -204,7 +204,7 @@
             "title" : "Show last characters",
             "description" : "Select the number of characters that should be retained at the <b>end</b> of the string. If a string's length is longer than the permitted length, it will be truncated. This does not change the data, but only the way the strings are being displayed in views.\n",
             "default" : 5,
-            "minimum" : 0
+            "minimum" : 0.0
           },
           "replaceEmptyString" : {
             "oneOf" : [ {

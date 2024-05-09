@@ -33,8 +33,8 @@
             "title" : "RowID table number",
             "description" : "Select the table whose RowIDs should be used for the output table.",
             "default" : 1,
-            "minimum" : 1,
-            "maximum" : 1,
+            "minimum" : 1.0,
+            "maximum" : 1.0,
             "configKeys" : [ "selected_rowid_table", "selected_rowid_table_number" ]
           }
         }

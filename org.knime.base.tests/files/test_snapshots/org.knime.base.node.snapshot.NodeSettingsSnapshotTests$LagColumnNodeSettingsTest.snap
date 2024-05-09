@@ -27,7 +27,7 @@
             "title" : "Number of copies",
             "description" : " <i>L</i> = defines how many lagged column copies to create.",
             "default" : 1,
-            "minimum" : 1,
+            "minimum" : 1.0,
             "configKeys" : [ "lag" ]
           },
           "lagInterval" : {
@@ -36,7 +36,7 @@
             "title" : "Lag per copy",
             "description" : "<i>I</i> = lag interval (sometimes also called periodicity or seasonality), defines how many rows to shift per column copy.",
             "default" : 1,
-            "minimum" : 1,
+            "minimum" : 1.0,
             "configKeys" : [ "lag_interval" ]
           },
           "skipInitialIncompleteRows" : {

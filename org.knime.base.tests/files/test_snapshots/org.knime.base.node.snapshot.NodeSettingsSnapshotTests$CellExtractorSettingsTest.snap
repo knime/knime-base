@@ -26,7 +26,7 @@
             "title" : "Column number",
             "description" : "Provide the number of the column that contains the target cell.",
             "default" : 1,
-            "minimum" : 1
+            "minimum" : 1.0
           },
           "columnSpecificationMode" : {
             "oneOf" : [ {
@@ -52,7 +52,7 @@
             "title" : "Row number",
             "description" : "Provide the number of the row that contains the target cell.",
             "default" : 1,
-            "minimum" : 1
+            "minimum" : 1.0
           }
         }
       }

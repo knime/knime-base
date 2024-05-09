@@ -163,7 +163,7 @@
             "title" : "Threshold number (equal or more than)",
             "description" : "Selected columns with at least this number of missing values are filtered out.",
             "default" : 1,
-            "minimum" : 0,
+            "minimum" : 0.0,
             "configKeys" : [ "number" ]
           },
           "percentage" : {
@@ -172,7 +172,7 @@
             "title" : "Threshold percentage (equal or more than %)",
             "description" : "Selected columns with at least this percentage of missing values are filtered out.",
             "default" : 100.0,
-            "minimum" : 0,
+            "minimum" : 0.0,
             "maximum" : 100.0,
             "configKeys" : [ "missing_value_percentage" ]
           },

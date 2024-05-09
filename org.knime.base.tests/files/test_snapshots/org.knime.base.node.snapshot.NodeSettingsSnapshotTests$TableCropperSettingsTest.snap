@@ -51,7 +51,7 @@
             "title" : "End column number (inclusive)",
             "description" : "Select the last column to include.",
             "default" : 2,
-            "minimum" : 1
+            "minimum" : 1.0
           },
           "endRowCountFromEnd" : {
             "type" : "boolean",
@@ -65,7 +65,7 @@
             "title" : "End row number (inclusive)",
             "description" : "Select the last row to include.",
             "default" : 1,
-            "minimum" : 1
+            "minimum" : 1.0
           },
           "startColumnCountFromEnd" : {
             "type" : "boolean",
@@ -85,7 +85,7 @@
             "title" : "Start column number",
             "description" : "Select the first column to include (the first column of the table has number 1).",
             "default" : 1,
-            "minimum" : 1
+            "minimum" : 1.0
           },
           "startRowCountFromEnd" : {
             "type" : "boolean",
@@ -99,7 +99,7 @@
             "title" : "Start row number",
             "description" : "Select the first row to include (the first row of the table has number 1).",
             "default" : 1,
-            "minimum" : 1
+            "minimum" : 1.0
           },
           "updateDomains" : {
             "type" : "boolean",

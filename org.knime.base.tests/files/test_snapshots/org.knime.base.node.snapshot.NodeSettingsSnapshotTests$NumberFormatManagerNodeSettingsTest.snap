@@ -223,7 +223,7 @@
             "title" : "Maximum number of decimals",
             "description" : "The formatted number is rounded to the given number of decimals.\nFor instance, <tt>1.2599</tt> with 2 decimals is shown as <tt>1.26</tt>.\n",
             "default" : 3,
-            "minimum" : 0
+            "minimum" : 0.0
           },
           "minimumDecimals" : {
             "type" : "integer",
@@ -231,7 +231,7 @@
             "title" : "Minimum number of decimals",
             "description" : "The formatted number will show trailing zeros until the requested number of decimals are reached.\nFor instance, <tt>1.2</tt> with 2 decimals is shown as <tt>1.20</tt>.\n",
             "default" : 0,
-            "minimum" : 0
+            "minimum" : 0.0
           }
         }
       }

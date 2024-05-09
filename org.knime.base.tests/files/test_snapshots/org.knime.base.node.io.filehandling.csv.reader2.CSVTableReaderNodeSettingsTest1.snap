@@ -131,7 +131,7 @@
                 "type" : "integer",
                 "format" : "int64",
                 "default" : 10000,
-                "minimum" : 0,
+                "minimum" : 0.0,
                 "configKeys" : [ "max_data_rows_scanned" ]
               },
               "maxNumChunksPerFile" : {
@@ -146,7 +146,7 @@
                 "title" : "Maximum number of columns",
                 "description" : "Sets the number of allowed columns (default 8192 columns) to prevent memory exhaustion. The node will\nfail if the number of columns exceeds the set limit.\n",
                 "default" : 8192,
-                "minimum" : 0,
+                "minimum" : 0.0,
                 "configKeys" : [ "maximum_number_of_columns" ]
               },
               "minChunkSizeInBytes" : {
@@ -289,7 +289,7 @@
                 "title" : "Maximum number of rows",
                 "description" : "Defines the maximum number of rows that are read.",
                 "default" : 50,
-                "minimum" : 0,
+                "minimum" : 0.0,
                 "configKeys" : [ "max_rows" ]
               },
               "skipFirstDataRows" : {
@@ -298,7 +298,7 @@
                 "title" : "Skip first data rows",
                 "description" : "Use this option to skip the specified number of valid data rows. This has no effect on which row will be\nchosen as a column header. Skipping rows prevents parallel reading of individual files.\n",
                 "default" : 0,
-                "minimum" : 0,
+                "minimum" : 0.0,
                 "configKeys" : [ "skip_data_rows", "number_of_rows_to_skip" ]
               },
               "skipFirstLines" : {
@@ -307,7 +307,7 @@
                 "title" : "Skip first lines of file",
                 "description" : "Use this option to skip lines that do not fit in the table structure (e.g. multi-line comments).\n<br/>\nThe specified number of lines are skipped in the input file before the parsing starts. Skipping lines\nprevents parallel reading of individual files.\n",
                 "default" : 0,
-                "minimum" : 0,
+                "minimum" : 0.0,
                 "configKeys" : [ "skip_lines", "number_of_lines_to_skip" ]
               }
             },
@@ -405,7 +405,7 @@
                 "title" : "Number of characters for autodetection",
                 "description" : "Specifies on how many characters of the selected file should be used for autodetection. The\nautodetection by default is based on the first 1024 * 1024 characters.\n",
                 "default" : 1048576,
-                "minimum" : 1,
+                "minimum" : 1.0,
                 "configKeys" : [ "autodetect_buffer_size" ]
               },
               "prependFileIndexToRowId" : {

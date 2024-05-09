@@ -220,7 +220,7 @@
             "title" : "Rounding to digits",
             "description" : "When rounding to <b>Decimals</b>, this sets the number of decimal places to keep.<br/>\nWhen rounding to <b>Significant digits</b>, this sets the number of significant digits to keep.\n",
             "default" : 3,
-            "minimum" : 0,
+            "minimum" : 0.0,
             "maximum" : 350.0,
             "configKeys" : [ "PrecisionNumer" ]
           },

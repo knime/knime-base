@@ -16,7 +16,7 @@
             "title" : "Number of loops",
             "description" : "The number of times the inner workflow should be executed.",
             "default" : 10,
-            "minimum" : 1,
+            "minimum" : 1.0,
             "maximum" : 2147483647
           }
         }

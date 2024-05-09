@@ -261,7 +261,7 @@
             "title" : "Maximum number of temporary files",
             "description" : " Defines the number of temporary files that can be created during the join operation and possibly subsequent sorting operations.\n Increase the number of temporary files to improve the performance of the node.\n Be aware that the operating system might impose a limit on the maximum number of open files.\n",
             "default" : 200,
-            "minimum" : 3
+            "minimum" : 3.0
           },
           "mergeJoinColumns" : {
             "type" : "boolean",
