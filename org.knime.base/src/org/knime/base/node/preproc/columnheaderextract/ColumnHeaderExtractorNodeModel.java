@@ -61,6 +61,7 @@ import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.DoubleValue;
@@ -80,7 +81,15 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.property.hilite.HiLiteHandler;
+import org.knime.core.node.streamable.InputPortRole;
+import org.knime.core.node.streamable.PartitionInfo;
+import org.knime.core.node.streamable.PortInput;
+import org.knime.core.node.streamable.PortOutput;
+import org.knime.core.node.streamable.RowInput;
+import org.knime.core.node.streamable.RowOutput;
+import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.node.util.ColumnFilter;
 import org.knime.core.node.util.ConvenienceMethods;
 import org.knime.core.node.util.DataValueColumnFilter;
@@ -215,27 +224,34 @@ public class ColumnHeaderExtractorNodeModel extends NodeModel {
         throws Exception {
         final var inSpec = inData[0].getDataTableSpec();
         final Map<Integer, String> scheme = renamingScheme(inSpec);
-        DataTableSpec spec0 = createOutSpecPort0(inSpec, scheme);
-        DataTableSpec spec1 = createOutSpecPort1(inSpec, scheme);
+        final var transpose = m_transposeColHeader.getBooleanValue();
+        final var replace = m_replaceColHeader.getBooleanValue();
 
+        DataTableSpec spec0 = createOutSpecPort0(inSpec, scheme);
         BufferedDataContainer cont = exec.createDataContainer(spec0);
-        if (m_transposeColHeader.getBooleanValue()) {
-            // one row per selected column with old name as value and new name as row ID
-            final var rename = m_replaceColHeader.getBooleanValue();
-            for (final Entry<Integer, String> e : scheme.entrySet()) {
-                final DataColumnSpec colSpec = inSpec.getColumnSpec(e.getKey());
-                cont.addRowToTable(new DefaultRow(rename ? e.getValue() : colSpec.getName(), colSpec.getName()));
-            }
-        } else {
-            // one row with the original names of all selected columns
-            cont.addRowToTable(new DefaultRow("Column Header",
-                scheme.keySet().stream().map(i -> inSpec.getColumnSpec(i).getName()).toArray(String[]::new)));
-        }
+        columnNamesTableRows(inSpec, scheme, transpose, replace).forEach(cont::addRowToTable);
         cont.close();
         BufferedDataTable table0 = cont.getTable();
+
+        DataTableSpec spec1 = createOutSpecPort1(inSpec, scheme);
         BufferedDataTable table1 = exec.createSpecReplacerTable(inData[0], spec1);
 
         return new BufferedDataTable[]{table0, table1};
+    }
+
+    private static Stream<DataRow> columnNamesTableRows(final DataTableSpec inSpec,
+            final Map<Integer, String> scheme, final boolean transpose, final boolean rename) {
+        if (transpose) {
+            // one row per selected column with old name as value and new name as row ID
+            return scheme.entrySet().stream().map(mapping -> {
+                final String colName = inSpec.getColumnSpec(mapping.getKey()).getName();
+                return new DefaultRow(rename ? mapping.getValue() : colName, colName);
+            });
+        } else {
+            // one row with the original names of all selected columns
+            return Stream.of(new DefaultRow("Column Header",
+                scheme.keySet().stream().map(i -> inSpec.getColumnSpec(i).getName()).toArray(String[]::new)));
+        }
     }
 
     @Override
@@ -349,15 +365,12 @@ public class ColumnHeaderExtractorNodeModel extends NodeModel {
 
     @Override
     protected HiLiteHandler getOutHiLiteHandler(final int outIndex) {
-        switch (outIndex) {
-            case 0:
-                return m_hiliteHandler;
-            case 1:
-                return super.getOutHiLiteHandler(0);
-            default:
-                throw new IndexOutOfBoundsException(
+        return switch (outIndex) {
+            case 0 -> m_hiliteHandler;
+            case 1 -> super.getOutHiLiteHandler(0);
+            default -> throw new IndexOutOfBoundsException(
                     "A wrong node port was specified. The index should be '0' or '1', not '" + outIndex + "'.");
-        }
+        };
     }
 
     /** @return new settings model for replace col header property. */
@@ -385,4 +398,46 @@ public class ColumnHeaderExtractorNodeModel extends NodeModel {
         return new SettingsModelBoolean(CFG_TRANSPOSE_COL_HEADER, false);
     }
 
+    @Override
+    public InputPortRole[] getInputPortRoles() {
+        return new InputPortRole[] { InputPortRole.NONDISTRIBUTED_STREAMABLE };
+    }
+
+    @Override
+    public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
+            final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        final var inSpec = (DataTableSpec)inSpecs[0];
+        final var rename = m_replaceColHeader.getBooleanValue();
+        final var transpose = m_transposeColHeader.getBooleanValue();
+        final Map<Integer, String> scheme = renamingScheme(inSpec);
+
+        return new StreamableOperator() { // NOSONAR
+            @Override
+            public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
+                    throws InterruptedException {
+                // use the same logic as in the non-streaming case
+                final var columnNamesOutput = (RowOutput)outputs[0];
+                try {
+                    final var rowIter = columnNamesTableRows(inSpec, scheme, transpose, rename).iterator();
+                    while (rowIter.hasNext()) {
+                        columnNamesOutput.push(rowIter.next());
+                    }
+                } finally {
+                    columnNamesOutput.close();
+                }
+
+                // copy the input table straight into the output
+                final var tableInput = (RowInput)inputs[0];
+                final var tableOutput = (RowOutput)outputs[1];
+                try {
+                    for (DataRow row; (row = tableInput.poll()) != null;) {
+                        tableOutput.push(row);
+                    }
+                } finally {
+                    tableOutput.close();
+                    tableInput.close();
+                }
+            }
+        };
+    }
 }
