@@ -96,11 +96,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction") // webui
-final class RowFilter3NodeSettings implements DefaultNodeSettings {
+abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
 
-    @Widget(title = "Filter column", description = "The column on which to apply the filter")
+    @Widget(title = "Filter column", description = "The column on which to apply the filter.")
     @ChoicesWidget(showRowKeysColumn = true, showRowNumbersColumn = true, choices = AllColumnChoicesProvider.class)
-    @Layout(RowFilter3NodeSettings.DialogSections.Filter.Condition.Column.class)
+    @Layout(AbstractRowFilterNodeSettings.DialogSections.Filter.Condition.Column.class)
     // signals for specially supported data types
     @Signal(condition = IsRowNumbersColumnCondition.class)
     @Signal(condition = IsLongColumn.class)
@@ -116,7 +116,7 @@ final class RowFilter3NodeSettings implements DefaultNodeSettings {
     @Signal(condition = IsUnaryOperator.class)
     @Signal(condition = IsBinaryOperator.class)
     @Signal(condition = IsPatternOperator.class)
-    @Layout(RowFilter3NodeSettings.DialogSections.Filter.Condition.Operator.class)
+    @Layout(AbstractRowFilterNodeSettings.DialogSections.Filter.Condition.Operator.class)
     @ValueReference(TypeBasedOperatorChoices.class)
     @ChoicesWidget(choicesProvider = TypeBasedOperatorChoices.class)
     FilterOperator m_operator = FilterOperator.EQ;
@@ -126,7 +126,7 @@ final class RowFilter3NodeSettings implements DefaultNodeSettings {
     @ValueSwitchWidget
     @Effect(signals = {IsStringColumn.class, IsUnaryOperator.class}, operation = AllButTheLast.class,
         type = EffectType.SHOW)
-    @Layout(RowFilter3NodeSettings.DialogSections.Filter.Condition.Operator.class)
+    @Layout(AbstractRowFilterNodeSettings.DialogSections.Filter.Condition.Operator.class)
     CaseMatching m_caseMatching = CaseMatching.DEFAULT;
 
     boolean caseSensitive() {
@@ -136,7 +136,7 @@ final class RowFilter3NodeSettings implements DefaultNodeSettings {
     @Widget(title = "Value",
         description = "The value for the filter criterion in a format suitable for the selected filter column "
             + "data type.")
-    @Layout(RowFilter3NodeSettings.DialogSections.Filter.Condition.ValueInput.class)
+    @Layout(AbstractRowFilterNodeSettings.DialogSections.Filter.Condition.ValueInput.class)
     @Effect(signals = IsBinaryOperator.class, type = EffectType.SHOW)
     @ValueProvider(ValueFieldCleaning.class)
     @ValueReference(ValueFieldCleaning.class)
@@ -168,17 +168,19 @@ final class RowFilter3NodeSettings implements DefaultNodeSettings {
     }
 
     // constructor needed for de-/serialisation
-    RowFilter3NodeSettings() {
+    AbstractRowFilterNodeSettings() {
         this((DataColumnSpec)null);
     }
 
     // auto-configuration
-    RowFilter3NodeSettings(final DefaultNodeSettingsContext ctx) {
+    AbstractRowFilterNodeSettings(final DefaultNodeSettingsContext ctx) {
         // set last column as default column, like old Row Filter did
         this(ctx.getDataTableSpec(0).stream().flatMap(DataTableSpec::stream).reduce((f, s) -> s).orElse(null));
     }
 
-    RowFilter3NodeSettings(final DataColumnSpec colSpec) {
+    abstract boolean isSecondOutputActive();
+
+    AbstractRowFilterNodeSettings(final DataColumnSpec colSpec) {
         if (colSpec == null) {
             m_column = SpecialColumns.ROWID.toColumnSelection();
             return;
@@ -209,7 +211,7 @@ final class RowFilter3NodeSettings implements DefaultNodeSettings {
         private static Optional<String> getTypeNameForSelected(final DefaultNodeSettingsContext context,
             final String selected) {
             final Supplier<Optional<DataTableSpec>> dtsSupplier = () -> context.getDataTableSpec(0);
-            return RowFilter3NodeModel.getDataTypeNameForColumn(selected, dtsSupplier);
+            return RowFilterNodeModel.getDataTypeNameForColumn(selected, dtsSupplier);
         }
     }
 
@@ -367,15 +369,15 @@ final class RowFilter3NodeSettings implements DefaultNodeSettings {
 
     // UTILITIES
 
-    static boolean isFilterOnRowKeys(final RowFilter3NodeSettings settings) {
+    static boolean isFilterOnRowKeys(final AbstractRowFilterNodeSettings settings) {
         return SpecialColumns.ROWID.getId().equals(settings.m_column.getSelected());
     }
 
-    static boolean isFilterOnRowNumbers(final RowFilter3NodeSettings settings) {
+    static boolean isFilterOnRowNumbers(final AbstractRowFilterNodeSettings settings) {
         return SpecialColumns.ROW_NUMBERS.getId().equals(settings.m_column.getSelected());
     }
 
-    static boolean isLastNFilter(final RowFilter3NodeSettings settings) {
+    static boolean isLastNFilter(final AbstractRowFilterNodeSettings settings) {
         return settings.m_operator == FilterOperator.LAST_N_ROWS;
     }
 

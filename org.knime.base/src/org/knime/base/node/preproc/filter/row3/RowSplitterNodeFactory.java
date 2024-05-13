@@ -44,32 +44,65 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   9 Apr 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   8 May 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.preproc.filter.row3;
 
-import java.util.Map;
-
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataType;
-import org.knime.core.data.def.BooleanCell;
-import org.knime.core.data.def.DoubleCell;
-import org.knime.core.data.def.IntCell;
-import org.knime.core.data.def.StringCell;
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
- * Snapshot test for {@code RowFilter3NodeSettingsSnapshotTest}.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction") // webui
-class RowFilter3NodeSettingsSnapshotTest extends DefaultNodeSettingsSnapshotTest {
+@SuppressWarnings("restriction") // webui not public api yet
+public final class RowSplitterNodeFactory extends WebUINodeFactory<RowFilterNodeModel<RowSplitterNodeSettings>> {
 
-    protected RowFilter3NodeSettingsSnapshotTest() {
-        super(Map.of(SettingsType.MODEL, RowFilter3NodeSettings.class),
-            new DataTableSpec(new String[]{"DoubleCol", "StringCol", "IntCol", "BoolCol"},
-                new DataType[]{DoubleCell.TYPE, StringCell.TYPE, IntCell.TYPE, BooleanCell.TYPE}));
+    static final String INPUT = "Input Table";
+
+    static final String INPUT_DESCRIPTION = "Data table from which to filter rows";
+
+    static final String MATCHES = "Included Rows";
+
+    static final String MATCHES_DESCRIPTION = "Data table with rows meeting the specified criterion";
+
+    static final String NON_MATCHES = "Excluded Rows";
+
+    private static final String NON_MATCHES_DESCRIPTION = "Data table with rows not meeting the specified criterion";
+
+    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder() //
+        .name("Row Splitter") //
+        .icon("./rowfilter2port.png") //
+        .shortDescription(
+            "Allows filtering of data rows by certain criteria, such as RowID, attribute value, and row number range,"
+                + "splitting the result into two output tables.")
+        .fullDescription("""
+                The node allows for row filtering according to certain criteria and splitting the result into two output
+                tables.
+                It can include or exclude rows by either matching on the row number, the RowID or any cell in the row.
+
+                Note: The node doesn't change the domain of the data table, i. e. the upper and lower bounds or the
+                possible values in the table spec are not changed, even if one of the bounds or one value is fully
+                filtered out.
+                        """) //
+        .modelSettingsClass(RowSplitterNodeSettings.class) //
+        .addInputTable(INPUT, INPUT_DESCRIPTION) //
+        .addOutputTable(MATCHES, MATCHES_DESCRIPTION) //
+        .addOutputTable(NON_MATCHES, NON_MATCHES_DESCRIPTION) //
+        .nodeType(NodeType.Manipulator) //
+        .keywords("Condition", "Predicate", "where") //
+        .sinceVersion(5, 3, 0) //
+        .build();
+
+    /**
+     * Constructor.
+     */
+    public RowSplitterNodeFactory() {
+        super(CONFIG);
+    }
+
+    @Override
+    public RowFilterNodeModel<RowSplitterNodeSettings> createNodeModel() {
+        return new RowFilterNodeModel<>(CONFIG, RowSplitterNodeSettings.class);
     }
 }

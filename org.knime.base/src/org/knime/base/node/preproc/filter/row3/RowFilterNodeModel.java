@@ -59,7 +59,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
-import org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings.FilterMode;
+import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterMode;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
@@ -74,8 +74,8 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InternalTableAPI;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.port.PortType;
 import org.knime.core.node.streamable.InputPortRole;
 import org.knime.core.node.streamable.OutputPortRole;
 import org.knime.core.node.streamable.PartitionInfo;
@@ -89,6 +89,7 @@ import org.knime.core.table.row.Selection;
 import org.knime.core.util.Pair;
 import org.knime.core.util.valueformat.NumberFormatter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 
 /**
@@ -98,7 +99,7 @@ import org.knime.core.webui.node.impl.WebUINodeModel;
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction") // Web UI not API yet
-final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
+final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends WebUINodeModel<S> {
 
     private static final int INPUT = 0;
 
@@ -106,15 +107,14 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
 
     private static final int NON_MATCHING_OUTPUT = 1;
 
-    RowFilter3NodeModel(final PortType[] inputPorts, final PortType[] outputPorts) {
-        super(inputPorts, outputPorts, RowFilter3NodeSettings.class);
+    RowFilterNodeModel(final WebUINodeConfiguration config, final Class<S> settingsClass) {
+        super(config, settingsClass);
     }
 
     @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final RowFilter3NodeSettings settings)
+    protected DataTableSpec[] configure(final PortObjectSpec[] inSpecs, final AbstractRowFilterNodeSettings settings)
         throws InvalidSettingsException {
-
-        final var spec = inSpecs[INPUT];
+        final var spec = (DataTableSpec)inSpecs[INPUT];
         final var selectedColumn = settings.m_column.getSelected();
         final var selectedType = getDataTypeNameForColumn(selectedColumn, () -> Optional.ofNullable(spec)).orElseThrow(
             () -> new InvalidSettingsException("Cannot get data type for column \"%s\"".formatted(selectedColumn)));
@@ -126,7 +126,7 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
                     .formatted(selectedType, valueClass));
         }
 
-        if (RowFilter3NodeSettings.isFilterOnRowNumbers(settings)) {
+        if (AbstractRowFilterNodeSettings.isFilterOnRowNumbers(settings)) {
             RowNumberFilter.validateRowNumberOperatorSupported(settings);
             // check if we have number of rows instead of row number
             final var isNumberOfRows =
@@ -136,7 +136,7 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
             RowReadPredicate.validateSettings(settings, spec);
         }
 
-        return getNrOutPorts() == 1 ? inSpecs : new DataTableSpec[]{spec, spec};
+        return settings.isSecondOutputActive() ? new DataTableSpec[]{spec, spec} : new DataTableSpec[]{spec};
     }
 
     static Optional<String> getDataTypeNameForColumn(final String selected,
@@ -159,12 +159,12 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
     }
 
     @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec,
-            final RowFilter3NodeSettings settings) throws Exception {
-        final var in = inData[INPUT];
+    protected BufferedDataTable[] execute(final PortObject[] inPortObjects, final ExecutionContext exec,
+            final AbstractRowFilterNodeSettings settings) throws Exception {
+        final var in = (BufferedDataTable)inPortObjects[INPUT];
 
-        final var isSplitter = getNrOutPorts() == 2;
-        if (RowFilter3NodeSettings.isFilterOnRowNumbers(settings)) {
+        final var isSplitter = settings.isSecondOutputActive();
+        if (AbstractRowFilterNodeSettings.isFilterOnRowNumbers(settings)) {
             return RowNumberFilter.sliceTable(exec, in, settings, isSplitter);
         }
 
@@ -204,8 +204,8 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
                 exec.setProgress(1.0 * readRows.get() / size);
             }
 
-            return nonMatches != null ? new BufferedDataTable[] { matches.finish(), nonMatches.finish() }
-                : new BufferedDataTable[] { matches.finish() };
+            return nonMatches != null ? new BufferedDataTable[]{matches.finish(), nonMatches.finish()}
+                : new BufferedDataTable[]{matches.finish()};
         }
     }
 
@@ -244,7 +244,7 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
             // hidden
         }
 
-        private static void validateRowNumberOperatorSupported(final RowFilter3NodeSettings settings)
+        private static void validateRowNumberOperatorSupported(final AbstractRowFilterNodeSettings settings)
             throws InvalidSettingsException {
             final var op = settings.m_operator;
             CheckUtils.checkSetting(SUPPORTED_OPERATORS.contains(settings.m_operator),
@@ -272,7 +272,7 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
         }
 
         static BufferedDataTable[] sliceTable(final ExecutionContext exec, final BufferedDataTable in,
-                final RowFilter3NodeSettings settings, final boolean isSplitter)
+                final AbstractRowFilterNodeSettings settings, final boolean isSplitter)
                 throws CanceledExecutionException, InvalidSettingsException {
             final var includedExcludedPartition = computeRowPartition(settings, in.size());
 
@@ -280,18 +280,18 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
             if (includedRanges.length == 0) {
                 // no rows are included
                 final var empty = exec.createVoidTable(in.getSpec());
-                return isSplitter ? new BufferedDataTable[] { empty, in } : new BufferedDataTable[] { empty };
+                return isSplitter ? new BufferedDataTable[]{empty, in} : new BufferedDataTable[]{empty};
             }
 
             final var excludedRanges = includedExcludedPartition.getSecond();
             if (excludedRanges.length == 0) {
                 // all rows are included
                 final var empty = exec.createVoidTable(in.getSpec());
-                return isSplitter ? new BufferedDataTable[] { in, empty } : new BufferedDataTable[] { in };
+                return isSplitter ? new BufferedDataTable[]{in, empty} : new BufferedDataTable[]{in};
             }
 
             if (!isSplitter) {
-                return new BufferedDataTable[] { slicedFromRanges(exec, in, includedRanges) };
+                return new BufferedDataTable[]{slicedFromRanges(exec, in, includedRanges)};
             }
 
             // split the progress between the two output tables
@@ -300,7 +300,7 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
             return new BufferedDataTable[] { included, excluded };
         }
 
-        private static Pair<RowRange[], RowRange[]> computeRowPartition(final RowFilter3NodeSettings settings,
+        private static Pair<RowRange[], RowRange[]> computeRowPartition(final AbstractRowFilterNodeSettings settings,
                 final long optionalTableSize) throws InvalidSettingsException {
             final var operator = settings.m_operator;
             final var value = parseInputAsRowNumber(settings.m_value, settings.m_type,
@@ -411,7 +411,7 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
          * @param out output list to append to
          * @param lowerIncl first row index in the range
          * @param upperExcl first row index after the range, or {@code -1} if the range doesn't have an upper limit
-         * @param optSize size of the input table if known, {@link RowFilter3NodeModel#UNKNOWN_SIZE} otherwise
+         * @param optSize size of the input table if known, {@link RowFilterNodeModel#UNKNOWN_SIZE} otherwise
          */
         private static void addRangeIfNonEmpty(final List<RowRange> out, final long lowerIncl, final long upperExcl,
                 final long optSize) {
@@ -468,8 +468,8 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
     @Override
     public InputPortRole[] getInputPortRoles() {
         final var settings = assertSettings();
-        if (RowFilter3NodeSettings.isFilterOnRowNumbers(settings)) {
-            if (RowFilter3NodeSettings.isLastNFilter(settings)) {
+        if (AbstractRowFilterNodeSettings.isFilterOnRowNumbers(settings)) {
+            if (AbstractRowFilterNodeSettings.isLastNFilter(settings)) {
                 return new InputPortRole[]{InputPortRole.NONDISTRIBUTED_NONSTREAMABLE};
             }
             return new InputPortRole[]{InputPortRole.NONDISTRIBUTED_STREAMABLE};
@@ -484,7 +484,7 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
         return out;
     }
 
-    private RowFilter3NodeSettings assertSettings() {
+    private AbstractRowFilterNodeSettings assertSettings() {
         return getSettings().orElseThrow(() -> new IllegalStateException("Node is not yet configured."));
     }
 
@@ -492,7 +492,7 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
     public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
         final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         final var settings = assertSettings();
-        if (RowFilter3NodeSettings.isFilterOnRowNumbers(settings) && RowFilter3NodeSettings.isLastNFilter(settings)) {
+        if (AbstractRowFilterNodeSettings.isFilterOnRowNumbers(settings) && AbstractRowFilterNodeSettings.isLastNFilter(settings)) {
             return super.createStreamableOperator(partitionInfo, inSpecs);
         }
         return new RowFilterOperator();
@@ -511,7 +511,7 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
             final var settings = assertSettings();
             final RowInput input = (RowInput)inputs[INPUT];
             try {
-                if (RowFilter3NodeSettings.isFilterOnRowNumbers(settings)) {
+                if (AbstractRowFilterNodeSettings.isFilterOnRowNumbers(settings)) {
                     filterRange(exec, input, outputs, settings);
                 } else {
                     filterOnPredicate(exec, input, outputs, settings);
@@ -527,7 +527,7 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
         }
 
         private static void filterOnPredicate(final ExecutionContext exec, final RowInput input,
-                final PortOutput[] outputs, final RowFilter3NodeSettings settings)
+                final PortOutput[] outputs, final AbstractRowFilterNodeSettings settings)
                 throws CanceledExecutionException, InvalidSettingsException, InterruptedException {
             final var inSpec = input.getDataTableSpec();
             final var rowPredicate = RowReadPredicate.createFrom(exec, settings, inSpec);
@@ -558,7 +558,7 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
         }
 
         private static void filterRange(final ExecutionContext exec, final RowInput input, // NOSONAR
-                final PortOutput[] outputs, final RowFilter3NodeSettings settings)
+                final PortOutput[] outputs, final AbstractRowFilterNodeSettings settings)
                 throws CanceledExecutionException, InterruptedException, InvalidSettingsException {
             final var isSplitter = outputs.length > 1;
             final var rowPartition = RowNumberFilter.computeRowPartition(settings, UNKNOWN_SIZE);

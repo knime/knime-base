@@ -741,6 +741,11 @@
             category-path="/manipulation/row/row-filter"
             factory-class="org.knime.base.node.preproc.filter.row.RowFilter2PortNodeFactory"/>
       <node
+            after="org.knime.base.node.preproc.filter.row.RowFilterNodeFactory"
+            category-path="/manipulation/row/row-filter"
+            deprecated="false"
+            factory-class="org.knime.base.node.preproc.filter.row3.RowSplitterNodeFactory"/>
+      <node
             factory-class="org.knime.base.node.preproc.shuffle.ShuffleNodeFactory"
             category-path="/manipulation/row/row-transform"/>
       <node

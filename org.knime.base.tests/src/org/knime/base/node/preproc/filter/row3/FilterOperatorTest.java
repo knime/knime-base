@@ -55,10 +55,10 @@ import java.util.Arrays;
 import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
-import org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings.IsBinaryOperator;
-import org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings.IsPatternOperator;
-import org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings.IsUnaryOperator;
-import org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings.TypeBasedOperatorChoices;
+import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.IsBinaryOperator;
+import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.IsPatternOperator;
+import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.IsUnaryOperator;
+import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.TypeBasedOperatorChoices;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
@@ -197,7 +197,7 @@ final class FilterOperatorTest {
             @SuppressWarnings("unchecked")
             @Override
             public <T> Supplier<T> computeFromValueSupplier(final Class<? extends Reference<T>> ref) {
-                if (ref.equals(RowFilter3NodeSettings.SelectedColumnRef.class)) {
+                if (ref.equals(AbstractRowFilterNodeSettings.SelectedColumnRef.class)) {
                     return () -> (T)columnSelection;
                 }
                 throw new IllegalStateException("Unexpected dependency \"%s\"".formatted(ref.getName()));
