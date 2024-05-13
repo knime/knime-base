@@ -44,52 +44,32 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   20 Mar 2024 (jasper): created
+ *   9 Apr 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.preproc.filter.row3;
 
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.impl.WebUINodeFactory;
+import java.util.Map;
+
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.def.BooleanCell;
+import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.IntCell;
+import org.knime.core.data.def.StringCell;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 
 /**
- * Node factory for the Row Filter 2 (Labs) node.
+ * Snapshot test for {@code RowFilter3NodeSettingsSnapshotTest}.
  *
- * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction") // Web UI not API yet
-// TODO should we rename the factory to remove "3"?
-public final class RowFilter3NodeFactory extends WebUINodeFactory<RowFilterNodeModel<RowFilterNodeSettings>> {
+@SuppressWarnings("restriction") // webui
+class RowSplitterNodeSettingsSnapshotTest extends DefaultNodeSettingsSnapshotTest {
 
-    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder() //
-        .name("Row Filter") //
-        .icon("./rowfilter.png") //
-        .shortDescription(
-            "Allows filtering of data rows by certain criteria, such as RowID, attribute value, and row number range.")
-        .fullDescription("""
-                The node allows for row filtering according to certain criteria.
-                It can include or exclude rows by either matching on the row number, the RowID or any cell in the row.
-
-                Note: The node doesn't change the domain of the data table, i. e. the upper and lower bounds or the
-                possible values in the table spec are not changed, even if one of the bounds or one value is fully
-                filtered out.
-                """) //
-        .modelSettingsClass(RowFilterNodeSettings.class) //
-        .addInputTable(RowSplitterNodeFactory.INPUT, RowSplitterNodeFactory.INPUT_DESCRIPTION) //
-        .addOutputTable(RowSplitterNodeFactory.MATCHES, RowSplitterNodeFactory.MATCHES_DESCRIPTION) //
-        .nodeType(NodeType.Manipulator) //
-        .keywords("Condition", "Predicate", "where", "Row Splitter") //
-        .sinceVersion(5, 3, 0) //
-        .build();
-
-    /**
-     * Constructor.
-     */
-    public RowFilter3NodeFactory() {
-        super(CONFIG);
-    }
-
-    @Override
-    public RowFilterNodeModel<RowFilterNodeSettings> createNodeModel() {
-        return new RowFilterNodeModel<>(CONFIG, RowFilterNodeSettings.class);
+    protected RowSplitterNodeSettingsSnapshotTest() {
+        super(Map.of(SettingsType.MODEL, RowSplitterNodeSettings.class),
+            new DataTableSpec(new String[]{"DoubleCol", "StringCol", "IntCol", "BoolCol"},
+                new DataType[]{DoubleCell.TYPE, StringCell.TYPE, IntCell.TYPE, BooleanCell.TYPE}));
     }
 }

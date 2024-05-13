@@ -58,8 +58,8 @@ import java.util.List;
 
 import org.hamcrest.Matcher;
 import org.junit.jupiter.api.Test;
-import org.knime.base.node.preproc.filter.row3.RowFilter3NodeModel.RowNumberFilter;
-import org.knime.base.node.preproc.filter.row3.RowFilter3NodeModel.RowRange;
+import org.knime.base.node.preproc.filter.row3.RowFilterNodeModel.RowNumberFilter;
+import org.knime.base.node.preproc.filter.row3.RowFilterNodeModel.RowRange;
 
 @SuppressWarnings("static-method")
 final class RowNumberFilterTest {

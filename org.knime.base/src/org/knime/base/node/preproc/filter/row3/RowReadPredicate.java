@@ -106,10 +106,10 @@ final class RowReadPredicate implements Predicate<RowRead> {
         return o -> o.isPresent() && predicate.test(o.get());
     }
 
-    static void validateSettings(final RowFilter3NodeSettings settings, final DataTableSpec spec)
+    static void validateSettings(final AbstractRowFilterNodeSettings settings, final DataTableSpec spec)
         throws InvalidSettingsException {
         final var operator = settings.m_operator;
-        if (RowFilter3NodeSettings.isFilterOnRowKeys(settings)) {
+        if (AbstractRowFilterNodeSettings.isFilterOnRowKeys(settings)) {
             CheckUtils.checkSetting(operator != FilterOperator.IS_MISSING, "Cannot filter RowID for presence.");
             CheckUtils.checkSetting(operator.isEnabledFor(SpecialColumns.ROWID, StringCell.TYPE),
                 "Filter operator \"%s\" cannot be applied to RowID.", operator.label());
@@ -132,10 +132,10 @@ final class RowReadPredicate implements Predicate<RowRead> {
         }
     }
 
-    static Predicate<RowRead> createFrom(final ExecutionContext exec, final RowFilter3NodeSettings settings,
+    static Predicate<RowRead> createFrom(final ExecutionContext exec, final AbstractRowFilterNodeSettings settings,
         final DataTableSpec spec) throws InvalidSettingsException {
         final var operator = settings.m_operator;
-        if (RowFilter3NodeSettings.isFilterOnRowKeys(settings)) {
+        if (AbstractRowFilterNodeSettings.isFilterOnRowKeys(settings)) {
             final var predicate = new StringPredicate(operator, settings.m_caseMatching, settings.m_value);
             return row -> predicate.test(row.getRowKey().getString());
         }
@@ -157,7 +157,7 @@ final class RowReadPredicate implements Predicate<RowRead> {
      */
     interface DataTypeHandler<O, X extends Throwable> {
 
-        default O fromDataType(final RowFilter3NodeSettings settings, final int columnIndex, final DataType dataType, // NOSONAR
+        default O fromDataType(final AbstractRowFilterNodeSettings settings, final int columnIndex, final DataType dataType, // NOSONAR
             final Function<String, X> exceptionFn) throws X {
             final var operator = settings.m_operator;
             final var value = settings.m_value;
