@@ -90,12 +90,7 @@ public class UniqueConcatenateOperator extends AggregationOperator {
             final GlobalSettings globalSettings,
             final OperatorColumnSettings opColSettings) {
         super(operatorData, globalSettings, opColSettings);
-        try {
-            m_vals = new LinkedHashSet<>(getMaxUniqueValues());
-        } catch (final OutOfMemoryError e) {
-            throw new IllegalArgumentException(
-                    "Maximum unique values number to big");
-        }
+        m_vals = new LinkedHashSet<>();
     }
 
     /**

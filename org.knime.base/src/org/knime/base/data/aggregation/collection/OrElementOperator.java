@@ -78,11 +78,7 @@ public class OrElementOperator extends AggregationOperator {
     protected OrElementOperator(final OperatorData operatorData, final GlobalSettings globalSettings,
             final OperatorColumnSettings opColSettings) {
         super(operatorData, globalSettings, opColSettings);
-        try {
-            m_vals = new LinkedHashSet<>(getMaxUniqueValues());
-        } catch (final OutOfMemoryError e) {
-            throw new IllegalArgumentException("Maximum unique values number to big");
-        }
+        m_vals = new LinkedHashSet<>();
     }
 
     /**Constructor for class OrElementOperator.

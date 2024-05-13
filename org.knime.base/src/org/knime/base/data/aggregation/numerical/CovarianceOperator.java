@@ -88,16 +88,8 @@ public class CovarianceOperator extends ColumnSelectorOperator {
         final String columnName) {
         super(new OperatorData("Covariance", true, false, DoubleValue.class, false), globalSettings,
             setInclMissingFlag(opColSettings, false), columnName, "Covariance columns", DoubleValue.class);
-        try {
-            int maxVal = getMaxUniqueValues();
-            if (maxVal == 0) {
-                maxVal++;
-            }
-            m_cells = new ResizableDoubleArray(maxVal);
-            add_cells = new ResizableDoubleArray(maxVal);
-        } catch (final OutOfMemoryError e) {
-            throw new IllegalArgumentException("Maximum unique values number too big");
-        }
+        m_cells = new ResizableDoubleArray();
+        add_cells = new ResizableDoubleArray();
     }
 
     /**

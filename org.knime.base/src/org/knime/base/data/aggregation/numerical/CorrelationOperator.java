@@ -138,17 +138,9 @@ public class CorrelationOperator extends ColumnSelectorOperator {
         final String columnName, final String correlationMethod) {
         super(new OperatorData("Correlation", true, false, DoubleValue.class, false), globalSettings,
             setInclMissingFlag(opColSettings, false), columnName, "Correlation columns", DoubleValue.class);
-        try {
-            int maxVal = getMaxUniqueValues();
-            if (maxVal == 0) {
-                maxVal++;
-            }
-            m_settings.setCorrelationMethodModel(correlationMethod);
-            m_cells = new ResizableDoubleArray(maxVal);
-            add_cells = new ResizableDoubleArray(maxVal);
-        } catch (final OutOfMemoryError e) {
-            throw new IllegalArgumentException("Maximum unique values number too big");
-        }
+        m_settings.setCorrelationMethodModel(correlationMethod);
+        m_cells = new ResizableDoubleArray();
+        add_cells = new ResizableDoubleArray();
     }
 
     /**

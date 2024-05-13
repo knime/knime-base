@@ -97,12 +97,7 @@ public class UniqueConcatenateWithCountOperator
             final GlobalSettings globalSettings,
             final OperatorColumnSettings opColSettings) {
         super(operatorData, globalSettings, opColSettings);
-        try {
-            m_vals = new LinkedHashMap<>(getMaxUniqueValues());
-        } catch (final OutOfMemoryError e) {
-            throw new IllegalArgumentException(
-                    "Maximum unique values number to big");
-        }
+        m_vals = new LinkedHashMap<>();
     }
 
     /**

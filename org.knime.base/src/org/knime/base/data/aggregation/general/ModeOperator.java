@@ -84,11 +84,7 @@ public class ModeOperator extends AggregationOperator {
     protected ModeOperator(final OperatorData operatorData, final GlobalSettings globalSettings,
             final OperatorColumnSettings opColSettings) {
         super(operatorData, globalSettings, opColSettings);
-        try {
-            m_valCounter = new LinkedHashMap<>(getMaxUniqueValues());
-        } catch (final OutOfMemoryError e) {
-            throw new IllegalArgumentException("Maximum unique values number to big");
-        }
+        m_valCounter = new LinkedHashMap<>();
     }
 
     /**

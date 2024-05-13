@@ -81,12 +81,7 @@ public class MedianDateOperator extends AggregationOperator {
             final GlobalSettings globalSettings,
             final OperatorColumnSettings opColSettings) {
         super(operatorData, globalSettings, opColSettings);
-        try {
-            m_cells = new ArrayList<>(getMaxUniqueValues());
-        } catch (final OutOfMemoryError e) {
-            throw new IllegalArgumentException(
-            "Maximum unique values number to big");
-        }
+        m_cells = new ArrayList<>();
     }
 
     /**Constructor for class MedianDateOperator.

@@ -86,12 +86,7 @@ public class ListCellOperator extends AggregationOperator {
             final GlobalSettings globalSettings,
             final OperatorColumnSettings opColSettings) {
         super(operatorData, globalSettings, opColSettings);
-        try {
-            m_cells = new ArrayList<>(getMaxUniqueValues());
-        } catch (final OutOfMemoryError e) {
-            throw new IllegalArgumentException(
-            "Maximum unique values number too big");
-        }
+        m_cells = new ArrayList<>();
     }
 
     /**

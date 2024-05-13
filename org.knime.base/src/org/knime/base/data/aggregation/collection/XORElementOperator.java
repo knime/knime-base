@@ -79,13 +79,8 @@ public class XORElementOperator extends AggregationOperator {
     protected XORElementOperator(final OperatorData operatorData, final GlobalSettings globalSettings,
             final OperatorColumnSettings opColSettings) {
         super(operatorData, globalSettings, opColSettings);
-        try {
-            m_vals = new LinkedHashSet<>(getMaxUniqueValues());
-            m_allVals = new HashSet<>(getMaxUniqueValues());
-        } catch (final OutOfMemoryError e) {
-            throw new IllegalArgumentException(
-                    "Maximum unique values number to big");
-        }
+        m_vals = new LinkedHashSet<>();
+        m_allVals = new HashSet<>();
     }
 
     /**Constructor for class XORElementOperator.
