@@ -199,7 +199,7 @@ public class ColCombine2NodeModel extends WebUISimpleStreamableFunctionNodeModel
             }
 
             if (m_modelSettings.m_delimiter == null) {
-                throw new InvalidSettingsException("Delimiter must not be null");
+                throw new InvalidSettingsException("A delimiter must be specified");
             }
             m_modelSettings.m_delimiter = trimDelimString(m_modelSettings.m_delimiter);
 
