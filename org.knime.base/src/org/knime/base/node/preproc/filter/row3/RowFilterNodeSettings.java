@@ -49,11 +49,14 @@
 package org.knime.base.node.preproc.filter.row3;
 
 /**
+ * Settings for the Row Filter node.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction") // webui is not public yet
 final class RowFilterNodeSettings extends AbstractRowFilterNodeSettings {
+
+    // we need to repeat both constructores, otherwise InstantiationUtil cannot instantiate our concrete settings class
 
     // for de-/serialization
     RowFilterNodeSettings() {

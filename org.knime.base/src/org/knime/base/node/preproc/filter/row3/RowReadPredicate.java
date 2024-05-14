@@ -157,8 +157,8 @@ final class RowReadPredicate implements Predicate<RowRead> {
      */
     interface DataTypeHandler<O, X extends Throwable> {
 
-        default O fromDataType(final AbstractRowFilterNodeSettings settings, final int columnIndex, final DataType dataType, // NOSONAR
-            final Function<String, X> exceptionFn) throws X {
+        default O fromDataType(final AbstractRowFilterNodeSettings settings, final int columnIndex, // NOSONAR
+                final DataType dataType, final Function<String, X> exceptionFn) throws X {
             final var operator = settings.m_operator;
             final var value = settings.m_value;
             CheckUtils.check(operator.isEnabledFor(null, dataType), exceptionFn,

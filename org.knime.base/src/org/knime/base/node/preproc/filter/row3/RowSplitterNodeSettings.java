@@ -49,16 +49,14 @@
 package org.knime.base.node.preproc.filter.row3;
 
 /**
+ * Settings for the Row Splitter node based on the webui.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction") // webui
 final class RowSplitterNodeSettings extends AbstractRowFilterNodeSettings {
 
-    @Override
-    boolean isSecondOutputActive() {
-        return true;
-    }
+    // we need to repeat both constructores, otherwise InstantiationUtil cannot instantiate our concrete settings class
 
     // for de-/serialization
     RowSplitterNodeSettings() {
@@ -68,6 +66,11 @@ final class RowSplitterNodeSettings extends AbstractRowFilterNodeSettings {
     // auto-configuration constructor needs to be "re-declared" in subclass
     RowSplitterNodeSettings(final DefaultNodeSettingsContext ctx) {
         super(ctx);
+    }
+
+    @Override
+    boolean isSecondOutputActive() {
+        return true;
     }
 
 }
