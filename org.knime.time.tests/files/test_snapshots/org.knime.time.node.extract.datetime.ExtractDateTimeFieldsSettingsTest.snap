@@ -1,9 +1,9 @@
 {
   "data" : {
     "model" : {
-      "selectedColumn" : { },
+      "selectedColumn" : "test",
       "extractFields" : [ ],
-      "locale" : "en-DE"
+      "locale" : "de-DE"
     }
   },
   "schema" : {
@@ -101,26 +101,13 @@
             "type" : "string",
             "title" : "Locale",
             "description" : "The locale that governs the localization of output strings (month, day of week, time zone offset) and takes care of local calendrical characteristics (week and day of week numbering).",
-            "default" : "en-DE"
+            "default" : "de-DE"
           },
           "selectedColumn" : {
-            "type" : "object",
-            "properties" : {
-              "compatibleTypes" : {
-                "configKeys" : [ "compatibleTypes_Internals" ],
-                "type" : "array",
-                "items" : {
-                  "type" : "string",
-                  "configKeys" : [ "compatibleTypes_Internals" ]
-                }
-              },
-              "selected" : {
-                "type" : "string"
-              }
-            },
+            "type" : "string",
             "title" : "Date&Time column",
             "description" : "A Local Date, Local Time, Local Date Time or Zoned Date Time column whose fields to extract.",
-            "default" : { },
+            "default" : "test",
             "configKeys" : [ "col_select" ]
           }
         }
@@ -135,7 +122,6 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/selectedColumn",
         "options" : {
-          "format" : "columnSelection",
           "possibleValues" : [ {
             "id" : "test",
             "text" : "test",
@@ -145,6 +131,7 @@
             },
             "compatibleTypes" : [ "org.knime.core.data.time.localdatetime.LocalDateTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
           } ],
+          "format" : "dropDown",
           "showNoneColumn" : false,
           "showRowKeys" : false,
           "showSearch" : true,
@@ -175,7 +162,11 @@
               }
             }, {
               "type" : "Control",
-              "scope" : "#/properties/columnName"
+              "scope" : "#/properties/columnName",
+              "options" : {
+                "hideOnNull" : false,
+                "placeholderProvider" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$ColumnNameProvider"
+              }
             } ]
           } ],
           "addButtonText" : "Add field",
@@ -196,6 +187,25 @@
           "showSearch" : true,
           "showMode" : true
         }
+      } ]
+    } ],
+    "globalUpdates" : [ {
+      "trigger" : {
+        "id" : "after-open-dialog",
+        "triggerInitially" : true
+      },
+      "dependencies" : [ {
+        "scopes" : [ "#/properties/model/properties/selectedColumn" ],
+        "id" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$AutoGuessColumnReference"
+      } ]
+    }, {
+      "trigger" : {
+        "id" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$ColumnNameProvider$DateTimeFieldReference",
+        "scopes" : [ "#/properties/model/properties/extractFields", "#/properties/field" ]
+      },
+      "dependencies" : [ {
+        "scopes" : [ "#/properties/model/properties/extractFields", "#/properties/field" ],
+        "id" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$ColumnNameProvider$DateTimeFieldReference"
       } ]
     } ]
   }

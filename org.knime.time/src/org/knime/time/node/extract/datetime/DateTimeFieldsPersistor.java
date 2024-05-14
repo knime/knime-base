@@ -156,7 +156,7 @@ public class DateTimeFieldsPersistor extends NodeSettingsPersistorWithConfigKey<
         for (String settingsKey : topLevelKeys) {
             // load with default as we detected if legacy keys are used in general beforehand
             if (settings.getBoolean(settingsKey, false)) {
-                if (settingsKey == SUBSECOND) {
+                if (settingsKey.equals(SUBSECOND)) {
                     // subseconds were stored with unit as string setting
                     String subsecondUnit = settings.getString(SUBSECOND_UNITS, "");
                     DateTimeField field = fieldMap.get(subsecondUnit);

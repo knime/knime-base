@@ -60,7 +60,6 @@ import java.util.Arrays;
 import java.util.Locale;
 import java.util.function.Function;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnDomainCreator;
@@ -82,7 +81,6 @@ import org.knime.core.data.time.localtime.LocalTimeValue;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.util.UniqueNameGenerator;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 import org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings.DateTimeField;
@@ -106,11 +104,22 @@ public class ExtractDateTimeFieldsNodeModel2
      * {@inheritDoc}
      */
     @Override
+    protected void validateSettings(final ExtractDateTimeFieldsSettings settings) throws InvalidSettingsException {
+        if (Arrays.stream(settings.m_extractFields).anyMatch(field -> field.m_field == null)) {
+            throw new InvalidSettingsException("No empty fields allowed. Please remove to continue.");
+        }
+        super.validateSettings(settings);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     protected ColumnRearranger createColumnRearranger(final DataTableSpec spec,
         final ExtractDateTimeFieldsSettings modelSettings) throws InvalidSettingsException {
-        final String selectedCol = modelSettings.m_selectedColumn.getSelected();
+        final String selectedCol = modelSettings.m_selectedColumn;
         if (selectedCol == null || selectedCol.isEmpty()) {
-            throw new InvalidSettingsException("Node must be configured.");
+            throw new InvalidSettingsException("No Date&Time compatible column selected.");
         }
         final int selectedColIdx = spec.findColumnIndex(selectedCol);
         if (selectedColIdx < 0) {
@@ -129,10 +138,10 @@ public class ExtractDateTimeFieldsNodeModel2
         final DataColumnDomainCreator domainCreator = new DataColumnDomainCreator();
         final ColumnRearranger rearranger = new ColumnRearranger(spec);
 
-        Arrays.stream(modelSettings.m_extractFields).forEachOrdered(field -> {
+        Arrays.stream(modelSettings.m_extractFields).forEachOrdered(field ->
             extractField(field.m_field, field.m_columnName, selectedColIdx, selectedColSpec.getType(), locale,
-                nameGenerator, domainCreator, rearranger);
-        });
+                nameGenerator, domainCreator, rearranger)
+        );
 
         if (rearranger.getColumnCount() == spec.getNumColumns()) {
             getLogger().info("No fields will be extracted. Output table will equal input table.");
@@ -148,15 +157,7 @@ public class ExtractDateTimeFieldsNodeModel2
         final var extractor = new TemporalExtractor(selectedColIdx, selectedColType, rearranger);
         String suggestedColName = newColumnName;
         if (StringUtils.isEmpty(suggestedColName)) {
-            try {
-                Label label = DateTimeField.class.getField(field.name()).getAnnotation(Label.class);
-                if (label == null) {
-                    throw new NoSuchFieldException("DateTimeField must provide 'Label' annotation");
-                }
-                suggestedColName = label.value();
-            } catch (NoSuchFieldException | SecurityException ex) {
-                throw new NotImplementedException(ex);
-            }
+            suggestedColName = field.getLabelValue();
         }
 
         // Date fields
@@ -214,9 +215,7 @@ public class ExtractDateTimeFieldsNodeModel2
                 t -> StringCellFactory.create(t.getDayOfWeek().getDisplayName(TextStyle.FULL_STANDALONE, locale)), //
                 t -> StringCellFactory.create(t.getDayOfWeek().getDisplayName(TextStyle.FULL_STANDALONE, locale)) //
             );
-        }
-        // Time fields
-        else if (field == DateTimeField.HOUR) {
+        } /* Time fields */ else if (field == DateTimeField.HOUR) {
             extractor.extractFromTime(createBoundedIntColumn(domainCreator, nameGenerator, suggestedColName, 0, 23), //
                 t -> IntCellFactory.create(t.getHour()), //
                 t -> IntCellFactory.create(t.getHour()), //
@@ -248,10 +247,7 @@ public class ExtractDateTimeFieldsNodeModel2
                 createBoundedIntColumn(domainCreator, nameGenerator, suggestedColName, 0, 999_999_999), //
                 t -> IntCellFactory.create(t.get(ChronoField.NANO_OF_SECOND)) //
             );
-        }
-
-        // Time zone fields
-        else if (field == DateTimeField.TIME_ZONE_NAME) {
+        } /* Time zone fields */ else if (field == DateTimeField.TIME_ZONE_NAME) {
             extractor.extractFromZonedDateTime(nameGenerator.newColumn(suggestedColName, StringCell.TYPE), //
                 t -> StringCellFactory.create(t.getZone().getId())//
             );
@@ -308,9 +304,9 @@ public class ExtractDateTimeFieldsNodeModel2
 
         void extractFromDate(final DataColumnSpec colSpec, final Function<Temporal, DataCell> createFromTemporal) {
             extractFromDate(colSpec, //
-                t -> createFromTemporal.apply(t), //
-                t -> createFromTemporal.apply(t), //
-                t -> createFromTemporal.apply(t) //
+                createFromTemporal::apply, //
+                createFromTemporal::apply, //
+                createFromTemporal::apply //
             );
         }
 
@@ -328,9 +324,9 @@ public class ExtractDateTimeFieldsNodeModel2
 
         void extractFromTime(final DataColumnSpec colSpec, final Function<Temporal, DataCell> createFromTemporal) {
             extractFromTime(colSpec, //
-                t -> createFromTemporal.apply(t), //
-                t -> createFromTemporal.apply(t), //
-                t -> createFromTemporal.apply(t) //
+                createFromTemporal::apply, //
+                createFromTemporal::apply, //
+                createFromTemporal::apply //
             );
         }
 

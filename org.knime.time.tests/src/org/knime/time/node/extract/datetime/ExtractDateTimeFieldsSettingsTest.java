@@ -46,32 +46,74 @@
  * History
  *   25 Jan 2024 (albrecht): created
  */
-package org.knime.time.node.snapshot;
+package org.knime.time.node.extract.datetime;
 
-import java.util.Map;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Locale;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.time.localdatetime.LocalDateTimeCell;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
-import org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
  *
  * @author Christian Albrecht, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public class NodeSettingsSnapshotTests { // NOSONAR
+public class ExtractDateTimeFieldsSettingsTest extends DefaultNodeSettingsSnapshotTest { // NOSONAR
 
-    static class ExtractDateTimeFieldsSettingsTest extends DefaultNodeSettingsSnapshotTest {
-        protected ExtractDateTimeFieldsSettingsTest() {
-            super(Map.of(SettingsType.MODEL, ExtractDateTimeFieldsSettings.class), createDefaultTestTableSpec());
-        }
+    private Locale m_defaultLocale;
+
+    protected ExtractDateTimeFieldsSettingsTest() {
+        super(getConfig());
+    }
+
+    @BeforeEach
+    void setDefaultLocale() {
+        m_defaultLocale = Locale.getDefault();
+        Locale.setDefault(Locale.GERMANY);
+    }
+
+    @AfterEach
+    void resetDefaultLocale() {
+        Locale.setDefault(m_defaultLocale);
+    }
+
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .withInputPortObjectSpecs(new PortObjectSpec[]{createDefaultTestTableSpec()}) //
+            .testJsonFormsForModel(ExtractDateTimeFieldsSettings.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
     }
 
     private static DataTableSpec createDefaultTestTableSpec() {
         return new DataTableSpec(new String[]{"test"}, new DataType[]{DataType.getType(LocalDateTimeCell.class)});
+    }
+
+    private static ExtractDateTimeFieldsSettings readSettings() {
+        try {
+            var path = getSnapshotPath(ExtractDateTimeFieldsSettings.class).getParent().resolve("node_settings")
+                .resolve("ExtractDateTimeFieldsSettings.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return DefaultNodeSettings.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    ExtractDateTimeFieldsSettings.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

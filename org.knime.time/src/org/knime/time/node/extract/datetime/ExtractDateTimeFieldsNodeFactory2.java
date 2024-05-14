@@ -59,18 +59,18 @@ import org.knime.core.webui.node.impl.WebUINodeFactory;
 public final class ExtractDateTimeFieldsNodeFactory2 extends WebUINodeFactory<ExtractDateTimeFieldsNodeModel2> {
 
     private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
-            .name("Extract Date&Time Fields")//
-            .icon("./extractdatetime.png")//
-            .shortDescription("Extracts date and/or time fields from date &amp; time cells.")//
-            .fullDescription("Extracts the selected fields from a Local Date, Local Time, " +
-                "Local Date Time or Zoned Date Time column and appends their values as " +
-                "corresponding integer or string columns.")
-            .modelSettingsClass(ExtractDateTimeFieldsSettings.class)//
-            .addInputTable("Input table", "The input table that contains columns with date or time information to extract.")//
-            .addOutputTable("Output table", "Output table containing the extracted fields as appended columns.")//
-            .keywords("extract", "date", "time", "date-time", "fields", "day", "quarter", "week", "year")//
-            .sinceVersion(5, 3, 0)//
-            .build();
+        .name("Date&Time Part Extractor")//
+        .icon("./extractdatetime.png")//
+        .shortDescription("Extracts date and/or time fields from date &amp; time cells.")//
+        .fullDescription("Extracts the selected fields from a Local Date, Local Time, " +
+            "Local Date Time or Zoned Date Time column and appends their values as " +
+            "corresponding integer or string columns.")
+        .modelSettingsClass(ExtractDateTimeFieldsSettings.class)//
+        .addInputTable("Input table", "The input table that contains columns with date or time information " +
+            "to extract.")//
+        .addOutputTable("Output table", "Output table containing the extracted fields as appended columns.")//
+        .keywords("extract", "date", "time", "date-time", "fields", "day", "quarter", "week", "year")//
+        .build();
 
     /**
      * Constructor.

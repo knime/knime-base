@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <entry key="col_select" type="xstring" value="local_date_time"/>
+    <config key="extractFields">
+        <config key="0">
+            <entry key="field" type="xstring" value="YEAR"/>
+            <entry key="columnName" type="xstring" value="Year"/>
+        </config>
+        <config key="1">
+            <entry key="field" type="xstring" value="YEAR_WEEK_BASED"/>
+            <entry key="columnName" type="xstring" value="Year (week-based)"/>
+        </config>
+        <config key="2">
+            <entry key="field" type="xstring" value="QUARTER"/>
+            <entry key="columnName" type="xstring" value="Quarter"/>
+        </config>
+        <config key="3">
+            <entry key="field" type="xstring" value="MONTH_NUMBER"/>
+            <entry key="columnName" type="xstring" value="Month (number)"/>
+        </config>
+        <config key="4">
+            <entry key="field" type="xstring" value="WEEK"/>
+            <entry key="columnName" type="xstring" value="Week"/>
+        </config>
+        <config key="5">
+            <entry key="field" type="xstring" value="DAY_OF_MONTH"/>
+            <entry key="columnName" type="xstring" value="Day of month"/>
+        </config>
+        <config key="6">
+            <entry key="field" type="xstring" value="DAY_OF_WEEK_NUMBER"/>
+            <entry key="columnName" type="xstring" value="Day of week (number)"/>
+        </config>
+        <config key="7">
+            <entry key="field" type="xstring" value="DAY_OF_WEEK_NAME"/>
+            <entry key="columnName" type="xstring" value="Day of week (name)"/>
+        </config>
+        <config key="8">
+            <entry key="field" type="xstring" value="HOUR"/>
+            <entry key="columnName" type="xstring" value="Hour"/>
+        </config>
+        <config key="9">
+            <entry key="field" type="xstring" value="MINUTE"/>
+            <entry key="columnName" type="xstring" value="Minute"/>
+        </config>
+        <config key="10">
+            <entry key="field" type="xstring" value="SECOND"/>
+            <entry key="columnName" type="xstring" value="Second"/>
+        </config>
+        <config key="11">
+            <entry key="field" type="xstring" value="MICROSECOND"/>
+            <entry key="columnName" type="xstring" value="Subsecond (in microseconds)"/>
+        </config>
+        <config key="12">
+            <entry key="field" type="xstring" value="TIME_ZONE_NAME"/>
+            <entry key="columnName" type="xstring" value="Time zone name"/>
+        </config>
+        <config key="13">
+            <entry key="field" type="xstring" value="TIME_ZONE_OFFSET"/>
+            <entry key="columnName" type="xstring" value="Time zone offset"/>
+        </config>
+    </config>
+    <entry key="locale" type="xstring" value="he-IL"/>
+</config>

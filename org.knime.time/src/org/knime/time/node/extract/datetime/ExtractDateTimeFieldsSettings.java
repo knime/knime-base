@@ -52,47 +52,100 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Supplier;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.time.localdate.LocalDateValue;
 import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
 import org.knime.core.data.time.localtime.LocalTimeValue;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.StringToColumnSelectionPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesUpdateHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.CompatibleColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings.ColumnNameProvider.DateTimeFieldReference;
 
 /**
  *
  * @author Christian Albrecht, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
+class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(ExtractDateTimeFieldsSettings.class);
+
+    ExtractDateTimeFieldsSettings() {}
+
+    ExtractDateTimeFieldsSettings(final DefaultNodeSettingsContext context) {
+        m_selectedColumn = context.getDataTableSpec(0).map(ExtractDateTimeFieldsSettings::autoGuessColumn).orElse(null);
+    }
+
+    static String autoGuessColumn(final DataTableSpec spec) {
+        if (spec == null) {
+            return null;
+        }
+        return spec.stream().filter(colSpec -> isDateTimeCompatible(colSpec)).findFirst().map(DataColumnSpec::getName)
+            .orElse(null);
+    }
 
     @Section(title = "Column selection")
     interface ColumnSection {}
 
+    static final class AutoGuessColumnReference implements Reference<String> {}
+    static final class AutoGuessColumnValueProvider implements StateProvider<String> {
+
+        private Supplier<String> m_valueSupplier;
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            initializer.computeAfterOpenDialog();
+            m_valueSupplier = initializer.getValueSupplier(AutoGuessColumnReference.class);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String computeState(final DefaultNodeSettingsContext context) {
+            if (m_valueSupplier.get() == null || m_valueSupplier.get().isEmpty()) {
+                return context.getDataTableSpec(0).map(ExtractDateTimeFieldsSettings::autoGuessColumn)
+                        .orElse(null);
+            }
+            return m_valueSupplier.get();
+        }
+    }
+
     @Widget(title = "Date&Time column", description = "A Local Date, Local Time, Local Date Time or " +
             "Zoned Date Time column whose fields to extract.")
-    @Persist(configKey = "col_select", customPersistor = StringToColumnSelectionPersistor.class)
+    @Persist(configKey = "col_select")
     @ChoicesWidget(choices = DateTimeColumnChoices.class)
     @Layout(ColumnSection.class)
-    public ColumnSelection m_selectedColumn = new ColumnSelection();
+    @ValueReference(AutoGuessColumnReference.class)
+    @ValueProvider(AutoGuessColumnValueProvider.class)
+    public String m_selectedColumn;
 
     @Section(title = "Date and time fields")
     @After(ColumnSection.class)
@@ -142,11 +195,13 @@ public class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
         @Widget(title = "Field", description = "The type of field to extract.")
         @ChoicesWidget(choicesUpdateHandler = FilteredPossibleFieldsChoices.class)
         @Layout(ExtractFieldLayout.class)
+        @ValueReference(DateTimeFieldReference.class)
         public DateTimeField m_field;
 
         @Widget(title= "Column name",
                 description = "The name of the column populated with the values of the selected field.")
         @Layout(ExtractFieldLayout.class)
+        @TextInputWidget(placeholderProvider = ColumnNameProvider.class)
         public String m_columnName;
     }
 
@@ -234,7 +289,19 @@ public class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
 
         @Label(value = "Time Zone Offset", description = "If checked, the time zone offset will be extracted as a "
             + "localized, formatted number and appended as a string column.")
-        TIME_ZONE_OFFSET
+        TIME_ZONE_OFFSET;
+
+        String getLabelValue() {
+            try {
+                Label label = DateTimeField.class.getField(this.name()).getAnnotation(Label.class);
+                if (label == null) {
+                    throw new NoSuchFieldException("DateTimeField must provide 'Label' annotation");
+                }
+                return label.value();
+            } catch (NoSuchFieldException | SecurityException ex) {
+                throw new NotImplementedException(ex);
+            }
+        }
     }
 
     private static IdAndText toIdAndText(final DateTimeField dateTimeField) {
@@ -243,6 +310,7 @@ public class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
             Label fieldLabel = DateTimeField.class.getField(fieldName).getAnnotation(Label.class);
             return new IdAndText(fieldName, fieldLabel.value());
         } catch (NoSuchFieldException | SecurityException ex) {
+            LOGGER.warn("Could not create date&time field", ex);
             return new IdAndText(fieldName, fieldName);
         }
     }
@@ -275,7 +343,7 @@ public class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
     };
 
     static final class ColumnUpdateFilterTrigger {
-        public ColumnSelection m_selectedColumn;
+        String m_selectedColumn;
     }
 
     static final class FilteredPossibleFieldsChoices implements ChoicesUpdateHandler<ColumnUpdateFilterTrigger> {
@@ -287,8 +355,9 @@ public class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
         public IdAndText[] update(final ColumnUpdateFilterTrigger update, final DefaultNodeSettingsContext context)
             throws WidgetHandlerException {
             List<IdAndText> filteredChoices = new ArrayList<>();
-            if (update.m_selectedColumn != null) {
-                var colSpec = context.getDataTableSpec(0).get().getColumnSpec(update.m_selectedColumn.getSelected());
+            var spec = context.getDataTableSpec(0);
+            if (update.m_selectedColumn != null && spec.isPresent() && spec.get() != null) {
+                var colSpec = spec.get().getColumnSpec(update.m_selectedColumn);
                 if (isDateType(colSpec)) {
                     filteredChoices
                         .addAll(Arrays.stream(dateFields).map(ExtractDateTimeFieldsSettings::toIdAndText).toList());
@@ -310,6 +379,44 @@ public class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
             return false;
         }
 
+    }
+
+    static final class ColumnNameProvider implements StateProvider<String> {
+
+        static final class DateTimeFieldReference implements Reference<DateTimeField> {}
+
+        private Supplier<DateTimeField> m_valueSupplier;
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            m_valueSupplier = initializer.computeFromValueSupplier(DateTimeFieldReference.class);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String computeState(final DefaultNodeSettingsContext context) {
+            return m_valueSupplier.get().getLabelValue();
+        }
+
+    }
+
+
+    static boolean isDateTimeCompatible(final DataColumnSpec colSpec) {
+        if (colSpec != null) {
+            var type = colSpec.getType();
+            if (type.isCompatible(LocalDateValue.class) ||
+                type.isCompatible(LocalTimeValue.class) ||
+                type.isCompatible(LocalDateTimeValue.class) ||
+                type.isCompatible(ZonedDateTimeValue.class)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     static boolean isDateType(final DataColumnSpec colSpec) {
