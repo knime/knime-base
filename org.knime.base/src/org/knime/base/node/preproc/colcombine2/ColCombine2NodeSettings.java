@@ -140,9 +140,10 @@ public final class ColCombine2NodeSettings implements DefaultNodeSettings {
     ColumnFilter m_columnFilter = new ColumnFilter();
 
     @Persist(customPersistor = FailIfMissingPersistor.class)
-    @Widget(title = "Fail if there are missing columns", description = "If true the node will fail when there are missing columns selected", advanced = true)
+    @Widget(title = "Fail if there are missing columns",
+        description = "If true the node will fail when there are missing columns selected", advanced = true)
     @Layout(Concatenation.class)
-    boolean m_failIfMissingColumns = false;
+    boolean m_failIfMissingColumns;
 
     @Widget(title = "Delimiter", description = "Enter a delimiter string here. This string is used to separate "
         + "the different cell contents in the new, appended column.")
@@ -156,12 +157,13 @@ public final class ColCombine2NodeSettings implements DefaultNodeSettings {
     @ValueSwitchWidget
     DelimiterInputs m_delimiterInputs = DelimiterInputs.QUOTE;
 
-    @Widget(title = "Quote character", advanced = true, description = "The character entered here will be used to quote the cell content "
-        + "in case that it contains the delimiter string (for instance if the cell content is "
-        + "<i>some;value</i>, the delimiter string is ';' (a single semicolon), and the quote character is '\"' "
-        + "(single quote char) the quoted string will be <i>\"some;value\"</i> "
-        + "(including quotes)). You can force quotation by checking \"Quote Always\". "
-        + "Alternatively, the user can also replace the delimiter  string in the cell content string (see below).")
+    @Widget(title = "Quote character", advanced = true,
+        description = "The character entered here will be used to quote the cell content "
+            + "in case that it contains the delimiter string (for instance if the cell content is "
+            + "<i>some;value</i>, the delimiter string is ';' (a single semicolon), and the quote character is '\"' "
+            + "(single quote char) the quoted string will be <i>\"some;value\"</i> "
+            + "(including quotes)). You can force quotation by checking \"Quote Always\". "
+            + "Alternatively, the user can also replace the delimiter  string in the cell content string (see below).")
     @Persist(configKey = "quote_char", customPersistor = QuoteCharacterPersistor.class)
     @Layout(Concatenation.class)
     @Effect(signals = IsQuote.class, type = EffectType.SHOW)
@@ -174,9 +176,10 @@ public final class ColCombine2NodeSettings implements DefaultNodeSettings {
     @ValueSwitchWidget
     QuoteInputs m_quoteInputs = QuoteInputs.ONLY_NECESSARY;
 
-    @Widget(title = "Replacement", advanced = true, description = "If the string representation of the cell content contains the "
-        + "delimiter string, it will be replaced by the string entered here (if you entered '-' here, the output of "
-        + "the above example would be <i>some-value</i>).")
+    @Widget(title = "Replacement", advanced = true,
+        description = "If the string representation of the cell content contains the "
+            + "delimiter string, it will be replaced by the string entered here (if you entered '-' here, the output of "
+            + "the above example would be <i>some-value</i>).")
     @Persist(configKey = "replace_delimiter", customPersistor = ReplaceDelimiterPersistor.class)
     @Layout(Concatenation.class)
     @Effect(signals = IsQuote.class, type = EffectType.HIDE)
@@ -191,7 +194,7 @@ public final class ColCombine2NodeSettings implements DefaultNodeSettings {
         + "list from the output.")
     @Persist(configKey = "remove_included_columns", customPersistor = RemoveIncludedColumnsPersitor.class)
     @Layout(Output.class)
-    boolean m_removeInputColumns = false;
+    boolean m_removeInputColumns;
 
     static final class AllColumns implements ColumnChoicesProvider {
         @Override
@@ -262,32 +265,28 @@ public final class ColCombine2NodeSettings implements DefaultNodeSettings {
 
     static final class DelimiterInputPersistor extends NodeSettingsPersistorWithConfigKey<DelimiterInputs> {
 
-        private EnumFieldPersistor<DelimiterInputs> persistor;
+        private EnumFieldPersistor<DelimiterInputs> m_persistor;
 
         @Override
         public void setConfigKey(final String configKey) {
             super.setConfigKey(configKey);
-            persistor = new EnumFieldPersistor<>(configKey, DelimiterInputs.class);
+            m_persistor = new EnumFieldPersistor<>(configKey, DelimiterInputs.class);
         }
 
         @Override
         public DelimiterInputs load(final NodeSettingsRO settings) throws InvalidSettingsException {
             if (settings.containsKey(getConfigKey())) {
-                return persistor.load(settings);
+                return m_persistor.load(settings);
             }
-            if (settings.containsKey("is_quoting")) {
-                if (settings.getBoolean("is_quoting")) {
+            if (settings.containsKey("is_quoting") && settings.getBoolean("is_quoting")) {
                 return DelimiterInputs.QUOTE;
-                } else {
-                    return DelimiterInputs.REPLACE;
-                }
             }
             return DelimiterInputs.REPLACE;
         }
 
         @Override
         public void save(final DelimiterInputs obj, final NodeSettingsWO settings) {
-            persistor.save(obj, settings);
+            m_persistor.save(obj, settings);
         }
     }
 
@@ -295,12 +294,8 @@ public final class ColCombine2NodeSettings implements DefaultNodeSettings {
 
         @Override
         public QuoteInputs load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            if (settings.containsKey("is_quoting_always")) {
-                if(settings.getBoolean("is_quoting_always")) {
-                    return QuoteInputs.ALL;
-                } else {
-                    return QuoteInputs.ONLY_NECESSARY;
-                }
+            if (settings.containsKey("is_quoting_always") && settings.getBoolean("is_quoting_always")) {
+                return QuoteInputs.ALL;
             }
             return QuoteInputs.ONLY_NECESSARY;
         }
@@ -312,11 +307,6 @@ public final class ColCombine2NodeSettings implements DefaultNodeSettings {
     }
 
     static final class ReplaceDelimiterPersistor extends NodeSettingsPersistorWithConfigKey<String> {
-
-        @Override
-        public void setConfigKey(final String configKey) {
-            super.setConfigKey(configKey);
-        }
 
         @Override
         public String load(final NodeSettingsRO settings) throws InvalidSettingsException {

@@ -87,7 +87,6 @@ public class ColCombine2NodeModel extends WebUISimpleStreamableFunctionNodeModel
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         DataTableSpec spec = inSpecs[0];
-        ColumnRearranger arranger = createColumnRearranger(spec);
 
         if (spec.containsName(m_modelSettings.m_outputColumnName)) {
             throw new InvalidSettingsException("Column already exits: " + m_modelSettings.m_outputColumnName);
@@ -100,9 +99,10 @@ public class ColCombine2NodeModel extends WebUISimpleStreamableFunctionNodeModel
                 .filter(x -> !Arrays.asList(selectedColumns).contains(x)).toArray(String[]::new);
             throw new InvalidSettingsException(
                 "Input table does not match selected include columns, unable to find column(s): "
-                    + ConvenienceMethods.getShortStringFrom(new HashSet<String>(Arrays.asList(missingColumns)), 3));
+                    + ConvenienceMethods.getShortStringFrom(new HashSet<>(Arrays.asList(missingColumns)), 3));
         }
 
+        var arranger = createColumnRearranger(spec);
         return new DataTableSpec[]{arranger.createSpec()};
     }
 
@@ -110,13 +110,13 @@ public class ColCombine2NodeModel extends WebUISimpleStreamableFunctionNodeModel
     protected ColumnRearranger createColumnRearranger(final DataTableSpec spec,
         final ColCombine2NodeSettings modelSettings) {
         m_modelSettings = modelSettings;
-        ColumnRearranger result = new ColumnRearranger(spec);
+        var result = new ColumnRearranger(spec);
         DataColumnSpec append =
             new DataColumnSpecCreator(m_modelSettings.m_outputColumnName, StringCell.TYPE).createSpec();
         String[] selectedColumns = m_modelSettings.m_columnFilter.getNonMissingSelected(spec.getColumnNames(), spec);
-        final int[] indices = new int[selectedColumns.length];
-        int j = 0;
-        for (int k = 0; k < spec.getNumColumns() && j < selectedColumns.length; k++) {
+        final var indices = new int[selectedColumns.length];
+        var j = 0;
+        for (var k = 0; k < spec.getNumColumns() && j < selectedColumns.length; k++) {
             DataColumnSpec cs = spec.getColumnSpec(k);
             if (selectedColumns[j].equals(cs.getName())) {
                 indices[j] = k;
@@ -127,14 +127,14 @@ public class ColCombine2NodeModel extends WebUISimpleStreamableFunctionNodeModel
         // ", " -> ","
         // "  " -> "  " (do not let the resulting string be empty)
         // " bla bla " -> "bla bla"
-        final String delimTrim = trimDelimString(m_modelSettings.m_delimiter);
+        final var delimTrim = trimDelimString(m_modelSettings.m_delimiter);
         result.append(new SingleCellFactory(append) {
             @Override
             public DataCell getCell(final DataRow row) {
-                String[] cellContents = new String[indices.length];
-                for (int i = 0; i < indices.length; i++) {
+                var cellContents = new String[indices.length];
+                for (var i = 0; i < indices.length; i++) {
                     DataCell c = row.getCell(indices[i]);
-                    String s = c instanceof StringValue ? ((StringValue)c).getStringValue() : c.toString();
+                    String s = c instanceof StringValue sv? sv.getStringValue() : c.toString();
                     cellContents[i] = s;
                 }
                 return new StringCell(handleContent(cellContents, delimTrim));
@@ -155,9 +155,9 @@ public class ColCombine2NodeModel extends WebUISimpleStreamableFunctionNodeModel
      */
     private String handleContent(final String[] cellContents, final String delimTrim) {
 
-        StringBuilder b = new StringBuilder();
+        var b = new StringBuilder();
 
-        for (int i = 0; i < cellContents.length; i++) {
+        for (var i = 0; i < cellContents.length; i++) {
 
             b.append(i > 0 ? delimTrim : "");
             String s = cellContents[i];
@@ -180,8 +180,8 @@ public class ColCombine2NodeModel extends WebUISimpleStreamableFunctionNodeModel
     private void quoteCellContent(final StringBuilder b, final String s) {
         b.append(m_modelSettings.m_quoteCharacter);
 
-        for (int j = 0; j < s.length(); j++) {
-            char tempChar = s.charAt(j);
+        for (var j = 0; j < s.length(); j++) {
+            var tempChar = s.charAt(j);
             if (tempChar == m_modelSettings.m_quoteCharacter || tempChar == '\\') {
                 b.append('\\');
             }
