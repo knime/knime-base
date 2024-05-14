@@ -52,6 +52,7 @@ import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
+ * Factory for the Row Splitter node based on the webui.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */

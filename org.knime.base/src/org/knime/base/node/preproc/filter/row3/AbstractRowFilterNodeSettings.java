@@ -92,6 +92,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvid
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
+ * Shared settings class for the Filter and Splitter nodes.
+ *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  */

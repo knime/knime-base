@@ -52,12 +52,11 @@ import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
- * Node factory for the Row Filter 2 (Labs) node.
+ * Node factory for the Row Filter node based on the webui.
  *
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction") // Web UI not API yet
-// TODO should we rename the factory to remove "3"?
 public final class RowFilter3NodeFactory extends WebUINodeFactory<RowFilterNodeModel<RowFilterNodeSettings>> {
 
     private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder() //

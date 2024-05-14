@@ -94,7 +94,7 @@ import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 
 /**
- * Implementation of the Row Filter 2 (Labs) node.
+ * Implementation of the Row Filter node based on the webui.
  *
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
@@ -497,7 +497,8 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
     public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
         final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         final var settings = assertSettings();
-        if (AbstractRowFilterNodeSettings.isFilterOnRowNumbers(settings) && AbstractRowFilterNodeSettings.isLastNFilter(settings)) {
+        if (AbstractRowFilterNodeSettings.isFilterOnRowNumbers(settings)
+            && AbstractRowFilterNodeSettings.isLastNFilter(settings)) {
             return super.createStreamableOperator(partitionInfo, inSpecs);
         }
         return new RowFilterOperator();
