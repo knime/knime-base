@@ -73,8 +73,6 @@ import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 @SuppressWarnings("restriction")
 public class ColCombine2NodeModel extends WebUISimpleStreamableFunctionNodeModel<ColCombine2NodeSettings> {
 
-    ColCombine2NodeSettings m_modelSettings;
-
     /**
      * @param configuration
      * @param modelSettingsClass
@@ -85,35 +83,15 @@ public class ColCombine2NodeModel extends WebUISimpleStreamableFunctionNodeModel
     }
 
     @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
-        DataTableSpec spec = inSpecs[0];
-
-        if (spec.containsName(m_modelSettings.m_outputColumnName)) {
-            throw new InvalidSettingsException("Column already exits: " + m_modelSettings.m_outputColumnName);
-        }
-
-        String[] selectedColumns = m_modelSettings.m_columnFilter.getNonMissingSelected(spec.getColumnNames(), spec);
-        String[] selectedColumnsWithMissing = m_modelSettings.m_columnFilter.getSelected(spec.getColumnNames(), spec);
-        if (selectedColumnsWithMissing.length > selectedColumns.length && m_modelSettings.m_failIfMissingColumns) {
-            String[] missingColumns = Arrays.stream(selectedColumnsWithMissing).distinct()
-                .filter(x -> !Arrays.asList(selectedColumns).contains(x)).toArray(String[]::new);
-            throw new InvalidSettingsException(
-                "Input table does not match selected include columns, unable to find column(s): "
-                    + ConvenienceMethods.getShortStringFrom(new HashSet<>(Arrays.asList(missingColumns)), 3));
-        }
-
-        var arranger = createColumnRearranger(spec);
-        return new DataTableSpec[]{arranger.createSpec()};
-    }
-
-    @Override
     protected ColumnRearranger createColumnRearranger(final DataTableSpec spec,
-        final ColCombine2NodeSettings modelSettings) {
-        m_modelSettings = modelSettings;
+        final ColCombine2NodeSettings modelSettings) throws InvalidSettingsException {
+
+        validateInSpec(modelSettings, spec);
+
         var result = new ColumnRearranger(spec);
         DataColumnSpec append =
-            new DataColumnSpecCreator(m_modelSettings.m_outputColumnName, StringCell.TYPE).createSpec();
-        String[] selectedColumns = m_modelSettings.m_columnFilter.getNonMissingSelected(spec.getColumnNames(), spec);
+            new DataColumnSpecCreator(modelSettings.m_outputColumnName, StringCell.TYPE).createSpec();
+        String[] selectedColumns = modelSettings.m_columnFilter.getNonMissingSelected(spec.getColumnNames(), spec);
         final var indices = new int[selectedColumns.length];
         var j = 0;
         for (var k = 0; k < spec.getNumColumns() && j < selectedColumns.length; k++) {
@@ -127,7 +105,7 @@ public class ColCombine2NodeModel extends WebUISimpleStreamableFunctionNodeModel
         // ", " -> ","
         // "  " -> "  " (do not let the resulting string be empty)
         // " bla bla " -> "bla bla"
-        final var delimTrim = trimDelimString(m_modelSettings.m_delimiter);
+        final var delimTrim = trimDelimString(modelSettings.m_delimiter);
         result.append(new SingleCellFactory(append) {
             @Override
             public DataCell getCell(final DataRow row) {
@@ -137,14 +115,33 @@ public class ColCombine2NodeModel extends WebUISimpleStreamableFunctionNodeModel
                     String s = c instanceof StringValue sv? sv.getStringValue() : c.toString();
                     cellContents[i] = s;
                 }
-                return new StringCell(handleContent(cellContents, delimTrim));
+                return new StringCell(handleContent(cellContents, delimTrim, modelSettings));
             }
         });
-        if (m_modelSettings.m_removeInputColumns) {
-            result.remove(m_modelSettings.m_columnFilter.getSelected(spec.getColumnNames(), spec));
+        if (modelSettings.m_removeInputColumns) {
+            result.remove(modelSettings.m_columnFilter.getSelected(spec.getColumnNames(), spec));
         }
         return result;
     }
+
+    private static void validateInSpec(final ColCombine2NodeSettings modelSettings, final DataTableSpec spec)
+        throws InvalidSettingsException {
+        if (spec.containsName(modelSettings.m_outputColumnName)) {
+            throw new InvalidSettingsException("Column already exits: " + modelSettings.m_outputColumnName);
+        }
+
+        String[] selectedColumns = modelSettings.m_columnFilter.getNonMissingSelected(spec.getColumnNames(), spec);
+        String[] selectedColumnsWithMissing = modelSettings.m_columnFilter.getSelected(spec.getColumnNames(), spec);
+        if (selectedColumnsWithMissing.length > selectedColumns.length && modelSettings.m_failIfMissingColumns) {
+            String[] missingColumns = Arrays.stream(selectedColumnsWithMissing).distinct()
+                .filter(x -> !Arrays.asList(selectedColumns).contains(x)).toArray(String[]::new);
+            throw new InvalidSettingsException(
+                "Input table does not match selected include columns, unable to find column(s): "
+                    + ConvenienceMethods.getShortStringFrom(new HashSet<>(Arrays.asList(missingColumns)), 3));
+        }
+    }
+
+
 
     /**
      * Concatenates the elements of the array, used from cell factory.
@@ -153,7 +150,8 @@ public class ColCombine2NodeModel extends WebUISimpleStreamableFunctionNodeModel
      * @param delimTrim The trimmed delimiter (used as argument to not do the trimming over and over again.)
      * @return The concatenated string.
      */
-    private String handleContent(final String[] cellContents, final String delimTrim) {
+    private static String handleContent(final String[] cellContents, final String delimTrim,
+        final ColCombine2NodeSettings modelSettings) {
 
         var b = new StringBuilder();
 
@@ -162,60 +160,61 @@ public class ColCombine2NodeModel extends WebUISimpleStreamableFunctionNodeModel
             b.append(i > 0 ? delimTrim : "");
             String s = cellContents[i];
 
-            if (m_modelSettings.m_delimiterInputs == DelimiterInputs.QUOTE) {
-                if (m_modelSettings.m_quoteInputs == QuoteInputs.ALL || s.contains(delimTrim)
-                    || s.contains(Character.toString(m_modelSettings.m_quoteCharacter))) {
-                    quoteCellContent(b, s);
+            if (modelSettings.m_delimiterInputs == DelimiterInputs.QUOTE) {
+                if (modelSettings.m_quoteInputs == QuoteInputs.ALL || s.contains(delimTrim)
+                    || s.contains(Character.toString(modelSettings.m_quoteCharacter))) {
+                    quoteCellContent(b, s, modelSettings);
                 } else {
                     b.append(s);
                 }
             } else {
                 // replace occurrences of the delimiter
-                b.append(s.replace(delimTrim, m_modelSettings.m_replacementDelimiter));
+                b.append(s.replace(delimTrim, modelSettings.m_replacementDelimiter));
             }
         }
         return b.toString();
     }
 
-    private void quoteCellContent(final StringBuilder b, final String s) {
-        b.append(m_modelSettings.m_quoteCharacter);
+    private static void quoteCellContent(final StringBuilder b, final String s,
+        final ColCombine2NodeSettings modelSettings) {
+        b.append(modelSettings.m_quoteCharacter);
 
         for (var j = 0; j < s.length(); j++) {
             var tempChar = s.charAt(j);
-            if (tempChar == m_modelSettings.m_quoteCharacter || tempChar == '\\') {
+            if (tempChar == modelSettings.m_quoteCharacter || tempChar == '\\') {
                 b.append('\\');
             }
             b.append(tempChar);
         }
 
-        b.append(m_modelSettings.m_quoteCharacter);
+        b.append(modelSettings.m_quoteCharacter);
     }
 
     @Override
-    protected void validateSettings(final ColCombine2NodeSettings settings) throws InvalidSettingsException {
-        if (m_modelSettings != null) {
-            if (m_modelSettings.m_outputColumnName == null || m_modelSettings.m_outputColumnName.trim().length() == 0) {
+    protected void validateSettings(final ColCombine2NodeSettings modelSettings) throws InvalidSettingsException {
+        if (modelSettings != null) {
+            if (modelSettings.m_outputColumnName == null || modelSettings.m_outputColumnName.trim().length() == 0) {
                 throw new InvalidSettingsException("Name of new column must not be empty");
             }
 
-            if (m_modelSettings.m_delimiter == null) {
+            if (modelSettings.m_delimiter == null) {
                 throw new InvalidSettingsException("A delimiter must be specified");
             }
-            m_modelSettings.m_delimiter = trimDelimString(m_modelSettings.m_delimiter);
+            modelSettings.m_delimiter = trimDelimString(modelSettings.m_delimiter);
 
-            if (m_modelSettings.m_delimiterInputs == DelimiterInputs.QUOTE) {
-                if (Character.isWhitespace(m_modelSettings.m_quoteCharacter)) {
+            if (modelSettings.m_delimiterInputs == DelimiterInputs.QUOTE) {
+                if (Character.isWhitespace(modelSettings.m_quoteCharacter)) {
                     throw new InvalidSettingsException("Can't use white space as quote char");
                 }
-                if (m_modelSettings.m_delimiter.contains(Character.toString(m_modelSettings.m_quoteCharacter))) {
-                    throw new InvalidSettingsException("Delimiter String \"" + m_modelSettings.m_delimiter
-                        + "\" must not contain quote character ('" + m_modelSettings.m_quoteCharacter + "')");
+                if (modelSettings.m_delimiter.contains(Character.toString(modelSettings.m_quoteCharacter))) {
+                    throw new InvalidSettingsException("Delimiter String \"" + modelSettings.m_delimiter
+                        + "\" must not contain quote character ('" + modelSettings.m_quoteCharacter + "')");
                 }
             } else {
-                if ((m_modelSettings.m_delimiter.length() > 0)
-                    && (m_modelSettings.m_replacementDelimiter.contains(m_modelSettings.m_delimiter))) {
-                    throw new InvalidSettingsException("Replacement string \"" + m_modelSettings.m_replacementDelimiter
-                        + "\" must not contain delimiter string \"" + m_modelSettings.m_delimiter + "\"");
+                if ((modelSettings.m_delimiter.length() > 0)
+                    && (modelSettings.m_replacementDelimiter.contains(modelSettings.m_delimiter))) {
+                    throw new InvalidSettingsException("Replacement string \"" + modelSettings.m_replacementDelimiter
+                        + "\" must not contain delimiter string \"" + modelSettings.m_delimiter + "\"");
                 }
             }
         }
