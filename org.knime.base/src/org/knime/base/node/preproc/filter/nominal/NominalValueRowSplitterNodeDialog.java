@@ -83,9 +83,9 @@ import org.knime.core.node.util.filter.nominal.NominalValueFilterPanel;
  * selected.
  *
  * @author KNIME GmbH
+ * @since 5.3
  */
-public class NominalValueRowSplitterNodeDialog extends NodeDialogPane implements
-        ItemListener {
+public class NominalValueRowSplitterNodeDialog extends NodeDialogPane implements ItemListener {
 
     private String m_selectedColumn;
 
