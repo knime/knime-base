@@ -67,7 +67,6 @@ public final class ColCombine2NodeFactory extends WebUINodeFactory<ColCombine2No
             .modelSettingsClass(ColCombine2NodeSettings.class)//
             .addInputTable("Input Table", "Arbitrary input data.")//
             .addOutputTable("Output Table", "Input data + additional column containing string combination.")//
-            .sinceVersion(5, 3, 0)
             .build();
 
     /**
