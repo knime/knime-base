@@ -81,10 +81,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * Node settings for the 'Number Rounder' node
  *
  * @author Kai Franze, KNIME GmbH, Germany
- * @since 5.3
  */
-@SuppressWarnings("restriction")
-public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
+@SuppressWarnings("restriction") // webui
+final class RoundDoubleNodeSettings implements DefaultNodeSettings {
 
     // Types
     enum NumberMode {
@@ -97,8 +96,8 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
             SIGNIFICANT_DIGITS("Significant figures"),
 
             @Label(value = "Integer", description = """
-                    Converts numeric values to integer. Note that automatically converting <em>Number (double)</em> or
-                    <em>Number (long)</em> input columns to <em>Number (integer)</em> output columns might yield
+                    Converts numeric values to integer. Note that automatically converting <i>Number (double)</i> or
+                    <i>Number (long)</i> input columns to <i>Number (integer)</i> output columns might yield
                     missing values due to integer overflows.
                     """)
             INTEGER;
