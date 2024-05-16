@@ -53,13 +53,18 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DeprecatedConfigs;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DeprecatedConfigs.DeprecatedConfigsBuilder;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.EnumFieldPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.FalseCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.TrueCondition;
@@ -78,37 +83,29 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 @SuppressWarnings("restriction")
 public final class RowKeyNodeSettings implements DefaultNodeSettings {
 
-    private static final String NEW_ROW_KEY_COLUMN_CONFIG_KEY = "newRowKeyColumnName";
+    private static final String LEGACY_NEW_ROW_KEY_COLUMN_CONFIG_KEY = "newRowKeyColumnName";
 
-    @Persist(configKey = "appendRowKeyCol")
-    @Widget(title = "Append column with RowID values",
-        description = "If selected, a new column with the values of the current RowID is appended to the table.")
-    @Signal(id = AppendRowKeyIsTrue.class, condition = TrueCondition.class)
-    @Layout(ExtractRowIdsSection.class)
-    boolean m_appendRowKey;
 
-    @Persist(configKey = "newColumnName4RowKeyValues")
-    @Widget(title = "Column Name", description = "The name of the column to append to the table.")
-    @Effect(signals = AppendRowKeyIsTrue.class, type = EffectType.ENABLE)
-    @Layout(ExtractRowIdsSection.class)
-    // TODO: Is there a way to make sure the default value is unique w.r.t. the input table column names?
-    String m_appendedColumnName = "Old RowIDs";
+    @Widget(title="Replace RowIDs", description = "If selected the RowIDs will be replaced")
+    @Layout(ReplaceRowIdsSection.class)
+    @Signal(id = ReplaceIsFalse.class, condition = FalseCondition.class)
+    boolean m_replaceRowKey = true;
 
     @Persist(customPersistor = ReplacementModePersistor.class)
     @ValueSwitchWidget
-    @Widget(title = "RowIDs",
-        description = "Replace the RowID by a newly generated one or a column, or keep it as it is.")
+    @Widget(title = "Replacement mode",
+        description = "Replace the RowID by a newly generated one or the values of a column.")
     @Signal(condition = ReplacementModeIsColumn.class)
-    @Signal(condition = ReplacementModeIsKeep.class)
+    @Effect(signals = ReplaceIsFalse.class, type = EffectType.HIDE)
     @Layout(ReplaceRowIdsSection.class)
     ReplacementMode m_replaceRowKeyMode = ReplacementMode.GENERATE_NEW;
 
-    @Persist(configKey = NEW_ROW_KEY_COLUMN_CONFIG_KEY)
+    @Persist(customPersistor = NewRowKeyColumnPersistor.class)
     @Widget(title = "ID column", description = "The column to replace the current RowID.")
     @ChoicesWidget(choices = AllColumns.class)
     @Effect(signals = ReplacementModeIsColumn.class, type = EffectType.SHOW)
     @Layout(ReplaceRowIdsSection.class)
-    String m_newRowKeyColumn;
+    String m_newRowKeyColumnV2;
 
     /**
      * Optional, as this setting is not available in older releases.
@@ -143,9 +140,22 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Enable hiliting", description = """
             If selected, a map is maintained joining the old with the new RowID. Depending on the number of rows,
             enabling this feature might consume a lot of memory.""", advanced = true)
-    @Effect(signals = ReplacementModeIsKeep.class, type = EffectType.HIDE)
+    @Effect(signals = ReplaceIsFalse.class, type = EffectType.HIDE)
     @Layout(ReplaceRowIdsSection.class)
     boolean m_enableHilite;
+
+    @Persist(configKey = "appendRowKeyCol")
+    @Widget(title = "Append column with RowID values",
+        description = "If selected, a new column with the values of the current RowID is appended to the table.")
+    @Signal(id = AppendRowKeyIsTrue.class, condition = TrueCondition.class)
+    @Layout(ExtractRowIdsSection.class)
+    boolean m_appendRowKey;
+
+    @Persist(configKey = "newColumnName4RowKeyValues")
+    @Widget(title = "Column Name", description = "The name of the column to append to the table.")
+    @Effect(signals = AppendRowKeyIsTrue.class, type = EffectType.SHOW)
+    @Layout(ExtractRowIdsSection.class)
+    String m_appendedColumnName = "Old RowID";
 
     /**
      * How to replace the RowID column, if at all.
@@ -154,24 +164,13 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
             /**
              * Generate a new RowID.
              */
-            // TODO: Enable descriptions in the following once they are supported upstream.
-            // description = "If selected, a new RowID is generated with the format: Row0, Row1, Row2, ..."
-            @Label(value = "Generate new")
+            @Label(value = "Generate new", description = "If selected, a new RowID is generated with the format: Row0, Row1, Row2, ...")
             GENERATE_NEW,
             /**
              * Replace the RowID by a column.
              */
-            // TODO
-            // description = "If selected, the RowID is replaced by the selected column."
-            @Label(value = "Column")
-            COLUMN,
-            /**
-             * Keep the current RowID.
-             */
-            // TODO
-            // description = "If selected, the current RowID is kept as it is."
-            @Label(value = "Keep")
-            KEEP
+            @Label(value = "Use column", description = "If selected, the RowID is replaced by the selected column.")
+            USE_COLUMN
     }
 
     /**
@@ -181,17 +180,13 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
             /**
              * Fail node execution.
              */
-            // TODO
-            // description = "If selected, the node fails if a missing value is encountered in the selected column."
-            @Label(value = "Fail")
+            @Label(value = "Fail", description = "If selected, the node fails if a missing value is encountered in the selected column.")
             FAIL,
             /**
              * Replace missing values.
              */
-            // TODO
-            // description = "If selected, missing values are replaced with \"?\". We recommend also enabling the
-            // \"Append counter\" option to handle any duplicate missing values."
-            @Label(value = "Replace by \"?\"")
+            @Label(value = "Replace by \"?\"", description = "If selected, missing values are replaced with \"?\"."
+                + " We recommend also enabling the\"Append counter\" option to handle any duplicate missing values.")
             REPLACE
     }
 
@@ -202,31 +197,71 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
             /**
              * Fail node execution.
              */
-            // TODO
-            // description =  "If selected, the node fails if a duplicate value is encountered in the selected column."
-            @Label(value = "Fail")
+            //
+            @Label(value = "Fail", description =  "If selected, the node fails if a duplicate value is encountered in the selected column.")
             FAIL,
             /**
              * Append a counter to duplicates to make them unique.
              */
-            // TODO
-            // description = "If selected, uniqueness is ensured by appending an incrementing number to duplicates."
-            @Label(value = "Append counter")
+            @Label(value = "Append counter", description = "If selected, uniqueness is ensured by appending an incrementing number to duplicates.")
             APPEND_COUNTER
+    }
+
+    private static final class NewRowKeyColumnPersistor extends NodeSettingsPersistorWithConfigKey<String> {
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            if(settings.containsKey(LEGACY_NEW_ROW_KEY_COLUMN_CONFIG_KEY)) {
+                return settings.getString(LEGACY_NEW_ROW_KEY_COLUMN_CONFIG_KEY);
+            }
+            return settings.getString(getConfigKey());
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void save(final String obj, final NodeSettingsWO settings) {
+            settings.addString(getConfigKey(), obj);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public DeprecatedConfigs[] getDeprecatedConfigs() {
+            DeprecatedConfigsBuilder configBuilder = new DeprecatedConfigsBuilder() //
+                    .forNewConfigPath(getConfigKey()) //
+                    .forDeprecatedConfigPath(LEGACY_NEW_ROW_KEY_COLUMN_CONFIG_KEY);
+            return new DeprecatedConfigs[] {configBuilder.build()};
+        }
     }
 
     private static final class ReplacementModePersistor implements FieldNodeSettingsPersistor<ReplacementMode> {
 
         private static final String CONFIG_KEY = "replaceRowKeyMode";
 
-        private static final String OLD_CONFIG_KEY = "replaceRowKey";
+        private static final String DEPRECATED_MODE_KEY = "newRowKeyColumnName";
 
         private final EnumFieldPersistor<ReplacementMode> m_persistor =
             new EnumFieldPersistor<>(CONFIG_KEY, ReplacementMode.class);
 
         @Override
         public String[] getConfigKeys() {
-            return new String[]{CONFIG_KEY, OLD_CONFIG_KEY, NEW_ROW_KEY_COLUMN_CONFIG_KEY};
+            return new String[]{CONFIG_KEY};
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public DeprecatedConfigs[] getDeprecatedConfigs() {
+            DeprecatedConfigsBuilder configBuilder = new DeprecatedConfigsBuilder().forNewConfigPath(CONFIG_KEY);
+            configBuilder.forDeprecatedConfigPath(DEPRECATED_MODE_KEY);
+            return new DeprecatedConfigs[] {configBuilder.build()};
         }
 
         @Override
@@ -236,14 +271,10 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
                 return m_persistor.load(settings);
             }
 
-            if (settings.getBoolean(OLD_CONFIG_KEY)) {
-                if (settings.getString(NEW_ROW_KEY_COLUMN_CONFIG_KEY) == null) {
-                    return ReplacementMode.GENERATE_NEW;
-                } else {
-                    return ReplacementMode.COLUMN;
-                }
+            if (settings.getString(LEGACY_NEW_ROW_KEY_COLUMN_CONFIG_KEY) == null) {
+                return ReplacementMode.GENERATE_NEW;
             } else {
-                return ReplacementMode.KEEP;
+                return ReplacementMode.USE_COLUMN;
             }
         }
 
@@ -313,30 +344,24 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    private interface AppendRowKeyIsTrue {
-    }
+    private interface AppendRowKeyIsTrue {}
+
+    private interface ReplaceIsFalse {}
 
     private static final class ReplacementModeIsColumn extends OneOfEnumCondition<ReplacementMode> {
 
         @Override
         public ReplacementMode[] oneOf() {
-            return new ReplacementMode[]{ReplacementMode.COLUMN};
+            return new ReplacementMode[]{ReplacementMode.USE_COLUMN};
         }
-    }
-
-    private static final class ReplacementModeIsKeep extends OneOfEnumCondition<ReplacementMode> {
-
-        @Override
-        public ReplacementMode[] oneOf() {
-            return new ReplacementMode[]{ReplacementMode.KEEP};
-        }
-    }
-
-    @Section(title = "Extract RowIDs")
-    private interface ExtractRowIdsSection {
     }
 
     @Section(title = "Replace RowIDs")
     private interface ReplaceRowIdsSection {
+    }
+
+    @Section(title = "Extract RowIDs")
+    @After(ReplaceRowIdsSection.class)
+    private interface ExtractRowIdsSection {
     }
 }

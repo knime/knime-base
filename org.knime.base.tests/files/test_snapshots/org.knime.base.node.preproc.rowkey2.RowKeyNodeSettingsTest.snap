@@ -1,13 +1,14 @@
 {
   "data" : {
     "model" : {
-      "appendRowKey" : false,
-      "appendedColumnName" : "Old RowIDs",
+      "replaceRowKey" : true,
       "replaceRowKeyMode" : "GENERATE_NEW",
       "removeRowKeyColumn" : false,
       "handleMissingsMode" : "FAIL",
       "handleDuplicatesMode" : "FAIL",
-      "enableHilite" : false
+      "enableHilite" : false,
+      "appendRowKey" : false,
+      "appendedColumnName" : "Old RowID"
     }
   },
   "schema" : {
@@ -27,7 +28,7 @@
             "type" : "string",
             "title" : "Column Name",
             "description" : "The name of the column to append to the table.",
-            "default" : "Old RowIDs",
+            "default" : "Old RowID",
             "configKeys" : [ "newColumnName4RowKeyValues" ]
           },
           "enableHilite" : {
@@ -46,7 +47,7 @@
               "title" : "Append counter"
             } ],
             "title" : "If ID column contains duplicates",
-            "description" : "Fail if encountering duplicate values, or make them unique.",
+            "description" : "Fail if encountering duplicate values, or make them unique.\n<ul>\n<li><b>Fail</b>: If selected, the node fails if a duplicate value is encountered in the selected column.</li>\n<li><b>Append counter</b>: If selected, uniqueness is ensured by appending an incrementing number to duplicates.</li>\n</ul>",
             "default" : "FAIL",
             "configKeys" : [ "ensureUniqueness" ]
           },
@@ -59,15 +60,19 @@
               "title" : "Replace by \"?\""
             } ],
             "title" : "If ID column contains missing values",
-            "description" : "Fail if encountering missing values, or replace them.",
+            "description" : "Fail if encountering missing values, or replace them.\n<ul>\n<li><b>Fail</b>: If selected, the node fails if a missing value is encountered in the selected column.</li>\n<li><b>Replace by \"?\"</b>: If selected, missing values are replaced with \"?\". We recommend also enabling the\"Append counter\" option to handle any duplicate missing values.</li>\n</ul>",
             "default" : "FAIL",
             "configKeys" : [ "replaceMissingValues" ]
           },
-          "newRowKeyColumn" : {
+          "newRowKeyColumnV2" : {
             "type" : "string",
             "title" : "ID column",
             "description" : "The column to replace the current RowID.",
-            "configKeys" : [ "newRowKeyColumnName" ]
+            "configKeys" : [ "newRowKeyColumnV2" ],
+            "deprecatedConfigKeys" : [ {
+              "new" : [ [ "newRowKeyColumnV2" ] ],
+              "deprecated" : [ [ "newRowKeyColumnName" ] ]
+            } ]
           },
           "removeRowKeyColumn" : {
             "type" : "boolean",
@@ -76,21 +81,28 @@
             "default" : false,
             "configKeys" : [ "removeRowKeyCol" ]
           },
+          "replaceRowKey" : {
+            "type" : "boolean",
+            "title" : "Replace RowIDs",
+            "description" : "If selected the RowIDs will be replaced",
+            "default" : true
+          },
           "replaceRowKeyMode" : {
             "oneOf" : [ {
               "const" : "GENERATE_NEW",
               "title" : "Generate new"
             }, {
-              "const" : "COLUMN",
-              "title" : "Column"
-            }, {
-              "const" : "KEEP",
-              "title" : "Keep"
+              "const" : "USE_COLUMN",
+              "title" : "Use column"
             } ],
-            "title" : "RowIDs",
-            "description" : "Replace the RowID by a newly generated one or a column, or keep it as it is.",
+            "title" : "Replacement mode",
+            "description" : "Replace the RowID by a newly generated one or the values of a column.\n<ul>\n<li><b>Generate new</b>: If selected, a new RowID is generated with the format: Row0, Row1, Row2, ...</li>\n<li><b>Use column</b>: If selected, the RowID is replaced by the selected column.</li>\n</ul>",
             "default" : "GENERATE_NEW",
-            "configKeys" : [ "replaceRowKeyMode", "replaceRowKey", "newRowKeyColumnName" ]
+            "configKeys" : [ "replaceRowKeyMode" ],
+            "deprecatedConfigKeys" : [ {
+              "new" : [ [ "replaceRowKeyMode" ] ],
+              "deprecated" : [ [ "newRowKeyColumnName" ] ]
+            } ]
           }
         }
       }
@@ -98,39 +110,32 @@
   },
   "ui_schema" : {
     "elements" : [ {
-      "label" : "Extract RowIDs",
+      "label" : "Replace RowIDs",
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/appendRowKey",
+        "scope" : "#/properties/model/properties/replaceRowKey",
         "options" : {
           "format" : "checkbox"
         }
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/appendedColumnName",
-        "rule" : {
-          "effect" : "ENABLE",
-          "condition" : {
-            "scope" : "#/properties/model/properties/appendRowKey",
-            "schema" : {
-              "const" : true
-            }
-          }
-        }
-      } ]
-    }, {
-      "label" : "Replace RowIDs",
-      "type" : "Section",
-      "elements" : [ {
-        "type" : "Control",
         "scope" : "#/properties/model/properties/replaceRowKeyMode",
         "options" : {
           "format" : "valueSwitch"
+        },
+        "rule" : {
+          "effect" : "HIDE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/replaceRowKey",
+            "schema" : {
+              "const" : false
+            }
+          }
         }
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/newRowKeyColumn",
+        "scope" : "#/properties/model/properties/newRowKeyColumnV2",
         "options" : {
           "possibleValues" : [ {
             "id" : "test1",
@@ -151,7 +156,7 @@
             "scope" : "#/properties/model/properties/replaceRowKeyMode",
             "schema" : {
               "oneOf" : [ {
-                "const" : "COLUMN"
+                "const" : "USE_COLUMN"
               } ]
             }
           }
@@ -168,7 +173,7 @@
             "scope" : "#/properties/model/properties/replaceRowKeyMode",
             "schema" : {
               "oneOf" : [ {
-                "const" : "COLUMN"
+                "const" : "USE_COLUMN"
               } ]
             }
           }
@@ -185,7 +190,7 @@
             "scope" : "#/properties/model/properties/replaceRowKeyMode",
             "schema" : {
               "oneOf" : [ {
-                "const" : "COLUMN"
+                "const" : "USE_COLUMN"
               } ]
             }
           }
@@ -202,7 +207,7 @@
             "scope" : "#/properties/model/properties/replaceRowKeyMode",
             "schema" : {
               "oneOf" : [ {
-                "const" : "COLUMN"
+                "const" : "USE_COLUMN"
               } ]
             }
           }
@@ -217,11 +222,31 @@
         "rule" : {
           "effect" : "HIDE",
           "condition" : {
-            "scope" : "#/properties/model/properties/replaceRowKeyMode",
+            "scope" : "#/properties/model/properties/replaceRowKey",
             "schema" : {
-              "oneOf" : [ {
-                "const" : "KEEP"
-              } ]
+              "const" : false
+            }
+          }
+        }
+      } ]
+    }, {
+      "label" : "Extract RowIDs",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/appendRowKey",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/appendedColumnName",
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/appendRowKey",
+            "schema" : {
+              "const" : true
             }
           }
         }
