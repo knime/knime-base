@@ -175,7 +175,7 @@
               "title" : "Integer"
             } ],
             "title" : "Rounding mode",
-            "description" : "Select the rounding mode to apply.\n<ul>\n<li><b>Decimals</b>: Rounds numeric values up to the specified number of decimal places.\n</li>\n<li><b>Significant digits</b>: Only keeps the specified number of significant digits.</li>\n<li><b>Integer</b>: Converts numeric values to integer. Note that automatically converting <em>Number (double)</em> or\n<em>Number (long)</em> input columns to <em>Number (integer)</em> output columns might yield\nmissing values due to integer overflows.\n</li>\n</ul>",
+            "description" : "Select the rounding mode to apply.\n<ul>\n<li><b>Decimals</b>: Rounds numeric values up to the specified number of decimal places.\n</li>\n<li><b>Significant digits</b>: Only keeps the specified number of significant digits.</li>\n<li><b>Integer</b>: Converts numeric values to integer. Note that automatically converting <i>Number (double)</i> or\n<i>Number (long)</i> input columns to <i>Number (integer)</i> output columns might yield\nmissing values due to integer overflows.\n</li>\n</ul>",
             "default" : "DECIMALS",
             "configKeys" : [ "NumberMode" ]
           },
