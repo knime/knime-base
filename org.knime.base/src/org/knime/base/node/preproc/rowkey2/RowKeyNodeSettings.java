@@ -62,6 +62,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Deprecat
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.EnumFieldPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.And;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.FalseCondition;
@@ -89,6 +90,7 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
     @Widget(title="Replace RowIDs", description = "If selected the RowIDs will be replaced")
     @Layout(ReplaceRowIdsSection.class)
     @Signal(id = ReplaceIsFalse.class, condition = FalseCondition.class)
+    @Signal(id = ReplaceIsTrue.class, condition = TrueCondition.class)
     boolean m_replaceRowKey = true;
 
     @Persist(customPersistor = ReplacementModePersistor.class)
@@ -103,7 +105,7 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
     @Persist(customPersistor = NewRowKeyColumnPersistor.class)
     @Widget(title = "ID column", description = "The column to replace the current RowID.")
     @ChoicesWidget(choices = AllColumns.class)
-    @Effect(signals = ReplacementModeIsColumn.class, type = EffectType.SHOW)
+    @Effect(signals = { ReplaceIsTrue.class, ReplacementModeIsColumn.class }, operation = And.class, type = EffectType.SHOW)
     @Layout(ReplaceRowIdsSection.class)
     String m_newRowKeyColumnV2;
 
@@ -113,7 +115,7 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
     @Persist(configKey = "removeRowKeyCol", optional = true)
     @Widget(title = "Remove selected ID column",
         description = "If selected, the column replacing the current RowID is removed from the table.")
-    @Effect(signals = ReplacementModeIsColumn.class, type = EffectType.SHOW)
+    @Effect(signals = { ReplaceIsTrue.class, ReplacementModeIsColumn.class }, operation = And.class, type = EffectType.SHOW)
     @Layout(ReplaceRowIdsSection.class)
     boolean m_removeRowKeyColumn;
 
@@ -121,7 +123,7 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
     @ValueSwitchWidget
     @Widget(title = "If ID column contains missing values",
         description = "Fail if encountering missing values, or replace them.")
-    @Effect(signals = ReplacementModeIsColumn.class, type = EffectType.SHOW)
+    @Effect(signals = { ReplaceIsTrue.class, ReplacementModeIsColumn.class }, operation = And.class, type = EffectType.SHOW)
     @Layout(ReplaceRowIdsSection.class)
     HandleMissingValuesMode m_handleMissingsMode = HandleMissingValuesMode.FAIL;
 
@@ -129,7 +131,7 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
     @ValueSwitchWidget
     @Widget(title = "If ID column contains duplicates",
         description = "Fail if encountering duplicate values, or make them unique.")
-    @Effect(signals = ReplacementModeIsColumn.class, type = EffectType.SHOW)
+    @Effect(signals = { ReplaceIsTrue.class, ReplacementModeIsColumn.class }, operation = And.class, type = EffectType.SHOW)
     @Layout(ReplaceRowIdsSection.class)
     HandleDuplicateValuesMode m_handleDuplicatesMode = HandleDuplicateValuesMode.FAIL;
 
@@ -346,6 +348,7 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
 
     private interface AppendRowKeyIsTrue {}
 
+    private interface ReplaceIsTrue {}
     private interface ReplaceIsFalse {}
 
     private static final class ReplacementModeIsColumn extends OneOfEnumCondition<ReplacementMode> {
