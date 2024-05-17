@@ -105,7 +105,8 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
     @Persist(customPersistor = NewRowKeyColumnPersistor.class)
     @Widget(title = "ID column", description = "The column to replace the current RowID.")
     @ChoicesWidget(choices = AllColumns.class)
-    @Effect(signals = { ReplaceIsTrue.class, ReplacementModeIsColumn.class }, operation = And.class, type = EffectType.SHOW)
+    @Effect(signals = {ReplaceIsTrue.class, ReplacementModeIsColumn.class}, operation = And.class,
+        type = EffectType.SHOW)
     @Layout(ReplaceRowIdsSection.class)
     String m_newRowKeyColumnV2;
 
@@ -115,7 +116,8 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
     @Persist(configKey = "removeRowKeyCol", optional = true)
     @Widget(title = "Remove selected ID column",
         description = "If selected, the column replacing the current RowID is removed from the table.")
-    @Effect(signals = { ReplaceIsTrue.class, ReplacementModeIsColumn.class }, operation = And.class, type = EffectType.SHOW)
+    @Effect(signals = {ReplaceIsTrue.class, ReplacementModeIsColumn.class}, operation = And.class,
+        type = EffectType.SHOW)
     @Layout(ReplaceRowIdsSection.class)
     boolean m_removeRowKeyColumn;
 
@@ -123,7 +125,8 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
     @ValueSwitchWidget
     @Widget(title = "If ID column contains missing values",
         description = "Fail if encountering missing values, or replace them.")
-    @Effect(signals = { ReplaceIsTrue.class, ReplacementModeIsColumn.class }, operation = And.class, type = EffectType.SHOW)
+    @Effect(signals = {ReplaceIsTrue.class, ReplacementModeIsColumn.class}, operation = And.class,
+        type = EffectType.SHOW)
     @Layout(ReplaceRowIdsSection.class)
     HandleMissingValuesMode m_handleMissingsMode = HandleMissingValuesMode.FAIL;
 
@@ -131,7 +134,8 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
     @ValueSwitchWidget
     @Widget(title = "If ID column contains duplicates",
         description = "Fail if encountering duplicate values, or make them unique.")
-    @Effect(signals = { ReplaceIsTrue.class, ReplacementModeIsColumn.class }, operation = And.class, type = EffectType.SHOW)
+    @Effect(signals = {ReplaceIsTrue.class, ReplacementModeIsColumn.class}, operation = And.class,
+        type = EffectType.SHOW)
     @Layout(ReplaceRowIdsSection.class)
     HandleDuplicateValuesMode m_handleDuplicatesMode = HandleDuplicateValuesMode.FAIL;
 
@@ -166,7 +170,8 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
             /**
              * Generate a new RowID.
              */
-            @Label(value = "Generate new", description = "If selected, a new RowID is generated with the format: Row0, Row1, Row2, ...")
+            @Label(value = "Generate new",
+                description = "If selected, a new RowID is generated with the format: Row0, Row1, Row2, ...")
             GENERATE_NEW,
             /**
              * Replace the RowID by a column.
@@ -182,7 +187,8 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
             /**
              * Fail node execution.
              */
-            @Label(value = "Fail", description = "If selected, the node fails if a missing value is encountered in the selected column.")
+            @Label(value = "Fail",
+                description = "If selected, the node fails if a missing value is encountered in the selected column.")
             FAIL,
             /**
              * Replace missing values.
@@ -199,13 +205,14 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
             /**
              * Fail node execution.
              */
-            //
-            @Label(value = "Fail", description =  "If selected, the node fails if a duplicate value is encountered in the selected column.")
+            @Label(value = "Fail",
+                description = "If selected, the node fails if a duplicate value is encountered in the selected column.")
             FAIL,
             /**
              * Append a counter to duplicates to make them unique.
              */
-            @Label(value = "Append counter", description = "If selected, uniqueness is ensured by appending an incrementing number to duplicates.")
+            @Label(value = "Append counter",
+                description = "If selected, uniqueness is ensured by appending an incrementing number to duplicates.")
             APPEND_COUNTER
     }
 
@@ -268,7 +275,6 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
 
         @Override
         public ReplacementMode load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            // TODO: This won't be backward compatible with flow variables after this::save creates the new key.
             if (settings.containsKey(CONFIG_KEY)) {
                 return m_persistor.load(settings);
             }

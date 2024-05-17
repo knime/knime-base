@@ -187,7 +187,7 @@ public class RowKeyNodeModel2 extends WebUINodeModel<RowKeyNodeSettings> {
     public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo, final PortObjectSpec[] inSpecs)
         throws InvalidSettingsException {
         LOGGER.debug("Entering createStreamableOperator-method of class RowKeyNodeModel");
-        if (m_modelSettings.m_appendRowKey) {
+        if (m_modelSettings.m_replaceRowKey) {
             DataTableSpec outSpec = configure((DataTableSpec) inSpecs[DATA_IN_PORT], m_modelSettings);
             return new StreamableOperator() {
                 @Override
@@ -239,14 +239,6 @@ public class RowKeyNodeModel2 extends WebUINodeModel<RowKeyNodeSettings> {
     private void replaceKey(final RowInput rowInput, final RowOutput rowOutput, final int totalNoOfOutCols,
         final int totalNoOfRows, final ExecutionContext exec, final RowKeyNodeSettings modelSettings) throws Exception {
 
-        final var replaceByColumn = modelSettings.m_replaceRowKeyMode == ReplacementMode.USE_COLUMN;
-        final boolean ensureUniqueness = replaceByColumn // Setting only takes effect if we replace by column.
-            && modelSettings.m_handleDuplicatesMode == HandleDuplicateValuesMode.APPEND_COUNTER;
-        final boolean replaceMissing = replaceByColumn // Setting only takes effect if we replace by column.
-            && modelSettings.m_handleMissingsMode == HandleMissingValuesMode.REPLACE;
-        final boolean removeRowKeyCol = replaceByColumn // Setting only takes effect if we replace by column.
-            && modelSettings.m_removeRowKeyColumn;
-
         LOGGER.debug("The user wants to replace the RowID with the"
                 + " column " + modelSettings.m_appendedColumnName
                 + " optional appended column name"
@@ -268,6 +260,15 @@ public class RowKeyNodeModel2 extends WebUINodeModel<RowKeyNodeSettings> {
         if (modelSettings.m_appendRowKey) {
             newColSpec = createAppendRowKeyColSpec(modelSettings.m_appendedColumnName);
         }
+
+        final var replaceByColumn = modelSettings.m_replaceRowKeyMode == ReplacementMode.USE_COLUMN;
+        final boolean ensureUniqueness = replaceByColumn // Setting only takes effect if we replace by column.
+            && modelSettings.m_handleDuplicatesMode == HandleDuplicateValuesMode.APPEND_COUNTER;
+        final boolean replaceMissing = replaceByColumn // Setting only takes effect if we replace by column.
+            && modelSettings.m_handleMissingsMode == HandleMissingValuesMode.REPLACE;
+        final boolean removeRowKeyCol = replaceByColumn // Setting only takes effect if we replace by column.
+            && modelSettings.m_removeRowKeyColumn;
+
         final RowKeyUtil2 util = new RowKeyUtil2();
         final var newRowKeyColumn = modelSettings.m_replaceRowKeyMode == ReplacementMode.USE_COLUMN //
             ? modelSettings.m_newRowKeyColumnV2 //
@@ -325,13 +326,11 @@ public class RowKeyNodeModel2 extends WebUINodeModel<RowKeyNodeSettings> {
         }
         if (appendRowKey) {
             if (newColName == null || newColName.trim().length() < 1) {
-                throw new InvalidSettingsException("Please provide a valid"
-                        + " name for the new column.");
+                throw new InvalidSettingsException("Please provide a valid" + " name for the new column.");
             }
-            if (origSpec != null && origSpec.containsName(newColName) && (!replaceRowKey
-                || !removeRowKeyCol || !newRowKeyCol.equals(newColName))) {
-                    throw new InvalidSettingsException("Column with name: '"
-                        + newColName + "' already exists.");
+            if (origSpec != null && origSpec.containsName(newColName)
+                && (!replaceRowKey || !removeRowKeyCol || !newRowKeyCol.equals(newColName))) {
+                throw new InvalidSettingsException("Column with name: '" + newColName + "' already exists.");
 
             }
         }
@@ -372,7 +371,6 @@ public class RowKeyNodeModel2 extends WebUINodeModel<RowKeyNodeSettings> {
      */
     @Override
     protected HiLiteHandler getOutHiLiteHandler(final int outIndex) {
-        // TODO: Why does the original implementation consider the append option at all here?
         if (m_modelSettings.m_appendRowKey && !m_modelSettings.m_replaceRowKey) {
             // use the original hilite handler if the row keys do not change
             return getInHiLiteHandler(outIndex);
@@ -414,7 +412,8 @@ public class RowKeyNodeModel2 extends WebUINodeModel<RowKeyNodeSettings> {
             : null;
 
         validateInput(spec, modelSettings.m_appendRowKey, modelSettings.m_appendedColumnName,
-            modelSettings.m_replaceRowKeyMode, newRowKeyColumn, modelSettings.m_removeRowKeyColumn, modelSettings.m_appendRowKey);
+            modelSettings.m_replaceRowKeyMode, newRowKeyColumn, modelSettings.m_removeRowKeyColumn,
+            modelSettings.m_appendRowKey);
         DataTableSpec resSpec = spec;
         if (modelSettings.m_replaceRowKeyMode == ReplacementMode.USE_COLUMN && modelSettings.m_removeRowKeyColumn) {
             resSpec = RowKeyUtil2.createTableSpec(resSpec, newRowKeyColumn);
