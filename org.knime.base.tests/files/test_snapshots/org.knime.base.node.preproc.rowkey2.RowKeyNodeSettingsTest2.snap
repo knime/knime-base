@@ -2,13 +2,14 @@
   "data" : {
     "model" : {
       "replaceRowKey" : true,
-      "replaceRowKeyMode" : "GENERATE_NEW",
+      "replaceRowKeyMode" : "USE_COLUMN",
+      "newRowKeyColumnV2" : "Universe_0_0",
       "removeRowKeyColumn" : false,
       "handleMissingsMode" : "FAIL",
       "handleDuplicatesMode" : "FAIL",
       "enableHilite" : false,
-      "appendRowKey" : false,
-      "appendedColumnName" : "Old RowID"
+      "appendRowKey" : true,
+      "appendedColumnName" : "appendedColumn"
     }
   },
   "schema" : {

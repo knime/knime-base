@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <entry key="replaceRowKey" type="xboolean" value="true"/>
+    <entry key="replaceRowKeyMode" type="xstring" value="USE_COLUMN"/>
+    <entry key="newRowKeyColumnV2" type="xstring" value="Universe_0_0"/>
+    <entry key="removeRowKeyCol" type="xboolean" value="false"/>
+    <entry key="replaceMissingValues" type="xboolean" value="false"/>
+    <entry key="ensureUniqueness" type="xboolean" value="false"/>
+    <entry key="enableHilite" type="xboolean" value="false"/>
+    <entry key="appendRowKeyCol" type="xboolean" value="true"/>
+    <entry key="newColumnName4RowKeyValues" type="xstring" value="appendedColumn"/>
+</config>

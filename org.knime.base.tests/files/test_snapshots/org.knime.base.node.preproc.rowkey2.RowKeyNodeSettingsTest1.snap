@@ -8,7 +8,7 @@
       "handleDuplicatesMode" : "FAIL",
       "enableHilite" : false,
       "appendRowKey" : false,
-      "appendedColumnName" : "Old RowID"
+      "appendedColumnName" : "appendedColumn"
     }
   },
   "schema" : {

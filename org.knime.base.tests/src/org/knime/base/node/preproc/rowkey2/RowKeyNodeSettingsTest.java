@@ -48,14 +48,18 @@
  */
 package org.knime.base.node.preproc.rowkey2;
 
-import java.util.Map;
+import java.io.FileInputStream;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
  * Snapshot test for the row key node
@@ -66,10 +70,29 @@ import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 public class RowKeyNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
     @SuppressWarnings("javadoc")
     protected RowKeyNodeSettingsTest() {
-        super(Map.of(SettingsType.MODEL, RowKeyNodeSettings.class), createDefaultTestTableSpec());
+        super(getConfig());
     }
 
     static DataTableSpec createDefaultTestTableSpec() {
         return new DataTableSpec(new String[]{"test1", "test2"}, new DataType[]{IntCell.TYPE, StringCell.TYPE});
+    }
+
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+                .withInputPortObjectSpecs(new PortObjectSpec[] {createDefaultTestTableSpec()}) //
+                .testJsonFormsForModel(RowKeyNodeSettings.class) //
+                .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings("GenerateNewRowKeys.xml")) //
+                .testNodeSettingsStructure(() -> readSettings("GenerateNewRowKeys.xml")) //
+                .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings("ReplaceAndAppend.xml")) //
+                .testNodeSettingsStructure(() -> readSettings("ReplaceAndAppend.xml")) //
+                .build();
+    }
+
+    private static RowKeyNodeSettings readSettings(final String filename) throws Exception {
+        var path = getSnapshotPath(RowKeyNodeSettings.class).getParent().resolve("node_settings").resolve("RowKeyNodeSettings").resolve(filename);
+        try (var fis = new FileInputStream(path.toFile())) {
+            var nodeSettings = NodeSettings.loadFromXML(fis);
+            return DefaultNodeSettings.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()), RowKeyNodeSettings.class);
+        }
     }
 }
