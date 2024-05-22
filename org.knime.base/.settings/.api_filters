@@ -119,26 +119,78 @@
         </filter>
     </resource>
     <resource path="src/org/knime/base/node/preproc/rowkey2/RowKeyNodeFactory2.java" type="org.knime.base.node.preproc.rowkey2.RowKeyNodeFactory2">
-        <filter id="305365105">
+        <filter comment="Node implementations are not API" id="338792546">
             <message_arguments>
                 <message_argument value="org.knime.base.node.preproc.rowkey2.RowKeyNodeFactory2"/>
-                <message_argument value="org.knime.base_5.3.0"/>
+                <message_argument value="createNodeView(int, RowKeyNodeModel2)"/>
             </message_arguments>
         </filter>
     </resource>
     <resource path="src/org/knime/base/node/preproc/rowkey2/RowKeyNodeModel2.java" type="org.knime.base.node.preproc.rowkey2.RowKeyNodeModel2">
-        <filter id="305365105">
+        <filter comment="Node implementations are not API" id="338722907">
             <message_arguments>
                 <message_argument value="org.knime.base.node.preproc.rowkey2.RowKeyNodeModel2"/>
-                <message_argument value="org.knime.base_5.3.0"/>
+                <message_argument value="RowKeyNodeModel2()"/>
             </message_arguments>
         </filter>
-    </resource>
-    <resource path="src/org/knime/base/node/preproc/rowkey2/RowKeyUtil2.java" type="org.knime.base.node.preproc.rowkey2.RowKeyUtil2">
-        <filter id="305365105">
+        <filter comment="Node implementations are not API" id="338755678">
             <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.rowkey2.RowKeyUtil2"/>
-                <message_argument value="org.knime.base_5.3.0"/>
+                <message_argument value="org.knime.base.node.preproc.rowkey2.RowKeyNodeModel2"/>
+                <message_argument value="APPEND_ROWKEY_COLUMN"/>
+            </message_arguments>
+        </filter>
+        <filter comment="Node implementations are not API" id="338755678">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.rowkey2.RowKeyNodeModel2"/>
+                <message_argument value="CFG_ENABLE_HILITE"/>
+            </message_arguments>
+        </filter>
+        <filter comment="Node implementations are not API" id="338755678">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.rowkey2.RowKeyNodeModel2"/>
+                <message_argument value="ENSURE_UNIQUNESS"/>
+            </message_arguments>
+        </filter>
+        <filter comment="Node implementations are not API" id="338755678">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.rowkey2.RowKeyNodeModel2"/>
+                <message_argument value="HANDLE_MISSING_VALS"/>
+            </message_arguments>
+        </filter>
+        <filter comment="Node implementations are not API" id="338755678">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.rowkey2.RowKeyNodeModel2"/>
+                <message_argument value="NEW_COL_NAME_4_ROWKEY_VALS"/>
+            </message_arguments>
+        </filter>
+        <filter comment="Node implementations are not API" id="338755678">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.rowkey2.RowKeyNodeModel2"/>
+                <message_argument value="REMOVE_ROW_KEY_COLUM"/>
+            </message_arguments>
+        </filter>
+        <filter comment="Node implementations are not API" id="338755678">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.rowkey2.RowKeyNodeModel2"/>
+                <message_argument value="REPLACE_ROWKEY"/>
+            </message_arguments>
+        </filter>
+        <filter comment="Node implementations are not API" id="338755678">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.rowkey2.RowKeyNodeModel2"/>
+                <message_argument value="SELECTED_NEW_ROWKEY_COL"/>
+            </message_arguments>
+        </filter>
+        <filter comment="Node implementations are not API" id="338792546">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.rowkey2.RowKeyNodeModel2"/>
+                <message_argument value="enableReplaceOptions()"/>
+            </message_arguments>
+        </filter>
+        <filter comment="Node implementations are not API" id="338792546">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.rowkey2.RowKeyNodeModel2"/>
+                <message_argument value="validateInput(DataTableSpec, boolean, String, boolean, String, boolean)"/>
             </message_arguments>
         </filter>
     </resource>

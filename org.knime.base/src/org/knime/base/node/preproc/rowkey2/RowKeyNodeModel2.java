@@ -99,8 +99,7 @@ import org.knime.core.webui.node.impl.WebUINodeModel;
 public class RowKeyNodeModel2 extends WebUINodeModel<RowKeyNodeSettings> {
 
     // our logger instance
-    private static final NodeLogger LOGGER = NodeLogger
-            .getLogger(RowKeyNodeModel2.class);
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(RowKeyNodeModel2.class);
 
     /** The port were the model expects the in data. */
     public static final int DATA_IN_PORT = 0;
@@ -131,6 +130,7 @@ public class RowKeyNodeModel2 extends WebUINodeModel<RowKeyNodeSettings> {
     }
 
     /**
+     * {@inheritDoc}
      * @since 5.3
      */
     @Override
@@ -138,18 +138,17 @@ public class RowKeyNodeModel2 extends WebUINodeModel<RowKeyNodeSettings> {
         final RowKeyNodeSettings modelSettings) throws Exception {
         LOGGER.debug("Entering execute(inData, exec) of class RowKeyNodeModel");
         // check input data
-        if (inData == null || inData.length != 1
-                || inData[DATA_IN_PORT] == null) {
+        if (inData == null || inData.length != 1 || inData[DATA_IN_PORT] == null) {
             throw new IllegalArgumentException("No input data available.");
         }
         final BufferedDataTable data = inData[DATA_IN_PORT];
         BufferedDataTable outData = null;
 
         if (modelSettings.m_replaceRowKey) {
-            //create outspec
+            // create outspec
             DataTableSpec outSpec = configure(data.getDataTableSpec(), modelSettings);
 
-            //create table
+            // create table
             final BufferedDataContainer newContainer = exec.createDataContainer(outSpec, true);
             RowInput rowInput = new DataTableRowInput(data);
             RowOutput rowOutput = new BufferedDataTableRowOutput(newContainer);
@@ -157,58 +156,50 @@ public class RowKeyNodeModel2 extends WebUINodeModel<RowKeyNodeSettings> {
             newContainer.close();
             outData =  newContainer.getTable();
         } else if (modelSettings.m_appendRowKey) {
-            LOGGER.debug("The user only wants to append a new column with "
-                    + "name " + modelSettings.m_appendedColumnName);
-            // the user wants only a column with the given name which
-            //contains the rowkey as value
+            LOGGER.debug("The user only wants to append a new column with name " + modelSettings.m_appendedColumnName);
+            // the user wants only a column with the given name which contains the rowkey as value
             final DataTableSpec tableSpec = data.getDataTableSpec();
-            final ColumnRearranger c = RowKeyUtil2.createColumnRearranger(
-                    tableSpec, modelSettings.m_appendedColumnName, StringCell.TYPE);
-            outData =
-                exec.createColumnRearrangeTable(data, c, exec);
+            final ColumnRearranger c = RowKeyUtil2.createColumnRearranger(tableSpec, modelSettings.m_appendedColumnName,
+                StringCell.TYPE);
+            outData = exec.createColumnRearrangeTable(data, c, exec);
             exec.setMessage("New column created");
             LOGGER.debug("Column appended successfully");
         } else {
-            //the user doesn't want to do anything at all so we simply return
-            //the given data
+            // the user doesn't want to do anything at all so we simply return the given data
             outData = data;
-            LOGGER.debug("The user hasn't selected a new RowID column"
-                    + " and hasn't entered a new column name.");
+            LOGGER.debug("The user hasn't selected a new RowID column and hasn't entered a new column name.");
         }
         LOGGER.debug("Exiting execute(inData, exec) of class RowKeyNodeModel.");
         return new BufferedDataTable[]{outData};
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo, final PortObjectSpec[] inSpecs)
-        throws InvalidSettingsException {
+    public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
+        final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         LOGGER.debug("Entering createStreamableOperator-method of class RowKeyNodeModel");
+
+        final var tableSpec = (DataTableSpec) inSpecs[DATA_IN_PORT];
         if (m_modelSettings.m_replaceRowKey) {
-            DataTableSpec outSpec = configure((DataTableSpec) inSpecs[DATA_IN_PORT], m_modelSettings);
+            DataTableSpec outSpec = configure(tableSpec, m_modelSettings);
             return new StreamableOperator() {
                 @Override
-                public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec) throws Exception {
+                public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
+                        throws Exception {
                     RowInput rowInput = (RowInput) inputs[DATA_IN_PORT];
                     RowOutput rowOutput = (RowOutput) outputs[DATA_OUT_PORT];
                     replaceKey(rowInput, rowOutput, outSpec.getNumColumns(), -1, exec, m_modelSettings);
                 }
             };
         } else if (m_modelSettings.m_appendRowKey) {
-            LOGGER.debug("The user only wants to append a new column with "
-                    + "name " + m_modelSettings.m_appendedColumnName);
-            // the user wants only a column with the given name which
-            //contains the rowkey as value
-            final DataTableSpec tableSpec = (DataTableSpec) inSpecs[DATA_IN_PORT];
-            final ColumnRearranger c = RowKeyUtil2.createColumnRearranger(
-                    tableSpec, m_modelSettings.m_appendedColumnName, StringCell.TYPE);
+            LOGGER.debug("The user only wants to append a new column with name " //
+                + m_modelSettings.m_appendedColumnName);
+            // the user wants only a column with the given name which contains the rowkey as value
+            final ColumnRearranger c = RowKeyUtil2.createColumnRearranger(tableSpec,
+                m_modelSettings.m_appendedColumnName, StringCell.TYPE);
             return c.createStreamableFunction();
         } else {
-            //the user doesn't want to do anything at all so we simply pass
-            //the given data
+            //the user doesn't want to do anything at all so we simply pass the given data
             return new StreamableFunction() {
                 @Override
                 public DataRow compute(final DataRow input) throws Exception {
@@ -218,18 +209,12 @@ public class RowKeyNodeModel2 extends WebUINodeModel<RowKeyNodeSettings> {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public InputPortRole[] getInputPortRoles() {
-        //only streamable for now -> to be distributed more effort needed to ensure the uniqueness of row keys
-         return new InputPortRole[]{InputPortRole.NONDISTRIBUTED_STREAMABLE};
+        // only streamable for now -> to be distributed more effort needed to ensure the uniqueness of row keys
+        return new InputPortRole[]{InputPortRole.NONDISTRIBUTED_STREAMABLE};
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public OutputPortRole[] getOutputPortRoles() {
         return new OutputPortRole[]{OutputPortRole.NONDISTRIBUTED};
@@ -239,20 +224,16 @@ public class RowKeyNodeModel2 extends WebUINodeModel<RowKeyNodeSettings> {
     private void replaceKey(final RowInput rowInput, final RowOutput rowOutput, final int totalNoOfOutCols,
         final int totalNoOfRows, final ExecutionContext exec, final RowKeyNodeSettings modelSettings) throws Exception {
 
-        LOGGER.debug("The user wants to replace the RowID with the"
-                + " column " + modelSettings.m_appendedColumnName
-                + " optional appended column name"
-                + modelSettings.m_appendRowKey);
+        LOGGER.debug("The user wants to replace the RowID with the column " + modelSettings.m_appendedColumnName
+                + " optional appended column name" + modelSettings.m_appendRowKey);
         if (modelSettings.m_replaceRowKeyMode == ReplacementMode.USE_COLUMN) {
             // the user wants a new column as rowkey column
-            final int colIdx = rowInput.getDataTableSpec().findColumnIndex(
-                modelSettings.m_newRowKeyColumnV2);
+            final int colIdx = rowInput.getDataTableSpec().findColumnIndex(modelSettings.m_newRowKeyColumnV2);
             if (colIdx < 0) {
                 if (modelSettings.m_newRowKeyColumnV2 == null) {
                     throw new InvalidSettingsException("No column selected for replacing the RowID.");
                 }
-                throw new InvalidSettingsException("No column with name: "
-                        + modelSettings.m_newRowKeyColumnV2
+                throw new InvalidSettingsException("No column with name: " + modelSettings.m_newRowKeyColumnV2
                         + " exists. Please select a valid column name.");
             }
         }
@@ -277,20 +258,17 @@ public class RowKeyNodeModel2 extends WebUINodeModel<RowKeyNodeSettings> {
             modelSettings.m_appendRowKey, newColSpec, ensureUniqueness, replaceMissing, removeRowKeyCol,
             modelSettings.m_enableHilite, totalNoOfOutCols, totalNoOfRows);
         if (modelSettings.m_enableHilite) {
-            m_hilite.setMapper(new DefaultHiLiteMapper(
-                    util.getHiliteMapping()));
+            m_hilite.setMapper(new DefaultHiLiteMapper(util.getHiliteMapping()));
         }
         final int missingValueCounter = util.getMissingValueCounter();
         final int duplicatesCounter = util.getDuplicatesCounter();
         final StringBuilder warningMsg = new StringBuilder();
         if (missingValueCounter > 0) {
-            warningMsg.append(missingValueCounter
-                    + " missing value(s) replaced with "
+            warningMsg.append(missingValueCounter + " missing value(s) replaced with "
                     + RowKeyUtil2.MISSING_VALUE_REPLACEMENT + ". ");
         }
         if (duplicatesCounter > 0) {
-            warningMsg.append(duplicatesCounter
-                    + " duplicate(s) now unique.");
+            warningMsg.append(duplicatesCounter + " duplicate(s) now unique.");
         }
         if (warningMsg.length() > 0) {
             setWarningMessage(warningMsg.toString());
@@ -299,29 +277,25 @@ public class RowKeyNodeModel2 extends WebUINodeModel<RowKeyNodeSettings> {
     }
 
     /**
-     * @param origSpec the original table specification (could be
-     * <code>null</code>)
+     * @param origSpec the original table specification (could be <code>null</code>)
      * @param appendRowKey <code>true</code> if a new column should be created
      * @param newColName the name of the new column to append
      * @param replaceRowKeyMode if and how the row key should be replaced
      * @param newRowKeyCol the name of the row key column
-     * @param removeRowKeyCol removes the selected row key column if set
-     * to <code>true</code>
+     * @param removeRowKeyCol removes the selected row key column if set to <code>true</code>
+     * @param replaceRowKey
      * @throws InvalidSettingsException if the settings are invalid
      * @since 5.3
      */
-    protected static void validateInput(final DataTableSpec origSpec,
-            final boolean appendRowKey, final String newColName,
-            final ReplacementMode replaceRowKeyMode, final String newRowKeyCol,
+    protected static void validateInput(final DataTableSpec origSpec, final boolean appendRowKey,
+            final String newColName, final ReplacementMode replaceRowKeyMode, final String newRowKeyCol,
             final boolean removeRowKeyCol, final boolean replaceRowKey) throws InvalidSettingsException {
         if (replaceRowKeyMode == ReplacementMode.USE_COLUMN) {
             if (newRowKeyCol == null) {
                 throw new InvalidSettingsException("No column selected for replacing the RowID.");
             }
             if (origSpec != null && !origSpec.containsName(newRowKeyCol)) {
-                throw new InvalidSettingsException(
-                "Selected column: '" + newRowKeyCol
-                + "' not found in input table.");
+                throw new InvalidSettingsException("Selected column: '" + newRowKeyCol + "' not found in input table.");
             }
         }
         if (appendRowKey) {
@@ -331,7 +305,6 @@ public class RowKeyNodeModel2 extends WebUINodeModel<RowKeyNodeSettings> {
             if (origSpec != null && origSpec.containsName(newColName)
                 && (!replaceRowKey || !removeRowKeyCol || !newRowKeyCol.equals(newColName))) {
                 throw new InvalidSettingsException("Column with name: '" + newColName + "' already exists.");
-
             }
         }
     }
@@ -343,32 +316,21 @@ public class RowKeyNodeModel2 extends WebUINodeModel<RowKeyNodeSettings> {
      * original table specification
      */
     private static DataColumnSpec createAppendRowKeyColSpec(final String newColName) {
-        final DataColumnSpecCreator colSpecCreater =
-                new DataColumnSpecCreator(newColName, StringCell.TYPE);
+        final DataColumnSpecCreator colSpecCreater = new DataColumnSpecCreator(newColName, StringCell.TYPE);
         return colSpecCreater.createSpec();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void reset() {
         m_hilite.setMapper(null);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected void setInHiLiteHandler(final int inIndex,
-            final HiLiteHandler hiLiteHdl) {
+    protected void setInHiLiteHandler(final int inIndex, final HiLiteHandler hiLiteHdl) {
         m_hilite.removeAllToHiliteHandlers();
         m_hilite.addToHiLiteHandler(hiLiteHdl);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected HiLiteHandler getOutHiLiteHandler(final int outIndex) {
         if (m_modelSettings.m_appendRowKey && !m_modelSettings.m_replaceRowKey) {
@@ -380,6 +342,7 @@ public class RowKeyNodeModel2 extends WebUINodeModel<RowKeyNodeSettings> {
     }
 
     /**
+     * {@inheritDoc}
      * @since 5.3
      */
     @Override
@@ -391,8 +354,7 @@ public class RowKeyNodeModel2 extends WebUINodeModel<RowKeyNodeSettings> {
         m_modelSettings = modelSettings;
 
         // check the input data
-        assert (inSpecs != null && inSpecs.length == 1
-                && inSpecs[DATA_IN_PORT] != null);
+        assert (inSpecs != null && inSpecs.length == 1 && inSpecs[DATA_IN_PORT] != null);
         DataTableSpec spec = inSpecs[DATA_IN_PORT];
         return new DataTableSpec[]{configure(spec, modelSettings)};
     }
@@ -426,6 +388,7 @@ public class RowKeyNodeModel2 extends WebUINodeModel<RowKeyNodeSettings> {
     }
 
     /**
+     * {@inheritDoc}
      * @since 5.3
      */
     @Override
@@ -434,41 +397,30 @@ public class RowKeyNodeModel2 extends WebUINodeModel<RowKeyNodeSettings> {
             settings.m_newRowKeyColumnV2, settings.m_removeRowKeyColumn, settings.m_appendRowKey);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected void loadInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException  {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec) throws IOException {
         if (m_modelSettings.m_enableHilite) {
-            final NodeSettingsRO config = NodeSettings.loadFromXML(
-                    new FileInputStream(new File(nodeInternDir,
-                            INTERNALS_FILE_NAME)));
-            try {
+            try (final var inputStream = new FileInputStream(new File(nodeInternDir, INTERNALS_FILE_NAME))) {
+                final NodeSettingsRO config = NodeSettings.loadFromXML(inputStream);
                 m_hilite.setMapper(DefaultHiLiteMapper.load(config));
                 m_hilite.addToHiLiteHandler(getInHiLiteHandler(0));
             } catch (final InvalidSettingsException ex) {
-                throw new IOException(ex.getMessage());
+                throw new IOException(ex.getMessage(), ex);
             }
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected void saveInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException  {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec) throws IOException {
         if (m_modelSettings.m_enableHilite) {
             final NodeSettings config = new NodeSettings("hilite_mapping");
-            final DefaultHiLiteMapper mapper =
-                (DefaultHiLiteMapper) m_hilite.getMapper();
+            final DefaultHiLiteMapper mapper = (DefaultHiLiteMapper) m_hilite.getMapper();
             if (mapper != null) {
                 mapper.save(config);
             }
-            config.saveToXML(
-                    new FileOutputStream(new File(nodeInternDir,
-                            INTERNALS_FILE_NAME)));
+            try (final var outputStream = new FileOutputStream(new File(nodeInternDir, INTERNALS_FILE_NAME))) {
+                config.saveToXML(outputStream);
+            }
         }
     }
 }
