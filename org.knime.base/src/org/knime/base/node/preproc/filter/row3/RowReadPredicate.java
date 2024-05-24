@@ -48,6 +48,7 @@
  */
 package org.knime.base.node.preproc.filter.row3;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.function.DoublePredicate;
 import java.util.function.Function;
@@ -56,7 +57,7 @@ import java.util.function.LongPredicate;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang.StringUtils;
+import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
 import org.knime.base.node.preproc.stringreplacer.CaseMatching;
 import org.knime.core.data.BooleanValue;
 import org.knime.core.data.DataCell;
@@ -66,14 +67,12 @@ import org.knime.core.data.DoubleValue;
 import org.knime.core.data.IntValue;
 import org.knime.core.data.LongValue;
 import org.knime.core.data.StringValue;
-import org.knime.core.data.convert.datacell.JavaToDataCellConverterRegistry;
 import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.v2.RowRead;
-import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
@@ -82,7 +81,6 @@ import org.knime.filehandling.core.util.WildcardToRegexUtil;
 /**
  * Predicate for filtering rows by data values.
  *
- * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction") // webui
@@ -106,48 +104,68 @@ final class RowReadPredicate implements Predicate<RowRead> {
         return o -> o.isPresent() && predicate.test(o.get());
     }
 
-    static void validateSettings(final AbstractRowFilterNodeSettings settings, final DataTableSpec spec)
+    static void validateSettings(final List<FilterCriterion> criteria, final DataTableSpec spec)
+            throws InvalidSettingsException {
+        for (final var c : criteria) {
+            validateSettings(c, spec);
+        }
+    }
+
+    static void validateSettings(final FilterCriterion criterion, final DataTableSpec spec)
         throws InvalidSettingsException {
-        final var operator = settings.m_operator;
-        if (AbstractRowFilterNodeSettings.isFilterOnRowKeys(settings)) {
+
+        final var operator = criterion.m_operator;
+        if (AbstractRowFilterNodeSettings.isFilterOnRowKeys(criterion)) {
             CheckUtils.checkSetting(operator != FilterOperator.IS_MISSING, "Cannot filter RowID for presence.");
             CheckUtils.checkSetting(operator.isEnabledFor(SpecialColumns.ROWID, StringCell.TYPE),
                 "Filter operator \"%s\" cannot be applied to RowID.", operator.label());
             return;
         }
 
-        final var columnName = settings.m_column.getSelected();
-        final var columnSpec =
-            CheckUtils.checkNotNull(spec.getColumnSpec(columnName), "Unknown column \"%s\".", columnName);
-        final var columnType = columnSpec.getType();
-        final var columnIndex = spec.findColumnIndex(columnName);
+        final var columnName = criterion.m_column.getSelected();
+        CheckUtils.checkSettingNotNull(spec.getColumnSpec(columnName), "Unknown column \"%s\".", columnName);
 
+        // TODO revise this logic with new arraylayout
         if (operator.m_isBinary) {
-            CheckUtils.checkSetting(StringUtils.isNotEmpty(settings.m_value), "The comparison value is missing.");
-            new FormatValidator().fromDataType(settings, columnIndex, columnType, InvalidSettingsException::new);
-        } else {
-            // check that our cleaning hook correctly cleaned any formerly input value
-            CheckUtils.checkSetting(StringUtils.isEmpty(settings.m_value), "Unexpected comparison value \"%s\".",
-                settings.m_value);
+            // TODO multiple values
+            CheckUtils.checkSetting(criterion.m_predicateValues.getCellAt(0).isPresent(),
+                "The comparison value is missing.");
         }
     }
 
-    static Predicate<RowRead> createFrom(final ExecutionContext exec, final AbstractRowFilterNodeSettings settings,
-        final DataTableSpec spec) throws InvalidSettingsException {
-        final var operator = settings.m_operator;
-        if (AbstractRowFilterNodeSettings.isFilterOnRowKeys(settings)) {
-            final var predicate = new StringPredicate(operator, settings.m_caseMatching, settings.m_value);
+    static Predicate<RowRead> buildPredicate(final boolean isAnd, final Iterable<FilterCriterion> filterCriteria,
+            final DataTableSpec inSpec) throws InvalidSettingsException {
+        final var iter = filterCriteria.iterator();
+        if (!iter.hasNext()) {
+            return null;
+        }
+        var filterPredicate = createFrom(iter.next(), inSpec);
+        while (iter.hasNext()) {
+            final var predicate = createFrom(iter.next(), inSpec);
+            filterPredicate = isAnd ? filterPredicate.and(predicate) : filterPredicate.or(predicate);
+        }
+        return filterPredicate;
+    }
+
+    private static Predicate<RowRead> createFrom(final FilterCriterion criterion,
+            final DataTableSpec spec) throws InvalidSettingsException {
+        final var operator = criterion.m_operator;
+        if (AbstractRowFilterNodeSettings.isFilterOnRowKeys(criterion)) {
+            // TODO multiple values
+            final var predicate = new StringPredicate(operator, criterion.m_caseMatching,
+                criterion.m_predicateValues.getCellAt(0).map(c -> (StringCell)c).map(StringCell::getStringValue)
+                    .orElseThrow(() -> new InvalidSettingsException("Missing string value for RowID comparison")));
             return row -> predicate.test(row.getRowKey().getString());
         }
 
-        final var column = settings.m_column.m_selected;
+        final var column = criterion.m_column.getSelected();
         final var columnIndex = spec.findColumnIndex(column);
-        if (settings.m_operator == FilterOperator.IS_MISSING) {
+        if (criterion.m_operator == FilterOperator.IS_MISSING) {
             return row -> row.isMissing(columnIndex);
         }
 
         final var columnSpec = spec.getColumnSpec(columnIndex);
-        return new ValuePredicateCreator(exec).fromDataType(settings, columnIndex, columnSpec.getType(),
+        return new ValuePredicateCreator().fromDataType(criterion, columnIndex, columnSpec.getType(),
             InvalidSettingsException::new);
     }
 
@@ -157,130 +175,61 @@ final class RowReadPredicate implements Predicate<RowRead> {
      */
     interface DataTypeHandler<O, X extends Throwable> {
 
-        default O fromDataType(final AbstractRowFilterNodeSettings settings, final int columnIndex, // NOSONAR
-                final DataType dataType, final Function<String, X> exceptionFn) throws X {
-            final var operator = settings.m_operator;
-            final var value = settings.m_value;
+        default O fromDataType(final FilterCriterion criterion, final int columnIndex, // NOSONAR
+            final DataType dataType, final Function<String, X> exceptionFn) throws X {
+            final var operator = criterion.m_operator;
+            final var value = criterion.m_predicateValues.getCellAt(0)
+                .orElseThrow(() -> exceptionFn.apply("Comparison value missing"));
             CheckUtils.check(operator.isEnabledFor(null, dataType), exceptionFn,
                 () -> "Operator \"%s\" is not applicable for column data type \"%s\"".formatted(operator.label(),
                     dataType.getName()));
 
-            if (StringCell.TYPE == dataType) {
-                return handleString(columnIndex, operator, settings.m_caseMatching, value);
-            }
             // check specially supported data types
+            if (StringCell.TYPE == dataType) {
+                return handleString(columnIndex, operator, criterion.m_caseMatching,
+                    ((StringCell)value).getStringValue());
+            }
             if (BooleanCell.TYPE == dataType) {
-                return handleBoolean(columnIndex, operator, value);
+                return handleBoolean(columnIndex, operator);
             }
             if (LongCell.TYPE == dataType) {
-                return handleLong(columnIndex, operator, value);
+                return handleLong(columnIndex, operator, ((LongCell)value).getLongValue());
             }
             if (IntCell.TYPE == dataType) {
-                return handleInt(columnIndex, operator, value);
+                return handleInt(columnIndex, operator, ((IntCell)value).getIntValue());
             }
             if (DoubleCell.TYPE == dataType) {
-                return handleDouble(columnIndex, operator, value);
+                return handleDouble(columnIndex, operator, ((DoubleCell)value).getDoubleValue());
             }
-            // fallback to typemapping
-            return handleGeneric(columnIndex, operator, value, dataType);
+            return handleGeneric(columnIndex, operator, value);
         }
 
         O handleString(int columnIndex, FilterOperator operator, CaseMatching caseMatching, String value) throws X;
 
-        O handleBoolean(int columnIndex, FilterOperator operator, String value) throws X;
+        O handleBoolean(int columnIndex, FilterOperator operator) throws X;
 
-        O handleLong(int columnIndex, FilterOperator operator, String value) throws X;
+        O handleLong(int columnIndex, FilterOperator operator, long value) throws X;
 
-        O handleInt(int columnIndex, FilterOperator operator, String value) throws X;
+        O handleInt(int columnIndex, FilterOperator operator, int value) throws X;
 
-        O handleDouble(int columnIndex, FilterOperator operator, String value) throws X;
+        O handleDouble(int columnIndex, FilterOperator operator, double value) throws X;
 
-        O handleGeneric(int columnIndex, FilterOperator operator, String value, DataType targetType) throws X;
-    }
-
-    static final class FormatValidator implements DataTypeHandler<Boolean, InvalidSettingsException> {
-
-        @Override
-        public Boolean handleString(final int columnIndex, final FilterOperator operator,
-            final CaseMatching caseMatching, final String value) throws InvalidSettingsException {
-            return true;
-        }
-
-        @Override
-        public Boolean handleBoolean(final int columnIndex, final FilterOperator operator, final String value)
-            throws InvalidSettingsException {
-            CheckUtils.checkSetting(StringUtils.isEmpty(value),
-                "Value input must be empty for boolean comparison operator");
-            return true;
-        }
-
-        @Override
-        public Boolean handleLong(final int columnIndex, final FilterOperator operator, final String value)
-            throws InvalidSettingsException {
-            try {
-                Long.parseLong(value);
-            } catch (NumberFormatException e) {
-                throw new InvalidSettingsException(
-                    "Cannot parse \"%s\" as long value: %s".formatted(value, e.getMessage()), e);
-            }
-            return true;
-        }
-
-        @Override
-        public Boolean handleInt(final int columnIndex, final FilterOperator operator, final String value)
-            throws InvalidSettingsException {
-            try {
-                Integer.parseInt(value);
-            } catch (NumberFormatException e) {
-                throw new InvalidSettingsException(
-                    "Cannot parse \"%s\" as int value: %s".formatted(value, e.getMessage()), e);
-            }
-            return true;
-        }
-
-        @Override
-        public Boolean handleDouble(final int columnIndex, final FilterOperator operator, final String value)
-            throws InvalidSettingsException {
-            try {
-                Double.parseDouble(value);
-            } catch (NumberFormatException e) {
-                throw new InvalidSettingsException(
-                    "Cannot parse \"%s\" as double value: %s".formatted(value, e.getMessage()), e);
-            }
-            return true;
-        }
-
-        @Override
-        public Boolean handleGeneric(final int columnIndex, final FilterOperator operator, final String value,
-            final DataType targetType) throws InvalidSettingsException {
-            // If we have a factory, we could parse the value.
-            // To determine whether we actually can parse the value, we need an execution context, which we lack
-            // during configure (where this Validator is used)
-            return !JavaToDataCellConverterRegistry.getInstance().getConverterFactories(String.class, targetType)
-                .isEmpty();
-        }
-
+        O handleGeneric(int columnIndex, FilterOperator operator, DataCell value) throws X;
     }
 
     static final class ValuePredicateCreator implements DataTypeHandler<Predicate<RowRead>, InvalidSettingsException> {
-
-        private ExecutionContext m_exec;
-
-        public ValuePredicateCreator(final ExecutionContext exec) {
-            m_exec = exec;
-        }
 
         @Override
         public Predicate<RowRead> handleString(final int columnIndex, final FilterOperator operator,
             final CaseMatching caseMatching, final String value) throws InvalidSettingsException {
             final var predicate = new StringPredicate(operator, caseMatching, value);
             return new RowReadPredicate(columnIndex,
-                rowRead -> predicate.test(rowRead.<StringValue>getValue(columnIndex).getStringValue()));
+                rowRead -> predicate.test(rowRead.<StringValue> getValue(columnIndex).getStringValue()));
         }
 
         @Override
-        public Predicate<RowRead> handleBoolean(final int columnIndex, final FilterOperator operator,
-            final String value) throws InvalidSettingsException {
+        public Predicate<RowRead> handleBoolean(final int columnIndex, final FilterOperator operator)
+            throws InvalidSettingsException {
             final var matchTrue = switch (operator) {
                 case IS_TRUE -> true;
                 case IS_FALSE -> false;
@@ -289,56 +238,39 @@ final class RowReadPredicate implements Predicate<RowRead> {
                     "Unsupported boolean operator \"%s\"".formatted(operator));
             };
             return new RowReadPredicate(columnIndex,
-                rowRead -> matchTrue == rowRead.<BooleanValue>getValue(columnIndex).getBooleanValue());
+                rowRead -> matchTrue == rowRead.<BooleanValue> getValue(columnIndex).getBooleanValue());
         }
 
         @Override
-        public Predicate<RowRead> handleLong(final int columnIndex, final FilterOperator operator, final String value)
+        public Predicate<RowRead> handleLong(final int columnIndex, final FilterOperator operator, final long value)
             throws InvalidSettingsException {
-            final var longValue = Long.parseLong(value);
-            final var predicate = new LongValuePredicate(operator, longValue);
+            final var predicate = new LongValuePredicate(operator, value);
             return new RowReadPredicate(columnIndex,
-                rowRead -> predicate.test(rowRead.<LongValue>getValue(columnIndex)));
+                rowRead -> predicate.test(rowRead.<LongValue> getValue(columnIndex)));
         }
 
         @Override
-        public Predicate<RowRead> handleInt(final int columnIndex, final FilterOperator operator, final String value)
+        public Predicate<RowRead> handleInt(final int columnIndex, final FilterOperator operator, final int value)
             throws InvalidSettingsException {
-            final var intValue = Integer.parseInt(value);
-            final var predicate = new IntValuePredicate(operator, intValue);
+            final var predicate = new IntValuePredicate(operator, value);
             return new RowReadPredicate(columnIndex,
-                rowRead -> predicate.test(rowRead.<IntValue>getValue(columnIndex)));
+                rowRead -> predicate.test(rowRead.<IntValue> getValue(columnIndex)));
         }
 
         @Override
-        public Predicate<RowRead> handleDouble(final int columnIndex, final FilterOperator operator, final String value)
+        public Predicate<RowRead> handleDouble(final int columnIndex, final FilterOperator operator, final double value)
             throws InvalidSettingsException {
-            final var doubleValue = Double.parseDouble(value);
-            final var predicate = new DoubleValuePredicate(operator, doubleValue);
+            final var predicate = new DoubleValuePredicate(operator, value);
             return new RowReadPredicate(columnIndex,
-                rowRead -> predicate.test(rowRead.<DoubleValue>getValue(columnIndex)));
+                rowRead -> predicate.test(rowRead.<DoubleValue> getValue(columnIndex)));
         }
 
         @Override
         public Predicate<RowRead> handleGeneric(final int columnIndex, final FilterOperator operator,
-            final String value, final DataType targetType) throws InvalidSettingsException {
-            final DataCell comparisonValue = fromString(m_exec, targetType, value);
-            final var predicate = new DataCellPredicate(operator, comparisonValue);
+            final DataCell value) throws InvalidSettingsException {
+            final var predicate = new DataCellPredicate(operator, value);
             return new RowReadPredicate(columnIndex,
                 rowRead -> predicate.test(rowRead.getValue(columnIndex).materializeDataCell()));
-        }
-
-        private static DataCell fromString(final ExecutionContext exec, final DataType dataType, final String value)
-            throws InvalidSettingsException {
-            final var registry = JavaToDataCellConverterRegistry.getInstance();
-            final var converter =
-                registry.getConverterFactories(String.class, dataType).stream().findFirst().orElseThrow().create(exec);
-            try {
-                return converter.convert(value);
-            } catch (final Exception e) {
-                throw new InvalidSettingsException(
-                    "Value \"%s\" cannot be converted to column type \"%s\"".formatted(value, dataType.getName()), e);
-            }
         }
 
     }

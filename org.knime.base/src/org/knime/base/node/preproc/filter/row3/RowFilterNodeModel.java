@@ -50,16 +50,15 @@ package org.knime.base.node.preproc.filter.row3;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 import java.util.function.LongSupplier;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
-import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterMode;
+import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
@@ -73,8 +72,8 @@ import org.knime.core.data.v2.RowRead;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.InternalTableAPI;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.streamable.InputPortRole;
@@ -85,8 +84,6 @@ import org.knime.core.node.streamable.PortOutput;
 import org.knime.core.node.streamable.RowInput;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.core.node.streamable.StreamableOperator;
-import org.knime.core.node.util.CheckUtils;
-import org.knime.core.table.row.Selection;
 import org.knime.core.util.Pair;
 import org.knime.core.util.valueformat.NumberFormatter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
@@ -96,17 +93,21 @@ import org.knime.core.webui.node.impl.WebUINodeModel;
 /**
  * Implementation of the Row Filter node based on the webui.
  *
- * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
+ * @author Leonard Wörteler, KNIME GmbH, Konstanz, Germany
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction") // Web UI not API yet
 final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends WebUINodeModel<S> {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(RowFilterNodeModel.class);
 
     private static final int INPUT = 0;
 
     private static final int MATCHING_OUTPUT = 0;
 
     private static final int NON_MATCHING_OUTPUT = 1;
+
+    static final long UNKNOWN_SIZE = -1;
 
     RowFilterNodeModel(final WebUINodeConfiguration config, final Class<S> settingsClass) {
         super(config, settingsClass);
@@ -115,28 +116,19 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
     @Override
     protected DataTableSpec[] configure(final PortObjectSpec[] inSpecs, final AbstractRowFilterNodeSettings settings)
         throws InvalidSettingsException {
+        if (settings.m_predicates.length == 0) {
+            throw new InvalidSettingsException("At least one filter criterion is needed.");
+        }
+        final var predicates = partitionCriteria(settings.m_predicates);
+        final var rowNumberPredicates = predicates.getFirst();
+        if (!rowNumberPredicates.isEmpty()) {
+            RowNumberPredicate.validateSettings(rowNumberPredicates);
+        }
+        final var dataPredicates = predicates.getSecond();
         final var spec = (DataTableSpec)inSpecs[INPUT];
-        final var selectedColumn = settings.m_column.getSelected();
-        final var selectedType = getDataTypeNameForColumn(selectedColumn, () -> Optional.ofNullable(spec)).orElseThrow(
-            () -> new InvalidSettingsException("Cannot get data type for column \"%s\"".formatted(selectedColumn)));
-
-        final var valueClass = settings.m_type;
-        if (!valueClass.equals(selectedType)) {
-            throw new InvalidSettingsException(
-                "Selected column type \"%s\" and value type \"%s\" do not match. Please reconfigure the node."
-                    .formatted(selectedType, valueClass));
+        if (!dataPredicates.isEmpty()) {
+            RowReadPredicate.validateSettings(dataPredicates, spec);
         }
-
-        if (AbstractRowFilterNodeSettings.isFilterOnRowNumbers(settings)) {
-            RowNumberFilter.validateRowNumberOperatorSupported(settings);
-            // check if we have number of rows instead of row number
-            final var isNumberOfRows =
-                FilterOperator.FIRST_N_ROWS == settings.m_operator || FilterOperator.LAST_N_ROWS == settings.m_operator;
-            RowNumberFilter.parseInputAsRowNumber(settings.m_value, settings.m_type, isNumberOfRows);
-        } else {
-            RowReadPredicate.validateSettings(settings, spec);
-        }
-
         return settings.isSecondOutputActive() ? new DataTableSpec[]{spec, spec} : new DataTableSpec[]{spec};
     }
 
@@ -147,6 +139,12 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
 
     static Optional<DataType> getDataTypeForColumn(final String selected,
         final Supplier<Optional<DataTableSpec>> dtsSupplier) {
+        return getDataTypeForSelected(selected,
+            columnSelection -> dtsSupplier.get().map(dts -> dts.getColumnSpec(columnSelection)));
+    }
+
+    static Optional<DataType> getDataTypeForSelected(final String selected,
+        final Function<String, Optional<DataColumnSpec>> colSpecSupplier) {
         if (SpecialColumns.ROWID.getId().equals(selected)) {
             return Optional.of(StringCell.TYPE);
         }
@@ -156,7 +154,7 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
         if (SpecialColumns.NONE.getId().equals(selected)) {
             throw new IllegalStateException("Column selection required");
         }
-        return dtsSupplier.get().map(dts -> dts.getColumnSpec(selected)).map(DataColumnSpec::getType);
+        return colSpecSupplier.apply(selected).map(DataColumnSpec::getType);
     }
 
     @Override
@@ -165,12 +163,23 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
         final var in = (BufferedDataTable)inPortObjects[INPUT];
 
         final var isSplitter = settings.isSecondOutputActive();
-        if (AbstractRowFilterNodeSettings.isFilterOnRowNumbers(settings)) {
-            return RowNumberFilter.sliceTable(exec, in, settings, isSplitter);
-        }
 
+        final var isAnd = settings.m_matchCriteria.isAnd();
+        // separate row numbers from all other criteria
+        final var predicatePartition = partitionCriteria(settings.m_predicates);
+        final var rowNumberCriteria = predicatePartition.getFirst();
+        final var dataCriteria = predicatePartition.getSecond();
+
+        if (dataCriteria.isEmpty()) {
+            // slicing-only is possible since we never look at any column
+            final var includedExcludedPartition =
+                    RowNumberFilter.computeRowPartition(isAnd, RowNumberFilter.getAsFilterSpecs(rowNumberCriteria),
+                        settings.m_outputMode, in.size());
+            return RowNumberFilter.sliceTable(exec, in, includedExcludedPartition, isSplitter);
+        }
         final var inSpec = in.getSpec();
-        final Predicate<RowRead> predicate = RowReadPredicate.createFrom(exec, settings, inSpec);
+        final var predicate = createFilterPredicate(isAnd, rowNumberCriteria, dataCriteria, inSpec, in.size());
+
         final var includeMatches = settings.includeMatches();
         final long size = in.size();
         final DataContainerSettings dcSettings = DataContainerSettings.builder() //
@@ -199,8 +208,8 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
             while (input.canForward()) {
                 exec.checkCanceled();
                 final var read = input.forward();
-                readRows.incrementAndGet();
-                if (includeMatches == predicate.test(read)) {
+                final var index = readRows.getAndIncrement();
+                if (includeMatches == predicate.test(index, read)) {
                     matchesCursor.forward().setFrom(read);
                     matchingRows.incrementAndGet();
                 } else if (nonMatchesCursor != null) {
@@ -214,229 +223,55 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
         }
     }
 
-    private static final long UNKNOWN_SIZE = -1;
-
-    record RowRange(long fromIncl, long toExcl) {
-        RowRange {
-            CheckUtils.checkArgument(fromIncl >= 0, "Lower bound must be non-negative, found %d", fromIncl);
-            if (toExcl >= 0) {
-                CheckUtils.checkArgument(fromIncl < toExcl,
-                    "Lower bound must be smaller than upper bound, found %d (lower) >= %d (upper)", fromIncl, toExcl);
-            } else {
-                CheckUtils.checkArgument(toExcl == UNKNOWN_SIZE,
-                    "Expected non-negative upper bound or %d, found %d", UNKNOWN_SIZE, toExcl);
-            }
+    private static RowFilterPredicate createFilterPredicate(final boolean isAnd,
+        final List<FilterCriterion> rowNumberCriteria, final List<FilterCriterion> dataCriteria,
+        final DataTableSpec spec, final long tableSize) throws InvalidSettingsException {
+        final var rowNumberPredicate =
+            RowNumberPredicate.buildPredicate(isAnd, rowNumberCriteria, tableSize);
+        final var dataPredicate = RowReadPredicate.buildPredicate(isAnd, dataCriteria, spec);
+        if (rowNumberPredicate == null) {
+            return (index, read) -> dataPredicate.test(read);
         }
-
-        boolean hasUpperBound() {
-            return toExcl != UNKNOWN_SIZE;
+        if (dataPredicate == null) {
+            throw new IllegalStateException("Row number predicate without data predicate, should have used slicing");
         }
+        return isAnd ? (index, read) -> rowNumberPredicate.test(index) && dataPredicate.test(read) // NOSONAR this is not too hard to read
+            : (index, read) -> rowNumberPredicate.test(index) || dataPredicate.test(read); // NOSONAR see above
     }
 
-    static final class RowNumberFilter {
-
-        private static final EnumSet<FilterOperator> SUPPORTED_OPERATORS = EnumSet.of( //
-            FilterOperator.EQ, //
-            FilterOperator.NEQ, //
-            FilterOperator.LT, //
-            FilterOperator.LTE, //
-            FilterOperator.GT, //
-            FilterOperator.GTE, //
-            FilterOperator.FIRST_N_ROWS, //
-            FilterOperator.LAST_N_ROWS //
-        );
-        private RowNumberFilter() {
-            // hidden
-        }
-
-        private static void validateRowNumberOperatorSupported(final AbstractRowFilterNodeSettings settings)
-            throws InvalidSettingsException {
-            final var op = settings.m_operator;
-            CheckUtils.checkSetting(SUPPORTED_OPERATORS.contains(settings.m_operator),
-                "Cannot use operator \"%s\" on row numbers.", op.m_label);
-        }
-
-        private static long parseInputAsRowNumber(final String value, final String type, final boolean isNumberOfRows)
-            throws InvalidSettingsException {
-            // row numbers are of long type
-            if (!LongCell.TYPE.getCellClass().getName().equals(type)) {
-                throw new InvalidSettingsException(
-                    "Unexpected row number value input \"%s\" of type \"%s\"".formatted(value, type));
-            }
-            try {
-                final var rowNumber = Long.parseLong(value);
-                if (!isNumberOfRows) {
-                    CheckUtils.checkSetting(rowNumber > 0, "Row number must be larger than zero: %d", rowNumber);
-                } else {
-                    CheckUtils.checkSetting(rowNumber >= 0, "Number of rows must not be negative: %d", rowNumber);
-                }
-                return rowNumber;
-            } catch (NumberFormatException e) {
-                throw new InvalidSettingsException("Cannot interpret value \"%s\" as row number.".formatted(value), e);
-            }
-        }
-
-        static BufferedDataTable[] sliceTable(final ExecutionContext exec, final BufferedDataTable in,
-                final AbstractRowFilterNodeSettings settings, final boolean isSplitter)
-                throws CanceledExecutionException, InvalidSettingsException {
-            final var includedExcludedPartition = computeRowPartition(settings, in.size());
-
-            final var includedRanges = includedExcludedPartition.getFirst();
-            if (includedRanges.length == 0) {
-                // no rows are included
-                final var empty = exec.createVoidTable(in.getSpec());
-                return isSplitter ? new BufferedDataTable[]{empty, in} : new BufferedDataTable[]{empty};
-            }
-
-            final var excludedRanges = includedExcludedPartition.getSecond();
-            if (excludedRanges.length == 0) {
-                // all rows are included
-                final var empty = exec.createVoidTable(in.getSpec());
-                return isSplitter ? new BufferedDataTable[]{in, empty} : new BufferedDataTable[]{in};
-            }
-
-            if (!isSplitter) {
-                return new BufferedDataTable[]{slicedFromRanges(exec, in, includedRanges)};
-            }
-
-            // split the progress between the two output tables
-            final var included = slicedFromRanges(exec.createSubExecutionContext(0.5), in, includedRanges);
-            final var excluded = slicedFromRanges(exec.createSubExecutionContext(0.5), in, excludedRanges);
-            return new BufferedDataTable[] { included, excluded };
-        }
-
-        private static Pair<RowRange[], RowRange[]> computeRowPartition(final AbstractRowFilterNodeSettings settings,
-                final long optionalTableSize) throws InvalidSettingsException {
-            final var operator = settings.m_operator;
-            final var value = parseInputAsRowNumber(settings.m_value, settings.m_type,
-                operator == FilterOperator.FIRST_N_ROWS || operator == FilterOperator.LAST_N_ROWS);
-            final var matchedNonMatchedPartition = computePartition(operator, value, optionalTableSize);
-
-            // determine whether matched or non-matched rows are included in the first output, flip pair as needed
-            return settings.m_outputMode == FilterMode.INCLUDE ? matchedNonMatchedPartition
-                : Pair.create(matchedNonMatchedPartition.getSecond(), matchedNonMatchedPartition.getFirst());
-        }
-
-        private static BufferedDataTable slicedFromRanges(final ExecutionContext exec, final BufferedDataTable in,
-                final RowRange[] includeRanges) throws CanceledExecutionException {
-
-            if (includeRanges.length < 2) {
-                return includeRanges.length == 0 ? exec.createVoidTable(in.getDataTableSpec())
-                    : InternalTableAPI.slice(exec, in, toSelection(includeRanges[0]));
-            }
-
-            final var subTables = new BufferedDataTable[includeRanges.length];
-            for (var i = 0; i < includeRanges.length; i++) {
-                final var sliceExec = exec.createSubExecutionContext(0.5 / includeRanges.length);
-                subTables[i] = InternalTableAPI.slice(sliceExec, in, toSelection(includeRanges[i]));
-                sliceExec.setProgress(1.0, (String)null);
-            }
-
-            final var concatProgress = exec.createSubProgress(0.5);
-            try {
-                return exec.createConcatenateTable(concatProgress, subTables);
-            } finally {
-                concatProgress.setProgress(1.0, (String)null);
-            }
-        }
-
-        private static Selection toSelection(final RowRange range) {
-            return Selection.all().retainRows(range.fromIncl, range.toExcl);
-        }
-
-        /**
-         * Computes the sets of rows which are matched/not matched by the given operator and value as a pair of
-         * sorted arrays of non-overlapping {@link RowRange}.
-         * <ul>
-         *   <li>The lower bounds of all ranges in the sets are always inclusive.</li>
-         *   <li>The upper bound is absent iff it is the end of the input and the table size is unknown.
-         *       Otherwise the upper bound is guaranteed to be exclusive.</li>
-         * </ul>
-         *
-         * @param operator operator as selected in the dialog
-         * @param value comparison value as specified in the dialog
-         * @param optionalTableSize table size if known, {@link #UNKNOWN_SIZE} otherwise
-         * @return pair where the first/second element represents the matched/non-matched row indices, respectively
-         */
-        static Pair<RowRange[], RowRange[]> computePartition(final FilterOperator operator,
-                final long value, final long optionalTableSize) {
-            final FilterOperator indexOperator;
-            final long offsetNonNeg;
-            if (operator == FilterOperator.FIRST_N_ROWS) {
-                indexOperator = FilterOperator.LT;
-                offsetNonNeg = value;
-            } else if (operator == FilterOperator.LAST_N_ROWS) {
-                CheckUtils.check(optionalTableSize != UNKNOWN_SIZE, IllegalStateException::new,
-                        () -> "Expected table size for filter operator \"%s\"".formatted(operator.label()));
-                indexOperator = FilterOperator.GTE;
-                // if the table has fewer than `n` rows, return the whole table
-                offsetNonNeg = Math.max(0, optionalTableSize - value);
+    /**
+     * Partitions the criteria into row number and data (incl. RowID) criteria.
+     *
+     * @param criteria list of criteria to partition
+     * @param colSpecSupplier supplier for columns spec given a column name (incl. {@link SpecialColumns}).
+     * @return row number and data criteria
+     */
+    private static Pair<List<FilterCriterion>, List<FilterCriterion>>
+            partitionCriteria(final FilterCriterion[] criteria) {
+        final var rowNumberCriteria = new ArrayList<FilterCriterion>();
+        final var dataCriteria = new ArrayList<FilterCriterion>();
+        for (final var c : criteria) {
+            final var selected = c.m_column.getSelected();
+            if (AbstractRowFilterNodeSettings.isRowNumberSelected(selected)) {
+                rowNumberCriteria.add(c);
             } else {
-                // the dialog accepts 1-based row numbers but we use 0-based row offsets internally
-                indexOperator = operator;
-                offsetNonNeg = value - 1;
+                dataCriteria.add(c);
             }
-
-            final var complementIndexOperator = switch (indexOperator) {
-                case EQ -> FilterOperator.NEQ;
-                case NEQ -> FilterOperator.EQ;
-                case LT -> FilterOperator.GTE;
-                case LTE -> FilterOperator.GT;
-                case GT -> FilterOperator.LTE;
-                case GTE -> FilterOperator.LT;
-                default -> throw new IllegalArgumentException("Unsupported table filter operator: " + indexOperator);
-            };
-
-            return Pair.create(rowIndexRanges(indexOperator, offsetNonNeg, optionalTableSize),
-                    rowIndexRanges(complementIndexOperator, offsetNonNeg, optionalTableSize));
         }
+        return Pair.create(rowNumberCriteria, dataCriteria);
+    }
 
-        private static RowRange[] rowIndexRanges(final FilterOperator operator, final long indexNonNeg,
-                final long optSize) {
-            final var rangesOut = new ArrayList<RowRange>();
-            switch (operator) {
-                case EQ  -> addRangeIfNonEmpty(rangesOut, indexNonNeg, indexNonNeg + 1, optSize);
-                case NEQ -> {
-                    addRangeIfNonEmpty(rangesOut, 0, indexNonNeg, optSize);
-                    addRangeIfNonEmpty(rangesOut, indexNonNeg + 1, optSize, optSize);
-                }
-                case LT  -> addRangeIfNonEmpty(rangesOut, 0, indexNonNeg, optSize);
-                case LTE -> addRangeIfNonEmpty(rangesOut, 0, indexNonNeg + 1, optSize);
-                case GT  -> addRangeIfNonEmpty(rangesOut, indexNonNeg + 1, optSize, optSize);
-                case GTE -> addRangeIfNonEmpty(rangesOut, indexNonNeg, optSize, optSize);
-                default  -> throw new IllegalArgumentException("Unsupported table filter operator: " + operator);
-            }
-            return rangesOut.toArray(RowRange[]::new);
-        }
 
+
+    @FunctionalInterface
+    interface RowFilterPredicate {
         /**
-         * Adds a range of row indexes to the output list {@code out} if it is not empty. If the table size is known,
-         * the range is limited to that size.
-         *
-         * @param out output list to append to
-         * @param lowerIncl first row index in the range
-         * @param upperExcl first row index after the range, or {@code -1} if the range doesn't have an upper limit
-         * @param optSize size of the input table if known, {@link RowFilterNodeModel#UNKNOWN_SIZE} otherwise
+         * Tests the predicate with the supplied row index (0-based) and {@link RowRead row read}.
+         * @param index 0-based index of row
+         * @param read row data
+         * @return {@code true} if the predicate matches the supplied row, {@code false} otherwise
          */
-        private static void addRangeIfNonEmpty(final List<RowRange> out, final long lowerIncl, final long upperExcl,
-                final long optSize) {
-            if (lowerIncl < 0) {
-                // possible if `operator == GT` and `indexNonNeg == Long.MAX_VALUE`, empty selection
-                return;
-            }
-
-            final var sizeUpperBound = optSize < 0 ? Long.MAX_VALUE : optSize;
-            final var lowerInclClamped = Math.min(lowerIncl, sizeUpperBound);
-            if (upperExcl < 0) {
-                // may be from overflow (if `lowerIncl == Long.MAX_VALUE`) or unknown size
-                out.add(new RowRange(lowerInclClamped, UNKNOWN_SIZE));
-            }
-
-            final var upperExclClamped = Math.min(upperExcl, sizeUpperBound);
-            if (lowerInclClamped < upperExclClamped) {
-                out.add(new RowRange(lowerInclClamped, upperExclClamped));
-            }
-        }
+        boolean test(final long index, final RowRead read);
     }
 
     /**
@@ -472,9 +307,9 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
 
     @Override
     public InputPortRole[] getInputPortRoles() {
-        final var settings = assertSettings();
-        if (AbstractRowFilterNodeSettings.isFilterOnRowNumbers(settings)) {
-            if (AbstractRowFilterNodeSettings.isLastNFilter(settings)) {
+        final var rowNumberCriteria = partitionCriteria(assertSettings().m_predicates).getFirst();
+        if (!rowNumberCriteria.isEmpty()) {
+            if (AbstractRowFilterNodeSettings.hasLastNFilter(rowNumberCriteria)) {
                 return new InputPortRole[]{InputPortRole.NONDISTRIBUTED_NONSTREAMABLE};
             }
             return new InputPortRole[]{InputPortRole.NONDISTRIBUTED_STREAMABLE};
@@ -496,9 +331,8 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
     @Override
     public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
         final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        final var settings = assertSettings();
-        if (AbstractRowFilterNodeSettings.isFilterOnRowNumbers(settings)
-            && AbstractRowFilterNodeSettings.isLastNFilter(settings)) {
+        final var rowNumberCriteria = partitionCriteria(assertSettings().m_predicates).getFirst();
+        if (AbstractRowFilterNodeSettings.hasLastNFilter(rowNumberCriteria)) {
             return super.createStreamableOperator(partitionInfo, inSpecs);
         }
         return new RowFilterOperator();
@@ -517,9 +351,14 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
             final var settings = assertSettings();
             final RowInput input = (RowInput)inputs[INPUT];
             try {
-                if (AbstractRowFilterNodeSettings.isFilterOnRowNumbers(settings)) {
+                final var rowNumberAndDataPredicates = partitionCriteria(settings.m_predicates);
+                final var rowNumberPredicates = rowNumberAndDataPredicates.getFirst();
+                final var dataPredicates = rowNumberAndDataPredicates.getSecond();
+                if (!rowNumberPredicates.isEmpty() && dataPredicates.isEmpty()) {
+                    // we can only filter based on row numbers
                     filterRange(exec, input, outputs, settings);
                 } else {
+                    // we have to filter on richer predicates
                     filterOnPredicate(exec, input, outputs, settings);
                 }
             } catch (final InterruptedException e) {
@@ -536,7 +375,11 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
                 final PortOutput[] outputs, final AbstractRowFilterNodeSettings settings)
                 throws CanceledExecutionException, InvalidSettingsException, InterruptedException {
             final var inSpec = input.getDataTableSpec();
-            final var rowPredicate = RowReadPredicate.createFrom(exec, settings, inSpec);
+
+            final var predicates = partitionCriteria(settings.m_predicates);
+            final var rowPredicate = createFilterPredicate(settings.m_matchCriteria.isAnd(),
+                predicates.getFirst(), predicates.getSecond(), inSpec, UNKNOWN_SIZE);
+
             final var includeMatches = settings.includeMatches();
 
             // the only stats to report are read and included rows, we don't know the size of the input
@@ -550,10 +393,11 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
             final var excluded = outputs.length > 1 ? (RowOutput)outputs[NON_MATCHING_OUTPUT] : null;
             for (DataRow row; (row = input.poll()) != null;) {
                 exec.checkCanceled();
+                final var index = matchedRead[1];
                 matchedRead[1]++;
 
                 rowRead.setDataRow(row);
-                if (includeMatches == rowPredicate.test(rowRead)) {
+                if (includeMatches == rowPredicate.test(index, rowRead)) {
                     included.push(row);
                     matchedRead[0]++;
                 } else if (excluded != null) {
@@ -567,8 +411,14 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
                 final PortOutput[] outputs, final AbstractRowFilterNodeSettings settings)
                 throws CanceledExecutionException, InterruptedException, InvalidSettingsException {
             final var isSplitter = outputs.length > 1;
-            final var rowPartition = RowNumberFilter.computeRowPartition(settings, UNKNOWN_SIZE);
-            final var includeRanges = rowPartition.getFirst();
+
+            final var rowNumberCriteria = partitionCriteria(settings.m_predicates).getFirst();
+            final var filterSpecs = RowNumberFilter.getAsFilterSpecs(rowNumberCriteria);
+
+            final var rowPartition = RowNumberFilter.computeRowPartition(settings.m_matchCriteria.isAnd(),
+                filterSpecs, settings.m_outputMode, UNKNOWN_SIZE);
+            final var includeRanges = rowPartition.matching().asRanges().stream().toList();
+            final var numIncludeRanges = includeRanges.size();
 
             // the only stats to report are read and included rows, we don't know the size of the input
             final var numFormat = NumberFormatter.builder().setGroupSeparator(",").build();
@@ -597,9 +447,9 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
 
                 // === EXCLUDE ROWS state ===
                 final long lastExclRow;
-                if (nextRange < includeRanges.length) {
+                if (nextRange < numIncludeRanges) {
                     // there's another include range ahead, everything before is excluded
-                    lastExclRow = includeRanges[nextRange].fromIncl() - 1;
+                    lastExclRow = includeRanges.get(nextRange).lowerEndpoint() - 1;
                 } else {
                     // only excluded rows remain
                     if (excluded == null) {
@@ -622,11 +472,11 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
                 }
 
                 // === INCLUDE ROWS state ===
-                final var currentRange = includeRanges[nextRange];
+                final var currentRange = includeRanges.get(nextRange);
                 final long lastInclRow;
                 if (currentRange.hasUpperBound()) {
                     // current include range ends somewhere
-                    lastInclRow = currentRange.toExcl() - 1;
+                    lastInclRow = currentRange.upperEndpoint() - 1;
                 } else {
                     // only included rows remain
                     if (excluded != null) {
