@@ -57,10 +57,6 @@ import java.util.function.Supplier;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReader;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
 import org.knime.base.node.io.filehandling.csv.reader.api.QuoteOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider.BufferSizeRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider.CommentStartRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider.FileChooserRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider.SkipFirstLinesRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.DecimalSeparatorRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.LimitScannedRowsRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.MaxDataRowsScannedRef;
@@ -77,8 +73,12 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSetting
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.LimitRows.LimitNumberOfRowsRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.LimitRows.MaximumNumberOfRowsRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.LimitRows.SkipFirstDataRowsRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.LimitRows.SkipFirstLinesRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.BufferSizeRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.ColumnDelimiterRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.CommentStartRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.CustomRowDelimiterRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FileChooserRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FirstColumnContainsRowIdsRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FirstRowContainsColumnNamesRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.IfRowHasLessColumnsOption;
@@ -191,7 +191,7 @@ final class CSVTableSpec implements WidgetGroup, PersistableSettings {
             m_skipFirstLinesSupplier = initializer.getValueSupplier(SkipFirstLinesRef.class);
             m_skipFirstDataRowsSupplier = initializer.getValueSupplier(SkipFirstDataRowsRef.class);
 
-            // other fields
+            // other fields that are set by the CSVMultiTableReadConfigSerializer
             m_numberOfCharactersForAutodetectionSupplier = initializer.getValueSupplier(BufferSizeRef.class);
             m_maximumNumberOfColumnsSupplier = initializer.getValueSupplier(MaximumNumberOfColumnsRef.class);
             m_minChunkSizeInBytesSupplier = initializer.getValueSupplier(MinChunkSizeInBytesRef.class);
@@ -227,65 +227,24 @@ final class CSVTableSpec implements WidgetGroup, PersistableSettings {
             csvConfig.setThousandsSeparator(m_thousandsSeparatorSupplier.get());
             csvConfig.useLineBreakRowDelimiter(m_rowDelimiterOptionSupplier.get() == RowDelimiterOption.LINE_BREAK);
 
-            final var tc = new DefaultTableReadConfig<>(csvConfig);
-            tc.setAllowShortRows(m_ifRowHasLessColumnsOptionSupplier.get() == IfRowHasLessColumnsOption.INSERT_MISSING);
-            tc.setColumnHeaderIdx(0);
-            tc.setLimitRows(m_limitNumberOfRowsSupplier.get());
-            tc.setLimitRowsForSpec(m_limitScannedRowsSupplier.get());
-            tc.setMaxRows(m_maximumNumberOfRowsSupplier.get());
-            tc.setMaxRowsForSpec(m_maxDataRowsScannedSupplier.get());
+            final var config = new DefaultTableReadConfig<>(csvConfig);
+            config.setAllowShortRows(
+                m_ifRowHasLessColumnsOptionSupplier.get() == IfRowHasLessColumnsOption.INSERT_MISSING);
+            config.setColumnHeaderIdx(0);
+            config.setLimitRows(m_limitNumberOfRowsSupplier.get());
+            config.setLimitRowsForSpec(m_limitScannedRowsSupplier.get());
+            config.setMaxRows(m_maximumNumberOfRowsSupplier.get());
+            config.setMaxRowsForSpec(m_maxDataRowsScannedSupplier.get());
             final var skipFirstDataRows = m_skipFirstDataRowsSupplier.get();
-            tc.setSkipRows(skipFirstDataRows > 0);
-            tc.setNumRowsToSkip(skipFirstDataRows);
-            tc.setPrependSourceIdxToRowId(m_prependFileIndexToRowIdSupplier.get());
-            tc.setRowIDIdx(0);
-            tc.setSkipEmptyRows(m_skipEmptyDataRowsSupplier.get());
-            tc.setUseColumnHeaderIdx(m_firstRowContainsColumnNamesSupplier.get());
-            tc.setUseRowIDIdx(m_firstColumnContainsRowIdsSupplier.get());
+            config.setSkipRows(skipFirstDataRows > 0);
+            config.setNumRowsToSkip(skipFirstDataRows);
+            config.setPrependSourceIdxToRowId(m_prependFileIndexToRowIdSupplier.get());
+            config.setRowIDIdx(0);
+            config.setSkipEmptyRows(m_skipEmptyDataRowsSupplier.get());
+            config.setUseColumnHeaderIdx(m_firstRowContainsColumnNamesSupplier.get());
+            config.setUseRowIDIdx(m_firstColumnContainsRowIdsSupplier.get());
 
-            return tc;
-        }
-    }
-
-    abstract static class DependsOnTableReadConfigProvider<S> implements StateProvider<S> {
-
-        Supplier<Map<String, TypedReaderTableSpec<Class<?>>>> m_specSupplier;
-
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            m_specSupplier = initializer.computeFromProvidedState(TypedReaderTableSpecProvider.class);
-            initializer.computeOnValueChange(FileChooserRef.class);
-
-            initializer.computeOnValueChange(FirstRowContainsColumnNamesRef.class);
-            initializer.computeOnValueChange(FirstColumnContainsRowIdsRef.class);
-            initializer.computeOnValueChange(CommentStartRef.class);
-            initializer.computeOnValueChange(ColumnDelimiterRef.class);
-            initializer.computeOnValueChange(QuoteCharacterRef.class);
-            initializer.computeOnValueChange(QuoteEscapeCharacterRef.class);
-            initializer.computeOnValueChange(RowDelimiterOptionRef.class);
-            initializer.computeOnValueChange(CustomRowDelimiterRef.class);
-            initializer.computeOnValueChange(QuotedStringsOptionRef.class);
-
-            initializer.computeOnValueChange(ReplaceEmptyQuotedStringsByMissingValuesRef.class);
-            initializer.computeOnValueChange(LimitScannedRowsRef.class);
-            initializer.computeOnValueChange(MaxDataRowsScannedRef.class);
-            initializer.computeOnValueChange(ThousandsSeparatorRef.class);
-            initializer.computeOnValueChange(DecimalSeparatorRef.class);
-            initializer.computeOnValueChange(FileEncodingRef.class);
-            initializer.computeOnValueChange(CustomEncodingRef.class);
-            initializer.computeOnValueChange(SkipFirstLinesRef.class);
-            initializer.computeOnValueChange(SkipFirstDataRowsRef.class);
-
-            // other fields
-            initializer.computeOnValueChange(BufferSizeRef.class);
-            initializer.computeOnValueChange(MaximumNumberOfColumnsRef.class);
-            initializer.computeOnValueChange(MinChunkSizeInBytesRef.class);
-            initializer.computeOnValueChange(MaxNumChunksPerFileRef.class);
-            initializer.computeOnValueChange(IfRowHasLessColumnsOptionRef.class);
-            initializer.computeOnValueChange(LimitNumberOfRowsRef.class);
-            initializer.computeOnValueChange(MaximumNumberOfRowsRef.class);
-            initializer.computeOnValueChange(PrependFileIndexToRowIdRef.class);
-            initializer.computeOnValueChange(SkipEmptyDataRowsRef.class);
+            return config;
         }
     }
 
@@ -335,12 +294,54 @@ final class CSVTableSpec implements WidgetGroup, PersistableSettings {
         }
     }
 
+    abstract static class DependsOnTableReadConfigProvider<S> implements StateProvider<S> {
+
+        Supplier<Map<String, TypedReaderTableSpec<Class<?>>>> m_specSupplier;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            m_specSupplier = initializer.computeFromProvidedState(TypedReaderTableSpecProvider.class);
+            initializer.computeOnValueChange(FileChooserRef.class);
+
+            initializer.computeOnValueChange(FirstRowContainsColumnNamesRef.class);
+            initializer.computeOnValueChange(FirstColumnContainsRowIdsRef.class);
+            initializer.computeOnValueChange(CommentStartRef.class);
+            initializer.computeOnValueChange(ColumnDelimiterRef.class);
+            initializer.computeOnValueChange(QuoteCharacterRef.class);
+            initializer.computeOnValueChange(QuoteEscapeCharacterRef.class);
+            initializer.computeOnValueChange(RowDelimiterOptionRef.class);
+            initializer.computeOnValueChange(CustomRowDelimiterRef.class);
+            initializer.computeOnValueChange(QuotedStringsOptionRef.class);
+
+            initializer.computeOnValueChange(ReplaceEmptyQuotedStringsByMissingValuesRef.class);
+            initializer.computeOnValueChange(LimitScannedRowsRef.class);
+            initializer.computeOnValueChange(MaxDataRowsScannedRef.class);
+            initializer.computeOnValueChange(ThousandsSeparatorRef.class);
+            initializer.computeOnValueChange(DecimalSeparatorRef.class);
+            initializer.computeOnValueChange(FileEncodingRef.class);
+            initializer.computeOnValueChange(CustomEncodingRef.class);
+            initializer.computeOnValueChange(SkipFirstLinesRef.class);
+            initializer.computeOnValueChange(SkipFirstDataRowsRef.class);
+
+            // other fields
+            initializer.computeOnValueChange(BufferSizeRef.class);
+            initializer.computeOnValueChange(MaximumNumberOfColumnsRef.class);
+            initializer.computeOnValueChange(MinChunkSizeInBytesRef.class);
+            initializer.computeOnValueChange(MaxNumChunksPerFileRef.class);
+            initializer.computeOnValueChange(IfRowHasLessColumnsOptionRef.class);
+            initializer.computeOnValueChange(LimitNumberOfRowsRef.class);
+            initializer.computeOnValueChange(MaximumNumberOfRowsRef.class);
+            initializer.computeOnValueChange(PrependFileIndexToRowIdRef.class);
+            initializer.computeOnValueChange(SkipEmptyDataRowsRef.class);
+        }
+    }
+
     static class CSVTableSpecProvider extends DependsOnTableReadConfigProvider<CSVTableSpec[]> {
 
         @Override
         public void init(final StateProviderInitializer initializer) {
             super.init(initializer);
-            initializer.computeAfterOpenDialog();
+            initializer.computeAfterOpenDialog(); // TODO consider adding to DependsOn...
         }
 
         @Override

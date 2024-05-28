@@ -56,13 +56,7 @@ import java.util.Objects;
 import org.knime.base.node.io.filehandling.csv.reader.OSIndependentNewLineReader;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
 import org.knime.base.node.io.filehandling.csv.reader.api.EscapeUtils;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider.AutoDetectButtonRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider.BufferSizeRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider.CharsetRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider.CommentStartRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider.FileChooserRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider.ProviderFromCSVFormat;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider.SkipFirstLinesRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.ColumnAndDataTypeDetection.IfSchemaChanges;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.ColumnAndDataTypeDetection.LimitMemoryPerColumn;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.ColumnAndDataTypeDetection.LimitScannedRows;
@@ -125,6 +119,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.Icon;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
@@ -148,12 +143,14 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
     @Persist(configKey = "encoding")
     Encoding m_encoding = new Encoding();
 
-    @Persist(configKey = "table_spec_config", hidden = true,
-        customPersistor = CSVTransformationSettingsPersistor.class)
+    @Persist(configKey = "table_spec_config", hidden = true, customPersistor = CSVTransformationSettingsPersistor.class)
     @Layout(Transformation.class)
     CSVTransformationSettings m_tableSpecConfig = new CSVTransformationSettings();
 
     static class Settings implements WidgetGroup, PersistableSettings {
+
+        static final class FileChooserRef implements Reference<FileChooser> {
+        }
 
         @Widget(title = "Source", description = Source.DESCRIPTION)
         @ValueReference(FileChooserRef.class)
@@ -232,6 +229,9 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @Persist(configKey = "prepend_file_idx_to_row_id")
         boolean m_prependFileIndexToRowId;
         // TODO this setting should be shown when reading multiple files; currently blocked by UIEXT-1805
+
+        static final class CommentStartRef extends ReferenceStateProvider<String> {
+        }
 
         @Widget(title = "Comment line character", description = CommentLineCharacter.DESCRIPTION)
         @ValueReference(CommentStartRef.class)
@@ -368,6 +368,9 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @ValueProvider(CustomRowDelimiterProvider.class)
         String m_customRowDelimiter = "\n";
 
+        static final class BufferSizeRef implements Reference<Integer> {
+        }
+
         @Widget(title = "Number of characters for autodetection",
             description = NumberOfCharactersForAutodetection.DESCRIPTION, advanced = true)
         @ValueReference(BufferSizeRef.class)
@@ -376,6 +379,9 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @Persist(configKey = "autodetect_buffer_size")
         int m_numberOfCharactersForAutodetection = CSVTableReaderConfig.DEFAULT_AUTODETECTION_BUFFER_SIZE;
         // TODO will be moved into a settings panel in UIEXT-1739
+
+        static final class AutoDetectButtonRef implements ButtonReference {
+        }
 
         @Widget(title = "Autodetect format", description = AutodetectFormat.DESCRIPTION)
         @Layout(AutodetectFormat.class)
@@ -592,6 +598,9 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
             }
         }
 
+        static final class SkipFirstLinesRef extends ReferenceStateProvider<Long> {
+        }
+
         @Widget(title = "Skip first lines of file", description = SkipFirstLines.DESCRIPTION)
         @ValueReference(SkipFirstLinesRef.class)
         @NumberInputWidget(min = 0)
@@ -780,6 +789,9 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
             public void save(final Charset charset, final NodeSettingsWO settings) {
                 settings.addString(getConfigKey(), charset.toPersistString());
             }
+        }
+
+        static final class CharsetRef implements Reference<CSVTableReaderNodeSettings.Encoding.Charset> {
         }
 
         @Persist(configKey = "charset", customPersistor = CharsetPersistor.class)

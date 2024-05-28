@@ -54,12 +54,16 @@ import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.function.Supplier;
 
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.CharsetRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.LimitRows.SkipFirstLinesRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.AutoDetectButtonRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.BufferSizeRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.CommentStartRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FileChooserRef;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 
 import com.univocity.parsers.csv.CsvFormat;
@@ -69,26 +73,6 @@ import com.univocity.parsers.csv.CsvFormat;
  */
 @SuppressWarnings("restriction")
 public final class CSVFormatProvider extends CSVFormatAutoDetector implements StateProvider<CsvFormat> {
-
-    // References on which the CSVFormat auto detection depends
-
-    static final class SkipFirstLinesRef extends ReferenceStateProvider<Long> {
-    }
-
-    static final class CharsetRef implements Reference<CSVTableReaderNodeSettings.Encoding.Charset> {
-    }
-
-    static final class BufferSizeRef implements Reference<Integer> {
-    }
-
-    static final class CommentStartRef extends ReferenceStateProvider<String> {
-    }
-
-    static final class FileChooserRef implements Reference<FileChooser> {
-    }
-
-    static final class AutoDetectButtonRef implements ButtonReference {
-    }
 
     /**
      * Used in {@link CSVTableReaderNodeSettings} to set settings values depending on a newly auto-guesses CSV format

@@ -190,7 +190,7 @@ class CSVTableReaderNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
             new Charset(FileEncodingOption.OTHER, "foo"));
     }
 
-    private static <S, P extends FieldNodeSettingsPersistor<S>> S saveLoad(final Class<P> persistorType,
+    static <S, P extends FieldNodeSettingsPersistor<S>> S saveLoad(final Class<P> persistorType,
         final Class<S> settingsType, final S value) throws InvalidSettingsException {
         var persistor = FieldNodeSettingsPersistor.createInstance(persistorType, settingsType, "key");
         var nodeSettings = new NodeSettings("settings");

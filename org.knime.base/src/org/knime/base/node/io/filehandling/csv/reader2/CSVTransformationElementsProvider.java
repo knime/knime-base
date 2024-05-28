@@ -114,8 +114,11 @@ final class CSVTransformationElementsProvider extends DependsOnTableReadConfigPr
 
     @Override
     public TransformationElement[] computeState(final DefaultNodeSettingsContext context) {
+        return toTransformationElements(m_specSupplier.get());
+    }
 
-        final var union = toRawSpec(m_specSupplier.get()).getUnion();
+    static TransformationElement[] toTransformationElements(final Map<String, TypedReaderTableSpec<Class<?>>> specs) {
+        final var union = toRawSpec(specs).getUnion();
         final var elements = new TransformationElement[union.size()];
 
         int i = 0;
@@ -125,12 +128,7 @@ final class CSVTransformationElementsProvider extends DependsOnTableReadConfigPr
             final var defPath = PRODUCTION_PATH_PROVIDER.getDefaultProductionPath(column.getType());
 
             final var type = defPath.getConverterFactory().getIdentifier();
-            final var element = new TransformationElement();
-            element.m_columnName = name;
-            element.m_includeInOutput = true;
-            element.m_columnRename = name;
-            element.m_type = type;
-            elements[i] = element;
+            elements[i] = new TransformationElement(name, true, name, type);
             i++;
         }
         return elements;

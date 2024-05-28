@@ -61,6 +61,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingOption;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.CharsetRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.LimitRows.SkipFirstLinesRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.BufferSizeRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.CommentStartRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FileChooserRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
@@ -121,7 +126,7 @@ class CSVFormatAutoDetectionTest extends LocalWorkflowContextTest {
         final var file = m_tempFolder.resolve("file.csv").toAbsolutePath().toString();
         final var testFormat = new TestFormat();
         final var testFormatDependencies = new TestFormatDependencies(file);
-        writerCsvFile(testFormat, testFormatDependencies);
+        writeCsvFile(testFormat, testFormatDependencies);
         final var settings = new CSVTableReaderNodeSettings();
         setFormatDependencies(settings, testFormatDependencies);
 
@@ -135,7 +140,7 @@ class CSVFormatAutoDetectionTest extends LocalWorkflowContextTest {
         final var file = m_tempFolder.resolve("file2.csv").toAbsolutePath().toString();
         final var testFormat = new TestFormat();
         final var testFormatDependencies = new TestFormatDependencies(file);
-        writerCsvFile(testFormat, testFormatDependencies);
+        writeCsvFile(testFormat, testFormatDependencies);
         final var settings = new CSVTableReaderNodeSettings();
         settings.m_encoding.m_charset = new Charset(FileEncodingOption.OTHER, "Invalid custom encoding");
 
@@ -150,7 +155,7 @@ class CSVFormatAutoDetectionTest extends LocalWorkflowContextTest {
         settings.m_limitRows.m_skipFirstLines = testFormatDependencies.m_skipFirstLines;
     }
 
-    private static void writerCsvFile(final TestFormat format, final TestFormatDependencies formatDependencies)
+    private static void writeCsvFile(final TestFormat format, final TestFormatDependencies formatDependencies)
         throws IOException {
         try (final var writer = new BufferedWriter(new FileWriter(formatDependencies.m_filePath))) {
             for (int i = 0; i < formatDependencies.m_skipFirstLines; i++) {
@@ -210,19 +215,19 @@ class CSVFormatAutoDetectionTest extends LocalWorkflowContextTest {
             @Override
             @SuppressWarnings("unchecked")
             public <T> Supplier<T> getValueSupplier(final Class<? extends Reference<T>> ref) {
-                if (ref.equals(CSVFormatProvider.SkipFirstLinesRef.class)) {
+                if (ref.equals(SkipFirstLinesRef.class)) {
                     return () -> (T)(Object)settings.m_limitRows.m_skipFirstLines;
                 }
-                if (ref.equals(CSVFormatProvider.CharsetRef.class)) {
+                if (ref.equals(CharsetRef.class)) {
                     return () -> (T)settings.m_encoding.m_charset;
                 }
-                if (ref.equals(CSVFormatProvider.BufferSizeRef.class)) {
+                if (ref.equals(BufferSizeRef.class)) {
                     return () -> (T)(Object)settings.m_settings.m_numberOfCharactersForAutodetection;
                 }
-                if (ref.equals(CSVFormatProvider.CommentStartRef.class)) {
+                if (ref.equals(CommentStartRef.class)) {
                     return () -> (T)settings.m_settings.m_commentLineCharacter;
                 }
-                if (ref.equals(CSVFormatProvider.FileChooserRef.class)) {
+                if (ref.equals(FileChooserRef.class)) {
                     return () -> (T)settings.m_settings.m_source;
                 }
                 throw new IllegalStateException(String.format("Unexpected dependency %s", ref.getSimpleName()));

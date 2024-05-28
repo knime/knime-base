@@ -51,7 +51,7 @@ package org.knime.base.node.io.filehandling.csv.reader2;
 import java.util.function.Supplier;
 
 import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider.FileChooserRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FileChooserRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableSpec.CSVTableSpecProvider;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationElementsProvider.TypeChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
@@ -82,7 +82,7 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
 
     static final TreeTypeHierarchy<Class<?>, Class<?>> TYPE_HIERARCHY = StringReadAdapterFactory.TYPE_HIERARCHY;
 
-    static class SourceIdProvider implements StateProvider<String>  {
+    static class SourceIdProvider implements StateProvider<String> {
 
         private Supplier<FileChooser> m_fileChooserSupplier;
 
@@ -104,6 +104,8 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
 
     @ValueProvider(CSVTableSpecProvider.class)
     CSVTableSpec[] m_specs = new CSVTableSpec[0];
+    // TODO NOSONAR UIEXT-1939 followup for mechanism that allows a persistor to obtain value from value provider (since
+    // this m_specs field and the fields above are only used in the custom persistor, but are also sent to the frontend)
 
     enum ColumnFilterModeOption {
             @Label(value = "Union", description = """
@@ -134,21 +136,6 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
     // TODO NOSONAR UIEXT-1800 merge with CSVTableReaderNoderSettings.m_failOnDifferingSpecs
     ColumnFilterModeOption m_takeColumnsFrom = ColumnFilterModeOption.UNION;
 
-    @Widget(title = "Transformations", description = """
-            Use this option to modify the structure of the table. You can deselect each column to filter it out of the
-            output table, use the arrows to reorder the columns, or change the column name or column type of each
-            column. Note that the positions of columns are reset in the dialog if a new file or folder is selected.
-            Whether and where to add unknown columns during execution is specified via the special row &lt;any unknown
-            new column&gt;. It is also possible to select the type new columns should be converted to. Note that the
-            node will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is
-            of type Double.
-            """)
-    // TODO NOSONAR UIEXT-1901 this description is currently not shown
-    @ArrayWidget(elementTitle = "Column", showSortButtons = true, hasFixedSize = true)
-    @ValueProvider(CSVTransformationElementsProvider.class)
-    // TODO NOSONAR UIEXT-1914 the <any unknown new column> is not implemented yet
-    TransformationElement[] m_columnTransformation = new TransformationElement[0];
-
     static class TransformationElement implements WidgetGroup, PersistableSettings {
 
         static class ColumnNameRef implements Reference<String> {
@@ -178,4 +165,19 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
             m_type = type;
         }
     }
+
+    @Widget(title = "Transformations", description = """
+            Use this option to modify the structure of the table. You can deselect each column to filter it out of the
+            output table, use the arrows to reorder the columns, or change the column name or column type of each
+            column. Note that the positions of columns are reset in the dialog if a new file or folder is selected.
+            Whether and where to add unknown columns during execution is specified via the special row &lt;any unknown
+            new column&gt;. It is also possible to select the type new columns should be converted to. Note that the
+            node will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is
+            of type Double.
+            """)
+    // TODO NOSONAR UIEXT-1901 this description is currently not shown
+    @ArrayWidget(elementTitle = "Column", showSortButtons = true, hasFixedSize = true)
+    @ValueProvider(CSVTransformationElementsProvider.class)
+    // TODO NOSONAR UIEXT-1914 the <any unknown new column> is not implemented yet
+    TransformationElement[] m_columnTransformation = new TransformationElement[0];
 }

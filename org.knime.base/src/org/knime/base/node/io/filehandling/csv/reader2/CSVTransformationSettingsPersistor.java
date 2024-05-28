@@ -50,6 +50,7 @@ package org.knime.base.node.io.filehandling.csv.reader2;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -105,7 +106,7 @@ final class CSVTransformationSettingsPersistor extends NodeSettingsPersistorWith
     public CSVTransformationSettings load(final NodeSettingsRO settings) throws InvalidSettingsException {
         final var transformationSettings = new CSVTransformationSettings();
         if (settings.containsKey(getConfigKey())) {
-            // TODO do we also need to load the source Id, config Id and spec here?
+            // We do not need to load the sourceId, configId and specs here since they are not needed in the frontend
 
             final var tableSpecConfigSerializer = TableSpecConfigSerializer.createStartingV42(m_producerRegistry,
                 MultiTableReadConfigIdLoader.ID_LOADER, ClassTypeSerializer.SERIALIZER, String.class);
@@ -161,16 +162,7 @@ final class CSVTransformationSettingsPersistor extends NodeSettingsPersistorWith
         tc.setSkipRows(transformationSettings.m_configId.m_skipFirstDataRows > 0);
         tc.setNumRowsToSkip(transformationSettings.m_configId.m_skipFirstDataRows);
 
-        final var individualSpecs = new LinkedHashMap<String, TypedReaderTableSpec<Class<?>>>();
-        for (final var tableSpec : transformationSettings.m_specs) {
-            final TypedReaderTableSpecBuilder<Class<?>> specBuilder = TypedReaderTableSpec.builder();
-            for (final var colSpec : tableSpec.m_spec) {
-                specBuilder.addColumn(colSpec.m_name, colSpec.m_type, true);
-            }
-            final var spec = specBuilder.build();
-            individualSpecs.put(tableSpec.m_sourceId, spec);
-        }
-
+        final var individualSpecs = toSpecMap(transformationSettings.m_specs);
         final var rawSpec = CSVTransformationElementsProvider.toRawSpec(individualSpecs);
 
         final var transformationIndexByColumnName =
@@ -214,5 +206,18 @@ final class CSVTransformationSettingsPersistor extends NodeSettingsPersistorWith
             DefaultTableSpecConfig.createFromTransformationModel(transformationSettings.m_sourceId, configID,
                 individualSpecs, tableTransformation, itemIdentifierColumnSpec);
         tableSpecConfigSerializer.save(tableSpecConfig, settings.addNodeSettings(getConfigKey()));
+    }
+
+    final static Map<String, TypedReaderTableSpec<Class<?>>> toSpecMap(final CSVTableSpec[] specs) {
+        final var individualSpecs = new LinkedHashMap<String, TypedReaderTableSpec<Class<?>>>();
+        for (final var tableSpec : specs) {
+            final TypedReaderTableSpecBuilder<Class<?>> specBuilder = TypedReaderTableSpec.builder();
+            for (final var colSpec : tableSpec.m_spec) {
+                specBuilder.addColumn(colSpec.m_name, colSpec.m_type, true);
+            }
+            final var spec = specBuilder.build();
+            individualSpecs.put(tableSpec.m_sourceId, spec);
+        }
+        return individualSpecs;
     }
 }

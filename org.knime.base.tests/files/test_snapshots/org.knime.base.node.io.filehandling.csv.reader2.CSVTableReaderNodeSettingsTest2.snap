@@ -904,7 +904,7 @@
         "scope" : "#/properties/model/properties/settings/properties/autoDetectButton",
         "options" : {
           "format" : "simpleButton",
-          "triggerId" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$AutoDetectButtonRef",
+          "triggerId" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$AutoDetectButtonRef",
           "icon" : "reload"
         }
       }, {
@@ -1173,18 +1173,6 @@
         "triggerInitially" : true
       },
       "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
       }, {
@@ -1227,391 +1215,23 @@
         "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
       }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/firstRowContainsColumnNames" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstRowContainsColumnNamesRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/ifRowHasLessColumnsOption" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$IfRowHasLessColumnsOptionRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/prependFileIndexToRowId" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$PrependFileIndexToRowIdRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/quoteCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$QuoteCharacterRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/quoteEscapeCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$QuoteEscapeCharacterRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/rowDelimiterOption" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$RowDelimiterOptionRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/skipEmptyDataRows" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$SkipEmptyDataRowsRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$AutoDetectButtonRef"
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/encoding/properties/charset" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CharsetRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
         "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef",
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ]
-      },
-      "dependencies" : [ {
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/limitScannedRows" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$LimitScannedRowsRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maxDataRowsScanned" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaxDataRowsScannedRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maxNumChunksPerFile" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaxNumChunksPerFileRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maximumNumberOfColumns" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaximumNumberOfColumnsRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/minChunkSizeInBytes" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MinChunkSizeInBytesRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/quotedStringsOption" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$QuotedStringsOptionRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/replaceEmptyQuotedStringsByMissingValues" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$ReplaceEmptyQuotedStringsByMissingValuesRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/thousandsSeparator" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$ThousandsSeparatorRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/customEncoding" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$CustomEncodingRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/fileEncoding" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$FileEncodingRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/limitNumberOfRows" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$LimitNumberOfRowsRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/maximumNumberOfRows" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$MaximumNumberOfRowsRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/firstRowContainsColumnNames" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstRowContainsColumnNamesRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/ifRowHasLessColumnsOption" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$IfRowHasLessColumnsOptionRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/prependFileIndexToRowId" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$PrependFileIndexToRowIdRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/quoteCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$QuoteCharacterRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/quoteEscapeCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$QuoteEscapeCharacterRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/rowDelimiterOption" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$RowDelimiterOptionRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/skipEmptyDataRows" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$SkipEmptyDataRowsRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef",
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/limitScannedRows" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$LimitScannedRowsRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maxDataRowsScanned" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaxDataRowsScannedRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maxNumChunksPerFile" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaxNumChunksPerFileRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maximumNumberOfColumns" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaximumNumberOfColumnsRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/minChunkSizeInBytes" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MinChunkSizeInBytesRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/quotedStringsOption" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$QuotedStringsOptionRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/replaceEmptyQuotedStringsByMissingValues" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$ReplaceEmptyQuotedStringsByMissingValuesRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/thousandsSeparator" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$ThousandsSeparatorRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/customEncoding" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$CustomEncodingRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/fileEncoding" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$FileEncodingRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/limitNumberOfRows" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$LimitNumberOfRowsRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/maximumNumberOfRows" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$MaximumNumberOfRowsRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/firstRowContainsColumnNames" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstRowContainsColumnNamesRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/ifRowHasLessColumnsOption" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$IfRowHasLessColumnsOptionRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/prependFileIndexToRowId" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$PrependFileIndexToRowIdRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/quoteCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$QuoteCharacterRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/quoteEscapeCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$QuoteEscapeCharacterRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/rowDelimiterOption" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$RowDelimiterOptionRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/skipEmptyDataRows" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$SkipEmptyDataRowsRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef",
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/limitScannedRows" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$LimitScannedRowsRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maxDataRowsScanned" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaxDataRowsScannedRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maxNumChunksPerFile" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaxNumChunksPerFileRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maximumNumberOfColumns" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaximumNumberOfColumnsRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/minChunkSizeInBytes" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MinChunkSizeInBytesRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/quotedStringsOption" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$QuotedStringsOptionRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/replaceEmptyQuotedStringsByMissingValues" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$ReplaceEmptyQuotedStringsByMissingValuesRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/thousandsSeparator" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$ThousandsSeparatorRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/customEncoding" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$CustomEncodingRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/fileEncoding" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$FileEncodingRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/limitNumberOfRows" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$LimitNumberOfRowsRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/maximumNumberOfRows" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$MaximumNumberOfRowsRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/firstRowContainsColumnNames" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstRowContainsColumnNamesRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/ifRowHasLessColumnsOption" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$IfRowHasLessColumnsOptionRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/prependFileIndexToRowId" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$PrependFileIndexToRowIdRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/quoteCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$QuoteCharacterRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/quoteEscapeCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$QuoteEscapeCharacterRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/rowDelimiterOption" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$RowDelimiterOptionRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/skipEmptyDataRows" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$SkipEmptyDataRowsRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef",
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/limitScannedRows" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$LimitScannedRowsRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maxDataRowsScanned" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaxDataRowsScannedRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maxNumChunksPerFile" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaxNumChunksPerFileRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maximumNumberOfColumns" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaximumNumberOfColumnsRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/minChunkSizeInBytes" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MinChunkSizeInBytesRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/quotedStringsOption" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$QuotedStringsOptionRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/replaceEmptyQuotedStringsByMissingValues" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$ReplaceEmptyQuotedStringsByMissingValuesRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/thousandsSeparator" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$ThousandsSeparatorRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/customEncoding" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$CustomEncodingRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/fileEncoding" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$FileEncodingRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/limitNumberOfRows" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$LimitNumberOfRowsRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/maximumNumberOfRows" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$MaximumNumberOfRowsRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
@@ -1643,18 +1263,6 @@
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ]
       },
       "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
       }, {
@@ -1697,11 +1305,23 @@
         "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
@@ -1733,18 +1353,6 @@
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/limitScannedRows" ]
       },
       "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
       }, {
@@ -1787,11 +1395,23 @@
         "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
@@ -1823,18 +1443,6 @@
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maxDataRowsScanned" ]
       },
       "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
       }, {
@@ -1877,11 +1485,23 @@
         "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
@@ -1913,18 +1533,6 @@
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maxNumChunksPerFile" ]
       },
       "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
       }, {
@@ -1967,11 +1575,23 @@
         "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
@@ -2003,18 +1623,6 @@
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maximumNumberOfColumns" ]
       },
       "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
       }, {
@@ -2057,11 +1665,23 @@
         "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
@@ -2093,18 +1713,6 @@
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/minChunkSizeInBytes" ]
       },
       "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
       }, {
@@ -2147,11 +1755,23 @@
         "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
@@ -2183,18 +1803,6 @@
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/quotedStringsOption" ]
       },
       "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
       }, {
@@ -2237,11 +1845,23 @@
         "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
@@ -2273,18 +1893,6 @@
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/replaceEmptyQuotedStringsByMissingValues" ]
       },
       "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
       }, {
@@ -2327,11 +1935,23 @@
         "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
@@ -2363,18 +1983,6 @@
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/thousandsSeparator" ]
       },
       "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
       }, {
@@ -2417,11 +2025,23 @@
         "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
@@ -2453,18 +2073,6 @@
         "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/customEncoding" ]
       },
       "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
       }, {
@@ -2507,11 +2115,23 @@
         "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
@@ -2543,18 +2163,6 @@
         "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/fileEncoding" ]
       },
       "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
       }, {
@@ -2597,11 +2205,23 @@
         "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
@@ -2633,18 +2253,6 @@
         "scopes" : [ "#/properties/model/properties/limitRows/properties/limitNumberOfRows" ]
       },
       "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
       }, {
@@ -2687,11 +2295,23 @@
         "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
@@ -2723,18 +2343,6 @@
         "scopes" : [ "#/properties/model/properties/limitRows/properties/maximumNumberOfRows" ]
       },
       "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
       }, {
@@ -2777,11 +2385,23 @@
         "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
@@ -2813,18 +2433,6 @@
         "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ]
       },
       "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
       }, {
@@ -2867,11 +2475,223 @@
         "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/firstRowContainsColumnNames" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstRowContainsColumnNamesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/ifRowHasLessColumnsOption" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$IfRowHasLessColumnsOptionRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/prependFileIndexToRowId" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$PrependFileIndexToRowIdRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/quoteCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$QuoteCharacterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/quoteEscapeCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$QuoteEscapeCharacterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/rowDelimiterOption" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$RowDelimiterOptionRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/skipEmptyDataRows" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$SkipEmptyDataRowsRef"
+      } ]
+    }, {
+      "trigger" : {
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef",
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ]
+      },
+      "dependencies" : [ {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/limitScannedRows" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$LimitScannedRowsRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maxDataRowsScanned" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaxDataRowsScannedRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maxNumChunksPerFile" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaxNumChunksPerFileRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maximumNumberOfColumns" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaximumNumberOfColumnsRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/minChunkSizeInBytes" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MinChunkSizeInBytesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/quotedStringsOption" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$QuotedStringsOptionRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/replaceEmptyQuotedStringsByMissingValues" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$ReplaceEmptyQuotedStringsByMissingValuesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/thousandsSeparator" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$ThousandsSeparatorRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/customEncoding" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$CustomEncodingRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/fileEncoding" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$FileEncodingRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/limitNumberOfRows" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$LimitNumberOfRowsRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/maximumNumberOfRows" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$MaximumNumberOfRowsRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/firstRowContainsColumnNames" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstRowContainsColumnNamesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/ifRowHasLessColumnsOption" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$IfRowHasLessColumnsOptionRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/prependFileIndexToRowId" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$PrependFileIndexToRowIdRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/quoteCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$QuoteCharacterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/quoteEscapeCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$QuoteEscapeCharacterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/rowDelimiterOption" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$RowDelimiterOptionRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/skipEmptyDataRows" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$SkipEmptyDataRowsRef"
+      } ]
+    }, {
+      "trigger" : {
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$AutoDetectButtonRef"
+      },
+      "dependencies" : [ {
+        "scopes" : [ "#/properties/model/properties/encoding/properties/charset" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$CharsetRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
+      } ]
+    }, {
+      "trigger" : {
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef",
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ]
+      },
+      "dependencies" : [ {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/limitScannedRows" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$LimitScannedRowsRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maxDataRowsScanned" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaxDataRowsScannedRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maxNumChunksPerFile" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaxNumChunksPerFileRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maximumNumberOfColumns" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaximumNumberOfColumnsRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/minChunkSizeInBytes" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MinChunkSizeInBytesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/quotedStringsOption" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$QuotedStringsOptionRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/replaceEmptyQuotedStringsByMissingValues" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$ReplaceEmptyQuotedStringsByMissingValuesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/thousandsSeparator" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$ThousandsSeparatorRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/customEncoding" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$CustomEncodingRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/fileEncoding" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$FileEncodingRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/limitNumberOfRows" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$LimitNumberOfRowsRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/maximumNumberOfRows" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$MaximumNumberOfRowsRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
@@ -2903,18 +2723,6 @@
         "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ]
       },
       "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
       }, {
@@ -2957,11 +2765,113 @@
         "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/firstRowContainsColumnNames" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstRowContainsColumnNamesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/ifRowHasLessColumnsOption" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$IfRowHasLessColumnsOptionRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/prependFileIndexToRowId" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$PrependFileIndexToRowIdRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/quoteCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$QuoteCharacterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/quoteEscapeCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$QuoteEscapeCharacterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/rowDelimiterOption" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$RowDelimiterOptionRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/skipEmptyDataRows" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$SkipEmptyDataRowsRef"
+      } ]
+    }, {
+      "trigger" : {
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef",
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ]
+      },
+      "dependencies" : [ {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/limitScannedRows" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$LimitScannedRowsRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maxDataRowsScanned" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaxDataRowsScannedRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maxNumChunksPerFile" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaxNumChunksPerFileRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maximumNumberOfColumns" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaximumNumberOfColumnsRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/minChunkSizeInBytes" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MinChunkSizeInBytesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/quotedStringsOption" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$QuotedStringsOptionRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/replaceEmptyQuotedStringsByMissingValues" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$ReplaceEmptyQuotedStringsByMissingValuesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/thousandsSeparator" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$ThousandsSeparatorRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/customEncoding" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$CustomEncodingRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/fileEncoding" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$FileEncodingRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/limitNumberOfRows" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$LimitNumberOfRowsRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/maximumNumberOfRows" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$MaximumNumberOfRowsRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
@@ -2993,18 +2903,6 @@
         "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ]
       },
       "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
       }, {
@@ -3047,11 +2945,113 @@
         "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/firstRowContainsColumnNames" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstRowContainsColumnNamesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/ifRowHasLessColumnsOption" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$IfRowHasLessColumnsOptionRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/prependFileIndexToRowId" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$PrependFileIndexToRowIdRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/quoteCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$QuoteCharacterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/quoteEscapeCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$QuoteEscapeCharacterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/rowDelimiterOption" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$RowDelimiterOptionRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/skipEmptyDataRows" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$SkipEmptyDataRowsRef"
+      } ]
+    }, {
+      "trigger" : {
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef",
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ]
+      },
+      "dependencies" : [ {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/limitScannedRows" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$LimitScannedRowsRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maxDataRowsScanned" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaxDataRowsScannedRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maxNumChunksPerFile" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaxNumChunksPerFileRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maximumNumberOfColumns" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaximumNumberOfColumnsRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/minChunkSizeInBytes" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MinChunkSizeInBytesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/quotedStringsOption" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$QuotedStringsOptionRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/replaceEmptyQuotedStringsByMissingValues" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$ReplaceEmptyQuotedStringsByMissingValuesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/thousandsSeparator" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$ThousandsSeparatorRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/customEncoding" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$CustomEncodingRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/fileEncoding" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$FileEncodingRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/limitNumberOfRows" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$LimitNumberOfRowsRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/maximumNumberOfRows" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$MaximumNumberOfRowsRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
@@ -3083,18 +3083,6 @@
         "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ]
       },
       "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
       }, {
@@ -3137,11 +3125,23 @@
         "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
@@ -3173,18 +3173,6 @@
         "scopes" : [ "#/properties/model/properties/settings/properties/firstRowContainsColumnNames" ]
       },
       "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
       }, {
@@ -3227,11 +3215,23 @@
         "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
@@ -3263,18 +3263,6 @@
         "scopes" : [ "#/properties/model/properties/settings/properties/ifRowHasLessColumnsOption" ]
       },
       "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
       }, {
@@ -3317,11 +3305,23 @@
         "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
@@ -3353,18 +3353,6 @@
         "scopes" : [ "#/properties/model/properties/settings/properties/prependFileIndexToRowId" ]
       },
       "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
       }, {
@@ -3407,11 +3395,23 @@
         "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
@@ -3443,18 +3443,6 @@
         "scopes" : [ "#/properties/model/properties/settings/properties/quoteCharacter" ]
       },
       "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
       }, {
@@ -3497,11 +3485,23 @@
         "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
@@ -3533,18 +3533,6 @@
         "scopes" : [ "#/properties/model/properties/settings/properties/quoteEscapeCharacter" ]
       },
       "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
       }, {
@@ -3587,11 +3575,23 @@
         "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
@@ -3623,18 +3623,6 @@
         "scopes" : [ "#/properties/model/properties/settings/properties/rowDelimiterOption" ]
       },
       "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
       }, {
@@ -3677,11 +3665,23 @@
         "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
@@ -3713,18 +3713,6 @@
         "scopes" : [ "#/properties/model/properties/settings/properties/skipEmptyDataRows" ]
       },
       "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
       }, {
@@ -3767,11 +3755,23 @@
         "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
@@ -3803,18 +3803,6 @@
         "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/columnName" ]
       },
       "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
-      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
       }, {
@@ -3857,11 +3845,23 @@
         "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
