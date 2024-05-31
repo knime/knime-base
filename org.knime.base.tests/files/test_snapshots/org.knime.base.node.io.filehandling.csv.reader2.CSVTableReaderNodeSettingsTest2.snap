@@ -62,6 +62,7 @@
       },
       "tableSpecConfig" : {
         "sourceId" : "",
+        "fsLocations" : [ ],
         "configId" : {
           "firstRowContainsColumnNames" : true,
           "firstColumnContainsRowIds" : false,
@@ -83,6 +84,8 @@
           "skipFirstDataRows" : 0
         },
         "specs" : [ ],
+        "appendPathColumn" : false,
+        "filePathColumnName" : "File Path",
         "takeColumnsFrom" : "UNION",
         "columnTransformation" : [ {
           "columnName" : "column1",
@@ -533,6 +536,10 @@
           "tableSpecConfig" : {
             "type" : "object",
             "properties" : {
+              "appendPathColumn" : {
+                "type" : "boolean",
+                "default" : false
+              },
               "columnTransformation" : {
                 "title" : "Transformations",
                 "description" : "Use this option to modify the structure of the table. You can deselect each column to filter it out of the\noutput table, use the arrows to reorder the columns, or change the column name or column type of each\ncolumn. Note that the positions of columns are reset in the dialog if a new file or folder is selected.\nWhether and where to add unknown columns during execution is specified via the special row &lt;any unknown\nnew column&gt;. It is also possible to select the type new columns should be converted to. Note that the\nnode will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is\nof type Double.\n",
@@ -696,6 +703,17 @@
                   "skipFirstDataRows" : 0
                 }
               },
+              "filePathColumnName" : {
+                "type" : "string",
+                "default" : "File Path"
+              },
+              "fsLocations" : {
+                "default" : [ ],
+                "type" : "array",
+                "items" : {
+                  "type" : "object"
+                }
+              },
               "sourceId" : {
                 "type" : "string",
                 "default" : ""
@@ -741,6 +759,7 @@
             },
             "default" : {
               "sourceId" : "",
+              "fsLocations" : [ ],
               "configId" : {
                 "firstRowContainsColumnNames" : true,
                 "firstColumnContainsRowIds" : false,
@@ -762,6 +781,8 @@
                 "skipFirstDataRows" : 0
               },
               "specs" : [ ],
+              "appendPathColumn" : false,
+              "filePathColumnName" : "File Path",
               "takeColumnsFrom" : "UNION",
               "columnTransformation" : [ ]
             },
@@ -1095,6 +1116,10 @@
       } ]
     } ],
     "initialUpdates" : [ {
+      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/appendPathColumn" ],
+      "id" : null,
+      "value" : false
+    }, {
       "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/configId/properties/columnDelimiter" ],
       "id" : null,
       "value" : ","
@@ -1166,6 +1191,14 @@
       "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/configId/properties/thousandsSeparator" ],
       "id" : null,
       "value" : "\u0000"
+    }, {
+      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/filePathColumnName" ],
+      "id" : null,
+      "value" : "Path"
+    }, {
+      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/fsLocations" ],
+      "id" : null,
+      "value" : [ ]
     } ],
     "globalUpdates" : [ {
       "trigger" : {
@@ -1259,6 +1292,15 @@
       } ]
     }, {
       "trigger" : {
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$AppendPathColumnRef",
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/appendPathColumn" ]
+      },
+      "dependencies" : [ {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/appendPathColumn" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$AppendPathColumnRef"
+      } ]
+    }, {
+      "trigger" : {
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef",
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ]
       },
@@ -1346,6 +1388,15 @@
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/skipEmptyDataRows" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$SkipEmptyDataRowsRef"
+      } ]
+    }, {
+      "trigger" : {
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$FilePathColumnNameRef",
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/filePathColumnName" ]
+      },
+      "dependencies" : [ {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/filePathColumnName" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$FilePathColumnNameRef"
       } ]
     }, {
       "trigger" : {

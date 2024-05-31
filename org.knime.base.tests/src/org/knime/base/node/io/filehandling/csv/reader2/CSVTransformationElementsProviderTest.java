@@ -140,7 +140,7 @@ class CSVTransformationElementsProviderTest extends LocalWorkflowContextTest {
 
             @Override
             public void computeAfterOpenDialog() {
-                throw new IllegalAccessError("Should not be called within this test");
+                // Do nothing
             }
         };
     }
@@ -171,8 +171,8 @@ class CSVTransformationElementsProviderTest extends LocalWorkflowContextTest {
         }
     }
 
-    private static final StateProviderInitializer getTypeChoicesProviderStateProviderInitializer(final String columnName,
-        final TypedReaderTableSpecProvider typedReaderTableSpecProvider) {
+    private static final StateProviderInitializer getTypeChoicesProviderStateProviderInitializer(
+        final String columnName, final TypedReaderTableSpecProvider typedReaderTableSpecProvider) {
         return new StateProviderInitializer() {
             @Override
             public <T> Supplier<T> getValueSupplier(final Class<? extends Reference<T>> ref) {

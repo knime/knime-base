@@ -51,6 +51,7 @@ package org.knime.base.node.io.filehandling.csv.reader2;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -99,10 +100,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileCh
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
+import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
@@ -248,49 +251,82 @@ final class CSVTableSpec implements WidgetGroup, PersistableSettings {
         }
     }
 
-    static final class TypedReaderTableSpecProvider
-        implements StateProvider<Map<String, TypedReaderTableSpec<Class<?>>>> {
+    abstract static class PathsProvider<S> implements StateProvider<S> {
 
         private Supplier<FileChooser> m_fileChooserSupplier;
-
-        private Supplier<TableReadConfig<CSVTableReaderConfig>> m_tableReaderConfigSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
             m_fileChooserSupplier = initializer.getValueSupplier(FileChooserRef.class);
-            m_tableReaderConfigSupplier = initializer.computeFromProvidedState(TableReadConfigProvider.class);
         }
 
         @Override
-        public Map<String, TypedReaderTableSpec<Class<?>>> computeState(final DefaultNodeSettingsContext context) {
+        public S computeState(final DefaultNodeSettingsContext context) {
 
             final var fileChooser = m_fileChooserSupplier.get();
-            if (fileChooser.getFSLocation().equals(new FSLocation(FSCategory.LOCAL, ""))) {
-                return Collections.emptyMap(); // no file selected (yet)
+            if (!WorkflowContextUtil.hasWorkflowContext() // no workflow context available
+                || fileChooser.getFSLocation().equals(new FSLocation(FSCategory.LOCAL, ""))) { // no file selected (yet)
+                return computeStateFromPaths(Collections.emptyList());
             }
 
             try (final FileChooserPathAccessor accessor = new FileChooserPathAccessor(fileChooser)) {
-                final var paths = accessor.getFSPaths(s -> {
+                return computeStateFromPaths(accessor.getFSPaths(s -> {
                     switch (s.getType()) {
                         case INFO -> LOGGER.info(s.getMessage());
                         case WARNING -> LOGGER.info(s.getMessage());
                         case ERROR -> LOGGER.error(s.getMessage());
                     }
-                });
-
-                final var csvTableReader = new CSVTableReader();
-                final var tc = m_tableReaderConfigSupplier.get();
-                final var exec = new ExecutionMonitor();
-                final var specs = new HashMap<String, TypedReaderTableSpec<Class<?>>>();
-                for (var path : paths) {
-                    specs.put(path.toFSLocation().getPath(),
-                        MultiTableUtils.assignNamesIfMissing(csvTableReader.readSpec(path, tc, exec)));
-                }
-                return specs;
+                }));
             } catch (IOException | InvalidSettingsException e) {
                 LOGGER.error(e);
-                return Collections.emptyMap();
+                return computeStateFromPaths(Collections.emptyList());
             }
+        }
+
+        abstract S computeStateFromPaths(List<FSPath> paths);
+    }
+
+    static final class FSLocationsProvider extends PathsProvider<FSLocation[]> {
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            super.init(initializer);
+            initializer.computeBeforeOpenDialog();
+            initializer.computeOnValueChange(FileChooserRef.class);
+        }
+
+        @Override
+        FSLocation[] computeStateFromPaths(final List<FSPath> paths) {
+            return paths.stream().map(FSPath::toFSLocation).toArray(FSLocation[]::new);
+        }
+    }
+
+    static final class TypedReaderTableSpecProvider extends PathsProvider<Map<String, TypedReaderTableSpec<Class<?>>>> {
+
+        private Supplier<TableReadConfig<CSVTableReaderConfig>> m_tableReaderConfigSupplier;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            super.init(initializer);
+            m_tableReaderConfigSupplier = initializer.computeFromProvidedState(TableReadConfigProvider.class);
+        }
+
+        @Override
+        Map<String, TypedReaderTableSpec<Class<?>>> computeStateFromPaths(final List<FSPath> paths) {
+            final var csvTableReader = new CSVTableReader();
+            final var tc = m_tableReaderConfigSupplier.get();
+            final var exec = new ExecutionMonitor();
+            final var specs = new HashMap<String, TypedReaderTableSpec<Class<?>>>();
+            for (var path : paths) {
+                try {
+                    specs.put(path.toFSLocation().getPath(),
+                        MultiTableUtils.assignNamesIfMissing(csvTableReader.readSpec(path, tc, exec)));
+                } catch (IOException e) {
+                    LOGGER.error(e);
+                    return Collections.emptyMap();
+                }
+            }
+            return specs;
         }
     }
 
@@ -300,6 +336,7 @@ final class CSVTableSpec implements WidgetGroup, PersistableSettings {
 
         @Override
         public void init(final StateProviderInitializer initializer) {
+            initializer.computeAfterOpenDialog();
             m_specSupplier = initializer.computeFromProvidedState(TypedReaderTableSpecProvider.class);
             initializer.computeOnValueChange(FileChooserRef.class);
 
@@ -337,12 +374,6 @@ final class CSVTableSpec implements WidgetGroup, PersistableSettings {
     }
 
     static class CSVTableSpecProvider extends DependsOnTableReadConfigProvider<CSVTableSpec[]> {
-
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            super.init(initializer);
-            initializer.computeAfterOpenDialog(); // TODO consider adding to DependsOn...
-        }
 
         @Override
         public CSVTableSpec[] computeState(final DefaultNodeSettingsContext context) {

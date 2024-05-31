@@ -259,8 +259,8 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @ValueReference(ColumnDelimiterRef.class)
         @ValueProvider(ColumnDelimiterProvider.class)
         String m_columnDelimiter = ",";
-        // TODO This m_columnDelimiter provides does not provide its updated value to the CSVConfigId.m_columnDelimiter
-        // when it is updated via the ColumnDelimiterProvider
+        // TODO NOSONAR UIEXT-1939 This m_columnDelimiter provides does not provide its updated value to the
+        // CSVConfigId.m_columnDelimiter when it is updated via the ColumnDelimiterProvider
 
         static final class QuoteCharacterProvider extends ProviderFromCSVFormat<String> {
             @Override
@@ -409,13 +409,21 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         // TODO this setting should be shown when reading multiple files; currently blocked by UIEXT-1805
         // TODO this setting will be replaced by a value seitch Fail if different / Union / Intersection in UIEXT-1800
 
+        static class AppendPathColumnRef extends ReferenceStateProvider<Boolean> {
+        }
+
         @Widget(title = "Append file path column", description = AppendFilePathColumn.DESCRIPTION)
+        @ValueReference(AppendPathColumnRef.class)
         @Layout(AppendFilePathColumn.class)
         @Signal(id = AppendFilePathColumn.class, condition = TrueCondition.class)
         @Persist(configKey = "append_path_column", hidden = true)
         boolean m_appendPathColumn;
 
+        static class FilePathColumnNameRef extends ReferenceStateProvider<String> {
+        }
+
         @Widget(title = "File path column name", description = FilePathColumnName.DESCRIPTION)
+        @ValueReference(FilePathColumnNameRef.class)
         @Layout(FilePathColumnName.class)
         @Effect(signals = AppendFilePathColumn.class, type = EffectType.SHOW)
         @Persist(configKey = "path_column_name", hidden = true)

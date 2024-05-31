@@ -51,8 +51,11 @@ package org.knime.base.node.io.filehandling.csv.reader2;
 import java.util.function.Supplier;
 
 import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.AppendPathColumnRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.FilePathColumnNameRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FileChooserRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableSpec.CSVTableSpecProvider;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableSpec.FSLocationsProvider;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationElementsProvider.TypeChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
@@ -67,6 +70,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TreeTypeHierarchy;
@@ -97,15 +101,25 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
         }
     }
 
+    // TODO NOSONAR UIEXT-1939 These settings (and the ones below) are sent to the frontend but not needed by the
+    // frontend. They are only needed in the CSVTransformationSettingsPersistor. We should look for an alternative
+    // mechanism to provide these settings to the persistor.
     @ValueProvider(SourceIdProvider.class)
     String m_sourceId = "";
+
+    @ValueProvider(FSLocationsProvider.class)
+    FSLocation[] m_fsLocations = new FSLocation[0];
 
     CSVConfigId m_configId = new CSVConfigId();
 
     @ValueProvider(CSVTableSpecProvider.class)
     CSVTableSpec[] m_specs = new CSVTableSpec[0];
-    // TODO NOSONAR UIEXT-1939 followup for mechanism that allows a persistor to obtain value from value provider (since
-    // this m_specs field and the fields above are only used in the custom persistor, but are also sent to the frontend)
+
+    @ValueProvider(AppendPathColumnRef.class)
+    boolean m_appendPathColumn;
+
+    @ValueProvider(FilePathColumnNameRef.class)
+    String m_filePathColumnName = "File Path";
 
     enum ColumnFilterModeOption {
             @Label(value = "Union", description = """

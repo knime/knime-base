@@ -64,12 +64,15 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSetting
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.ColumnFilterModeOption;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElement;
 import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
+import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
+import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCellFactory;
 import org.knime.filehandling.core.node.table.reader.DefaultTableTransformation;
 import org.knime.filehandling.core.node.table.reader.ImmutableColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
@@ -99,7 +102,7 @@ final class CSVTransformationSettingsPersistor extends NodeSettingsPersistorWith
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(CSVTransformationSettingsPersistor.class);
 
-    private final ProducerRegistry<Class<?>, ?> m_producerRegistry =
+    private static final ProducerRegistry<Class<?>, ?> PRODUCER_REGISTRY =
         StringReadAdapterFactory.INSTANCE.getProducerRegistry();
 
     @Override
@@ -108,7 +111,7 @@ final class CSVTransformationSettingsPersistor extends NodeSettingsPersistorWith
         if (settings.containsKey(getConfigKey())) {
             // We do not need to load the sourceId, configId and specs here since they are not needed in the frontend
 
-            final var tableSpecConfigSerializer = TableSpecConfigSerializer.createStartingV42(m_producerRegistry,
+            final var tableSpecConfigSerializer = TableSpecConfigSerializer.createStartingV42(PRODUCER_REGISTRY,
                 MultiTableReadConfigIdLoader.ID_LOADER, ClassTypeSerializer.SERIALIZER, String.class);
             final var tableSpecConfig = tableSpecConfigSerializer.load(settings.getNodeSettings(getConfigKey()));
             transformationSettings.m_columnTransformation =
@@ -196,11 +199,30 @@ final class CSVTransformationSettingsPersistor extends NodeSettingsPersistorWith
         final var tableTransformation = new DefaultTableTransformation<Class<?>>(rawSpec, transformations,
             transformationSettings.m_takeColumnsFrom.toColumnFilterMode(), unknownColsTrans, true,
             config.skipEmptyColumns());
-        // TODO if path column is appended, this should be non-null, see
-        // DefaultMultiTableReadFactory.createItemIdentifierColumn
-        final DataColumnSpec itemIdentifierColumnSpec = null;
 
-        final var tableSpecConfigSerializer = TableSpecConfigSerializer.createStartingV42(m_producerRegistry,
+        // code taken from DefaultMultiTableReadFactory.createItemIdentifierColumn
+        DataColumnSpec itemIdentifierColumnSpec = null;
+        if (transformationSettings.m_appendPathColumn) {
+            DataColumnSpecCreator itemIdColCreator = null;
+            for (var path : transformationSettings.m_fsLocations) {
+                // code taken from TableReader.createIdentifierColumnSpec
+                final DataColumnSpecCreator creator = new DataColumnSpecCreator(
+                    transformationSettings.m_filePathColumnName, SimpleFSLocationCellFactory.TYPE);
+                creator.addMetaData(new FSLocationValueMetaData(path.getFileSystemCategory(),
+                    path.getFileSystemSpecifier().orElse(null)), true);
+                final var itemIdCol = creator.createSpec();
+                if (itemIdColCreator == null) {
+                    itemIdColCreator = new DataColumnSpecCreator(itemIdCol);
+                } else {
+                    itemIdColCreator.merge(itemIdCol);
+                }
+            }
+            if (itemIdColCreator != null) {
+                itemIdentifierColumnSpec = itemIdColCreator.createSpec();
+            }
+        }
+
+        final var tableSpecConfigSerializer = TableSpecConfigSerializer.createStartingV42(PRODUCER_REGISTRY,
             MultiTableReadConfigIdLoader.ID_LOADER, ClassTypeSerializer.SERIALIZER, String.class);
         final var tableSpecConfig =
             DefaultTableSpecConfig.createFromTransformationModel(transformationSettings.m_sourceId, configID,
@@ -208,7 +230,7 @@ final class CSVTransformationSettingsPersistor extends NodeSettingsPersistorWith
         tableSpecConfigSerializer.save(tableSpecConfig, settings.addNodeSettings(getConfigKey()));
     }
 
-    final static Map<String, TypedReaderTableSpec<Class<?>>> toSpecMap(final CSVTableSpec[] specs) {
+    static Map<String, TypedReaderTableSpec<Class<?>>> toSpecMap(final CSVTableSpec[] specs) {
         final var individualSpecs = new LinkedHashMap<String, TypedReaderTableSpec<Class<?>>>();
         for (final var tableSpec : specs) {
             final TypedReaderTableSpecBuilder<Class<?>> specBuilder = TypedReaderTableSpec.builder();

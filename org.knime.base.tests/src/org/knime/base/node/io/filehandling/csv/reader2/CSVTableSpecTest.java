@@ -92,6 +92,7 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSetting
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOptionRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.SkipEmptyDataRowsRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableSpec.CSVTableSpecProvider;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableSpec.FSLocationsProvider;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableSpec.TableReadConfigProvider;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableSpec.TypedReaderTableSpecProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
@@ -304,6 +305,78 @@ class CSVTableSpecTest extends LocalWorkflowContextTest {
     }
 
     @Test
+    void testFSLocationsProvider() throws IOException {
+        final var file = m_tempFolder.resolve("file.csv").toAbsolutePath().toString();
+        final var settings = createCSVTableReaderNodeSettings(file);
+
+        final var fsLocationsProvider = new FSLocationsProvider();
+        fsLocationsProvider.init(getFSLocationsProviderStateProviderInitializer(settings));
+
+        final var fsLocations = fsLocationsProvider.computeState(null);
+
+        System.out.println(fsLocations);
+    }
+
+    @SuppressWarnings("restriction")
+    static CSVTableReaderNodeSettings createCSVTableReaderNodeSettings(final String file) throws IOException {
+        try (final var writer = new BufferedWriter(new FileWriter(file))) {
+            writer.write("intCol,stringCol\n");
+            writer.write("1,two\n");
+        }
+        final var settings = new CSVTableReaderNodeSettings();
+        settings.m_settings.m_source.m_path = new FSLocation(FSCategory.LOCAL, file);
+        return settings;
+    }
+
+    private static final StateProviderInitializer
+        getFSLocationsProviderStateProviderInitializer(final CSVTableReaderNodeSettings settings) {
+        return new StateProviderInitializer() {
+            @Override
+            @SuppressWarnings("unchecked")
+            public <T> Supplier<T> getValueSupplier(final Class<? extends Reference<T>> ref) {
+                if (ref.equals(FileChooserRef.class)) {
+                    return () -> (T)settings.m_settings.m_source;
+                }
+                throw new IllegalStateException(String.format("Unexpected dependency %s", ref.getSimpleName()));
+            }
+
+            @Override
+            public <T> void computeOnValueChange(final Class<? extends Reference<T>> ref) {
+                if (ref.equals(FileChooserRef.class)) {
+                    return;
+                }
+                throw new IllegalStateException(String.format("Unexpected trigger %s", ref.getSimpleName()));
+            }
+
+            @Override
+            public void computeOnButtonClick(final Class<? extends ButtonReference> ref) {
+                throw new IllegalAccessError("Should not be called within this test");
+            }
+
+            @Override
+            public <T> Supplier<T> computeFromValueSupplier(final Class<? extends Reference<T>> ref) {
+                throw new IllegalAccessError("Should not be called within this test");
+            }
+
+            @Override
+            public <T> Supplier<T>
+                computeFromProvidedState(final Class<? extends StateProvider<T>> stateProviderClass) {
+                throw new IllegalAccessError("Should not be called within this test");
+            }
+
+            @Override
+            public void computeBeforeOpenDialog() {
+                // Do nothing
+            }
+
+            @Override
+            public void computeAfterOpenDialog() {
+                throw new IllegalAccessError("Should not be called within this test");
+            }
+        };
+    }
+
+    @Test
     void testTypedReaderTableSpecProvider() throws IOException {
         final var file = m_tempFolder.resolve("file.csv").toAbsolutePath().toString();
         final var typedReaderTableSpecProvider = createTypedReaderTableSpecProvider(file);
@@ -326,15 +399,8 @@ class CSVTableSpecTest extends LocalWorkflowContextTest {
         assertThat(col2.getType()).isEqualTo(String.class);
     }
 
-    @SuppressWarnings("restriction")
-    static TypedReaderTableSpecProvider createTypedReaderTableSpecProvider(final String file)
-        throws IOException {
-        try (final var writer = new BufferedWriter(new FileWriter(file))) {
-            writer.write("intCol,stringCol\n");
-            writer.write("1,two\n");
-        }
-        final var settings = new CSVTableReaderNodeSettings();
-        settings.m_settings.m_source.m_path = new FSLocation(FSCategory.LOCAL, file);
+    static TypedReaderTableSpecProvider createTypedReaderTableSpecProvider(final String file) throws IOException {
+        final var settings = createCSVTableReaderNodeSettings(file);
 
         final var tableReadConfigProvider = new TableReadConfigProvider();
         tableReadConfigProvider.init(getTableReadConfigProviderStateProviderInitializer(settings));
