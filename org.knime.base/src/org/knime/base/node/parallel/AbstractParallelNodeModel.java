@@ -56,6 +56,7 @@ import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.RowIterator;
 import org.knime.core.data.container.DataContainer;
+import org.knime.core.data.container.DataContainerSettings;
 import org.knime.core.data.container.RowAppender;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
@@ -183,7 +184,9 @@ public abstract class AbstractParallelNodeModel extends NodeModel {
                                                     + temp2);
                                             BufferedDataContainer[] result = new BufferedDataContainer[outSpecs.length];
                                             for (int i = 0; i < outSpecs.length; i++) {
-                                                result[i] = exec.createDataContainer(outSpecs[i], true, 0);
+                                                result[i] = exec.createDataContainer(outSpecs[i],
+                                                DataContainerSettings.internalBuilder().withMaxCellsInMemory(0)
+                                                    .build());
                                             }
 
                                             executeByChunk(temp.getTable(),
