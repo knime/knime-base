@@ -60,6 +60,7 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.RowKey;
+import org.knime.core.data.container.DataContainerSettings;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.StringCell;
@@ -186,8 +187,12 @@ public class SampleDataNodeModel extends NodeModel {
         DataTableSpec[] outSpecs = configure(new DataTableSpec[2]);
         DataTableSpec dataSpec = outSpecs[0];
         DataTableSpec clusterSpec = outSpecs[1];
-        BufferedDataTableRowOutput dataOut = new BufferedDataTableRowOutput(exec.createDataContainer(dataSpec));
-        BufferedDataTableRowOutput clusterOut = new BufferedDataTableRowOutput(exec.createDataContainer(clusterSpec));
+        final DataContainerSettings d = DataContainerSettings.builder() //
+                .withInitializedDomain(true) //
+                .withCheckDuplicateRowKeys(false).build();
+        BufferedDataTableRowOutput dataOut = new BufferedDataTableRowOutput(exec.createDataContainer(dataSpec, d));
+        BufferedDataTableRowOutput clusterOut =
+            new BufferedDataTableRowOutput(exec.createDataContainer(clusterSpec, d));
         run(dataSpec, dataOut, clusterSpec, clusterOut, exec);
         return new BufferedDataTable[] {dataOut.getDataTable(), clusterOut.getDataTable()};
     }

@@ -66,6 +66,7 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.RowKeyValue;
+import org.knime.core.data.container.DataContainerSettings;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.v2.RowRead;
@@ -172,12 +173,16 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
         final Predicate<RowRead> predicate = RowReadPredicate.createFrom(exec, settings, inSpec);
         final var includeMatches = settings.includeMatches();
         final long size = in.size();
+        final DataContainerSettings dcSettings = DataContainerSettings.builder() //
+                .withInitializedDomain(true) //
+                .withCheckDuplicateRowKeys(false) // only copying data
+                .withDomainUpdate(false).build();
         try (final var input = in.cursor();
                 // take domains from input in order to allow downstream visualizations to retain
                 // useful bounds, e.g. [0, 10] for an axis
-                final var matches = exec.createRowContainer(inSpec, true);
+                final var matches = exec.createRowContainer(inSpec, dcSettings);
                 final var matchesCursor = matches.createCursor();
-                final var nonMatches = isSplitter ? exec.createRowContainer(inSpec, true) : null;
+                final var nonMatches = isSplitter ? exec.createRowContainer(inSpec, dcSettings) : null;
                 final var nonMatchesCursor = nonMatches != null ? nonMatches.createCursor() : null //
         ) {
             // top-level progress reports number of processed rows as a fraction of the input table size
