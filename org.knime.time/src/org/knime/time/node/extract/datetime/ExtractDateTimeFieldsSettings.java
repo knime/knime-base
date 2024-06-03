@@ -400,7 +400,8 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
          */
         @Override
         public String computeState(final DefaultNodeSettingsContext context) {
-            return m_valueSupplier.get().getLabelValue();
+            final var dateTimeField = m_valueSupplier.get();
+            return dateTimeField == null ? "" : dateTimeField.getLabelValue();
         }
 
     }
