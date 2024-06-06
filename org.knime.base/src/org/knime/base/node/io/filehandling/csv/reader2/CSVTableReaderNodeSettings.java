@@ -149,7 +149,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
 
     static class Settings implements WidgetGroup, PersistableSettings {
 
-        static final class FileChooserRef implements Reference<FileChooser> {
+        static final class FileChooserRef extends ReferenceStateProvider<FileChooser> {
         }
 
         @Widget(title = "Source", description = Source.DESCRIPTION)
@@ -202,30 +202,18 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
             }
         }
 
-        static class IfRowHasLessColumnsOptionRef implements Reference<IfRowHasLessColumnsOption> {
-        }
-
         @Widget(title = "If row has less columns", description = IfRowHasLessColumns.DESCRIPTION)
-        @ValueReference(IfRowHasLessColumnsOptionRef.class)
         @ValueSwitchWidget
         @Layout(IfRowHasLessColumns.class)
         @Persist(configKey = "support_short_data_rows", customPersistor = IfRowHasLessColumnsOptionPersistor.class)
         IfRowHasLessColumnsOption m_ifRowHasLessColumnsOption = IfRowHasLessColumnsOption.INSERT_MISSING;
         // TODO defaults are currently not applied when the node is created anew; will be addressed in UIEXT-1740
 
-        static class SkipEmptyDataRowsRef implements Reference<Boolean> {
-        }
-
-        @ValueReference(SkipEmptyDataRowsRef.class)
         @Persist(configKey = "skip_empty_data_rows")
         boolean m_skipEmptyDataRows;
 
-        static class PrependFileIndexToRowIdRef implements Reference<Boolean> {
-        }
-
         // @Widget(title = "Prepend file index to RowID", description = PrependFileIndexToRowId.DESCRIPTION)
         // @Layout(PrependFileIndexToRowId.class)
-        @ValueReference(PrependFileIndexToRowIdRef.class)
         @Persist(configKey = "prepend_file_idx_to_row_id")
         boolean m_prependFileIndexToRowId;
         // TODO this setting should be shown when reading multiple files; currently blocked by UIEXT-1805
@@ -259,8 +247,6 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @ValueReference(ColumnDelimiterRef.class)
         @ValueProvider(ColumnDelimiterProvider.class)
         String m_columnDelimiter = ",";
-        // TODO NOSONAR UIEXT-1939 This m_columnDelimiter provides does not provide its updated value to the
-        // CSVConfigId.m_columnDelimiter when it is updated via the ColumnDelimiterProvider
 
         static final class QuoteCharacterProvider extends ProviderFromCSVFormat<String> {
             @Override
@@ -451,12 +437,16 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @Persist(configKey = "max_data_rows_scanned")
         long m_maxDataRowsScanned = 10000;
 
+        static class LimitMemoryPerColumnRef extends ReferenceStateProvider<Boolean> {
+        }
+
         @Widget(title = "Limit memory per column", description = LimitMemoryPerColumn.DESCRIPTION)
+        @ValueReference(LimitMemoryPerColumnRef.class)
         @Layout(LimitMemoryPerColumn.class)
         @Persist(configKey = "limit_memory_per_column")
         boolean m_limitMemoryPerColumn = true;
 
-        static class MaximumNumberOfColumnsRef implements Reference<Integer> {
+        static class MaximumNumberOfColumnsRef extends ReferenceStateProvider<Integer> {
         }
 
         @Widget(title = "Maximum number of columns", description = MaximumNumberOfColumns.DESCRIPTION)
@@ -500,17 +490,9 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @Persist(configKey = "no_row_delimiters_in_quotes")
         boolean m_quotedStringsContainNoRowDelimiters;
 
-        static class MinChunkSizeInBytesRef implements Reference<Long> {
-        }
-
-        @ValueReference(MinChunkSizeInBytesRef.class)
         @Persist(configKey = "min_chunk_size_in_bytes")
         long m_minChunkSizeInBytes = 67108864;
 
-        static class MaxNumChunksPerFileRef implements Reference<Integer> {
-        }
-
-        @ValueReference(MaxNumChunksPerFileRef.class)
         @Persist(configKey = "max_num_chunks_per_file")
         int m_maxNumChunksPerFile = 8;
 
@@ -649,22 +631,14 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @Persist(customPersistor = SkipFirstDataRowsPersistor.class)
         long m_skipFirstDataRows;
 
-        static class LimitNumberOfRowsRef implements Reference<Boolean> {
-        }
-
         @Widget(title = "Limit number of rows", description = LimitNumberOfRows.DESCRIPTION, advanced = true)
-        @ValueReference(LimitNumberOfRowsRef.class)
         @Layout(LimitNumberOfRows.class)
         @Signal(id = LimitNumberOfRows.class, condition = TrueCondition.class)
         @Persist(configKey = "limit_data_rows")
         boolean m_limitNumberOfRows;
         // TODO merge into a single widget with UIEXT-1742
 
-        static class MaximumNumberOfRowsRef implements Reference<Long> {
-        }
-
         @Widget(title = "Maximum number of rows", description = MaximumNumberOfRows.DESCRIPTION)
-        @ValueReference(MaximumNumberOfRowsRef.class)
         @NumberInputWidget(min = 0)
         @Layout(MaximumNumberOfRows.class)
         @Effect(signals = LimitNumberOfRows.class, type = EffectType.SHOW)

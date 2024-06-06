@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.io.filehandling.csv.reader2;
 
+import static org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.PRODUCTION_PATH_PROVIDER;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -57,12 +59,10 @@ import java.util.stream.IntStream;
 
 import org.knime.base.node.io.filehandling.csv.reader.CSVMultiTableReadConfig;
 import org.knime.base.node.io.filehandling.csv.reader.ClassTypeSerializer;
-import org.knime.base.node.io.filehandling.csv.reader.api.QuoteOption;
 import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.ColumnFilterModeOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElement;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TableSpecSettings;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElementSettings;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.convert.map.ProducerRegistry;
@@ -114,12 +114,11 @@ final class CSVTransformationSettingsPersistor extends NodeSettingsPersistorWith
             final var tableSpecConfigSerializer = TableSpecConfigSerializer.createStartingV42(PRODUCER_REGISTRY,
                 MultiTableReadConfigIdLoader.ID_LOADER, ClassTypeSerializer.SERIALIZER, String.class);
             final var tableSpecConfig = tableSpecConfigSerializer.load(settings.getNodeSettings(getConfigKey()));
-            transformationSettings.m_columnTransformation =
-                tableSpecConfig.getTableTransformation().stream()
-                    .sorted((t1, t2) -> t1.getPosition() - t2.getPosition())
-                    .map(t -> new TransformationElement(t.getOriginalName(), t.keep(), t.getName(),
-                        t.getProductionPath().getConverterFactory().getIdentifier()))
-                    .toArray(TransformationElement[]::new);
+            transformationSettings.m_columnTransformation = tableSpecConfig.getTableTransformation().stream()
+                .sorted((t1, t2) -> t1.getPosition() - t2.getPosition())
+                .map(t -> new TransformationElementSettings(t.getOriginalName(), t.keep(), t.getName(),
+                    t.getProductionPath().getConverterFactory().getIdentifier()))
+                .toArray(TransformationElementSettings[]::new);
 
             transformationSettings.m_takeColumnsFrom =
                 ColumnFilterModeOption.valueOf(settings.getNodeSettings(getConfigKey())
@@ -130,43 +129,10 @@ final class CSVTransformationSettingsPersistor extends NodeSettingsPersistorWith
 
     @Override
     public void save(final CSVTransformationSettings transformationSettings, final NodeSettingsWO settings) {
-        final var config = new CSVMultiTableReadConfig();
-        final var csvConfig = config.getReaderSpecificConfig();
-        final var tc = config.getTableReadConfig();
-        // basic settings
-        tc.setUseColumnHeaderIdx(transformationSettings.m_configId.m_firstRowContainsColumnNames);
-        tc.setUseRowIDIdx(transformationSettings.m_configId.m_firstColumnContainsRowIds);
+        final var persistorSettings = transformationSettings.m_persistorSettings;
 
-        csvConfig.setComment(transformationSettings.m_configId.m_commentLineCharacter);
-        csvConfig.setDelimiter(transformationSettings.m_configId.m_columnDelimiter);
-        csvConfig.setQuote(transformationSettings.m_configId.m_quoteCharacter);
-        csvConfig.setQuoteEscape(transformationSettings.m_configId.m_quoteEscapeCharacter);
-        csvConfig.setLineSeparator(transformationSettings.m_configId.m_customRowDelimiter);
-        csvConfig.useLineBreakRowDelimiter(
-            transformationSettings.m_configId.m_rowDelimiterOption == RowDelimiterOption.LINE_BREAK);
-
-        // advanced settings
-        csvConfig.setQuoteOption(QuoteOption.valueOf(transformationSettings.m_configId.m_quotedStringsOption.name()));
-        csvConfig
-            .setReplaceEmptyWithMissing(transformationSettings.m_configId.m_replaceEmptyQuotedStringsByMissingValues);
-        tc.setLimitRows(transformationSettings.m_configId.m_limitScannedRows);
-        tc.setMaxRows(transformationSettings.m_configId.m_maxDataRowsScanned);
-        csvConfig.setThousandsSeparator(transformationSettings.m_configId.m_thousandsSeparator);
-        csvConfig.setDecimalSeparator(transformationSettings.m_configId.m_decimalSeparator);
-
-        // encoding
-        final var encoding = transformationSettings.m_configId.m_fileEncoding;
-        csvConfig.setCharSetName(encoding == FileEncodingOption.OTHER
-            ? transformationSettings.m_configId.m_customEncoding : encoding.m_persistId);
-
-        // limit rows
-        csvConfig.setSkipLines(transformationSettings.m_configId.m_skipFirstLines > 0);
-        csvConfig.setNumLinesToSkip(transformationSettings.m_configId.m_skipFirstLines);
-        tc.setSkipRows(transformationSettings.m_configId.m_skipFirstDataRows > 0);
-        tc.setNumRowsToSkip(transformationSettings.m_configId.m_skipFirstDataRows);
-
-        final var individualSpecs = toSpecMap(transformationSettings.m_specs);
-        final var rawSpec = CSVTransformationElementsProvider.toRawSpec(individualSpecs);
+        final var individualSpecs = toSpecMap(persistorSettings.m_specs);
+        final var rawSpec = CSVTransformationSettingsStateProviders.toRawSpec(individualSpecs);
 
         final var transformationIndexByColumnName =
             IntStream.range(0, transformationSettings.m_columnTransformation.length).boxed().collect(Collectors
@@ -179,15 +145,13 @@ final class CSVTransformationSettingsPersistor extends NodeSettingsPersistorWith
 
             final var transformation = transformationSettings.m_columnTransformation[position];
             final var externalType = column.getType();
-            final var productionPath =
-                CSVTransformationSettings.PRODUCTION_PATH_PROVIDER.getAvailableProductionPaths(externalType).stream()
-                    .filter(p -> p.getConverterFactory().getIdentifier().equals(transformation.m_type)).findFirst()
-                    .orElseGet(() -> {
-                        LOGGER.error(
-                            String.format("The column '%s' can't be converted to the configured data type.", column));
-                        return CSVTransformationSettings.PRODUCTION_PATH_PROVIDER
-                            .getDefaultProductionPath(externalType);
-                    });
+            final var productionPath = PRODUCTION_PATH_PROVIDER.getAvailableProductionPaths(externalType).stream()
+                .filter(p -> p.getConverterFactory().getIdentifier().equals(transformation.m_type)).findFirst()
+                .orElseGet(() -> {
+                    LOGGER.error(
+                        String.format("The column '%s' can't be converted to the configured data type.", column));
+                    return PRODUCTION_PATH_PROVIDER.getDefaultProductionPath(externalType);
+                });
 
             transformations.add(new ImmutableColumnTransformation<>(column, productionPath,
                 transformation.m_includeInOutput, position, transformation.m_columnRename));
@@ -195,19 +159,18 @@ final class CSVTransformationSettingsPersistor extends NodeSettingsPersistorWith
         // TODO NOSONAR UIEXT-1914 parameters should be dependent on <any unknown new column> transformation
         final var unknownColsTrans = new ImmutableUnknownColumnsTransformation(1, true, false, null);
 
-        final var configID = config.getConfigID();
         final var tableTransformation = new DefaultTableTransformation<Class<?>>(rawSpec, transformations,
-            transformationSettings.m_takeColumnsFrom.toColumnFilterMode(), unknownColsTrans, true,
-            config.skipEmptyColumns());
+            transformationSettings.m_takeColumnsFrom.toColumnFilterMode(), unknownColsTrans, true, false);
 
         // code taken from DefaultMultiTableReadFactory.createItemIdentifierColumn
+        // TODO NOSONAR De-duplicate this code when migrating the node model in UIEXT-1740
         DataColumnSpec itemIdentifierColumnSpec = null;
-        if (transformationSettings.m_appendPathColumn) {
+        if (persistorSettings.m_appendPathColumn) {
             DataColumnSpecCreator itemIdColCreator = null;
-            for (var path : transformationSettings.m_fsLocations) {
+            for (var path : persistorSettings.m_fsLocations) {
                 // code taken from TableReader.createIdentifierColumnSpec
-                final DataColumnSpecCreator creator = new DataColumnSpecCreator(
-                    transformationSettings.m_filePathColumnName, SimpleFSLocationCellFactory.TYPE);
+                final DataColumnSpecCreator creator =
+                    new DataColumnSpecCreator(persistorSettings.m_filePathColumnName, SimpleFSLocationCellFactory.TYPE);
                 creator.addMetaData(new FSLocationValueMetaData(path.getFileSystemCategory(),
                     path.getFileSystemSpecifier().orElse(null)), true);
                 final var itemIdCol = creator.createSpec();
@@ -222,15 +185,16 @@ final class CSVTransformationSettingsPersistor extends NodeSettingsPersistorWith
             }
         }
 
+        final var config = new CSVMultiTableReadConfig();
+        persistorSettings.m_configId.applyToConfig(config.getTableReadConfig());
         final var tableSpecConfigSerializer = TableSpecConfigSerializer.createStartingV42(PRODUCER_REGISTRY,
             MultiTableReadConfigIdLoader.ID_LOADER, ClassTypeSerializer.SERIALIZER, String.class);
-        final var tableSpecConfig =
-            DefaultTableSpecConfig.createFromTransformationModel(transformationSettings.m_sourceId, configID,
-                individualSpecs, tableTransformation, itemIdentifierColumnSpec);
+        final var tableSpecConfig = DefaultTableSpecConfig.createFromTransformationModel(persistorSettings.m_sourceId,
+            config.getConfigID(), individualSpecs, tableTransformation, itemIdentifierColumnSpec);
         tableSpecConfigSerializer.save(tableSpecConfig, settings.addNodeSettings(getConfigKey()));
     }
 
-    static Map<String, TypedReaderTableSpec<Class<?>>> toSpecMap(final CSVTableSpec[] specs) {
+    static Map<String, TypedReaderTableSpec<Class<?>>> toSpecMap(final TableSpecSettings[] specs) {
         final var individualSpecs = new LinkedHashMap<String, TypedReaderTableSpec<Class<?>>>();
         for (final var tableSpec : specs) {
             final TypedReaderTableSpecBuilder<Class<?>> specBuilder = TypedReaderTableSpec.builder();

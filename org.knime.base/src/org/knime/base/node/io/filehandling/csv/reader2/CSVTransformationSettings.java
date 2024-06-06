@@ -48,30 +48,50 @@
  */
 package org.knime.base.node.io.filehandling.csv.reader2;
 
-import java.util.function.Supplier;
-
+import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
+import org.knime.base.node.io.filehandling.csv.reader.api.QuoteOption;
 import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.AppendPathColumnRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.DecimalSeparatorRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.FilePathColumnNameRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FileChooserRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableSpec.CSVTableSpecProvider;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableSpec.FSLocationsProvider;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationElementsProvider.TypeChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.LimitScannedRowsRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.MaxDataRowsScannedRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.QuotedStringsOption;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.QuotedStringsOptionRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.ReplaceEmptyQuotedStringsByMissingValuesRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.ThousandsSeparatorRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.CustomEncodingRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingOption;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.LimitRows.SkipFirstDataRowsRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.LimitRows.SkipFirstLinesRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.ColumnDelimiterRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.CommentStartRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.CustomRowDelimiterRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FirstColumnContainsRowIdsRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FirstRowContainsColumnNamesRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.QuoteCharacterRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.QuoteEscapeCharacterRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOptionRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TableSpecSettingsProvider;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TransformationElementSettingsProvider;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.FSLocationsProvider;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.SourceIdProvider;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TypeChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TreeTypeHierarchy;
 
@@ -86,40 +106,150 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
 
     static final TreeTypeHierarchy<Class<?>, Class<?>> TYPE_HIERARCHY = StringReadAdapterFactory.TYPE_HIERARCHY;
 
-    static class SourceIdProvider implements StateProvider<String> {
+    static final class ConfigIdSettings implements WidgetGroup, PersistableSettings {
 
-        private Supplier<FileChooser> m_fileChooserSupplier;
+        @ValueProvider(FirstRowContainsColumnNamesRef.class)
+        boolean m_firstRowContainsColumnNames = true;
 
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            m_fileChooserSupplier = initializer.computeFromValueSupplier(FileChooserRef.class);
-        }
+        @ValueProvider(FirstColumnContainsRowIdsRef.class)
+        boolean m_firstColumnContainsRowIds;
 
-        @Override
-        public String computeState(final DefaultNodeSettingsContext context) {
-            return m_fileChooserSupplier.get().getFSLocation().getPath();
+        @ValueProvider(CommentStartRef.class)
+        String m_commentLineCharacter = "#";
+
+        @ValueProvider(ColumnDelimiterRef.class)
+        String m_columnDelimiter = ",";
+
+        @ValueProvider(QuoteCharacterRef.class)
+        String m_quoteCharacter = "\"";
+
+        @ValueProvider(QuoteEscapeCharacterRef.class)
+        String m_quoteEscapeCharacter = "\"";
+
+        @ValueProvider(RowDelimiterOptionRef.class)
+        RowDelimiterOption m_rowDelimiterOption = RowDelimiterOption.LINE_BREAK;
+
+        @ValueProvider(CustomRowDelimiterRef.class)
+        String m_customRowDelimiter = "\n";
+
+        @ValueProvider(QuotedStringsOptionRef.class)
+        QuotedStringsOption m_quotedStringsOption = QuotedStringsOption.REMOVE_QUOTES_AND_TRIM;
+
+        @ValueProvider(ReplaceEmptyQuotedStringsByMissingValuesRef.class)
+        boolean m_replaceEmptyQuotedStringsByMissingValues = true;
+
+        @ValueProvider(LimitScannedRowsRef.class)
+        boolean m_limitScannedRows = true;
+
+        @ValueProvider(MaxDataRowsScannedRef.class)
+        long m_maxDataRowsScanned = 10000;
+
+        @ValueProvider(ThousandsSeparatorRef.class)
+        String m_thousandsSeparator = "";
+
+        @ValueProvider(DecimalSeparatorRef.class)
+        String m_decimalSeparator = ".";
+
+        @ValueProvider(FileEncodingRef.class)
+        FileEncodingOption m_fileEncoding = FileEncodingOption.DEFAULT;
+
+        @ValueProvider(CustomEncodingRef.class)
+        String m_customEncoding = "";
+
+        @ValueProvider(SkipFirstLinesRef.class)
+        long m_skipFirstLines;
+
+        @ValueProvider(SkipFirstDataRowsRef.class)
+        long m_skipFirstDataRows;
+
+        void applyToConfig(final DefaultTableReadConfig<CSVTableReaderConfig> config) {
+            config.setColumnHeaderIdx(0);
+            config.setLimitRowsForSpec(m_limitScannedRows);
+            config.setMaxRowsForSpec(m_maxDataRowsScanned);
+            config.setSkipRows(m_skipFirstDataRows > 0);
+            config.setNumRowsToSkip(m_skipFirstDataRows);
+            config.setRowIDIdx(0);
+            config.setUseColumnHeaderIdx(m_firstRowContainsColumnNames);
+            config.setUseRowIDIdx(m_firstColumnContainsRowIds);
+
+            final var csvConfig = config.getReaderSpecificConfig();
+            csvConfig.setCharSetName(
+                m_fileEncoding == FileEncodingOption.OTHER ? m_customEncoding : m_fileEncoding.m_persistId);
+            csvConfig.setComment(m_commentLineCharacter);
+            csvConfig.setDecimalSeparator(m_decimalSeparator);
+            csvConfig.setDelimiter(m_columnDelimiter);
+            csvConfig.setLineSeparator(m_customRowDelimiter);
+            csvConfig.setSkipLines(m_skipFirstLines > 0);
+            csvConfig.setNumLinesToSkip(m_skipFirstLines);
+            csvConfig.setQuote(m_quoteCharacter);
+            csvConfig.setQuoteEscape(m_quoteEscapeCharacter);
+            csvConfig.setQuoteOption(QuoteOption.valueOf(m_quotedStringsOption.name()));
+            csvConfig.setReplaceEmptyWithMissing(m_replaceEmptyQuotedStringsByMissingValues);
+            csvConfig.setThousandsSeparator(m_thousandsSeparator);
+            csvConfig.useLineBreakRowDelimiter(m_rowDelimiterOption == RowDelimiterOption.LINE_BREAK);
         }
     }
 
-    // TODO NOSONAR UIEXT-1939 These settings (and the ones below) are sent to the frontend but not needed by the
-    // frontend. They are only needed in the CSVTransformationSettingsPersistor. We should look for an alternative
-    // mechanism to provide these settings to the persistor.
-    @ValueProvider(SourceIdProvider.class)
-    String m_sourceId = "";
+    static final class ColumnSpecSettings implements WidgetGroup, PersistableSettings {
 
-    @ValueProvider(FSLocationsProvider.class)
-    FSLocation[] m_fsLocations = new FSLocation[0];
+        String m_name;
 
-    CSVConfigId m_configId = new CSVConfigId();
+        Class<?> m_type;
 
-    @ValueProvider(CSVTableSpecProvider.class)
-    CSVTableSpec[] m_specs = new CSVTableSpec[0];
+        ColumnSpecSettings(final String name, final Class<?> type) {
+            m_name = name;
+            m_type = type;
+        }
 
-    @ValueProvider(AppendPathColumnRef.class)
-    boolean m_appendPathColumn;
+        ColumnSpecSettings() {
+        }
+    }
 
-    @ValueProvider(FilePathColumnNameRef.class)
-    String m_filePathColumnName = "File Path";
+    static final class TableSpecSettings implements WidgetGroup, PersistableSettings {
+
+        String m_sourceId;
+
+        ColumnSpecSettings[] m_spec;
+
+        TableSpecSettings(final String sourceId, final ColumnSpecSettings[] spec) {
+            m_sourceId = sourceId;
+            m_spec = spec;
+        }
+
+        TableSpecSettings() {
+        }
+    }
+
+    /**
+     * TODO NOSONAR UIEXT-1946 These settings are sent to the frontend where they are not needed. They are merely held
+     * here to be used in the CSVTransformationSettingsPersistor. We should look for an alternative mechanism to provide
+     * these settings to the persistor.
+     */
+    static final class PersistorSettings implements WidgetGroup, PersistableSettings {
+
+        static class ConfigIdReference implements Reference<ConfigIdSettings> {
+        }
+
+        @ValueReference(ConfigIdReference.class)
+        ConfigIdSettings m_configId = new ConfigIdSettings();
+
+        @ValueProvider(SourceIdProvider.class)
+        String m_sourceId = "";
+
+        @ValueProvider(FSLocationsProvider.class)
+        FSLocation[] m_fsLocations = new FSLocation[0];
+
+        @ValueProvider(TableSpecSettingsProvider.class)
+        TableSpecSettings[] m_specs = new TableSpecSettings[0];
+
+        @ValueProvider(AppendPathColumnRef.class)
+        boolean m_appendPathColumn;
+
+        @ValueProvider(FilePathColumnNameRef.class)
+        String m_filePathColumnName = "File Path";
+    }
+
+    PersistorSettings m_persistorSettings = new PersistorSettings();
 
     enum ColumnFilterModeOption {
             @Label(value = "Union", description = """
@@ -150,7 +280,7 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
     // TODO NOSONAR UIEXT-1800 merge with CSVTableReaderNoderSettings.m_failOnDifferingSpecs
     ColumnFilterModeOption m_takeColumnsFrom = ColumnFilterModeOption.UNION;
 
-    static class TransformationElement implements WidgetGroup, PersistableSettings {
+    static class TransformationElementSettings implements WidgetGroup, PersistableSettings {
 
         static class ColumnNameRef implements Reference<String> {
         }
@@ -168,10 +298,10 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
         @ChoicesWidget(choicesProvider = TypeChoicesProvider.class)
         String m_type;
 
-        TransformationElement() {
+        TransformationElementSettings() {
         }
 
-        TransformationElement(final String columnName, final boolean includeInOutput, final String columnRename,
+        TransformationElementSettings(final String columnName, final boolean includeInOutput, final String columnRename,
             final String type) {
             m_columnName = columnName;
             m_includeInOutput = includeInOutput;
@@ -191,7 +321,7 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
             """)
     // TODO NOSONAR UIEXT-1901 this description is currently not shown
     @ArrayWidget(elementTitle = "Column", showSortButtons = true, hasFixedSize = true)
-    @ValueProvider(CSVTransformationElementsProvider.class)
+    @ValueProvider(TransformationElementSettingsProvider.class)
     // TODO NOSONAR UIEXT-1914 the <any unknown new column> is not implemented yet
-    TransformationElement[] m_columnTransformation = new TransformationElement[0];
+    TransformationElementSettings[] m_columnTransformation = new TransformationElementSettings[0];
 }

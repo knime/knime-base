@@ -56,6 +56,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ *
+ * TODO NOSONAR UIEXT-1959 will make it such that all References are also TargetStateProviders and can therefore
+ * directly be used as StatePrtoviders. Once this is implemented, this ReferenceStateProvider class can be removed.
  */
 @SuppressWarnings("restriction")
 abstract class ReferenceStateProvider<V> implements Reference<V>, StateProvider<V> {
