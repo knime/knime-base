@@ -56,11 +56,11 @@ import java.util.Map;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
+import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation.Builder;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultFieldNodeSettingsPersistorFactory;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DeprecatedConfigs;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DeprecatedConfigs.DeprecatedConfigsBuilder;
 import org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings.DateTimeField;
 import org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings.ExtractField;
 
@@ -174,14 +174,14 @@ public class DateTimeFieldsPersistor extends NodeSettingsPersistorWithConfigKey<
     }
 
     @Override
-    public DeprecatedConfigs[] getDeprecatedConfigs() {
-        DeprecatedConfigsBuilder configBuilder =
-            new DeprecatedConfigs.DeprecatedConfigsBuilder().forNewConfigPath(getConfigKey());
+    public ConfigsDeprecation[] getConfigsDeprecations() {
+        Builder configBuilder =
+            new ConfigsDeprecation.Builder().forNewConfigPath(getConfigKey());
         for (String settingKey : topLevelKeys) {
             configBuilder.forDeprecatedConfigPath(settingKey);
         }
         configBuilder.forDeprecatedConfigPath(SUBSECOND_UNITS);
-        return new DeprecatedConfigs[]{configBuilder.build()};
+        return new ConfigsDeprecation[]{configBuilder.build()};
     }
 
     /**

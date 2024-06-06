@@ -60,6 +60,7 @@ import org.knime.core.data.StringValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
@@ -67,7 +68,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultFieldNodeSettingsPersistorFactory;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DeprecatedConfigs;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
@@ -247,8 +247,8 @@ final class SorterNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public DeprecatedConfigs[] getDeprecatedConfigs() {
-            return new DeprecatedConfigs[]{new DeprecatedConfigs.DeprecatedConfigsBuilder() //
+        public ConfigsDeprecation[] getConfigsDeprecations() {
+            return new ConfigsDeprecation[]{new ConfigsDeprecation.Builder() //
                 .forDeprecatedConfigPath(LEGACY_INCLUDELIST_KEY)//
                 .forDeprecatedConfigPath(LEGACY_ALPHANUMCOMP_KEY) //
                 .forDeprecatedConfigPath(LEGACY_SORTORDER_KEY) //

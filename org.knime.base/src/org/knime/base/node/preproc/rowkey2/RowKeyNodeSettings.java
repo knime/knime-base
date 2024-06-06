@@ -52,13 +52,13 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
+import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation.Builder;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DeprecatedConfigs;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DeprecatedConfigs.DeprecatedConfigsBuilder;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.EnumFieldPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
@@ -241,11 +241,11 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
          * {@inheritDoc}
          */
         @Override
-        public DeprecatedConfigs[] getDeprecatedConfigs() {
-            DeprecatedConfigsBuilder configBuilder = new DeprecatedConfigsBuilder() //
+        public ConfigsDeprecation[] getConfigsDeprecations() {
+            Builder configBuilder = new Builder() //
                     .forNewConfigPath(getConfigKey()) //
                     .forDeprecatedConfigPath(LEGACY_NEW_ROW_KEY_COLUMN_CONFIG_KEY);
-            return new DeprecatedConfigs[] {configBuilder.build()};
+            return new ConfigsDeprecation[] {configBuilder.build()};
         }
     }
 
@@ -267,10 +267,10 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
          * {@inheritDoc}
          */
         @Override
-        public DeprecatedConfigs[] getDeprecatedConfigs() {
-            DeprecatedConfigsBuilder configBuilder = new DeprecatedConfigsBuilder().forNewConfigPath(CONFIG_KEY);
+        public ConfigsDeprecation[] getConfigsDeprecations() {
+            Builder configBuilder = new Builder().forNewConfigPath(CONFIG_KEY);
             configBuilder.forDeprecatedConfigPath(DEPRECATED_MODE_KEY);
-            return new DeprecatedConfigs[] {configBuilder.build()};
+            return new ConfigsDeprecation[] {configBuilder.build()};
         }
 
         @Override

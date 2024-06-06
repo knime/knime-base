@@ -60,9 +60,9 @@ import org.knime.core.data.NominalValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DeprecatedConfigs;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.EnumFieldPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyNameFilterPersistor;
@@ -263,9 +263,9 @@ public class NominalValueRowFilterSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public DeprecatedConfigs[] getDeprecatedConfigs() {
-            return new DeprecatedConfigs[]{
-                new DeprecatedConfigs.DeprecatedConfigsBuilder().forNewConfigPath(getConfigKey())
+        public ConfigsDeprecation[] getConfigsDeprecations() {
+            return new ConfigsDeprecation[]{
+                new ConfigsDeprecation.Builder().forNewConfigPath(getConfigKey())
                     .forDeprecatedConfigPath(NominalValueRowSplitterNodeDialog.CFG_CONFIGROOTNAME, KEY_INCLUDE_MISSING)
                     .build()};
         }

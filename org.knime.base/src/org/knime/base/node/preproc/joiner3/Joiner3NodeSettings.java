@@ -57,6 +57,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
+import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.CheckboxesWithVennDiagram;
@@ -68,7 +69,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPe
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultFieldNodeSettingsPersistorFactory;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DeprecatedConfigs;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
@@ -236,9 +236,9 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public DeprecatedConfigs[] getDeprecatedConfigs() {
-            return new DeprecatedConfigs[]{//
-                new DeprecatedConfigs.DeprecatedConfigsBuilder() //
+        public ConfigsDeprecation[] getConfigsDeprecations() {
+            return new ConfigsDeprecation[]{//
+                new ConfigsDeprecation.Builder() //
                     .forNewConfigPath(getConfigKeys()) //
                     .forDeprecatedConfigPath(LEGACY_LEFT_TABLE_JOIN_PREDICATE_KEY) //
                     .forDeprecatedConfigPath(LEGACY_RIGHT_TABLE_JOIN_PREDICATE_KEY) //
