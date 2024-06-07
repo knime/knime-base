@@ -79,7 +79,7 @@ public final class ColumnFilterNodeSettings implements DefaultNodeSettings {
     ColumnFilterNodeSettings() {
     }
 
-    @Persist(configKey = "column-filter", customPersistor = LegacyColumnFilterPersistor.class)
+    @Persist(configKey = "column-filter", customPersistor = LegacyColumnFilterPersistor.class, optional = true)
     @Widget(title = "Column filter", description = "Select the columns to include in the output table.")
     @ChoicesWidget(choices = AllColumns.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
