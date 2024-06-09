@@ -69,8 +69,7 @@ class CSVTransformationSettingsPersistorTest {
 
     @ParameterizedTest
     @MethodSource
-    void testCSVTransformationSettingsPersistor(final CSVTransformationSettings settings)
-        throws InvalidSettingsException {
+    void testSaveLoad(final CSVTransformationSettings settings) throws InvalidSettingsException {
         final var copy = CSVTableReaderNodeSettingsTest.saveLoad(CSVTransformationSettingsPersistor.class,
             CSVTransformationSettings.class, settings);
         assertEquals(settings.m_takeColumnsFrom, copy.m_takeColumnsFrom);
@@ -85,7 +84,7 @@ class CSVTransformationSettingsPersistorTest {
         }
     }
 
-    private static Stream<CSVTransformationSettings> testCSVTransformationSettingsPersistor() {
+    private static Stream<CSVTransformationSettings> testSaveLoad() {
         return Stream.of(createTransformationSettings(ColumnFilterModeOption.INTERSECTION),
             createTransformationSettings(ColumnFilterModeOption.UNION),
             createTransformationSettings(new TableSpecSettings[]{
