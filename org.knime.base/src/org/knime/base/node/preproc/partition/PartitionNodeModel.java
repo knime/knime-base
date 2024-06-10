@@ -54,6 +54,7 @@ import org.knime.base.node.preproc.sample.SamplingNodeSettings.CountMethods;
 import org.knime.base.node.preproc.sample.StratifiedSamplingRowFilter;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.container.DataContainerSettings;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -91,10 +92,13 @@ public class PartitionNodeModel extends AbstractSamplingNodeModel {
         BufferedDataTable in = inData[0];
         BufferedDataTable[] outs = new BufferedDataTable[2];
         IRowFilter filter = getSamplingRowFilter(in, exec);
-        BufferedDataContainer firstOutCont =
-            exec.createDataContainer(in.getDataTableSpec());
-        BufferedDataContainer secondOutCont =
-            exec.createDataContainer(in.getDataTableSpec());
+        final var containerSettings = DataContainerSettings.builder()//
+            .withCheckDuplicateRowKeys(false)// we only copy parts of the input table
+            .withInitializedDomain(true)// the domain of the input table is also valid for the output tables
+            .withDomainUpdate(true)// unfortunately needed for backwards-compatibility
+            .build();
+        BufferedDataContainer firstOutCont = exec.createDataContainer(in.getDataTableSpec(), containerSettings);
+        BufferedDataContainer secondOutCont = exec.createDataContainer(in.getDataTableSpec(), containerSettings);
         final double rowCount = in.size(); // floating point op. below
         // one of the flags will be set if one of the exceptions below
         // is thrown.
