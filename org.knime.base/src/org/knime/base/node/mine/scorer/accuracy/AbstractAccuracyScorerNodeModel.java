@@ -81,6 +81,7 @@ import org.knime.core.data.DataValue;
 import org.knime.core.data.DataValueComparator;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.container.CloseableRowIterator;
+import org.knime.core.data.container.DataContainerSettings;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
@@ -99,6 +100,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.property.hilite.HiLiteHandler;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.FlowVariable;
+import org.knime.core.util.UniqueNameGenerator;
 
 /**
  * The hilite scorer node's model. The scoring is performed on two given columns set by the dialog. The row keys are
@@ -322,7 +324,11 @@ public abstract class AbstractAccuracyScorerNodeModel extends NodeModel implemen
         }
         DataType[] colTypes = new DataType[targetValues.length];
         Arrays.fill(colTypes, IntCell.TYPE);
-        BufferedDataContainer container = exec.createDataContainer(new DataTableSpec(targetValues, colTypes));
+
+        // We need not check for duplicate row keys because we add the duplicate-free set of possible values as keys
+        final var containerSettings = DataContainerSettings.builder().withCheckDuplicateRowKeys(false).build();
+        BufferedDataContainer container =
+            exec.createDataContainer(new DataTableSpec(targetValues, colTypes), containerSettings);
         for (int i = 0; i < targetValues.length; i++) {
             // need to make a datacell for the row key
             container.addRowToTable(new DefaultRow(targetValues[i], scorerCount[i]));
@@ -347,7 +353,10 @@ public abstract class AbstractAccuracyScorerNodeModel extends NodeModel implemen
         BufferedDataTable result = container.getTable();
 
         // start creating accuracy statistics
-        BufferedDataContainer accTable = exec.createDataContainer(new DataTableSpec(getOutputSpecs()));
+        // Also here, we do not need to worry about duplicate row keys, because of the same reason as above.
+        // The only additional key ("Overall") is ensured to be unique by means of the UniqueNameGenerator
+        BufferedDataContainer accTable =
+            exec.createDataContainer(new DataTableSpec(getOutputSpecs()), containerSettings);
         for (int r = 0; r < targetValues.length; r++) {
             int tp = viewData.getTP(r); // true positives
             int fp = viewData.getFP(r); // false positives
@@ -386,12 +395,9 @@ public abstract class AbstractAccuracyScorerNodeModel extends NodeModel implemen
                     DataType.getMissingCell(), DataType.getMissingCell()});
             accTable.addRowToTable(row);
         }
-        List<String> classIds = Arrays.asList(targetValues);
-        RowKey overallID = new RowKey("Overall");
-        int uniquifier = 1;
-        while (classIds.contains(overallID.getString())) {
-            overallID = new RowKey("Overall (#" + (uniquifier++) + ")");
-        }
+        final var classIDs = new HashSet<String>(Arrays.asList(targetValues));
+        final var ung = new UniqueNameGenerator(classIDs);
+        final var overallID = ung.newName("Overall");
         // append additional row for overall accuracy
         DataCell accuracyCell = !Double.isNaN(viewData.getAccuracy()) ? new DoubleCell(viewData.getAccuracy()) : DataType.getMissingCell();
         DataCell kappaCell = !Double.isNaN(viewData.getCohenKappa()) ? new DoubleCell(viewData.getCohenKappa()) : DataType.getMissingCell();
