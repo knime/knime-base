@@ -64,6 +64,7 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.data.container.ColumnRearranger;
+import org.knime.core.data.container.DataContainerSettings;
 import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.LongCell;
@@ -121,7 +122,8 @@ final class DuplicateRowFilterNodeModel extends NodeModel {
         BufferedDataTable data = inData[DATA_IN_PORT];
 
         if (data.size() == 0) {
-            final BufferedDataContainer cont = exec.createDataContainer(createOutSpec(data.getDataTableSpec()));
+            final BufferedDataContainer cont =
+                exec.createDataContainer(createOutSpec(data.getDataTableSpec()), DataContainerSettings.getDefault());
             cont.close();
             return new BufferedDataTable[]{cont.getTable()};
         }
@@ -244,7 +246,13 @@ final class DuplicateRowFilterNodeModel extends NodeModel {
 
     private static BufferedDataTable removeDuplicates(final ExecutionContext exec, final String[] grpCols,
         final BufferedDataTable sortedTbl) throws CanceledExecutionException {
-        final BufferedDataContainer cont = exec.createDataContainer(sortedTbl.getDataTableSpec());
+        final var containerSettings = DataContainerSettings.builder()//
+                .withInitializedDomain(true)// take the domain from the input
+                .withDomainUpdate(true)// unfortunately needed for backwards-compatibility
+                .withCheckDuplicateRowKeys(false)// we will not introduce new keys
+                .build();
+
+        final BufferedDataContainer cont = exec.createDataContainer(sortedTbl.getDataTableSpec(), containerSettings);
         final int[] grpIndices = sortedTbl.getDataTableSpec().columnsToIndices(grpCols);
         double rowCnt = 0;
         final long nRows = sortedTbl.size();
@@ -275,8 +283,12 @@ final class DuplicateRowFilterNodeModel extends NodeModel {
     private BufferedDataTable appendColumns(final ExecutionContext exec, final String[] grpCols,
         final BufferedDataTable sortedTbl) throws CanceledExecutionException {
         final int[] grpIndices = sortedTbl.getDataTableSpec().columnsToIndices(grpCols);
+        final var containerSettings = DataContainerSettings.builder()//
+                .withCheckDuplicateRowKeys(false)//
+                .withDomainUpdate(true)// unfortunately needed for backwards-compatibility
+                .build();
         final BufferedDataContainer cont =
-            exec.createDataContainer(createAdditionalColsSpec(sortedTbl.getDataTableSpec()));
+            exec.createDataContainer(createAdditionalColsSpec(sortedTbl.getDataTableSpec()), containerSettings);
         double rowCnt = 0;
         final long nRows = sortedTbl.size();
         DataCell referenceKey = DataType.getMissingCell();
