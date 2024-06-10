@@ -8,6 +8,7 @@ import org.knime.base.node.preproc.pmml.missingval.MissingCellReplacingDataTable
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.DataContainer;
+import org.knime.core.data.container.DataContainerSettings;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -58,7 +59,12 @@ public class MissingValueHandlerNodeModel extends NodeModel {
         long rowCounter = 0;
         final long numOfRows = inTable.size();
 
-        DataContainer container = exec.createDataContainer(mvTable.getDataTableSpec());
+        final var containerSettings = DataContainerSettings.builder()//
+                .withInitializedDomain(true)// we start out with the input domain
+                .withDomainUpdate(true)// we might add new values to the columns (like e.g. a configured fixed value)
+                .withCheckDuplicateRowKeys(false)// no new row keys will be added
+                .build();
+        DataContainer container = exec.createDataContainer(mvTable.getDataTableSpec(), containerSettings);
         ExecutionContext tableSubExec = exec.createSubExecutionContext(0.4);
         exec.setMessage("Replacing missing values");
         for (DataRow row : mvTable) {
