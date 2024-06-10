@@ -48,11 +48,13 @@
 package org.knime.base.node.preproc.joiner3;
 
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.UnaryOperator;
 
 import org.knime.base.node.preproc.joiner3.Joiner3NodeSettings.CompositionMode;
 import org.knime.base.node.preproc.joiner3.Joiner3NodeSettings.DuplicateHandling;
+import org.knime.base.node.preproc.joiner3.Joiner3NodeSettings.RowKeyFactory;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.RowKey;
@@ -63,8 +65,10 @@ import org.knime.core.data.join.JoinSpecification.OutputRowOrder;
 import org.knime.core.data.join.JoinTableSettings;
 import org.knime.core.data.join.JoinTableSettings.JoinColumn;
 import org.knime.core.data.join.JoinTableSettings.SpecialJoinColumn;
+import org.knime.core.data.join.KeepRowKeysFactory;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
 
 /**
@@ -123,11 +127,28 @@ final class JoinSpecificationCreator {
             columnNameDisambiguator = s -> s.concat(" (#1)");
         }
 
-        return new JoinSpecification.Builder(leftSettings, rightSettings)
-            .conjunctive(m_joinerNodeSettings.m_compositionMode == CompositionMode.MATCH_ALL)
-            .outputRowOrder(getOutputRowOrder()).retainMatched(isIncludeMatches())
-            .mergeJoinColumns(m_joinerNodeSettings.m_mergeJoinColumns).columnNameDisambiguator(columnNameDisambiguator)
-            .dataCellComparisonMode(getDataCellComparisonMode()).rowKeyFactory(getRowKeyFactory()).build();
+        final var rowKeyFactory = getRowKeyFactory();
+
+        final var spec = new JoinSpecification.Builder(leftSettings, rightSettings)//
+            .conjunctive(m_joinerNodeSettings.m_compositionMode == CompositionMode.MATCH_ALL)//
+            .outputRowOrder(getOutputRowOrder())//
+            .retainMatched(isIncludeMatches())//
+            .mergeJoinColumns(m_joinerNodeSettings.m_mergeJoinColumns)//
+            .columnNameDisambiguator(columnNameDisambiguator)
+            .dataCellComparisonMode(getDataCellComparisonMode())//
+            .rowKeyFactory(rowKeyFactory.getFirst(), rowKeyFactory.getSecond())//
+            .build();
+
+        // RowIDs can only be kept if they are guaranteed to be equal for each pair of matching rows
+        if (m_joinerNodeSettings.m_rowKeyFactory == RowKeyFactory.KEEP_ROWID) {
+            Optional<String> problem = KeepRowKeysFactory.applicable(//
+                spec, m_joinerNodeSettings.m_outputUnmatchedRowsToSeparatePorts);
+            if (problem.isPresent()) {
+                throw new InvalidSettingsException("Cannot reuse input row keys for output. " + problem.get()); // NOSONAR
+            }
+        }
+
+        return spec;
     }
 
     private JoinColumn[] getLeftJoinColumns() {
@@ -162,11 +183,17 @@ final class JoinSpecificationCreator {
         };
     }
 
-    private BiFunction<DataRow, DataRow, RowKey> getRowKeyFactory() {
+    /**
+     * @return Pair of the row key factory and a flag whether in the context of this node the factory is guaranteed to
+     * create unique keys. Note that KEEP_ROWID is only applicable if Row ID equality is enforced.
+     * @see KeepRowKeysFactory#applicable(JoinSpecification, boolean)
+     */
+    private Pair<BiFunction<DataRow, DataRow, RowKey>, Boolean> getRowKeyFactory() {
         return switch (m_joinerNodeSettings.m_rowKeyFactory) {
-            case CONCATENATE -> JoinSpecification.createConcatRowKeysFactory(m_joinerNodeSettings.m_rowKeySeparator);
-            case KEEP_ROWID -> JoinSpecification.createSequenceRowKeysFactory();
-            case SEQUENTIAL -> JoinSpecification.createSequenceRowKeysFactory();
+            case CONCATENATE -> Pair
+                .create(JoinSpecification.createConcatRowKeysFactory(m_joinerNodeSettings.m_rowKeySeparator), false);
+            case KEEP_ROWID -> Pair.create(JoinSpecification.createRetainRowKeysFactory(), true);
+            case SEQUENTIAL -> Pair.create(JoinSpecification.createSequenceRowKeysFactory(), true);
         };
     }
 

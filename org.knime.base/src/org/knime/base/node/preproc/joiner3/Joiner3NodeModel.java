@@ -59,12 +59,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.knime.base.node.preproc.joiner3.Joiner3NodeSettings.DuplicateHandling;
-import org.knime.base.node.preproc.joiner3.Joiner3NodeSettings.RowKeyFactory;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.join.JoinSpecification;
 import org.knime.core.data.join.JoinSpecification.InputTable;
-import org.knime.core.data.join.KeepRowKeysFactory;
 import org.knime.core.data.join.implementation.JoinImplementation;
 import org.knime.core.data.join.implementation.JoinerFactory.JoinAlgorithm;
 import org.knime.core.data.join.results.JoinResult;
@@ -111,15 +109,6 @@ class Joiner3NodeModel extends WebUINodeModel<Joiner3NodeSettings> {
         throws InvalidSettingsException {
 
         var joinSpecification = new JoinSpecificationCreator(settings).joinSpecificationForSpecs(inSpecs);
-
-        // RowIDs can only be kept if they are guaranteed to be equal for each pair of matching rows
-        if (settings.m_rowKeyFactory == RowKeyFactory.KEEP_ROWID) {
-            Optional<String> problem = KeepRowKeysFactory.applicable(//
-                joinSpecification, settings.m_outputUnmatchedRowsToSeparatePorts);
-            if (problem.isPresent()) {
-                throw new InvalidSettingsException("Cannot reuse input row keys for output. " + problem.get()); // NOSONAR
-            }
-        }
 
         if (settings.m_duplicateHandling == DuplicateHandling.DO_NOT_EXECUTE) {
             Optional<String> duplicateColumn =
