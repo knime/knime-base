@@ -74,6 +74,7 @@ import org.knime.core.data.append.AppendedRowsRowInput;
 import org.knime.core.data.append.AppendedRowsTable;
 import org.knime.core.data.append.AppendedRowsTable.DuplicatePolicy;
 import org.knime.core.data.container.ColumnRearranger;
+import org.knime.core.data.container.DataContainerSettings;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -225,7 +226,8 @@ public class AppendedRowsNodeModel extends NodeModel {
                 inputs[i] = new DataTableRowInput(noNullArray[i]);
             }
             DataTableSpec outputSpec = getOutputSpec(noNullSpecs);
-            BufferedDataTableRowOutput output = new BufferedDataTableRowOutput(exec.createDataContainer(outputSpec));
+            BufferedDataTableRowOutput output = new BufferedDataTableRowOutput(
+                exec.createDataContainer(outputSpec, DataContainerSettings.getDefault()));
             run(inputs, output, exec, totalRowCount);
             return new BufferedDataTable[]{output.getDataTable()};
         }
