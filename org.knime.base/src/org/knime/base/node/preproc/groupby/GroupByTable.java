@@ -71,6 +71,7 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.container.ColumnRearranger;
+import org.knime.core.data.container.DataContainerSettings;
 import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.IntCell;
@@ -254,14 +255,15 @@ public abstract class GroupByTable {
         }
         final var appendRowCountColumn = countColumnName != null;
         exec.setMessage("Creating group table...");
+        final var containerSettings = DataContainerSettings.builder().withCheckDuplicateRowKeys(false).build();
         if (dataTable.size() < 1) {
             //check for an empty table
-            final BufferedDataContainer dc = exec.createDataContainer(resultSpec);
+            final var dc = exec.createDataContainer(resultSpec, containerSettings);
             dc.close();
             m_resultTable = dc.getTable();
         } else {
             // let implementation fill grouped data into the container
-            final var dc = subExec.createDataContainer(resultSpec);
+            final var dc = subExec.createDataContainer(resultSpec, containerSettings);
             createGroupByTable(subExec, dataTable, groupColIdx, appendRowCountColumn, dc);
             dc.close();
             final var groupTable = dc.getTable();
