@@ -52,15 +52,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion.SelectedColumnRef;
-import org.knime.base.node.preproc.stringreplacer.CaseMatching;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.data.DoubleValue;
-import org.knime.core.data.LongValue;
-import org.knime.core.data.StringValue;
+import org.knime.core.data.convert.datacell.JavaToDataCellConverterRegistry;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
@@ -68,24 +66,18 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.And;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Expression;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.HasMultipleItemsCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Not;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.IsColumnOfTypeCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.IsSpecificColumnCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.AllColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
@@ -148,14 +140,24 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
             }
         }
 
+        static class ColumnsWithTypeMapping implements ColumnChoicesStateProvider {
+
+            @Override
+            public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
+                final var registry = JavaToDataCellConverterRegistry.getInstance();
+                return context.getDataTableSpec(0) //
+                    .map(DataTableSpec::stream) //
+                    .orElseGet(Stream::empty)
+                    .filter(colSpec -> !registry.getConverterFactories(String.class, colSpec.getType()).isEmpty()) //
+                    .toArray(DataColumnSpec[]::new);
+            }
+
+        }
+
         @Widget(title = "Filter column", description = "The column on which to apply the filter.")
-        @ChoicesWidget(showRowKeysColumn = true, showRowNumbersColumn = true, choices = AllColumnChoicesProvider.class)
+        @ChoicesWidget(showRowKeysColumn = true, showRowNumbersColumn = true,
+            choicesProvider = ColumnsWithTypeMapping.class)
         @Layout(Condition.ColumnOperator.Column.class)
-        // signals for specially supported data types
-        @Signal(condition = IsRowNumbersColumnCondition.class)
-        @Signal(condition = IsLongColumn.class)
-        @Signal(condition = IsDoubleColumn.class)
-        @Signal(condition = IsStringColumn.class)
         @ValueReference(SelectedColumnRef.class)
         ColumnSelection m_column = SpecialColumns.ROWID.toColumnSelection();
 
@@ -163,29 +165,45 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
         }
 
         @Widget(title = "Operator", description = "The operator defining the filter criterion.")
-        @Signal(condition = IsUnaryOperator.class)
-        @Signal(condition = IsBinaryOperator.class)
-        @Signal(condition = IsPatternOperator.class)
         @Layout(Condition.ColumnOperator.Operator.class)
         @ValueReference(OperatorRef.class)
+        @ValueProvider(TypeBasedOperatorChoice.class)
         @ChoicesWidget(choicesProvider = TypeBasedOperatorChoices.class)
         FilterOperator m_operator = FilterOperator.EQ;
 
         static class OperatorRef implements Reference<FilterOperator> {
         }
 
-        // TODO move to dynamic value input "modifiers"
-        @Widget(title = "Case matching",
-            description = "Whether RowIDs and strings should be matched case-sensitive or case-insensitive.")
-        @ValueSwitchWidget
-        @Effect(signals = {IsStringColumn.class, IsUnaryOperator.class}, operation = AllButTheLast.class,
-            type = EffectType.SHOW)
-        @Layout(Condition.Modifier.class)
-        CaseMatching m_caseMatching = CaseMatching.DEFAULT;
+        /**
+         * Provides the first operator from the given choices if the current one is missing.
+         */
+        static class TypeBasedOperatorChoice implements StateProvider<FilterOperator> {
+
+            private Supplier<List<FilterOperator>> m_typeBasedOperators;
+
+            private Supplier<FilterOperator> m_currentValue;
+
+            @Override
+            public void init(final StateProviderInitializer initializer) {
+                m_currentValue = initializer.getValueSupplier(OperatorRef.class);
+                m_typeBasedOperators = initializer.computeFromProvidedState(TypeBasedOperatorsProvider.class);
+            }
+
+            @Override
+            public FilterOperator computeState(final DefaultNodeSettingsContext context) {
+                final var currentValue = m_currentValue.get();
+                final var operators = m_typeBasedOperators.get();
+                if (operators.contains(currentValue)) {
+                    return currentValue;
+                }
+                return operators.stream().findFirst().orElseThrow();
+            }
+
+        }
 
         FilterCriterion() {
             // serialization
-            this((DataColumnSpec) null);
+            this((DataColumnSpec)null);
         }
 
         FilterCriterion(final DefaultNodeSettingsContext ctx) {
@@ -202,42 +220,68 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
             m_predicateValues = new DynamicValuesInput(colSpec.getType());
         }
 
-        boolean caseSensitive() {
-            return m_caseMatching == CaseMatching.CASESENSITIVE;
-        }
-
         @Widget(title = "Filter value", description = "The value for the filter criterion.")
         @Layout(Condition.ValueInput.class)
-        @ValueProvider(TypeBasedInput.class)
-        @Effect(signals = IsBinaryOperator.class, type = EffectType.SHOW)
+        @ValueProvider(TypeAndOperatorBasedInput.class)
+        @ValueReference(DynamicValuesInputRef.class)
         DynamicValuesInput m_predicateValues = DynamicValuesInput.emptySingle();
 
-    }
+        static class DynamicValuesInputRef implements Reference<DynamicValuesInput> {
 
-    // TODO change to TypeAndOperatorBasedInput
-    static class TypeBasedInput implements StateProvider<DynamicValuesInput> {
-
-        private Supplier<ColumnSelection> m_selectedColumn;
-
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            m_selectedColumn = initializer.computeFromValueSupplier(SelectedColumnRef.class);
         }
 
-        @Override
-        public DynamicValuesInput computeState(final DefaultNodeSettingsContext context) {
-            final var spec = context.getDataTableSpec(0).orElseThrow();
-            final var selected = m_selectedColumn.get().getSelected();
-            final DataType type;
-            if (isRowIDSelected(selected)) {
-                type = StringCell.TYPE;
-            } else if (isRowNumberSelected(selected)) {
-                type = LongCell.TYPE;
-            } else {
-                final var col = spec.getColumnSpec(selected);
-                type = col.getType();
+        static class TypeAndOperatorBasedInput implements StateProvider<DynamicValuesInput> {
+
+            private Supplier<ColumnSelection> m_selectedColumn;
+
+            private Supplier<DynamicValuesInput> m_currentValue;
+
+            private Supplier<FilterOperator> m_currentOperator;
+
+            @Override
+            public void init(final StateProviderInitializer initializer) {
+                // Only as dependency, since TypeBasedOperatorChoice is triggered by this already.
+                m_selectedColumn = initializer.getValueSupplier(SelectedColumnRef.class);
+                m_currentOperator = initializer.computeFromProvidedState(TypeBasedOperatorChoice.class);
+                /**
+                 * Necessary, since the TypeBasedOperatorChoice does not have OperatorRef as trigger, only as a
+                 * dependency
+                 */
+                initializer.computeOnValueChange(OperatorRef.class);
+                m_currentValue = initializer.getValueSupplier(DynamicValuesInputRef.class);
             }
-            return new DynamicValuesInput(type);
+
+            @Override
+            public DynamicValuesInput computeState(final DefaultNodeSettingsContext context) {
+                final var spec = context.getDataTableSpec(0).orElseThrow();
+                return keepCurrentValueIfPossible(createDynamicValue(spec));
+            }
+
+            private DynamicValuesInput createDynamicValue(final DataTableSpec spec) {
+                if (!m_currentOperator.get().m_isBinary) {
+                    return DynamicValuesInput.emptySingle();
+                }
+
+                final var selected = m_selectedColumn.get().getSelected();
+                final DataType type;
+                if (isRowIDSelected(selected)) {
+                    type = StringCell.TYPE;
+                } else if (isRowNumberSelected(selected)) {
+                    return new DynamicValuesInput(new LongCell(1l));
+                } else {
+                    final var col = spec.getColumnSpec(selected);
+                    type = col.getType();
+                }
+                return new DynamicValuesInput(type);
+            }
+
+            private DynamicValuesInput keepCurrentValueIfPossible(final DynamicValuesInput newValue) {
+                final var currentValue = m_currentValue.get();
+                if (currentValue.isConfigurableFrom(newValue)) {
+                    return currentValue;
+                }
+                return newValue;
+            }
         }
     }
 
@@ -288,11 +332,9 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
     // UPDATE HANDLER
 
     /**
-     * Compute choices for the filter operator based on the selected column and compare mode
+     * Compute possible enum values for filter operator based on the selected column and compare mode
      */
-    static class TypeBasedOperatorChoices implements StringChoicesStateProvider {
-
-        private static final IdAndText[] EMPTY = new IdAndText[0];
+    static class TypeBasedOperatorsProvider implements StateProvider<List<FilterOperator>> {
 
         private Supplier<ColumnSelection> m_columnSelection;
 
@@ -302,28 +344,27 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public IdAndText[] computeState(final DefaultNodeSettingsContext context) throws WidgetHandlerException {
+        public List<FilterOperator> computeState(final DefaultNodeSettingsContext context)
+            throws WidgetHandlerException {
             final var column = m_columnSelection.get().getSelected();
             if (column == null) {
-                return EMPTY;
+                return List.of();
             }
             final var specialColumn =
                 Arrays.stream(SpecialColumns.values()).filter(t -> t.getId().equals(column)).findFirst().orElse(null);
             if (SpecialColumns.NONE == specialColumn) {
-                return EMPTY;
+                return List.of();
             }
             final var dataType = getColumnType(specialColumn,
                 () -> context.getDataTableSpec(0).map(dts -> dts.getColumnSpec(column)).map(DataColumnSpec::getType));
             if (dataType.isEmpty()) {
                 // we don't know the column, but we know that columns always can contain missing cells
-                return new IdAndText[]{
-                    new IdAndText(FilterOperator.IS_MISSING.name(), FilterOperator.IS_MISSING.label())};
+                List.of(FilterOperator.IS_MISSING);
             }
             // filter on top-level type
             return Arrays.stream(FilterOperator.values()) //
                 .filter(op -> op.isEnabledFor(specialColumn, dataType.get())) //
-                .map(op -> new IdAndText(op.name(), op.label())) //
-                .toArray(IdAndText[]::new);
+                .toList();
         }
 
         private static Optional<DataType> getColumnType(final SpecialColumns optionalSpecialColumn,
@@ -340,74 +381,22 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    // SIGNALS
+    /**
+     * Compute choices for the filter operator based on the selected column and compare mode
+     */
+    static class TypeBasedOperatorChoices implements StringChoicesStateProvider {
 
-    static class IsLongColumn extends IsColumnOfTypeCondition {
+        private Supplier<List<FilterOperator>> m_typeBasedOperators;
+
         @Override
-        public Class<LongValue> getDataValueClass() {
-            return LongValue.class;
+        public void init(final StateProviderInitializer initializer) {
+            m_typeBasedOperators = initializer.computeFromProvidedState(TypeBasedOperatorsProvider.class);
         }
-    }
 
-    static class IsDoubleColumn extends IsColumnOfTypeCondition {
         @Override
-        public Class<DoubleValue> getDataValueClass() {
-            return DoubleValue.class;
-        }
-    }
-
-    static class IsStringColumn extends IsColumnOfTypeCondition {
-        @Override
-        public Class<StringValue> getDataValueClass() {
-            return StringValue.class;
-        }
-    }
-
-    /* === OPERATOR ARITY signals */
-
-    static final class IsUnaryOperator extends OneOfEnumCondition<FilterOperator> {
-        @Override
-        public FilterOperator[] oneOf() {
-            return Arrays.stream(FilterOperator.values()).filter(op -> !op.m_isBinary).toArray(FilterOperator[]::new);
-        }
-    }
-
-    static final class IsBinaryOperator extends OneOfEnumCondition<FilterOperator> {
-        @Override
-        public FilterOperator[] oneOf() {
-            return Arrays.stream(FilterOperator.values()).filter(op -> op.m_isBinary).toArray(FilterOperator[]::new);
-        }
-    }
-
-    static final class IsPatternOperator extends OneOfEnumCondition<FilterOperator> {
-        @Override
-        public FilterOperator[] oneOf() {
-            return new FilterOperator[]{FilterOperator.REGEX, FilterOperator.WILDCARD};
-        }
-    }
-
-    static final class IsRowNumbersColumnCondition extends IsSpecificColumnCondition {
-        @Override
-        public String getColumnName() {
-            return SpecialColumns.ROW_NUMBERS.getId();
-        }
-    }
-
-    // OPERATIONS
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private static final class AllButTheLast extends And {
-        public AllButTheLast(final Expression... expressions) {
-            super(negateLast(expressions));
-        }
-
-        private static Expression[] negateLast(final Expression[] expressions) {
-            if (expressions == null || expressions.length == 0) {
-                throw new IllegalArgumentException("Operator can only be used on at least one expression");
-            }
-            final var result = Arrays.copyOf(expressions, expressions.length, Expression[].class);
-            result[expressions.length - 1] = new Not(expressions[expressions.length - 1]);
-            return result;
+        public IdAndText[] computeState(final DefaultNodeSettingsContext context) throws WidgetHandlerException {
+            return m_typeBasedOperators.get().stream().map(op -> new IdAndText(op.name(), op.label())) //
+                .toArray(IdAndText[]::new);
         }
     }
 

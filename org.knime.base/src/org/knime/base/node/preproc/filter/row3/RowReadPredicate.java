@@ -76,6 +76,7 @@ import org.knime.core.data.v2.RowRead;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput.DynamicValue.StringValueModifiers;
 import org.knime.filehandling.core.util.WildcardToRegexUtil;
 
 /**
@@ -105,7 +106,7 @@ final class RowReadPredicate implements Predicate<RowRead> {
     }
 
     static void validateSettings(final List<FilterCriterion> criteria, final DataTableSpec spec)
-            throws InvalidSettingsException {
+        throws InvalidSettingsException {
         for (final var c : criteria) {
             validateSettings(c, spec);
         }
@@ -134,7 +135,7 @@ final class RowReadPredicate implements Predicate<RowRead> {
     }
 
     static Predicate<RowRead> buildPredicate(final boolean isAnd, final Iterable<FilterCriterion> filterCriteria,
-            final DataTableSpec inSpec) throws InvalidSettingsException {
+        final DataTableSpec inSpec) throws InvalidSettingsException {
         final var iter = filterCriteria.iterator();
         if (!iter.hasNext()) {
             return null;
@@ -147,12 +148,19 @@ final class RowReadPredicate implements Predicate<RowRead> {
         return filterPredicate;
     }
 
-    private static Predicate<RowRead> createFrom(final FilterCriterion criterion,
-            final DataTableSpec spec) throws InvalidSettingsException {
+    private static final CaseMatching getCaseMatching(final FilterCriterion criterion) {
+        final var isCaseSensitive =
+            criterion.m_predicateValues.getModifiersAt(0, StringValueModifiers.class).isCaseSensitive();
+        return isCaseSensitive ? CaseMatching.CASESENSITIVE : CaseMatching.CASEINSENSITIVE; /** TODO */
+
+    }
+
+    private static Predicate<RowRead> createFrom(final FilterCriterion criterion, final DataTableSpec spec)
+        throws InvalidSettingsException {
         final var operator = criterion.m_operator;
         if (AbstractRowFilterNodeSettings.isFilterOnRowKeys(criterion)) {
             // TODO multiple values
-            final var predicate = new StringPredicate(operator, criterion.m_caseMatching,
+            final var predicate = new StringPredicate(operator, getCaseMatching(criterion),
                 criterion.m_predicateValues.getCellAt(0).map(c -> (StringCell)c).map(StringCell::getStringValue)
                     .orElseThrow(() -> new InvalidSettingsException("Missing string value for RowID comparison")));
             return row -> predicate.test(row.getRowKey().getString());
@@ -178,19 +186,19 @@ final class RowReadPredicate implements Predicate<RowRead> {
         default O fromDataType(final FilterCriterion criterion, final int columnIndex, // NOSONAR
             final DataType dataType, final Function<String, X> exceptionFn) throws X {
             final var operator = criterion.m_operator;
-            final var value = criterion.m_predicateValues.getCellAt(0)
-                .orElseThrow(() -> exceptionFn.apply("Comparison value missing"));
             CheckUtils.check(operator.isEnabledFor(null, dataType), exceptionFn,
                 () -> "Operator \"%s\" is not applicable for column data type \"%s\"".formatted(operator.label(),
                     dataType.getName()));
 
-            // check specially supported data types
-            if (StringCell.TYPE == dataType) {
-                return handleString(columnIndex, operator, criterion.m_caseMatching,
-                    ((StringCell)value).getStringValue());
-            }
             if (BooleanCell.TYPE == dataType) {
                 return handleBoolean(columnIndex, operator);
+            }
+            final var value = criterion.m_predicateValues.getCellAt(0)
+                    .orElseThrow(() -> exceptionFn.apply("Comparison value missing"));
+            // check specially supported data types
+            if (StringCell.TYPE == dataType) {
+                return handleString(columnIndex, operator, getCaseMatching(criterion),
+                    ((StringCell)value).getStringValue());
             }
             if (LongCell.TYPE == dataType) {
                 return handleLong(columnIndex, operator, ((LongCell)value).getLongValue());
