@@ -207,7 +207,7 @@
               "title" : "All"
             }, {
               "const" : "ONLY_NECESSARY",
-              "title" : "Only Necessary"
+              "title" : "Only necessary"
             } ],
             "title" : "Quote inputs",
             "default" : "ONLY_NECESSARY",

@@ -119,7 +119,7 @@ public class ColCombine2NodeModel extends WebUISimpleStreamableFunctionNodeModel
             }
         });
         if (modelSettings.m_removeInputColumns) {
-            result.remove(modelSettings.m_columnFilter.getSelected(spec.getColumnNames(), spec));
+            result.remove(modelSettings.m_columnFilter.getNonMissingSelected(spec.getColumnNames(), spec));
         }
         return result;
     }

@@ -114,7 +114,7 @@ public final class ColCombine2NodeSettings implements DefaultNodeSettings {
         /**
          * delimiters in input data are replaced
          */
-        @Label("Only Necessary")
+        @Label("Only necessary")
         ONLY_NECESSARY
     }
 
