@@ -60,6 +60,7 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.container.DataContainerSettings;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
@@ -138,8 +139,12 @@ public class TableCreator2NodeModel extends NodeModel {
             throws Exception {
         DataTableSpec outSpec = createSpec();
 
-        BufferedDataContainer cont = exec.createDataContainer(
-                outSpec, true);
+        final var containerSettings = DataContainerSettings.builder()//
+            .withInitializedDomain(true) // inititalize potentially user-specified domain
+            .withDomainUpdate(true) // add all the values to the domain, needed for correctness
+            .withCheckDuplicateRowKeys(false) // Row keys are generated to be unique
+            .build();
+        BufferedDataContainer cont = exec.createDataContainer(outSpec, containerSettings);
 
         int numColProps = m_settings.getColumnProperties().size();
         ColProperty[] colProps = new ColProperty[numColProps];
