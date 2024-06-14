@@ -225,17 +225,6 @@ public class MissingCellHandlerFactoryManager {
         return m_factoryNameMap.get(id);
     }
 
-    /** @return true if one or more handler produce non standard PMML */
-    public boolean hasNonStandardPMMLHandlers() {
-        for (MissingCellHandlerFactory handler : getFactories()) {
-            if (!handler.producesPMML4_2()) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     /** @return id of do nothing handler factory */
     protected String getDoNothingHandlerFactoryId() {
         return DoNothingMissingCellHandlerFactory.ID;

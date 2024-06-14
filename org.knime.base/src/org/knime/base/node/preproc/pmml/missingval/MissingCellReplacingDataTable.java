@@ -216,23 +216,15 @@ public class MissingCellReplacingDataTable implements DataTable {
         m_warningMessage.add(msg);
     }
 
-    private MissingCellHandler[] prepareHandlers(final DataTableSpec inSpec, final MVSettings settings)
+    private static MissingCellHandler[] prepareHandlers(final DataTableSpec inSpec, final MVSettings settings)
                                                                         throws InvalidSettingsException {
         var handlers = new MissingCellHandler[inSpec.getNumColumns()];
-        var validPMML = true;
         for (int i = 0; i < inSpec.getNumColumns(); i++) {//NOSONAR
             MVIndividualSettings s = settings.getSettingsForColumn(inSpec.getColumnSpec(i));
             MissingCellHandler handler = s.getFactory().createHandler(inSpec.getColumnSpec(i));
-            if (!s.getFactory().producesPMML4_2()) {
-                validPMML = false;
-            }
             handler.loadSettingsFrom(s.getSettings());
 
             handlers[i] = handler;
-        }
-        if (!validPMML) {
-            addWarningMessage("The current settings use missing value handling "
-                + "methods that cannot be represented in PMML 4.2.");
         }
         return handlers;
     }

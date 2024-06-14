@@ -110,6 +110,14 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="src/org/knime/base/node/preproc/pmml/missingval/MissingCellHandlerFactoryManager.java" type="org.knime.base.node.preproc.pmml.missingval.MissingCellHandlerFactoryManager">
+        <filter comment="removed non-public api (see class description)" id="338792546">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.pmml.missingval.MissingCellHandlerFactoryManager"/>
+                <message_argument value="hasNonStandardPMMLHandlers()"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="src/org/knime/base/node/preproc/regexsplit/RegexSplitNodeFactory.java" type="org.knime.base.node.preproc.regexsplit.RegexSplitNodeFactory">
         <filter comment="web ui dialog makes create node view final" id="338792546">
             <message_arguments>

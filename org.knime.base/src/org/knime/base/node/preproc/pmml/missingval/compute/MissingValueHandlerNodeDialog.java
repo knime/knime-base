@@ -25,7 +25,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.Scrollable;
-import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
 import org.knime.base.node.preproc.pmml.missingval.MVColumnSettings;
@@ -66,8 +65,6 @@ public class MissingValueHandlerNodeDialog extends NodeDialogPane {
 
     private static final String INCOMPATIBLE_COLUMN = "!---INCOMPATIBLE_COLUMN---!";
 
-    private static final String PMML_WARNING = "Options marked with an asterisk (*) will result in non-standard PMML.";
-
     private final JPanel m_defaultsPanel;
 
     private final JPanel m_columnsPanel;
@@ -83,10 +80,6 @@ public class MissingValueHandlerNodeDialog extends NodeDialogPane {
     private PortObjectSpec[] m_specs;
 
     private ListModifier m_searchableListModifier;
-
-    private JLabel m_pmmlLabel1;
-
-    private JLabel m_pmmlLabel2;
 
     private JLabel m_warnings;
 
@@ -104,11 +97,6 @@ public class MissingValueHandlerNodeDialog extends NodeDialogPane {
         m_typeSettingsPanel = new JPanel(new GridBagLayout());
         m_defaultsPanel.add(m_typeSettingsPanel, BorderLayout.CENTER);
         m_defaultsPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
-        final boolean showPMMLWarning = getHandlerFactoryManager().hasNonStandardPMMLHandlers();
-        m_pmmlLabel1 = new JLabel(PMML_WARNING);
-        m_pmmlLabel2 = new JLabel(PMML_WARNING);
-        m_pmmlLabel1.setHorizontalAlignment(SwingConstants.CENTER);
-        m_pmmlLabel2.setHorizontalAlignment(SwingConstants.CENTER);
 
         JPanel messagePanel = new JPanel();
         messagePanel.setLayout(new GridBagLayout());
@@ -120,10 +108,6 @@ public class MissingValueHandlerNodeDialog extends NodeDialogPane {
         m_warnings = new JLabel();
         m_warnings.setForeground(Color.RED);
         messagePanel.add(m_warnings, gbc1);
-        if (showPMMLWarning) {
-            gbc1.gridy = 1;
-            messagePanel.add(m_pmmlLabel1, gbc1);
-        }
 
         m_defaultsPanel.add(messagePanel, BorderLayout.SOUTH);
 
@@ -145,10 +129,6 @@ public class MissingValueHandlerNodeDialog extends NodeDialogPane {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         southPanel.add(buttonPanel, gbc);
 
-        if (showPMMLWarning) {
-            gbc.gridy = 1;
-            southPanel.add(m_pmmlLabel2, gbc);
-        }
         m_addButton = new JButton("Add");
         m_addButton.addActionListener(new ActionListener() {
             /** {@inheritDoc} */
@@ -277,7 +257,6 @@ public class MissingValueHandlerNodeDialog extends NodeDialogPane {
                                                 m_searchableListPanel.repaint();
                                             }
                                         });
-        panel.addPropertyChangeListener(new FactoryChangedListener());
         m_individualsPanel.add(panel);
         m_individualsPanel.revalidate();
     }
@@ -364,61 +343,12 @@ public class MissingValueHandlerNodeDialog extends NodeDialogPane {
             MissingValueHandlerFactorySelectionPanel p =
                     new MissingValueHandlerFactorySelectionPanel(type, s, getHandlerFactoryManager(), specs);
             p.setBorder(BorderFactory.createBevelBorder(1));
-            p.addPropertyChangeListener(new FactoryChangedListener());
             m_typeSettingsPanel.add(p, gbc);
 
             m_types.put(type, p);
             gbc.gridy++;
         }
         m_scrollPane.setPreferredSize(new Dimension(m_defaultsPanel.getPreferredSize().width + 20, 500));
-        updatePMMLLabelColor();
-    }
-
-    /** Makes the PMML warning red if a PMML-incompatible missing cell handler was selected. **/
-    private void updatePMMLLabelColor() {
-        boolean allValidPMML = true;
-        // Go through type settings
-        for (Component comp : m_typeSettingsPanel.getComponents()) {
-            if (!(comp instanceof MissingValueHandlerFactorySelectionPanel)) {
-                continue;
-            }
-            if (!((MissingValueHandlerFactorySelectionPanel)comp).getSelectedFactory().producesPMML4_2()) {
-                allValidPMML = false;
-                break;
-            }
-        }
-        // Now check the column settings
-        if (allValidPMML) {
-            for (Component comp : m_individualsPanel.getComponents()) {
-                if (!((ColumnHandlingFactorySelectionPanel)comp).getSelectedFactory().producesPMML4_2()) {
-                    allValidPMML = false;
-                    break;
-                }
-            }
-        }
-        if (allValidPMML) {
-            m_pmmlLabel1.setForeground(Color.black);
-            m_pmmlLabel2.setForeground(Color.black);
-        } else {
-            m_pmmlLabel1.setForeground(Color.red);
-            m_pmmlLabel2.setForeground(Color.red);
-        }
-    }
-
-    /**
-     * Listener that updates the PMML warning when a factory selection changes.
-     */
-    private class FactoryChangedListener implements PropertyChangeListener {
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void propertyChange(final PropertyChangeEvent evt) {
-            if (!evt.getPropertyName().equals(MissingValueHandlerFactorySelectionPanel.SELECTED_FACTORY_CHANGE)) {
-                return;
-            }
-            updatePMMLLabelColor();
-        }
     }
 
     /**
