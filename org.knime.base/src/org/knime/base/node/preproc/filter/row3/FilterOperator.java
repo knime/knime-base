@@ -51,8 +51,6 @@ package org.knime.base.node.preproc.filter.row3;
 import java.util.function.BiPredicate;
 
 import org.knime.core.data.DataType;
-import org.knime.core.data.LongValue;
-import org.knime.core.data.StringValue;
 import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
@@ -127,17 +125,16 @@ enum FilterOperator {
     static final class IsOrd implements BiPredicate<SpecialColumns, DataType> {
         @Override
         public boolean test(final SpecialColumns specialColumn, final DataType dataType) {
-            return !(BooleanCell.TYPE.equals(dataType) || StringCell.TYPE.equals(dataType));
+            return dataType != BooleanCell.TYPE && dataType != StringCell.TYPE;
         }
     }
 
     static final class IsEq implements BiPredicate<SpecialColumns, DataType> {
         @Override
         public boolean test(final SpecialColumns specialColumn, final DataType dataType) {
-            // string-based filtering can always use equality
-            return (dataType.isCompatible(StringValue.class) || dataType.isCompatible(LongValue.class))
-                // booleans are handled with "is true" and "is false" operators
-                && dataType != BooleanCell.TYPE;
+            // our filtering can always use equality
+            // but booleans are handled with "is true" and "is false" operators
+            return dataType != BooleanCell.TYPE;
         }
     }
 
@@ -159,7 +156,7 @@ enum FilterOperator {
     static final class IsPatternMatchable implements BiPredicate<SpecialColumns, DataType> {
         @Override
         public boolean test(final SpecialColumns specialColumn, final DataType dataType) {
-            return StringCell.TYPE.equals(dataType);
+            return dataType == StringCell.TYPE;
         }
     }
 

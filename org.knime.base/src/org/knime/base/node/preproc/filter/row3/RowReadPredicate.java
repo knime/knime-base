@@ -126,12 +126,7 @@ final class RowReadPredicate implements Predicate<RowRead> {
         final var columnName = criterion.m_column.getSelected();
         CheckUtils.checkSettingNotNull(spec.getColumnSpec(columnName), "Unknown column \"%s\".", columnName);
 
-        // TODO revise this logic with new arraylayout
-        if (operator.m_isBinary) {
-            // TODO multiple values
-            CheckUtils.checkSetting(criterion.m_predicateValues.getCellAt(0).isPresent(),
-                "The comparison value is missing.");
-        }
+        criterion.m_predicateValues.validate();
     }
 
     static Predicate<RowRead> buildPredicate(final boolean isAnd, final Iterable<FilterCriterion> filterCriteria,

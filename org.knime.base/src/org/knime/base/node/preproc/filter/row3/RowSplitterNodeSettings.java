@@ -48,6 +48,13 @@
  */
 package org.knime.base.node.preproc.filter.row3;
 
+import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+
 /**
  * Settings for the Row Splitter node based on the webui.
  *
@@ -71,6 +78,33 @@ final class RowSplitterNodeSettings extends AbstractRowFilterNodeSettings {
     @Override
     boolean isSecondOutputActive() {
         return true;
+    }
+
+    @Override
+    FilterMode outputMode() {
+        return switch (m_outputMode) {
+            case FIRST -> FilterMode.MATCHING;
+            case SECOND -> FilterMode.NON_MATCHING;
+        };
+    }
+
+    @Section(title = "Splitting behavior")
+    @After(DialogSections.Filter.class)
+    interface Output {
+    }
+
+    @Widget(title = "Splitting behavior",
+        description = "Determines whether matching rows are output at the first port and non-matching rows are "
+            + "output at the second port, or vice-versa.", hideTitle = true)
+    @RadioButtonsWidget
+    @Layout(Output.class)
+    SplitterMode m_outputMode = SplitterMode.FIRST;
+
+    private enum SplitterMode {
+        @Label("Matching rows at first output, non-matching at second output")
+        FIRST,
+        @Label("Non-matching rows at first output, matching at second output")
+        SECOND
     }
 
 }

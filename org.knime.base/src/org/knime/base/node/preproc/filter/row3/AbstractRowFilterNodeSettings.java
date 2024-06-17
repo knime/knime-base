@@ -62,7 +62,6 @@ import org.knime.core.data.convert.datacell.JavaToDataCellConverterRegistry;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
@@ -254,8 +253,12 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
 
             @Override
             public DynamicValuesInput computeState(final DefaultNodeSettingsContext context) {
-                final var spec = context.getDataTableSpec(0).orElseThrow();
-                return keepCurrentValueIfPossible(createDynamicValue(spec));
+                final var inputSpec = context.getDataTableSpec(0);
+                if (inputSpec.isEmpty()) {
+                    // e.g. when consuming a component input that does not have executed predecessors
+                    return DynamicValuesInput.emptySingle();
+                }
+                return keepCurrentValueIfPossible(createDynamicValue(inputSpec.get()));
             }
 
             private DynamicValuesInput createDynamicValue(final DataTableSpec spec) {
@@ -268,7 +271,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                 if (isRowIDSelected(selected)) {
                     type = StringCell.TYPE;
                 } else if (isRowNumberSelected(selected)) {
-                    return new DynamicValuesInput(new LongCell(1l));
+                    return new DynamicValuesInput(LongCell.TYPE, new LongCell(1l));
                 } else {
                     final var col = spec.getColumnSpec(selected);
                     type = col.getType();
@@ -292,24 +295,33 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
     @Signal(condition = HasMultipleItemsCondition.class)
     FilterCriterion[] m_predicates;
 
+    /**
+     * Mode to determine which set of rows is output at the first output port (and second in case of a splitter).
+     */
     enum FilterMode {
-            @Label("Include matches")
-            INCLUDE, //
-            @Label("Exclude matches")
-            EXCLUDE
+            /**
+             * Include matching rows at the first port.
+             */
+            @Label("Output matching rows")
+            MATCHING, //
+            /**
+             * Exclude matching rows from the first port.
+             */
+            @Label("Output non-matching rows")
+            NON_MATCHING
     }
 
-    @Widget(title = "Filter behavior",
-        description = "Determines whether a row that matches the filter criterion is included or excluded. "
-            + "Included rows are output in the first output table. If a second output table is configured, "
-            + "non-matching rows are output there.",
-        hideTitle = true)
-    @ValueSwitchWidget
-    @Layout(DialogSections.Output.class)
-    FilterMode m_outputMode = FilterMode.INCLUDE;
+    /**
+     * Get the output mode, i.e. output only matching rows or only non-matching rows in the first output.
+     * The second output, if present, will receive the complementary set of rows.
+     *
+     * @return {@link FilterMode#MATCHING} if only matching rows should be output (in the first output)
+     *   or {@link FilterMode#NON_MATCHING} for only non-matching.
+     */
+    abstract FilterMode outputMode();
 
-    boolean includeMatches() {
-        return m_outputMode == FilterMode.INCLUDE;
+    boolean outputMatches() {
+        return outputMode() == FilterMode.MATCHING;
     }
 
     // constructor needed for de-/serialisation
@@ -433,11 +445,6 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
 
             interface Conditions {
             }
-        }
-
-        @Section(title = "Filter behavior")
-        @After(DialogSections.Filter.class)
-        interface Output {
         }
     }
 

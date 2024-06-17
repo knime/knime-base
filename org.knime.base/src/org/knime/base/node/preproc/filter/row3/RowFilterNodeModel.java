@@ -161,6 +161,7 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
     protected BufferedDataTable[] execute(final PortObject[] inPortObjects, final ExecutionContext exec,
             final AbstractRowFilterNodeSettings settings) throws Exception {
         final var in = (BufferedDataTable)inPortObjects[INPUT];
+        final var spec = in.getSpec();
 
         final var isSplitter = settings.isSecondOutputActive();
 
@@ -168,19 +169,25 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
         // separate row numbers from all other criteria
         final var predicatePartition = partitionCriteria(settings.m_predicates);
         final var rowNumberCriteria = predicatePartition.getFirst();
+        if (!rowNumberCriteria.isEmpty()) {
+            RowNumberPredicate.validateSettings(rowNumberCriteria);
+        }
         final var dataCriteria = predicatePartition.getSecond();
+        if (!dataCriteria.isEmpty()) {
+            RowReadPredicate.validateSettings(dataCriteria, spec);
+        }
 
         if (dataCriteria.isEmpty()) {
             // slicing-only is possible since we never look at any column
             final var includedExcludedPartition =
                     RowNumberFilter.computeRowPartition(isAnd, RowNumberFilter.getAsFilterSpecs(rowNumberCriteria),
-                        settings.m_outputMode, in.size());
+                        settings.outputMode(), in.size());
             return RowNumberFilter.sliceTable(exec, in, includedExcludedPartition, isSplitter);
         }
         final var inSpec = in.getSpec();
         final var predicate = createFilterPredicate(isAnd, rowNumberCriteria, dataCriteria, inSpec, in.size());
 
-        final var includeMatches = settings.includeMatches();
+        final var includeMatches = settings.outputMatches();
         final long size = in.size();
         final DataContainerSettings dcSettings = DataContainerSettings.builder() //
                 .withInitializedDomain(true) //
@@ -380,7 +387,7 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
             final var rowPredicate = createFilterPredicate(settings.m_matchCriteria.isAnd(),
                 predicates.getFirst(), predicates.getSecond(), inSpec, UNKNOWN_SIZE);
 
-            final var includeMatches = settings.includeMatches();
+            final var includeMatches = settings.outputMatches();
 
             // the only stats to report are read and included rows, we don't know the size of the input
             final var numFormat = NumberFormatter.builder().setGroupSeparator(",").build();
@@ -416,7 +423,7 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
             final var filterSpecs = RowNumberFilter.getAsFilterSpecs(rowNumberCriteria);
 
             final var rowPartition = RowNumberFilter.computeRowPartition(settings.m_matchCriteria.isAnd(),
-                filterSpecs, settings.m_outputMode, UNKNOWN_SIZE);
+                filterSpecs, settings.outputMode(), UNKNOWN_SIZE);
             final var includeRanges = rowPartition.matching().asRanges().stream().toList();
             final var numIncludeRanges = includeRanges.size();
 

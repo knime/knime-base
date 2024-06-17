@@ -152,7 +152,7 @@ final class RowNumberFilter {
             .reduce((a, b) -> a.combine(isAnd, b)) //
             .orElseThrow(() -> new IllegalArgumentException("Need at least one filter criterion"));
         // determine whether matched or non-matched rows are included in the first output, flip pair as needed
-        return outputMode == FilterMode.INCLUDE ? matchedNonMatchedPartition : matchedNonMatchedPartition.swapped();
+        return outputMode == FilterMode.MATCHING ? matchedNonMatchedPartition : matchedNonMatchedPartition.swapped();
     }
 
     private static BufferedDataTable slicedFromRanges(final ExecutionContext exec, final BufferedDataTable in,
