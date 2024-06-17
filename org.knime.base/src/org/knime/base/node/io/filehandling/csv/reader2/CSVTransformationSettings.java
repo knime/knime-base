@@ -49,6 +49,7 @@
 package org.knime.base.node.io.filehandling.csv.reader2;
 
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
+import org.knime.base.node.io.filehandling.csv.reader.api.EscapeUtils;
 import org.knime.base.node.io.filehandling.csv.reader.api.QuoteOption;
 import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.AppendPathColumnRef;
@@ -177,8 +178,8 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
                 m_fileEncoding == FileEncodingOption.OTHER ? m_customEncoding : m_fileEncoding.m_persistId);
             csvConfig.setComment(m_commentLineCharacter);
             csvConfig.setDecimalSeparator(m_decimalSeparator);
-            csvConfig.setDelimiter(m_columnDelimiter);
-            csvConfig.setLineSeparator(m_customRowDelimiter);
+            csvConfig.setDelimiter(EscapeUtils.unescape(m_columnDelimiter));
+            csvConfig.setLineSeparator(EscapeUtils.unescape(m_customRowDelimiter));
             csvConfig.setSkipLines(m_skipFirstLines > 0);
             csvConfig.setNumLinesToSkip(m_skipFirstLines);
             csvConfig.setQuote(m_quoteCharacter);

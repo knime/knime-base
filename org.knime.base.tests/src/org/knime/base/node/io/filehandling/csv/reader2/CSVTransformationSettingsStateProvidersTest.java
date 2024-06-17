@@ -55,6 +55,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
@@ -81,6 +82,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.StateProviderInitializer;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
@@ -135,11 +137,11 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
         settings.m_settings.m_firstRowContainsColumnNames = false;
         settings.m_settings.m_firstColumnContainsRowIds = true;
         settings.m_settings.m_commentLineCharacter = "?";
-        settings.m_settings.m_columnDelimiter = ";";
+        settings.m_settings.m_columnDelimiter = "\\t";
         settings.m_settings.m_quoteCharacter = "'";
         settings.m_settings.m_quoteEscapeCharacter = "'";
         settings.m_settings.m_rowDelimiterOption = RowDelimiterOption.CUSTOM;
-        settings.m_settings.m_customRowDelimiter = "\r\n";
+        settings.m_settings.m_customRowDelimiter = "\\r\\n";
         settings.m_advancedSettings.m_quotedStringsOption = QuotedStringsOption.KEEP_QUOTES;
         settings.m_advancedSettings.m_replaceEmptyQuotedStringsByMissingValues = false;
         settings.m_advancedSettings.m_limitScannedRows = false;
@@ -309,6 +311,34 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
         final var typedReaderTableSpecsProvider = createTypedReaderTableSpecsProvider(file);
         final var specs = typedReaderTableSpecsProvider.computeState(null);
 
+        assertTypedReaderTableSpecs(file, specs);
+    }
+
+    static TypedReaderTableSpecsProvider createTypedReaderTableSpecsProvider(final String file) throws IOException {
+        final var settings = createDefaultSettingsAndWriteCSV(file, "intCol,stringCol", "1,two");
+        final var typedReaderTableSpecsProvider = new TypedReaderTableSpecsProvider();
+        typedReaderTableSpecsProvider
+            .init(getTypedReaderTableSpecProviderStateProviderInitializer(createDependenciesProvider(settings)));
+        return typedReaderTableSpecsProvider;
+    }
+
+    private static final StateProviderInitializer
+        getTypedReaderTableSpecProviderStateProviderInitializer(final DependenciesProvider dependenciesProvider) {
+        return new NoopStateProviderInitializer() {
+            @Override
+            public <T> Supplier<T>
+                computeFromProvidedState(final Class<? extends StateProvider<T>> stateProviderClass) {
+                if (stateProviderClass.equals(DependenciesProvider.class)) {
+                    return () -> (T)dependenciesProvider.computeState(null);
+                }
+                throw new IllegalStateException(
+                    String.format("Unexpected dependency %s", stateProviderClass.getSimpleName()));
+            }
+        };
+    }
+
+    private void assertTypedReaderTableSpecs(final String file,
+        final Map<String, TypedReaderTableSpec<Class<?>>> specs) {
         assertThat(specs).containsKey(file);
         assertThat(specs).size().isEqualTo(1);
 
@@ -326,27 +356,19 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
         assertThat(col2.getType()).isEqualTo(String.class);
     }
 
-    static TypedReaderTableSpecsProvider createTypedReaderTableSpecsProvider(final String file) throws IOException {
-        final var settings = createDefaultSettingsAndWriteCSV(file, "intCol,stringCol", "1,two");
-        final var typedReaderTableSpecProvider = new TypedReaderTableSpecsProvider();
-        typedReaderTableSpecProvider
-            .init(getTypedReaderTableSpecProviderStateProviderInitializer(createDependenciesProvider(settings)));
-        return typedReaderTableSpecProvider;
-    }
+    @Test
+    void testTypedReaderTableSpecsProviderUnescapeDelimiters() throws IOException {
+        final var file = m_tempFolder.resolve("file.csv").toAbsolutePath().toString();
+        final var settings = createDefaultSettingsAndWriteCSV(file, "intCol\tstringCol\r\n", "1\ttwo\r\n");
+        settings.m_settings.m_columnDelimiter = "\\t";
+        settings.m_settings.m_customRowDelimiter = "\\r\\n";
 
-    private static final StateProviderInitializer
-        getTypedReaderTableSpecProviderStateProviderInitializer(final DependenciesProvider dependenciesProvider) {
-        return new NoopStateProviderInitializer() {
-            @Override
-            public <T> Supplier<T>
-                computeFromProvidedState(final Class<? extends StateProvider<T>> stateProviderClass) {
-                if (stateProviderClass.equals(DependenciesProvider.class)) {
-                    return () -> (T)dependenciesProvider.computeState(null);
-                }
-                throw new IllegalStateException(
-                    String.format("Unexpected dependency %s", stateProviderClass.getSimpleName()));
-            }
-        };
+        final var typedReaderTableSpecsProvider = new TypedReaderTableSpecsProvider();
+        typedReaderTableSpecsProvider
+            .init(getTypedReaderTableSpecProviderStateProviderInitializer(createDependenciesProvider(settings)));
+        final var specs = typedReaderTableSpecsProvider.computeState(null);
+
+        assertTypedReaderTableSpecs(file, specs);
     }
 
     @Test
