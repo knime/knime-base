@@ -214,6 +214,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
         FilterCriterion(final DataColumnSpec colSpec) {
             if (colSpec == null) {
                 m_column = SpecialColumns.ROWID.toColumnSelection();
+                m_predicateValues = new DynamicValuesInput(StringCell.TYPE);
                 return;
             }
             m_column = new ColumnSelection(colSpec);
