@@ -138,19 +138,12 @@ class GroupLoopStartNodeModel extends WebUINodeModel<GroupLoopStartNodeSettings>
 
         // check if all included columns are available in the spec
         List<String> includedColNames =
-            Arrays.asList(settings.m_columnFilter.getSelected(m_spec.getColumnNames(), m_spec));
+            Arrays.asList(settings.m_columnFilter.getNonMissingSelected(m_spec.getColumnNames(), m_spec));
 
         // at least one column containing double values must be specified
         if (includedColNames.size() <= 0) {
             throw new InvalidSettingsException(
                     "Select at least one column containing group information!");
-        }
-
-        for (String colName : includedColNames) {
-            if (!m_spec.containsName(colName)) {
-                throw new InvalidSettingsException("Column \"" + colName
-                        + "\" is not available!");
-            }
         }
 
         assert m_iteration == 0;
@@ -400,7 +393,7 @@ class GroupLoopStartNodeModel extends WebUINodeModel<GroupLoopStartNodeSettings>
      */
     private void initGroupColumnsAsFlowVariables(final ColumnFilter columnFilter) {
         if (m_spec != null && columnFilter != null) {
-            List<String> inclCols = Arrays.asList(columnFilter.getSelected(m_spec.getColumnNames(), m_spec));
+            List<String> inclCols = Arrays.asList(columnFilter.getNonMissingSelected(m_spec.getColumnNames(), m_spec));
             for (String colName : inclCols) {
                 DataType dt = m_spec.getColumnSpec(colName).getType();
                 pushVariable(dt, m_spec.getColumnSpec(colName).getName(), null);
