@@ -2263,7 +2263,7 @@
       <node
             category-path="/manipulation/row/row-filter"
             deprecated="false"
-            factory-class="org.knime.base.node.preproc.filter.row3.RowFilter3NodeFactory">
+            factory-class="org.knime.base.node.preproc.filter.row3.RowFilterNodeFactory">
       </node>
       <node
             category-path="/manipulation/table"

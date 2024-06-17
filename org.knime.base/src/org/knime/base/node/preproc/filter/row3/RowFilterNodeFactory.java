@@ -57,33 +57,36 @@ import org.knime.core.webui.node.impl.WebUINodeFactory;
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction") // Web UI not API yet
-public final class RowFilter3NodeFactory extends WebUINodeFactory<RowFilterNodeModel<RowFilterNodeSettings>> {
+public final class RowFilterNodeFactory extends WebUINodeFactory<RowFilterNodeModel<RowFilterNodeSettings>> {
 
     private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder() //
         .name("Row Filter") //
         .icon("./rowfilter.png") //
         .shortDescription(
-            "Allows filtering of data rows by certain criteria, such as RowID, attribute value, and row number range.")
+            "Allows filtering of data rows based on row numbers, RowID, and cell values.")
         .fullDescription("""
-                The node allows for row filtering according to certain criteria.
-                It can include or exclude rows by either matching on the row number, the RowID or any cell in the row.
+                The node filters an input table according to the given filter criteria.
+                Each criterion can target the row number, RowID, or cell value of a row.
+                Multiple criteria can be combined (similar to boolean logic via <tt>AND</tt> and <tt>OR</tt>)
+                to specify the overall filter criterion applied to each row.
 
-                Note: The node doesn't change the domain of the data table, i. e. the upper and lower bounds or the
-                possible values in the table spec are not changed, even if one of the bounds or one value is fully
-                filtered out.
+                <i>Note:</i> The domain of the input table is passed through as-is,
+                i. e. the upper and lower bounds or the possible values in the table spec are not changed,
+                even if one of the bounds or one value is fully filtered out from the output table. If the input
+                does not contain domain information, so will the output.
                 """) //
         .modelSettingsClass(RowFilterNodeSettings.class) //
         .addInputTable(RowSplitterNodeFactory.INPUT, RowSplitterNodeFactory.INPUT_DESCRIPTION) //
         .addOutputTable(RowSplitterNodeFactory.MATCHES, RowSplitterNodeFactory.MATCHES_DESCRIPTION) //
         .nodeType(NodeType.Manipulator) //
-        .keywords("Condition", "Predicate", "where", "Row Splitter") //
+        .keywords("Condition", "Predicate", "where") //
         .sinceVersion(5, 3, 0) //
         .build();
 
     /**
      * Constructor.
      */
-    public RowFilter3NodeFactory() {
+    public RowFilterNodeFactory() {
         super(CONFIG);
     }
 

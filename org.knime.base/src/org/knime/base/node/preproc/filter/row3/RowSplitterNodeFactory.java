@@ -73,19 +73,20 @@ public final class RowSplitterNodeFactory extends WebUINodeFactory<RowFilterNode
 
     private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder() //
         .name("Row Splitter") //
-        .icon("./rowfilter2port.png") //
+        .icon("./rowsplitter.png") //
         .shortDescription(
-            "Allows filtering of data rows by certain criteria, such as RowID, attribute value, and row number range,"
-                + "splitting the result into two output tables.")
+            "Allows splitting input data into two output tables based on row numbers, RowID, and cell values.")
         .fullDescription("""
-                The node allows for row filtering according to certain criteria and splitting the result into two output
-                tables.
-                It can include or exclude rows by either matching on the row number, the RowID or any cell in the row.
+                The node splits an input table into two output tables according to the given criteria.
+                Each criterion can target the row number, RowID, or cell value of a row.
+                Multiple criteria can be combined (similar to boolean logic via <tt>AND</tt> and <tt>OR</tt>)
+                to specify the overall criterion applied to each row.
 
-                Note: The node doesn't change the domain of the data table, i. e. the upper and lower bounds or the
-                possible values in the table spec are not changed, even if one of the bounds or one value is fully
-                filtered out.
-                        """) //
+                <i>Note:</i> The domain of the input table is passed through as-is,
+                i. e. the upper and lower bounds or the possible values in the table spec are not changed,
+                even if one of the bounds or one value is fully filtered out from one of the output tables. If the input
+                does not contain domain information, so will the output.
+                """) //
         .modelSettingsClass(RowSplitterNodeSettings.class) //
         .addInputTable(INPUT, INPUT_DESCRIPTION) //
         .addOutputTable(MATCHES, MATCHES_DESCRIPTION) //
