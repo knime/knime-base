@@ -353,8 +353,8 @@ final class RowReadPredicate implements Predicate<RowRead> {
             throws InvalidSettingsException {
             final var comp = comparisonValue.getType().getComparator();
             m_predicate = switch (operator) {
-                case EQ -> cell -> comp.compare(cell, comparisonValue) == 0;
-                case NEQ -> cell -> comp.compare(cell, comparisonValue) != 0;
+                case EQ -> cell -> cell.equals(comparisonValue);
+                case NEQ -> cell -> !cell.equals(comparisonValue);
                 case LT -> cell -> comp.compare(cell, comparisonValue) < 0;
                 case LTE -> cell -> comp.compare(cell, comparisonValue) <= 0;
                 case GT -> cell -> comp.compare(cell, comparisonValue) > 0;
@@ -373,14 +373,14 @@ final class RowReadPredicate implements Predicate<RowRead> {
 
         final LongPredicate m_predicate;
 
-        LongValuePredicate(final FilterOperator operator, final long val) throws InvalidSettingsException {
+        LongValuePredicate(final FilterOperator operator, final long comparisonValue) throws InvalidSettingsException {
             m_predicate = switch (operator) {
-                case EQ -> l -> Long.compare(l, val) == 0;
-                case NEQ -> l -> Long.compare(l, val) != 0;
-                case LT -> l -> Long.compare(l, val) < 0;
-                case LTE -> l -> Long.compare(l, val) <= 0;
-                case GT -> l -> Long.compare(l, val) > 0;
-                case GTE -> l -> Long.compare(l, val) >= 0;
+                case EQ -> value -> value == comparisonValue;
+                case NEQ -> value -> value != comparisonValue;
+                case LT -> value -> value < comparisonValue;
+                case LTE -> value -> value <= comparisonValue;
+                case GT -> value -> value > comparisonValue;
+                case GTE -> value -> value >= comparisonValue;
                 default -> throw new InvalidSettingsException(
                     "Unexpected operator for integral numeric condition: " + operator);
             };
@@ -396,14 +396,14 @@ final class RowReadPredicate implements Predicate<RowRead> {
 
         final IntPredicate m_predicate;
 
-        IntValuePredicate(final FilterOperator operator, final int val) throws InvalidSettingsException {
+        IntValuePredicate(final FilterOperator operator, final int comparisonValue) throws InvalidSettingsException {
             m_predicate = switch (operator) {
-                case EQ -> l -> Integer.compare(l, val) == 0;
-                case NEQ -> l -> Integer.compare(l, val) != 0;
-                case LT -> l -> Integer.compare(l, val) < 0;
-                case LTE -> l -> Integer.compare(l, val) <= 0;
-                case GT -> l -> Integer.compare(l, val) > 0;
-                case GTE -> l -> Integer.compare(l, val) >= 0;
+                case EQ -> value -> value == comparisonValue;
+                case NEQ -> value -> value != comparisonValue;
+                case LT -> value -> value < comparisonValue;
+                case LTE -> value -> value <= comparisonValue;
+                case GT -> value -> value > comparisonValue;
+                case GTE -> value -> value >= comparisonValue;
                 default -> throw new InvalidSettingsException(
                     "Unexpected operator for integral numeric condition: " + operator);
             };
@@ -419,14 +419,15 @@ final class RowReadPredicate implements Predicate<RowRead> {
 
         final DoublePredicate m_predicate;
 
-        DoubleValuePredicate(final FilterOperator operator, final double val) throws InvalidSettingsException {
+        DoubleValuePredicate(final FilterOperator operator, final double comparisonValue)
+                throws InvalidSettingsException {
             m_predicate = switch (operator) {
-                case EQ -> d -> Double.compare(d, val) == 0;
-                case NEQ -> d -> Double.compare(d, val) != 0;
-                case LT -> d -> Double.compare(d, val) < 0;
-                case LTE -> d -> Double.compare(d, val) <= 0;
-                case GT -> d -> Double.compare(d, val) > 0;
-                case GTE -> d -> Double.compare(d, val) >= 0;
+                case EQ -> value -> value == comparisonValue; // NOSONAR exact equality/inequality is what we want
+                case NEQ -> value -> value != comparisonValue; // NOSONAR
+                case LT -> value -> value < comparisonValue;
+                case LTE -> value -> value <= comparisonValue;
+                case GT -> value -> value > comparisonValue;
+                case GTE -> value -> value >= comparisonValue;
                 default -> throw new InvalidSettingsException(
                     "Unexpected operator for double numeric condition: " + operator);
             };
