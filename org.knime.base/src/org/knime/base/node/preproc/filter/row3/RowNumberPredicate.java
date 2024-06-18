@@ -74,12 +74,6 @@ interface RowNumberPredicate extends LongPredicate {
         return filterPredicate;
     }
 
-    static void validateSettings(final Iterable<FilterCriterion> criteria) throws InvalidSettingsException {
-        for (final var c : criteria) {
-            RowNumberFilter.getAsFilterSpec(c);
-        }
-    }
-
     private static RowNumberPredicate createFrom(final FilterCriterion criterion, final long optionalTableSize)
             throws InvalidSettingsException {
         final var filterSpec = RowNumberFilter.getAsFilterSpec(criterion);

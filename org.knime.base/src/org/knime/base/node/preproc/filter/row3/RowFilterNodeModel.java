@@ -73,7 +73,6 @@ import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.streamable.InputPortRole;
@@ -99,8 +98,6 @@ import org.knime.core.webui.node.impl.WebUINodeModel;
 @SuppressWarnings("restriction") // Web UI not API yet
 final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends WebUINodeModel<S> {
 
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(RowFilterNodeModel.class);
-
     private static final int INPUT = 0;
 
     private static final int MATCHING_OUTPUT = 0;
@@ -119,16 +116,10 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
         if (settings.m_predicates.length == 0) {
             throw new InvalidSettingsException("At least one filter criterion is needed.");
         }
-        final var predicates = partitionCriteria(settings.m_predicates);
-        final var rowNumberPredicates = predicates.getFirst();
-        if (!rowNumberPredicates.isEmpty()) {
-            RowNumberPredicate.validateSettings(rowNumberPredicates);
-        }
-        final var dataPredicates = predicates.getSecond();
+
         final var spec = (DataTableSpec)inSpecs[INPUT];
-        if (!dataPredicates.isEmpty()) {
-            RowReadPredicate.validateSettings(dataPredicates, spec);
-        }
+        settings.validate(spec);
+
         return settings.isSecondOutputActive() ? new DataTableSpec[]{spec, spec} : new DataTableSpec[]{spec};
     }
 
@@ -162,6 +153,7 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
             final AbstractRowFilterNodeSettings settings) throws Exception {
         final var in = (BufferedDataTable)inPortObjects[INPUT];
         final var spec = in.getSpec();
+        settings.validate(spec);
 
         final var isSplitter = settings.isSecondOutputActive();
 
@@ -169,13 +161,7 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
         // separate row numbers from all other criteria
         final var predicatePartition = partitionCriteria(settings.m_predicates);
         final var rowNumberCriteria = predicatePartition.getFirst();
-        if (!rowNumberCriteria.isEmpty()) {
-            RowNumberPredicate.validateSettings(rowNumberCriteria);
-        }
         final var dataCriteria = predicatePartition.getSecond();
-        if (!dataCriteria.isEmpty()) {
-            RowReadPredicate.validateSettings(dataCriteria, spec);
-        }
 
         if (dataCriteria.isEmpty()) {
             // slicing-only is possible since we never look at any column

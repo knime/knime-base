@@ -48,7 +48,6 @@
  */
 package org.knime.base.node.preproc.filter.row3;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.function.DoublePredicate;
 import java.util.function.Function;
@@ -75,7 +74,6 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.data.v2.RowRead;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput.DynamicValue.StringValueModifiers;
 import org.knime.filehandling.core.util.WildcardToRegexUtil;
 
@@ -105,30 +103,6 @@ final class RowReadPredicate implements Predicate<RowRead> {
         return o -> o.isPresent() && predicate.test(o.get());
     }
 
-    static void validateSettings(final List<FilterCriterion> criteria, final DataTableSpec spec)
-        throws InvalidSettingsException {
-        for (final var c : criteria) {
-            validateSettings(c, spec);
-        }
-    }
-
-    static void validateSettings(final FilterCriterion criterion, final DataTableSpec spec)
-        throws InvalidSettingsException {
-
-        final var operator = criterion.m_operator;
-        if (AbstractRowFilterNodeSettings.isFilterOnRowKeys(criterion)) {
-            CheckUtils.checkSetting(operator != FilterOperator.IS_MISSING, "Cannot filter RowID for presence.");
-            CheckUtils.checkSetting(operator.isEnabledFor(SpecialColumns.ROWID, StringCell.TYPE),
-                "Filter operator \"%s\" cannot be applied to RowID.", operator.label());
-            return;
-        }
-
-        final var columnName = criterion.m_column.getSelected();
-        CheckUtils.checkSettingNotNull(spec.getColumnSpec(columnName), "Unknown column \"%s\".", columnName);
-
-        criterion.m_predicateValues.validate();
-    }
-
     static Predicate<RowRead> buildPredicate(final boolean isAnd, final Iterable<FilterCriterion> filterCriteria,
         final DataTableSpec inSpec) throws InvalidSettingsException {
         final var iter = filterCriteria.iterator();
@@ -143,18 +117,16 @@ final class RowReadPredicate implements Predicate<RowRead> {
         return filterPredicate;
     }
 
-    private static final CaseMatching getCaseMatching(final FilterCriterion criterion) {
+    private static CaseMatching getCaseMatching(final FilterCriterion criterion) {
         final var isCaseSensitive =
             criterion.m_predicateValues.getModifiersAt(0, StringValueModifiers.class).isCaseSensitive();
-        return isCaseSensitive ? CaseMatching.CASESENSITIVE : CaseMatching.CASEINSENSITIVE; /** TODO */
-
+        return isCaseSensitive ? CaseMatching.CASESENSITIVE : CaseMatching.CASEINSENSITIVE;
     }
 
     private static Predicate<RowRead> createFrom(final FilterCriterion criterion, final DataTableSpec spec)
         throws InvalidSettingsException {
         final var operator = criterion.m_operator;
-        if (AbstractRowFilterNodeSettings.isFilterOnRowKeys(criterion)) {
-            // TODO multiple values
+        if (criterion.isFilterOnRowKeys()) {
             final var predicate = new StringPredicate(operator, getCaseMatching(criterion),
                 criterion.m_predicateValues.getCellAt(0).map(c -> (StringCell)c).map(StringCell::getStringValue)
                     .orElseThrow(() -> new InvalidSettingsException("Missing string value for RowID comparison")));
@@ -190,7 +162,6 @@ final class RowReadPredicate implements Predicate<RowRead> {
             }
             final var value = criterion.m_predicateValues.getCellAt(0)
                     .orElseThrow(() -> exceptionFn.apply("Comparison value missing"));
-            // check specially supported data types
             if (StringCell.TYPE == dataType) {
                 return handleString(columnIndex, operator, getCaseMatching(criterion),
                     ((StringCell)value).getStringValue());
@@ -280,7 +251,6 @@ final class RowReadPredicate implements Predicate<RowRead> {
 
     /* === Value Predicates */
 
-    @SuppressWarnings("rawtypes") // `permits` clause doesn't like type parameters
     sealed interface FilterPredicate<T> extends Predicate<T> permits StringPredicate, ComparableFilterPredicate {
         boolean isApplicableFor(FilterOperator operator);
     }
@@ -447,5 +417,4 @@ final class RowReadPredicate implements Predicate<RowRead> {
             return m_predicate.test(value.getDoubleValue());
         }
     }
-
 }

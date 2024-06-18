@@ -61,6 +61,8 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.convert.datacell.JavaToDataCellConverterRegistry;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
@@ -220,6 +222,33 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
             m_predicateValues = new DynamicValuesInput(colSpec.getType());
         }
 
+        void validate(final DataTableSpec spec) throws InvalidSettingsException {
+            if (isFilterOnRowNumbers()) {
+                RowNumberFilter.getAsFilterSpec(this);
+                return;
+            }
+
+            final var operator = m_operator;
+            if (isFilterOnRowKeys()) {
+                CheckUtils.checkSetting(operator != FilterOperator.IS_MISSING, "Cannot filter RowID for presence.");
+                CheckUtils.checkSetting(operator.isEnabledFor(SpecialColumns.ROWID, StringCell.TYPE),
+                    "Filter operator \"%s\" cannot be applied to RowID.", operator.label());
+                return;
+            }
+
+            final var columnName = m_column.getSelected();
+            CheckUtils.checkSettingNotNull(spec.getColumnSpec(columnName), "Unknown column \"%s\".", columnName);
+            m_predicateValues.validate();
+        }
+
+        boolean isFilterOnRowKeys() {
+            return isRowIDSelected(m_column.getSelected());
+        }
+
+        boolean isFilterOnRowNumbers() {
+            return isRowNumberSelected(m_column.getSelected());
+        }
+
         @Widget(title = "Filter value", description = "The value for the filter criterion.")
         @Layout(Condition.ValueInput.class)
         @ValueProvider(TypeAndOperatorBasedInput.class)
@@ -340,6 +369,12 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
         }
     }
 
+    void validate(final DataTableSpec spec) throws InvalidSettingsException {
+        for (final var p : m_predicates) {
+            p.validate(spec);
+        }
+    }
+
     abstract boolean isSecondOutputActive();
 
     // UPDATE HANDLER
@@ -414,14 +449,6 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
     }
 
     // UTILITIES
-
-    static boolean isFilterOnRowKeys(final FilterCriterion criterion) {
-        return isRowIDSelected(criterion.m_column.getSelected());
-    }
-
-    static boolean isFilterOnRowNumbers(final FilterCriterion criterion) {
-        return isRowNumberSelected(criterion.m_column.getSelected());
-    }
 
     static boolean isRowIDSelected(final String selected) {
         return SpecialColumns.ROWID.getId().equals(selected);
