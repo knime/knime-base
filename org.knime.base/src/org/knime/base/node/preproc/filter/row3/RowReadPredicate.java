@@ -419,10 +419,24 @@ final class RowReadPredicate implements Predicate<RowRead> {
             m_predicate = switch (operator) {
                 case EQ -> value -> value == comparisonValue; // NOSONAR exact equality/inequality is what we want
                 case NEQ -> value -> value != comparisonValue; // NOSONAR
-                case LT -> value -> value < comparisonValue;
-                case LTE -> value -> value <= comparisonValue;
-                case GT -> value -> value > comparisonValue;
-                case GTE -> value -> value >= comparisonValue;
+                /* Why not < or > for doubles?
+                 *
+                 * We use the `Comparable` notion of larger/smaller wrt. NaNs to keep compatibility with the old
+                 * Row Filter.
+                 *
+                 * jshell> Double.NaN > 0.85
+                 * $5 ==> false
+                 * jshell> Double.NaN < 0.85
+                 * $6 ==> false
+                 * jshell> Double.compare(Double.NaN, 0.85)
+                 * $7 ==> 1
+                 * jshell> Double.compare(0.85, Double.NaN)
+                 * $8 ==> -1
+                 */
+                case LT -> value -> Double.compare(value, comparisonValue) < 0;
+                case LTE -> value -> Double.compare(value, comparisonValue) <= 0;
+                case GT -> value -> Double.compare(value, comparisonValue) > 0;
+                case GTE -> value -> Double.compare(value, comparisonValue) >= 0;
                 default -> throw new InvalidSettingsException(
                     "Unexpected operator for double numeric condition: " + operator);
             };
