@@ -380,7 +380,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
     // UPDATE HANDLER
 
     /**
-     * Compute possible enum values for filter operator based on the selected column and compare mode
+     * Compute possible enum values for filter operator based on the selected column.
      */
     static class TypeBasedOperatorsProvider implements StateProvider<List<FilterOperator>> {
 
@@ -407,7 +407,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                 () -> context.getDataTableSpec(0).map(dts -> dts.getColumnSpec(column)).map(DataColumnSpec::getType));
             if (dataType.isEmpty()) {
                 // we don't know the column, but we know that columns always can contain missing cells
-                List.of(FilterOperator.IS_MISSING);
+                return List.of(FilterOperator.IS_MISSING);
             }
             // filter on top-level type
             return Arrays.stream(FilterOperator.values()) //

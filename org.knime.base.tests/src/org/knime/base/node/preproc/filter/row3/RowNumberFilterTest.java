@@ -48,256 +48,270 @@
  */
 package org.knime.base.node.preproc.filter.row3;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.arrayContaining;
-import static org.hamcrest.Matchers.emptyArray;
-import static org.hamcrest.Matchers.startsWith;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 
-import org.hamcrest.Matcher;
 import org.junit.jupiter.api.Test;
-import org.knime.base.node.preproc.filter.row3.RowFilterNodeModel.RowNumberFilter;
-import org.knime.base.node.preproc.filter.row3.RowFilterNodeModel.RowRange;
+import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterMode;
+import org.knime.base.node.preproc.filter.row3.RowNumberFilter.FilterPartition;
+import org.knime.base.node.preproc.filter.row3.RowNumberFilter.RowNumberFilterSpec;
+
+import com.google.common.collect.ImmutableRangeSet;
+import com.google.common.collect.Range;
+import com.google.common.collect.RangeSet;
 
 @SuppressWarnings("static-method")
 final class RowNumberFilterTest {
+
+    private static ImmutableRangeSet<Long> asSet() {
+        return ImmutableRangeSet.of();
+    }
+
+    private static ImmutableRangeSet<Long> asSet(final Range<Long> range) {
+        return ImmutableRangeSet.of(range);
+    }
+
+    private static ImmutableRangeSet<Long> asSet(final Range<Long> first, final Range<Long> second) {
+        return ImmutableRangeSet.unionOf(List.of(first, second));
+    }
 
     @Test
     void testSliceFromRangesEqNeq() {
         // only first
         checkSymmetrical(FilterOperator.EQ, FilterOperator.NEQ, 1, 1_000,
-            List.of(new RowRange(0, 1)),
-            List.of(new RowRange(1, 1_000)));
+            asSet(Range.closedOpen(0L, 1L)),
+            asSet(Range.closedOpen(1L, 1_000L)));
 
         // only first (open)
         checkSymmetrical(FilterOperator.EQ, FilterOperator.NEQ, 1, -1,
-            List.of(new RowRange(0, 1)),
-            List.of(new RowRange(1, -1)));
+            asSet(Range.closedOpen(0L, 1L)),
+            asSet(Range.atLeast(1L)));
 
         // only last
         checkSymmetrical(FilterOperator.EQ, FilterOperator.NEQ, 1_000, 1_000,
-            List.of(new RowRange(999, 1_000)),
-            List.of(new RowRange(0, 999)));
+            asSet(Range.closedOpen(999L, 1_000L)),
+            asSet(Range.closedOpen(0L, 999L)));
 
         // somewhere in the middle
         checkSymmetrical(FilterOperator.EQ, FilterOperator.NEQ, 123, 1_000,
-            List.of(new RowRange(122, 123)),
-            List.of(new RowRange(0, 122), new RowRange(123, 1_000)));
+            asSet(Range.closedOpen(122L, 123L)),
+            asSet(Range.closedOpen(0L, 122L), Range.closedOpen(123L, 1_000L)));
 
         // somewhere in the middle (open)
         checkSymmetrical(FilterOperator.EQ, FilterOperator.NEQ, 555, -1,
-            List.of(new RowRange(554, 555)),
-            List.of(new RowRange(0, 554), new RowRange(555, -1)));
+            asSet(Range.closedOpen(554L, 555L)),
+            asSet(Range.closedOpen(0L, 554L), Range.atLeast(555L)));
 
         // outside
         checkSymmetrical(FilterOperator.EQ, FilterOperator.NEQ, 7_777, 1_000,
-            List.of(),
-            List.of(new RowRange(0, 1_000)));
+            asSet(),
+            asSet(Range.closedOpen(0L, 1_000L)));
 
         // special value `Long.MAX_VALUE`
         checkSymmetrical(FilterOperator.EQ, FilterOperator.NEQ, Long.MAX_VALUE, -1,
-            List.of(new RowRange(Long.MAX_VALUE - 1, Long.MAX_VALUE)),
-            List.of(new RowRange(0, Long.MAX_VALUE - 1), new RowRange(Long.MAX_VALUE, -1)));
+            asSet(Range.closedOpen(Long.MAX_VALUE - 1, Long.MAX_VALUE)), //
+            asSet(Range.closedOpen(0L, Long.MAX_VALUE - 1), Range.atLeast(Long.MAX_VALUE)));
         checkSymmetrical(FilterOperator.EQ, FilterOperator.NEQ, Long.MAX_VALUE, Long.MAX_VALUE,
-            List.of(new RowRange(Long.MAX_VALUE - 1, Long.MAX_VALUE)),
-            List.of(new RowRange(0, Long.MAX_VALUE - 1)));
+            asSet(Range.closedOpen(Long.MAX_VALUE - 1, Long.MAX_VALUE)),
+            asSet(Range.closedOpen(0L, Long.MAX_VALUE - 1)));
         checkSymmetrical(FilterOperator.EQ, FilterOperator.NEQ, 1_000, Long.MAX_VALUE,
-            List.of(new RowRange(999, 1_000)),
-            List.of(new RowRange(0, 999), new RowRange(1_000, Long.MAX_VALUE)));
+            asSet(Range.closedOpen(999L, 1_000L)),
+            asSet(Range.closedOpen(0L, 999L), Range.closedOpen(1_000L, Long.MAX_VALUE)));
     }
 
     @Test
     void testSliceFromRangesLtGte() {
         checkSymmetrical(FilterOperator.LT, FilterOperator.GTE, 1, 1_000,
-            List.of(),
-            List.of(new RowRange(0, 1_000)));
+            asSet(),
+            asSet(Range.closedOpen(0L, 1_000L)));
 
         checkSymmetrical(FilterOperator.LT, FilterOperator.GTE, 1, -1,
-            List.of(),
-            List.of(new RowRange(0, -1)));
+            asSet(),
+            asSet(Range.atLeast(0L)));
 
         checkSymmetrical(FilterOperator.LT, FilterOperator.GTE, 1_000, 1_000,
-            List.of(new RowRange(0, 999)),
-            List.of(new RowRange(999, 1_000)));
+            asSet(Range.closedOpen(0L, 999L)),
+            asSet(Range.closedOpen(999L, 1_000L)));
 
         checkSymmetrical(FilterOperator.LT, FilterOperator.GTE, 123, 1_000,
-            List.of(new RowRange(0, 122)),
-            List.of(new RowRange(122, 1_000)));
+            asSet(Range.closedOpen(0L, 122L)),
+            asSet(Range.closedOpen(122L, 1_000L)));
 
         checkSymmetrical(FilterOperator.LT, FilterOperator.GTE, 555, -1,
-            List.of(new RowRange(0, 554)),
-            List.of(new RowRange(554, -1)));
+            asSet(Range.closedOpen(0L, 554L)),
+            asSet(Range.atLeast(554L)));
 
         checkSymmetrical(FilterOperator.LT, FilterOperator.GTE, 7_777, 1_000,
-            List.of(new RowRange(0, 1000)),
-            List.of());
+            asSet(Range.closedOpen(0L, 1000L)),
+            asSet());
 
         // special value `Long.MAX_VALUE`
         checkSymmetrical(FilterOperator.LT, FilterOperator.GTE, Long.MAX_VALUE, -1,
-            List.of(new RowRange(0, Long.MAX_VALUE - 1)),
-            List.of(new RowRange(Long.MAX_VALUE -1, -1)));
+            asSet(Range.closedOpen(0L, Long.MAX_VALUE - 1)),
+            asSet(Range.atLeast(Long.MAX_VALUE -1)));
         checkSymmetrical(FilterOperator.LT, FilterOperator.GTE, Long.MAX_VALUE, Long.MAX_VALUE,
-            List.of(new RowRange(0, Long.MAX_VALUE - 1)),
-            List.of(new RowRange(Long.MAX_VALUE - 1, Long.MAX_VALUE)));
+            asSet(Range.closedOpen(0L, Long.MAX_VALUE - 1)),
+            asSet(Range.closedOpen(Long.MAX_VALUE - 1, Long.MAX_VALUE)));
         checkSymmetrical(FilterOperator.LT, FilterOperator.GTE, 1_000, Long.MAX_VALUE,
-            List.of(new RowRange(0, 999)),
-            List.of(new RowRange(999, Long.MAX_VALUE)));
+            asSet(Range.closedOpen(0L, 999L)),
+            asSet(Range.closedOpen(999L, Long.MAX_VALUE)));
     }
 
     @Test
     void testSliceFromRangesLteGt() {
         checkSymmetrical(FilterOperator.LTE, FilterOperator.GT, 1, 1_000,
-            List.of(new RowRange(0, 1)),
-            List.of(new RowRange(1, 1_000)));
+            asSet(Range.closedOpen(0L, 1L)),
+            asSet(Range.closedOpen(1L, 1_000L)));
 
         checkSymmetrical(FilterOperator.LTE, FilterOperator.GT, 1, -1,
-            List.of(new RowRange(0, 1)),
-            List.of(new RowRange(1, -1)));
+            asSet(Range.closedOpen(0L, 1L)),
+            asSet(Range.atLeast(1L)));
 
         checkSymmetrical(FilterOperator.LTE, FilterOperator.GT, 1_000, 1_000,
-            List.of(new RowRange(0, 1_000)),
-            List.of());
+            asSet(Range.closedOpen(0L, 1_000L)),
+            asSet());
 
         checkSymmetrical(FilterOperator.LTE, FilterOperator.GT, 123, 1_000,
-            List.of(new RowRange(0, 123)),
-            List.of(new RowRange(123, 1_000)));
+            asSet(Range.closedOpen(0L, 123L)),
+            asSet(Range.closedOpen(123L, 1_000L)));
 
         checkSymmetrical(FilterOperator.LTE, FilterOperator.GT, 555, -1,
-            List.of(new RowRange(0, 555)),
-            List.of(new RowRange(555, -1)));
+            asSet(Range.closedOpen(0L, 555L)),
+            asSet(Range.atLeast(555L)));
 
         checkSymmetrical(FilterOperator.LTE, FilterOperator.GT, 7_777, 1_000,
-            List.of(new RowRange(0, 1000)),
-            List.of());
+            asSet(Range.closedOpen(0L, 1000L)),
+            asSet());
 
         // special value `Long.MAX_VALUE`
         checkSymmetrical(FilterOperator.LTE, FilterOperator.GT, Long.MAX_VALUE, -1,
-            List.of(new RowRange(0, Long.MAX_VALUE)),
-            List.of(new RowRange(Long.MAX_VALUE, -1)));
+            asSet(Range.closedOpen(0L, Long.MAX_VALUE)),
+            asSet(Range.atLeast(Long.MAX_VALUE)));
         checkSymmetrical(FilterOperator.LTE, FilterOperator.GT, Long.MAX_VALUE, Long.MAX_VALUE,
-            List.of(new RowRange(0, Long.MAX_VALUE)),
-            List.of());
+            asSet(Range.closedOpen(0L, Long.MAX_VALUE)),
+            asSet());
         checkSymmetrical(FilterOperator.LTE, FilterOperator.GT, 1_000, Long.MAX_VALUE,
-            List.of(new RowRange(0, 1_000)),
-            List.of(new RowRange(1_000, Long.MAX_VALUE)));
+            asSet(Range.closedOpen(0L, 1_000L)),
+            asSet(Range.closedOpen(1_000L, Long.MAX_VALUE)));
     }
 
     @Test
     void testSliceFromRangesFirstNRows() {
-        final var zero = RowNumberFilter.computePartition(FilterOperator.FIRST_N_ROWS, 0, 1_000);
-        assertThat(zero.getFirst(), emptyArray());
-        assertThat(zero.getSecond(), arrayContaining(new RowRange(0, 1_000)));
+        final var zero = computePartition(FilterOperator.FIRST_N_ROWS, 0, 1_000);
+        assertThat(zero.matching()).isEqualTo(asSet());
+        assertThat(zero.nonMatching()).isEqualTo(asSet(Range.closedOpen(0L, 1_000L)));
 
-        final var zeroOpen = RowNumberFilter.computePartition(FilterOperator.FIRST_N_ROWS, 0, -1);
-        assertThat(zeroOpen.getFirst(), emptyArray());
-        assertThat(zeroOpen.getSecond(), arrayContaining(new RowRange(0, -1)));
+        final var zeroOpen = computePartition(FilterOperator.FIRST_N_ROWS, 0, -1);
+        assertThat(zeroOpen.matching()).isEqualTo(asSet());
+        assertThat(zeroOpen.nonMatching()).isEqualTo(asSet(Range.atLeast(0L)));
 
-        final var one = RowNumberFilter.computePartition(FilterOperator.FIRST_N_ROWS, 1, 1_000);
-        assertThat(one.getFirst(), arrayContaining(new RowRange(0, 1)));
-        assertThat(one.getSecond(), arrayContaining(new RowRange(1, 1_000)));
+        final var one = computePartition(FilterOperator.FIRST_N_ROWS, 1, 1_000);
+        assertThat(one.matching()).isEqualTo(asSet(Range.closedOpen(0L, 1L)));
+        assertThat(one.nonMatching()).isEqualTo(asSet(Range.closedOpen(1L, 1_000L)));
 
-        final var oneOpen = RowNumberFilter.computePartition(FilterOperator.FIRST_N_ROWS, 1, -1);
-        assertThat(oneOpen.getFirst(), arrayContaining(new RowRange(0, 1)));
-        assertThat(oneOpen.getSecond(), arrayContaining(new RowRange(1, -1)));
+        final var oneOpen = computePartition(FilterOperator.FIRST_N_ROWS, 1, -1);
+        assertThat(oneOpen.matching()).isEqualTo(asSet(Range.closedOpen(0L, 1L)));
+        assertThat(oneOpen.nonMatching()).isEqualTo(asSet(Range.atLeast(1L)));
 
-        final var some = RowNumberFilter.computePartition(FilterOperator.FIRST_N_ROWS, 123, 1_000);
-        assertThat(some.getFirst(), arrayContaining(new RowRange(0, 123)));
-        assertThat(some.getSecond(), arrayContaining(new RowRange(123, 1_000)));
+        final var some = computePartition(FilterOperator.FIRST_N_ROWS, 123, 1_000);
+        assertThat(some.matching()).isEqualTo(asSet(Range.closedOpen(0L, 123L)));
+        assertThat(some.nonMatching()).isEqualTo(asSet(Range.closedOpen(123L, 1_000L)));
 
-        final var someOpen = RowNumberFilter.computePartition(FilterOperator.FIRST_N_ROWS, 555, -1);
-        assertThat(someOpen.getFirst(), arrayContaining(new RowRange(0, 555)));
-        assertThat(someOpen.getSecond(), arrayContaining(new RowRange(555, -1)));
+        final var someOpen = computePartition(FilterOperator.FIRST_N_ROWS, 555, -1);
+        assertThat(someOpen.matching()).isEqualTo(asSet(Range.closedOpen(0L, 555L)));
+        assertThat(someOpen.nonMatching()).isEqualTo(asSet(Range.atLeast(555L)));
 
-        final var all = RowNumberFilter.computePartition(FilterOperator.FIRST_N_ROWS, 1_000, 1_000);
-        assertThat(all.getFirst(), arrayContaining(new RowRange(0, 1_000)));
-        assertThat(all.getSecond(), emptyArray());
+        final var all = computePartition(FilterOperator.FIRST_N_ROWS, 1_000, 1_000);
+        assertThat(all.matching()).isEqualTo(asSet(Range.closedOpen(0L, 1_000L)));
+        assertThat(all.nonMatching()).isEqualTo(asSet());
 
-        final var overshooting = RowNumberFilter.computePartition(FilterOperator.FIRST_N_ROWS, 7_777, 1_000);
-        assertThat(overshooting.getFirst(), arrayContaining(new RowRange(0, 1_000)));
-        assertThat(overshooting.getSecond(), emptyArray());
+        final var overshooting = computePartition(FilterOperator.FIRST_N_ROWS, 7_777, 1_000);
+        assertThat(overshooting.matching()).isEqualTo(asSet(Range.closedOpen(0L, 1_000L)));
+        assertThat(overshooting.nonMatching()).isEqualTo(asSet());
 
         // special value `Long.MAX_VALUE`
 
-        final var maxOpen = RowNumberFilter.computePartition(FilterOperator.FIRST_N_ROWS, Long.MAX_VALUE, -1);
-        assertThat(maxOpen.getFirst(), arrayContaining(new RowRange(0, Long.MAX_VALUE)));
-        assertThat(maxOpen.getSecond(), arrayContaining(new RowRange(Long.MAX_VALUE, -1)));
+        final var maxOpen = computePartition(FilterOperator.FIRST_N_ROWS, Long.MAX_VALUE, -1);
+        assertThat(maxOpen.matching()).isEqualTo(asSet(Range.closedOpen(0L, Long.MAX_VALUE)));
+        assertThat(maxOpen.nonMatching()).isEqualTo(asSet(Range.atLeast(Long.MAX_VALUE)));
 
-        final var max = RowNumberFilter.computePartition(FilterOperator.FIRST_N_ROWS, Long.MAX_VALUE, Long.MAX_VALUE);
-        assertThat(max.getFirst(), arrayContaining(new RowRange(0, Long.MAX_VALUE)));
-        assertThat(max.getSecond(), emptyArray());
+        final var max = computePartition(FilterOperator.FIRST_N_ROWS, Long.MAX_VALUE, Long.MAX_VALUE);
+        assertThat(max.matching()).isEqualTo(asSet(Range.closedOpen(0L, Long.MAX_VALUE)));
+        assertThat(max.nonMatching()).isEqualTo(asSet());
 
-        final var lenMax = RowNumberFilter.computePartition(FilterOperator.FIRST_N_ROWS, 1_000, Long.MAX_VALUE);
-        assertThat(lenMax.getFirst(), arrayContaining(new RowRange(0, 1_000)));
-        assertThat(lenMax.getSecond(), arrayContaining(new RowRange(1_000, Long.MAX_VALUE)));
+        final var lenMax = computePartition(FilterOperator.FIRST_N_ROWS, 1_000, Long.MAX_VALUE);
+        assertThat(lenMax.matching()).isEqualTo(asSet(Range.closedOpen(0L, 1_000L)));
+        assertThat(lenMax.nonMatching()).isEqualTo(asSet(Range.closedOpen(1_000L, Long.MAX_VALUE)));
     }
 
     @Test
     void testSliceFromRangesLastNRows() {
-        final var zero = RowNumberFilter.computePartition(FilterOperator.LAST_N_ROWS, 0, 1_000);
-        assertThat(zero.getFirst(), emptyArray());
-        assertThat(zero.getSecond(), arrayContaining(new RowRange(0, 1_000)));
+        final var zero = computePartition(FilterOperator.LAST_N_ROWS, 0, 1_000);
+        assertThat(zero.matching()).isEqualTo(asSet());
+        assertThat(zero.nonMatching()).isEqualTo(asSet(Range.closedOpen(0L, 1_000L)));
 
         assertThat(assertThrows(IllegalStateException.class,
-                () -> RowNumberFilter.computePartition(FilterOperator.LAST_N_ROWS, 0, -1),
-                "LAST_N_ROWS needs table size").getMessage(),
-            startsWith("Expected table size"));
+                () -> computePartition(FilterOperator.LAST_N_ROWS, 0, -1),
+                "LAST_N_ROWS needs table size").getMessage())
+            .startsWith("Expected table size");
 
-        final var one = RowNumberFilter.computePartition(FilterOperator.LAST_N_ROWS, 1, 1_000);
-        assertThat(one.getFirst(), arrayContaining(new RowRange(999, 1_000)));
-        assertThat(one.getSecond(), arrayContaining(new RowRange(0, 999)));
-
-        assertThat(assertThrows(IllegalStateException.class,
-                () -> RowNumberFilter.computePartition(FilterOperator.LAST_N_ROWS, 1, -1),
-                "LAST_N_ROWS needs table size").getMessage(),
-            startsWith("Expected table size"));
-
-        final var some = RowNumberFilter.computePartition(FilterOperator.LAST_N_ROWS, 123, 1_000);
-        assertThat(some.getFirst(), arrayContaining(new RowRange(877, 1_000)));
-        assertThat(some.getSecond(), arrayContaining(new RowRange(0, 877)));
+        final var one = computePartition(FilterOperator.LAST_N_ROWS, 1, 1_000);
+        assertThat(one.matching()).isEqualTo(asSet(Range.closedOpen(999L, 1_000L)));
+        assertThat(one.nonMatching()).isEqualTo(asSet(Range.closedOpen(0L, 999L)));
 
         assertThat(assertThrows(IllegalStateException.class,
-                () -> RowNumberFilter.computePartition(FilterOperator.LAST_N_ROWS, 555, -1),
-                "LAST_N_ROWS needs table size").getMessage(),
-            startsWith("Expected table size"));
+                () -> computePartition(FilterOperator.LAST_N_ROWS, 1, -1),
+                "LAST_N_ROWS needs table size").getMessage())
+            .startsWith("Expected table size");
 
-        final var all = RowNumberFilter.computePartition(FilterOperator.LAST_N_ROWS, 1_000, 1_000);
-        assertThat(all.getFirst(), arrayContaining(new RowRange(0, 1_000)));
-        assertThat(all.getSecond(), emptyArray());
+        final var some = computePartition(FilterOperator.LAST_N_ROWS, 123, 1_000);
+        assertThat(some.matching()).isEqualTo(asSet(Range.closedOpen(877L, 1_000L)));
+        assertThat(some.nonMatching()).isEqualTo(asSet(Range.closedOpen(0L, 877L)));
 
-        final var overshooting = RowNumberFilter.computePartition(FilterOperator.LAST_N_ROWS, 7_777, 1_000);
-        assertThat(overshooting.getFirst(), arrayContaining(new RowRange(0, 1_000)));
-        assertThat(overshooting.getSecond(), emptyArray());
+        assertThat(assertThrows(IllegalStateException.class,
+                () -> computePartition(FilterOperator.LAST_N_ROWS, 555, -1),
+                "LAST_N_ROWS needs table size").getMessage())
+            .startsWith("Expected table size");
+
+        final var all = computePartition(FilterOperator.LAST_N_ROWS, 1_000, 1_000);
+        assertThat(all.matching()).isEqualTo(asSet(Range.closedOpen(0L, 1_000L)));
+        assertThat(all.nonMatching()).isEqualTo(asSet());
+
+        final var overshooting = computePartition(FilterOperator.LAST_N_ROWS, 7_777, 1_000);
+        assertThat(overshooting.matching()).isEqualTo(asSet(Range.closedOpen(0L, 1_000L)));
+        assertThat(overshooting.nonMatching()).isEqualTo(asSet());
 
         // special value `Long.MAX_VALUE`
 
         assertThat(assertThrows(IllegalStateException.class,
-                () -> RowNumberFilter.computePartition(FilterOperator.LAST_N_ROWS, Long.MAX_VALUE, -1),
-                "LAST_N_ROWS needs table size").getMessage(),
-            startsWith("Expected table size"));
+                () -> computePartition(FilterOperator.LAST_N_ROWS, Long.MAX_VALUE, -1),
+                "LAST_N_ROWS needs table size").getMessage())
+            .startsWith("Expected table size");
 
-        final var max = RowNumberFilter.computePartition(FilterOperator.LAST_N_ROWS, Long.MAX_VALUE, Long.MAX_VALUE);
-        assertThat(max.getFirst(), arrayContaining(new RowRange(0, Long.MAX_VALUE)));
-        assertThat(max.getSecond(), emptyArray());
+        final var max = computePartition(FilterOperator.LAST_N_ROWS, Long.MAX_VALUE, Long.MAX_VALUE);
+        assertThat(max.matching()).isEqualTo(asSet(Range.closedOpen(0L, Long.MAX_VALUE)));
+        assertThat(max.nonMatching()).isEqualTo(asSet());
 
-        final var lenMax = RowNumberFilter.computePartition(FilterOperator.LAST_N_ROWS, 1_000, Long.MAX_VALUE);
-        assertThat(lenMax.getFirst(), arrayContaining(new RowRange(Long.MAX_VALUE - 1_000, Long.MAX_VALUE)));
-        assertThat(lenMax.getSecond(), arrayContaining(new RowRange(0, Long.MAX_VALUE - 1_000)));
+        final var lenMax = computePartition(FilterOperator.LAST_N_ROWS, 1_000, Long.MAX_VALUE);
+        assertThat(lenMax.matching()).isEqualTo(asSet(Range.closedOpen(Long.MAX_VALUE - 1_000, Long.MAX_VALUE)));
+        assertThat(lenMax.nonMatching()).isEqualTo(asSet(Range.closedOpen(0L, Long.MAX_VALUE - 1_000)));
+    }
+
+    private static FilterPartition computePartition(final FilterOperator operator, final long rowNumber,
+        final long optSize) {
+        return RowNumberFilter.computeRowPartition(true, List.of(new RowNumberFilterSpec(operator, rowNumber)),
+            FilterMode.MATCHING, optSize);
     }
 
     private static void checkSymmetrical(final FilterOperator op1, final FilterOperator op2, final long value,
-            final long optSize, final List<RowRange> included, final List<RowRange> excluded) {
-        final Matcher<RowRange[]> isIncl = included.isEmpty() ? emptyArray()
-            : arrayContaining(included.toArray(RowRange[]::new));
-        final Matcher<RowRange[]> isExcl = excluded.isEmpty() ? emptyArray()
-            : arrayContaining(excluded.toArray(RowRange[]::new));
-
-        final var partition1 = RowNumberFilter.computePartition(op1, value, optSize);
-        final var partition2 = RowNumberFilter.computePartition(op2, value, optSize);
-        assertThat(partition1.getFirst(), isIncl);
-        assertThat(partition1.getSecond(), isExcl);
-        assertThat(partition2.getFirst(), isExcl);
-        assertThat(partition2.getSecond(), isIncl);
+            final long optSize, final RangeSet<Long> included, final RangeSet<Long> excluded) {
+        final var partition1 = computePartition(op1, value, optSize);
+        final var partition2 = computePartition(op2, value, optSize);
+        assertThat(partition1.matching()).isEqualTo(included);
+        assertThat(partition1.nonMatching()).isEqualTo(excluded);
+        assertThat(partition2.matching()).isEqualTo(excluded);
+        assertThat(partition2.nonMatching()).isEqualTo(included);
     }
 }

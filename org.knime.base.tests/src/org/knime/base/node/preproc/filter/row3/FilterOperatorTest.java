@@ -55,10 +55,8 @@ import java.util.Arrays;
 import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
-import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.IsBinaryOperator;
-import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.IsPatternOperator;
-import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.IsUnaryOperator;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.TypeBasedOperatorChoices;
+import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.TypeBasedOperatorsProvider;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
@@ -92,34 +90,6 @@ final class FilterOperatorTest {
             new DataColumnSpecCreator("Int2", IntCell.TYPE).createSpec(), //
             new DataColumnSpecCreator("Long1", LongCell.TYPE).createSpec()) //
         .createSpec();
-
-    @Test
-    void testConditions() {
-        assertThat(new IsUnaryOperator().oneOf()).as("The list of nullary operators is what is expected")
-            .containsExactlyInAnyOrder( //
-                FilterOperator.IS_MISSING, //
-                FilterOperator.IS_TRUE, //
-                FilterOperator.IS_FALSE //
-            );
-        assertThat(new IsBinaryOperator().oneOf()).as("The list of unary operators is what is expected")
-            .containsExactlyInAnyOrder( //
-                FilterOperator.EQ, //
-                FilterOperator.NEQ, //
-                FilterOperator.GT, //
-                FilterOperator.GTE, //
-                FilterOperator.LT, //
-                FilterOperator.LTE, //
-                FilterOperator.LAST_N_ROWS, //
-                FilterOperator.FIRST_N_ROWS, //
-                FilterOperator.REGEX, //
-                FilterOperator.WILDCARD //
-            );
-        assertThat(new IsPatternOperator().oneOf()).as("The list of binary operators is what is expected")
-            .containsExactlyInAnyOrder( //
-                FilterOperator.REGEX, //
-                FilterOperator.WILDCARD //
-            );
-    }
 
     @Test
     void testOperatorChoices() {
@@ -191,54 +161,80 @@ final class FilterOperatorTest {
 
     static FilterOperator[] operatorChoicesFor(final ColumnSelection columnSelection) {
         final var ctx = DefaultNodeSettings.createDefaultNodeSettingsContext(new DataTableSpec[]{SPEC});
-        final var choices = new TypeBasedOperatorChoices();
-        choices.init(new StateProvider.StateProviderInitializer() {
+
+        final var provider = new TypeBasedOperatorsProvider();
+        provider.init(new TestInitializer() {
 
             @SuppressWarnings("unchecked")
             @Override
             public <T> Supplier<T> computeFromValueSupplier(final Class<? extends Reference<T>> ref) {
-                if (ref.equals(AbstractRowFilterNodeSettings.SelectedColumnRef.class)) {
+                if (ref.equals(AbstractRowFilterNodeSettings.FilterCriterion.SelectedColumnRef.class)) {
                     return () -> (T)columnSelection;
                 }
                 throw new IllegalStateException("Unexpected dependency \"%s\"".formatted(ref.getName()));
-
             }
 
-            @Override
-            public <T> Supplier<T> getValueSupplier(final Class<? extends Reference<T>> ref) {
-                fail("Not expected to be called during test.");
-                return null;
-            }
+        });
 
-            @Override
-            public <T> void computeOnValueChange(final Class<? extends Reference<T>> id) {
-                fail("Not expected to be called during test.");
-            }
-
+        final var choices = new TypeBasedOperatorChoices();
+        choices.init(new TestInitializer() {
+            @SuppressWarnings("unchecked")
             @Override
             public <T> Supplier<T>
                 computeFromProvidedState(final Class<? extends StateProvider<T>> stateProviderClass) {
-                fail("Not expected to be called during test.");
-                return null;
-            }
-
-            @Override
-            public void computeOnButtonClick(final Class<? extends ButtonReference> ref) {
-                fail("Not expected to be called during test.");
+                if (stateProviderClass.equals(TypeBasedOperatorsProvider.class)) {
+                    return () -> (T)provider.computeState(ctx);
+                }
+                throw new IllegalStateException(
+                    "Unexpected provider class \"%s\"".formatted(stateProviderClass.getName()));
             }
 
             @Override
             public void computeBeforeOpenDialog() {
                 // expected to be called
             }
-
-            @Override
-            public void computeAfterOpenDialog() {
-                fail("Not expected to be called during test.");
-            }
-
         });
+
         return Arrays.stream(choices.computeState(ctx)).map(idAndText -> FilterOperator.valueOf(idAndText.id()))
             .toArray(FilterOperator[]::new);
+    }
+
+    static class TestInitializer implements StateProvider.StateProviderInitializer {
+
+        @Override
+        public <T> Supplier<T> computeFromValueSupplier(final Class<? extends Reference<T>> ref) {
+            throw new IllegalStateException("Not expected to be called during test.");
+        }
+
+        @Override
+        public <T> Supplier<T> getValueSupplier(final Class<? extends Reference<T>> ref) {
+            throw new IllegalStateException("Not expected to be called during test.");
+        }
+
+        @Override
+        public <T> void computeOnValueChange(final Class<? extends Reference<T>> id) {
+            fail("Not expected to be called during test.");
+        }
+
+        @Override
+        public <T> Supplier<T>
+            computeFromProvidedState(final Class<? extends StateProvider<T>> stateProviderClass) {
+            throw new IllegalStateException("Not expected to be called during test.");
+        }
+
+        @Override
+        public void computeOnButtonClick(final Class<? extends ButtonReference> ref) {
+            fail("Not expected to be called during test.");
+        }
+
+        @Override
+        public void computeBeforeOpenDialog() {
+            throw new IllegalStateException("Not expected to be called during test.");
+        }
+
+        @Override
+        public void computeAfterOpenDialog() {
+            fail("Not expected to be called during test.");
+        }
     }
 }

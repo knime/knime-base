@@ -254,7 +254,6 @@ final class RowNumberFilter {
     static RowNumberFilterSpec getAsFilterSpec(final FilterCriterion criterion)
         throws InvalidSettingsException {
         validateRowNumberOperatorSupported(criterion.m_operator);
-        // TODO handle operators with multiple cells
         final var value = ((LongCell)criterion.m_predicateValues.getCellAt(0)
             .orElseThrow(() -> new InvalidSettingsException("Row number value is missing"))).getLongValue();
         final var op = criterion.m_operator;
@@ -309,24 +308,6 @@ final class RowNumberFilter {
             };
         }
     }
-
-    record RowRange(long fromIncl, long toExcl) {
-        RowRange {
-            CheckUtils.checkArgument(fromIncl >= 0, "Lower bound must be non-negative, found %d", fromIncl);
-            if (toExcl >= 0) {
-                CheckUtils.checkArgument(fromIncl < toExcl,
-                    "Lower bound must be smaller than upper bound, found %d (lower) >= %d (upper)", fromIncl, toExcl);
-            } else {
-                CheckUtils.checkArgument(toExcl == UNKNOWN_SIZE,
-                    "Expected non-negative upper bound or %d, found %d", UNKNOWN_SIZE, toExcl);
-            }
-        }
-
-        boolean hasUpperBound() {
-            return toExcl != UNKNOWN_SIZE;
-        }
-    }
-
 
     /**
      * A partition of row numbers.
