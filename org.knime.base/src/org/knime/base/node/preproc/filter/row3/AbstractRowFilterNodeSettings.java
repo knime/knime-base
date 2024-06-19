@@ -249,7 +249,22 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
             return isRowNumberSelected(m_column.getSelected());
         }
 
-        @Widget(title = "Filter value", description = "The value for the filter criterion.")
+        @Widget(title = "Filter value", description = """
+                The value for the filter criterion.
+                <br/>
+
+                <i>Note:</i> Currently, comparison values for non-numeric and non-string data types, e.g.
+                date&amp;time-based types, must be entered as its string representation like in the <a href="
+                """ + ExternalLinks.HUB_TABLE_CREATOR + """
+                "><i>Table Creator</i></a> node.
+                <br/>
+
+                The format for date&amp;time-based values is "ISO-8601 extended". For example, a "Local Date" must be
+                entered in the format "2006-07-28". More information can be obtained from the ISO patterns in the
+                "Predefined Formatters" table of the <a href="
+                """ + ExternalLinks.ISO_DATETIME_PATTERNS + """
+                ">Java SE 17 documentation</a>.
+                        """)
         @Layout(Condition.ValueInput.class)
         @ValueProvider(TypeAndOperatorBasedInput.class)
         @ValueReference(DynamicValuesInputRef.class)

@@ -51,23 +51,17 @@ package org.knime.base.node.preproc.filter.row3;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Function;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.RowKeyValue;
 import org.knime.core.data.container.DataContainerSettings;
-import org.knime.core.data.def.LongCell;
-import org.knime.core.data.def.StringCell;
 import org.knime.core.data.v2.RowRead;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -123,31 +117,6 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
         return settings.isSecondOutputActive() ? new DataTableSpec[]{spec, spec} : new DataTableSpec[]{spec};
     }
 
-    static Optional<String> getDataTypeNameForColumn(final String selected,
-        final Supplier<Optional<DataTableSpec>> dtsSupplier) {
-        return getDataTypeForColumn(selected, dtsSupplier).map(DataType::getCellClass).map(Class::getName);
-    }
-
-    static Optional<DataType> getDataTypeForColumn(final String selected,
-        final Supplier<Optional<DataTableSpec>> dtsSupplier) {
-        return getDataTypeForSelected(selected,
-            columnSelection -> dtsSupplier.get().map(dts -> dts.getColumnSpec(columnSelection)));
-    }
-
-    static Optional<DataType> getDataTypeForSelected(final String selected,
-        final Function<String, Optional<DataColumnSpec>> colSpecSupplier) {
-        if (SpecialColumns.ROWID.getId().equals(selected)) {
-            return Optional.of(StringCell.TYPE);
-        }
-        if (SpecialColumns.ROW_NUMBERS.getId().equals(selected)) {
-            return Optional.of(LongCell.TYPE);
-        }
-        if (SpecialColumns.NONE.getId().equals(selected)) {
-            throw new IllegalStateException("Column selection required");
-        }
-        return colSpecSupplier.apply(selected).map(DataColumnSpec::getType);
-    }
-
     @Override
     protected BufferedDataTable[] execute(final PortObject[] inPortObjects, final ExecutionContext exec,
             final AbstractRowFilterNodeSettings settings) throws Exception {
@@ -163,18 +132,18 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
         final var rowNumberCriteria = predicatePartition.getFirst();
         final var dataCriteria = predicatePartition.getSecond();
 
+        final var tableSize = in.size();
         if (dataCriteria.isEmpty()) {
             // slicing-only is possible since we never look at any column
             final var includedExcludedPartition =
                     RowNumberFilter.computeRowPartition(isAnd, RowNumberFilter.getAsFilterSpecs(rowNumberCriteria),
-                        settings.outputMode(), in.size());
+                        settings.outputMode(), tableSize);
             return RowNumberFilter.sliceTable(exec, in, includedExcludedPartition, isSplitter);
         }
         final var inSpec = in.getSpec();
-        final var predicate = createFilterPredicate(isAnd, rowNumberCriteria, dataCriteria, inSpec, in.size());
+        final var predicate = createFilterPredicate(isAnd, rowNumberCriteria, dataCriteria, inSpec, tableSize);
 
         final var includeMatches = settings.outputMatches();
-        final long size = in.size();
         final DataContainerSettings dcSettings = DataContainerSettings.builder() //
                 .withInitializedDomain(true) //
                 .withCheckDuplicateRowKeys(false) // only copying data
@@ -189,7 +158,7 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
         ) {
             // top-level progress reports number of processed rows as a fraction of the input table size
             final var readRows = new AtomicLong();
-            final var msg = progressFractionBuilder(readRows::get, size);
+            final var msg = progressFractionBuilder(readRows::get, tableSize);
             exec.setProgress(0, () -> msg.apply(new StringBuilder("Processed row ")).toString());
 
             // sub-progress for reporting the number of matching rows
@@ -208,7 +177,7 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
                 } else if (nonMatchesCursor != null) {
                     nonMatchesCursor.forward().setFrom(read);
                 }
-                exec.setProgress(1.0 * readRows.get() / size);
+                exec.setProgress(1.0 * readRows.get() / tableSize);
             }
 
             return nonMatches != null ? new BufferedDataTable[]{matches.finish(), nonMatches.finish()}
@@ -219,17 +188,16 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
     private static RowFilterPredicate createFilterPredicate(final boolean isAnd,
         final List<FilterCriterion> rowNumberCriteria, final List<FilterCriterion> dataCriteria,
         final DataTableSpec spec, final long tableSize) throws InvalidSettingsException {
-        final var rowNumberPredicate =
-            RowNumberPredicate.buildPredicate(isAnd, rowNumberCriteria, tableSize);
-        final var dataPredicate = RowReadPredicate.buildPredicate(isAnd, dataCriteria, spec);
-        if (rowNumberPredicate == null) {
-            return (index, read) -> dataPredicate.test(read);
+        final var rowNumbers = RowNumberPredicate.buildPredicate(isAnd, rowNumberCriteria, tableSize);
+        final var data = RowReadPredicate.buildPredicate(isAnd, dataCriteria, spec);
+        if (rowNumbers == null) {
+            return (index, read) -> data.test(read);
         }
-        if (dataPredicate == null) {
+        if (data == null) {
             throw new IllegalStateException("Row number predicate without data predicate, should have used slicing");
         }
-        return isAnd ? (index, read) -> rowNumberPredicate.test(index) && dataPredicate.test(read) // NOSONAR this is not too hard to read
-            : (index, read) -> rowNumberPredicate.test(index) || dataPredicate.test(read); // NOSONAR see above
+        return isAnd ? (index, read) -> rowNumbers.test(index) && data.test(read) // NOSONAR this is not too hard to read
+            : (index, read) -> rowNumbers.test(index) || data.test(read); // NOSONAR see above
     }
 
     /**

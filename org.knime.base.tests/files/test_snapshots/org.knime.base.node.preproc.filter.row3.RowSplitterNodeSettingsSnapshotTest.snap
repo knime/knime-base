@@ -158,7 +158,7 @@
                     }
                   },
                   "title" : "Filter value",
-                  "description" : "The value for the filter criterion.",
+                  "description" : "The value for the filter criterion.\n<br/>\n\n<i>Note:</i> Currently, comparison values for non-numeric and non-string data types, e.g.\ndate&amp;time-based types, must be entered as its string representation like in the <a href=\"\nhttps://hub.knime.com/knime/extensions/org.knime.features.base/latest/org.knime.base.node.io.tablecreator.TableCreator2NodeFactory\"><i>Table Creator</i></a> node.\n<br/>\n\nThe format for date&amp;time-based values is \"ISO-8601 extended\". For example, a \"Local Date\" must be\nentered in the format \"2006-07-28\". More information can be obtained from the ISO patterns in the\n\"Predefined Formatters\" table of the <a href=\"\nhttps://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html#predefined\">Java SE 17 documentation</a>.\n",
                   "default" : {
                     "values" : [ {
                       "value" : null,
