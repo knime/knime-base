@@ -108,14 +108,18 @@ final class RowNumberFilter {
         final var includedRanges = includedExcludedPartition.matching;
         final var excludedRanges = includedExcludedPartition.nonMatching;
         if (includedRanges.isEmpty()) {
-            if (!Range.closedOpen(0L, in.size()).equals(excludedRanges.span())) {
+            final var inputSize = in.size();
+            if (inputSize > 0 && !Range.closedOpen(0L, inputSize).equals(excludedRanges.span())) {
                 throw new IllegalStateException(
                     "Inclusion is empty but exclusion does not span whole table: %s"
                         .formatted(excludedRanges));
             }
             // no rows are included
             final var empty = exec.createVoidTable(in.getSpec());
-            return isSplitter ? new BufferedDataTable[]{empty, in} : new BufferedDataTable[]{empty};
+            var matching = empty;
+            // handle empty input table -> includeRanges empty and excludeRanges empty
+            var nonMatching = inputSize == 0 ? empty : in;
+            return isSplitter ? new BufferedDataTable[]{matching, nonMatching} : new BufferedDataTable[]{matching};
         }
 
         if (excludedRanges.isEmpty()) {
