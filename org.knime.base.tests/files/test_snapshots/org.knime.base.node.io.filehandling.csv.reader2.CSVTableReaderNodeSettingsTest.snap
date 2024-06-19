@@ -1107,6 +1107,7 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/tableSpecConfig/properties/takeColumnsFrom",
         "options" : {
+          "hideFlowVariableButton" : true,
           "format" : "valueSwitch"
         }
       }, {
@@ -1117,16 +1118,21 @@
             "type" : "Control",
             "scope" : "#/properties/includeInOutput",
             "options" : {
-              "format" : "checkbox"
+              "format" : "checkbox",
+              "hideFlowVariableButton" : true
             }
           }, {
             "type" : "Control",
             "scope" : "#/properties/columnRename",
+            "options" : {
+              "hideFlowVariableButton" : true
+            },
             "label" : ""
           }, {
             "type" : "Control",
             "scope" : "#/properties/type",
             "options" : {
+              "hideFlowVariableButton" : true,
               "choicesProvider" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders$TypeChoicesProvider",
               "format" : "dropDown",
               "showNoneColumn" : false,

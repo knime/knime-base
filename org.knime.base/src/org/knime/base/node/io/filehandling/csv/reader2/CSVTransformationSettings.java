@@ -277,7 +277,7 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
 
     @Widget(title = "Take columns from", description = """
             Only enabled in "Files in folder" mode. Specifies which set of columns are considered for the output table.
-            """)
+            """, hideFlowVariableButton = true)
     @ValueSwitchWidget
     // TODO NOSONAR UIEXT-1800 merge with CSVTableReaderNoderSettings.m_failOnDifferingSpecs
     ColumnFilterModeOption m_takeColumnsFrom = ColumnFilterModeOption.UNION;
@@ -290,13 +290,13 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
         @ValueReference(ColumnNameRef.class)
         String m_columnName;
 
-        @Widget(title = "Include in output", description = "") // TODO NOSONAR UIEXT-1901 add description
+        @Widget(title = "Include in output", description = "", hideFlowVariableButton = true) // TODO NOSONAR UIEXT-1901 add description
         boolean m_includeInOutput;
 
-        @Widget(title = "Column name", description = "", hideTitle = true) // TODO NOSONAR UIEXT-1901 add description
+        @Widget(title = "Column name", description = "", hideTitle = true, hideFlowVariableButton = true) // TODO NOSONAR UIEXT-1901 add description
         String m_columnRename;
 
-        @Widget(title = "Column type", description = "") // TODO NOSONAR UIEXT-1901 add description
+        @Widget(title = "Column type", description = "", hideFlowVariableButton = true) // TODO NOSONAR UIEXT-1901 add description
         @ChoicesWidget(choicesProvider = TypeChoicesProvider.class)
         String m_type;
 
