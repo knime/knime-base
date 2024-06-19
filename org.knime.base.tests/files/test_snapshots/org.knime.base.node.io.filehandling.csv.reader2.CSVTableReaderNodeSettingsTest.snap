@@ -828,7 +828,6 @@
         "scope" : "#/properties/model/properties/settings/properties/source",
         "options" : {
           "format" : "fileChooser",
-          "isLabs" : true,
           "fileExtensions" : [ "csv", "tsv", "txt" ]
         }
       }, {

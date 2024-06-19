@@ -156,7 +156,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @ValueReference(FileChooserRef.class)
         @Layout(Source.class)
         @Persist(configKey = "file_selection", settingsModel = SettingsModelReaderFileChooser.class)
-        @FileReaderWidget(isLabs = true, fileExtensions = {"csv", "tsv", "txt"})
+        @FileReaderWidget(fileExtensions = {"csv", "tsv", "txt"})
         FileChooser m_source = new FileChooser();
 
         @Persist(configKey = "file_selection", hidden = true)
