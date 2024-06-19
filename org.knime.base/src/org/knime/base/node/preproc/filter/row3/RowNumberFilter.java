@@ -168,15 +168,11 @@ final class RowNumberFilter {
             return exec.createVoidTable(in.getDataTableSpec());
         }
         if (numDisconnectedRanges == 1) {
-            InternalTableAPI.slice(exec, in, toSelection(ranges.get(0)));
+            return InternalTableAPI.slice(exec, in, toSelection(ranges.get(0)));
         }
 
-        final var subTables = new BufferedDataTable[numDisconnectedRanges];
-        for (var i = 0; i < numDisconnectedRanges; i++) {
-            final var sliceExec = exec.createSubExecutionContext(0.5 / numDisconnectedRanges);
-            subTables[i] = InternalTableAPI.slice(sliceExec, in, toSelection(ranges.get(i)));
-            sliceExec.setProgress(1.0, (String)null);
-        }
+        final var subTables =
+            InternalTableAPI.multiSlice(exec, in, ranges.stream().map(r -> toSelection(r)).toArray(Selection[]::new));
 
         final var concatProgress = exec.createSubProgress(0.5);
         try {
