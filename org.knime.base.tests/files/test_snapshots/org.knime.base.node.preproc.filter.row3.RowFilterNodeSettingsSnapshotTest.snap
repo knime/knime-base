@@ -13,7 +13,7 @@
             "value" : null,
             "cellClassName" : "org.knime.core.data.def.BooleanCell"
           } ],
-          "inputKind" : "Single"
+          "inputKind" : "SINGLE"
         }
       } ],
       "outputMode" : "MATCHING"
@@ -127,13 +127,13 @@
                   "properties" : {
                     "inputKind" : {
                       "oneOf" : [ {
-                        "const" : "Single",
+                        "const" : "SINGLE",
                         "title" : "Single"
                       }, {
-                        "const" : "Double",
+                        "const" : "DOUBLE",
                         "title" : "Double"
                       }, {
-                        "const" : "Collection",
+                        "const" : "COLLECTION",
                         "title" : "Collection"
                       } ]
                     },
@@ -164,7 +164,7 @@
                       "value" : null,
                       "cellClassName" : "org.knime.core.data.def.BooleanCell"
                     } ],
-                    "inputKind" : "Single"
+                    "inputKind" : "SINGLE"
                   }
                 }
               }

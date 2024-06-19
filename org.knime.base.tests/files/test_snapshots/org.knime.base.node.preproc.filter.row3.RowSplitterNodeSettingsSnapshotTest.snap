@@ -13,10 +13,10 @@
             "value" : null,
             "cellClassName" : "org.knime.core.data.def.BooleanCell"
           } ],
-          "inputKind" : "Single"
+          "inputKind" : "SINGLE"
         }
       } ],
-      "outputMode" : "FIRST"
+      "outputMode" : "MATCHING"
     }
   },
   "schema" : {
@@ -38,15 +38,15 @@
           },
           "outputMode" : {
             "oneOf" : [ {
-              "const" : "FIRST",
+              "const" : "MATCHING",
               "title" : "Matching rows at first output, non-matching at second output"
             }, {
-              "const" : "SECOND",
+              "const" : "NON_MATCHING",
               "title" : "Non-matching rows at first output, matching at second output"
             } ],
             "title" : "Splitting behavior",
             "description" : "Determines whether matching rows are output at the first port and non-matching rows are output at the second port, or vice-versa.",
-            "default" : "FIRST"
+            "default" : "MATCHING"
           },
           "predicates" : {
             "title" : "Filter criteria",
@@ -127,13 +127,13 @@
                   "properties" : {
                     "inputKind" : {
                       "oneOf" : [ {
-                        "const" : "Single",
+                        "const" : "SINGLE",
                         "title" : "Single"
                       }, {
-                        "const" : "Double",
+                        "const" : "DOUBLE",
                         "title" : "Double"
                       }, {
-                        "const" : "Collection",
+                        "const" : "COLLECTION",
                         "title" : "Collection"
                       } ]
                     },
@@ -164,7 +164,7 @@
                       "value" : null,
                       "cellClassName" : "org.knime.core.data.def.BooleanCell"
                     } ],
-                    "inputKind" : "Single"
+                    "inputKind" : "SINGLE"
                   }
                 }
               }

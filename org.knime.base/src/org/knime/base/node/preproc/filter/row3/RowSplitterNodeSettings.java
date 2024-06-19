@@ -63,7 +63,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 @SuppressWarnings("restriction") // webui
 final class RowSplitterNodeSettings extends AbstractRowFilterNodeSettings {
 
-    // we need to repeat both constructores, otherwise InstantiationUtil cannot instantiate our concrete settings class
+    // we need to repeat both constructors, otherwise InstantiationUtil cannot instantiate our concrete settings class
 
     // for de-/serialization
     RowSplitterNodeSettings() {
@@ -83,8 +83,8 @@ final class RowSplitterNodeSettings extends AbstractRowFilterNodeSettings {
     @Override
     FilterMode outputMode() {
         return switch (m_outputMode) {
-            case FIRST -> FilterMode.MATCHING;
-            case SECOND -> FilterMode.NON_MATCHING;
+            case MATCHING -> FilterMode.MATCHING;
+            case NON_MATCHING -> FilterMode.NON_MATCHING;
         };
     }
 
@@ -98,13 +98,15 @@ final class RowSplitterNodeSettings extends AbstractRowFilterNodeSettings {
             + "output at the second port, or vice-versa.", hideTitle = true)
     @RadioButtonsWidget
     @Layout(Output.class)
-    SplitterMode m_outputMode = SplitterMode.FIRST;
+    SplitterMode m_outputMode = SplitterMode.MATCHING;
 
+    // variants are named exactly as in `FilterMode` to make it easier to switch from Filter to Splitter when using
+    // flow variables
     private enum SplitterMode {
         @Label("Matching rows at first output, non-matching at second output")
-        FIRST,
+        MATCHING,
         @Label("Non-matching rows at first output, matching at second output")
-        SECOND
+        NON_MATCHING
     }
 
 }

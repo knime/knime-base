@@ -118,9 +118,8 @@ final class RowReadPredicate implements Predicate<RowRead> {
     }
 
     private static CaseMatching getCaseMatching(final FilterCriterion criterion) {
-        final var isCaseSensitive =
-            criterion.m_predicateValues.getModifiersAt(0, StringValueModifiers.class).isCaseSensitive();
-        return isCaseSensitive ? CaseMatching.CASESENSITIVE : CaseMatching.CASEINSENSITIVE;
+        return ((StringValueModifiers)criterion.m_predicateValues.getModifiersAt(0)).isCaseSensitive()
+            ? CaseMatching.CASESENSITIVE : CaseMatching.CASEINSENSITIVE;
     }
 
     private static Predicate<RowRead> createFrom(final FilterCriterion criterion, final DataTableSpec spec)
@@ -386,23 +385,15 @@ final class RowReadPredicate implements Predicate<RowRead> {
 
         DoubleValuePredicate(final FilterOperator operator, final double comparisonValue)
                 throws InvalidSettingsException {
+            /*
+             * Why not (only) primitive comparisons for doubles?
+             *
+             * We need to compare all NaNs equal and larger/smaller than other values
+             * (as the DoubleCell and DoubleValueComparator classes do it)
+             */
             m_predicate = switch (operator) {
-                case EQ -> value -> value == comparisonValue; // NOSONAR exact equality/inequality is what we want
-                case NEQ -> value -> value != comparisonValue; // NOSONAR
-                /* Why not < or > for doubles?
-                 *
-                 * We use the `Comparable` notion of larger/smaller wrt. NaNs to keep compatibility with the old
-                 * Row Filter.
-                 *
-                 * jshell> Double.NaN > 0.85
-                 * $5 ==> false
-                 * jshell> Double.NaN < 0.85
-                 * $6 ==> false
-                 * jshell> Double.compare(Double.NaN, 0.85)
-                 * $7 ==> 1
-                 * jshell> Double.compare(0.85, Double.NaN)
-                 * $8 ==> -1
-                 */
+                case EQ -> value -> Double.doubleToLongBits(value) == Double.doubleToLongBits(comparisonValue);
+                case NEQ -> value -> Double.doubleToLongBits(value) != Double.doubleToLongBits(comparisonValue);
                 case LT -> value -> Double.compare(value, comparisonValue) < 0;
                 case LTE -> value -> Double.compare(value, comparisonValue) <= 0;
                 case GT -> value -> Double.compare(value, comparisonValue) > 0;
