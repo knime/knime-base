@@ -75,10 +75,12 @@ import org.knime.core.data.append.AppendedRowsTable;
 import org.knime.core.data.append.AppendedRowsTable.DuplicatePolicy;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.DataContainerSettings;
+import org.knime.core.data.container.filter.TableFilter;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
+import org.knime.core.node.InternalTableAPI;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettings;
@@ -102,17 +104,24 @@ import org.knime.core.node.streamable.RowOutput;
 import org.knime.core.node.streamable.StreamableOperator;
 
 /**
- * {@link org.knime.core.node.NodeModel} that concatenates its two input
- * table to one output table.
+ * {@link org.knime.core.node.NodeModel} that concatenates its two input table to one output table.
  *
  * @see AppendedRowsTable
  * @author Bernd Wiswedel, University of Konstanz
  */
 public class AppendedRowsNodeModel extends NodeModel {
 
-    /** NodeSettings key flag if to fail on duplicate ids . This option was
-     * added in v2.3 and will overrule the append suffix/skip flags if true. */
+    /**
+     * NodeSettings key flag if to fail on duplicate ids . This option was added in v2.3 and will overrule the append
+     * suffix/skip flags if true.
+     */
     static final String CFG_FAIL_ON_DUPLICATES = "fail_on_duplicates";
+
+    /**
+     * NodeSettings key flag if new RowIDs should be generated. This option was added in v5.1 and will overrule the
+     * other RowID related settings (fail, skip, append).
+     */
+    static final String CFG_NEW_ROWIDS = "create_new_rowids";
 
     /**
      * NodeSettings key if to append suffix (boolean). If false, skip the rows.
@@ -128,9 +137,11 @@ public class AppendedRowsNodeModel extends NodeModel {
     /** NodeSettings key: Use only the intersection of columns. */
     static final String CFG_INTERSECT_COLUMNS = "intersection_of_columns";
 
-    private boolean m_isFailOnDuplicate = false;
+    private boolean m_isFailOnDuplicate = false; //NOSONAR: be explicit
 
-    private boolean m_isAppendSuffix = true;
+    private boolean m_isAppendSuffix = false; //NOSONAR: be explicit
+
+    private boolean m_createNewRowIDs = true;
 
     private String m_suffix = "_dup";
 
@@ -140,8 +151,10 @@ public class AppendedRowsNodeModel extends NodeModel {
 
     /** Hilite manager that summarizes both input handlers into one. */
     private final HiLiteManager m_hiliteManager = new HiLiteManager();
+
     /** Hilite translator for duplicate row keys. */
     private final HiLiteTranslator m_hiliteTranslator = new HiLiteTranslator();
+
     /** Default hilite handler used if hilite translation is disabled. */
     private final HiLiteHandler m_dftHiliteHandler = new HiLiteHandler();
 
@@ -152,12 +165,13 @@ public class AppendedRowsNodeModel extends NodeModel {
         super(2, 1);
     }
 
-    /** Create new node with given number of inputs. All inputs except the first
-     * one are declared as optional.
+    /**
+     * Create new node with given number of inputs. All inputs except the first one are declared as optional.
+     *
      * @param nrIns Nr inputs, must be >=1.
      */
     AppendedRowsNodeModel(final int nrIns) {
-        super(getInPortTypes(nrIns), new PortType[] {BufferedDataTable.TYPE});
+        super(getInPortTypes(nrIns), new PortType[]{BufferedDataTable.TYPE});
     }
 
     /**
@@ -173,60 +187,55 @@ public class AppendedRowsNodeModel extends NodeModel {
         if (nrIns < 1) {
             throw new IllegalArgumentException("invalid input count: " + nrIns);
         }
-        PortType[] result = new PortType[nrIns];
+        final var result = new PortType[nrIns];
         Arrays.fill(result, BufferedDataTable.TYPE_OPTIONAL);
         result[0] = BufferedDataTable.TYPE;
         return result;
     }
 
-
     /**
      * {@inheritDoc}
      */
     @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] rawInData,
-        final ExecutionContext exec) throws Exception {
+    protected BufferedDataTable[] execute(final BufferedDataTable[] rawInData, final ExecutionContext exec)
+        throws Exception {
 
         // remove all null tables first (optional input data)
-        BufferedDataTable[] noNullArray = noNullArray(rawInData);
-        DataTableSpec[] noNullSpecs = new DataTableSpec[noNullArray.length];
-        for (int i = 0; i < noNullArray.length; i++) {
+        final var noNullArray = noNullArray(rawInData);
+        final var noNullSpecs = new DataTableSpec[noNullArray.length];
+        for (var i = 0; i < noNullArray.length; i++) {
             noNullSpecs[i] = noNullArray[i].getDataTableSpec();
         }
 
-        //table can only be wrapped if a suffix is to be append or the node fails in case of duplicate row ID's
-        if (m_isAppendSuffix || m_isFailOnDuplicate) {
+        //table can only be wrapped for the row id strategies append suffix, fail and create new
+        if (m_isAppendSuffix || m_isFailOnDuplicate || m_createNewRowIDs) {
             //just wrap the tables virtually instead of traversing it and copying the rows
 
-            //virtually create the concatenated table (no traverse necessary)
-            Optional<String> suffix = m_isAppendSuffix ? Optional.of(m_suffix) : Optional.empty();
-            BufferedDataTable concatTable = exec.createConcatenateTable(exec, suffix, m_isFailOnDuplicate, noNullArray);
+            var concatTable = concatenate(exec, noNullArray);
             if (m_isIntersection) {
                 //wrap the table and filter the non-intersecting columns
-                DataTableSpec actualOutSpec = getOutputSpec(noNullSpecs);
-                DataTableSpec currentOutSpec = concatTable.getDataTableSpec();
-                String[] intersectCols = getIntersection(actualOutSpec, currentOutSpec);
-                ColumnRearranger cr = new ColumnRearranger(currentOutSpec);
+                final var actualOutSpec = getOutputSpec(noNullSpecs);
+                final var currentOutSpec = concatTable.getDataTableSpec();
+                final var intersectCols = getIntersection(actualOutSpec, currentOutSpec);
+                final var cr = new ColumnRearranger(currentOutSpec);
                 cr.keepOnly(intersectCols);
                 concatTable = exec.createColumnRearrangeTable(concatTable, cr, exec);
             }
             if (m_enableHiliting) {
-                AppendedRowsTable tmp = new AppendedRowsTable(DuplicatePolicy.Fail, null, noNullArray);
-                Map<RowKey, Set<RowKey>> map =
-                    createHiliteTranslationMap(createDuplicateMap(tmp, exec, m_suffix == null ? "" : m_suffix));
-                m_hiliteTranslator.setMapper(new DefaultHiLiteMapper(map));
+                DefaultHiLiteMapper mapper = createHiliteMapper(exec, noNullArray);
+                m_hiliteTranslator.setMapper(mapper);
             }
             return new BufferedDataTable[]{concatTable};
         } else {
             //traverse the table and copy the rows
-            long totalRowCount = 0L;
-            RowInput[] inputs = new RowInput[noNullArray.length];
-            for (int i = 0; i < noNullArray.length; i++) {
+            var totalRowCount = 0L;
+            final var inputs = new RowInput[noNullArray.length];
+            for (var i = 0; i < noNullArray.length; i++) {
                 totalRowCount += noNullArray[i].size();
                 inputs[i] = new DataTableRowInput(noNullArray[i]);
             }
-            DataTableSpec outputSpec = getOutputSpec(noNullSpecs);
-            BufferedDataTableRowOutput output = new BufferedDataTableRowOutput(
+            final var outputSpec = getOutputSpec(noNullSpecs);
+            final var output = new BufferedDataTableRowOutput(
                 exec.createDataContainer(outputSpec, DataContainerSettings.getDefault()));
             run(inputs, output, exec, totalRowCount);
             return new BufferedDataTable[]{output.getDataTable()};
@@ -234,8 +243,19 @@ public class AppendedRowsNodeModel extends NodeModel {
 
     }
 
+    private BufferedDataTable concatenate(final ExecutionContext exec, final BufferedDataTable[] tables)
+        throws CanceledExecutionException {
+        if (m_createNewRowIDs) {
+            return InternalTableAPI.concatenateWithNewRowID(exec, tables);
+        } else {
+            //virtually create the concatenated table (no traverse necessary)
+            Optional<String> suffix = m_isAppendSuffix ? Optional.of(m_suffix) : Optional.empty();
+            return exec.createConcatenateTable(exec, suffix, m_isFailOnDuplicate, tables);
+        }
+    }
+
     private static BufferedDataTable[] noNullArray(final BufferedDataTable[] rawInData) {
-        List<BufferedDataTable> nonNullList = new ArrayList<BufferedDataTable>();
+        final var nonNullList = new ArrayList<BufferedDataTable>();
         for (BufferedDataTable t : rawInData) {
             if (t != null) {
                 nonNullList.add(t);
@@ -245,7 +265,7 @@ public class AppendedRowsNodeModel extends NodeModel {
     }
 
     private static RowInput[] noNullArray(final RowInput[] rawInData) {
-        List<RowInput> nonNullList = new ArrayList<RowInput>();
+        final var nonNullList = new ArrayList<RowInput>();
         for (RowInput t : rawInData) {
             if (t != null) {
                 nonNullList.add(t);
@@ -254,18 +274,18 @@ public class AppendedRowsNodeModel extends NodeModel {
         return nonNullList.toArray(new RowInput[nonNullList.size()]);
     }
 
-    void run(final RowInput[] inputs, final RowOutput output,
-        final ExecutionMonitor exec, final long totalRowCount) throws Exception {
+    void run(final RowInput[] inputs, final RowOutput output, final ExecutionMonitor exec, final long totalRowCount)
+        throws InterruptedException, CanceledExecutionException {
         RowInput[] corrected;
         if (m_isIntersection) {
             final RowInput[] noNullArray = noNullArray(inputs);
             corrected = new RowInput[noNullArray.length];
-            DataTableSpec[] inSpecs = new DataTableSpec[noNullArray.length];
-            for (int i = 0; i < noNullArray.length; i++) {
+            final var inSpecs = new DataTableSpec[noNullArray.length];
+            for (var i = 0; i < noNullArray.length; i++) {
                 inSpecs[i] = noNullArray[i].getDataTableSpec();
             }
             String[] intersection = getIntersection(inSpecs);
-            for (int i = 0; i < noNullArray.length; i++) {
+            for (var i = 0; i < noNullArray.length; i++) {
                 corrected[i] = new FilterColumnRowInput(noNullArray[i], intersection);
             }
         } else {
@@ -273,15 +293,17 @@ public class AppendedRowsNodeModel extends NodeModel {
         }
 
         AppendedRowsTable.DuplicatePolicy duplPolicy;
-        if (m_isFailOnDuplicate) {
+        if (m_createNewRowIDs) {
+            duplPolicy = AppendedRowsTable.DuplicatePolicy.CreateNew;
+        } else if (m_isFailOnDuplicate) {
             duplPolicy = AppendedRowsTable.DuplicatePolicy.Fail;
         } else if (m_isAppendSuffix) {
             duplPolicy = AppendedRowsTable.DuplicatePolicy.AppendSuffix;
         } else {
             duplPolicy = AppendedRowsTable.DuplicatePolicy.Skip;
         }
-        AppendedRowsRowInput appendedInput = AppendedRowsRowInput.create(corrected,
-            duplPolicy, m_suffix, exec, totalRowCount);
+        final var appendedInput =
+            AppendedRowsRowInput.create(corrected, duplPolicy, m_suffix, exec, totalRowCount, m_enableHiliting);
         try {
             DataRow next;
             // note, this iterator throws runtime exceptions when canceled.
@@ -289,7 +311,7 @@ public class AppendedRowsNodeModel extends NodeModel {
                 // may throw exception, also sets progress
                 output.push(next);
             }
-        } catch (AppendedRowsIterator.RuntimeCanceledExecutionException rcee) {
+        } catch (AppendedRowsIterator.RuntimeCanceledExecutionException rcee) { //NOSONAR: only interested in cause
             throw rcee.getCause();
         } finally {
             output.close();
@@ -303,14 +325,13 @@ public class AppendedRowsNodeModel extends NodeModel {
         }
     }
 
-    private DataTableSpec getOutputSpec(final DataTableSpec[] nonNullInSpecs) throws InvalidSettingsException {
+    private DataTableSpec getOutputSpec(final DataTableSpec[] nonNullInSpecs) {
         DataTableSpec[] corrected;
         if (m_isIntersection) {
             corrected = new DataTableSpec[nonNullInSpecs.length];
             String[] intersection = getIntersection(nonNullInSpecs);
-            for (int i = 0; i < nonNullInSpecs.length; i++) {
-                corrected[i] = FilterColumnTable.createFilterTableSpec(
-                    nonNullInSpecs[i], intersection);
+            for (var i = 0; i < nonNullInSpecs.length; i++) {
+                corrected[i] = FilterColumnTable.createFilterTableSpec(nonNullInSpecs[i], intersection);
             }
         } else {
             corrected = nonNullInSpecs;
@@ -329,7 +350,7 @@ public class AppendedRowsNodeModel extends NodeModel {
         }
         DataTableSpec[] noNullSpecs = noNullSpecList.toArray(new DataTableSpec[noNullSpecList.size()]);
         DataTableSpec outputSpec = getOutputSpec(noNullSpecs);
-        return new DataTableSpec[] {outputSpec};
+        return new DataTableSpec[]{outputSpec};
     }
 
     /**
@@ -339,14 +360,14 @@ public class AppendedRowsNodeModel extends NodeModel {
      * @return column names that appear in all columns
      */
     static String[] getIntersection(final DataTableSpec... specs) {
-        LinkedHashSet<String> hash = new LinkedHashSet<String>();
+        final var hash = new LinkedHashSet<String>();
         if (specs.length > 0) {
             for (DataColumnSpec c : specs[0]) {
                 hash.add(c.getName());
             }
         }
-        LinkedHashSet<String> hash2 = new LinkedHashSet<String>();
-        for (int i = 1; i < specs.length; i++) {
+        final var hash2 = new LinkedHashSet<String>();
+        for (var i = 1; i < specs.length; i++) {
             hash2.clear();
             for (DataColumnSpec c : specs[i]) {
                 hash2.add(c.getName());
@@ -362,36 +383,36 @@ public class AppendedRowsNodeModel extends NodeModel {
     @Override
     public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
         final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-            return new StreamableOperator() {
-                @Override
-                public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
-                    throws Exception {
-                    List<RowInput> noNullList = new ArrayList<RowInput>();
-                    for (PortInput p : inputs) {
-                        if (p != null) {
-                            noNullList.add((RowInput)p);
-                        }
+        return new StreamableOperator() {
+            @Override
+            public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
+                throws Exception {
+                final var noNullList = new ArrayList<RowInput>();
+                for (PortInput p : inputs) {
+                    if (p != null) {
+                        noNullList.add((RowInput)p);
                     }
-                    RowInput[] rowInputs = noNullList.toArray(new RowInput[noNullList.size()]);
-                    run(rowInputs, (RowOutput)outputs[0], exec, -1);
                 }
-            };
+                RowInput[] rowInputs = noNullList.toArray(new RowInput[noNullList.size()]);
+                run(rowInputs, (RowOutput)outputs[0], exec, -1);
+            }
+        };
     }
 
     /** {@inheritDoc} */
     @Override
     public InputPortRole[] getInputPortRoles() {
-        InputPortRole[] result = new InputPortRole[getNrInPorts()];
+        final var result = new InputPortRole[getNrInPorts()];
         Arrays.fill(result, InputPortRole.NONDISTRIBUTED_STREAMABLE);
         return result;
     }
-
 
     /**
      * {@inheritDoc}
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
+        settings.addBoolean(CFG_NEW_ROWIDS, m_createNewRowIDs);
         // added in v2.3
         settings.addBoolean(CFG_FAIL_ON_DUPLICATES, m_isFailOnDuplicate);
         settings.addBoolean(CFG_APPEND_SUFFIX, m_isAppendSuffix);
@@ -406,17 +427,15 @@ public class AppendedRowsNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void validateSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         settings.getBoolean(CFG_INTERSECT_COLUMNS);
         // added v2.3
-        boolean isFailOnDuplicate =
-            settings.getBoolean(CFG_FAIL_ON_DUPLICATES, false);
-        boolean appendSuffix = settings.getBoolean(CFG_APPEND_SUFFIX);
+        final var isFailOnDuplicate = settings.getBoolean(CFG_FAIL_ON_DUPLICATES, false);
+        final var appendSuffix = settings.getBoolean(CFG_APPEND_SUFFIX);
         if (isFailOnDuplicate) {
             // ignore suffix
         } else if (appendSuffix) {
-            String suffix = settings.getString(CFG_SUFFIX);
+            final var suffix = settings.getString(CFG_SUFFIX);
             if (suffix == null || suffix.equals("")) {
                 throw new InvalidSettingsException("Invalid suffix: " + suffix);
             }
@@ -429,12 +448,12 @@ public class AppendedRowsNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_isIntersection = settings.getBoolean(CFG_INTERSECT_COLUMNS);
+        // added in v5.1
+        m_createNewRowIDs = settings.getBoolean(CFG_NEW_ROWIDS, false);
         // added in v2.3
-        m_isFailOnDuplicate =
-            settings.getBoolean(CFG_FAIL_ON_DUPLICATES, false);
+        m_isFailOnDuplicate = settings.getBoolean(CFG_FAIL_ON_DUPLICATES, false);
         m_isAppendSuffix = settings.getBoolean(CFG_APPEND_SUFFIX);
         if (m_isAppendSuffix) {
             m_suffix = settings.getString(CFG_SUFFIX);
@@ -451,8 +470,7 @@ public class AppendedRowsNodeModel extends NodeModel {
     @Override
     protected void reset() {
         m_hiliteManager.removeAllToHiliteHandlers();
-        m_hiliteManager.addToHiLiteHandler(
-                m_hiliteTranslator.getFromHiLiteHandler());
+        m_hiliteManager.addToHiLiteHandler(m_hiliteTranslator.getFromHiLiteHandler());
         m_hiliteManager.addToHiLiteHandler(getInHiLiteHandler(0));
         m_hiliteTranslator.removeAllToHiliteHandlers();
         m_hiliteTranslator.addToHiLiteHandler(getInHiLiteHandler(1));
@@ -462,16 +480,14 @@ public class AppendedRowsNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void loadInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         if (m_enableHiliting) {
             final NodeSettingsRO config = NodeSettings.loadFromXML(
-                    new GZIPInputStream(new FileInputStream(
-                    new File(nodeInternDir, "hilite_mapping.xml.gz"))));
+                new GZIPInputStream(new FileInputStream(new File(nodeInternDir, "hilite_mapping.xml.gz"))));
             try {
                 m_hiliteTranslator.setMapper(DefaultHiLiteMapper.load(config));
-            } catch (final InvalidSettingsException ex) {
+            } catch (final InvalidSettingsException ex) { //NOSONAR: re-throwing the message is enough
                 throw new IOException(ex.getMessage());
             }
         }
@@ -481,14 +497,13 @@ public class AppendedRowsNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void saveInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         if (m_enableHiliting) {
-            final NodeSettings config = new NodeSettings("hilite_mapping");
-            ((DefaultHiLiteMapper) m_hiliteTranslator.getMapper()).save(config);
-            config.saveToXML(new GZIPOutputStream(new FileOutputStream(new File(
-                    nodeInternDir, "hilite_mapping.xml.gz"))));
+            final var config = new NodeSettings("hilite_mapping");
+            ((DefaultHiLiteMapper)m_hiliteTranslator.getMapper()).save(config);
+            config.saveToXML(
+                new GZIPOutputStream(new FileOutputStream(new File(nodeInternDir, "hilite_mapping.xml.gz"))));
         }
     }
 
@@ -496,13 +511,11 @@ public class AppendedRowsNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void setInHiLiteHandler(final int inIndex,
-            final HiLiteHandler hiLiteHdl) {
+    protected void setInHiLiteHandler(final int inIndex, final HiLiteHandler hiLiteHdl) {
         super.setInHiLiteHandler(inIndex, hiLiteHdl);
         if (inIndex == 0) {
             m_hiliteManager.removeAllToHiliteHandlers();
-            m_hiliteManager.addToHiLiteHandler(
-                    m_hiliteTranslator.getFromHiLiteHandler());
+            m_hiliteManager.addToHiLiteHandler(m_hiliteTranslator.getFromHiLiteHandler());
             m_hiliteManager.addToHiLiteHandler(hiLiteHdl);
         } else if (inIndex == 1) {
             m_hiliteTranslator.removeAllToHiliteHandlers();
@@ -522,8 +535,19 @@ public class AppendedRowsNodeModel extends NodeModel {
         }
     }
 
-    private Map<RowKey, RowKey> createDuplicateMap(final DataTable table, final ExecutionContext exec, final String suffix) throws CanceledExecutionException {
-        Map<RowKey, RowKey> duplicateMap = new HashMap<RowKey, RowKey>();
+    private DefaultHiLiteMapper createHiliteMapper(final ExecutionContext exec, final BufferedDataTable[] tables)
+        throws CanceledExecutionException {
+        if (m_createNewRowIDs) {
+            return new DefaultHiLiteMapper(createNewRowIDHiliteTranslation(tables));
+        }
+        final var tmp = new AppendedRowsTable(DuplicatePolicy.Fail, null, tables);
+        final var map = createHiliteTranslationMap(createDuplicateMap(tmp, exec, m_suffix == null ? "" : m_suffix));
+        return new DefaultHiLiteMapper(map);
+    }
+
+    private static Map<RowKey, RowKey> createDuplicateMap(final DataTable table, final ExecutionContext exec,
+        final String suffix) throws CanceledExecutionException {
+        final var duplicateMap = new HashMap<RowKey, RowKey>();
 
         RowIterator it = table.iterator();
         DataRow row;
@@ -541,9 +565,25 @@ public class AppendedRowsNodeModel extends NodeModel {
         return duplicateMap;
     }
 
+    private static Map<RowKey, Set<RowKey>> createNewRowIDHiliteTranslation(final BufferedDataTable[] tables) {
+        Map<RowKey, Set<RowKey>> translation = new HashMap<>();
+        long i = 0;
+        for (var table : tables) {
+            var iterable = table.filter(TableFilter.materializeCols());
+            try (var iterator = iterable.iterator()) {
+                while (iterator.hasNext()) {
+                    translation.put(RowKey.createRowKey(i), Set.of(iterator.next().getKey()));
+                    i++;
+                }
+            }
+        }
+
+        return translation;
+    }
+
     private Map<RowKey, Set<RowKey>> createHiliteTranslationMap(final Map<RowKey, RowKey> dupMap) {
-     // create hilite translation map
-        Map<RowKey, Set<RowKey>> map = new HashMap<RowKey, Set<RowKey>>();
+        // create hilite translation map
+        final var map = new HashMap<RowKey, Set<RowKey>>();
         // map of all RowKeys and duplicate RowKeys in the resulting table
         for (Map.Entry<RowKey, RowKey> e : dupMap.entrySet()) {
             // if a duplicate key
@@ -553,8 +593,7 @@ public class AppendedRowsNodeModel extends NodeModel {
                 map.put(e.getKey(), set);
             } else {
                 // skip duplicate keys
-                if (!dupMap.containsKey(new RowKey(e.getKey().getString()
-                        + m_suffix))) {
+                if (!dupMap.containsKey(new RowKey(e.getKey().getString() + m_suffix))) {
                     Set<RowKey> set = Collections.singleton(e.getValue());
                     map.put(e.getKey(), set);
                 }
