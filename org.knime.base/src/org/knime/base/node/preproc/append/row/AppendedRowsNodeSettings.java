@@ -63,9 +63,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
- * Currently only used for the node dialogue, backwards compatible loading is ensured
- * by the node model. If this is ever used for the node model, backwards compatible loading will
- * need to be implemented.
+ * Currently only used for the node dialogue, backwards compatible loading is ensured by the node model. If this is ever
+ * used for the node model, backwards compatible loading will need to be implemented.
  *
  * @author Jonas Klotz, KNIME GbmH, Berlin, Germany
  * @author Ivan Prigarin, KNIME GbmH, Konstanz, Germany
@@ -76,77 +75,73 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 public final class AppendedRowsNodeSettings implements DefaultNodeSettings {
 
     @Persist(customPersistor = ColumnSetOperationPersistor.class)
-    @Widget(title = "How to combine input columns",
-            description = "Choose the output column selection process:"
-                    + "<ul>"
-                    // Intersection option description
-                    + "<li><b>Intersection</b>: Use only the columns that appear "
-                    + "in every input table. Any other column is ignored and won't appear "
-                    + "in the output table.</li>"
-                    // Union option description
-                    + "<li><b>Union</b>: Use all columns from all input "
-                    + "tables. Fill rows with missing values if they miss cells for some columns.</li>"
-                    + "</ul>")
+    @Widget(title = "How to combine input columns", description = "Choose the output column selection process:" + "<ul>"
+    // Intersection option description
+        + "<li><b>Intersection</b>: Use only the columns that appear "
+        + "in every input table. Any other column is ignored and won't appear " + "in the output table.</li>"
+        // Union option description
+        + "<li><b>Union</b>: Use all columns from all input "
+        + "tables. Fill rows with missing values if they miss cells for some columns.</li>" + "</ul>")
     @ValueSwitchWidget
     ColumnSetOperation m_columnSetOperation = ColumnSetOperation.UNION;
 
     @Persist(customPersistor = RowIdResolutionPersistor.class)
-    @Widget(title = "If there are duplicate RowIDs",
-            description = "Select how to resolve duplicate RowIDs:"
-            + "<ul>"
-            // Skip option description
-            + "<li><b>Skip</b>: Duplicate row identifiers (RowID) occurring in the "
-            + "second table are not appended to the output table. This option is "
-            + "relatively memory intensive as it needs to cache the RowIDs in "
-            + "order to find duplicates. Furthermore a full data duplication is needed.</li>"
-            // Append suffix option description
-            + "<li><b>Append suffix</b>: The output table will contain all rows, but "
-            + "duplicate RowIDs are labeled with a suffix. Similar to "
-            + "the \"Skip Rows\" option this method is also memory intensive.</li>"
-            // Fail option description
-            + "<li><b>Fail</b>: The node will fail during execution if duplicate "
-            + "RowIDs are encountered. This option is efficient while checking uniqueness.</li>"
-            + "</ul>")
-    @Signal(condition = IsAppend.class)
+    @Widget(title = "RowID Handling", description = "Select how the RowIDs of the output table are generated:" + "<ul>"
+    // Skip option description
+        + "<li><b>Skip</b>: Duplicate row identifiers (RowID) occurring in the "
+        + "second table are not appended to the output table. This option is "
+        + "relatively memory intensive as it needs to cache the row IDs in "
+        + "order to find duplicates. Furthermore a full data duplication is needed.</li>"
+        // Append suffix option description
+        + "<li><b>Append suffix</b>: The output table will contain all rows, but "
+        + "duplicate RowIDs are labeled with a suffix. Similar to "
+        + "the \"Skip Rows\" option this method is also memory intensive.</li>"
+        + "<li><b>Create new</b>: All rows are included in the output table and receive new RowIDs following "
+        + "the format Row0, Row1, etc.</li>"
+        // Fail option description
+        + "<li><b>Fail</b>: The node will fail during execution if duplicate RowIDs are encountered. "
+        + "This option is efficient while checking uniqueness.</li>" + "</ul>")
     @ValueSwitchWidget
-    RowIdResolution m_rowIdResolution = RowIdResolution.APPEND;
+    @Signal(condition = IsAppend.class)
+    RowIdResolution m_rowIdResolution = RowIdResolution.NEW;
 
     @Persist(configKey = AppendedRowsNodeModel.CFG_SUFFIX)
-    @Widget(title = "Suffix",
-            description = "The suffix to be appended to RowIDs.")
+    @Widget(title = "Suffix", description = "The suffix to be appended to RowIDs.")
     @Effect(signals = IsAppend.class, type = EffectType.SHOW)
     String m_suffix = "_dup";
 
     @Persist(configKey = AppendedRowsNodeModel.CFG_HILITING)
     @Widget(title = "Enable hiliting",
-            description = "Enable hiliting between both inputs and the concatenated output table.",
-            advanced = true)
+        description = "Enable hiliting between both inputs and the concatenated output table.", advanced = true)
     boolean m_enableHiliting = false; //NOSONAR being explicit is desired here
 
     private static final class IsAppend extends OneOfEnumCondition<RowIdResolution> {
         @Override
         public RowIdResolution[] oneOf() {
-            return new RowIdResolution[] { RowIdResolution.APPEND } ;
+            return new RowIdResolution[]{RowIdResolution.APPEND};
         }
     }
 
     enum RowIdResolution {
-        @Label("Skip")
-        SKIP,
+            @Label("Skip")
+            SKIP,
 
-        @Label("Append suffix")
-        APPEND,
+            @Label("Append suffix")
+            APPEND,
 
-        @Label("Fail")
-        FAIL;
+            @Label("Create new")
+            NEW,
+
+            @Label("Fail")
+            FAIL;
     }
 
     enum ColumnSetOperation {
-        @Label("Intersection")
-        INTERSECTION,
+            @Label("Intersection")
+            INTERSECTION,
 
-        @Label("Union")
-        UNION;
+            @Label("Union")
+            UNION;
     }
 
     private static final class RowIdResolutionPersistor implements FieldNodeSettingsPersistor<RowIdResolution> {
@@ -154,8 +149,11 @@ public final class AppendedRowsNodeSettings implements DefaultNodeSettings {
         @Override
         public RowIdResolution load(final NodeSettingsRO settings) throws InvalidSettingsException {
             // NB: The order is important
-            // If both are true (for whatever reason) the node model will use DuplicatePolicy.Fail
-            if (settings.getBoolean(AppendedRowsNodeModel.CFG_FAIL_ON_DUPLICATES)) {
+            // If all three are true (for whatever reason) the node model will use RowIdResolution.NEW.
+            // RowIdResolution.NEW was added in 5.1
+            if (settings.getBoolean(AppendedRowsNodeModel.CFG_NEW_ROWIDS, false)) {
+                return RowIdResolution.NEW;
+            } else if (settings.getBoolean(AppendedRowsNodeModel.CFG_FAIL_ON_DUPLICATES)) {
                 return RowIdResolution.FAIL;
             } else if (settings.getBoolean(AppendedRowsNodeModel.CFG_APPEND_SUFFIX)) {
                 return RowIdResolution.APPEND;
@@ -165,14 +163,16 @@ public final class AppendedRowsNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public void save(final RowIdResolution obj, final NodeSettingsWO settings) {
-            settings.addBoolean(AppendedRowsNodeModel.CFG_APPEND_SUFFIX, obj == RowIdResolution.APPEND);
-            settings.addBoolean(AppendedRowsNodeModel.CFG_FAIL_ON_DUPLICATES, obj == RowIdResolution.FAIL);
+        public void save(final RowIdResolution resolution, final NodeSettingsWO settings) {
+            settings.addBoolean(AppendedRowsNodeModel.CFG_NEW_ROWIDS, resolution == RowIdResolution.NEW);
+            settings.addBoolean(AppendedRowsNodeModel.CFG_APPEND_SUFFIX, resolution == RowIdResolution.APPEND);
+            settings.addBoolean(AppendedRowsNodeModel.CFG_FAIL_ON_DUPLICATES, resolution == RowIdResolution.FAIL);
         }
 
         @Override
         public String[] getConfigKeys() {
-            return new String[]{AppendedRowsNodeModel.CFG_APPEND_SUFFIX, AppendedRowsNodeModel.CFG_FAIL_ON_DUPLICATES};
+            return new String[]{AppendedRowsNodeModel.CFG_NEW_ROWIDS, AppendedRowsNodeModel.CFG_APPEND_SUFFIX,
+                AppendedRowsNodeModel.CFG_FAIL_ON_DUPLICATES};
         }
     }
 
