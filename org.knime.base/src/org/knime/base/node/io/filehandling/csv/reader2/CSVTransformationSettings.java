@@ -53,28 +53,11 @@ import org.knime.base.node.io.filehandling.csv.reader.api.EscapeUtils;
 import org.knime.base.node.io.filehandling.csv.reader.api.QuoteOption;
 import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.AppendPathColumnRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.DecimalSeparatorRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.FilePathColumnNameRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.LimitScannedRowsRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.MaxDataRowsScannedRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.QuotedStringsOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.QuotedStringsOptionRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.ReplaceEmptyQuotedStringsByMissingValuesRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.ThousandsSeparatorRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.CustomEncodingRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.LimitRows.SkipFirstDataRowsRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.LimitRows.SkipFirstLinesRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.ColumnDelimiterRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.CommentStartRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.CustomRowDelimiterRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FirstColumnContainsRowIdsRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FirstRowContainsColumnNamesRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.QuoteCharacterRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.QuoteEscapeCharacterRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOptionRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.ConfigIdProvider;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.FSLocationsProvider;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.SourceIdProvider;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TableSpecSettingsProvider;
@@ -109,58 +92,40 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
 
     static final class ConfigIdSettings implements WidgetGroup, PersistableSettings {
 
-        @ValueProvider(FirstRowContainsColumnNamesRef.class)
         boolean m_firstRowContainsColumnNames = true;
 
-        @ValueProvider(FirstColumnContainsRowIdsRef.class)
         boolean m_firstColumnContainsRowIds;
 
-        @ValueProvider(CommentStartRef.class)
         String m_commentLineCharacter = "#";
 
-        @ValueProvider(ColumnDelimiterRef.class)
         String m_columnDelimiter = ",";
 
-        @ValueProvider(QuoteCharacterRef.class)
         String m_quoteCharacter = "\"";
 
-        @ValueProvider(QuoteEscapeCharacterRef.class)
         String m_quoteEscapeCharacter = "\"";
 
-        @ValueProvider(RowDelimiterOptionRef.class)
         RowDelimiterOption m_rowDelimiterOption = RowDelimiterOption.LINE_BREAK;
 
-        @ValueProvider(CustomRowDelimiterRef.class)
         String m_customRowDelimiter = "\n";
 
-        @ValueProvider(QuotedStringsOptionRef.class)
         QuotedStringsOption m_quotedStringsOption = QuotedStringsOption.REMOVE_QUOTES_AND_TRIM;
 
-        @ValueProvider(ReplaceEmptyQuotedStringsByMissingValuesRef.class)
         boolean m_replaceEmptyQuotedStringsByMissingValues = true;
 
-        @ValueProvider(LimitScannedRowsRef.class)
         boolean m_limitScannedRows = true;
 
-        @ValueProvider(MaxDataRowsScannedRef.class)
         long m_maxDataRowsScanned = 10000;
 
-        @ValueProvider(ThousandsSeparatorRef.class)
         String m_thousandsSeparator = "";
 
-        @ValueProvider(DecimalSeparatorRef.class)
         String m_decimalSeparator = ".";
 
-        @ValueProvider(FileEncodingRef.class)
         FileEncodingOption m_fileEncoding = FileEncodingOption.DEFAULT;
 
-        @ValueProvider(CustomEncodingRef.class)
         String m_customEncoding = "";
 
-        @ValueProvider(SkipFirstLinesRef.class)
         long m_skipFirstLines;
 
-        @ValueProvider(SkipFirstDataRowsRef.class)
         long m_skipFirstDataRows;
 
         void applyToConfig(final DefaultTableReadConfig<CSVTableReaderConfig> config) {
@@ -233,6 +198,7 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
         }
 
         @ValueReference(ConfigIdReference.class)
+        @ValueProvider(ConfigIdProvider.class)
         ConfigIdSettings m_configId = new ConfigIdSettings();
 
         @ValueProvider(SourceIdProvider.class)

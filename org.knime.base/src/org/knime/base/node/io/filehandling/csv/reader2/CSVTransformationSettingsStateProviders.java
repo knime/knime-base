@@ -59,9 +59,30 @@ import java.util.function.Supplier;
 
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReader;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.DecimalSeparatorRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.LimitMemoryPerColumnRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.LimitScannedRowsRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.MaxDataRowsScannedRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.MaximumNumberOfColumnsRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.QuotedStringsOption;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.QuotedStringsOptionRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.ReplaceEmptyQuotedStringsByMissingValuesRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.ThousandsSeparatorRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.CustomEncodingRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingOption;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.LimitRows.SkipFirstDataRowsRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.LimitRows.SkipFirstLinesRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.ColumnDelimiterRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.CommentStartRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.CustomRowDelimiterRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FileChooserRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FirstColumnContainsRowIdsRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FirstRowContainsColumnNamesRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.QuoteCharacterRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.QuoteEscapeCharacterRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOptionRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.ColumnSpecSettings;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.ConfigIdSettings;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.PersistorSettings.ConfigIdReference;
@@ -96,6 +117,96 @@ final class CSVTransformationSettingsStateProviders implements WidgetGroup, Pers
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(CSVTransformationSettingsStateProviders.class);
 
+    static final class ConfigIdProvider implements StateProvider<ConfigIdSettings> {
+
+        Supplier<Boolean> m_firstRowContainsColumnNamesSupplier;
+
+        Supplier<Boolean> m_firstColumnContainsRowIdsSupplier;
+
+        Supplier<String> m_commentLineCharacterSupplier;
+
+        Supplier<String> m_columnDelimiterSupplier;
+
+        Supplier<String> m_quoteCharacterSupplier;
+
+        Supplier<String> m_quoteEscapeCharacterSupplier;
+
+        Supplier<RowDelimiterOption> m_rowDelimiterOptionSupplier;
+
+        Supplier<String> m_customRowDelimiterSupplier;
+
+        Supplier<QuotedStringsOption> m_quotedStringsOptionSupplier;
+
+        Supplier<Boolean> m_replaceEmptyQuotedStringsByMissingValuesSupplier;
+
+        Supplier<Boolean> m_limitScannedRowsSupplier;
+
+        Supplier<Long> m_maxDataRowsScannedSupplier;
+
+        Supplier<String> m_thousandsSeparatorSupplier;
+
+        Supplier<String> m_decimalSeparatorSupplier;
+
+        Supplier<FileEncodingOption> m_fileEncodingSupplier;
+
+        Supplier<String> m_customEncodingSupplier;
+
+        Supplier<Long> m_skipFirstLinesSupplier;
+
+        Supplier<Long> m_skipFirstDataRowsSupplier;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            m_firstRowContainsColumnNamesSupplier =
+                initializer.computeFromValueSupplier(FirstRowContainsColumnNamesRef.class);
+            m_firstColumnContainsRowIdsSupplier =
+                initializer.computeFromValueSupplier(FirstColumnContainsRowIdsRef.class);
+            m_commentLineCharacterSupplier = initializer.computeFromValueSupplier(CommentStartRef.class);
+            m_columnDelimiterSupplier = initializer.computeFromValueSupplier(ColumnDelimiterRef.class);
+            m_quoteCharacterSupplier = initializer.computeFromValueSupplier(QuoteCharacterRef.class);
+            m_quoteEscapeCharacterSupplier = initializer.computeFromValueSupplier(QuoteEscapeCharacterRef.class);
+            m_rowDelimiterOptionSupplier = initializer.computeFromValueSupplier(RowDelimiterOptionRef.class);
+            m_customRowDelimiterSupplier = initializer.computeFromValueSupplier(CustomRowDelimiterRef.class);
+            m_quotedStringsOptionSupplier = initializer.computeFromValueSupplier(QuotedStringsOptionRef.class);
+            m_replaceEmptyQuotedStringsByMissingValuesSupplier =
+                initializer.computeFromValueSupplier(ReplaceEmptyQuotedStringsByMissingValuesRef.class);
+            m_limitScannedRowsSupplier = initializer.computeFromValueSupplier(LimitScannedRowsRef.class);
+            m_maxDataRowsScannedSupplier = initializer.computeFromValueSupplier(MaxDataRowsScannedRef.class);
+            m_thousandsSeparatorSupplier = initializer.computeFromValueSupplier(ThousandsSeparatorRef.class);
+            m_decimalSeparatorSupplier = initializer.computeFromValueSupplier(DecimalSeparatorRef.class);
+            m_fileEncodingSupplier = initializer.computeFromValueSupplier(FileEncodingRef.class);
+            m_customEncodingSupplier = initializer.computeFromValueSupplier(CustomEncodingRef.class);
+            m_skipFirstLinesSupplier = initializer.computeFromValueSupplier(SkipFirstLinesRef.class);
+            m_skipFirstDataRowsSupplier = initializer.computeFromValueSupplier(SkipFirstDataRowsRef.class);
+        }
+
+        @Override
+        public ConfigIdSettings computeState(final DefaultNodeSettingsContext context) {
+            final var configId = new ConfigIdSettings();
+            configId.m_firstRowContainsColumnNames = m_firstRowContainsColumnNamesSupplier.get();
+            configId.m_firstColumnContainsRowIds = m_firstColumnContainsRowIdsSupplier.get();
+            configId.m_commentLineCharacter = m_commentLineCharacterSupplier.get();
+            configId.m_columnDelimiter = m_columnDelimiterSupplier.get();
+            configId.m_quoteCharacter = m_quoteCharacterSupplier.get();
+            configId.m_quoteEscapeCharacter = m_quoteEscapeCharacterSupplier.get();
+            configId.m_rowDelimiterOption = m_rowDelimiterOptionSupplier.get();
+            configId.m_customRowDelimiter = m_customRowDelimiterSupplier.get();
+            configId.m_quotedStringsOption = m_quotedStringsOptionSupplier.get();
+            configId.m_replaceEmptyQuotedStringsByMissingValues =
+                m_replaceEmptyQuotedStringsByMissingValuesSupplier.get();
+            configId.m_limitScannedRows = m_limitScannedRowsSupplier.get();
+            configId.m_maxDataRowsScanned = m_maxDataRowsScannedSupplier.get();
+            configId.m_thousandsSeparator = m_thousandsSeparatorSupplier.get();
+            configId.m_decimalSeparator = m_decimalSeparatorSupplier.get();
+            configId.m_fileEncoding = m_fileEncodingSupplier.get();
+            configId.m_customEncoding = m_customEncodingSupplier.get();
+            configId.m_skipFirstLines = m_skipFirstLinesSupplier.get();
+            configId.m_skipFirstDataRows = m_skipFirstDataRowsSupplier.get();
+            return configId;
+        }
+
+    }
+
     /**
      * This object holds copies of the subset of settings in {@link CSVTableReaderNodeSettings} that can affect the spec
      * of the output table. I.e., if any of these settings change, the spec has to be re-calculcated.
@@ -111,8 +222,8 @@ final class CSVTransformationSettingsStateProviders implements WidgetGroup, Pers
 
         final int m_maximumNumberOfColumns;
 
-        Dependencies(final ConfigIdSettings configId, final FileChooser fileChooser,
-            final boolean limitMemoryPerColumn, final int maximumNumberOfColumns) {
+        Dependencies(final ConfigIdSettings configId, final FileChooser fileChooser, final boolean limitMemoryPerColumn,
+            final int maximumNumberOfColumns) {
             m_configId = configId;
             m_source = fileChooser;
             m_limitMemoryPerColumn = limitMemoryPerColumn;

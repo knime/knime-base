@@ -60,15 +60,34 @@ import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.DecimalSeparatorRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.LimitMemoryPerColumnRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.LimitScannedRowsRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.MaxDataRowsScannedRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.MaximumNumberOfColumnsRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.QuotedStringsOption;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.QuotedStringsOptionRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.ReplaceEmptyQuotedStringsByMissingValuesRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.ThousandsSeparatorRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.CustomEncodingRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingOption;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.LimitRows.SkipFirstDataRowsRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.LimitRows.SkipFirstLinesRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.ColumnDelimiterRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.CommentStartRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.CustomRowDelimiterRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FileChooserRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FirstColumnContainsRowIdsRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FirstRowContainsColumnNamesRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.QuoteCharacterRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.QuoteEscapeCharacterRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOptionRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.ConfigIdSettings;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.PersistorSettings.ConfigIdReference;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElementSettings.ColumnNameRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.ConfigIdProvider;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.DependenciesProvider;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.FSLocationsProvider;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.SourceIdProvider;
@@ -173,18 +192,14 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
         return settings;
     }
 
-    private static DependenciesProvider createDependenciesProvider(final CSVTableReaderNodeSettings settings) {
-        final var dependenciesProvider = new DependenciesProvider();
-        dependenciesProvider.init(getDependenciesProviderInitializer(settings));
-        return dependenciesProvider;
+    @Test
+    void testConfigIdProvider() {
+        final var settings = initSettings();
+        final var configId = createConfogIdProvider(settings).computeState(null);
+        assertConfigIdEqualsSettings(configId, settings);
     }
 
-    @Test
-    void testDependenciesProvider() {
-        final var settings = initSettings();
-        final var dependencies = createDependenciesProvider(settings).computeState(null);
-
-        final var configId = dependencies.m_configId;
+    private void assertConfigIdEqualsSettings(final ConfigIdSettings configId, final CSVTableReaderNodeSettings settings) {
         assertThat(configId.m_firstRowContainsColumnNames).isEqualTo(settings.m_settings.m_firstRowContainsColumnNames);
         assertThat(configId.m_firstColumnContainsRowIds).isEqualTo(settings.m_settings.m_firstColumnContainsRowIds);
         assertThat(configId.m_commentLineCharacter).isEqualTo(settings.m_settings.m_commentLineCharacter);
@@ -204,11 +219,94 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
         assertThat(configId.m_customEncoding).isEqualTo(settings.m_encoding.m_charset.m_customEncoding);
         assertThat(configId.m_skipFirstLines).isEqualTo(settings.m_limitRows.m_skipFirstLines);
         assertThat(configId.m_skipFirstDataRows).isEqualTo(settings.m_limitRows.m_skipFirstDataRows);
+    }
 
+    private static ConfigIdProvider createConfogIdProvider(final CSVTableReaderNodeSettings settings) {
+        final var configIdProvider = new ConfigIdProvider();
+        configIdProvider.init(getConfigIdProviderInitializer(settings));
+        return configIdProvider;
+    }
+
+    private static final StateProviderInitializer
+        getConfigIdProviderInitializer(final CSVTableReaderNodeSettings settings) {
+        return new NoopStateProviderInitializer() {
+            @Override
+            public <T> Supplier<T> computeFromValueSupplier(final Class<? extends Reference<T>> ref) {
+                if (ref.equals(FirstRowContainsColumnNamesRef.class)) {
+                    return () -> (T)(Object)settings.m_settings.m_firstRowContainsColumnNames;
+                }
+                if (ref.equals(FirstColumnContainsRowIdsRef.class)) {
+                    return () -> (T)(Object)settings.m_settings.m_firstColumnContainsRowIds;
+                }
+                if (ref.equals(CommentStartRef.class)) {
+                    return () -> (T)settings.m_settings.m_commentLineCharacter;
+                }
+                if (ref.equals(ColumnDelimiterRef.class)) {
+                    return () -> (T)settings.m_settings.m_columnDelimiter;
+                }
+                if (ref.equals(QuoteCharacterRef.class)) {
+                    return () -> (T)settings.m_settings.m_quoteCharacter;
+                }
+                if (ref.equals(QuoteEscapeCharacterRef.class)) {
+                    return () -> (T)settings.m_settings.m_quoteEscapeCharacter;
+                }
+                if (ref.equals(RowDelimiterOptionRef.class)) {
+                    return () -> (T)settings.m_settings.m_rowDelimiterOption;
+                }
+                if (ref.equals(CustomRowDelimiterRef.class)) {
+                    return () -> (T)settings.m_settings.m_customRowDelimiter;
+                }
+                if (ref.equals(QuotedStringsOptionRef.class)) {
+                    return () -> (T)settings.m_advancedSettings.m_quotedStringsOption;
+                }
+                if (ref.equals(ReplaceEmptyQuotedStringsByMissingValuesRef.class)) {
+                    return () -> (T)(Object)settings.m_advancedSettings.m_replaceEmptyQuotedStringsByMissingValues;
+                }
+                if (ref.equals(LimitScannedRowsRef.class)) {
+                    return () -> (T)(Object)settings.m_advancedSettings.m_limitScannedRows;
+                }
+                if (ref.equals(MaxDataRowsScannedRef.class)) {
+                    return () -> (T)(Object)settings.m_advancedSettings.m_maxDataRowsScanned;
+                }
+                if (ref.equals(ThousandsSeparatorRef.class)) {
+                    return () -> (T)settings.m_advancedSettings.m_thousandsSeparator;
+                }
+                if (ref.equals(DecimalSeparatorRef.class)) {
+                    return () -> (T)settings.m_advancedSettings.m_decimalSeparator;
+                }
+                if (ref.equals(FileEncodingRef.class)) {
+                    return () -> (T)settings.m_encoding.m_charset.m_fileEncoding;
+                }
+                if (ref.equals(CustomEncodingRef.class)) {
+                    return () -> (T)settings.m_encoding.m_charset.m_customEncoding;
+                }
+                if (ref.equals(SkipFirstLinesRef.class)) {
+                    return () -> (T)(Object)settings.m_limitRows.m_skipFirstLines;
+                }
+                if (ref.equals(SkipFirstDataRowsRef.class)) {
+                    return () -> (T)(Object)settings.m_limitRows.m_skipFirstDataRows;
+                }
+                throw new IllegalStateException(String.format("Unexpected dependency %s", ref.getSimpleName()));
+            }
+        };
+    }
+
+    @Test
+    void testDependenciesProvider() {
+        final var settings = initSettings();
+        final var dependencies = createDependenciesProvider(settings).computeState(null);
+
+        assertConfigIdEqualsSettings(dependencies.m_configId, settings);
         assertThat(dependencies.m_source).isEqualTo(settings.m_settings.m_source);
         assertThat(dependencies.m_limitMemoryPerColumn).isEqualTo(settings.m_advancedSettings.m_limitMemoryPerColumn);
         assertThat(dependencies.m_maximumNumberOfColumns)
             .isEqualTo(settings.m_advancedSettings.m_maximumNumberOfColumns);
+    }
+
+    private static DependenciesProvider createDependenciesProvider(final CSVTableReaderNodeSettings settings) {
+        final var dependenciesProvider = new DependenciesProvider();
+        dependenciesProvider.init(getDependenciesProviderInitializer(settings));
+        return dependenciesProvider;
     }
 
     private static final StateProviderInitializer
