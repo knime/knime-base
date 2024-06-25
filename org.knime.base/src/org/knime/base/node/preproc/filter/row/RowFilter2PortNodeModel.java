@@ -57,6 +57,7 @@ import org.knime.base.node.preproc.filter.row.rowfilter.RowFilterFactory;
 import org.knime.base.node.preproc.filter.row.rowfilter.RowNoRowFilter;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.container.DataContainerSettings;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -169,10 +170,16 @@ public class RowFilter2PortNodeModel extends NodeModel {
         // index)
         m_rowFilter.configure(in.getDataTableSpec());
 
+        final var dcSettings = DataContainerSettings.builder() //
+                .withInitializedDomain(true) //
+                .withDomainUpdate(true) // columns without domain need a domain (historical reasons, backw. compat.)
+                .withCheckDuplicateRowKeys(false) // only copying data
+                .build();
+
         BufferedDataContainer match =
-                exec.createDataContainer(in.getDataTableSpec());
+                exec.createDataContainer(in.getDataTableSpec(), dcSettings);
         BufferedDataContainer miss =
-                exec.createDataContainer(in.getDataTableSpec());
+                exec.createDataContainer(in.getDataTableSpec(), dcSettings);
         RowOutput rowOutput1 = new BufferedDataTableRowOutput(match);
         RowOutput rowOutput2 = new BufferedDataTableRowOutput(miss);
         RowInput rowInput = new DataTableRowInput(inData[0]);

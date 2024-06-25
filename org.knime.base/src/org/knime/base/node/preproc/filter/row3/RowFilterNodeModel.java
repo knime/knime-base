@@ -144,10 +144,11 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
         final var predicate = createFilterPredicate(isAnd, rowNumberCriteria, dataCriteria, inSpec, tableSize);
 
         final var includeMatches = settings.outputMatches();
-        final DataContainerSettings dcSettings = DataContainerSettings.builder() //
+        final var dcSettings = DataContainerSettings.builder() //
                 .withInitializedDomain(true) //
+                .withDomainUpdate(false) // do not update domain (note that older versions DO, for historical reasons)
                 .withCheckDuplicateRowKeys(false) // only copying data
-                .withDomainUpdate(false).build();
+                .build();
         try (final var input = in.cursor();
                 // take domains from input in order to allow downstream visualizations to retain
                 // useful bounds, e.g. [0, 10] for an axis

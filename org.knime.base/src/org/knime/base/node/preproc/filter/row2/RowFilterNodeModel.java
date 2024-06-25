@@ -51,6 +51,7 @@ import org.knime.base.node.preproc.filter.row2.operator.RowPredicate;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.CloseableRowIterator;
+import org.knime.core.data.container.DataContainerSettings;
 import org.knime.core.data.container.filter.TableFilter;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
@@ -118,7 +119,12 @@ public class RowFilterNodeModel extends AbstractRowFilterNodeModel {
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
         throws Exception {
         final BufferedDataTable in = inData[0];
-        final BufferedDataContainer container = exec.createDataContainer(in.getDataTableSpec());
+        final var dcSettings = DataContainerSettings.builder() //
+                .withInitializedDomain(true) //
+                .withDomainUpdate(true) // columns without domain need a domain (historical reasons, backw. compat.)
+                .withCheckDuplicateRowKeys(false) // only copying data
+                .build();
+        final BufferedDataContainer container = exec.createDataContainer(in.getDataTableSpec(), dcSettings);
         exec.setMessage("Searching first matching row...");
         // Create RowPredicate
         final RowPredicate rowPredicate = createRowPredicate(in.getDataTableSpec());

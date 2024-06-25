@@ -57,6 +57,7 @@ import org.knime.base.node.preproc.filter.row.rowfilter.RowFilterFactory;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.container.DataContainerSettings;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -219,8 +220,13 @@ public class RowFilterNodeModel extends NodeModel {
         // here, we give it a chance to configure itself (e.g. find the column
         // index)
         m_rowFilter.configure(in.getDataTableSpec());
+        final var dcSettings = DataContainerSettings.builder() //
+                .withInitializedDomain(true) //
+                .withDomainUpdate(true) // columns without domain need a domain (historical reasons, backw. compat.)
+                .withCheckDuplicateRowKeys(false) // only copying data
+                .build();
         BufferedDataContainer container =
-            exec.createDataContainer(in.getDataTableSpec());
+            exec.createDataContainer(in.getDataTableSpec(), dcSettings);
         exec.setMessage("Searching first matching row...");
         try {
             int count = 0;
