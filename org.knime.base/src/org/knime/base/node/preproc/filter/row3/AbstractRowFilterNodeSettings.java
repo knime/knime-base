@@ -215,7 +215,9 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
         FilterCriterion(final DataColumnSpec colSpec) {
             if (colSpec == null) {
                 m_column = SpecialColumns.ROWID.toColumnSelection();
-                m_predicateValues = new DynamicValuesInput(StringCell.TYPE);
+                // we don't know how RowIDs look in general, since they can be user-defined, hence we just put
+                // a placeholder here that is not null
+                m_predicateValues = new DynamicValuesInput(StringCell.TYPE, new StringCell(""));
                 return;
             }
             m_column = new ColumnSelection(colSpec);
@@ -298,29 +300,24 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
             @Override
             public DynamicValuesInput computeState(final DefaultNodeSettingsContext context) {
                 final var inputSpec = context.getDataTableSpec(0);
-                if (inputSpec.isEmpty()) {
-                    // e.g. when consuming a component input that does not have executed predecessors
-                    return DynamicValuesInput.emptySingle();
-                }
-                return keepCurrentValueIfPossible(createDynamicValue(inputSpec.get()));
+                // spec empty, e.g. when
+                // - nothing connected
+                // - consuming a component input that does not have executed predecessors
+                return keepCurrentValueIfPossible(createDynamicValue(inputSpec.orElse(null)));
             }
 
             private DynamicValuesInput createDynamicValue(final DataTableSpec spec) {
                 if (!m_currentOperator.get().m_isBinary) {
                     return DynamicValuesInput.emptySingle();
                 }
-
                 final var selected = m_selectedColumn.get().getSelected();
-                final DataType type;
-                if (isRowIDSelected(selected)) {
-                    type = StringCell.TYPE;
-                } else if (isRowNumberSelected(selected)) {
-                    return new DynamicValuesInput(LongCell.TYPE, new LongCell(1l));
-                } else {
-                    final var col = spec.getColumnSpec(selected);
-                    type = col.getType();
+                if (spec == null || isRowIDSelected(selected)) {
+                    return DynamicValuesInput.forRowID();
                 }
-                return new DynamicValuesInput(type);
+                if (isRowNumberSelected(selected)) {
+                    return DynamicValuesInput.forRowNumber();
+                }
+                return new DynamicValuesInput(spec.getColumnSpec(selected).getType());
             }
 
             private DynamicValuesInput keepCurrentValueIfPossible(final DynamicValuesInput newValue) {

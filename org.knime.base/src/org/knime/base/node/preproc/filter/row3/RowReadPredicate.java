@@ -118,7 +118,7 @@ final class RowReadPredicate implements Predicate<RowRead> {
     }
 
     private static CaseMatching getCaseMatching(final FilterCriterion criterion) {
-        return ((StringValueModifiers)criterion.m_predicateValues.getModifiersAt(0)).isCaseSensitive()
+        return ((StringValueModifiers)criterion.m_predicateValues.getModifiersAt(0).orElseThrow()).isCaseSensitive()
             ? CaseMatching.CASESENSITIVE : CaseMatching.CASEINSENSITIVE;
     }
 
