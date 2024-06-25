@@ -318,8 +318,8 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
 
             ColumnsToAppend() throws InvalidSettingsException {
                 // columns to pull in from the dictionary table
-                final var dictValueColNames =
-                    modelSettings.m_dictValueCols.getSelected(DictionaryTableChoices.choices(dictSpec), dictSpec);
+                final var dictValueColNames = modelSettings.m_dictValueCols
+                    .getNonMissingSelected(DictionaryTableChoices.choices(dictSpec), dictSpec);
                 final int[] selectedDictCols = dictSpec.columnsToIndices(dictValueColNames);
                 // Add the columns to the output spec, but check for existence and uniquify name w.r.t. the input table
                 for (var col : selectedDictCols) {
