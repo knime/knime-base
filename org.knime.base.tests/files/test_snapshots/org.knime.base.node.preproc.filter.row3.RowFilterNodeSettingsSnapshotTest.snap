@@ -34,7 +34,8 @@
               "title" : "Any criterion"
             } ],
             "title" : "Match row if matched by",
-            "description" : "Match the row if all or any criteria match:\n<ul>\n    <li><b>All criteria</b>: a row is matched if <i>all</i> of the criteria match\n    (intersection of matches)</li>\n    <li><b>Any criterion</b>: a row is matched if <i>at least one</i> of the\n    criteria matches (union of matches)</li>\n</ul>\n"
+            "description" : "Match the row if all or any criteria match:\n<ul>\n    <li><b>All criteria</b>: a row is matched if <i>all</i> of the criteria match\n    (intersection of matches)</li>\n    <li><b>Any criterion</b>: a row is matched if <i>at least one</i> of the\n    criteria matches (union of matches)</li>\n</ul>\n",
+            "default" : "AND"
           },
           "outputMode" : {
             "oneOf" : [ {
@@ -51,6 +52,20 @@
           "predicates" : {
             "title" : "Filter criteria",
             "description" : "The list of criteria that should be filtered on.",
+            "default" : [ {
+              "column" : {
+                "selected" : "BoolCol",
+                "compatibleTypes" : [ "org.knime.core.data.BooleanValue", "org.knime.core.data.DataValue", "org.knime.core.data.IntValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.NominalValue" ]
+              },
+              "operator" : "EQ",
+              "predicateValues" : {
+                "values" : [ {
+                  "value" : null,
+                  "cellClassName" : "org.knime.core.data.def.BooleanCell"
+                } ],
+                "inputKind" : "SINGLE"
+              }
+            } ],
             "type" : "array",
             "items" : {
               "type" : "object",
@@ -143,15 +158,13 @@
                         "type" : "object",
                         "properties" : {
                           "modifiers" : {
-                            "type" : "object",
-                            "default" : null
+                            "type" : "object"
                           },
                           "type" : {
                             "type" : "object"
                           },
                           "value" : {
-                            "type" : "object",
-                            "default" : null
+                            "type" : "object"
                           }
                         }
                       }
