@@ -356,11 +356,11 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
     }
 
     /**
-     * Get the output mode, i.e. output only matching rows or only non-matching rows in the first output.
-     * The second output, if present, will receive the complementary set of rows.
+     * Get the output mode, i.e. output only matching rows or only non-matching rows in the first output. The second
+     * output, if present, will receive the complementary set of rows.
      *
-     * @return {@link FilterMode#MATCHING} if only matching rows should be output (in the first output)
-     *   or {@link FilterMode#NON_MATCHING} for only non-matching.
+     * @return {@link FilterMode#MATCHING} if only matching rows should be output (in the first output) or
+     *         {@link FilterMode#NON_MATCHING} for only non-matching.
      */
     abstract FilterMode outputMode();
 
