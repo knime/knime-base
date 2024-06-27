@@ -56,6 +56,7 @@ import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
+import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.ColumnDomains;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
@@ -143,10 +144,13 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
         final var inSpec = in.getSpec();
         final var predicate = createFilterPredicate(isAnd, rowNumberCriteria, dataCriteria, inSpec, tableSize);
 
-        final var includeMatches = settings.outputMatches();
+        // inherit domain from spec?
+        final var initializedDomain = settings.m_domains == ColumnDomains.RETAIN;
+        // update while adding?
+        final var domainUpdate = settings.m_domains == ColumnDomains.COMPUTE;
         final var dcSettings = DataContainerSettings.builder() //
-                .withInitializedDomain(true) //
-                .withDomainUpdate(false) // do not update domain (note that older versions DO, for historical reasons)
+                .withInitializedDomain(initializedDomain) //
+                .withDomainUpdate(domainUpdate) // (note that older versions DO update domains, for historical reasons)
                 .withCheckDuplicateRowKeys(false) // only copying data
                 .build();
         try (final var input = in.cursor();
@@ -168,6 +172,7 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
             final var numFormat = NumberFormatter.builder().setGroupSeparator(",").build();
             outputProgress.setMessage(() -> numFormat.format(matchingRows.get()) + " rows matching");
 
+            final var includeMatches = settings.outputMatches();
             while (input.canForward()) {
                 exec.checkCanceled();
                 final var read = input.forward();

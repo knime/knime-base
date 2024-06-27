@@ -48,9 +48,7 @@
  */
 package org.knime.base.node.preproc.filter.row3;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -88,16 +86,11 @@ final class RowSplitterNodeSettings extends AbstractRowFilterNodeSettings {
         };
     }
 
-    @Section(title = "Splitting behavior")
-    @After(DialogSections.Filter.class)
-    interface Output {
-    }
-
     @Widget(title = "Splitting behavior",
         description = "Determines whether matching rows are output at the first port and non-matching rows are "
-            + "output at the second port, or vice-versa.", hideTitle = true)
+            + "output at the second port, or vice-versa.")
     @RadioButtonsWidget
-    @Layout(Output.class)
+    @Layout(DialogSections.Output.class)
     SplitterMode m_outputMode = SplitterMode.MATCHING;
 
     // variants are named exactly as in `FilterMode` to make it easier to switch from Filter to Splitter when using

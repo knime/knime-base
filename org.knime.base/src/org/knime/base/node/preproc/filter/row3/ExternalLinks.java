@@ -62,6 +62,15 @@ final class ExternalLinks {
     static final String HUB_TABLE_CREATOR =
         "https://hub.knime.com/knime/extensions/org.knime.features.base/latest/org.knime.base.node.io.tablecreator.TableCreator2NodeFactory"; // NOSONAR
 
+    static final String HUB_DOMAIN_CALCULATOR =
+        "https://hub.knime.com/knime/extensions/org.knime.features.base/latest/org.knime.base.node.preproc.domain.dialog2.DomainNodeFactory"; // NOSONAR
+
+    static final String HUB_EDIT_NUMERIC_DOMAIN =
+        "https://hub.knime.com/knime/extensions/org.knime.features.base/latest/org.knime.base.node.preproc.domain.editnumeric.EditNumericDomainNodeFactory"; // NOSONAR
+
+    static final String HUB_EDIT_NOMINAL_DOMAIN =
+        "https://hub.knime.com/knime/extensions/org.knime.features.base/latest/org.knime.base.node.preproc.domain.editnominal.EditNominalDomainNodeFactory"; // NOSONAR
+
     static final String ISO_DATETIME_PATTERNS =
         "https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html#predefined"; // NOSONAR
 

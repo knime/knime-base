@@ -48,9 +48,7 @@
  */
 package org.knime.base.node.preproc.filter.row3;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
@@ -84,15 +82,10 @@ final class RowFilterNodeSettings extends AbstractRowFilterNodeSettings {
         return m_outputMode;
     }
 
-    @Section(title = "Filter behavior")
-    @After(DialogSections.Filter.class)
-    interface Output {
-    }
-
     @Widget(title = "Filter behavior",
-        description = "Determines whether only matching or non-matching rows are output.", hideTitle = true)
+        description = "Determines whether only matching or non-matching rows are output.")
     @ValueSwitchWidget
-    @Layout(Output.class)
+    @Layout(DialogSections.Output.class)
     FilterMode m_outputMode = FilterMode.MATCHING;
 
 }

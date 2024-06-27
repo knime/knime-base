@@ -63,6 +63,7 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
@@ -339,6 +340,40 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
     @Signal(condition = HasMultipleItemsCondition.class)
     FilterCriterion[] m_predicates;
 
+    @Widget(title = "Column domains", description = """
+            Specify whether to take input column domains as output domains or compute them on output columns.
+            Depending on the use case, one or the other setting may be preferable:
+
+            <ul>
+                <li><em>Retaining</em> input columns can be useful, if the axis limits of a view should be derived from
+                domain bounds, and that bounds should stay stable even when the displayed data is filtered.
+                </li>
+                <li><em>Computing</em> domains can be useful when a selection widget consumes the output and should only
+                display actually present options to users.</li>
+            </ul>
+
+            If column domains are irrelevant for a particular use case, the &quot;Retain&quot; option should be used
+            since it does not incur computation costs.
+
+            For more control over column domains, you can use the <a href="
+            """ + ExternalLinks.HUB_DOMAIN_CALCULATOR + """
+                    "><em>Domain Calculator</em></a>, <a href="
+            """ + ExternalLinks.HUB_EDIT_NUMERIC_DOMAIN + """
+                    "><em>Edit Numeric Domain</em></a>, or <a href="
+            """ + ExternalLinks.HUB_EDIT_NOMINAL_DOMAIN + """
+                    "><em>Edit Nominal Domain</em></a> nodes.
+            """)
+    @ValueSwitchWidget()
+    @Layout(DialogSections.Output.class)
+    ColumnDomains m_domains = ColumnDomains.RETAIN;
+
+    enum ColumnDomains {
+        @Label(value = "Retain", description = "Retain input domains on output columns")
+        RETAIN,
+        @Label(value = "Compute", description = "Compute column domains on output columns")
+        COMPUTE;
+    }
+
     /**
      * Mode to determine which set of rows is output at the first output port (and second in case of a splitter).
      */
@@ -487,6 +522,11 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
 
             interface Conditions {
             }
+        }
+
+        @Section(title = "Output")
+        @After(Filter.class)
+        interface Output {
         }
     }
 
