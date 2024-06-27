@@ -80,7 +80,7 @@ final class MissingValueColumnFilterNodeModel extends WebUINodeModel<MissingValu
         // consider only columns currently present in the table spec (same as before, where
         // "NameFilterConfiguration.FilterResult#getIncludes()" was used and "orphaned" column names were not retrieved)
         final var selected =
-            modelSettings.m_columnFilter.getNonMissingSelected(dataTableSpec.getColumnNames(), dataTableSpec);
+            modelSettings.m_columnFilter.getSelected(dataTableSpec.getColumnNames(), dataTableSpec);
 
         if (selected.length == 0) {
             return new BufferedDataTable[]{inputTable};

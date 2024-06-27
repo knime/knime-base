@@ -379,7 +379,7 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
     private static Optional<String[]> getEffectiveAggregatedColumns(final DataTableSpec dts,
             final RowAggregatorSettings settings) {
         final var agg = settings.m_aggregationMethod;
-        final var aggCols = settings.m_frequencyColumns.getSelected(
+        final var aggCols = settings.m_frequencyColumns.getSelectedIncludingMissing(
             dts.stream()//
                 .filter(RowAggregatorNodeModel::isAggregatableColumn)//
                 .map(DataColumnSpec::getName)//

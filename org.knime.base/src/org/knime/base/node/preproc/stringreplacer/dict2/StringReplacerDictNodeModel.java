@@ -200,7 +200,8 @@ public class StringReplacerDictNodeModel extends WebUINodeModel<StringReplacerDi
         var stringCols = StringReplacerDictNodeSettings.getStringCompatibleColumns(targetSpec);
         var stringColNames = Arrays.stream(stringCols).map(DataColumnSpec::getName).toArray(String[]::new);
 
-        var targetCols = modelSettings.m_targetColumns.getSelected(stringColNames, targetSpec);
+        // Also get missing columns to warn user if the node is misconfigured
+        var targetCols = modelSettings.m_targetColumns.getSelectedIncludingMissing(stringColNames, targetSpec);
         if (targetCols.length == 0) {
             return new ColumnRearranger(targetSpec);
         }

@@ -91,7 +91,7 @@ public class ColCombine2NodeModel extends WebUISimpleStreamableFunctionNodeModel
         var result = new ColumnRearranger(spec);
         DataColumnSpec append =
             new DataColumnSpecCreator(modelSettings.m_outputColumnName, StringCell.TYPE).createSpec();
-        String[] selectedColumns = modelSettings.m_columnFilter.getNonMissingSelected(spec.getColumnNames(), spec);
+        String[] selectedColumns = modelSettings.m_columnFilter.getSelected(spec.getColumnNames(), spec);
         final var indices = new int[selectedColumns.length];
         var j = 0;
         for (var k = 0; k < spec.getNumColumns() && j < selectedColumns.length; k++) {
@@ -119,7 +119,7 @@ public class ColCombine2NodeModel extends WebUISimpleStreamableFunctionNodeModel
             }
         });
         if (modelSettings.m_removeInputColumns) {
-            result.remove(modelSettings.m_columnFilter.getNonMissingSelected(spec.getColumnNames(), spec));
+            result.remove(modelSettings.m_columnFilter.getSelected(spec.getColumnNames(), spec));
         }
         return result;
     }
@@ -130,8 +130,9 @@ public class ColCombine2NodeModel extends WebUISimpleStreamableFunctionNodeModel
             throw new InvalidSettingsException("Column already exits: " + modelSettings.m_outputColumnName);
         }
 
-        String[] selectedColumns = modelSettings.m_columnFilter.getNonMissingSelected(spec.getColumnNames(), spec);
-        String[] selectedColumnsWithMissing = modelSettings.m_columnFilter.getSelected(spec.getColumnNames(), spec);
+        String[] selectedColumns = modelSettings.m_columnFilter.getSelected(spec.getColumnNames(), spec);
+        String[] selectedColumnsWithMissing =
+            modelSettings.m_columnFilter.getSelectedIncludingMissing(spec.getColumnNames(), spec);
         if (selectedColumnsWithMissing.length > selectedColumns.length && modelSettings.m_failIfMissingColumns) {
             String[] missingColumns = Arrays.stream(selectedColumnsWithMissing).distinct()
                 .filter(x -> !Arrays.asList(selectedColumns).contains(x)).toArray(String[]::new);
