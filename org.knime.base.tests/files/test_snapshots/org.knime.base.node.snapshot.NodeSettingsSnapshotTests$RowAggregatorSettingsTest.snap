@@ -1,6 +1,7 @@
 {
   "data" : {
     "model" : {
+      "categoryColumn" : "<none>",
       "aggregationMethod" : "SUM",
       "frequencyColumns" : {
         "mode" : "MANUAL",
@@ -53,7 +54,8 @@
           "categoryColumn" : {
             "type" : "string",
             "title" : "Category column",
-            "description" : "Select the column that defines the category on which rows are grouped. If no category column is selected, \"grand total\" values in which all rows belong to the same group will be calculated."
+            "description" : "Select the column that defines the category on which rows are grouped. If no category column is selected, \"grand total\" values in which all rows belong to the same group will be calculated.",
+            "default" : "<none>"
           },
           "enableHiliting" : {
             "type" : "boolean",

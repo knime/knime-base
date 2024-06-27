@@ -65,6 +65,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
 
 /**
  * Settings for the Row Aggregator node model.
@@ -84,7 +85,7 @@ public final class RowAggregatorSettings implements DefaultNodeSettings {
         + "group will be calculated.")
     @ChoicesWidget(choices = CategoryColumns.class, showNoneColumn = true)
     @Signal(id = IsNoneCategoryColumnSelected.class, condition = IsNoneColumnStringCondition.class)
-    String m_categoryColumn;
+    String m_categoryColumn = SpecialColumns.NONE.getId();
 
     static final class CategoryColumns implements ChoicesProvider {
         @Override
