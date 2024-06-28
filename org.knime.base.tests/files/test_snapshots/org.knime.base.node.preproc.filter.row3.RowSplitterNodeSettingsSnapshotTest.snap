@@ -11,7 +11,8 @@
         "predicateValues" : {
           "values" : [ {
             "value" : null,
-            "cellClassName" : "org.knime.core.data.def.BooleanCell"
+            "cellClassName" : "org.knime.core.data.def.BooleanCell",
+            "valueDataType" : "{\"name\":\"dataTypeConfig\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
           } ],
           "inputKind" : "SINGLE"
         }
@@ -74,7 +75,8 @@
               "predicateValues" : {
                 "values" : [ {
                   "value" : null,
-                  "cellClassName" : "org.knime.core.data.def.BooleanCell"
+                  "cellClassName" : "org.knime.core.data.def.BooleanCell",
+                  "valueDataType" : "{\"name\":\"dataTypeConfig\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
                 } ],
                 "inputKind" : "SINGLE"
               }
@@ -168,18 +170,7 @@
                     "values" : {
                       "type" : "array",
                       "items" : {
-                        "type" : "object",
-                        "properties" : {
-                          "modifiers" : {
-                            "type" : "object"
-                          },
-                          "type" : {
-                            "type" : "object"
-                          },
-                          "value" : {
-                            "type" : "object"
-                          }
-                        }
+                        "type" : "object"
                       }
                     }
                   },
@@ -188,7 +179,8 @@
                   "default" : {
                     "values" : [ {
                       "value" : null,
-                      "cellClassName" : "org.knime.core.data.def.BooleanCell"
+                      "cellClassName" : "org.knime.core.data.def.BooleanCell",
+                      "valueDataType" : "{\"name\":\"dataTypeConfig\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
                     } ],
                     "inputKind" : "SINGLE"
                   }
