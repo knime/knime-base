@@ -58,8 +58,6 @@ import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.Fil
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.data.convert.datacell.JavaToDataCellConverterRegistry;
-import org.knime.core.data.convert.java.DataCellToJavaConverterRegistry;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
@@ -142,23 +140,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
             }
         }
 
-        static class ColumnsWithTypeMapping implements ColumnChoicesStateProvider {
-
-            private final static JavaToDataCellConverterRegistry TO_DATACELL =
-                JavaToDataCellConverterRegistry.getInstance();
-            private final static DataCellToJavaConverterRegistry FROM_DATACELL =
-                    DataCellToJavaConverterRegistry.getInstance();
-
-            private static boolean isOfNativeType(final DataColumnSpec colSpec) {
-                // TODO check if this is enough to disallow non-native types
-                return colSpec.getType().getCellClass() != null;
-            }
-
-            // we need to be able to parse strings from the string input and put cells back to string for settings/json
-            private static boolean supportsSerialization(final DataColumnSpec colSpec) {
-                return !TO_DATACELL.getConverterFactories(String.class, colSpec.getType()).isEmpty()
-                    && !FROM_DATACELL.getConverterFactories(colSpec.getType(), String.class).isEmpty();
-            }
+        private static class ColumnsWithTypeMapping implements ColumnChoicesStateProvider {
 
             @Override
             public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
@@ -166,8 +148,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                     .map(DataTableSpec::stream) //
                     .orElseGet(Stream::empty) //
                     // we disallow non-native types for now
-                    .filter(ColumnsWithTypeMapping::isOfNativeType) //
-                    .filter(ColumnsWithTypeMapping::supportsSerialization) //
+                    .filter(colSpec -> DynamicValuesInput.supportsDataType(colSpec.getType())) //
                     .toArray(DataColumnSpec[]::new);
             }
 
@@ -226,8 +207,11 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
         }
 
         FilterCriterion(final DefaultNodeSettingsContext ctx) {
-            // set last column as default column, like old Row Filter did
-            this(ctx.getDataTableSpec(0).stream().flatMap(DataTableSpec::stream).reduce((f, s) -> s).orElse(null));
+            // set last supported column as default column, like old Row Filter did
+            this(ctx.getDataTableSpec(0).stream().flatMap(DataTableSpec::stream)
+                // don't auto-configure with non-supported columns
+                .filter(colSpec -> DynamicValuesInput.supportsDataType(colSpec.getType()))
+                .reduce((f, s) -> s).orElse(null));
         }
 
         FilterCriterion(final DataColumnSpec colSpec) {
