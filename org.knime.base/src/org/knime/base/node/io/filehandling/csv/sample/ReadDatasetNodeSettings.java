@@ -74,7 +74,15 @@ final class ReadDatasetNodeSettings implements DefaultNodeSettings {
                     <a href="https://creativecommons.org/licenses/by/4.0/deed.en">Creative Commons Attribution 4.0
                     license</a>. Note that this dataset is raw and needs to undergo cleaning before use.
                     """)
-            WORLDBANK_POPULATION("POP.table");
+            WORLDBANK_POPULATION("POP.table"),
+            @Label(value = "Iris data", description = """
+                    The popular iris dataset as published by
+                    <a href="https://archive.ics.uci.edu/dataset/53/iris">
+                    https://archive.ics.uci.edu/dataset/53/iris</a> under the
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.en">Creative Commons Attribution 4.0
+                    license</a>.
+                    """)
+            IRIS("iris.table");
 
         private final String m_path;
 
