@@ -52,18 +52,17 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
-import org.knime.base.node.preproc.stringreplacer.CaseMatching;
 import org.knime.core.data.BooleanValue;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
+import org.knime.core.data.DataValueComparatorDelegator;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.v2.RowRead;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.StringValueModifiers;
 import org.knime.filehandling.core.util.WildcardToRegexUtil;
 
 /**
@@ -118,8 +117,9 @@ final class RowReadPredicate {
     }
 
     private static Predicate<RowRead> rowKeyPredicate(final FilterCriterion criterion) throws InvalidSettingsException {
-        final var predicate = new StringPredicate(criterion.m_operator, getCaseMatching(criterion),
-            criterion.m_predicateValues.getCellAt(0).map(c -> (StringCell)c).map(StringCell::getStringValue)
+        final int index = 0; // take from first widget input value
+        final var predicate = new StringPredicate(criterion.m_operator, isCaseSensitiveMatch(criterion, index),
+            criterion.m_predicateValues.getCellAt(index).map(c -> (StringCell)c).map(StringCell::getStringValue)
                 .orElseThrow(() -> new InvalidSettingsException("Missing string value for RowID comparison")));
         return row -> predicate.test(row.getRowKey().getString());
     }
@@ -133,12 +133,13 @@ final class RowReadPredicate {
             return rowRead -> booleanPredicate.test(rowRead.<BooleanValue> getValue(columnIndex));
         }
 
-        final var comparisonCell = criterion.m_predicateValues.getCellAt(0)
+        final int index = 0; // take from first widget input value
+        final var comparisonCell = criterion.m_predicateValues.getCellAt(index)
             .orElseThrow(() -> new InvalidSettingsException("Missing comparison value"));
 
         // special case String
         if (dataType.equals(StringCell.TYPE)) {
-            final var stringPredicate = new StringPredicate(operator, getCaseMatching(criterion),
+            final var stringPredicate = new StringPredicate(operator, isCaseSensitiveMatch(criterion, index),
                 ((StringCell)comparisonCell).getStringValue());
             return rowRead -> stringPredicate.test(rowRead.<StringValue> getValue(columnIndex).getStringValue());
         }
@@ -148,9 +149,8 @@ final class RowReadPredicate {
         return rowRead -> predicate.test(rowRead.getValue(columnIndex));
     }
 
-    private static CaseMatching getCaseMatching(final FilterCriterion criterion) {
-        return ((StringValueModifiers)criterion.m_predicateValues.getModifiersAt(0).orElseThrow()).isCaseSensitive()
-            ? CaseMatching.CASESENSITIVE : CaseMatching.CASEINSENSITIVE;
+    private static boolean isCaseSensitiveMatch(final FilterCriterion criterion, final int index) {
+        return criterion.m_predicateValues.isStringMatchCaseSensitive(index);
     }
 
     sealed interface FilterPredicate<T> extends Predicate<T>
@@ -185,14 +185,13 @@ final class RowReadPredicate {
 
         final Predicate<String> m_predicate;
 
-        StringPredicate(final FilterOperator operator, final CaseMatching caseMatching, final String value) {
+        StringPredicate(final FilterOperator operator, final boolean isCaseSensitive, final String value) {
             CheckUtils.checkArgument(isApplicableFor(operator), "Unsupported operator \"%s\"", operator.label());
 
             if (operator == FilterOperator.EQ || operator == FilterOperator.NEQ) {
-                final var caseSensitive = caseMatching == CaseMatching.CASESENSITIVE;
                 final var isNegated = operator == FilterOperator.NEQ;
                 m_predicate = cellValue -> {
-                    final var equal = caseSensitive ? cellValue.equals(value) : cellValue.equalsIgnoreCase(value);
+                    final var equal = isCaseSensitive ? cellValue.equals(value) : cellValue.equalsIgnoreCase(value);
                     return isNegated ^ equal; // XOR, exactly one must be true
                 };
                 return;
@@ -200,7 +199,7 @@ final class RowReadPredicate {
                 final var pattern =
                     operator == FilterOperator.WILDCARD ? WildcardToRegexUtil.wildcardToRegex(value) : value;
                 var flags = Pattern.DOTALL | Pattern.MULTILINE;
-                flags |= caseMatching == CaseMatching.CASESENSITIVE ? 0 : Pattern.CASE_INSENSITIVE;
+                flags |= isCaseSensitive ? 0 : Pattern.CASE_INSENSITIVE;
                 var regex = Pattern.compile(pattern, flags);
                 m_predicate = cellValue -> regex.matcher(cellValue).matches();
                 return;
@@ -231,7 +230,7 @@ final class RowReadPredicate {
             throws InvalidSettingsException {
             CheckUtils.checkArgument(isApplicableFor(operator), "Unsupported operator \"%s\"", operator.label());
             final var compCell = comparisonValue.materializeDataCell();
-            final var comparator = compCell.getType().getComparator().asDataValueComparator();
+            final var comparator = new DataValueComparatorDelegator<>(compCell.getType().getComparator());
             m_predicate = switch (operator) {
                 case EQ -> v -> v.materializeDataCell().equals(compCell);
                 case NEQ -> v -> !v.materializeDataCell().equals(compCell);

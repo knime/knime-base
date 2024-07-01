@@ -58,7 +58,6 @@ import org.knime.base.node.preproc.filter.row3.FilterOperatorTest.TestInitialize
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
-import org.knime.core.data.DataType;
 import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
@@ -93,7 +92,7 @@ final class AbstractRowFilterNodeSettingsTest {
     @Test
     void testTypeAndOperatorInputRowID() {
         final var rowIdFilterInput = inputFor(SpecialColumns.ROWID.toColumnSelection(), FilterOperator.EQ);
-        final var expected = new DynamicValuesInput(StringCell.TYPE, new StringCell(""));
+        final var expected = DynamicValuesInput.forRowID();
         assertThat(rowIdFilterInput).as("The initial value input for RowIDs is 'RowID = \"\"'").isEqualTo(expected);
     }
 
@@ -101,7 +100,7 @@ final class AbstractRowFilterNodeSettingsTest {
     @Test
     void testTypeAndOperatorInputRowNumber() {
         final var rowNumberFilterInput = inputFor(SpecialColumns.ROW_NUMBERS.toColumnSelection(), FilterOperator.EQ);
-        final var expected = new DynamicValuesInput(LongCell.TYPE, new LongCell(1));
+        final var expected = DynamicValuesInput.forRowNumber();
         assertThat(rowNumberFilterInput).as("The initial value input for RowNumbers is 'RowNumber = \"1\"'")
             .isEqualTo(expected);
     }
@@ -110,7 +109,7 @@ final class AbstractRowFilterNodeSettingsTest {
     @Test
     void testTypeAndOperatorInputIntColumn() {
         final var rowNumberFilterInput = inputFor(new ColumnSelection("Int1", IntCell.TYPE), FilterOperator.EQ);
-        final var expected = new DynamicValuesInput(IntCell.TYPE, DataType.getMissingCell());
+        final var expected = DynamicValuesInput.singleValueWithCaseMatchingForString(IntCell.TYPE);
         assertThat(rowNumberFilterInput).as("The initial value input for integer column is 'Int1 = \"?\"'")
             .isEqualTo(expected);
     }

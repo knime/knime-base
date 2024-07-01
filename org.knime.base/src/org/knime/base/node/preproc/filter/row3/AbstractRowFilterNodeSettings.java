@@ -220,11 +220,11 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                 m_column = SpecialColumns.ROWID.toColumnSelection();
                 // we don't know how RowIDs look in general, since they can be user-defined, hence we just put
                 // a placeholder here that is not null
-                m_predicateValues = new DynamicValuesInput(StringCell.TYPE, new StringCell(""));
+                m_predicateValues = DynamicValuesInput.forRowID();
                 return;
             }
             m_column = new ColumnSelection(colSpec);
-            m_predicateValues = new DynamicValuesInput(colSpec.getType());
+            m_predicateValues = DynamicValuesInput.singleValueWithCaseMatchingForString(colSpec.getType());
         }
 
         void validate(final DataTableSpec spec) throws InvalidSettingsException {
@@ -321,7 +321,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                 if (isRowNumberSelected(selected)) {
                     return DynamicValuesInput.forRowNumber();
                 }
-                return new DynamicValuesInput(spec.getColumnSpec(selected).getType());
+                return DynamicValuesInput.singleValueWithCaseMatchingForString(spec.getColumnSpec(selected).getType());
             }
 
             private DynamicValuesInput keepCurrentValueIfPossible(final DynamicValuesInput newValue) {

@@ -12,7 +12,8 @@
           "values" : [ {
             "value" : null,
             "cellClassName" : "org.knime.core.data.def.BooleanCell",
-            "valueDataType" : "{\"name\":\"dataTypeConfig\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
+            "valueDataType" : "{\"name\":\"dataTypeConfig\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+            "useStringCaseMatchingSettings" : false
           } ],
           "inputKind" : "SINGLE"
         }
@@ -76,7 +77,8 @@
                 "values" : [ {
                   "value" : null,
                   "cellClassName" : "org.knime.core.data.def.BooleanCell",
-                  "valueDataType" : "{\"name\":\"dataTypeConfig\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
+                  "valueDataType" : "{\"name\":\"dataTypeConfig\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+                  "useStringCaseMatchingSettings" : false
                 } ],
                 "inputKind" : "SINGLE"
               }
@@ -180,7 +182,8 @@
                     "values" : [ {
                       "value" : null,
                       "cellClassName" : "org.knime.core.data.def.BooleanCell",
-                      "valueDataType" : "{\"name\":\"dataTypeConfig\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
+                      "valueDataType" : "{\"name\":\"dataTypeConfig\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+                      "useStringCaseMatchingSettings" : false
                     } ],
                     "inputKind" : "SINGLE"
                   }
