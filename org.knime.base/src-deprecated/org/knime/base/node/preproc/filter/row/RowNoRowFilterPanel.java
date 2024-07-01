@@ -74,7 +74,9 @@ import org.knime.core.node.InvalidSettingsException;
 /**
  *
  * @author Peter Ohl, University of Konstanz
+ * @deprecated use {@link org.knime.base.node.preproc.filter.row3.RowFilterNodeFactory}
  */
+@Deprecated
 public class RowNoRowFilterPanel extends RowFilterPanel {
     private final JSpinner m_first;
 

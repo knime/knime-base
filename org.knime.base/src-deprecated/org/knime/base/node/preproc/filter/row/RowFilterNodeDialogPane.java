@@ -73,7 +73,9 @@ import org.knime.core.node.NotConfigurableException;
 /**
  *
  * @author Peter Ohl, University of Konstanz
+ * @deprecated use {@link org.knime.base.node.preproc.filter.row3.RowFilterNodeFactory}
  */
+@Deprecated
 public class RowFilterNodeDialogPane extends NodeDialogPane {
 
     // private JComboBox m_rangeBox;

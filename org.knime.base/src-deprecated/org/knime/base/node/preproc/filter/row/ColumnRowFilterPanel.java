@@ -106,7 +106,9 @@ import org.knime.core.node.workflow.FlowVariable;
 /**
  *
  * @author Peter Ohl, University of Konstanz
+ * @deprecated use {@link org.knime.base.node.preproc.filter.row3.RowFilterNodeFactory}
  */
+@Deprecated
 public class ColumnRowFilterPanel extends RowFilterPanel implements
         ItemListener {
 

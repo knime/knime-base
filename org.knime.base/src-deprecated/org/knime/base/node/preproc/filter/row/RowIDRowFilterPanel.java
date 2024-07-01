@@ -72,7 +72,9 @@ import org.knime.core.node.InvalidSettingsException;
 /**
  *
  * @author Peter Ohl, University of Konstanz
+ * @deprecated use {@link org.knime.base.node.preproc.filter.row3.RowFilterNodeFactory}
  */
+@Deprecated
 public class RowIDRowFilterPanel extends RowFilterPanel {
     private JTextArea m_errText;
 

@@ -40,44 +40,63 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ---------------------------------------------------------------------
+ * -------------------------------------------------------------------
  *
  * History
- *   Sep 18, 2009 (ohl): created
+ *   15.09.2009 (ohl): created
  */
 package org.knime.base.node.preproc.filter.row;
 
-import java.awt.BorderLayout;
-
-import javax.swing.BorderFactory;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
 
 /**
  *
- * @author Peter Ohl, KNIME AG, Zurich, Switzerland
+ * @author Peter Ohl, University of Konstanz
+ * @deprecated use {@link org.knime.base.node.preproc.filter.row3.RowFilterNodeFactory}
  */
-public class RowFilter2PortNodeDialog extends RowFilterNodeDialogPane {
+@Deprecated
+public class RowFilter2PortNodeFactory extends
+        NodeFactory<RowFilter2PortNodeModel> {
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public RowFilter2PortNodeModel createNodeModel() {
+        return new RowFilter2PortNodeModel();
+    }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected JPanel createDialogPanel() {
-
-        JPanel result = new JPanel();
-        result.setLayout(new BorderLayout());
-
-        JPanel s = super.createDialogPanel();
-        s.setBorder(BorderFactory.createEtchedBorder());
-        result.add(s, BorderLayout.CENTER);
-
-        JPanel title = new JPanel();
-        title.add(new JLabel("<html><b>Set the filter criteria "
-                + "for the upper port</b></html>"));
-        result.add(title, BorderLayout.NORTH);
-
-        return result;
+    public int getNrNodeViews() {
+        return 0;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeView<RowFilter2PortNodeModel> createNodeView(
+            final int viewIndex, final RowFilter2PortNodeModel nodeModel) {
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean hasDialog() {
+        return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return new RowFilter2PortNodeDialog();
+    }
 }

@@ -84,7 +84,9 @@ import org.knime.core.node.streamable.StreamableOperator;
  * matching rows, index 1 the other rows of the input table.
  *
  * @author Peter Ohl, University of Konstanz
+ * @deprecated use {@link org.knime.base.node.preproc.filter.row3.RowFilterNodeFactory}
  */
+@Deprecated
 public class RowFilter2PortNodeModel extends NodeModel {
 
     // the row filter

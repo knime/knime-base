@@ -64,7 +64,9 @@ import org.knime.core.node.InvalidSettingsException;
  * even if everything is disabled.
  *
  * @author Peter Ohl, University of Konstanz
+ * @deprecated use {@link org.knime.base.node.preproc.filter.row3.RowFilterNodeFactory}
  */
+@Deprecated
 @SuppressWarnings("serial")
 public abstract class RowFilterPanel extends JPanel {
 
