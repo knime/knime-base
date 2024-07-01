@@ -202,7 +202,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
             }
         }
 
-        @Widget(title = "If row has less columns", description = IfRowHasLessColumns.DESCRIPTION)
+        @Widget(title = "If row has fewer columns", description = IfRowHasLessColumns.DESCRIPTION)
         @ValueSwitchWidget
         @Layout(IfRowHasLessColumns.class)
         @Persist(configKey = "support_short_data_rows", customPersistor = IfRowHasLessColumnsOptionPersistor.class)

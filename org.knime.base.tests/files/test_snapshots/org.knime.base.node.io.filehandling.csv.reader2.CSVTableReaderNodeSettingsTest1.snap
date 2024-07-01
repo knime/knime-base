@@ -425,7 +425,7 @@
                   "const" : "FAIL",
                   "title" : "Fail"
                 } ],
-                "title" : "If row has less columns",
+                "title" : "If row has fewer columns",
                 "description" : "Specifies the behavior in case some rows are shorter than others. \n<ul>\n<li><b>Insert missing</b>: the shorter rows are completed with missing values.</li>\n<li><b>Fail</b>: if there are shorter rows in the input file the node execution fails.</li>\n</ul>",
                 "default" : "INSERT_MISSING",
                 "configKeys" : [ "support_short_data_rows" ]
