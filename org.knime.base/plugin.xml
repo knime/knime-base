@@ -676,7 +676,8 @@
             after="org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderNodeFactory"
             category-path="/io/read"
             deprecated="false"
-            factory-class="org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeFactory2"/>
+            factory-class="org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeFactory2"
+            hidden="true"/>
       <node
             after="org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeFactory2"
             category-path="/io/read"
