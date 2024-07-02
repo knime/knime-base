@@ -46,7 +46,7 @@
         </config>
         <entry key="has_column_header" type="xboolean" value="true"/>
         <entry key="has_row_id" type="xboolean" value="false"/>
-        <entry key="support_short_data_rows" type="xboolean" value="true"/>
+        <entry key="support_short_data_rows" type="xboolean" value="false"/>
         <entry key="skip_empty_data_rows" type="xboolean" value="false"/>
         <entry key="prepend_file_idx_to_row_id" type="xboolean" value="false"/>
         <entry key="comment_char" type="xstring" value="#"/>

@@ -18,7 +18,7 @@
         },
         "firstRowContainsColumnNames" : true,
         "firstColumnContainsRowIds" : false,
-        "ifRowHasLessColumnsOption" : "INSERT_MISSING",
+        "ifRowHasLessColumnsOption" : "FAIL",
         "skipEmptyDataRows" : false,
         "prependFileIndexToRowId" : false,
         "commentLineCharacter" : "#",
@@ -419,15 +419,15 @@
               },
               "ifRowHasLessColumnsOption" : {
                 "oneOf" : [ {
-                  "const" : "INSERT_MISSING",
-                  "title" : "Insert missing"
-                }, {
                   "const" : "FAIL",
                   "title" : "Fail"
+                }, {
+                  "const" : "INSERT_MISSING",
+                  "title" : "Insert missing"
                 } ],
                 "title" : "If row has fewer columns",
-                "description" : "Specifies the behavior in case some rows are shorter than others. \n<ul>\n<li><b>Insert missing</b>: the shorter rows are completed with missing values.</li>\n<li><b>Fail</b>: if there are shorter rows in the input file the node execution fails.</li>\n</ul>",
-                "default" : "INSERT_MISSING",
+                "description" : "Specifies the behavior in case some rows are shorter than others. \n<ul>\n<li><b>Fail</b>: if there are shorter rows in the input file the node execution fails.</li>\n<li><b>Insert missing</b>: the shorter rows are completed with missing values.</li>\n</ul>",
+                "default" : "FAIL",
                 "configKeys" : [ "support_short_data_rows" ]
               },
               "numberOfCharactersForAutodetection" : {
@@ -516,7 +516,7 @@
               },
               "firstRowContainsColumnNames" : true,
               "firstColumnContainsRowIds" : false,
-              "ifRowHasLessColumnsOption" : "INSERT_MISSING",
+              "ifRowHasLessColumnsOption" : "FAIL",
               "skipEmptyDataRows" : false,
               "prependFileIndexToRowId" : false,
               "commentLineCharacter" : "#",

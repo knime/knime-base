@@ -181,10 +181,10 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         boolean m_firstColumnContainsRowIds;
 
         enum IfRowHasLessColumnsOption {
-                @Label(value = "Insert missing", description = IfRowHasLessColumns.DESCRIPTION_INSERT_MISSING) //
-                INSERT_MISSING, //
                 @Label(value = "Fail", description = IfRowHasLessColumns.DESCRIPTION_FAIL) //
-                FAIL; //
+                FAIL, //
+                @Label(value = "Insert missing", description = IfRowHasLessColumns.DESCRIPTION_INSERT_MISSING) //
+                INSERT_MISSING; //
 
             static final class IfRowHasLessColumnsOptionPersistor
                 extends NodeSettingsPersistorWithConfigKey<IfRowHasLessColumnsOption> {
@@ -206,7 +206,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @ValueSwitchWidget
         @Layout(IfRowHasLessColumns.class)
         @Persist(configKey = "support_short_data_rows", customPersistor = IfRowHasLessColumnsOptionPersistor.class)
-        IfRowHasLessColumnsOption m_ifRowHasLessColumnsOption = IfRowHasLessColumnsOption.INSERT_MISSING;
+        IfRowHasLessColumnsOption m_ifRowHasLessColumnsOption = IfRowHasLessColumnsOption.FAIL;
         // TODO defaults are currently not applied when the node is created anew; will be addressed in UIEXT-1740
 
         @Persist(configKey = "skip_empty_data_rows")
