@@ -6,7 +6,12 @@
 	</shortDescription>
 	
 	<fullDescription>
-		<intro>This node allows to filter rows based on a query defined in the node dialog.
+		<intro>
+         <p><b>Disclaimer:</b> This node will be deprecated in a future version. Please consider using the standard
+         (non-Labs) Row Filter node, which supports multiple conditions starting from KNIME Analytics Platform 
+         version 5.3.</p>
+		 <p>
+		 This node allows to filter rows based on a query defined in the node dialog.
 		 A query can contain conditions on multiple columns,
 		 which can be grouped and combined with either the logical AND or logical OR operation. <br/>
 		 
@@ -14,6 +19,7 @@
 		 The corresponding columns are called &lt;RowID&gt; and &lt;RowINDEX&gt; and are always the top most options when
 		 opening the drop down for column selection. The &lt;RowID&gt; is treated as a string column, while the &lt;RowINDEX&gt; is considered
 		 to be numerical starting at index 0.
+		 </p>
 		 </intro>
 
 		<tab name="Buttons and views">

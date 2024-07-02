@@ -10,7 +10,13 @@
 	</shortDescription>
 
 	<fullDescription>
-		<intro>This node has exactly the same functionality as the Row Filter node, except for that it has an
+		<intro>
+         <p><b>Disclaimer:</b> This node will be deprecated in a future version. Please consider using the standard
+         (non-Labs) Row Splitter node, which supports multiple conditions starting from KNIME Analytics Platform 
+         version 5.3.</p>
+		
+		<p>
+		This node has exactly the same functionality as the Row Filter node, except for that it has an
 		additional output that provides the rows that are filtered out. For performance and disk space reasons
 		you may want to consider using the Row Filter node. The table at the upper port (with index 0) contains
 		the rows included in the result according to the splitting criteria (the node settings). The lower port 
@@ -24,6 +30,7 @@
 		 The corresponding columns are called &lt;RowID&gt; and &lt;RowINDEX&gt; and are always the top most options when
 		 opening the drop down for column selection. The &lt;RowID&gt; is treated as a string column, while the &lt;RowINDEX&gt; is considered
 		 to be numerical starting at index 0.
+		</p>
 		</intro>
 
 
