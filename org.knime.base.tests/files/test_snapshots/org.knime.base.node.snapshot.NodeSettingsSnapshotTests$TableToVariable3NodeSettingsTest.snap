@@ -2,6 +2,7 @@
   "data" : {
     "model" : {
       "valueColumns" : {
+        "selected" : [ ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -160,6 +161,7 @@
                 }
               },
               "selected" : {
+                "default" : [ ],
                 "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
@@ -202,6 +204,7 @@
             "title" : "Output as variables",
             "description" : "Select the columns to be converted to flow variables. For each selected column, a flow variable\nis created. The name of the flow variable corresponds to the column name and the value corresponds\nto the value of the first row in that column.\n",
             "default" : {
+              "selected" : [ ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",

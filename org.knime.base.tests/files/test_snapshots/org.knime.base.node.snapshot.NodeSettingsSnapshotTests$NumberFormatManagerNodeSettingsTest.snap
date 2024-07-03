@@ -2,6 +2,7 @@
   "data" : {
     "model" : {
       "columnsToFormat" : {
+        "selected" : [ "test1" ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -122,6 +123,7 @@
                 }
               },
               "selected" : {
+                "default" : [ ],
                 "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
@@ -164,6 +166,7 @@
             "title" : "Columns to format",
             "description" : "Select the columns to attach the selected format to.\nThis does not change the data, only the way the values in the column are displayed in views.\n",
             "default" : {
+              "selected" : [ "test1" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",

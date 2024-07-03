@@ -2,6 +2,7 @@
   "data" : {
     "model" : {
       "columns" : {
+        "selected" : [ "test1" ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -94,6 +95,7 @@
                 }
               },
               "selected" : {
+                "default" : [ ],
                 "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
@@ -136,6 +138,7 @@
             "title" : "Columns",
             "description" : "Select the columns to convert to String.",
             "default" : {
+              "selected" : [ "test1" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",

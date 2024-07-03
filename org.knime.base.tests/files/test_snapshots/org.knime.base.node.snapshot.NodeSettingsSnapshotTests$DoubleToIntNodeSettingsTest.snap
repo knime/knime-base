@@ -2,6 +2,7 @@
   "data" : {
     "model" : {
       "inclCols" : {
+        "selected" : [ "test1" ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -112,6 +113,7 @@
                 }
               },
               "selected" : {
+                "default" : [ ],
                 "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
@@ -154,6 +156,7 @@
             "title" : "Column Selection",
             "description" : "Move the columns of interest into the &quot;Includes&quot; list",
             "default" : {
+              "selected" : [ "test1" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",

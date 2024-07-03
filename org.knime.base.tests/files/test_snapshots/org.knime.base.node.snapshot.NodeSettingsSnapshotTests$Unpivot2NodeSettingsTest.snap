@@ -2,6 +2,7 @@
   "data" : {
     "model" : {
       "valueColumns" : {
+        "selected" : [ ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -20,6 +21,7 @@
       },
       "missingValues" : false,
       "retainedColumns" : {
+        "selected" : [ ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -127,6 +129,7 @@
                 }
               },
               "selected" : {
+                "default" : [ ],
                 "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
@@ -169,6 +172,7 @@
             "title" : "Retained columns",
             "description" : "This list contains the columns which are duplicated by the number of selected value columns.",
             "default" : {
+              "selected" : [ ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",
@@ -255,6 +259,7 @@
                 }
               },
               "selected" : {
+                "default" : [ ],
                 "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
@@ -297,6 +302,7 @@
             "title" : "Value columns",
             "description" : "This list contains the columns that are rotated into one single column.",
             "default" : {
+              "selected" : [ ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",

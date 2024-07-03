@@ -11,6 +11,7 @@
       "includeLeftUnmatchedInOutput" : false,
       "includeRightUnmatchedInOutput" : false,
       "leftColumnSelectionConfig" : {
+        "selected" : [ ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -28,6 +29,7 @@
         }
       },
       "rightColumnSelectionConfig" : {
+        "selected" : [ ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -193,6 +195,7 @@
                 }
               },
               "selected" : {
+                "default" : [ ],
                 "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
@@ -235,6 +238,7 @@
             "title" : "Top input ('left' table)",
             "description" : "Select columns from top input ('left' table) that should be included or excluded in the output table.",
             "default" : {
+              "selected" : [ "test1", "test2" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",
@@ -389,6 +393,7 @@
                 }
               },
               "selected" : {
+                "default" : [ ],
                 "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
@@ -431,6 +436,7 @@
             "title" : "Bottom input ('right' table)",
             "description" : "Select columns from bottom input ('right' table) that should be included or excluded in the output table.",
             "default" : {
+              "selected" : [ "test1", "test2" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",

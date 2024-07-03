@@ -8,6 +8,7 @@
       "lookupColumnOutput" : "RETAIN",
       "columnNoMatchReplacement" : "RETAIN",
       "dictValueCols" : {
+        "selected" : [ "test1", "test2" ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -132,6 +133,7 @@
                 }
               },
               "selected" : {
+                "default" : [ ],
                 "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
@@ -174,6 +176,7 @@
             "title" : "Append columns (from dictionary table)",
             "description" : "The columns in the dictionary table that contain the values added to the data table.",
             "default" : {
+              "selected" : [ "test1", "test2" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",

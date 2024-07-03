@@ -2,6 +2,7 @@
   "data" : {
     "model" : {
       "targetColumns" : {
+        "selected" : [ "test2" ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -181,6 +182,7 @@
                 }
               },
               "selected" : {
+                "default" : [ ],
                 "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
@@ -223,6 +225,7 @@
             "title" : "Target columns",
             "description" : "Select the columns in which the strings should be replaced.",
             "default" : {
+              "selected" : [ "test2" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",

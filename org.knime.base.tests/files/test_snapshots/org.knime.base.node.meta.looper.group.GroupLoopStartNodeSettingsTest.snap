@@ -2,6 +2,7 @@
   "data" : {
     "model" : {
       "columnFilter" : {
+        "selected" : [ "test1", "test2" ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -108,6 +109,7 @@
                 }
               },
               "selected" : {
+                "default" : [ ],
                 "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
@@ -150,6 +152,7 @@
             "title" : "Category columns",
             "description" : "The columns used to identify the groups.",
             "default" : {
+              "selected" : [ "test1", "test2" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",

@@ -2,6 +2,7 @@
   "data" : {
     "model" : {
       "columnsToFormat" : {
+        "selected" : [ "test1" ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -103,6 +104,7 @@
                 }
               },
               "selected" : {
+                "default" : [ ],
                 "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
@@ -145,6 +147,7 @@
             "title" : "Columns to round",
             "description" : "Select the numeric input columns to round.",
             "default" : {
+              "selected" : [ "test1" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",

@@ -7,6 +7,7 @@
       "genericParse" : false,
       "failOnError" : false,
       "inclCols" : {
+        "selected" : [ "test2" ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -120,6 +121,7 @@
                 }
               },
               "selected" : {
+                "default" : [ ],
                 "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
@@ -162,6 +164,7 @@
             "title" : "Column selection",
             "description" : "Move the columns of interest into the &quot;Includes&quot; list",
             "default" : {
+              "selected" : [ "test2" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",

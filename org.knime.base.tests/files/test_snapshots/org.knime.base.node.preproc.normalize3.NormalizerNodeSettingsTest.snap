@@ -2,6 +2,7 @@
   "data" : {
     "model" : {
       "dataColumnFilterConfig" : {
+        "selected" : [ ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -97,6 +98,7 @@
                 }
               },
               "selected" : {
+                "default" : [ ],
                 "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
@@ -139,6 +141,7 @@
             "title" : "Number columns",
             "description" : "Select the numerical columns to normalize.",
             "default" : {
+              "selected" : [ ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",
