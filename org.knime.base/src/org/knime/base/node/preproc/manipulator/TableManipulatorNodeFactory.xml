@@ -101,12 +101,5 @@
             A table with the transformed columns from all input tables (Table 0, Table 1, Table ...)
 		</outPort>
 	</ports>
-	<keywords>
-		<keyword>rename columns</keyword>
-		<keyword>remove columns</keyword>
-		<keyword>resort columns</keyword>
-		<keyword>filter columns</keyword>
-		<keyword>type cast</keyword>
-	</keywords>
 </knimeNode>
 
