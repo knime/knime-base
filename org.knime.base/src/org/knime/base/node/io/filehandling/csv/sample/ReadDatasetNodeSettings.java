@@ -82,7 +82,15 @@ final class ReadDatasetNodeSettings implements DefaultNodeSettings {
                     <a href="https://creativecommons.org/licenses/by/4.0/deed.en">Creative Commons Attribution 4.0
                     license</a>.
                     """)
-            IRIS("iris.table");
+            IRIS("iris.table"),
+            @Label(value = "Adult data", description = """
+                    The popular adult dataset as published by
+                    <a href="https://archive.ics.uci.edu/dataset/2/adult">
+                    https://archive.ics.uci.edu/dataset/2/adult</a> under the
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.en">Creative Commons Attribution 4.0
+                    license</a>.
+                    """)
+            ADULT("adult.table");
 
         private final String m_path;
 
