@@ -224,7 +224,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                 return;
             }
             m_column = new ColumnSelection(colSpec);
-            m_predicateValues = DynamicValuesInput.singleValueWithCaseMatchingForString(colSpec.getType());
+            m_predicateValues = DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(colSpec.getType());
         }
 
         void validate(final DataTableSpec spec) throws InvalidSettingsException {
@@ -321,7 +321,8 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                 if (isRowNumberSelected(selected)) {
                     return DynamicValuesInput.forRowNumber();
                 }
-                return DynamicValuesInput.singleValueWithCaseMatchingForString(spec.getColumnSpec(selected).getType());
+                return DynamicValuesInput
+                    .singleValueWithCaseMatchingForStringWithDefault(spec.getColumnSpec(selected).getType());
             }
 
             private DynamicValuesInput keepCurrentValueIfPossible(final DynamicValuesInput newValue) {
@@ -411,12 +412,10 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
 
     // auto-configuration
     AbstractRowFilterNodeSettings(final DefaultNodeSettingsContext ctx) {
-        // set last column as default column, like old Row Filter did
-        if (ctx != null) {
-            m_predicates = new FilterCriterion[]{new FilterCriterion(ctx)};
-        } else {
-            m_predicates = new FilterCriterion[0];
-        }
+        // we don't add a filter criterion automatically in order to avoid setting a default value without
+        // the user noticing (and we need to set some default value in the filter criterion, s.t. flow variables work
+        // correctly)
+        m_predicates = new FilterCriterion[0];
     }
 
     void validate(final DataTableSpec spec) throws InvalidSettingsException {

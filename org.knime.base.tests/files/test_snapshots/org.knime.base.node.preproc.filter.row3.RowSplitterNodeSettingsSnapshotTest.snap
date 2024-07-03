@@ -2,22 +2,7 @@
   "data" : {
     "model" : {
       "matchCriteria" : "AND",
-      "predicates" : [ {
-        "column" : {
-          "selected" : "BoolCol",
-          "compatibleTypes" : [ "org.knime.core.data.BooleanValue", "org.knime.core.data.DataValue", "org.knime.core.data.IntValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.NominalValue" ]
-        },
-        "operator" : "EQ",
-        "predicateValues" : {
-          "values" : [ {
-            "value" : null,
-            "cellClassName" : "org.knime.core.data.def.BooleanCell",
-            "valueDataType" : "{\"name\":\"dataTypeConfig\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-            "useStringCaseMatchingSettings" : false
-          } ],
-          "inputKind" : "SINGLE"
-        }
-      } ],
+      "predicates" : [ ],
       "domains" : "RETAIN",
       "outputMode" : "MATCHING"
     }
@@ -67,22 +52,7 @@
           "predicates" : {
             "title" : "Filter criteria",
             "description" : "The list of criteria that should be filtered on.",
-            "default" : [ {
-              "column" : {
-                "selected" : "BoolCol",
-                "compatibleTypes" : [ "org.knime.core.data.BooleanValue", "org.knime.core.data.DataValue", "org.knime.core.data.IntValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.NominalValue" ]
-              },
-              "operator" : "EQ",
-              "predicateValues" : {
-                "values" : [ {
-                  "value" : null,
-                  "cellClassName" : "org.knime.core.data.def.BooleanCell",
-                  "valueDataType" : "{\"name\":\"dataTypeConfig\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-                  "useStringCaseMatchingSettings" : false
-                } ],
-                "inputKind" : "SINGLE"
-              }
-            } ],
+            "default" : [ ],
             "type" : "array",
             "items" : {
               "type" : "object",
@@ -180,7 +150,7 @@
                   "description" : "The value for the filter criterion.\n<br/>\n\n<i>Note:</i> Currently, comparison values for non-numeric and non-string data types, e.g.\ndate&amp;time-based types, must be entered as its string representation like in the <a href=\"\nhttps://hub.knime.com/knime/extensions/org.knime.features.base/latest/org.knime.base.node.io.tablecreator.TableCreator2NodeFactory\"><i>Table Creator</i></a> node.\n<br/>\n\nThe format for date&amp;time-based values is \"ISO-8601 extended\". For example, a \"Local Date\" must be\nentered in the format \"2006-07-28\". More information can be obtained from the ISO patterns in the\n\"Predefined Formatters\" table of the <a href=\"\nhttps://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html#predefined\">Java SE 17 documentation</a>.\n",
                   "default" : {
                     "values" : [ {
-                      "value" : null,
+                      "value" : false,
                       "cellClassName" : "org.knime.core.data.def.BooleanCell",
                       "valueDataType" : "{\"name\":\"dataTypeConfig\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
                       "useStringCaseMatchingSettings" : false

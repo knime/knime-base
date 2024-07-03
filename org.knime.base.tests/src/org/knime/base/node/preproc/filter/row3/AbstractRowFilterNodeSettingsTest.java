@@ -109,7 +109,7 @@ final class AbstractRowFilterNodeSettingsTest {
     @Test
     void testTypeAndOperatorInputIntColumn() {
         final var rowNumberFilterInput = inputFor(new ColumnSelection("Int1", IntCell.TYPE), FilterOperator.EQ);
-        final var expected = DynamicValuesInput.singleValueWithCaseMatchingForString(IntCell.TYPE);
+        final var expected = DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(IntCell.TYPE);
         assertThat(rowNumberFilterInput).as("The initial value input for integer column is 'Int1 = \"?\"'")
             .isEqualTo(expected);
     }
