@@ -69,11 +69,6 @@ public final class RowFilterNodeFactory extends WebUINodeFactory<RowFilterNodeMo
                 Each criterion can target the row number, RowID, or cell value of a row.
                 Multiple criteria can be combined (similar to boolean logic via <tt>AND</tt> and <tt>OR</tt>)
                 to specify the overall filter criterion applied to each row.
-
-                <i>Note:</i> The domain of the input table is passed through as-is,
-                i. e. the upper and lower bounds or the possible values in the table spec are not changed,
-                even if one of the bounds or one value is fully filtered out from the output table. If the input
-                does not contain domain information, so will the output.
                 """) //
         .modelSettingsClass(RowFilterNodeSettings.class) //
         .addInputTable(RowSplitterNodeFactory.INPUT, RowSplitterNodeFactory.INPUT_DESCRIPTION) //

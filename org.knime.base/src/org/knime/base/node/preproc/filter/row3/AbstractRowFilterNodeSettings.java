@@ -342,9 +342,11 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
     FilterCriterion[] m_predicates;
 
     @Widget(title = "Column domains", description = """
-            Specify whether to take input column domains as output domains or compute them on output columns.
-            Depending on the use case, one or the other setting may be preferable:
+            <p>Specify whether to take domains of all input columns as output domains as-is or compute them on the output
+            rows.</p>
 
+            <p>
+            Depending on the use case, one or the other setting may be preferable:
             <ul>
                 <li><em>Retaining</em> input columns can be useful, if the axis limits of a view should be derived from
                 domain bounds, and that bounds should stay stable even when the displayed data is filtered.
@@ -352,26 +354,37 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                 <li><em>Computing</em> domains can be useful when a selection widget consumes the output and should only
                 display actually present options to users.</li>
             </ul>
+            </p>
 
+            <p>
             If column domains are irrelevant for a particular use case, the &quot;Retain&quot; option should be used
             since it does not incur computation costs.
+            </p>
 
-            For more control over column domains, you can use the <a href="
+            <p>
+            For more control over individual column domains, you can use the <a href="
             """ + ExternalLinks.HUB_DOMAIN_CALCULATOR + """
                     "><em>Domain Calculator</em></a>, <a href="
             """ + ExternalLinks.HUB_EDIT_NUMERIC_DOMAIN + """
                     "><em>Edit Numeric Domain</em></a>, or <a href="
             """ + ExternalLinks.HUB_EDIT_NOMINAL_DOMAIN + """
-                    "><em>Edit Nominal Domain</em></a> nodes.
+                    "><em>Edit Nominal Domain</em></a> nodes.</p>
             """)
     @ValueSwitchWidget()
     @Layout(DialogSections.Output.class)
     ColumnDomains m_domains = ColumnDomains.RETAIN;
 
     enum ColumnDomains {
-        @Label(value = "Retain", description = "Retain input domains on output columns")
+        @Label(value = "Retain", description = """
+            Retain input domains on output columns, i.e. the upper and lower bounds or possible values in the table spec
+            are not changed, even if one of the bounds or one value is fully filtered out from the output table.
+            If the input does not contain domain information, so will the output.
+                """)
         RETAIN,
-        @Label(value = "Compute", description = "Compute column domains on output columns")
+        @Label(value = "Compute", description = """
+            Compute column domains on output columns, i.e. upper and lower bounds and possible values are computed only
+            on the rows output by the node.
+                """)
         COMPUTE;
     }
 
