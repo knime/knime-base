@@ -128,7 +128,7 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
     @Layout(DuplicateHandlingSection.class)
     boolean m_addUniqueLabel = true;
 
-    @Persist(configKey = DuplicateRowFilterSettings.UNIQUE_FLAG_COLUMN_NAME_KEY)
+    @Persist(configKey = DuplicateRowFilterSettings.UNIQUE_FLAG_COLUMN_NAME_KEY, optional = true)
     @Widget(title = "Column name of row status",
         description = "Choose the column name to which the row status "
             + "('unique', 'chosen', 'duplicate') should be outputted.")
@@ -146,7 +146,7 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
     @Layout(DuplicateHandlingSection.class)
     boolean m_addRowIdLabel;
 
-    @Persist(configKey = DuplicateRowFilterSettings.ROW_ID_FLAG_COLUMN_NAME_KEY)
+    @Persist(configKey = DuplicateRowFilterSettings.ROW_ID_FLAG_COLUMN_NAME_KEY, optional = true)
     @Widget(title = "Column name of chosen RowIDs",
         description = "Choose the column name to which the RowID "
             + "of the chosen row for each duplicate row should be outputted.")
