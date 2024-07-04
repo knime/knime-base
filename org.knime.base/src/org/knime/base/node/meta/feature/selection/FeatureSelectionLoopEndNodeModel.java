@@ -68,7 +68,6 @@ import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.LoopEndNode;
-import org.knime.core.node.workflow.LoopStartNode;
 
 /**
  *
@@ -76,11 +75,7 @@ import org.knime.core.node.workflow.LoopStartNode;
  */
 public class FeatureSelectionLoopEndNodeModel extends NodeModel implements LoopEndNode, RowFlushable {
 
-    private FeatureSelector m_featureSelector;
-
     private FeatureSelectionLoopEndSettings m_settings = new FeatureSelectionLoopEndSettings();
-
-    private int m_iteration = 0;
 
     private BufferedDataContainer m_resultTable;
 
@@ -116,23 +111,30 @@ public class FeatureSelectionLoopEndNodeModel extends NodeModel implements LoopE
             throw new InvalidSettingsException("The score variable must be of type Double.");
         }
 
-        // first configure
-        if (m_iteration == 0) {
-            LoopStartNode loopStartNode = getLoopStartNode();
-            if (!(loopStartNode instanceof FeatureSelectionLoopStartNodeModel)) {
-                throw new InvalidSettingsException("Corresponding 'Feature Selection Loop Start' node is missing.");
-            }
-            FeatureSelectionLoopStartNodeModel featureSelectionStartNode = (FeatureSelectionLoopStartNodeModel)loopStartNode;
-            m_featureSelector = featureSelectionStartNode.getFeatureSelector();
-            if (m_featureSelector == null) {
-                return null;
-            }
-            m_featureSelector.setIsMinimize(m_settings.isMinimize());
-            m_featureSelector.setScoreName(scoreVariableName);
+        final FeatureSelectionLoopStartNodeModel featureSelectionStartNode;
+        final FeatureSelector featureSelector;
+        if (getLoopStartNode() instanceof FeatureSelectionLoopStartNodeModel lsn) {
+            featureSelectionStartNode = lsn;
+            featureSelector = featureSelectionStartNode.getFeatureSelector();
+        } else {
+            throw new InvalidSettingsException("Corresponding 'Feature Selection Loop Start' node is missing.");
+        }
+        if (featureSelector == null) {
+            return null;
         }
 
-        // the second outSpec is null because before the search is finished, we don't know which feature levels there are
-        return new PortObjectSpec[] {m_featureSelector.getSpecForResultTable(), null};
+        if (peekFlowVariableInt("currentIteration") == 0) { // defined in FeatureSelectionLoopStartNodeModel
+            // clear() added as part of AP-22279
+            // it fixes an issue where the node gets executed as part of a loop but the n-th iteration fails, leaving
+            // this node in yellow or red state. On the next loop execution, after fixing the root cause, this
+            // end node would then continue to write into the same table, which is wrong
+            clear();
+            featureSelector.setIsMinimize(m_settings.isMinimize());
+            featureSelector.setScoreName(scoreVariableName);
+        }
+
+        // second outSpec is null because before the search is finished, we don't know which feature levels there are
+        return new PortObjectSpec[] {featureSelector.getSpecForResultTable(), null};
     }
 
     /**
@@ -143,21 +145,23 @@ public class FeatureSelectionLoopEndNodeModel extends NodeModel implements LoopE
 
         final FlowVariable scoreVariable = getAvailableInputFlowVariables().get(m_settings.getScoreVariableName());
         final double score = scoreVariable.getDoubleValue();
+
+        final FeatureSelector featureSelector =
+            ((FeatureSelectionLoopStartNodeModel)getLoopStartNode()).getFeatureSelector();
+
         if (m_resultTable == null) {
-            m_resultTable = exec.createDataContainer(m_featureSelector.getSpecForResultTable());
-            m_featureSelector.setResultTableContainer(m_resultTable);
+            m_resultTable = exec.createDataContainer(featureSelector.getSpecForResultTable());
+            featureSelector.setResultTableContainer(m_resultTable);
         }
 
-        m_featureSelector.addScore(score);
+        featureSelector.addScore(score);
 
-
-        m_iteration++;
-        if (m_featureSelector.continueLoop()) {
+        if (featureSelector.continueLoop()) {
             continueLoop();
             return null;
         }
         m_resultTable.close();
-        final FeatureSelectionModel featureSelectionModel = m_featureSelector.getFeatureSelectionModel();
+        final FeatureSelectionModel featureSelectionModel = featureSelector.getFeatureSelectionModel();
         final BufferedDataTable table = m_resultTable.getTable();
         clear();
         return new PortObject[]{table, featureSelectionModel};
@@ -209,12 +213,10 @@ public class FeatureSelectionLoopEndNodeModel extends NodeModel implements LoopE
      * Clears all members and closes the table.
      */
     private void clear() {
-        m_iteration = 0;
         if (m_resultTable != null) {
             m_resultTable.close();
             m_resultTable = null;
         }
-        m_featureSelector = null;
     }
 
     /**
