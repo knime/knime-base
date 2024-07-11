@@ -65,14 +65,12 @@ import org.knime.base.data.filter.column.FilterColumnRowInput;
 import org.knime.base.data.filter.column.FilterColumnTable;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
-import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.RowIterator;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.append.AppendedRowsIterator;
+import org.knime.core.data.append.AppendedRowsIterator.TableIndexAndRowKey;
 import org.knime.core.data.append.AppendedRowsRowInput;
 import org.knime.core.data.append.AppendedRowsTable;
-import org.knime.core.data.append.AppendedRowsTable.DuplicatePolicy;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.DataContainerSettings;
 import org.knime.core.data.container.filter.TableFilter;
@@ -87,11 +85,11 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.message.Message;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.property.hilite.DefaultHiLiteMapper;
 import org.knime.core.node.property.hilite.HiLiteHandler;
-import org.knime.core.node.property.hilite.HiLiteManager;
 import org.knime.core.node.property.hilite.HiLiteTranslator;
 import org.knime.core.node.streamable.BufferedDataTableRowOutput;
 import org.knime.core.node.streamable.DataTableRowInput;
@@ -149,11 +147,11 @@ public class AppendedRowsNodeModel extends NodeModel {
 
     private boolean m_enableHiliting;
 
-    /** Hilite manager that summarizes both input handlers into one. */
-    private final HiLiteManager m_hiliteManager = new HiLiteManager();
+    /** Custom output handler */
+    private final HiLiteHandler m_customHiliteHandler = new HiLiteHandler();
 
-    /** Hilite translator for duplicate row keys. */
-    private final HiLiteTranslator m_hiliteTranslator = new HiLiteTranslator();
+    /** Hilite translators for every input table. */
+    private HiLiteTranslator[] m_hiliteTranslators;
 
     /** Default hilite handler used if hilite translation is disabled. */
     private final HiLiteHandler m_dftHiliteHandler = new HiLiteHandler();
@@ -163,6 +161,7 @@ public class AppendedRowsNodeModel extends NodeModel {
      */
     public AppendedRowsNodeModel() {
         super(2, 1);
+        m_hiliteTranslators = initHiLiteTranslators(2);
     }
 
     /**
@@ -172,6 +171,7 @@ public class AppendedRowsNodeModel extends NodeModel {
      */
     AppendedRowsNodeModel(final int nrIns) {
         super(getInPortTypes(nrIns), new PortType[]{BufferedDataTable.TYPE});
+        m_hiliteTranslators = initHiLiteTranslators(nrIns);
     }
 
     /**
@@ -181,6 +181,16 @@ public class AppendedRowsNodeModel extends NodeModel {
      */
     AppendedRowsNodeModel(final PortsConfiguration portsConfiguration) {
         super(portsConfiguration.getInputPorts(), portsConfiguration.getOutputPorts());
+        m_hiliteTranslators = initHiLiteTranslators(getNrInPorts());
+    }
+
+    private final HiLiteTranslator[] initHiLiteTranslators(final int n) {
+        final var translators = new HiLiteTranslator[n];
+        for (var i = 0; i < n; ++i) {
+            translators[i] = new HiLiteTranslator();
+            translators[i].addToHiLiteHandler(m_customHiliteHandler);
+        }
+        return translators;
     }
 
     private static final PortType[] getInPortTypes(final int nrIns) {
@@ -193,9 +203,6 @@ public class AppendedRowsNodeModel extends NodeModel {
         return result;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] rawInData, final ExecutionContext exec)
         throws Exception {
@@ -222,8 +229,7 @@ public class AppendedRowsNodeModel extends NodeModel {
                 concatTable = exec.createColumnRearrangeTable(concatTable, cr, exec);
             }
             if (m_enableHiliting) {
-                DefaultHiLiteMapper mapper = createHiliteMapper(exec, noNullArray);
-                m_hiliteTranslator.setMapper(mapper);
+                createHiliteMappings(exec, noNullArray);
             }
             return new BufferedDataTable[]{concatTable};
         } else {
@@ -274,7 +280,7 @@ public class AppendedRowsNodeModel extends NodeModel {
         return nonNullList.toArray(new RowInput[nonNullList.size()]);
     }
 
-    void run(final RowInput[] inputs, final RowOutput output, final ExecutionMonitor exec, final long totalRowCount)
+    void run(final RowInput[] inputs, final RowOutput output, final ExecutionContext exec, final long totalRowCount)
         throws InterruptedException, CanceledExecutionException {
         RowInput[] corrected;
         if (m_isIntersection) {
@@ -292,18 +298,8 @@ public class AppendedRowsNodeModel extends NodeModel {
             corrected = inputs;
         }
 
-        AppendedRowsTable.DuplicatePolicy duplPolicy;
-        if (m_createNewRowIDs) {
-            duplPolicy = AppendedRowsTable.DuplicatePolicy.CreateNew;
-        } else if (m_isFailOnDuplicate) {
-            duplPolicy = AppendedRowsTable.DuplicatePolicy.Fail;
-        } else if (m_isAppendSuffix) {
-            duplPolicy = AppendedRowsTable.DuplicatePolicy.AppendSuffix;
-        } else {
-            duplPolicy = AppendedRowsTable.DuplicatePolicy.Skip;
-        }
-        final var appendedInput =
-            AppendedRowsRowInput.create(corrected, duplPolicy, m_suffix, exec, totalRowCount, m_enableHiliting);
+        final var appendedInput = AppendedRowsRowInput.create(corrected, getDuplicatePolicy(), m_suffix, exec,
+            totalRowCount, m_enableHiliting);
         try {
             DataRow next;
             // note, this iterator throws runtime exceptions when canceled.
@@ -320,8 +316,19 @@ public class AppendedRowsNodeModel extends NodeModel {
             setWarningMessage("Filtered out " + appendedInput.getNrRowsSkipped() + " duplicate row(s).");
         }
         if (m_enableHiliting) {
-            Map<RowKey, Set<RowKey>> map = createHiliteTranslationMap(appendedInput.getDuplicateNameMap());
-            m_hiliteTranslator.setMapper(new DefaultHiLiteMapper(map));
+            createHiliteTranslation(exec, appendedInput.getDuplicateNameMapWithIndices(), corrected.length);
+        }
+    }
+
+    private AppendedRowsTable.DuplicatePolicy getDuplicatePolicy() {
+        if (m_createNewRowIDs) {
+            return AppendedRowsTable.DuplicatePolicy.CreateNew;
+        } else if (m_isFailOnDuplicate) {
+            return AppendedRowsTable.DuplicatePolicy.Fail;
+        } else if (m_isAppendSuffix) {
+            return AppendedRowsTable.DuplicatePolicy.AppendSuffix;
+        } else {
+            return AppendedRowsTable.DuplicatePolicy.Skip;
         }
     }
 
@@ -339,7 +346,6 @@ public class AppendedRowsNodeModel extends NodeModel {
         return AppendedRowsTable.generateDataTableSpec(corrected);
     }
 
-    /** {@inheritDoc} */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] rawInSpecs) throws InvalidSettingsException {
         List<DataTableSpec> noNullSpecList = new ArrayList<>();
@@ -377,9 +383,6 @@ public class AppendedRowsNodeModel extends NodeModel {
         return hash.toArray(new String[hash.size()]);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
         final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
@@ -399,7 +402,6 @@ public class AppendedRowsNodeModel extends NodeModel {
         };
     }
 
-    /** {@inheritDoc} */
     @Override
     public InputPortRole[] getInputPortRoles() {
         final var result = new InputPortRole[getNrInPorts()];
@@ -407,9 +409,6 @@ public class AppendedRowsNodeModel extends NodeModel {
         return result;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         settings.addBoolean(CFG_NEW_ROWIDS, m_createNewRowIDs);
@@ -423,9 +422,6 @@ public class AppendedRowsNodeModel extends NodeModel {
         settings.addBoolean(CFG_HILITING, m_enableHiliting);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         settings.getBoolean(CFG_INTERSECT_COLUMNS);
@@ -444,9 +440,6 @@ public class AppendedRowsNodeModel extends NodeModel {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_isIntersection = settings.getBoolean(CFG_INTERSECT_COLUMNS);
@@ -464,141 +457,133 @@ public class AppendedRowsNodeModel extends NodeModel {
         m_enableHiliting = settings.getBoolean(CFG_HILITING, false);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void reset() {
-        m_hiliteManager.removeAllToHiliteHandlers();
-        m_hiliteManager.addToHiLiteHandler(m_hiliteTranslator.getFromHiLiteHandler());
-        m_hiliteManager.addToHiLiteHandler(getInHiLiteHandler(0));
-        m_hiliteTranslator.removeAllToHiliteHandlers();
-        m_hiliteTranslator.addToHiLiteHandler(getInHiLiteHandler(1));
+        for (var t : m_hiliteTranslators) {
+            t.setMapper(null);
+        }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
-        if (m_enableHiliting) {
-            final NodeSettingsRO config = NodeSettings.loadFromXML(
-                new GZIPInputStream(new FileInputStream(new File(nodeInternDir, "hilite_mapping.xml.gz"))));
-            try {
-                m_hiliteTranslator.setMapper(DefaultHiLiteMapper.load(config));
-            } catch (final InvalidSettingsException ex) { //NOSONAR: re-throwing the message is enough
-                throw new IOException(ex.getMessage());
+        if (!m_enableHiliting) {
+            return;
+        }
+        try (final var is =
+            new GZIPInputStream(new FileInputStream(new File(nodeInternDir, "hilite_mapping.xml.gz")))) {
+            final NodeSettingsRO config = NodeSettings.loadFromXML(is);
+            if (config.getBoolean("individual_ports", false)) {
+                // load hilite mappings
+                for (var i = 0; i < m_hiliteTranslators.length; ++i) {
+                    final var portConfig = config.getConfig("input_" + i);
+                    m_hiliteTranslators[i].setMapper(DefaultHiLiteMapper.load(portConfig));
+                }
+            } else {
+                // old node, needs to be re-executed
+                setWarning(Message.fromSummary("Please re-execute the node to enable hiliting."));
             }
+        } catch (InvalidSettingsException ise) {
+            throw new IOException(ise.getMessage(), ise);
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
-        if (m_enableHiliting) {
-            final var config = new NodeSettings("hilite_mapping");
-            ((DefaultHiLiteMapper)m_hiliteTranslator.getMapper()).save(config);
-            config.saveToXML(
-                new GZIPOutputStream(new FileOutputStream(new File(nodeInternDir, "hilite_mapping.xml.gz"))));
+        if (!m_enableHiliting) {
+            return;
+        }
+        final var config = new NodeSettings("hilite_mapping");
+        config.addBoolean("individual_ports", true);
+        for (var i = 0; i < m_hiliteTranslators.length; ++i) {
+            final var portConfig = config.addConfig("input_" + i);
+            if (m_hiliteTranslators[i].getMapper() instanceof DefaultHiLiteMapper dhm) {
+                dhm.save(portConfig);
+            }
+        }
+        try (final var os =
+            new GZIPOutputStream(new FileOutputStream(new File(nodeInternDir, "hilite_mapping.xml.gz")))) {
+            config.saveToXML(os);
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void setInHiLiteHandler(final int inIndex, final HiLiteHandler hiLiteHdl) {
-        super.setInHiLiteHandler(inIndex, hiLiteHdl);
-        if (inIndex == 0) {
-            m_hiliteManager.removeAllToHiliteHandlers();
-            m_hiliteManager.addToHiLiteHandler(m_hiliteTranslator.getFromHiLiteHandler());
-            m_hiliteManager.addToHiLiteHandler(hiLiteHdl);
-        } else if (inIndex == 1) {
-            m_hiliteTranslator.removeAllToHiliteHandlers();
-            m_hiliteTranslator.addToHiLiteHandler(hiLiteHdl);
+        if (m_hiliteTranslators[inIndex] != null) {
+            m_hiliteTranslators[inIndex].dispose();
         }
+        m_hiliteTranslators[inIndex] = new HiLiteTranslator(hiLiteHdl);
+        m_hiliteTranslators[inIndex].addToHiLiteHandler(m_customHiliteHandler);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected HiLiteHandler getOutHiLiteHandler(final int outIndex) {
         if (m_enableHiliting) {
-            return m_hiliteManager.getFromHiLiteHandler();
+            return m_customHiliteHandler;
         } else {
             return m_dftHiliteHandler;
         }
     }
 
-    private DefaultHiLiteMapper createHiliteMapper(final ExecutionContext exec, final BufferedDataTable[] tables)
+    private void createHiliteMappings(final ExecutionContext exec, final BufferedDataTable[] tables)
         throws CanceledExecutionException {
         if (m_createNewRowIDs) {
-            return new DefaultHiLiteMapper(createNewRowIDHiliteTranslation(tables));
-        }
-        final var tmp = new AppendedRowsTable(DuplicatePolicy.Fail, null, tables);
-        final var map = createHiliteTranslationMap(createDuplicateMap(tmp, exec, m_suffix == null ? "" : m_suffix));
-        return new DefaultHiLiteMapper(map);
-    }
-
-    private static Map<RowKey, RowKey> createDuplicateMap(final DataTable table, final ExecutionContext exec,
-        final String suffix) throws CanceledExecutionException {
-        final var duplicateMap = new HashMap<RowKey, RowKey>();
-
-        RowIterator it = table.iterator();
-        DataRow row;
-        while (it.hasNext()) {
-            row = it.next();
-            RowKey origKey = row.getKey();
-            RowKey key = origKey;
-            while (duplicateMap.containsKey(key)) {
-                exec.checkCanceled();
-                String newId = key.toString() + suffix;
-                key = new RowKey(newId);
-            }
-            duplicateMap.put(key, origKey);
-        }
-        return duplicateMap;
-    }
-
-    private static Map<RowKey, Set<RowKey>> createNewRowIDHiliteTranslation(final BufferedDataTable[] tables) {
-        Map<RowKey, Set<RowKey>> translation = new HashMap<>();
-        long i = 0;
-        for (var table : tables) {
-            var iterable = table.filter(TableFilter.materializeCols());
-            try (var iterator = iterable.iterator()) {
-                while (iterator.hasNext()) {
-                    translation.put(RowKey.createRowKey(i), Set.of(iterator.next().getKey()));
-                    i++;
+            createNewRowIDHiliteTranslation(exec, tables);
+        } else {
+            final var appendedTableTMP = new AppendedRowsTable(getDuplicatePolicy(), m_suffix, tables);
+            try (final var it = appendedTableTMP.iterator(exec, -1)) {
+                while (it.hasNext()) {
+                    it.next(); // iterate so that the iterator fills the duplicate map
                 }
+                final var dupMap = it.getDuplicateNameMapWithIndices();
+                createHiliteTranslation(exec, dupMap, tables.length);
             }
         }
-
-        return translation;
     }
 
-    private Map<RowKey, Set<RowKey>> createHiliteTranslationMap(final Map<RowKey, RowKey> dupMap) {
-        // create hilite translation map
-        final var map = new HashMap<RowKey, Set<RowKey>>();
+    private void createHiliteTranslation(final ExecutionContext exec, final Map<RowKey, TableIndexAndRowKey> dupMap,
+        final int n) throws CanceledExecutionException {
+
+        // list because of generic types
+        final List<Map<RowKey, Set<RowKey>>> maps = new ArrayList<>();
+        for (var i = 0; i < n; ++i) {
+            final var map = new HashMap<RowKey, Set<RowKey>>();
+            maps.add(map);
+        }
+
         // map of all RowKeys and duplicate RowKeys in the resulting table
-        for (Map.Entry<RowKey, RowKey> e : dupMap.entrySet()) {
-            // if a duplicate key
-            if (!e.getKey().equals(e.getValue())) {
-                Set<RowKey> set = Collections.singleton(e.getValue());
-                // put duplicate key and original key into map
-                map.put(e.getKey(), set);
-            } else {
-                // skip duplicate keys
-                if (!dupMap.containsKey(new RowKey(e.getKey().getString() + m_suffix))) {
-                    Set<RowKey> set = Collections.singleton(e.getValue());
-                    map.put(e.getKey(), set);
+        for (Map.Entry<RowKey, TableIndexAndRowKey> e : dupMap.entrySet()) {
+            final var outKey = e.getKey();
+            final var inKey = e.getValue().key();
+            final var inTableIndex = e.getValue().index();
+            Set<RowKey> set = Collections.singleton(outKey);
+            // put key and original key into map for the specific table index
+            maps.get(inTableIndex).put(inKey, set);
+            exec.checkCanceled();
+        }
+
+        for (var i = 0; i < n; ++i) {
+            m_hiliteTranslators[i].setMapper(new DefaultHiLiteMapper(maps.get(i)));
+        }
+
+    }
+
+    private void createNewRowIDHiliteTranslation(final ExecutionContext exec, final BufferedDataTable[] tables)
+        throws CanceledExecutionException {
+        var rowIndex = 0l;
+        var tableIndex = 0;
+        for (var table : tables) {
+            Map<RowKey, Set<RowKey>> translation = new HashMap<>();
+            try (var iterator = table.filter(TableFilter.materializeCols()).iterator()) {
+                while (iterator.hasNext()) {
+                    translation.put(iterator.next().getKey(), Set.of(RowKey.createRowKey(rowIndex)));
+                    ++rowIndex;
+                    exec.checkCanceled();
                 }
             }
+            m_hiliteTranslators[tableIndex].setMapper(new DefaultHiLiteMapper(translation));
+            ++tableIndex;
         }
-        return map;
     }
 }
