@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<knimeNode icon="./append.png" type="Manipulator" xmlns="http://knime.org/node/v4.1" 
+<knimeNode icon="./append.png" type="Manipulator" xmlns="http://knime.org/node/v5.3" 
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-		xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+		xsi:schemaLocation="http://knime.org/node/v5.3 http://knime.org/node/v5.3.xsd">
     <name>Concatenate</name>
-    <shortDescription>Concatenates two tables row-wise.</shortDescription>
+    <shortDescription>Concatenates two or more tables row-wise.</shortDescription>
     <fullDescription>
         <intro>
-            This node concatenates two tables. The table at inport 0 is given as the first
-            input table (top input port), the table at inport 1 is the second table, resp. 
-			Columns with equal names are concatenated (if the column types differ 
-			the column type is the common base type of both input column types). 
-			If one input table contains column names that the other table does not, the
-			columns can either be filled with missing values or
-			filtered out, i.e. they will not be in the output table.
-			The dialog allows setting the following parameters:
+			This node concatenates two or more tables. The table at inport 0 is the
+			first input table (top input port), and the tables at subsequent
+			inports are the additional input tables. Columns with the same names
+			are concatenated (if the column types differ, the resulting column type
+			will be the common base type of the input column types). If one input
+			table contains column names that the other tables do not, the columns
+			can either be filled with missing values or filtered out, meaning they
+			will not appear in the output table. The dialog allows setting the
+			following parameters:
 		</intro>
 		<option name="How to combine input columns">
 			<ul>
@@ -24,37 +25,36 @@
                     tables. Fill rows with missing values if they miss cells for some columns.</li>
 			</ul>
 		</option>
-		<option name="If there are duplicate RowIDs">
-			<ul>
-				<li><b>Skip:</b> Duplicate row identifiers (RowID) occurring in the 
-	        second table and following tables are not appended to the output table. This option is 
-	        relatively memory intensive as it needs to cache the RowIDs in
-	        order to find duplicates. Furthermore a full data
-			duplication is needed.</li>
-				<li><b>Append suffix:</b> The output table will contain all rows, but
-            duplicate RowIDs are labeled with a suffix. Similar to
-            the "Skip" option this method is also memory intensive.</li>
-                <li><b>Create new:</b> All rows are included in the output table and receive new RowIDs following the 
-                format Row0, Row1, etc.</li>
-            	<li><b>Fail:</b> The node will fail during execution if duplicate 
-            RowIDs are encountered. This option is efficient while checking 
-            uniqueness.</li>
-			</ul>
+		<option name="RowID handling">
+			Choose how to handle RowIDs:
+            <ul>
+                <li><b>Create new:</b> Discard the RowIDs of the input tables and generate new RowIDs</li>
+                <li><b>Reuse existing:</b> Reuse the RowIDs of the input tables. This might lead to conflicts due to
+                    duplicate RowIDs, see <em>Duplicate RowID strategy</em> for different ways to resolve them.</li>
+            </ul>
+		</option>
+		<option name="Duplicate RowID strategy">
+			Select how duplicate RowIDs are handled:
+            <ul>
+                <li><b>Skip</b>: Duplicate RowIDs in the additional tables are not added to the output table. This
+                    option is memory intensive because it caches the RowIDs to find duplicates and requires full
+                    data duplication.</li>
+                <li><b>Append suffix</b>: The output table will include all rows, but duplicate RowIDs will have a
+                    suffix added. This method is also memory intensive, similar to the "Skip" option.</li>
+                <li><b>Fail</b>: The node will fail during execution if duplicate RowIDs are encountered. This
+                    option is efficient for checking uniqueness.</li>
+            </ul>
 		</option>
         <option name="Enable hiliting">
-            Advanced setting that enables hiliting between both inputs and the concatenated output
-            table.
+            Advanced setting that enables hiliting between the inputs and the concatenated output table.
         </option>
-		<link href="https://www.knime.com/knime-introductory-course/chapter3/section3/concatenation">
-			KNIME E-Learning Course: Concatenation
-		</link>
     </fullDescription>
     <ports>
         <inPort index="0" name="First table to concatenate">Table contributing the rows of the first part of the output table.</inPort>
         <inPort index="1" name="Second table to concatenate">Table contributing the rows of the second part of the output table.</inPort>
         
-        <dynInPort insert-before="2" name="Additional table to concatenate" group-identifier="input">
-        	Table contributing subsequent rows.
+        <dynInPort insert-before="2" name="Additional tables to concatenate" group-identifier="input">
+        	Tables contributing subsequent rows.
         </dynInPort>
         
         <outPort index="0" name="Concatenated table">Table with rows from all tables.</outPort>

@@ -116,7 +116,7 @@ public class AppendedRowsNodeModel extends NodeModel {
     static final String CFG_FAIL_ON_DUPLICATES = "fail_on_duplicates";
 
     /**
-     * NodeSettings key flag if new RowIDs should be generated. This option was added in v5.1 and will overrule the
+     * NodeSettings key flag if new RowIDs should be generated. This option was added in v5.4 and will overrule the
      * other RowID related settings (fail, skip, append).
      */
     static final String CFG_NEW_ROWIDS = "create_new_rowids";
@@ -443,7 +443,7 @@ public class AppendedRowsNodeModel extends NodeModel {
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_isIntersection = settings.getBoolean(CFG_INTERSECT_COLUMNS);
-        // added in v5.1
+        // added in v5.4
         m_createNewRowIDs = settings.getBoolean(CFG_NEW_ROWIDS, false);
         // added in v2.3
         m_isFailOnDuplicate = settings.getBoolean(CFG_FAIL_ON_DUPLICATES, false);
