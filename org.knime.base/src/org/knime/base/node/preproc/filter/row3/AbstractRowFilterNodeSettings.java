@@ -264,8 +264,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
 
             @Override
             public void init(final StateProviderInitializer initializer) {
-                // Only as dependency, since TypeBasedOperatorChoice is triggered by this already.
-                m_selectedColumn = initializer.getValueSupplier(SelectedColumnRef.class);
+                m_selectedColumn = initializer.computeFromValueSupplier(SelectedColumnRef.class);
                 m_currentOperator = initializer.computeFromValueSupplier(OperatorRef.class);
                 /**
                  * Necessary, since the TypeBasedOperatorChoice does not have OperatorRef as trigger, only as a
@@ -281,26 +280,38 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                 // spec empty, e.g. when
                 // - nothing connected
                 // - consuming a component input that does not have executed predecessors
-                return keepCurrentValueIfPossible(createDynamicValue(inputSpec.orElse(null)));
-            }
-
-            private DynamicValuesInput createDynamicValue(final DataTableSpec spec) {
+                if (inputSpec.isEmpty()) {
+                    // show any existing value
+                    return m_currentValue.get();
+                }
                 if (!m_currentOperator.get().m_isBinary) {
+                    // we don't need an input field
                     return DynamicValuesInput.emptySingle();
                 }
+
                 final var selected = m_selectedColumn.get().getSelected();
-                if (spec == null || isRowIDSelected(selected)) {
-                    return DynamicValuesInput.forRowID();
+                final var dts = inputSpec.get();
+                final var columnSpec = dts.getColumnSpec(selected);
+                if (columnSpec == null) {
+                    // column went missing or we selected a "special column"
+                    if (isRowIDSelected(selected)) {
+                        return keepCurrentValueIfPossible(DynamicValuesInput.forRowID());
+                    }
+                    if (isRowNumberSelected(selected)) {
+                        return DynamicValuesInput.forRowNumber();
+                    }
+                    // we don't know the column type, but we still have the (user-supplied) comparison value,
+                    // which we don't want to clear
+                    return m_currentValue.get();
                 }
-                if (isRowNumberSelected(selected)) {
-                    return DynamicValuesInput.forRowNumber();
-                }
-                return DynamicValuesInput
-                    .singleValueWithCaseMatchingForStringWithDefault(spec.getColumnSpec(selected).getType());
+                // provide an input for the given type
+                return keepCurrentValueIfPossible(DynamicValuesInput
+                    .singleValueWithCaseMatchingForStringWithDefault(columnSpec.getType()));
             }
 
             private DynamicValuesInput keepCurrentValueIfPossible(final DynamicValuesInput newValue) {
                 final var currentValue = m_currentValue.get();
+                // types match exactly
                 if (currentValue.isConfigurableFrom(newValue)) {
                     return currentValue;
                 }

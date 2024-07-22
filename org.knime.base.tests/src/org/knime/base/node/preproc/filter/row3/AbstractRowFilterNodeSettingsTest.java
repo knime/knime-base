@@ -54,6 +54,7 @@ import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion.OperatorRef;
+import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion.SelectedColumnRef;
 import org.knime.base.node.preproc.filter.row3.FilterOperatorTest.TestInitializer;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
@@ -148,6 +149,9 @@ final class AbstractRowFilterNodeSettingsTest {
             public <T> Supplier<T> computeFromValueSupplier(final Class<? extends Reference<T>> ref) {
                 if (ref.equals(OperatorRef.class)) {
                     return () -> (T)operator;
+                }
+                if (ref.equals(SelectedColumnRef.class)) {
+                    return () -> (T)columnSelection;
                 }
                 throw new IllegalStateException("Unexpected reference class \"%s\"".formatted(ref.getName()));
             }
