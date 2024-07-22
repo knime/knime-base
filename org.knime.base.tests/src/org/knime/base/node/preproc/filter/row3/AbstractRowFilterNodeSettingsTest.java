@@ -53,7 +53,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
-import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion.TypeBasedOperatorChoice;
+import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion.OperatorRef;
 import org.knime.base.node.preproc.filter.row3.FilterOperatorTest.TestInitializer;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
@@ -68,7 +68,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.Co
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 
 /**
  * Tests that the settings initialize expected dynamic values input elements.
@@ -146,13 +145,11 @@ final class AbstractRowFilterNodeSettingsTest {
             // current operator state
             @SuppressWarnings("unchecked")
             @Override
-            public <T> Supplier<T>
-                computeFromProvidedState(final Class<? extends StateProvider<T>> stateProviderClass) {
-                if (stateProviderClass.equals(TypeBasedOperatorChoice.class)) {
+            public <T> Supplier<T> computeFromValueSupplier(final Class<? extends Reference<T>> ref) {
+                if (ref.equals(OperatorRef.class)) {
                     return () -> (T)operator;
                 }
-                throw new IllegalStateException(
-                    "Unexpected provider class \"%s\"".formatted(stateProviderClass.getName()));
+                throw new IllegalStateException("Unexpected reference class \"%s\"".formatted(ref.getName()));
             }
 
             // expected to be called, since the TypeBasedOperatorChoice does not have OperatorRef as trigger,
