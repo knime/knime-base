@@ -315,7 +315,8 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                 if (currentValue.isConfigurableFrom(newValue)) {
                     return currentValue;
                 }
-                return newValue;
+                // try to convert via String
+                return currentValue.convertToType(newValue).orElse(newValue);
             }
         }
     }
