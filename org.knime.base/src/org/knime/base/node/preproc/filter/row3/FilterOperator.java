@@ -50,6 +50,7 @@ package org.knime.base.node.preproc.filter.row3;
 
 import java.util.function.BiPredicate;
 
+import org.knime.core.data.BoundedValue;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.StringCell;
@@ -70,15 +71,16 @@ enum FilterOperator {
         EQ("=", new IsEq(), true),
         @Label(value = "≠", description = "Value in column must be <b>not equal</b> to specified value")
         NEQ("≠", new IsEq(), true),
+
         @Label(value = "&lt;", description = "Value in column must be <b>strictly smaller</b> than specified value")
-        LT("<", new IsOrd(), true),
+        LT("<", new IsOrd(), new BoundedNumeric(), true),
         @Label(value = "≤", description = "Value in column must be <b>smaller than or equal</b> to specified value")
-        LTE("≤", new IsOrd(), true),
+        LTE("≤", new IsOrd(), new BoundedNumeric(), true),
         @Label(value = "&gt;", description = "Value in column must be <b>strictly larger</b> than specified value")
-        GT(">", new IsOrd(), true),
+        GT(">", new IsOrd(), new BoundedNumeric(), true),
         @Label(value = "≥",
             description = "Value in column must be <b>larger than or equal</b> than specified value")
-        GTE("≥", new IsOrd(), true),
+        GTE("≥", new IsOrd(), new BoundedNumeric(), true),
 
         @Label(value = "First <i>n</i> rows",
             description = "Matches the specified number of rows at the start of the input")
@@ -103,28 +105,56 @@ enum FilterOperator {
 
     final String m_label;
 
-    final BiPredicate<SpecialColumns, DataType> m_capability;
+    final BiPredicate<SpecialColumns, DataType> m_isApplicable;
+
+    private BiPredicate<SpecialColumns, DataType> m_isOffered;
 
     boolean m_isBinary;
 
-    FilterOperator(final String label, final BiPredicate<SpecialColumns, DataType> capability, final boolean isBinary) {
+
+    FilterOperator(final String label, final BiPredicate<SpecialColumns, DataType> isApplicable,
+            final BiPredicate<SpecialColumns, DataType> isOffered, final boolean isBinary) {
         m_label = label;
-        m_capability = capability;
+        m_isApplicable = isApplicable;
+        m_isOffered = isOffered;
         m_isBinary = isBinary;
     }
 
-    boolean isEnabledFor(final SpecialColumns specialColumn, final DataType dataType) {
-        return m_capability.test(specialColumn, dataType);
+    FilterOperator(final String label,
+            final BiPredicate<SpecialColumns, DataType> isOffered, final boolean isBinary) {
+        this(label, isOffered, isOffered, isBinary);
+    }
+
+    boolean isApplicableFor(final SpecialColumns specialColumn, final DataType dataType) {
+        return m_isApplicable.test(specialColumn, dataType);
+    }
+
+    boolean isOfferedFor(final SpecialColumns specialColumn, final DataType dataType) {
+        return m_isOffered.test(specialColumn, dataType);
     }
 
     String label() {
         return m_label;
     }
 
-    // order for any datatype except for `boolean` and `String`
+    /**
+     * Capability that defines for which data types we want to offer ordering-based operators in the UI. If you want to
+     * test whether the type supports ordering -- according to our custom definition -- use {@link IsOrd}.
+     */
+    static final class BoundedNumeric implements BiPredicate<SpecialColumns, DataType> {
+        @Override
+        public boolean test(final SpecialColumns specialColumn, final DataType dataType) {
+            return dataType != BooleanCell.TYPE && dataType != StringCell.TYPE // explicitly disabled cell types
+                && dataType.isCompatible(BoundedValue.class); // explicitly enabled value classes
+        }
+    }
+
     static final class IsOrd implements BiPredicate<SpecialColumns, DataType> {
         @Override
         public boolean test(final SpecialColumns specialColumn, final DataType dataType) {
+            // In practice all cells bring a comparator, but not all implementations offer something more "meaningful"
+            // than a lexicographic ordering. Still, we want to disallow ordering for boolean and string cells
+            // explicitly for now.
             return dataType != BooleanCell.TYPE && dataType != StringCell.TYPE;
         }
     }

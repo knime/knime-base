@@ -107,7 +107,7 @@ final class RowReadPredicate {
         final var columnSpec = spec.getColumnSpec(columnIndex);
         final var dataType = columnSpec.getType();
 
-        CheckUtils.check(operator.isEnabledFor(null, dataType), InvalidSettingsException::new,
+        CheckUtils.check(operator.isApplicableFor(null, dataType), InvalidSettingsException::new,
             () -> "Operator \"%s\" is not applicable for column data type \"%s\"".formatted(operator.label(),
                 dataType.getName()));
 

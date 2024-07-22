@@ -236,7 +236,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
             final var operator = m_operator;
             if (isFilterOnRowKeys()) {
                 CheckUtils.checkSetting(operator != FilterOperator.IS_MISSING, "Cannot filter RowID for presence.");
-                CheckUtils.checkSetting(operator.isEnabledFor(SpecialColumns.ROWID, StringCell.TYPE),
+                CheckUtils.checkSetting(operator.isApplicableFor(SpecialColumns.ROWID, StringCell.TYPE),
                     "Filter operator \"%s\" cannot be applied to RowID.", operator.label());
                 return;
             }
@@ -473,7 +473,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
             }
             // filter on top-level type
             return Arrays.stream(FilterOperator.values()) //
-                .filter(op -> op.isEnabledFor(specialColumn, dataType.get())) //
+                .filter(op -> op.isOfferedFor(specialColumn, dataType.get())) //
                 .toList();
         }
 
