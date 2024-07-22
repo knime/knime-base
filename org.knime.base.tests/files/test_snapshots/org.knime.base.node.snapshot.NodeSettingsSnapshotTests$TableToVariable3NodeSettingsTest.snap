@@ -181,6 +181,7 @@
                   },
                   "typeDisplays" : {
                     "default" : [ ],
+                    "subConfigKeys" : [ ],
                     "type" : "array",
                     "items" : {
                       "type" : "object",
@@ -191,7 +192,8 @@
                         "text" : {
                           "type" : "string"
                         }
-                      }
+                      },
+                      "subConfigKeys" : [ ]
                     }
                   }
                 },
@@ -221,7 +223,8 @@
                 "typeDisplays" : [ ]
               }
             },
-            "configKeys" : [ "column_selection" ]
+            "configKeys" : [ "column_selection" ],
+            "subConfigKeys" : [ [ "filter-type" ], [ "included_names" ], [ "excluded_names" ], [ "enforce_option" ], [ "name_pattern", "pattern" ], [ "name_pattern", "type" ], [ "name_pattern", "caseSensitive" ], [ "name_pattern", "excludeMatching" ] ]
           }
         }
       }

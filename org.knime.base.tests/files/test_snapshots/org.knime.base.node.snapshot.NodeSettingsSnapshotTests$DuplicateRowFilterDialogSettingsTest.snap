@@ -128,6 +128,7 @@
                   },
                   "typeDisplays" : {
                     "default" : [ ],
+                    "subConfigKeys" : [ ],
                     "type" : "array",
                     "items" : {
                       "type" : "object",
@@ -138,7 +139,8 @@
                         "text" : {
                           "type" : "string"
                         }
-                      }
+                      },
+                      "subConfigKeys" : [ ]
                     }
                   }
                 },
@@ -150,7 +152,8 @@
             },
             "title" : "Choose columns for duplicates detection",
             "description" : "Allows the selection of columns identifying the duplicates. Columns not selected are handled under \"Row selection\" in the \"Advanced\" settings.",
-            "configKeys" : [ "group_cols" ]
+            "configKeys" : [ "group_cols" ],
+            "subConfigKeys" : [ [ "filter-type" ], [ "included_names" ], [ "excluded_names" ], [ "enforce_option" ], [ "name_pattern", "pattern" ], [ "name_pattern", "type" ], [ "name_pattern", "caseSensitive" ], [ "name_pattern", "excludeMatching" ] ]
           },
           "duplicateHandling" : {
             "oneOf" : [ {

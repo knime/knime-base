@@ -153,6 +153,7 @@
                   },
                   "typeDisplays" : {
                     "default" : [ ],
+                    "subConfigKeys" : [ ],
                     "type" : "array",
                     "items" : {
                       "type" : "object",
@@ -163,7 +164,8 @@
                         "text" : {
                           "type" : "string"
                         }
-                      }
+                      },
+                      "subConfigKeys" : [ ]
                     }
                   }
                 },
