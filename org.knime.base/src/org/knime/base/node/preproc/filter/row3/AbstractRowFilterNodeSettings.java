@@ -165,41 +165,15 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
         static final class SelectedColumnRef implements Reference<ColumnSelection> {
         }
 
+        // We explicitly do not "reset" the current operator to one applicable for the current column data type,
+        // in order to allow the user to switch between columns without resetting their operator selection.
         @Widget(title = "Operator", description = "The operator defining the filter criterion.")
         @Layout(Condition.ColumnOperator.Operator.class)
         @ValueReference(OperatorRef.class)
-        @ValueProvider(TypeBasedOperatorChoice.class)
         @ChoicesWidget(choicesProvider = TypeBasedOperatorChoices.class)
         FilterOperator m_operator = FilterOperator.EQ;
 
         static class OperatorRef implements Reference<FilterOperator> {
-        }
-
-        /**
-         * Provides the first operator from the given choices if the current one is missing.
-         */
-        static class TypeBasedOperatorChoice implements StateProvider<FilterOperator> {
-
-            private Supplier<List<FilterOperator>> m_typeBasedOperators;
-
-            private Supplier<FilterOperator> m_currentValue;
-
-            @Override
-            public void init(final StateProviderInitializer initializer) {
-                m_currentValue = initializer.getValueSupplier(OperatorRef.class);
-                m_typeBasedOperators = initializer.computeFromProvidedState(TypeBasedOperatorsProvider.class);
-            }
-
-            @Override
-            public FilterOperator computeState(final DefaultNodeSettingsContext context) {
-                final var currentValue = m_currentValue.get();
-                final var operators = m_typeBasedOperators.get();
-                if (operators.contains(currentValue)) {
-                    return currentValue;
-                }
-                return operators.stream().findFirst().orElseThrow();
-            }
-
         }
 
         FilterCriterion() {
@@ -292,7 +266,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
             public void init(final StateProviderInitializer initializer) {
                 // Only as dependency, since TypeBasedOperatorChoice is triggered by this already.
                 m_selectedColumn = initializer.getValueSupplier(SelectedColumnRef.class);
-                m_currentOperator = initializer.computeFromProvidedState(TypeBasedOperatorChoice.class);
+                m_currentOperator = initializer.computeFromValueSupplier(OperatorRef.class);
                 /**
                  * Necessary, since the TypeBasedOperatorChoice does not have OperatorRef as trigger, only as a
                  * dependency
