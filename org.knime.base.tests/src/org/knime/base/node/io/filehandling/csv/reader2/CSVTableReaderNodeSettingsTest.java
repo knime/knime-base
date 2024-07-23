@@ -56,6 +56,8 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOptionPersistor;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.IfSchemaChangesOption;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.IfSchemaChangesPersistor;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset;
@@ -140,6 +142,20 @@ class CSVTableReaderNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
     private static Stream<RowDelimiterOption> testRowDelimiterPersistor() {
         return Stream.of(RowDelimiterOption.LINE_BREAK, RowDelimiterOption.CUSTOM);
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    void testHowToCombineColumnsOptionPersistor(final HowToCombineColumnsOption howToCombineColumnsOption)
+        throws InvalidSettingsException {
+        final var copy = saveLoad(HowToCombineColumnsOptionPersistor.class, HowToCombineColumnsOption.class,
+            howToCombineColumnsOption);
+        assertEquals(howToCombineColumnsOption, copy);
+    }
+
+    private static Stream<HowToCombineColumnsOption> testHowToCombineColumnsOptionPersistor() {
+        return Stream.of(HowToCombineColumnsOption.FAIL, HowToCombineColumnsOption.UNION,
+            HowToCombineColumnsOption.INTERSECTION);
     }
 
     @ParameterizedTest

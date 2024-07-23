@@ -57,6 +57,8 @@ import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFacto
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.AppendPathColumnRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.DecimalSeparatorRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.FilePathColumnNameRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOptionRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.LimitScannedRowsRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.MaxDataRowsScannedRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.QuotedStringsOption;
@@ -87,8 +89,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
@@ -100,7 +100,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TreeTypeHierarchy;
 
 /**
@@ -260,34 +259,25 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
 
     PersistorSettings m_persistorSettings = new PersistorSettings();
 
-    enum ColumnFilterModeOption {
-            @Label(value = "Union", description = """
-                    Any column that is part of any input file is considered. If a file is missing a column, it's filled
-                    up with missing values.
-                    """)
-            UNION(ColumnFilterMode.UNION),
+    static class TakeColumnsFromProvider implements StateProvider<String> {
 
-            @Label(value = "Intersection",
-                description = "Only columns that appear in all files are considered for the output table.") //
-            INTERSECTION(ColumnFilterMode.INTERSECTION);
+        private Supplier<HowToCombineColumnsOption> m_howToCombineColumnsOptionSupplier;
 
-        private final ColumnFilterMode m_columnFilterMode;
-
-        ColumnFilterModeOption(final ColumnFilterMode columnFilterMode) {
-            m_columnFilterMode = columnFilterMode;
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            initializer.computeBeforeOpenDialog();
+            m_howToCombineColumnsOptionSupplier =
+                initializer.computeFromValueSupplier(HowToCombineColumnsOptionRef.class);
         }
 
-        ColumnFilterMode toColumnFilterMode() {
-            return m_columnFilterMode;
+        @Override
+        public String computeState(final DefaultNodeSettingsContext context) {
+            return m_howToCombineColumnsOptionSupplier.get().toColumnFilterMode().name();
         }
     }
 
-    @Widget(title = "Take columns from", description = """
-            Only enabled in "Files in folder" mode. Specifies which set of columns are considered for the output table.
-            """, hideFlowVariableButton = true)
-    @ValueSwitchWidget
-    // TODO NOSONAR UIEXT-1800 merge with CSVTableReaderNoderSettings.m_failOnDifferingSpecs
-    ColumnFilterModeOption m_takeColumnsFrom = ColumnFilterModeOption.UNION;
+    @ValueProvider(TakeColumnsFromProvider.class)
+    String m_takeColumnsFrom = "UNION";
 
     @Widget(title = "Enforce types", description = """
             Controls how columns whose type changes are dealt with.

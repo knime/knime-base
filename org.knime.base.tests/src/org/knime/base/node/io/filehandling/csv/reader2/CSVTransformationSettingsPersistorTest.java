@@ -54,13 +54,13 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.ColumnFilterModeOption;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.ColumnSpecSettings;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TableSpecSettings;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TransformationElementSettingsProvider;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
@@ -87,16 +87,16 @@ class CSVTransformationSettingsPersistorTest {
     }
 
     private static Stream<CSVTransformationSettings> testSaveLoad() {
-        return Stream.of(createTransformationSettings(ColumnFilterModeOption.INTERSECTION),
-            createTransformationSettings(ColumnFilterModeOption.UNION),
+        return Stream.of(createTransformationSettings(ColumnFilterMode.INTERSECTION),
+            createTransformationSettings(ColumnFilterMode.UNION),
             createTransformationSettings(new TableSpecSettings[]{
                 new TableSpecSettings("foo", new ColumnSpecSettings[]{new ColumnSpecSettings("bar", Integer.class)})}));
     }
 
     private static CSVTransformationSettings
-        createTransformationSettings(final ColumnFilterModeOption takeColumnsFrom) {
+        createTransformationSettings(final ColumnFilterMode columnFilterMode) {
         final var transformationSettings = new CSVTransformationSettings();
-        transformationSettings.m_takeColumnsFrom = takeColumnsFrom;
+        transformationSettings.m_takeColumnsFrom = columnFilterMode.name();
         return transformationSettings;
     }
 

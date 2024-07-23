@@ -82,6 +82,8 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.FileFormat.SkipFirstLines;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.MultipleFileHandling.AppendFilePathColumn;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.MultipleFileHandling.FilePathColumnName;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.MultipleFileHandling.HowToCombineColumns;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.MultipleFileHandling.PrependFileIndexToRowId;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Transformation;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Values.DecimalSeparator;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Values.QuotedStrings;
@@ -122,6 +124,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
+import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
@@ -208,10 +211,10 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         // TODO defaults are currently not applied when the node is created anew; will be addressed in UIEXT-1740
 
         @Persist(configKey = "skip_empty_data_rows")
-        boolean m_skipEmptyDataRows;
+        boolean m_skipEmptyDataRows ;
 
-        // @Widget(title = "Prepend file index to RowID", description = PrependFileIndexToRowId.DESCRIPTION)
-        // @Layout(PrependFileIndexToRowId.class)
+        @Widget(title = "Prepend file index to RowID", description = PrependFileIndexToRowId.DESCRIPTION)
+        @Layout(PrependFileIndexToRowId.class)
         @Persist(configKey = "prepend_file_idx_to_row_id")
         boolean m_prependFileIndexToRowId;
         // TODO this setting should be shown when reading multiple files; currently blocked by UIEXT-1805
@@ -384,15 +387,68 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
 
     static class AdvancedSettings implements WidgetGroup, PersistableSettings {
 
-        @Persist(configKey = "spec_merge_mode", hidden = true)
-        String m_specMergeMode = "UNION";
+        enum HowToCombineColumnsOption {
+                @Label(value = "Fail if different", description = HowToCombineColumns.DESCRIPTION_FAIL)
+                FAIL(ColumnFilterMode.UNION),
 
-        // @Widget(title = "Fail if specs differ", description = FailIfSpecsDiffer.DESCRIPTION)
-        // @Layout(FailIfSpecsDiffer.class)
-        @Persist(configKey = "fail_on_differing_specs")
-        boolean m_failOnDifferingSpecs = true;
+                @Label(value = "Union", description = HowToCombineColumns.DESCRIPTION_UNION)
+                UNION(ColumnFilterMode.UNION),
+
+                @Label(value = "Intersection", description = HowToCombineColumns.DESCRIPTION_INTERSECTION)
+                INTERSECTION(ColumnFilterMode.INTERSECTION);
+
+            private final ColumnFilterMode m_columnFilterMode;
+
+            HowToCombineColumnsOption(final ColumnFilterMode columnFilterMode) {
+                m_columnFilterMode = columnFilterMode;
+            }
+
+            ColumnFilterMode toColumnFilterMode() {
+                return m_columnFilterMode;
+            }
+        }
+
+        static final class HowToCombineColumnsOptionPersistor
+            implements FieldNodeSettingsPersistor<HowToCombineColumnsOption> {
+
+            private static final String CFG_FAIL_ON_DIFFERING_SPECS = "fail_on_differing_specs";
+
+            private static final String CFG_SPEC_MERGE_MODE = "spec_merge_mode";
+
+            @Override
+            public HowToCombineColumnsOption load(final NodeSettingsRO settings) throws InvalidSettingsException {
+                if (settings.getBoolean(CFG_FAIL_ON_DIFFERING_SPECS, true)) {
+                    return HowToCombineColumnsOption.FAIL;
+                }
+                if (settings.getString(CFG_SPEC_MERGE_MODE, "UNION").equals("UNION")) {
+                    return HowToCombineColumnsOption.UNION;
+                }
+                return HowToCombineColumnsOption.INTERSECTION;
+            }
+
+            @Override
+            public void save(final HowToCombineColumnsOption howToCombineColumnsOption, final NodeSettingsWO settings) {
+                settings.addBoolean(CFG_FAIL_ON_DIFFERING_SPECS,
+                    howToCombineColumnsOption == HowToCombineColumnsOption.FAIL);
+                settings.addString(CFG_SPEC_MERGE_MODE, howToCombineColumnsOption.toColumnFilterMode().name());
+            }
+
+            @Override
+            public String[] getConfigKeys() {
+                return new String[]{CFG_FAIL_ON_DIFFERING_SPECS, CFG_SPEC_MERGE_MODE};
+            }
+        }
+
+        static class HowToCombineColumnsOptionRef implements Reference<HowToCombineColumnsOption> {
+        }
+
+        @Widget(title = "How to combine columns", description = HowToCombineColumns.DESCRIPTION)
+        @ValueSwitchWidget
+        @ValueReference(HowToCombineColumnsOptionRef.class)
+        @Layout(HowToCombineColumns.class)
+        @Persist(customPersistor = HowToCombineColumnsOptionPersistor.class)
+        HowToCombineColumnsOption m_howToCombineColumns = HowToCombineColumnsOption.FAIL;
         // TODO this setting should be shown when reading multiple files; currently blocked by UIEXT-1805
-        // TODO this setting will be replaced by a value seitch Fail if different / Union / Intersection in UIEXT-1800
 
         static class AppendPathColumnRef extends ReferenceStateProvider<Boolean> {
         }
