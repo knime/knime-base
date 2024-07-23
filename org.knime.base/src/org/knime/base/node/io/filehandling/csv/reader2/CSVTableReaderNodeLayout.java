@@ -343,14 +343,13 @@ public class CSVTableReaderNodeLayout {
     @Section(title = "Multiple File Handling", advanced = true)
     @After(ColumnAndDataTypeDetection.class)
     interface MultipleFileHandling {
-        interface FailIfSpecsDiffer {
-            String DESCRIPTION = """
-                    If checked, the node will fail if multiple files are read via the Files in folder option and not all
-                    files have the same table structure i.e. the same columns.
-                    """;
+        interface HowToCombineColumns {
+            // TODO needs to be checked with technical writing
+            String DESCRIPTION = "Specifies how to deal with reading multiple files of varying table structures.";
+
         }
 
-        @After(FailIfSpecsDiffer.class)
+        @After(HowToCombineColumns.class)
         interface PrependFileIndexToRowId {
             String DESCRIPTION =
                 """

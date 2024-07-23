@@ -59,8 +59,8 @@
         <entry key="autodetect_buffer_size" type="xint" value="1048576"/>
     </config>
     <config key="advanced_settings">
-        <entry key="spec_merge_mode_Internals" type="xstring" value="UNION"/>
         <entry key="fail_on_differing_specs" type="xboolean" value="true"/>
+        <entry key="spec_merge_mode" type="xstring" value="UNION"/>
         <entry key="append_path_column_Internals" type="xboolean" value="false"/>
         <entry key="path_column_name_Internals" type="xstring" value="Path"/>
         <entry key="limit_data_rows_scanned" type="xboolean" value="true"/>

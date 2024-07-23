@@ -60,7 +60,6 @@ import java.util.stream.IntStream;
 import org.knime.base.node.io.filehandling.csv.reader.CSVMultiTableReadConfig;
 import org.knime.base.node.io.filehandling.csv.reader.ClassTypeSerializer;
 import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.ColumnFilterModeOption;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.PersistorSettings;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TableSpecSettings;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElementSettings;
@@ -68,7 +67,6 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
@@ -81,6 +79,7 @@ import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDLo
 import org.knime.filehandling.core.node.table.reader.config.tablespec.DefaultTableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.NodeSettingsConfigID;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigSerializer;
+import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.ImmutableUnknownColumnsTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
@@ -102,8 +101,6 @@ final class CSVTransformationSettingsPersistor extends NodeSettingsPersistorWith
         }
     }
 
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(CSVTransformationSettingsPersistor.class);
-
     private static final ProducerRegistry<Class<?>, ?> PRODUCER_REGISTRY =
         StringReadAdapterFactory.INSTANCE.getProducerRegistry();
 
@@ -123,9 +120,8 @@ final class CSVTransformationSettingsPersistor extends NodeSettingsPersistorWith
                     t.getProductionPath().getConverterFactory().getIdentifier()))
                 .toArray(TransformationElementSettings[]::new);
 
-            transformationSettings.m_takeColumnsFrom =
-                ColumnFilterModeOption.valueOf(settings.getNodeSettings(getConfigKey())
-                    .getNodeSettings("table_transformation").getString("column_filter_mode"));
+            transformationSettings.m_takeColumnsFrom = settings.getNodeSettings(getConfigKey())
+                .getNodeSettings("table_transformation").getString("column_filter_mode");
         }
         return transformationSettings;
     }
@@ -142,7 +138,7 @@ final class CSVTransformationSettingsPersistor extends NodeSettingsPersistorWith
         final var unknownColsTrans = new ImmutableUnknownColumnsTransformation(1, true, false, null);
 
         final var tableTransformation = new DefaultTableTransformation<Class<?>>(rawSpec, transformations,
-            transformationSettings.m_takeColumnsFrom.toColumnFilterMode(), unknownColsTrans, true, false);
+            ColumnFilterMode.valueOf(transformationSettings.m_takeColumnsFrom), unknownColsTrans, true, false);
 
         DataColumnSpec itemIdentifierColumnSpec = determineAPpendPathColumnSpec(persistorSettings);
 
