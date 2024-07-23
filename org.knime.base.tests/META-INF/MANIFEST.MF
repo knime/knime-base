@@ -4,7 +4,7 @@ Bundle-Name: Unit-Tests for org.knime.base
 Bundle-SymbolicName: org.knime.base.tests;singleton:=true
 Bundle-Version: 5.4.0.qualifier
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
-Fragment-Host: org.knime.base;bundle-version="[5.3.0,6.0.0)"
+Fragment-Host: org.knime.base;bundle-version="[5.4.0,6.0.0)"
 Export-Package: org.knime.base,
   org.knime.base.data.append.row,
   org.knime.base.data.bitvector,
@@ -25,12 +25,12 @@ Export-Package: org.knime.base,
   org.knime.base.util.math,
   org.knime.core.data.container.blobs
 Require-Bundle: org.junit;bundle-version="[4.13.2,5.0.0)",
- org.knime.testing;bundle-version="[5.3.0,6.0.0)",
+ org.knime.testing;bundle-version="[5.4.0,6.0.0)",
  org.mockito.mockito-core;bundle-version="[2.18.3,3.0.0)",
  junit-jupiter-api;bundle-version="[5.9.2,6.0.0)",
  junit-platform-suite-api;bundle-version="[1.9.2,2.0.0)",
  junit-jupiter-params;bundle-version="[5.9.2,6.0.0)",
- org.knime.core.ui.testing;bundle-version="[5.3.0,6.0.0)",
+ org.knime.core.ui.testing;bundle-version="[5.4.0,6.0.0)",
  assertj-core;bundle-version="[3.22.0,4.0.0)",
  slf4j.api;bundle-version="[2.0.12,3.0.0)"
 Bundle-RequiredExecutionEnvironment: JavaSE-17
