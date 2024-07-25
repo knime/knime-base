@@ -1,10 +1,13 @@
 {
   "data" : {
     "model" : {
-      "enableHiliting" : false,
-      "suffix" : "_dup",
-      "rowIdResolution" : "APPEND",
-      "columnSetOperation" : "UNION"
+      "columnSetOperation" : "UNION",
+      "rowIdStrategy" : {
+        "strategy" : "CREATE_NEW",
+        "rowIdResolution" : "APPEND",
+        "suffix" : "_dup"
+      },
+      "enableHiliting" : false
     }
   },
   "schema" : {
@@ -22,7 +25,7 @@
               "title" : "Union"
             } ],
             "title" : "How to combine input columns",
-            "description" : "Choose the output column selection process:<ul><li><b>Intersection</b>: Use only the columns that appear in every input table. Any other column is ignored and won't appear in the output table.</li><li><b>Union</b>: Use all columns from all input tables. Fill rows with missing values if they miss cells for some columns.</li></ul>",
+            "description" : "Choose the output column selection process:<ul>\n<li><b>Intersection</b>: Use only the columns that appear in every input table. Any other column is ignored\n    and won't appear in the output table.</li>\n<li><b>Union</b>: Use all columns from all input tables. Fill rows with missing values if they miss cells\n    for some columns.</li>\n</ul>\n",
             "default" : "UNION",
             "configKeys" : [ "intersection_of_columns" ]
           },
@@ -33,28 +36,50 @@
             "default" : false,
             "configKeys" : [ "enable_hiliting" ]
           },
-          "rowIdResolution" : {
-            "oneOf" : [ {
-              "const" : "SKIP",
-              "title" : "Skip"
-            }, {
-              "const" : "APPEND",
-              "title" : "Append suffix"
-            }, {
-              "const" : "FAIL",
-              "title" : "Fail"
-            } ],
-            "title" : "If there are duplicate RowIDs",
-            "description" : "Select how to resolve duplicate RowIDs:<ul><li><b>Skip</b>: Duplicate row identifiers (RowID) occurring in the second table are not appended to the output table. This option is relatively memory intensive as it needs to cache the RowIDs in order to find duplicates. Furthermore a full data duplication is needed.</li><li><b>Append suffix</b>: The output table will contain all rows, but duplicate RowIDs are labeled with a suffix. Similar to the \"Skip Rows\" option this method is also memory intensive.</li><li><b>Fail</b>: The node will fail during execution if duplicate RowIDs are encountered. This option is efficient while checking uniqueness.</li></ul>",
-            "default" : "APPEND",
-            "configKeys" : [ "append_suffix", "fail_on_duplicates" ]
-          },
-          "suffix" : {
-            "type" : "string",
-            "title" : "Suffix",
-            "description" : "The suffix to be appended to RowIDs.",
-            "default" : "_dup",
-            "configKeys" : [ "suffix" ]
+          "rowIdStrategy" : {
+            "type" : "object",
+            "properties" : {
+              "rowIdResolution" : {
+                "oneOf" : [ {
+                  "const" : "SKIP",
+                  "title" : "Skip"
+                }, {
+                  "const" : "APPEND",
+                  "title" : "Append suffix"
+                }, {
+                  "const" : "FAIL",
+                  "title" : "Fail"
+                } ],
+                "title" : "Duplicate RowID strategy",
+                "description" : "Select how duplicate RowIDs are handled:\n<ul>\n    <li><b>Skip</b>: Duplicate RowIDs in the additional tables are not added to the output table. This\n        option is memory intensive because it caches the RowIDs to find duplicates and requires full\n        data duplication.</li>\n    <li><b>Append suffix</b>: The output table will include all rows, but duplicate RowIDs will have a\n        suffix added. This method is also memory intensive, similar to the \"Skip\" option.</li>\n    <li><b>Fail</b>: The node will fail during execution if duplicate RowIDs are encountered. This\n        option is efficient for checking uniqueness.</li>\n</ul>\n",
+                "default" : "APPEND"
+              },
+              "strategy" : {
+                "oneOf" : [ {
+                  "const" : "CREATE_NEW",
+                  "title" : "Create new"
+                }, {
+                  "const" : "REUSE_EXISTING",
+                  "title" : "Reuse existing"
+                } ],
+                "title" : "RowID handling",
+                "description" : "Choose how to handle RowIDs:\n<ul>\n    <li><b>Create new:</b> Discard the RowIDs of the input tables and generate new RowIDs</li>\n    <li><b>Reuse existing:</b> Reuse the RowIDs of the input tables. This might lead to conflicts due to\n        duplicate RowIDs, see <em>Duplicate RowID strategy</em> for different ways to resolve them.</li>\n</ul>\n",
+                "default" : "CREATE_NEW"
+              },
+              "suffix" : {
+                "type" : "string",
+                "title" : "Suffix",
+                "description" : "The suffix to be appended to RowIDs.",
+                "default" : "_dup",
+                "configKeys" : [ "suffix" ]
+              }
+            },
+            "default" : {
+              "strategy" : "CREATE_NEW",
+              "rowIdResolution" : "APPEND",
+              "suffix" : "_dup"
+            },
+            "configKeys" : [ "create_new_rowids", "append_suffix", "fail_on_duplicates" ]
           }
         }
       }
@@ -69,22 +94,49 @@
       }
     }, {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/rowIdResolution",
+      "scope" : "#/properties/model/properties/rowIdStrategy/properties/strategy",
       "options" : {
         "format" : "valueSwitch"
       }
     }, {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/suffix",
+      "scope" : "#/properties/model/properties/rowIdStrategy/properties/rowIdResolution",
+      "options" : {
+        "format" : "valueSwitch"
+      },
       "rule" : {
         "effect" : "SHOW",
         "condition" : {
-          "scope" : "#/properties/model/properties/rowIdResolution",
+          "scope" : "#/properties/model/properties/rowIdStrategy/properties/strategy",
           "schema" : {
             "oneOf" : [ {
-              "const" : "APPEND"
+              "const" : "REUSE_EXISTING"
             } ]
           }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/rowIdStrategy/properties/suffix",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "type" : "AND",
+          "conditions" : [ {
+            "scope" : "#/properties/model/properties/rowIdStrategy/properties/rowIdResolution",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "APPEND"
+              } ]
+            }
+          }, {
+            "scope" : "#/properties/model/properties/rowIdStrategy/properties/strategy",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "REUSE_EXISTING"
+              } ]
+            }
+          } ]
         }
       }
     }, {
