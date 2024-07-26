@@ -465,6 +465,11 @@ public class AppendedRowsNodeModel extends NodeModel {
     }
 
     @Override
+    protected void onDispose() {
+        Arrays.stream(m_hiliteTranslators).forEach(HiLiteTranslator::dispose);
+    }
+
+    @Override
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
         if (!m_enableHiliting) {
