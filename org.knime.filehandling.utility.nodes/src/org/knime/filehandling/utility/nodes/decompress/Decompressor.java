@@ -55,6 +55,7 @@ import java.io.InputStream;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -77,10 +78,13 @@ import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.data.util.CancellableReportingInputStream;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.KNIMEException;
 import org.knime.core.node.NodeLogger;
+import org.knime.core.node.message.Message;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.workflowaware.WorkflowAwareErrorHandling.AccessInsideWorkflowException;
 import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCellFactory;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
 import org.knime.filehandling.utility.nodes.utils.FileStatus;
@@ -132,7 +136,7 @@ final class Decompressor {
      * @throws InvalidSettingsException
      */
     void decompress(final FSPath sourcePath, final FSPath destinationPath)
-        throws IOException, InterruptedException, InvalidSettingsException {
+        throws IOException, InterruptedException, InvalidSettingsException, KNIMEException {
         final long fileSize = Files.readAttributes(sourcePath, BasicFileAttributes.class).size();
         try (final InputStream sourceStream =
             new CancellableReportingInputStream(Files.newInputStream(sourcePath), m_exec, fileSize)) {
@@ -144,9 +148,23 @@ final class Decompressor {
                     decompressFile(archiveInputStream, sourcePath, destinationPath);
                 }
             }
+        } catch (AccessInsideWorkflowException aiwe) {
+            final var msg = Message.fromSummaryWithResolution(//
+                "This node cannot decompress KNIME artifacts (like workflows or components) to the selected "
+                    + "destination. Tried to uncompress: " + aiwe.getFile(), //
+                "Use the Workflow Reader / Writer nodes instead.", //
+                "Decompress into the Local File System.",
+                "Use the ZIP Archive Connector to access files within the archive.");
+            throw KNIMEException.of(msg, aiwe);
+        } catch (NoSuchFileException nsfe) {
+            final var msg = Message.fromSummaryWithResolution(//
+                "There was a problem writing to the destination file system.", //
+                "Ensure that the file system is writable and KNIME has the necessary permissions.");
+            throw KNIMEException.of(msg, nsfe);
         } catch (EOFException e) {
-            throw new InvalidSettingsException(
-                "The end of the archive has been reached unexpectedly. The archive might be corrupted.", e);
+            final var msg = Message
+                .fromSummary("The end of the archive has been reached unexpectedly. The archive might be corrupted.");
+            throw KNIMEException.of(msg, e);
         }
     }
 
