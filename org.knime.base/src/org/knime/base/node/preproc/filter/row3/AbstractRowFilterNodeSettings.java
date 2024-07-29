@@ -218,7 +218,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
             final var columnName = m_column.getSelected();
             final var colSpec = spec.getColumnSpec(columnName);
             CheckUtils.checkSettingNotNull(colSpec, "Unknown column \"%s\".", columnName);
-            m_predicateValues.validate(colSpec);
+            operator.validate(colSpec, m_predicateValues);
         }
 
         boolean isFilterOnRowKeys() {
