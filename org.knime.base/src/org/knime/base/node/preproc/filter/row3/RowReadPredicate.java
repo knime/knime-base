@@ -105,13 +105,13 @@ final class RowReadPredicate {
         }
 
         final var columnSpec = spec.getColumnSpec(columnIndex);
-        final var dataType = columnSpec.getType();
+        final var inputColumnType = columnSpec.getType();
 
-        CheckUtils.check(operator.isApplicableFor(null, dataType), InvalidSettingsException::new,
+        CheckUtils.check(operator.isApplicableFor(null, inputColumnType), InvalidSettingsException::new,
             () -> "Operator \"%s\" is not applicable for column data type \"%s\"".formatted(operator.label(),
-                dataType.getName()));
+                inputColumnType.getName()));
 
-        final var valuePredicate = getValuePredicate(criterion, dataType, columnIndex);
+        final var valuePredicate = getValuePredicate(criterion, inputColumnType, columnIndex);
         // missings never match
         return rowRead -> !rowRead.isMissing(columnIndex) && valuePredicate.test(rowRead);
     }
@@ -124,28 +124,28 @@ final class RowReadPredicate {
         return row -> predicate.test(row.getRowKey().getString());
     }
 
-    private static Predicate<RowRead> getValuePredicate(final FilterCriterion criterion, final DataType dataType,
+    private static Predicate<RowRead> getValuePredicate(final FilterCriterion criterion, final DataType inputColumnType,
         final int columnIndex) throws InvalidSettingsException {
         final var operator = criterion.m_operator;
         // special case Boolean
-        if (dataType.equals(BooleanCell.TYPE)) {
+        if (BooleanValuePredicate.isApplicableFor(inputColumnType)) {
             final var booleanPredicate = new BooleanValuePredicate(operator);
             return rowRead -> booleanPredicate.test(rowRead.<BooleanValue> getValue(columnIndex));
         }
 
         final int index = 0; // take from first widget input value
-        final var comparisonCell = criterion.m_predicateValues.getCellAt(index)
+        final var referenceCell = criterion.m_predicateValues.getCellAt(index)
             .orElseThrow(() -> new InvalidSettingsException("Missing comparison value"));
 
         // special case String
-        if (dataType.equals(StringCell.TYPE)) {
+        if (inputColumnType.equals(StringCell.TYPE)) {
             final var stringPredicate = new StringPredicate(operator, isCaseSensitiveMatch(criterion, index),
-                ((StringCell)comparisonCell).getStringValue());
+                ((StringCell)referenceCell).getStringValue());
             return rowRead -> stringPredicate.test(rowRead.<StringValue> getValue(columnIndex).getStringValue());
         }
 
         // everything else
-        final var predicate = new DataValuePredicate(operator, comparisonCell);
+        final var predicate = new DataValuePredicate(operator, referenceCell);
         return rowRead -> predicate.test(rowRead.getValue(columnIndex));
     }
 
@@ -155,7 +155,6 @@ final class RowReadPredicate {
 
     sealed interface FilterPredicate<T> extends Predicate<T>
         permits BooleanValuePredicate, StringPredicate, DataValuePredicate {
-        boolean isApplicableFor(FilterOperator operator);
     }
 
     static final class BooleanValuePredicate implements FilterPredicate<BooleanValue> {
@@ -172,8 +171,11 @@ final class RowReadPredicate {
             return m_matchTrue == b.getBooleanValue();
         }
 
-        @Override
-        public boolean isApplicableFor(final FilterOperator operator) {
+        static boolean isApplicableFor(final DataType type) {
+            return type.equals(BooleanCell.TYPE);
+        }
+
+        private static boolean isApplicableFor(final FilterOperator operator) {
             return switch (operator) {
                 case IS_TRUE, IS_FALSE -> true;
                 default -> false;
@@ -212,8 +214,7 @@ final class RowReadPredicate {
             return m_predicate.test(stringValue);
         }
 
-        @Override
-        public boolean isApplicableFor(final FilterOperator operator) {
+        private static boolean isApplicableFor(final FilterOperator operator) {
             return switch (operator) {
                 case EQ, NEQ, WILDCARD, REGEX -> true;
                 default -> false;
@@ -226,18 +227,18 @@ final class RowReadPredicate {
 
         final Predicate<DataValue> m_predicate;
 
-        DataValuePredicate(final FilterOperator operator, final DataValue comparisonValue)
+        DataValuePredicate(final FilterOperator operator, final DataValue referenceValue)
             throws InvalidSettingsException {
             CheckUtils.checkArgument(isApplicableFor(operator), "Unsupported operator \"%s\"", operator.label());
-            final var compCell = comparisonValue.materializeDataCell();
-            final var comparator = new DataValueComparatorDelegator<>(compCell.getType().getComparator());
+            final var refCell = referenceValue.materializeDataCell();
+            final var comparator = new DataValueComparatorDelegator<>(refCell.getType().getComparator());
             m_predicate = switch (operator) {
-                case EQ -> v -> v.materializeDataCell().equals(compCell);
-                case NEQ -> v -> !v.materializeDataCell().equals(compCell);
-                case LT -> v -> comparator.compare(v, comparisonValue) < 0;
-                case LTE -> v -> comparator.compare(v, comparisonValue) <= 0;
-                case GT -> v -> comparator.compare(v, comparisonValue) > 0;
-                case GTE -> v -> comparator.compare(v, comparisonValue) >= 0;
+                case EQ -> v -> v.materializeDataCell().equals(refCell);
+                case NEQ -> v -> !v.materializeDataCell().equals(refCell);
+                case LT -> v -> comparator.compare(v, referenceValue) < 0;
+                case LTE -> v -> comparator.compare(v, referenceValue) <= 0;
+                case GT -> v -> comparator.compare(v, referenceValue) > 0;
+                case GTE -> v -> comparator.compare(v, referenceValue) >= 0;
                 default -> throw new InvalidSettingsException("Unexpected operator for value comparison: " + operator);
             };
         }
@@ -247,12 +248,12 @@ final class RowReadPredicate {
             return m_predicate.test(value);
         }
 
-        @Override
-        public boolean isApplicableFor(final FilterOperator operator) {
+        private static boolean isApplicableFor(final FilterOperator operator) {
             return switch (operator) {
                 case EQ, NEQ, LT, LTE, GT, GTE -> true;
                 default -> false;
             };
         }
     }
+
 }

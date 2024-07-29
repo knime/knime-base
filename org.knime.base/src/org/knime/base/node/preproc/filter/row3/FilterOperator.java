@@ -48,14 +48,23 @@
  */
 package org.knime.base.node.preproc.filter.row3;
 
+import java.util.Objects;
 import java.util.function.BiPredicate;
 
+import org.knime.base.node.preproc.filter.row3.RowReadPredicate.BooleanValuePredicate;
+import org.knime.core.data.BooleanValue;
 import org.knime.core.data.BoundedValue;
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.data.LongValue;
+import org.knime.core.data.StringValue;
 import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.message.Message;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 
 /**
  * Enumeration of filter operators for the row filter node. Additionally, encoded in this class is the selection logic
@@ -68,9 +77,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColu
 enum FilterOperator {
 
         @Label(value = "=", description = "Value in column must be <b>equal</b> to specified value")
-        EQ("=", new IsEq(), true),
+        EQ("=", new IsEq(), null, true),
         @Label(value = "≠", description = "Value in column must be <b>not equal</b> to specified value")
-        NEQ("≠", new IsEq(), true),
+        NEQ("≠", new IsEq(), null, true),
 
         @Label(value = "&lt;", description = "Value in column must be <b>strictly smaller</b> than specified value")
         LT("<", new IsOrd(), new BoundedNumeric(), true),
@@ -84,61 +93,84 @@ enum FilterOperator {
 
         @Label(value = "First <i>n</i> rows",
             description = "Matches the specified number of rows at the start of the input")
-        FIRST_N_ROWS("First n rows", new IsRowNumber(), true), //
+        FIRST_N_ROWS("First n rows", new IsRowNumber(), null, true), //
         @Label(value = "Last <i>n</i> rows",
             description = "Matches the specified number of rows at the end of the input")
-        LAST_N_ROWS("Last n rows", new IsRowNumber(), true), //
+        LAST_N_ROWS("Last n rows", new IsRowNumber(), null, true), //
 
         @Label(value = "Matches regex", description = "Value in column must match the specified regular expression")
-        REGEX("Matches regex", new IsPatternMatchable(), true),
+        REGEX("Matches regex", new IsPatternMatchable(), null, true),
         @Label(value = "Matches wildcard", description = "Value in column must match the specified pattern, "
                 + "which may contain wildcards <tt>*</tt> and <tt>?</tt>")
-        WILDCARD("Matches wildcard", new IsPatternMatchable(), true),
+        WILDCARD("Matches wildcard", new IsPatternMatchable(), null, true),
 
         @Label(value = "Is true", description = "Boolean value in column must be <tt>true</tt>")
-        IS_TRUE("Is true", new IsTruthy(), false),
+        IS_TRUE("Is true", new IsTruthy(), null, false),
         @Label(value = "Is false", description = "Boolean value in column must be <tt>false</tt>")
-        IS_FALSE("Is false", new IsTruthy(), false),
+        IS_FALSE("Is false", new IsTruthy(), null, false),
 
         @Label(value = "Is missing", description = "Value in column must be <i>missing</i>")
-        IS_MISSING("Is missing", new IsMissing(), false);
+        IS_MISSING("Is missing", new IsMissing(), null, false);
 
     final String m_label;
 
-    final BiPredicate<SpecialColumns, DataType> m_isApplicable;
+    private final InputSpecValidator m_validator;
 
-    private BiPredicate<SpecialColumns, DataType> m_isOffered;
+    private final BiPredicate<SpecialColumns, DataType> m_isOffered;
 
-    boolean m_isBinary;
+    final boolean m_isBinary;
 
-
-    FilterOperator(final String label, final BiPredicate<SpecialColumns, DataType> isApplicable,
-            final BiPredicate<SpecialColumns, DataType> isOffered, final boolean isBinary) {
+    FilterOperator(final String label, final InputSpecValidator validator,
+        final BiPredicate<SpecialColumns, DataType> isOffered, final boolean isBinary) {
         m_label = label;
-        m_isApplicable = isApplicable;
-        m_isOffered = isOffered;
+        m_validator = validator;
+        m_isOffered = isOffered != null ? isOffered : validator;
         m_isBinary = isBinary;
     }
 
-    FilterOperator(final String label,
-            final BiPredicate<SpecialColumns, DataType> isOffered, final boolean isBinary) {
-        this(label, isOffered, isOffered, isBinary);
+    private interface InputSpecValidator extends BiPredicate<SpecialColumns, DataType> {
+
+        default void validate(final DataColumnSpec colSpec, final DynamicValuesInput predicateValues)
+            throws InvalidSettingsException {
+            predicateValues.checkParseError();
+            validateImpl(colSpec, predicateValues);
+        }
+
+        void validateImpl(DataColumnSpec colSpec, DynamicValuesInput predicateValues) throws InvalidSettingsException;
     }
 
     boolean isApplicableFor(final SpecialColumns specialColumn, final DataType dataType) {
-        return m_isApplicable.test(specialColumn, dataType);
+        return m_validator.test(specialColumn, dataType);
     }
 
     boolean isOfferedFor(final SpecialColumns specialColumn, final DataType dataType) {
         return m_isOffered.test(specialColumn, dataType);
     }
 
+    void validate(final DataColumnSpec colSpec, final DynamicValuesInput predicateValues)
+        throws InvalidSettingsException {
+        m_validator.validate(colSpec, predicateValues);
+    }
+
     String label() {
         return m_label;
     }
 
+    static final class IsMissing implements InputSpecValidator {
+        @Override
+        public boolean test(final SpecialColumns specialColumn, final DataType dataType) {
+            // All non-special columns can be checked for missing values
+            return specialColumn == null;
+        }
+
+        @Override
+        public void validateImpl(final DataColumnSpec colSpec, final DynamicValuesInput predicateValues) {
+            // no-op
+        }
+    }
+
     /**
-     * Capability that defines for which data types we want to offer ordering-based operators in the UI. If you want to
+     * Defines for which data types we want to offer ordering-based operators in the UI. If you want to
      * test whether the type supports ordering -- according to our custom definition -- use {@link IsOrd}.
      */
     static final class BoundedNumeric implements BiPredicate<SpecialColumns, DataType> {
@@ -149,7 +181,7 @@ enum FilterOperator {
         }
     }
 
-    static final class IsOrd implements BiPredicate<SpecialColumns, DataType> {
+    static final class IsOrd implements InputSpecValidator {
         @Override
         public boolean test(final SpecialColumns specialColumn, final DataType dataType) {
             // In practice all cells bring a comparator, but not all implementations offer something more "meaningful"
@@ -157,43 +189,98 @@ enum FilterOperator {
             // explicitly for now.
             return dataType != BooleanCell.TYPE && dataType != StringCell.TYPE;
         }
+
+        @Override
+        public void validateImpl(final DataColumnSpec colSpec, final DynamicValuesInput predicateValues)
+            throws InvalidSettingsException {
+            predicateValues.validate(colSpec);
+        }
     }
 
-    static final class IsEq implements BiPredicate<SpecialColumns, DataType> {
+    static final class IsEq implements InputSpecValidator {
+
         @Override
         public boolean test(final SpecialColumns specialColumn, final DataType dataType) {
             // our filtering can always use equality
             // but booleans are handled with "is true" and "is false" operators
-            return dataType != BooleanCell.TYPE;
+            return !BooleanValuePredicate.isApplicableFor(dataType);
+        }
+
+        @Override
+        public void validateImpl(final DataColumnSpec colSpec, final DynamicValuesInput predicateValues)
+            throws InvalidSettingsException {
+            DataType refCellType = predicateValues.getCellAt(0).orElseThrow().getType();
+            DataType inputType = colSpec.getType();
+            if (!Objects.equals(refCellType.getPreferredValueClass(), inputType.getPreferredValueClass())) {
+                final var inputName = colSpec.getName();
+                throw Message.builder()
+                    .withSummary("Cannot compare column \"%s\" for (in)equality.".formatted(inputName))
+                    .addTextIssue(
+                        "Table column \"%s\" is of type \"%s\", but reference value is of incompatible type \"%s\"."
+                            .formatted(inputName, inputType.toPrettyString(), refCellType.toPrettyString()))
+                    .addResolutions("Review configuration if the selected column is correct",
+                        "Convert the input column to \"%s\" using a converter node"
+                            .formatted(refCellType.toPrettyString()))
+                    .build().orElseThrow().toInvalidSettingsException();
+            }
         }
     }
 
-    static final class IsTruthy implements BiPredicate<SpecialColumns, DataType> {
+    static final class IsTruthy implements InputSpecValidator {
         @Override
         public boolean test(final SpecialColumns specialColumn, final DataType dataType) {
-            return specialColumn == null && dataType == BooleanCell.TYPE;
+            return specialColumn == null && BooleanValuePredicate.isApplicableFor(dataType);
         }
-    }
 
-    static final class IsMissing implements BiPredicate<SpecialColumns, DataType> {
         @Override
-        public boolean test(final SpecialColumns specialColumn, final DataType dataType) {
-            // All non-special columns can be checked for missing values
-            return specialColumn == null;
+        public void validateImpl(final DataColumnSpec colSpec, final DynamicValuesInput predicateValues)
+            throws InvalidSettingsException {
+            if (!colSpec.getType().isCompatible(BooleanValue.class)) {
+                throw Message.builder()
+                    .withSummary("Cannot apply boolean operators to "
+                        + "column \"%s\" of type \"%s\" - it is not boolean-compatible.".formatted(colSpec.getName(),
+                            colSpec.getType().toPrettyString()))
+                    .addResolutions("Review configuration if the selected column is correct",
+                        "Convert the input column to boolean using a converter node, e.g. an expression node")
+                    .build().orElseThrow().toInvalidSettingsException();
+            }
         }
     }
 
-    static final class IsPatternMatchable implements BiPredicate<SpecialColumns, DataType> {
+    static final class IsPatternMatchable implements InputSpecValidator {
         @Override
         public boolean test(final SpecialColumns specialColumn, final DataType dataType) {
             return dataType == StringCell.TYPE;
         }
+
+        @Override
+        public void validateImpl(final DataColumnSpec colSpec, final DynamicValuesInput predicateValues)
+            throws InvalidSettingsException {
+            if (!colSpec.getType().isCompatible(StringValue.class)) {
+                throw Message.builder()
+                    .withSummary("Cannot apply string pattern matching to "
+                        + "column \"%s\" of type \"%s\" - it is not string-compatible.".formatted(colSpec.getName(),
+                            colSpec.getType().toPrettyString()))
+                    .addResolutions("Review configuration if the selected column is correct",
+                        "Convert the input column to string using a converter node")
+                    .build().orElseThrow().toInvalidSettingsException();
+            }
+        }
     }
 
-    static final class IsRowNumber implements BiPredicate<SpecialColumns, DataType> {
+    static final class IsRowNumber implements InputSpecValidator {
         @Override
         public boolean test(final SpecialColumns specialColumn, final DataType dataType) {
             return specialColumn == SpecialColumns.ROW_NUMBERS;
+        }
+
+        @Override
+        public void validateImpl(final DataColumnSpec colSpec, final DynamicValuesInput predicateValues)
+            throws InvalidSettingsException {
+            LongValue count = (LongValue)predicateValues.getCellAt(0).orElseThrow();
+            if (count.getLongValue() < 0) {
+                throw new InvalidSettingsException("Row number must be non-negative: " + count.getLongValue());
+            }
         }
     }
 
