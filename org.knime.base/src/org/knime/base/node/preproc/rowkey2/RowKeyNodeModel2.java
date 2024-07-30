@@ -290,12 +290,16 @@ public class RowKeyNodeModel2 extends WebUINodeModel<RowKeyNodeSettings> {
     protected static void validateInput(final DataTableSpec origSpec, final boolean appendRowKey,
             final String newColName, final ReplacementMode replaceRowKeyMode, final String newRowKeyCol,
             final boolean removeRowKeyCol, final boolean replaceRowKey) throws InvalidSettingsException {
-        if (replaceRowKeyMode == ReplacementMode.USE_COLUMN) {
-            if (newRowKeyCol == null) {
-                throw new InvalidSettingsException("No column selected for replacing the RowID.");
-            }
-            if (origSpec != null && !origSpec.containsName(newRowKeyCol)) {
-                throw new InvalidSettingsException("Selected column: '" + newRowKeyCol + "' not found in input table.");
+
+        if (replaceRowKey) {
+            if (replaceRowKeyMode == ReplacementMode.USE_COLUMN) {
+                if (newRowKeyCol == null) {
+                    throw new InvalidSettingsException("No column selected for replacing the RowID.");
+                }
+                if (origSpec != null && !origSpec.containsName(newRowKeyCol)) {
+                    throw new InvalidSettingsException(
+                        "Selected column: '" + newRowKeyCol + "' not found in input table.");
+                }
             }
         }
         if (appendRowKey) {
@@ -375,7 +379,7 @@ public class RowKeyNodeModel2 extends WebUINodeModel<RowKeyNodeSettings> {
 
         validateInput(spec, modelSettings.m_appendRowKey, modelSettings.m_appendedColumnName,
             modelSettings.m_replaceRowKeyMode, newRowKeyColumn, modelSettings.m_removeRowKeyColumn,
-            modelSettings.m_appendRowKey);
+            modelSettings.m_replaceRowKey);
         DataTableSpec resSpec = spec;
         if (modelSettings.m_replaceRowKeyMode == ReplacementMode.USE_COLUMN && modelSettings.m_removeRowKeyColumn) {
             resSpec = RowKeyUtil2.createTableSpec(resSpec, newRowKeyColumn);
@@ -394,7 +398,7 @@ public class RowKeyNodeModel2 extends WebUINodeModel<RowKeyNodeSettings> {
     @Override
     protected void validateSettings(final RowKeyNodeSettings settings) throws InvalidSettingsException {
         validateInput(null, settings.m_appendRowKey, settings.m_appendedColumnName, settings.m_replaceRowKeyMode,
-            settings.m_newRowKeyColumnV2, settings.m_removeRowKeyColumn, settings.m_appendRowKey);
+            settings.m_newRowKeyColumnV2, settings.m_removeRowKeyColumn, settings.m_replaceRowKey);
     }
 
     @Override
