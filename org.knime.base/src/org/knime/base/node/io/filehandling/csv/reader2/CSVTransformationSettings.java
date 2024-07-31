@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.io.filehandling.csv.reader2;
 
+import java.util.function.Supplier;
+
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
 import org.knime.base.node.io.filehandling.csv.reader.api.EscapeUtils;
 import org.knime.base.node.io.filehandling.csv.reader.api.QuoteOption;
@@ -80,14 +82,19 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TableSpecSettingsProvider;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TransformationElementSettingsProvider;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TypeChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.filehandling.core.connections.FSLocation;
@@ -290,25 +297,69 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
         @ValueReference(ColumnNameRef.class)
         String m_columnName;
 
+        static class OriginalTypeRef implements Reference<String> {
+        }
+
+        @ValueReference(OriginalTypeRef.class)
+        String m_originalType;
+
         @Widget(title = "Include in output", description = "", hideFlowVariableButton = true) // TODO NOSONAR UIEXT-1901 add description
         boolean m_includeInOutput;
 
+        static final class ColumnRenameResetter implements StateProvider<String> {
+
+            private Supplier<String> m_originalColumnNameSupplier;
+
+            @Override
+            public void init(final StateProviderInitializer initializer) {
+                initializer.computeOnButtonClick(InternalArrayWidget.ElementResetButton.class);
+                m_originalColumnNameSupplier = initializer.getValueSupplier(ColumnNameRef.class);
+            }
+
+            @Override
+            public String computeState(final DefaultNodeSettingsContext context) {
+                return m_originalColumnNameSupplier.get();
+            }
+
+        }
+
+        static final class TypeResetter implements StateProvider<String> {
+
+            private Supplier<String> m_originalTypeSupplier;
+
+            @Override
+            public void init(final StateProviderInitializer initializer) {
+                initializer.computeOnButtonClick(InternalArrayWidget.ElementResetButton.class);
+                m_originalTypeSupplier = initializer.getValueSupplier(OriginalTypeRef.class);
+            }
+
+            @Override
+            public String computeState(final DefaultNodeSettingsContext context) {
+                return m_originalTypeSupplier.get();
+            }
+        }
+
         @Widget(title = "Column name", description = "", hideTitle = true, hideFlowVariableButton = true) // TODO NOSONAR UIEXT-1901 add description
+        @ValueProvider(ColumnRenameResetter.class)
+        @Effect(signals = InternalArrayWidget.ElementIsEditedSignal.class, type=EffectType.SHOW)
         String m_columnRename;
 
-        @Widget(title = "Column type", description = "", hideFlowVariableButton = true) // TODO NOSONAR UIEXT-1901 add description
+        @Widget(title = "Column type", description = "", hideTitle = true, hideFlowVariableButton = true) // TODO NOSONAR UIEXT-1901 add description
         @ChoicesWidget(choicesProvider = TypeChoicesProvider.class)
+        @ValueProvider(TypeResetter.class)
+        @Effect(signals = InternalArrayWidget.ElementIsEditedSignal.class, type=EffectType.SHOW)
         String m_type;
 
         TransformationElementSettings() {
         }
 
         TransformationElementSettings(final String columnName, final boolean includeInOutput, final String columnRename,
-            final String type) {
+            final String type, final String originalType) {
             m_columnName = columnName;
             m_includeInOutput = includeInOutput;
             m_columnRename = columnRename;
             m_type = type;
+            m_originalType = originalType;
         }
     }
 
@@ -323,6 +374,7 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
             """)
     // TODO NOSONAR UIEXT-1901 this description is currently not shown
     @ArrayWidget(elementTitle = "Column", showSortButtons = true, hasFixedSize = true)
+    @InternalArrayWidget(withEditAndReset = true)
     @ValueProvider(TransformationElementSettingsProvider.class)
     // TODO NOSONAR UIEXT-1914 the <any unknown new column> is not implemented yet
     TransformationElementSettings[] m_columnTransformation = new TransformationElementSettings[0];

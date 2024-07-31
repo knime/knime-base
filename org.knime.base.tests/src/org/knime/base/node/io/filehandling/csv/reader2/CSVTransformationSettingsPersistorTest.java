@@ -80,6 +80,8 @@ class CSVTransformationSettingsPersistorTest {
                 copy.m_columnTransformation[i].m_includeInOutput);
             assertEquals(settings.m_columnTransformation[i].m_columnRename,
                 copy.m_columnTransformation[i].m_columnRename);
+            assertEquals(settings.m_columnTransformation[i].m_originalType,
+                copy.m_columnTransformation[i].m_originalType);
             assertEquals(settings.m_columnTransformation[i].m_type, copy.m_columnTransformation[i].m_type);
         }
     }
