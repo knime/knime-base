@@ -285,7 +285,7 @@ final class CSVTransformationSettingsStateProviders implements WidgetGroup, Pers
                 final var name = column.getName().get(); // NOSONAR in the TypedReaderTableSpecProvider we make sure that names are always present
                 final var defPath = PRODUCTION_PATH_PROVIDER.getDefaultProductionPath(column.getType());
                 final var type = defPath.getConverterFactory().getIdentifier();
-                elements[i] = new TransformationElementSettings(name, true, name, type);
+                elements[i] = new TransformationElementSettings(name, true, name, type, type);
                 i++;
             }
             return elements;

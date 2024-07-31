@@ -120,7 +120,8 @@ final class CSVTransformationSettingsPersistor extends NodeSettingsPersistorWith
             transformationSettings.m_columnTransformation = tableSpecConfig.getTableTransformation().stream()
                 .sorted((t1, t2) -> t1.getPosition() - t2.getPosition())
                 .map(t -> new TransformationElementSettings(t.getOriginalName(), t.keep(), t.getName(),
-                    t.getProductionPath().getConverterFactory().getIdentifier()))
+                    t.getProductionPath().getConverterFactory().getIdentifier(), PRODUCTION_PATH_PROVIDER
+                        .getDefaultProductionPath(t.getExternalSpec().getType()).getConverterFactory().getIdentifier()))
                 .toArray(TransformationElementSettings[]::new);
 
             transformationSettings.m_takeColumnsFrom =
