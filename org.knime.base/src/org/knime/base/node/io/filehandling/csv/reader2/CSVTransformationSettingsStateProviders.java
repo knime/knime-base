@@ -111,8 +111,8 @@ final class CSVTransformationSettingsStateProviders implements WidgetGroup, Pers
 
         final int m_maximumNumberOfColumns;
 
-        Dependencies(final ConfigIdSettings configId, final FileChooser fileChooser,
-            final boolean limitMemoryPerColumn, final int maximumNumberOfColumns) {
+        Dependencies(final ConfigIdSettings configId, final FileChooser fileChooser, final boolean limitMemoryPerColumn,
+            final int maximumNumberOfColumns) {
             m_configId = configId;
             m_source = fileChooser;
             m_limitMemoryPerColumn = limitMemoryPerColumn;
@@ -285,7 +285,8 @@ final class CSVTransformationSettingsStateProviders implements WidgetGroup, Pers
                 final var name = column.getName().get(); // NOSONAR in the TypedReaderTableSpecProvider we make sure that names are always present
                 final var defPath = PRODUCTION_PATH_PROVIDER.getDefaultProductionPath(column.getType());
                 final var type = defPath.getConverterFactory().getIdentifier();
-                elements[i] = new TransformationElementSettings(name, true, name, type, type);
+                elements[i] = new TransformationElementSettings(name, true, name, type, type,
+                    defPath.getDestinationType().toPrettyString());
                 i++;
             }
             return elements;
