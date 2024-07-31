@@ -96,6 +96,7 @@ final class FilterOperatorTest {
         assertThat(operatorChoicesFor("String1", StringCell.TYPE))
             .as("The list of operators for a string column is what is expected").containsExactlyInAnyOrder( //
                 FilterOperator.IS_MISSING, //
+                FilterOperator.IS_NOT_MISSING, //
                 FilterOperator.EQ, //
                 FilterOperator.NEQ, //
                 FilterOperator.REGEX, //
@@ -104,6 +105,7 @@ final class FilterOperatorTest {
         assertThat(operatorChoicesFor("Int1", IntCell.TYPE))
             .as("The list of operators for an integer column is what is expected").containsExactlyInAnyOrder( //
                 FilterOperator.IS_MISSING, //
+                FilterOperator.IS_NOT_MISSING, //
                 FilterOperator.EQ, //
                 FilterOperator.NEQ, //
                 FilterOperator.GT, //
@@ -120,12 +122,14 @@ final class FilterOperatorTest {
         assertThat(operatorChoicesFor("Bool1", BooleanCell.TYPE))
             .as("The list of operators for a boolean column is what is expected").containsExactlyInAnyOrder( //
                 FilterOperator.IS_MISSING, //
+                FilterOperator.IS_NOT_MISSING, //
                 FilterOperator.IS_TRUE, //
                 FilterOperator.IS_FALSE //
             );
         assertThat(operatorChoicesFor("Unknown Column", DataType.getType(DataType.getMissingCell().getClass())))
             .as("The list of operators for an unknown column type is what is expected").containsExactlyInAnyOrder( //
-                FilterOperator.IS_MISSING //
+                FilterOperator.IS_MISSING, //
+                FilterOperator.IS_NOT_MISSING //
             );
     }
 

@@ -209,7 +209,9 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
 
             final var operator = m_operator;
             if (isFilterOnRowKeys()) {
-                CheckUtils.checkSetting(operator != FilterOperator.IS_MISSING, "Cannot filter RowID for presence.");
+                CheckUtils.checkSetting(
+                    !(operator == FilterOperator.IS_MISSING || operator == FilterOperator.IS_NOT_MISSING),
+                    "Cannot filter RowID for presence.");
                 CheckUtils.checkSetting(operator.isApplicableFor(SpecialColumns.ROWID, StringCell.TYPE),
                     "Filter operator \"%s\" cannot be applied to RowID.", operator.label());
                 return;
@@ -455,7 +457,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                 () -> context.getDataTableSpec(0).map(dts -> dts.getColumnSpec(column)).map(DataColumnSpec::getType));
             if (dataType.isEmpty()) {
                 // we don't know the column, but we know that columns always can contain missing cells
-                return List.of(FilterOperator.IS_MISSING);
+                return List.of(FilterOperator.IS_MISSING, FilterOperator.IS_NOT_MISSING);
             }
             // filter on top-level type
             return Arrays.stream(FilterOperator.values()) //

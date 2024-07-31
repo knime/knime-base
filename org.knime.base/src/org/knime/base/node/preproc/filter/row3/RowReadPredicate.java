@@ -99,9 +99,11 @@ final class RowReadPredicate {
         final var columnIndex = spec.findColumnIndex(column);
         final var operator = criterion.m_operator;
 
-        // Special case for "IS MISSING" operator
+        // Special case for "IS (NOT) MISSING" operators
         if (operator == FilterOperator.IS_MISSING) {
             return row -> row.isMissing(columnIndex);
+        } else if (operator == FilterOperator.IS_NOT_MISSING) {
+            return row -> !row.isMissing(columnIndex);
         }
 
         final var columnSpec = spec.getColumnSpec(columnIndex);
