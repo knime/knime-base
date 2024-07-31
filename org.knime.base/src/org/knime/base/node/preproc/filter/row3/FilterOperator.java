@@ -110,7 +110,9 @@ enum FilterOperator {
         IS_FALSE("Is false", new IsTruthy(), null, false),
 
         @Label(value = "Is missing", description = "Value in column must be <i>missing</i>")
-        IS_MISSING("Is missing", new IsMissing(), null, false);
+        IS_MISSING("Is missing", new IsMissing(), null, false),
+        @Label(value = "Is not missing", description = "Value in column must <em>not</em> be <i>missing</i>")
+        IS_NOT_MISSING("Is not missing", new IsMissing(), null, false);
 
     final String m_label;
 
