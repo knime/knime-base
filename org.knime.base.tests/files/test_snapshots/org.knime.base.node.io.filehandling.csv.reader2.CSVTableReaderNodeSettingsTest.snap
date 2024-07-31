@@ -549,6 +549,12 @@
                       "title" : "Include in output",
                       "default" : false
                     },
+                    "originalType" : {
+                      "type" : "string"
+                    },
+                    "originalTypeLabel" : {
+                      "type" : "string"
+                    },
                     "type" : {
                       "type" : "string",
                       "title" : "Column type"
@@ -1116,18 +1122,20 @@
         "options" : {
           "detail" : [ {
             "type" : "Control",
-            "scope" : "#/properties/includeInOutput",
-            "options" : {
-              "format" : "checkbox",
-              "hideFlowVariableButton" : true
-            }
-          }, {
-            "type" : "Control",
             "scope" : "#/properties/columnRename",
             "options" : {
               "hideFlowVariableButton" : true
             },
-            "label" : ""
+            "label" : "",
+            "rule" : {
+              "effect" : "SHOW",
+              "condition" : {
+                "scope" : "#/properties/_edit",
+                "schema" : {
+                  "const" : true
+                }
+              }
+            }
           }, {
             "type" : "Control",
             "scope" : "#/properties/type",
@@ -1139,11 +1147,25 @@
               "showRowKeys" : false,
               "showSearch" : true,
               "showMode" : true
+            },
+            "label" : "",
+            "rule" : {
+              "effect" : "SHOW",
+              "condition" : {
+                "scope" : "#/properties/_edit",
+                "schema" : {
+                  "const" : true
+                }
+              }
             }
           } ],
           "arrayElementTitle" : "Column",
           "showSortButtons" : true,
-          "hasFixedSize" : true
+          "hasFixedSize" : true,
+          "withEditAndReset" : true,
+          "elementCheckboxScope" : "#/properties/includeInOutput",
+          "elementTitleProvider" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings$TransformationElementSettings$TitleProvider",
+          "elementSubTitleProvider" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings$TransformationElementSettings$SubTitleProvider"
         }
       } ]
     } ],
@@ -1229,6 +1251,17 @@
       "value" : "File Path"
     } ],
     "globalUpdates" : [ {
+      "trigger" : {
+        "id" : "ElementResetButton"
+      },
+      "dependencies" : [ {
+        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/columnName" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings$TransformationElementSettings$ColumnNameRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/originalType" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings$TransformationElementSettings$OriginalTypeRef"
+      } ]
+    }, {
       "trigger" : {
         "id" : "after-open-dialog",
         "triggerInitially" : true
@@ -1538,6 +1571,15 @@
       }, {
         "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/columnName" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings$TransformationElementSettings$ColumnNameRef"
+      } ]
+    }, {
+      "trigger" : {
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings$TransformationElementSettings$OriginalTypeLabelRef",
+        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/originalTypeLabel" ]
+      },
+      "dependencies" : [ {
+        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/originalTypeLabel" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings$TransformationElementSettings$OriginalTypeLabelRef"
       } ]
     } ]
   }

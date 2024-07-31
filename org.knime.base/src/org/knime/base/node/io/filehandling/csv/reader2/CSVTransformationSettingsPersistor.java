@@ -118,11 +118,18 @@ final class CSVTransformationSettingsPersistor extends NodeSettingsPersistorWith
                 MultiTableReadConfigIdLoader.ID_LOADER, ClassTypeSerializer.SERIALIZER, String.class);
             final var tableSpecConfig = tableSpecConfigSerializer.load(settings.getNodeSettings(getConfigKey()));
             transformationSettings.m_columnTransformation = tableSpecConfig.getTableTransformation().stream()
-                .sorted((t1, t2) -> t1.getPosition() - t2.getPosition())
-                .map(t -> new TransformationElementSettings(t.getOriginalName(), t.keep(), t.getName(),
-                    t.getProductionPath().getConverterFactory().getIdentifier(), PRODUCTION_PATH_PROVIDER
-                        .getDefaultProductionPath(t.getExternalSpec().getType()).getConverterFactory().getIdentifier()))
-                .toArray(TransformationElementSettings[]::new);
+                .sorted((t1, t2) -> t1.getPosition() - t2.getPosition()).map(t -> {
+                    final var defaultProductionPath =
+                        PRODUCTION_PATH_PROVIDER.getDefaultProductionPath(t.getExternalSpec().getType());
+                    return new TransformationElementSettings( //
+                        t.getOriginalName(), //
+                        t.keep(), //
+                        t.getName(), //
+                        t.getProductionPath().getConverterFactory().getIdentifier(), //
+                        defaultProductionPath.getConverterFactory().getIdentifier(), //
+                        defaultProductionPath.getDestinationType().toPrettyString() //
+                    );
+                }).toArray(TransformationElementSettings[]::new);
 
             transformationSettings.m_takeColumnsFrom =
                 ColumnFilterModeOption.valueOf(settings.getNodeSettings(getConfigKey())

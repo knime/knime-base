@@ -303,11 +303,17 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
         @ValueReference(OriginalTypeRef.class)
         String m_originalType;
 
+        static class OriginalTypeLabelRef implements Reference<String> {
+        }
+
+        @ValueReference(OriginalTypeLabelRef.class)
+        String m_originalTypeLabel;
+
         @Widget(title = "Include in output", description = "", hideFlowVariableButton = true) // TODO NOSONAR UIEXT-1901 add description
         @InternalArrayWidget.ElementCheckboxWidget
         boolean m_includeInOutput;
 
-        static final class ColumnRenameResetter implements StateProvider<String> {
+        static final class ColumnNameResetter implements StateProvider<String> {
 
             private Supplier<String> m_originalColumnNameSupplier;
 
@@ -340,8 +346,38 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
             }
         }
 
+        static final class TitleProvider implements StateProvider<String> {
+
+            private Supplier<String> m_originalColumnNameSupplier;
+
+            @Override
+            public void init(final StateProviderInitializer initializer) {
+                m_originalColumnNameSupplier = initializer.computeFromValueSupplier(ColumnNameRef.class);
+            }
+
+            @Override
+            public String computeState(final DefaultNodeSettingsContext context) {
+                return m_originalColumnNameSupplier.get();
+            }
+        }
+
+        static final class SubTitleProvider implements StateProvider<String> {
+
+            private Supplier<String> m_originalTypeLabelSupplier;
+
+            @Override
+            public void init(final StateProviderInitializer initializer) {
+                m_originalTypeLabelSupplier = initializer.computeFromValueSupplier(OriginalTypeLabelRef.class);
+            }
+
+            @Override
+            public String computeState(final DefaultNodeSettingsContext context) {
+                return m_originalTypeLabelSupplier.get();
+            }
+        }
+
         @Widget(title = "Column name", description = "", hideTitle = true, hideFlowVariableButton = true) // TODO NOSONAR UIEXT-1901 add description
-        @ValueProvider(ColumnRenameResetter.class)
+        @ValueProvider(ColumnNameResetter.class)
         @Effect(signals = InternalArrayWidget.ElementIsEditedSignal.class, type = EffectType.SHOW)
         String m_columnRename;
 
@@ -355,12 +391,13 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
         }
 
         TransformationElementSettings(final String columnName, final boolean includeInOutput, final String columnRename,
-            final String type, final String originalType) {
+            final String type, final String originalType, final String originalTypeLabel) {
             m_columnName = columnName;
             m_includeInOutput = includeInOutput;
             m_columnRename = columnRename;
             m_type = type;
             m_originalType = originalType;
+            m_originalTypeLabel = originalTypeLabel;
         }
     }
 
@@ -375,7 +412,9 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
             """)
     // TODO NOSONAR UIEXT-1901 this description is currently not shown
     @ArrayWidget(elementTitle = "Column", showSortButtons = true, hasFixedSize = true)
-    @InternalArrayWidget(withEditAndReset = true, withElementCheckboxes = true)
+    @InternalArrayWidget(withEditAndReset = true, withElementCheckboxes = true,
+        titleProvider = TransformationElementSettings.TitleProvider.class,
+        subTitleProvider = TransformationElementSettings.SubTitleProvider.class)
     @ValueProvider(TransformationElementSettingsProvider.class)
     // TODO NOSONAR UIEXT-1914 the <any unknown new column> is not implemented yet
     TransformationElementSettings[] m_columnTransformation = new TransformationElementSettings[0];
