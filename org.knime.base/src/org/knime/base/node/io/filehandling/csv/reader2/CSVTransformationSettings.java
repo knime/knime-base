@@ -304,6 +304,7 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
         String m_originalType;
 
         @Widget(title = "Include in output", description = "", hideFlowVariableButton = true) // TODO NOSONAR UIEXT-1901 add description
+        @InternalArrayWidget.ElementCheckboxWidget
         boolean m_includeInOutput;
 
         static final class ColumnRenameResetter implements StateProvider<String> {
@@ -341,13 +342,13 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
 
         @Widget(title = "Column name", description = "", hideTitle = true, hideFlowVariableButton = true) // TODO NOSONAR UIEXT-1901 add description
         @ValueProvider(ColumnRenameResetter.class)
-        @Effect(signals = InternalArrayWidget.ElementIsEditedSignal.class, type=EffectType.SHOW)
+        @Effect(signals = InternalArrayWidget.ElementIsEditedSignal.class, type = EffectType.SHOW)
         String m_columnRename;
 
         @Widget(title = "Column type", description = "", hideTitle = true, hideFlowVariableButton = true) // TODO NOSONAR UIEXT-1901 add description
         @ChoicesWidget(choicesProvider = TypeChoicesProvider.class)
         @ValueProvider(TypeResetter.class)
-        @Effect(signals = InternalArrayWidget.ElementIsEditedSignal.class, type=EffectType.SHOW)
+        @Effect(signals = InternalArrayWidget.ElementIsEditedSignal.class, type = EffectType.SHOW)
         String m_type;
 
         TransformationElementSettings() {
@@ -374,7 +375,7 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
             """)
     // TODO NOSONAR UIEXT-1901 this description is currently not shown
     @ArrayWidget(elementTitle = "Column", showSortButtons = true, hasFixedSize = true)
-    @InternalArrayWidget(withEditAndReset = true)
+    @InternalArrayWidget(withEditAndReset = true, withElementCheckboxes = true)
     @ValueProvider(TransformationElementSettingsProvider.class)
     // TODO NOSONAR UIEXT-1914 the <any unknown new column> is not implemented yet
     TransformationElementSettings[] m_columnTransformation = new TransformationElementSettings[0];
