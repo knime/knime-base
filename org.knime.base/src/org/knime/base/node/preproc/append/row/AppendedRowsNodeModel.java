@@ -517,9 +517,12 @@ public class AppendedRowsNodeModel extends NodeModel {
     protected void setInHiLiteHandler(final int inIndex, final HiLiteHandler hiLiteHdl) {
         if (m_hiliteTranslators[inIndex] != null) {
             m_hiliteTranslators[inIndex].dispose();
+            m_hiliteTranslators[inIndex] = null;
         }
-        m_hiliteTranslators[inIndex] = new HiLiteTranslator(hiLiteHdl);
-        m_hiliteTranslators[inIndex].addToHiLiteHandler(m_customHiliteHandler);
+        if (hiLiteHdl != null) {
+            m_hiliteTranslators[inIndex] = new HiLiteTranslator(hiLiteHdl);
+            m_hiliteTranslators[inIndex].addToHiLiteHandler(m_customHiliteHandler);
+        }
     }
 
     @Override
