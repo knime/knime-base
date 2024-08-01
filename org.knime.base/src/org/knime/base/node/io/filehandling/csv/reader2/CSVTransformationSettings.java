@@ -282,6 +282,13 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
     // TODO NOSONAR UIEXT-1800 merge with CSVTableReaderNoderSettings.m_failOnDifferingSpecs
     ColumnFilterModeOption m_takeColumnsFrom = ColumnFilterModeOption.UNION;
 
+    @Widget(title = "Enforce types", description = """
+            Controls how columns whose type changes are dealt with.
+            If selected, we attempt to map to the KNIME type you configured and fail if that's not possible.
+            If unselected, the KNIME type corresponding to the new type is used.
+            """, hideFlowVariableButton = true)
+    boolean m_enforceTypes = true;
+
     static class TransformationElementSettings implements WidgetGroup, PersistableSettings {
 
         static class ColumnNameRef implements Reference<String> {
