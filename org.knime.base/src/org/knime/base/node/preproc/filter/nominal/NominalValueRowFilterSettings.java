@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
@@ -182,6 +183,22 @@ public class NominalValueRowFilterSettings implements DefaultNodeSettings {
         }
 
         @Override
+        public String[][] getSubConfigKeys() {
+            return m_legacyNameFilterPersistor.getSubConfigKeys();
+        }
+
+        @Override
+        public ConfigsDeprecation[] getConfigsDeprecations() {
+            final var deprecationBuilder = new ConfigsDeprecation.Builder().forDeprecatedConfigPath(CFG_SELECTED_ATTR);
+            for (var subConfigKeys : getSubConfigKeys()) {
+                final var newConfigPath = Stream
+                    .concat(Stream.of(getConfigKey()), Arrays.asList(subConfigKeys).stream()).toArray(String[]::new);
+                deprecationBuilder.forNewConfigPath(newConfigPath);
+            }
+            return new ConfigsDeprecation[]{deprecationBuilder.build()};
+        }
+
+        @Override
         public void save(final NameFilter nameFilter, final NodeSettingsWO settings) {
             m_legacyNameFilterPersistor.save(nameFilter, settings);
         }
@@ -264,10 +281,9 @@ public class NominalValueRowFilterSettings implements DefaultNodeSettings {
 
         @Override
         public ConfigsDeprecation[] getConfigsDeprecations() {
-            return new ConfigsDeprecation[]{
-                new ConfigsDeprecation.Builder().forNewConfigPath(getConfigKey())
-                    .forDeprecatedConfigPath(NominalValueRowSplitterNodeDialog.CFG_CONFIGROOTNAME, KEY_INCLUDE_MISSING)
-                    .build()};
+            return new ConfigsDeprecation[]{new ConfigsDeprecation.Builder().forNewConfigPath(getConfigKey())
+                .forDeprecatedConfigPath(NominalValueRowSplitterNodeDialog.CFG_CONFIGROOTNAME, KEY_INCLUDE_MISSING)
+                .build()};
         }
     }
 
