@@ -129,7 +129,12 @@
                 "includeUnknownColumns" : false
               }
             },
-            "configKeys" : [ "filter config" ]
+            "configKeys" : [ "filter config" ],
+            "subConfigKeys" : [ [ "filter-type" ], [ "included_names" ], [ "excluded_names" ], [ "enforce_option" ], [ "name_pattern", "pattern" ], [ "name_pattern", "type" ], [ "name_pattern", "caseSensitive" ], [ "name_pattern", "excludeMatching" ] ],
+            "deprecatedConfigKeys" : [ {
+              "new" : [ [ "filter config", "filter-type" ], [ "filter config", "included_names" ], [ "filter config", "excluded_names" ], [ "filter config", "enforce_option" ], [ "filter config", "name_pattern", "pattern" ], [ "filter config", "name_pattern", "type" ], [ "filter config", "name_pattern", "caseSensitive" ], [ "filter config", "name_pattern", "excludeMatching" ] ],
+              "deprecated" : [ [ "selected attributes" ] ]
+            } ]
           },
           "selectedColumn" : {
             "type" : "string",
