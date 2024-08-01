@@ -134,6 +134,8 @@ final class CSVTransformationSettingsPersistor extends NodeSettingsPersistorWith
             transformationSettings.m_takeColumnsFrom =
                 ColumnFilterModeOption.valueOf(settings.getNodeSettings(getConfigKey())
                     .getNodeSettings("table_transformation").getString("column_filter_mode"));
+            transformationSettings.m_enforceTypes = settings.getNodeSettings(getConfigKey())
+                .getNodeSettings("table_transformation").getBoolean("enforce_types", true);
         }
         return transformationSettings;
     }
@@ -150,7 +152,8 @@ final class CSVTransformationSettingsPersistor extends NodeSettingsPersistorWith
         final var unknownColsTrans = new ImmutableUnknownColumnsTransformation(1, true, false, null);
 
         final var tableTransformation = new DefaultTableTransformation<Class<?>>(rawSpec, transformations,
-            transformationSettings.m_takeColumnsFrom.toColumnFilterMode(), unknownColsTrans, true, false);
+            transformationSettings.m_takeColumnsFrom.toColumnFilterMode(), unknownColsTrans,
+            transformationSettings.m_enforceTypes, false);
 
         DataColumnSpec itemIdentifierColumnSpec = determineAPpendPathColumnSpec(persistorSettings);
 

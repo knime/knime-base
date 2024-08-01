@@ -88,6 +88,7 @@
           "filePathColumnName" : "File Path"
         },
         "takeColumnsFrom" : "UNION",
+        "enforceTypes" : true,
         "columnTransformation" : [ ]
       }
     }
@@ -565,6 +566,12 @@
                   }
                 }
               },
+              "enforceTypes" : {
+                "type" : "boolean",
+                "title" : "Enforce types",
+                "description" : "Controls how columns whose type changes are dealt with.\nIf selected, the mapping to the KNIME type you configured is attempted.\nThe node will fail if that is not possible.\nIf unselected, the KNIME type corresponding to the new type is used.\n",
+                "default" : true
+              },
               "persistorSettings" : {
                 "type" : "object",
                 "properties" : {
@@ -820,6 +827,7 @@
                 "filePathColumnName" : "File Path"
               },
               "takeColumnsFrom" : "UNION",
+              "enforceTypes" : true,
               "columnTransformation" : [ ]
             },
             "configKeys" : [ "table_spec_config_Internals" ]
@@ -1119,6 +1127,13 @@
         "options" : {
           "hideFlowVariableButton" : true,
           "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/tableSpecConfig/properties/enforceTypes",
+        "options" : {
+          "format" : "checkbox",
+          "hideFlowVariableButton" : true
         }
       }, {
         "type" : "Control",
