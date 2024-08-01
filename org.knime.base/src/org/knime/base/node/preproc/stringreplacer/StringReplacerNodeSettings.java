@@ -58,6 +58,8 @@ import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultFieldNodeSettingsPersistorFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
@@ -184,14 +186,15 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
 
     static final class PatternTypePersistor implements FieldNodeSettingsPersistor<PatternType> {
 
+        final NodeSettingsPersistor<PatternType> m_defaultPersistor = DefaultFieldNodeSettingsPersistorFactory
+            .createDefaultPersistor(PatternType.class, StringReplacerSettings.CFG_PATTERN_TYPE);
+
         @SuppressWarnings("deprecation") // we're dealing with deprecated settings here
         @Override
         public PatternType load(final NodeSettingsRO settings) throws InvalidSettingsException {
             // since 5.4
             if (settings.containsKey(StringReplacerSettings.CFG_PATTERN_TYPE)) {
-                final var type = settings.getString(StringReplacerSettings.CFG_PATTERN_TYPE);
-                return PatternType.get(type)
-                    .orElseThrow(() -> new InvalidSettingsException("Unknown pattern type: " + type));
+                return m_defaultPersistor.load(settings);
             }
             // backwards-compatibility for 5.1 <= version < 5.4:
             if (settings.getBoolean(StringReplacerSettings.CFG_FIND_PATTERN, true)) {
@@ -204,7 +207,7 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
 
         @Override
         public void save(final PatternType patternType, final NodeSettingsWO settings) {
-            settings.addString(StringReplacerSettings.CFG_PATTERN_TYPE, patternType.name());
+            m_defaultPersistor.save(patternType, settings);
         }
 
         @Override
