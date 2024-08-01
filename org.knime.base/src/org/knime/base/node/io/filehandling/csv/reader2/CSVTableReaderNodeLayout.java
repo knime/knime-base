@@ -377,7 +377,15 @@ public class CSVTableReaderNodeLayout {
         }
     }
 
-    @Section(title = "Table Transformation")
+    @Section(title = "Table Transformation",
+        description = """
+                This section lists every column to allow modifying the structure of the output table.
+                It supports reordering, filtering and renaming columns. It is also possible to change the type of the columns.
+                Note that the positions of columns are reset in the dialog if a new file or folder is selected.
+                Whether and where to add unknown columns during execution is specified via the special item "Any unknown new column".
+                It is possible to specify the data type to which new columns should be converted.
+                Note that the node will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is of type Double.
+                """)
     @After(MultipleFileHandling.class)
     interface Transformation {
     }

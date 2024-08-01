@@ -1112,6 +1112,7 @@
     }, {
       "label" : "Table Transformation",
       "type" : "Section",
+      "description" : "This section lists every column to allow modifying the structure of the output table.\nIt supports reordering, filtering and renaming columns. It is also possible to change the type of the columns.\nNote that the positions of columns are reset in the dialog if a new file or folder is selected.\nWhether and where to add unknown columns during execution is specified via the special item \"Any unknown new column\".\nIt is possible to specify the data type to which new columns should be converted.\nNote that the node will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is of type Double.\n",
       "elements" : [ {
         "type" : "Control",
         "scope" : "#/properties/model/properties/tableSpecConfig/properties/takeColumnsFrom",
