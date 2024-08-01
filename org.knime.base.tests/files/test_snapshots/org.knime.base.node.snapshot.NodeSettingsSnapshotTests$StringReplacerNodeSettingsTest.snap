@@ -75,7 +75,11 @@
             "title" : "Pattern type",
             "description" : "Select the type of pattern which you want to use.\n<ul>\n    <li><i>Literal</i> matches the pattern as is.</li>\n    <li>\n        <i>Wildcard</i> matches <tt>*</tt> to zero or more arbitrary characters and matches\n        <tt>?</tt> to any single character.\n    </li>\n    <li>\n        <i>Regular expression</i>\n        matches using the full functionality of Java regular expressions, including back references\n        in the replacement text. See the\n        <a href=\"http://docs.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html\">Java API\n        </a> for details.\n    </li>\n</ul>\n",
             "default" : "LITERAL",
-            "configKeys" : [ "findPattern", "patternIsRegex" ]
+            "configKeys" : [ "patternType" ],
+            "deprecatedConfigKeys" : [ {
+              "new" : [ [ "patternType" ] ],
+              "deprecated" : [ [ "findPattern" ], [ "patternIsRegex" ] ]
+            } ]
           },
           "replacement" : {
             "type" : "string",

@@ -54,6 +54,7 @@ import org.knime.core.data.StringValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
@@ -181,10 +182,19 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
 
     // Persistors
 
-    private static final class PatternTypePersistor implements FieldNodeSettingsPersistor<PatternType> {
+    static final class PatternTypePersistor implements FieldNodeSettingsPersistor<PatternType> {
+
+        @SuppressWarnings("deprecation") // we're dealing with deprecated settings here
         @Override
         public PatternType load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            if (settings.getBoolean(StringReplacerSettings.CFG_FIND_PATTERN)) {
+            // since 5.4
+            if (settings.containsKey(StringReplacerSettings.CFG_PATTERN_TYPE)) {
+                final var type = settings.getString(StringReplacerSettings.CFG_PATTERN_TYPE);
+                return PatternType.get(type)
+                    .orElseThrow(() -> new InvalidSettingsException("Unknown pattern type: " + type));
+            }
+            // backwards-compatibility for 5.1 <= version < 5.4:
+            if (settings.getBoolean(StringReplacerSettings.CFG_FIND_PATTERN, true)) {
                 final var isRegex = settings.getBoolean(StringReplacerSettings.CFG_PATTERN_IS_REGEX);
                 return isRegex ? PatternType.REGEX : PatternType.WILDCARD;
             } else {
@@ -194,14 +204,23 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
 
         @Override
         public void save(final PatternType patternType, final NodeSettingsWO settings) {
-            settings.addBoolean(StringReplacerSettings.CFG_FIND_PATTERN,
-                patternType == PatternType.REGEX || patternType == PatternType.WILDCARD);
-            settings.addBoolean(StringReplacerSettings.CFG_PATTERN_IS_REGEX, patternType == PatternType.REGEX);
+            settings.addString(StringReplacerSettings.CFG_PATTERN_TYPE, patternType.name());
         }
 
         @Override
         public String[] getConfigKeys() {
-            return new String[]{StringReplacerSettings.CFG_FIND_PATTERN, StringReplacerSettings.CFG_PATTERN_IS_REGEX};
+            return new String[]{StringReplacerSettings.CFG_PATTERN_TYPE};
+        }
+
+        @SuppressWarnings("deprecation") // we're dealing with deprecated settings here
+        @Override
+        public ConfigsDeprecation[] getConfigsDeprecations() {
+            final var deprecation = new ConfigsDeprecation.Builder()//
+                .forDeprecatedConfigPath(StringReplacerSettings.CFG_FIND_PATTERN)//
+                .forDeprecatedConfigPath(StringReplacerSettings.CFG_PATTERN_IS_REGEX)//
+                .forNewConfigPath(StringReplacerSettings.CFG_PATTERN_TYPE)//
+                .build();//
+            return new ConfigsDeprecation[]{deprecation};
         }
     }
 

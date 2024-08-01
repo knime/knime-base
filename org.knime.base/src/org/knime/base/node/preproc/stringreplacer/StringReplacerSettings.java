@@ -47,6 +47,7 @@
  */
 package org.knime.base.node.preproc.stringreplacer;
 
+import org.knime.base.node.preproc.stringreplacer.StringReplacerNodeSettings.PatternTypePersistor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -60,14 +61,21 @@ public class StringReplacerSettings {
 
     /**
      * Whether to match a pattern (true) or a literal string (false)
+     * @deprecated since 5.4, use {@link #CFG_PATTERN_TYPE} instead
      */
+    @Deprecated(since = "5.4")
     static final String CFG_FIND_PATTERN = "findPattern";
 
     /**
      * Whether the provided pattern is a regular expression (true) or a wildcard pattern (false). Only relevant if
      * {@link StringReplacerSettings#CFG_FIND_PATTERN} is true.
+     * @deprecated since 5.4, use {@link #CFG_PATTERN_TYPE} instead
      */
+    @Deprecated(since = "5.4")
     static final String CFG_PATTERN_IS_REGEX = "patternIsRegex";
+
+    /** @since 5.4 */
+    static final String CFG_PATTERN_TYPE = "patternType";
 
     static final String CFG_ENABLE_ESCAPING = "enableEscaping";
 
@@ -249,13 +257,8 @@ public class StringReplacerSettings {
         /** @since 2.8 */
         m_enableEscaping = settings.getBoolean(CFG_ENABLE_ESCAPING, false);
 
-        /** @since 5.1 */
-        if (settings.getBoolean(CFG_FIND_PATTERN, true)) {
-            final var isRegex = settings.getBoolean(CFG_PATTERN_IS_REGEX);
-            m_patternType = isRegex ? PatternType.REGEX : PatternType.WILDCARD;
-        } else {
-            m_patternType = PatternType.LITERAL;
-        }
+        /** @since 5.4 */
+        m_patternType = new PatternTypePersistor().load(settings);
     }
 
     /**
@@ -273,12 +276,11 @@ public class StringReplacerSettings {
         m_replacement = settings.getString(CFG_REPLACEMENT, "");
         m_enableEscaping = settings.getBoolean(CFG_ENABLE_ESCAPING, false);
 
-        /** @since 5.1 */
-        if (settings.getBoolean(CFG_FIND_PATTERN, true)) {
-            final var isRegex = settings.getBoolean(CFG_PATTERN_IS_REGEX, false);
-            m_patternType = isRegex ? PatternType.REGEX : PatternType.WILDCARD;
-        } else {
-            m_patternType = PatternType.LITERAL;
+        /** @since 5.4 */
+        try {
+            m_patternType = new PatternTypePersistor().load(settings);
+        } catch (InvalidSettingsException e) {
+            m_patternType = PatternType.DEFAULT;
         }
     }
 
@@ -374,8 +376,6 @@ public class StringReplacerSettings {
         settings.addBoolean(CFG_REPLACE_ALL_OCCURENCES, m_replaceAllOccurrences);
         settings.addString(CFG_REPLACEMENT, m_replacement);
         settings.addBoolean(CFG_ENABLE_ESCAPING, m_enableEscaping);
-        settings.addBoolean(CFG_FIND_PATTERN,
-            m_patternType == PatternType.REGEX || m_patternType == PatternType.WILDCARD);
-        settings.addBoolean(CFG_PATTERN_IS_REGEX, m_patternType == PatternType.REGEX);
+        settings.addString(CFG_PATTERN_TYPE, m_patternType.name());
     }
 }
