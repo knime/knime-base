@@ -51,11 +51,14 @@ package org.knime.base.node.io.filehandling.csv.reader2;
 import static org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.PRODUCTION_PATH_PROVIDER;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReader;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
@@ -68,6 +71,7 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TableSpecSettings;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElementSettings;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElementSettings.ColumnNameRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElementSettingsReference;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
@@ -84,6 +88,7 @@ import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.RawSpecFactory;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
@@ -271,29 +276,78 @@ final class CSVTransformationSettingsStateProviders implements WidgetGroup, Pers
     static final class TransformationElementSettingsProvider
         extends DependsOnTypedReaderTableSpecProvider<TransformationElementSettings[]> {
 
+        private Supplier<TransformationElementSettings[]> m_existingSettings;
+
         @Override
-        public TransformationElementSettings[] computeState(final DefaultNodeSettingsContext context) {
-            return toTransformationElements(m_specSupplier.get());
+        public void init(final StateProviderInitializer initializer) {
+            super.init(initializer);
+            m_existingSettings = initializer.getValueSupplier(TransformationElementSettingsReference.class);
+            initializer.computeBeforeOpenDialog();
         }
 
-        static TransformationElementSettings[]
-            toTransformationElements(final Map<String, TypedReaderTableSpec<Class<?>>> specs) {
+        @Override
+        public TransformationElementSettings[] computeState(final DefaultNodeSettingsContext context) {
+            return toTransformationElements(m_specSupplier.get(), m_existingSettings.get());
+        }
+
+        static TransformationElementSettings[] toTransformationElements(
+            final Map<String, TypedReaderTableSpec<Class<?>>> specs,
+            final TransformationElementSettings[] existingSettings) {
+
+            final List<TransformationElementSettings> elementsBeforeUnknown = new ArrayList<>();
+            TransformationElementSettings unknownElement = null;
+            final List<TransformationElementSettings> elementsAfterUnknown = new ArrayList<>();
+
             final var union = toRawSpec(specs).getUnion();
-            final var elements = new TransformationElementSettings[union.size()];
-            int i = 0;
-            for (var column : union) {
-                final var name = column.getName().get(); // NOSONAR in the TypedReaderTableSpecProvider we make sure that names are always present
-                final var defPath = PRODUCTION_PATH_PROVIDER.getDefaultProductionPath(column.getType());
-                final var type = defPath.getConverterFactory().getIdentifier();
-                elements[i] = new TransformationElementSettings(name, true, name, type, type,
-                    defPath.getDestinationType().toPrettyString());
-                i++;
+            final var columnNamesSet = union.stream().map(column -> column.getName().get()).collect(Collectors.toSet());
+
+            for (int i = 0; i < existingSettings.length; i++) {
+                final var existingElement = existingSettings[i];
+                if (existingElement.m_columnName == null) {
+                    unknownElement = existingSettings[i];
+                    continue;
+                }
+                if (!columnNamesSet.contains(existingElement.m_columnName)) {
+                    continue;
+                }
+                final var targetList = unknownElement == null ? elementsBeforeUnknown : elementsAfterUnknown;
+                targetList.add(existingElement);
             }
-            return elements;
+            if (unknownElement == null) {
+                unknownElement =
+                    new TransformationElementSettings(null, true, null, TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID,
+                        TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID, TypeChoicesProvider.DEFAULT_COLUMNTYPE_TEXT);
+            }
+
+            final var existingColumnNames = Stream.concat(elementsBeforeUnknown.stream(), elementsAfterUnknown.stream())
+                .map(element -> element.m_columnName).collect(Collectors.toSet());
+
+            final var newElements =
+                union.stream().filter(colSpec -> !existingColumnNames.contains(colSpec.getName().get()))
+                    .map(TransformationElementSettingsProvider::createNewElement).toList();
+
+            return Stream.concat( //
+                Stream.concat(elementsBeforeUnknown.stream(), newElements.stream()),
+                Stream.concat(Stream.of(unknownElement), elementsAfterUnknown.stream()))
+                .toArray(TransformationElementSettings[]::new);
+
+        }
+
+        static TransformationElementSettings createNewElement(final TypedReaderColumnSpec<Class<?>> colSpec) {
+            final var name = colSpec.getName().get(); // NOSONAR in the TypedReaderTableSpecProvider we make sure that names are always present
+            final var defPath = PRODUCTION_PATH_PROVIDER.getDefaultProductionPath(colSpec.getType());
+            final var type = defPath.getConverterFactory().getIdentifier();
+            return new TransformationElementSettings(name, true, name, type, type,
+                defPath.getDestinationType().toPrettyString());
+
         }
     }
 
     static final class TypeChoicesProvider implements StringChoicesStateProvider {
+
+        static final String DEFAULT_COLUMNTYPE_ID = "<default-columntype>";
+
+        static final String DEFAULT_COLUMNTYPE_TEXT = "Default columntype";
 
         private Supplier<String> m_columnNameSupplier;
 
@@ -308,6 +362,15 @@ final class CSVTransformationSettingsStateProviders implements WidgetGroup, Pers
         @Override
         public IdAndText[] computeState(final DefaultNodeSettingsContext context) {
             final var columnName = m_columnNameSupplier.get();
+
+            if (columnName == null) {
+                final var defaultChoice = new IdAndText(DEFAULT_COLUMNTYPE_ID, DEFAULT_COLUMNTYPE_TEXT);
+                final var dataTypeChoices = PRODUCTION_PATH_PROVIDER.getAvailableDataTypes().stream()
+                    .sorted((t1, t2) -> t1.toPrettyString().compareTo(t2.toPrettyString()))
+                    .map(type -> new IdAndText(type.getName(), type.toPrettyString())).toList();
+                return Stream.concat(Stream.of(defaultChoice), dataTypeChoices.stream()).toArray(IdAndText[]::new);
+            }
+
             final var union = toRawSpec(m_specSupplier.get()).getUnion();
             final var columnSpecOpt =
                 union.stream().filter(colSpec -> colSpec.getName().get().equals(columnName)).findAny();

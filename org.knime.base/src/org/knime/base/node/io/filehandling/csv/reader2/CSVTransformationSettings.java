@@ -85,11 +85,17 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.And;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Expression;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.IsSpecificStringCondition;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Not;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.LatentWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalArrayWidget;
@@ -102,6 +108,9 @@ import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TreeTypeHierarchy;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
@@ -294,7 +303,19 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
         static class ColumnNameRef implements Reference<String> {
         }
 
+        static final class IsNull extends IsSpecificStringCondition {
+
+            @Override
+            public String getValue() {
+                return null;
+            }
+
+        }
+
         @ValueReference(ColumnNameRef.class)
+        @Signal(condition = IsNull.class)
+        @JsonInclude(Include.ALWAYS) // Necessary for the Signal to work
+        @LatentWidget // Necessary for the Signal to work
         String m_columnName;
 
         static class OriginalTypeRef implements Reference<String> {
@@ -357,7 +378,8 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
 
             @Override
             public String computeState(final DefaultNodeSettingsContext context) {
-                return m_originalColumnNameSupplier.get();
+                final var originalName = m_originalColumnNameSupplier.get();
+                return originalName == null ? "Any unknown column" : originalName;
             }
         }
 
@@ -376,9 +398,19 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
             }
         }
 
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        static final class AndNot extends And {
+            public AndNot(final Expression first, final Expression second) {
+                super(first, new Not(second));
+            }
+
+        }
+
         @Widget(title = "Column name", description = "", hideTitle = true, hideFlowVariableButton = true) // TODO NOSONAR UIEXT-1901 add description
         @ValueProvider(ColumnNameResetter.class)
-        @Effect(signals = InternalArrayWidget.ElementIsEditedSignal.class, type = EffectType.SHOW)
+        @Effect(signals = {InternalArrayWidget.ElementIsEditedSignal.class, IsNull.class}, type = EffectType.SHOW,
+            operation = AndNot.class)
+        @JsonInclude(Include.ALWAYS) // Necessary for comparison against m_columnName
         String m_columnRename;
 
         @Widget(title = "Column type", description = "", hideTitle = true, hideFlowVariableButton = true) // TODO NOSONAR UIEXT-1901 add description
@@ -401,6 +433,9 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
         }
     }
 
+    static final class TransformationElementSettingsReference implements Reference<TransformationElementSettings[]> {
+    }
+
     @Widget(title = "Transformations", description = """
             Use this option to modify the structure of the table. You can deselect each column to filter it out of the
             output table, use the arrows to reorder the columns, or change the column name or column type of each
@@ -416,6 +451,6 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
         titleProvider = TransformationElementSettings.TitleProvider.class,
         subTitleProvider = TransformationElementSettings.SubTitleProvider.class)
     @ValueProvider(TransformationElementSettingsProvider.class)
-    // TODO NOSONAR UIEXT-1914 the <any unknown new column> is not implemented yet
+    @ValueReference(TransformationElementSettingsReference.class)
     TransformationElementSettings[] m_columnTransformation = new TransformationElementSettings[0];
 }
