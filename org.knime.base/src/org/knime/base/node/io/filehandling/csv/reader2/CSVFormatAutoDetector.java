@@ -57,10 +57,12 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 
 import org.knime.base.node.io.filehandling.csv.reader.CSVFormatAutoDetectionUtil.FullyBufferedReader;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
+import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.util.BomEncodingUtils;
 import org.knime.filehandling.core.util.FileCompressionUtils;
 
@@ -83,10 +85,13 @@ import com.univocity.parsers.csv.CsvParser;
 @SuppressWarnings("restriction")
 abstract class CSVFormatAutoDetector {
 
-    protected CsvFormat detectFormat() throws IOException, InvalidSettingsException {
+    protected CsvFormat detectFormat(final Optional<FSConnection> portObjectConnection)
+        throws IOException, InvalidSettingsException {
 
-        try (final FileChooserPathAccessor accessor = new FileChooserPathAccessor(getFileChooser())) {
-            final List<Path> paths = accessor.getPaths(s -> {});
+        try (final FileChooserPathAccessor accessor =
+            new FileChooserPathAccessor(getFileChooser(), portObjectConnection)) {
+            final List<Path> paths = accessor.getPaths(s -> {
+            });
             final CsvParser csvParser = new CsvParser(getCsvParserSettings(getCommentStart(), getBufferSize()));
 
             if (!paths.isEmpty()) {

@@ -449,6 +449,7 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
         subTitleProvider = TransformationElementSettings.SubTitleProvider.class)
     @ValueProvider(TransformationElementSettingsProvider.class)
     @ValueReference(TransformationElementSettingsReference.class)
+    @Effect(signals = FileSystemPortConnectionUtil.ConnectedWithoutFileSystemSpec.class, type = EffectType.HIDE)
     TransformationElementSettings[] m_columnTransformation =
         new TransformationElementSettings[]{TransformationElementSettings.createUnknownElement()};
 }

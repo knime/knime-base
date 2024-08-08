@@ -1013,6 +1013,14 @@
           "format" : "simpleButton",
           "triggerId" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$AutoDetectButtonRef",
           "icon" : "reload"
+        },
+        "rule" : {
+          "effect" : "DISABLE",
+          "condition" : {
+            "schema" : {
+              "const" : true
+            }
+          }
         }
       }, {
         "type" : "Control",
@@ -1243,6 +1251,14 @@
           "elementCheckboxScope" : "#/properties/includeInOutput",
           "elementTitleProvider" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings$TransformationElementSettings$TitleProvider",
           "elementSubTitleProvider" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings$TransformationElementSettings$SubTitleProvider"
+        },
+        "rule" : {
+          "effect" : "HIDE",
+          "condition" : {
+            "schema" : {
+              "const" : true
+            }
+          }
         }
       } ]
     } ],

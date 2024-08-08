@@ -44,42 +44,66 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 26, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Aug 12, 2024 (Paul Bärnreuther): created
  */
 package org.knime.base.node.io.filehandling.csv.reader2;
 
+import java.util.Arrays;
 import java.util.Optional;
+import java.util.stream.IntStream;
 
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.ConstantSignal;
 import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractFileChooserPathAccessor;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
-import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 
 /**
- * Allows access to the {@link FSPath FSPaths} referred to by a {@link FileChooser} provided in the constructor. The
- * paths are also validated and respective exceptions are thrown if the settings yield invalid paths.
+ * Utility around accessing the file system port of a reader node
  *
  * @author Paul Bärnreuther
  */
-@SuppressWarnings("restriction")
-final class FileChooserPathAccessor extends AbstractFileChooserPathAccessor {
+final class FileSystemPortConnectionUtil {
+
+    private FileSystemPortConnectionUtil() {
+        // Utility
+    }
+
+    static Optional<FSConnection> getFileSystemConnection(final DefaultNodeSettingsContext context) {
+        if (context == null) {
+            return Optional.empty();
+        }
+        return getFirstFileSystemPort(context.getPortObjectSpecs())
+            .flatMap(FileSystemPortObjectSpec::getFileSystemConnection);
+    }
+
+    private static Optional<FileSystemPortObjectSpec> getFirstFileSystemPort(final PortObjectSpec[] specs) {
+        return Arrays.asList(specs).stream().filter(FileSystemPortObjectSpec.class::isInstance)
+            .map(FileSystemPortObjectSpec.class::cast).findFirst();
+    }
 
     /**
-     * Creates a new FileChooserAccessor for the provided location.</br>
-     * The settings are not validated in this constructor but instead if
-     * {@link ReadPathAccessor#getPaths(java.util.function.Consumer)} is called.
+     * Signal that applies whenever a file system port exists in the input but no connection to the file system could be
+     * established, i.e. when there is nothing connected, when the previous nodes are not executed or when the
+     * connection is closed.
      *
-     * @param fileChooser provided by the user
-     * @param portObjectConnection an optional connection of a connected {@link FileSystemPortObjectSpec}
+     * This is not to be used on the file chooser widget directly, since it is disabled automatically by the framework.
+     *
+     * @author Paul Bärnreuther
      */
-    public FileChooserPathAccessor(final FileChooser fileChooser, final Optional<FSConnection> portObjectConnection) { //NOSONAR
-        super(new FileChooserPathAccessorSettings(fileChooser.getFSLocation(),
-            new FilterSettings(FilterMode.FILE, false,
-                // FilterOptionsSettings not used at the moment with filter mode FILE.
-                null, false)),
-            portObjectConnection);
+    public static final class ConnectedWithoutFileSystemSpec implements ConstantSignal {
+
+        @Override
+        public boolean applies(final DefaultNodeSettingsContext context) {
+            return hasFileSystemPort(context) && getFileSystemConnection(context).isEmpty();
+        }
+
+        private static boolean hasFileSystemPort(final DefaultNodeSettingsContext context) {
+            final var inPortTypes = context.getInPortTypes();
+            return IntStream.range(0, inPortTypes.length)
+                .anyMatch(i -> FileSystemPortObjectSpec.class.equals(inPortTypes[i].getPortObjectSpecClass()));
+
+        }
     }
+
 }

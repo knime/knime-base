@@ -190,7 +190,8 @@ final class CSVTransformationSettingsStateProviders implements WidgetGroup, Pers
                 return computeStateFromPaths(Collections.emptyList());
             }
 
-            try (final FileChooserPathAccessor accessor = new FileChooserPathAccessor(fileChooser)) {
+            try (final FileChooserPathAccessor accessor = new FileChooserPathAccessor(fileChooser,
+                FileSystemPortConnectionUtil.getFileSystemConnection(context))) {
                 return computeStateFromPaths(accessor.getFSPaths(s -> {
                     switch (s.getType()) {
                         case INFO -> LOGGER.info(s.getMessage());
@@ -198,7 +199,7 @@ final class CSVTransformationSettingsStateProviders implements WidgetGroup, Pers
                         case ERROR -> LOGGER.error(s.getMessage());
                     }
                 }));
-            } catch (IOException | InvalidSettingsException e) {
+            } catch (IOException | InvalidSettingsException | IllegalStateException e) {
                 LOGGER.error(e);
                 return computeStateFromPaths(Collections.emptyList());
             }

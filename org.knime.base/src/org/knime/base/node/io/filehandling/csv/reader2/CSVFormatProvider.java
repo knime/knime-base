@@ -160,7 +160,7 @@ public final class CSVFormatProvider extends CSVFormatAutoDetector implements St
     @Override
     public CsvFormat computeState(final DefaultNodeSettingsContext context) {
         try {
-            return detectFormat();
+            return detectFormat(FileSystemPortConnectionUtil.getFileSystemConnection(context));
         } catch (IOException | InvalidSettingsException e) { // NOSONAR
             throw new WidgetHandlerException(e.getMessage());
         }

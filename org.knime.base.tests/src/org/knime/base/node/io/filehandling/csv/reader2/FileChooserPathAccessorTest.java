@@ -58,6 +58,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -125,8 +126,9 @@ public class FileChooserPathAccessorTest extends LocalWorkflowContextTest {
     private static void testGetPathsHappy(final FileChooser fileChooser, final Path... expectedPaths)
         throws IOException, InvalidSettingsException {
 
-        try (FileChooserPathAccessor accessor = new FileChooserPathAccessor(fileChooser)) {
-            final List<Path> paths = accessor.getPaths(s -> {});
+        try (FileChooserPathAccessor accessor = new FileChooserPathAccessor(fileChooser, Optional.empty())) {
+            final List<Path> paths = accessor.getPaths(s -> {
+            });
             String[] expectedStrings = Arrays.stream(expectedPaths).map(Path::toString).toArray(String[]::new);
             String[] actualStrings = paths.stream().map(Object::toString).toArray(String[]::new);
             assertArrayEquals(expectedStrings, actualStrings);
@@ -136,9 +138,9 @@ public class FileChooserPathAccessorTest extends LocalWorkflowContextTest {
     private static void testGetPathsError(final FileChooser fileChooser, final String expectedErrorMessage)
         throws IOException, InvalidSettingsException {
 
-        try (FileChooserPathAccessor accessor = new FileChooserPathAccessor(fileChooser)) {
-            assertThat(assertThrows(InvalidSettingsException.class, () -> accessor.getPaths(s -> {}))).message()
-                .isEqualTo(expectedErrorMessage);
+        try (FileChooserPathAccessor accessor = new FileChooserPathAccessor(fileChooser, Optional.empty())) {
+            assertThat(assertThrows(InvalidSettingsException.class, () -> accessor.getPaths(s -> {
+            }))).message().isEqualTo(expectedErrorMessage);
         }
     }
 }
