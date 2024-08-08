@@ -52,6 +52,9 @@ import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.stream.IntStream;
 
 import org.knime.base.node.io.filehandling.csv.reader.OSIndependentNewLineReader;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
@@ -92,8 +95,10 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSetting
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption.IsCustomRowDelimiter;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption.RowDelimiterPersistor;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
@@ -101,6 +106,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPe
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.ConstantSignal;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
@@ -123,7 +129,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonRefer
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
+import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
@@ -152,11 +160,59 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         static final class FileChooserRef extends ReferenceStateProvider<FileChooser> {
         }
 
+        static final class ReaderFileSystemPortIndexSupplier implements FileReaderWidget.FileSystemPortIndexSupplier {
+
+            @Override
+            public OptionalInt getFileSystemPortIndex(final DefaultNodeSettingsContext context) {
+                return getPortIndex(context);
+            }
+
+            static OptionalInt getPortIndex(final DefaultNodeSettingsContext context) {
+                final var inPortTypes = context.getInPortTypes();
+                return IntStream.range(0, inPortTypes.length)
+                    .filter(i -> FileSystemPortObjectSpec.class.equals(inPortTypes[i].getPortObjectSpecClass()))
+                    .findFirst();
+
+            }
+
+        }
+
+        /**
+         * TODO: Should be handled by the framework
+         *
+         * TODO: Only one place where the fileSystemConnection is to be constructed
+         *
+         * @author Paul Bärnreuther
+         */
+        public static final class ConnectedWithoutFileSystemSpec implements ConstantSignal {
+
+            private static final NodeLogger LOGGER = NodeLogger.getLogger(ConnectedWithoutFileSystemSpec.class);
+
+            @Override
+            public boolean applies(final DefaultNodeSettingsContext context) {
+                return ReaderFileSystemPortIndexSupplier.getPortIndex(context).isPresent()
+                    && getFileSystemConnection(context).isEmpty();
+            }
+
+            static Optional<FSConnection> getFileSystemConnection(final DefaultNodeSettingsContext context) {
+                return getFirstFileSystemPort(context.getPortObjectSpecs())
+                    .flatMap(FileSystemPortObjectSpec::getFileSystemConnection);
+            }
+
+            private static Optional<FileSystemPortObjectSpec> getFirstFileSystemPort(final PortObjectSpec[] specs) {
+                return Arrays.asList(specs).stream().filter(FileSystemPortObjectSpec.class::isInstance)
+                    .map(FileSystemPortObjectSpec.class::cast).findFirst();
+            }
+
+        }
+
         @Widget(title = "Source", description = Source.DESCRIPTION)
         @ValueReference(FileChooserRef.class)
         @Layout(Source.class)
         @Persist(configKey = "file_selection", settingsModel = SettingsModelReaderFileChooser.class)
-        @FileReaderWidget(fileExtensions = {"csv", "tsv", "txt"})
+        @FileReaderWidget(fileExtensions = {"csv", "tsv", "txt"},
+            fileSystemPortIndexSupplier = ReaderFileSystemPortIndexSupplier.class)
+        @Effect(signals = ConnectedWithoutFileSystemSpec.class, type = EffectType.DISABLE)
         FileChooser m_source = new FileChooser();
 
         @Persist(configKey = "file_selection", hidden = true)
@@ -372,6 +428,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @Widget(title = "Autodetect format", description = AutodetectFormat.DESCRIPTION)
         @Layout(AutodetectFormat.class)
         @SimpleButtonWidget(ref = AutoDetectButtonRef.class, icon = Icon.RELOAD)
+        @Effect(signals = ConnectedWithoutFileSystemSpec.class, type = EffectType.DISABLE)
         Void m_autoDetectButton;
 
         static class FileSelectionInternal implements WidgetGroup, PersistableSettings {

@@ -51,10 +51,12 @@ package org.knime.base.node.io.filehandling.csv.reader2;
 import java.util.Optional;
 
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
+import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractFileChooserPathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 
 /**
  * Allows access to the {@link FSPath FSPaths} referred to by a {@link FileChooser} provided in the constructor. The
@@ -71,12 +73,13 @@ final class FileChooserPathAccessor extends AbstractFileChooserPathAccessor {
      * {@link ReadPathAccessor#getPaths(java.util.function.Consumer)} is called.
      *
      * @param fileChooser provided by the user
+     * @param portObjectConnection an optional connection of a connected {@link FileSystemPortObjectSpec}
      */
-    public FileChooserPathAccessor(final FileChooser fileChooser) { //NOSONAR
+    public FileChooserPathAccessor(final FileChooser fileChooser, final Optional<FSConnection> portObjectConnection) { //NOSONAR
         super(new FileChooserPathAccessorSettings(fileChooser.getFSLocation(),
             new FilterSettings(FilterMode.FILE, false,
                 // FilterOptionsSettings not used at the moment with filter mode FILE.
                 null, false)),
-            Optional.empty());
+            portObjectConnection);
     }
 }

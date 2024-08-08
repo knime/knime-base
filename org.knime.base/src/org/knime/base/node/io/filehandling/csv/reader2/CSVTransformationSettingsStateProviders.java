@@ -111,8 +111,8 @@ final class CSVTransformationSettingsStateProviders implements WidgetGroup, Pers
 
         final int m_maximumNumberOfColumns;
 
-        Dependencies(final ConfigIdSettings configId, final FileChooser fileChooser,
-            final boolean limitMemoryPerColumn, final int maximumNumberOfColumns) {
+        Dependencies(final ConfigIdSettings configId, final FileChooser fileChooser, final boolean limitMemoryPerColumn,
+            final int maximumNumberOfColumns) {
             m_configId = configId;
             m_source = fileChooser;
             m_limitMemoryPerColumn = limitMemoryPerColumn;
@@ -179,7 +179,8 @@ final class CSVTransformationSettingsStateProviders implements WidgetGroup, Pers
                 return computeStateFromPaths(Collections.emptyList());
             }
 
-            try (final FileChooserPathAccessor accessor = new FileChooserPathAccessor(fileChooser)) {
+            try (final FileChooserPathAccessor accessor = new FileChooserPathAccessor(fileChooser,
+                CSVTableReaderNodeSettings.Settings.ConnectedWithoutFileSystemSpec.getFileSystemConnection(context))) {
                 return computeStateFromPaths(accessor.getFSPaths(s -> {
                     switch (s.getType()) {
                         case INFO -> LOGGER.info(s.getMessage());
@@ -187,7 +188,7 @@ final class CSVTransformationSettingsStateProviders implements WidgetGroup, Pers
                         case ERROR -> LOGGER.error(s.getMessage());
                     }
                 }));
-            } catch (IOException | InvalidSettingsException e) {
+            } catch (IOException | InvalidSettingsException | IllegalStateException e) {
                 LOGGER.error(e);
                 return computeStateFromPaths(Collections.emptyList());
             }

@@ -68,6 +68,7 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSetting
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.LimitRows.SkipFirstLinesRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.ColumnDelimiterRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.CommentStartRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.ConnectedWithoutFileSystemSpec;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.CustomRowDelimiterRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FirstColumnContainsRowIdsRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FirstRowContainsColumnNamesRef;
@@ -82,6 +83,8 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TypeChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
@@ -324,6 +327,7 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
     // TODO NOSONAR UIEXT-1901 this description is currently not shown
     @ArrayWidget(elementTitle = "Column", showSortButtons = true, hasFixedSize = true)
     @ValueProvider(TransformationElementSettingsProvider.class)
+    @Effect(signals = ConnectedWithoutFileSystemSpec.class, type = EffectType.HIDE)
     // TODO NOSONAR UIEXT-1914 the <any unknown new column> is not implemented yet
     TransformationElementSettings[] m_columnTransformation = new TransformationElementSettings[0];
 }
