@@ -47,8 +47,6 @@
  */
 package org.knime.base.node.util.timerinfo;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Map;
 
 import org.knime.core.data.DataColumnSpec;
@@ -63,70 +61,52 @@ import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataContainer;
-import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.port.PortType;
-import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.port.inactive.InactiveBranchConsumer;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.NodeID;
-import org.knime.core.node.workflow.NodeTimer;
+import org.knime.core.node.workflow.SubNodeContainer;
 import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.core.node.workflow.WorkflowManager.NodeModelFilter;
+import org.knime.core.node.workflow.virtual.subnode.VirtualSubNodeInputNodeModel;
+import org.knime.core.node.workflow.virtual.subnode.VirtualSubNodeOutputNodeModel;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeModel;
 
 /**
  * A simple node collecting timer information from the current workflow and
  * providing it as output table.
  *
  * @author Michael Berthold, University of Konstanz
+ * @author Magnus Gohm, KNIME AG, Konstanz, Germany
  */
-final class TimerinfoNodeModel extends NodeModel implements InactiveBranchConsumer {
-
-    /** the settings key for max depth */
-   static final String CFGKEY_MAXDEPTH = "MaxDepth";
-
-   /** the corresponding model */
-   private final SettingsModelIntegerBounded m_maxdepth = createMaxDepthSettingsModel();
-
-   /**
-    * @return new model for the "max depth" parameter
-    */
-   static SettingsModelIntegerBounded createMaxDepthSettingsModel() {
-       return new SettingsModelIntegerBounded(TimerinfoNodeModel.CFGKEY_MAXDEPTH,
-           /* def */ 2, /* range */ 0, Integer.MAX_VALUE);
-   }
+@SuppressWarnings("restriction") // webui
+final class TimerinfoNodeModel extends WebUINodeModel<TimerinfoNodeSettings> implements InactiveBranchConsumer {
 
     /**
-     * One optional variable input, one data output.
+     * Creates a new timer info model
+     *
+     * @param config
      */
-    protected TimerinfoNodeModel() {
-        super(new PortType[] {FlowVariablePortObject.TYPE_OPTIONAL},
-              new PortType[] {BufferedDataTable.TYPE});
+    public TimerinfoNodeModel(final WebUINodeConfiguration config) {
+        super(config, TimerinfoNodeSettings.class);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs, final TimerinfoNodeSettings settings)
+            throws InvalidSettingsException {
         return new PortObjectSpec[] { createSpec() };
     }
 
     private static DataTableSpec createSpec() {
-        DataTableSpecCreator dtsc = new DataTableSpecCreator();
-        DataColumnSpec[] colSpecs = new DataColumnSpec[] {
+        var dtsc = new DataTableSpecCreator();
+        var colSpecs = new DataColumnSpec[] {
             new DataColumnSpecCreator("Name", StringCell.TYPE).createSpec(),
             new DataColumnSpecCreator("Execution Time", LongCell.TYPE).createSpec(),
             new DataColumnSpecCreator("Execution Time since last Reset", LongCell.TYPE).createSpec(),
@@ -140,118 +120,101 @@ final class TimerinfoNodeModel extends NodeModel implements InactiveBranchConsum
         return dtsc.createSpec();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
-        BufferedDataContainer result = exec.createDataContainer(createSpec());
+    protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec,
+        final TimerinfoNodeSettings settings) throws Exception {
         // we need to find the parent workflow manager of this node - which ain't easy...:
-        WorkflowManager wfm = NodeContext.getContext().getWorkflowManager();
+        var wfm = NodeContext.getContext().getWorkflowManager();
         TimerinfoNodeModel myThis = this;
-        Map<NodeID, ? extends TimerinfoNodeModel> m = wfm.findNodes(TimerinfoNodeModel.class,
-            new NodeModelFilter<TimerinfoNodeModel>() {
+        Map<NodeID, TimerinfoNodeModel> m =
+            wfm.findNodes(TimerinfoNodeModel.class, new NodeModelFilter<TimerinfoNodeModel>() {
                 @Override
                 public boolean include(final TimerinfoNodeModel nodeModel) {
                     return nodeModel == myThis;
-                }},
-            /*recurse metanodes*/true, /*recurse components*/true);
+                }
+            }, /*recurse metanodes*/true, /*recurse components*/true);
         // we should always find exactly one such node
         CheckUtils.checkState(m.size() == 1,
                 "Expected to find 'this' node exactly once (result set has size %d)", m.size());
         NodeID myID = m.entrySet().iterator().next().getKey();
-        NodeContainer myNC = wfm.findNodeContainer(myID);
+        var myNC = wfm.findNodeContainer(myID);
         WorkflowManager myWfm = myNC.getParent();
-        reportThisLayer(myWfm, result, m_maxdepth.getIntValue(), myWfm.getID());
+        BufferedDataContainer result = exec.createDataContainer(createSpec());
+        reportThisLayer(myWfm, result, settings.m_maxDepth, myWfm.getID(),
+            settings.m_componentResolution, settings.m_includeComponentIO);
 
         result.close();
         return new PortObject[] { result.getTable() };
     }
 
-    /** Internal method writing timer info into table for all nodes of a given WFM until
-     * a certain depth in the provided BDT. Components are treated normally,
-     * components are not reported until depth 0.
+    /**
+     * Internal method writing timer info into table for all nodes of a given WFM until
+     * a certain depth in the provided BDT. Metanodes are treated normally (to keep this node backwards compatible).
+     * Components are added depended on the settings. Either only components (depth = 0), only their nested leaf nodes
+     * (depth > 0) or component and their nested leaf nodes (depth > 0).
+     *
+     * @param wfm the {@link WorkflowManager} of this layer
+     * @param result the output table
+     * @param depth the timer info depth
+     * @param toplevelprefix the prefix of the parent {@link WorkflowManager}
+     * @param componentResolution the {@link ComponentResolutionPolicy} chosen in the configuration
+     * @param includeComponentIO whether to include the component input and output nodes
      */
-    private void reportThisLayer(final WorkflowManager wfm, final BufferedDataContainer result,
-        final int depth, final NodeID toplevelprefix) {
+    private static void reportThisLayer(final WorkflowManager wfm, final BufferedDataContainer result,
+        final int depth, final NodeID toplevelprefix,
+        final ComponentResolutionPolicy componentResolution, final boolean includeComponentIO) {
         for (NodeContainer nc : wfm.getNodeContainers()) {
-            if ((nc instanceof WorkflowManager) && (depth > 0)) {
-                reportThisLayer((WorkflowManager)nc, result, depth-1, toplevelprefix);
-            } else {
-                // for the RowID we only use the last part of the prefix - also to stay backwards compatible
-                String rowid = "Node " + nc.getID().toString().substring(toplevelprefix.toString().length() + 1);
-                NodeTimer nt = nc.getNodeTimer();
-                DataRow row = new DefaultRow(
-                    new RowKey(rowid),
-                    new StringCell(nc.getName()),
-                    nt.getLastExecutionDuration() >= 0
-                        ? new LongCell(nt.getLastExecutionDuration()) : DataType.getMissingCell(),
-                    new LongCell(nt.getExecutionDurationSinceReset()),
-                    new LongCell(nt.getExecutionDurationSinceStart()),
-                    new IntCell(nt.getNrExecsSinceReset()),
-                    new IntCell(nt.getNrExecsSinceStart()),
-                    new StringCell(nc.getID().toString()),
-                    new StringCell(nc instanceof NativeNodeContainer
-                        ? ((NativeNodeContainer)nc).getNodeModel().getClass().getName() : "n/a")
-                );
-                result.addRowToTable(row);
+            if (((nc instanceof WorkflowManager) || (nc instanceof SubNodeContainer)) && (depth > 0)) {
+                // Metanode
+                if (nc instanceof WorkflowManager workflowManager) {
+                    reportThisLayer(workflowManager, result, depth-1, toplevelprefix,
+                        componentResolution, includeComponentIO);
+                } else { // Component
+                    applyComponentResolutionPolicyOnThisLayer(((SubNodeContainer)nc).getWorkflowManager(), nc,
+                        componentResolution, includeComponentIO, result, depth, toplevelprefix);
+                }
+            } else { // Node
+                var nodeClass = nc instanceof NativeNodeContainer nativeNodeContainer
+                    ? nativeNodeContainer.getNodeModel().getClass() : null;
+                if (includeComponentIO || (!VirtualSubNodeInputNodeModel.class.equals(nodeClass)
+                    && !VirtualSubNodeOutputNodeModel.class.equals(nodeClass))) {
+                    result.addRowToTable(createTimerInfoTableRow(nc, toplevelprefix));
+                }
             }
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
-            throws IOException, CanceledExecutionException {
-        // no model or view to load (all relevant information is already in the output table
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        // nothing to do.
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        try {
-            m_maxdepth.loadSettingsFrom(settings);
-        } catch (InvalidSettingsException ise) {
-            // if settings don't exist, emulate old behaviour: no descent.
-            m_maxdepth.setIntValue(0);
+    private static void applyComponentResolutionPolicyOnThisLayer(final WorkflowManager nestedWorkflowManager,
+        final NodeContainer nc, final ComponentResolutionPolicy componentResolution, final boolean includeComponentIO,
+        final BufferedDataContainer result, final int depth, final NodeID toplevelprefix) {
+        // Skip this layer if we want only leaves
+        if (componentResolution != ComponentResolutionPolicy.NODES) {
+            result.addRowToTable(createTimerInfoTableRow(nc, toplevelprefix));
+        }
+        // Skip going into components if not configured and respect component lock
+        if (componentResolution != ComponentResolutionPolicy.COMPONENTS && nestedWorkflowManager.isUnlocked()) {
+            reportThisLayer(nestedWorkflowManager, result, depth-1, toplevelprefix,
+                componentResolution, includeComponentIO);
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void reset() {
-        // nothing to do
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
-            throws IOException, CanceledExecutionException {
-        // ignore -> no view
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
-        m_maxdepth.saveSettingsTo(settings);
+    private static DataRow createTimerInfoTableRow(final NodeContainer nc, final NodeID toplevelprefix) {
+        // For the RowID we only use the last part of the prefix - also to stay backwards compatible
+        String rowid = "Node " + nc.getID().toString().substring(toplevelprefix.toString().length() + 1);
+        var nt = nc.getNodeTimer();
+        return new DefaultRow(
+            new RowKey(rowid),
+            new StringCell(nc.getName()),
+            nt.getLastExecutionDuration() >= 0
+                ? new LongCell(nt.getLastExecutionDuration()) : DataType.getMissingCell(),
+            new LongCell(nt.getExecutionDurationSinceReset()),
+            new LongCell(nt.getExecutionDurationSinceStart()),
+            new IntCell(nt.getNrExecsSinceReset()),
+            new IntCell(nt.getNrExecsSinceStart()),
+            new StringCell(nc.getID().toString()),
+            new StringCell(nc instanceof NativeNodeContainer nativeNodeContainer
+                ? nativeNodeContainer.getNodeModel().getClass().getName() : "n/a")
+        );
     }
 
 }

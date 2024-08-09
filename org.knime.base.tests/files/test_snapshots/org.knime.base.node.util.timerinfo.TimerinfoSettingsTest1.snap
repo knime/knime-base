@@ -1,0 +1,82 @@
+{
+  "data" : {
+    "model" : {
+      "maxDepth" : 1,
+      "componentResolution" : "COMPONENTS",
+      "includeComponentIO" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "componentResolution" : {
+            "oneOf" : [ {
+              "const" : "COMPONENTS",
+              "title" : "Components"
+            }, {
+              "const" : "NODES",
+              "title" : "Nested nodes"
+            }, {
+              "const" : "COMPONENTS_AND_NODES",
+              "title" : "Components and nested nodes"
+            } ],
+            "title" : "Component resolution",
+            "description" : "Chooses how components are resolved regarding the timer information. <br/>\n<ul>\n    <li><b>Components</b> : Lists the whole component without the nested nodes</li>\n    <li><b>Nested nodes</b> : Lists only the nested component nodes without the component itself</li>\n    <li><b>Components and nested nodes</b> : Lists both</li>\n</ul>\n",
+            "default" : "COMPONENTS",
+            "configKeys" : [ "componentResolution" ]
+          },
+          "includeComponentIO" : {
+            "type" : "boolean",
+            "title" : "Include component input and output nodes",
+            "description" : "Includes the component input and output nodes in the output table.\n",
+            "default" : false,
+            "configKeys" : [ "includeComponentIO" ]
+          },
+          "maxDepth" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Max Depth",
+            "description" : "Controls depth of reporting of nodes in (nested) metanodes and components. A depth 0 means no descent.\n",
+            "default" : 2,
+            "minimum" : 0.0,
+            "maximum" : 2147483647,
+            "configKeys" : [ "MaxDepth" ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/maxDepth"
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/componentResolution",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/includeComponentIO",
+      "options" : {
+        "format" : "checkbox",
+        "isAdvanced" : true
+      },
+      "rule" : {
+        "effect" : "DISABLE",
+        "condition" : {
+          "scope" : "#/properties/model/properties/componentResolution",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "COMPONENTS"
+            } ]
+          }
+        }
+      }
+    } ]
+  }
+}
