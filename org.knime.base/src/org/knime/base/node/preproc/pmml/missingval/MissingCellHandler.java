@@ -126,6 +126,19 @@ public abstract class MissingCellHandler {
         return null;
     }
 
+
+    /**
+     * Added as part of AP-21739: For columns that are ignored during missing value handling a
+     * {@link org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandler} is used to not treat any
+     * missings. However, there is some other code (where this property is evaluated) that will issue a warning if
+     * missing values in a row are kept. This method is used to suppress this warning in this case.
+     *
+     * @return true if this handler does not replace missing values, false if it is the "do nothing" handler
+     */
+    protected boolean isNoop() {
+        return false;
+    }
+
     /**
      * Loads user settings.
      * @param settings the settings

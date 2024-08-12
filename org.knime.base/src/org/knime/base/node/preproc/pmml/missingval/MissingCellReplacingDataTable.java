@@ -326,12 +326,12 @@ public class MissingCellReplacingDataTable implements DataTable {
          * {@inheritDoc}
          */
         @Override
-        public DataRow next() {
+        public DataRow next() { // NOSONAR (complexity still manageable)
             DataRow row = m_iter.next();
             var cells = new DataCell[m_spec.getNumColumns()];
             var removeRow = false;
             for (int i = 0; i < m_spec.getNumColumns(); i++) {//NOSONAR
-                if (row.getCell(i).isMissing()) {
+                if (row.getCell(i).isMissing() && !m_handlers[i].isNoop()) {
                     if (removeRow) {
                         m_handlers[i].rowRemoved(row.getKey());
                     } else {

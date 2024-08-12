@@ -83,6 +83,11 @@ public class DoNothingMissingCellHandler extends DefaultMissingCellHandler {
         return null;
     }
 
+    @Override
+    protected boolean isNoop() {
+        return true;
+    }
+
     /**
      * {@inheritDoc}
      */
