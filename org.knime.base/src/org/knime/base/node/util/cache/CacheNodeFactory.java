@@ -1,4 +1,4 @@
-/* 
+/*
  * ------------------------------------------------------------------------
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
@@ -45,55 +45,60 @@
  */
 package org.knime.base.node.util.cache;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
- * 
+ *
  * @author Thomas Gabriel, University of Konstanz
+ * @noreference This class is not intended to be referenced by clients.
  */
-public class CacheNodeFactory extends NodeFactory {
+@SuppressWarnings("restriction")
+public final class CacheNodeFactory extends WebUINodeFactory<CacheNodeModel> {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeModel createNodeModel() {
-        return new CacheNodeModel();
+    private static final String DESC = """
+            <p>
+                The Cache node materializes and caches the input table in a data processing
+                workflow. This node is useful after a sequence of preprocessing steps,
+                especially when these steps involve column transformations, such as
+                removing, manipulating, or adding new columns.
+            </p>
+            <p>
+                In workflows involving multiple transformation nodes, only the modified data
+                (e.g., added columns) is stored, while the unmodified columns reference the
+                input data. Although this approach optimizes the execution and data caching for
+                individual nodes, it can result in tables that are composites of multiple
+                nested tables. Consequently, iterating over such composite tables may be less
+                efficient compared to iterating over a single, unified table.
+            </p>
+            <p>
+                The Cache node addresses this by materializing the input data, creating a
+                self-contained table that consolidates all columns. Additionally, the Cache
+                node is useful in scenarios where portions of a workflow are executed in
+                streaming mode, as it allows data to be staged at specific points. This staging
+                facilitates inspection and debugging, providing a snapshot of the data at the
+                desired point in the workflow.
+            </p>
+            """;
+
+    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder() //
+            .name("Cache") //
+            .icon("cache.png") //
+            .shortDescription("Materializes and caches the input table.") //
+            .fullDescription(DESC) //
+            .modelSettingsClass(CacheNodeSettings.class) //
+            .addInputTable("Input table.", "Input table to cache.") //
+            .addOutputTable("Cached Table", "As input table, only cached.") //
+            .nodeType(NodeType.Other) //
+            .build();
+
+    public CacheNodeFactory() {
+        super(CONFIG);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public int getNrNodeViews() {
-        return 0;
+    public CacheNodeModel createNodeModel() {
+        return new CacheNodeModel(CONFIG);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView createNodeView(final int i, final NodeModel nodeModel) {
-        assert false;
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasDialog() {
-        return false;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-        throw new IllegalStateException();
-    }
 }

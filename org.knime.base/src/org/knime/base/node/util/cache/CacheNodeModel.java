@@ -45,21 +45,33 @@
  */
 package org.knime.base.node.util.cache;
 
-import java.io.File;
 import java.io.IOException;
+import java.util.function.LongSupplier;
+import java.util.function.UnaryOperator;
+import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.mutable.MutableLong;
+import org.knime.base.node.util.cache.CacheNodeSettings.ColumnDomains;
+import org.knime.base.node.util.cache.CacheNodeSettings.CopyImplementation;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.RowIterator;
+import org.knime.core.data.container.BufferedTableBackend;
+import org.knime.core.data.container.CloseableRowIterator;
+import org.knime.core.data.container.DataContainerSettings;
+import org.knime.core.data.v2.RowContainer;
+import org.knime.core.data.v2.RowCursor;
+import org.knime.core.data.v2.RowRead;
+import org.knime.core.data.v2.RowWrite;
+import org.knime.core.data.v2.RowWriteCursor;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.workflow.WorkflowTableBackendSettings;
+import org.knime.core.util.valueformat.NumberFormatter;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeModel;
 
 
 /**
@@ -67,98 +79,154 @@ import org.knime.core.node.NodeSettingsWO;
  *
  * @author Thomas Gabriel, University of Konstanz
  */
-final class CacheNodeModel extends NodeModel {
+@SuppressWarnings("restriction")
+final class CacheNodeModel extends WebUINodeModel<CacheNodeSettings> {
 
-    /**
-     * Creates a new cache model.
-     */
-    CacheNodeModel() {
-        super(1, 1);
+    CacheNodeModel(final WebUINodeConfiguration configuration) {
+        super(configuration, CacheNodeSettings.class);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] data,
-            final ExecutionContext exec) throws Exception {
+    protected BufferedDataTable[] execute(final BufferedDataTable[] data, final ExecutionContext exec,
+        final CacheNodeSettings modelSettings) throws Exception {
+        final DataContainerSettings dcSettings = DataContainerSettings.builder() //
+                .withCheckDuplicateRowKeys(false) //
+                .withInitializedDomain(modelSettings.m_domains == ColumnDomains.RETAIN) //
+                .withDomainUpdate(modelSettings.m_domains == ColumnDomains.COMPUTE) //
+                .build();
+        final boolean isRowBackend = WorkflowTableBackendSettings.getTableBackendForCurrentContext().getClass()
+            .equals(BufferedTableBackend.class);
+        final CopyImplementation impl;
+        if (modelSettings.m_implementation == CopyImplementation.AUTO) {
+            impl = isRowBackend ? CopyImplementation.ROW_BASED_BY_ROW : CopyImplementation.COLUMNAR_BY_ROW;
+        } else {
+            impl = modelSettings.m_implementation;
+        }
+        final BufferedDataTable copy = switch (impl) {
+            case ROW_BASED_BY_ROW -> rowBackendFullRowCopy(data[0], exec, dcSettings);
+            case COLUMNAR_BY_ROW -> colBackendFullRowCopy(data[0], exec, dcSettings);
+            case COLUMNAR_BY_CELL -> colBackendCellByCellCopy(data[0], exec, dcSettings);
+            default -> throw new IllegalStateException("Unexpected value: " + modelSettings.m_implementation);
+        };
+        return new BufferedDataTable[] {copy};
+    }
+
+    private static BufferedDataTable colBackendFullRowCopy(final BufferedDataTable data, final ExecutionContext exec,
+        final DataContainerSettings dcSettings) throws CanceledExecutionException, IOException {
+        final long totalCount = data.size();
+        final MutableLong row = new MutableLong(1);
+        final UnaryOperator<StringBuilder> progressFractionBuilder =
+            progressFractionBuilder(newProgressNumberFormat(), row::longValue, totalCount);
+        try (RowContainer con = exec.createRowContainer(data.getDataTableSpec(), dcSettings);
+                RowCursor readCursor = data.cursor();
+                RowWriteCursor writeCursor = con.createCursor()) {
+            for (; readCursor.canForward(); row.increment()) {
+                exec.setProgress(row.longValue() / (double)totalCount,
+                    () -> progressFractionBuilder.apply(new StringBuilder("Caching row ")).toString());
+                exec.checkCanceled();
+                writeCursor.forward().setFrom(readCursor.forward());
+            }
+            return con.finish();
+        }
+    }
+
+    private static BufferedDataTable colBackendCellByCellCopy(final BufferedDataTable data, final ExecutionContext exec,
+        final DataContainerSettings dcSettings) throws CanceledExecutionException, IOException {
+        final int numCells = data.getDataTableSpec().getNumColumns();
+        try (RowContainer con = exec.createRowContainer(data.getDataTableSpec(), dcSettings);
+                RowCursor readCursor = data.cursor();
+                RowWriteCursor writeCursor = con.createCursor()) {
+            final long totalCount = data.size();
+            final MutableLong row = new MutableLong(1);
+            final UnaryOperator<StringBuilder> progressFractionBuilder =
+                progressFractionBuilder(newProgressNumberFormat(), row::longValue, totalCount);
+            for (; readCursor.canForward(); row.increment()) {
+                exec.setProgress(row.longValue() / (double)totalCount,
+                    () -> progressFractionBuilder.apply(new StringBuilder("Caching row ")).toString());
+                exec.checkCanceled();
+                RowWrite write = writeCursor.forward();
+                RowRead read = readCursor.forward();
+                write.setRowKey(read.getRowKey());
+                for (int i = 0; i < numCells; i++) {
+                    if (read.isMissing(i)) { // NOSONAR (nesting)
+                        write.setMissing(i);
+                    } else {
+                        write.getWriteValue(i).setValue(read.getValue(i));
+                    }
+                }
+            }
+            return con.finish();
+        }
+    }
+
+    private static BufferedDataTable rowBackendFullRowCopy(final BufferedDataTable data,
+        final ExecutionContext exec, final DataContainerSettings dcSettings) throws CanceledExecutionException {
         // it writes only the cells that are "visible" in the input table
         // think of one of the wrappers, e.g. the column filter that
         // hides 90% of the columns. Any iterator will nevertheless instantiate
         // also the cells in the hidden columns and thus make the iteration
         // slow.
-        BufferedDataContainer con = exec.createDataContainer(data[0]
-                .getDataTableSpec());
-        final long totalCount = data[0].size();
-        long row = 1;
-        try {
-            for (RowIterator it = data[0].iterator(); it.hasNext(); row++) {
-                DataRow next = it.next();
-                String message = "Caching row " + row + "/" + totalCount
-                        + " (\"" + next.getKey() + "\")";
-                exec.setProgress(row / (double)totalCount, message);
+        BufferedDataContainer con = exec.createDataContainer(data.getDataTableSpec(), dcSettings);
+        final long totalCount = data.size();
+        final MutableLong row = new MutableLong(1);
+        final UnaryOperator<StringBuilder> progressFractionBuilder =
+            progressFractionBuilder(newProgressNumberFormat(), row::longValue, totalCount);
+        try (CloseableRowIterator it = data.iterator()) {
+            for (; it.hasNext(); row.increment()) {
+                final DataRow next = it.next();
+                exec.setProgress(row.longValue() / (double)totalCount,
+                    () -> progressFractionBuilder.apply(new StringBuilder("Caching row ")).toString());
                 exec.checkCanceled();
                 con.addRowToTable(next);
             }
         } finally {
             con.close();
         }
-        return new BufferedDataTable[]{con.getTable()};
+        return con.getTable();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) {
+    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final CacheNodeSettings modelSettings)
+        throws InvalidSettingsException {
         return inSpecs;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
+    private static NumberFormatter newProgressNumberFormat() {
+        try {
+            return NumberFormatter.builder().setGroupSeparator(",").build();
+        } catch (InvalidSettingsException ex) {
+            throw new IllegalStateException(ex);
+        }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void validateSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
-    }
+    /** Pattern matching a single numeric digit. */
+    private static final Pattern ANY_DIGIT = Pattern.compile("\\d");
+
+    /** Space character that's exactly as wide as a single digit. */
+    private static final String FIGURE_SPACE = "\u2007";
 
     /**
-     * {@inheritDoc}
+     * Creates a function that adds a nicely formatted, padded fraction of the form {@code " 173/2065"} to a given
+     * {@link StringBuilder} that reflects the current value of the given supplier {@code currentValue}. The padding
+     * with space characters tries to minimize jumping in the UI.
+     *
+     * @param numFormat number format for the numerator and denominator
+     * @param currentValue supplier for the current numerator
+     * @param total fixed denominator
+     * @return function that modified the given {@link StringBuilder} and returns it for convenience
      */
-    @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    private static UnaryOperator<StringBuilder> progressFractionBuilder(final NumberFormatter numFormat,
+            final LongSupplier currentValue, final long total) {
+        // only computed once
+        final var totalStr = numFormat.format(total);
+        final var paddingStr = ANY_DIGIT.matcher(totalStr).replaceAll(FIGURE_SPACE).replace(',', ' ');
+
+        return sb -> {
+            // computed every time a progress message is requested
+            final var currentStr = numFormat.format(currentValue.getAsLong());
+            final var padding = paddingStr.substring(0, Math.max(totalStr.length() - currentStr.length(), 0));
+            return sb.append(padding).append(currentStr).append("/").append(totalStr);
+        };
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void reset() {
-    }
 }
