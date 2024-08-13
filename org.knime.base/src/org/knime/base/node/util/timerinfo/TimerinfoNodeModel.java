@@ -74,8 +74,6 @@ import org.knime.core.node.workflow.NodeID;
 import org.knime.core.node.workflow.SubNodeContainer;
 import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.core.node.workflow.WorkflowManager.NodeModelFilter;
-import org.knime.core.node.workflow.virtual.subnode.VirtualSubNodeInputNodeModel;
-import org.knime.core.node.workflow.virtual.subnode.VirtualSubNodeOutputNodeModel;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 
@@ -164,20 +162,17 @@ final class TimerinfoNodeModel extends WebUINodeModel<TimerinfoNodeSettings> imp
         final int depth, final NodeID toplevelprefix,
         final ComponentResolutionPolicy componentResolution, final boolean includeComponentIO) {
         for (NodeContainer nc : wfm.getNodeContainers()) {
-            if (((nc instanceof WorkflowManager) || (nc instanceof SubNodeContainer)) && (depth > 0)) {
+            if (depth > 0 && nc instanceof WorkflowManager workflowManager) {
                 // Metanode
-                if (nc instanceof WorkflowManager workflowManager) {
-                    reportThisLayer(workflowManager, result, depth-1, toplevelprefix,
-                        componentResolution, includeComponentIO);
-                } else { // Component
-                    applyComponentResolutionPolicyOnThisLayer(((SubNodeContainer)nc).getWorkflowManager(), nc,
-                        componentResolution, includeComponentIO, result, depth, toplevelprefix);
-                }
-            } else { // Node
-                var nodeClass = nc instanceof NativeNodeContainer nativeNodeContainer
-                    ? nativeNodeContainer.getNodeModel().getClass() : null;
-                if (includeComponentIO || (!VirtualSubNodeInputNodeModel.class.equals(nodeClass)
-                    && !VirtualSubNodeOutputNodeModel.class.equals(nodeClass))) {
+                reportThisLayer(workflowManager, result, depth-1, toplevelprefix,
+                    componentResolution, includeComponentIO);
+            } else if (depth > 0 && nc instanceof SubNodeContainer) {
+                // Component
+                applyComponentResolutionPolicyOnThisLayer(((SubNodeContainer)nc).getWorkflowManager(), nc,
+                    componentResolution, includeComponentIO, result, depth, toplevelprefix);
+            } else {
+                // Node
+                if (includeComponentIO || !NativeNodeContainer.IS_VIRTUAL_IN_OUT_NODE.test(nc)) {
                     result.addRowToTable(createTimerInfoTableRow(nc, toplevelprefix));
                 }
             }
