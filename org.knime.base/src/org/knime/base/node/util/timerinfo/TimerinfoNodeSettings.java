@@ -49,6 +49,7 @@
 package org.knime.base.node.util.timerinfo;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
@@ -68,7 +69,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 public class TimerinfoNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Max Depth", description = """
-            Controls depth of reporting of nodes in (nested) metanodes and components. A depth 0 means no descent.
+            Controls depth of reporting of nodes in (nested) metanodes and components. A depth of &quot;0&quot; means
+            no descent is performed.
             """)
     @NumberInputWidget(min = 0, max = Integer.MAX_VALUE)
     @Persist(configKey = "MaxDepth")
@@ -91,14 +93,26 @@ public class TimerinfoNodeSettings implements DefaultNodeSettings {
             """)
     @Signal(condition=ComponentsOnlyPolicy.class)
     @ValueSwitchWidget
-    @Persist(optional = true)
-    ComponentResolutionPolicy m_componentResolution = ComponentResolutionPolicy.COMPONENTS;
+    @Persist(optional = true, defaultProvider = LegacyBehavior.class)
+    // new instances of the node handle components similar to metanodes (but omitting component in/out "special" nodes)
+    ComponentResolutionPolicy m_componentResolution = ComponentResolutionPolicy.NODES;
+
+    private static final class LegacyBehavior implements DefaultProvider<ComponentResolutionPolicy> {
+        @Override
+        public ComponentResolutionPolicy getDefault() {
+            // use old behavior for existing nodes -> opaque components
+            return ComponentResolutionPolicy.COMPONENTS;
+        }
+    }
 
     @Widget(title = "Include component input and output nodes", advanced = true, description = """
             Includes the component input and output nodes in the output table.
             """)
     @Effect(signals = ComponentsOnlyPolicy.class, type = EffectType.DISABLE)
     @Persist(optional = true)
-    boolean m_includeComponentIO;
+    // default is `true` to make it obvious that there are special nodes where time might be spent
+    // this default value does not matter for old settings, since the components were opaque there
+    // and no input/output nodes are encountered
+    boolean m_includeComponentIO = true;
 
 }

@@ -3,7 +3,7 @@
     "model" : {
       "maxDepth" : 1,
       "componentResolution" : "COMPONENTS",
-      "includeComponentIO" : false
+      "includeComponentIO" : true
     }
   },
   "schema" : {
@@ -25,21 +25,21 @@
             } ],
             "title" : "Component resolution",
             "description" : "Chooses how components are resolved regarding the timer information. <br/>\n<ul>\n    <li><b>Components</b> : Lists the whole component without the nested nodes</li>\n    <li><b>Nested nodes</b> : Lists only the nested component nodes without the component itself</li>\n    <li><b>Components and nested nodes</b> : Lists both</li>\n</ul>\n",
-            "default" : "COMPONENTS",
+            "default" : "NODES",
             "configKeys" : [ "componentResolution" ]
           },
           "includeComponentIO" : {
             "type" : "boolean",
             "title" : "Include component input and output nodes",
             "description" : "Includes the component input and output nodes in the output table.\n",
-            "default" : false,
+            "default" : true,
             "configKeys" : [ "includeComponentIO" ]
           },
           "maxDepth" : {
             "type" : "integer",
             "format" : "int32",
             "title" : "Max Depth",
-            "description" : "Controls depth of reporting of nodes in (nested) metanodes and components. A depth 0 means no descent.\n",
+            "description" : "Controls depth of reporting of nodes in (nested) metanodes and components. A depth of &quot;0&quot; means\nno descent is performed.\n",
             "default" : 2,
             "minimum" : 0.0,
             "maximum" : 2147483647,
