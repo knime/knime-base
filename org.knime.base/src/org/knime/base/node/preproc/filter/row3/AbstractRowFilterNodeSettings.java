@@ -148,8 +148,6 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                 return context.getDataTableSpec(0) //
                     .map(DataTableSpec::stream) //
                     .orElseGet(Stream::empty) //
-                    // we disallow non-native types for now
-                    .filter(colSpec -> DynamicValuesInput.supportsDataType(colSpec.getType())) //
                     .toArray(DataColumnSpec[]::new);
             }
 
@@ -184,8 +182,6 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
         FilterCriterion(final DefaultNodeSettingsContext ctx) {
             // set last supported column as default column, like old Row Filter did
             this(ctx.getDataTableSpec(0).stream().flatMap(DataTableSpec::stream)
-                // don't auto-configure with non-supported columns
-                .filter(colSpec -> DynamicValuesInput.supportsDataType(colSpec.getType()))
                 .reduce((f, s) -> s).orElse(null));
         }
 
@@ -198,7 +194,12 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                 return;
             }
             m_column = new ColumnSelection(colSpec);
-            m_predicateValues = DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(colSpec.getType());
+            if (DynamicValuesInput.supportsDataType(colSpec.getType())) {
+                m_predicateValues =
+                    DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(colSpec.getType());
+            } else {
+                m_predicateValues = DynamicValuesInput.emptySingle();
+            }
         }
 
         void validate(final DataTableSpec spec) throws InvalidSettingsException {
@@ -306,9 +307,13 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                     // which we don't want to clear
                     return m_currentValue.get();
                 }
-                // provide an input for the given type
-                return keepCurrentValueIfPossible(DynamicValuesInput
-                    .singleValueWithCaseMatchingForStringWithDefault(columnSpec.getType()));
+                // provide an input field for the given type, if we can typemap it
+                if (DynamicValuesInput.supportsDataType(columnSpec.getType())) {
+                    return keepCurrentValueIfPossible(DynamicValuesInput
+                        .singleValueWithCaseMatchingForStringWithDefault(columnSpec.getType()));
+                }
+                // cannot provide an input field
+                return DynamicValuesInput.emptySingle();
             }
 
             private DynamicValuesInput keepCurrentValueIfPossible(final DynamicValuesInput newValue) {
@@ -412,7 +417,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
     }
 
     // auto-configuration
-    AbstractRowFilterNodeSettings(final DefaultNodeSettingsContext ctx) {
+    AbstractRowFilterNodeSettings(@SuppressWarnings("unused") final DefaultNodeSettingsContext ctx) { // NOSONAR
         // we don't add a filter criterion automatically in order to avoid setting a default value without
         // the user noticing (and we need to set some default value in the filter criterion, s.t. flow variables work
         // correctly)

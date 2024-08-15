@@ -181,7 +181,8 @@ enum FilterOperator {
     static final class BoundedNumeric implements BiPredicate<SpecialColumns, DataType> {
         @Override
         public boolean test(final SpecialColumns specialColumn, final DataType dataType) {
-            return dataType != BooleanCell.TYPE && dataType != StringCell.TYPE // explicitly disabled cell types
+            return DynamicValuesInput.supportsDataType(dataType)
+                && dataType != BooleanCell.TYPE && dataType != StringCell.TYPE // explicitly disabled cell types
                 && dataType.isCompatible(BoundedValue.class); // explicitly enabled value classes
         }
     }
@@ -192,7 +193,8 @@ enum FilterOperator {
             // In practice all cells bring a comparator, but not all implementations offer something more "meaningful"
             // than a lexicographic ordering. Still, we want to disallow ordering for boolean and string cells
             // explicitly for now.
-            return dataType != BooleanCell.TYPE && dataType != StringCell.TYPE;
+            return DynamicValuesInput.supportsDataType(dataType)
+                    && dataType != BooleanCell.TYPE && dataType != StringCell.TYPE;
         }
 
         @Override
@@ -206,9 +208,9 @@ enum FilterOperator {
 
         @Override
         public boolean test(final SpecialColumns specialColumn, final DataType dataType) {
-            // our filtering can always use equality
+            // our filtering can always use equality, if the input is type-mappable
             // but booleans are handled with "is true" and "is false" operators
-            return !BooleanValuePredicate.isApplicableFor(dataType);
+            return DynamicValuesInput.supportsDataType(dataType) && !BooleanValuePredicate.isApplicableFor(dataType);
         }
 
         @Override
@@ -255,7 +257,7 @@ enum FilterOperator {
     static final class IsPatternMatchable implements InputSpecValidator {
         @Override
         public boolean test(final SpecialColumns specialColumn, final DataType dataType) {
-            return dataType == StringCell.TYPE;
+            return DynamicValuesInput.supportsDataType(dataType) && dataType == StringCell.TYPE;
         }
 
         @Override
