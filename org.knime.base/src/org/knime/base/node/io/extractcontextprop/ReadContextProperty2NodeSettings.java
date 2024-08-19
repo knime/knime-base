@@ -52,13 +52,15 @@ import org.knime.core.util.ContextProperties;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.TrueCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  * Settings for the {@link ReadContextProperty2NodeFactory Extract Context Properties} node.
@@ -72,14 +74,25 @@ final class ReadContextProperty2NodeSettings implements DefaultNodeSettings {
     private static final String[] ALL_PROP_KEYS = ContextProperties.getContextProperties().toArray(String[]::new);
 
     @Widget(title = "Selected Properties",
-            description = "Properties that should be extracted from the workflow context.")
+        description = "Properties that should be extracted from the workflow context.")
     @ChoicesWidget(choices = ContextPropsChoicesProvider.class)
-    @Effect(signals = Boolean.class, type = EffectType.DISABLE)
+    @Effect(predicate = IsExtractAllProps.class, type = EffectType.DISABLE)
     String[] m_selectedProps;
 
-    @Widget(title = "Select All Properties", description = "Extracts all available properties, may export additional "
-        + "properties in the future if any are added.")
-    @Signal(condition = TrueCondition.class, id = Boolean.class)
+    interface IsExtractAllPropsRef extends Reference<Boolean> {
+    }
+
+    static final class IsExtractAllProps implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getBoolean(IsExtractAllPropsRef.class).isTrue();
+        }
+    }
+
+    @Widget(title = "Select All Properties",
+        description = "Extracts all available properties, may export additional "
+            + "properties in the future if any are added.")
+    @ValueReference(IsExtractAllPropsRef.class)
     boolean m_isExtractAllProps = true;
 
     /** Provider for the extractable properties' names. */

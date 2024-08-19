@@ -54,13 +54,15 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  * Currently only used for the node dialogue, backwards compatible loading is ensured by the node model. If this is ever
@@ -74,6 +76,16 @@ public final class TransposeTableNodeSettings implements DefaultNodeSettings {
 
     private static final String CHUNKING_MODE_KEY = "guess_or_fixed";
 
+    interface ChunkingModeRef extends Reference<ChunkingMode> {
+    }
+
+    static final class IsSpecifySize implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(ChunkingModeRef.class).isOneOf(ChunkingMode.SPECIFY_SIZE);
+        }
+    }
+
     @Persist(customPersistor = ChunkingModePersistor.class)
     @Widget(title = "Chunk size configuration",
         description = "Select how the node should handle chunking while processing the input table:<ul>"
@@ -82,7 +94,7 @@ public final class TransposeTableNodeSettings implements DefaultNodeSettings {
             + "<li><b>Manual:</b> Manually specify the number of columns read "
             + "during one iteration over the table. Larger chunk sizes lead to more "
             + "memory consumption, but yield faster execution time.</li></ul>")
-    @Signal(condition = IsSpecifySize.class)
+    @ValueReference(ChunkingModeRef.class)
     @ValueSwitchWidget
     ChunkingMode m_chunkingMode = ChunkingMode.GUESS_SIZE;
 
@@ -90,7 +102,7 @@ public final class TransposeTableNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Columns per chunk",
         description = "The number of columns read during one iteration over the table. "
             + "Increasing this value yields faster execution time, but also increases memory consumption.")
-    @Effect(type = EffectType.SHOW, signals = IsSpecifySize.class)
+    @Effect(type = EffectType.SHOW, predicate = IsSpecifySize.class)
     int m_chunkSize;
 
     enum ChunkingMode {
@@ -99,14 +111,6 @@ public final class TransposeTableNodeSettings implements DefaultNodeSettings {
 
             @Label("Manual")
             SPECIFY_SIZE;
-    }
-
-    static class IsSpecifySize extends OneOfEnumCondition<ChunkingMode> {
-        @Override
-        public ChunkingMode[] oneOf() {
-            return new ChunkingMode[]{ ChunkingMode.SPECIFY_SIZE };
-        }
-
     }
 
     private static final class ChunkingModePersistor implements FieldNodeSettingsPersistor<ChunkingMode> {

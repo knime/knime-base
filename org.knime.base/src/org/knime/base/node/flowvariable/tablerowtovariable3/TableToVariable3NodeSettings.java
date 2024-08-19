@@ -62,16 +62,18 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  * Settings class to generate the node dialog.
@@ -125,12 +127,17 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
     @Layout(OutputAsVariablesSection.class)
     ColumnFilter m_valueColumns = new ColumnFilter();
 
-    static class UsesDefaultMissingValuesPolicy extends OneOfEnumCondition<MissingValuePolicy> {
+    static class MissingValuePolicyRef implements Reference<MissingValuePolicy> {
+
+    }
+
+    static class UsesDefaultMissingValuesPolicy implements PredicateProvider {
 
         @Override
-        public MissingValuePolicy[] oneOf() {
-            return new MissingValuePolicy[]{MissingValuePolicy.DEFAULT};
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(MissingValuePolicyRef.class).isOneOf(MissingValuePolicy.DEFAULT);
         }
+
     }
 
     @Persist(configKey = CFG_KEY_ON_MISSING, settingsModel = SettingsModelString.class)
@@ -154,7 +161,7 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
             </ul>
             """)
     @Layout(MissingValuesSection.class)
-    @Signal(condition=UsesDefaultMissingValuesPolicy.class)
+    @ValueReference(MissingValuePolicyRef.class)
     @ValueSwitchWidget
     MissingValuePolicy m_onMissing = MissingValuePolicy.OMIT;
 
@@ -164,7 +171,7 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
             or a missing value in the first row of the input table.
             """)
     @Layout(MissingValuesSection.class)
-    @Effect(signals= {UsesDefaultMissingValuesPolicy.class}, type = EffectType.SHOW)
+    @Effect(predicate = UsesDefaultMissingValuesPolicy.class, type = EffectType.SHOW)
     String m_defaultValueString = "missing";
 
     // used to be string, keeping it like that for the sake of backwards compatibility
@@ -174,7 +181,7 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
             or a missing value in the first row of the input table.
             """)
     @Layout(MissingValuesSection.class)
-    @Effect(signals= {UsesDefaultMissingValuesPolicy.class}, type = EffectType.SHOW)
+    @Effect(predicate = UsesDefaultMissingValuesPolicy.class, type = EffectType.SHOW)
     @ValueSwitchWidget
     BooleanStringBridge m_defaultValueBoolean = BooleanStringBridge.FALSE;
 
@@ -184,7 +191,7 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
             or a missing value in the first row of the input table.
             """)
     @Layout(MissingValuesSection.class)
-    @Effect(signals= {UsesDefaultMissingValuesPolicy.class}, type = EffectType.SHOW)
+    @Effect(predicate = UsesDefaultMissingValuesPolicy.class, type = EffectType.SHOW)
     int m_defaultValueInteger;
 
     @Persist(configKey = CFG_KEY_DEFAULT_VALUE_LONG)
@@ -193,7 +200,7 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
             or a missing value in the first row of the input table.
             """)
     @Layout(MissingValuesSection.class)
-    @Effect(signals= {UsesDefaultMissingValuesPolicy.class}, type = EffectType.SHOW)
+    @Effect(predicate = UsesDefaultMissingValuesPolicy.class, type = EffectType.SHOW)
     long m_defaultValueLong;
 
     @Persist(configKey = CFG_KEY_DEFAULT_VALUE_DOUBLE)
@@ -202,7 +209,7 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
             or a missing value in the first row of the input table.
             """)
     @Layout(MissingValuesSection.class)
-    @Effect(signals= {UsesDefaultMissingValuesPolicy.class}, type = EffectType.SHOW)
+    @Effect(predicate = UsesDefaultMissingValuesPolicy.class, type = EffectType.SHOW)
     double m_defaultValueDouble;
 
     /**

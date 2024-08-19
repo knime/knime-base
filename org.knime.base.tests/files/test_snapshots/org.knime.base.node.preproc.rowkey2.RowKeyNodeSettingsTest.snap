@@ -125,11 +125,11 @@
           "format" : "valueSwitch"
         },
         "rule" : {
-          "effect" : "HIDE",
+          "effect" : "SHOW",
           "condition" : {
             "scope" : "#/properties/model/properties/replaceRowKey",
             "schema" : {
-              "const" : false
+              "const" : true
             }
           }
         }
@@ -252,11 +252,11 @@
           "isAdvanced" : true
         },
         "rule" : {
-          "effect" : "HIDE",
+          "effect" : "SHOW",
           "condition" : {
             "scope" : "#/properties/model/properties/replaceRowKey",
             "schema" : {
-              "const" : false
+              "const" : true
             }
           }
         }

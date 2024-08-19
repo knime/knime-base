@@ -63,18 +63,19 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.And;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.TrueCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.BooleanReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  * {@link DefaultNodeSettings} implementation for the Duplicate Row Filter to auto-generate a Web-UI based dialog. Note
@@ -104,6 +105,9 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
     interface DuplicateHandlingSection {
     }
 
+    interface DuplicateRowHandlingRef extends Reference<DuplicateRowHandling> {
+    }
+
     @Persist(customPersistor = DuplicateRowHandlingPersistor.class)
     @Widget(title = "Duplicate rows", description = "Choose how duplicate rows should be handled." //
         + "<ul>" //
@@ -111,9 +115,37 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
         + "<li><b>Keep duplicate rows:</b> Appends columns with additional information to the input table.</li>" //
         + "</ul")
     @RadioButtonsWidget
-    @Signal(condition = DuplicateRowHandling.IsKeep.class)
+    @ValueReference(DuplicateRowHandlingRef.class)
     @Layout(DuplicateHandlingSection.class)
     DuplicateRowHandling m_duplicateHandling = DuplicateRowHandling.REMOVE;
+
+    static final class IsKeep implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getPredicate(DuplicateRowHandling.isKeep(DuplicateRowHandlingRef.class));
+        }
+    }
+
+    static final class AddUniqueLabel implements BooleanReference {
+    }
+
+    static final class AddChosenRowIdsColumn implements BooleanReference {
+    }
+
+    static final class KeepDuplicatesAndAddUniqueLabel implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getPredicate(IsKeep.class).and(i.getPredicate(AddUniqueLabel.class));
+
+        }
+    }
+
+    static final class KeepDuplicatesAndAddChosenRowIdsColumn implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getPredicate(IsKeep.class).and(i.getPredicate(AddChosenRowIdsColumn.class));
+        }
+    }
 
     @Persist(configKey = DuplicateRowFilterSettings.ADD_ROW_DUPLICATE_FLAG_KEY)
     @Widget(title = "Add column showing the row status ('unique', 'chosen', 'duplicate') to all rows",
@@ -123,17 +155,16 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
             + "<li><i>chosen:</i> This row was chosen from a set of duplicate rows.</li>" //
             + "<li><i>duplicate:</i> This row is a duplicate and represented by another row.</li>" //
             + "</ul")
-    @Effect(signals = DuplicateRowHandling.IsKeep.class, type = EffectType.SHOW)
-    @Signal(id = IsAddUniqueStatusColumn.class, condition = TrueCondition.class)
+    @Effect(predicate = IsKeep.class, type = EffectType.SHOW)
     @Layout(DuplicateHandlingSection.class)
+    @ValueReference(AddUniqueLabel.class)
     boolean m_addUniqueLabel = true;
 
     @Persist(configKey = DuplicateRowFilterSettings.UNIQUE_FLAG_COLUMN_NAME_KEY, optional = true)
     @Widget(title = "Column name of row status",
         description = "Choose the column name to which the row status "
             + "('unique', 'chosen', 'duplicate') should be outputted.")
-    @Effect(signals = { DuplicateRowHandling.IsKeep.class, IsAddUniqueStatusColumn.class}, operation = And.class,
-        type = EffectType.SHOW)
+    @Effect(predicate = KeepDuplicatesAndAddUniqueLabel.class, type = EffectType.SHOW)
     @Layout(DuplicateHandlingSection.class)
     String m_uniqueStatusColumnName = "Duplicate Status";
 
@@ -141,19 +172,28 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
     @Widget(title = "Add column identifying the RowID of the chosen row for each duplicate row",
         description = "Appends a column with the RowID of the chosen row for duplicate rows. "
             + "Unique and chosen rows will not have a RowID assigned. ")
-    @Effect(signals = DuplicateRowHandling.IsKeep.class, type = EffectType.SHOW)
-    @Signal(id = IsAddChosenRowIdsColumn.class, condition = TrueCondition.class)
+    @Effect(predicate = IsKeep.class, type = EffectType.SHOW)
     @Layout(DuplicateHandlingSection.class)
+    @ValueReference(AddChosenRowIdsColumn.class)
     boolean m_addRowIdLabel;
 
     @Persist(configKey = DuplicateRowFilterSettings.ROW_ID_FLAG_COLUMN_NAME_KEY, optional = true)
     @Widget(title = "Column name of chosen RowIDs",
         description = "Choose the column name to which the RowID "
             + "of the chosen row for each duplicate row should be outputted.")
-    @Effect(signals = { DuplicateRowHandling.IsKeep.class, IsAddChosenRowIdsColumn.class }, operation = And.class,
-        type = EffectType.SHOW)
+    @Effect(predicate = KeepDuplicatesAndAddChosenRowIdsColumn.class, type = EffectType.SHOW)
     @Layout(DuplicateHandlingSection.class)
     String m_chosenRowIdsColumnName = "Duplicate Chosen";
+
+    interface RowSelectionRef extends Reference<RowSelection> {
+    }
+
+    static final class IsFirstOrLast implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getPredicate(RowSelection.isFirstOrLast(RowSelectionRef.class));
+        }
+    }
 
     @Persist(configKey = DuplicateRowFilterSettings.RowSelectionType.ROW_SELECTION_KEY)
     @Widget(title = "Row chosen in case of duplicate",
@@ -169,14 +209,14 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
             + /* */ "Missing values are sorted before the minimum value.</li>" //
             + "</ul>")
     @RadioButtonsWidget
-    @Signal(condition = RowSelection.IsFirstOrLast.class)
+    @ValueReference(RowSelectionRef.class)
     @Layout(DuplicateHandlingSection.class)
     RowSelection m_rowSelectionType = RowSelection.FIRST;
 
     @Persist(configKey = DuplicateRowFilterSettings.REFERENCE_COL_KEY)
     @Widget(title = "Column", description = "")
     @ChoicesWidget(choices = AllColumns.class)
-    @Effect(signals = RowSelection.IsFirstOrLast.class, type = EffectType.HIDE)
+    @Effect(predicate = IsFirstOrLast.class, type = EffectType.HIDE)
     @Layout(DuplicateHandlingSection.class)
     String m_selectedColumn;
 
@@ -229,11 +269,8 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
             @Label("Keep duplicate rows")
             KEEP;
 
-        static class IsKeep extends OneOfEnumCondition<DuplicateRowHandling> {
-            @Override
-            public DuplicateRowHandling[] oneOf() {
-                return new DuplicateRowHandling[]{KEEP};
-            }
+        static PredicateProvider isKeep(final Class<? extends Reference<DuplicateRowHandling>> reference) {
+            return i -> i.getEnum(reference).isOneOf(KEEP);
         }
     }
 
@@ -259,17 +296,10 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
             @Label("Maximum of")
             MAXIMUM;
 
-        static class IsFirstOrLast extends OneOfEnumCondition<RowSelection> {
-
-            /**
-             * {@inheritDoc}
-             */
-            @Override
-            public RowSelection[] oneOf() {
-                return new RowSelection[]{FIRST, LAST};
-            }
-
+        static PredicateProvider isFirstOrLast(final Class<? extends Reference<RowSelection>> reference) {
+            return i -> i.getEnum(reference).isOneOf(FIRST, LAST);
         }
+
     }
 
     /** Custom persistor for the duplicate row handling: true for REMOVE, false for KEEP */
@@ -299,7 +329,6 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
 
     /** Provide all columns as choices */
     static final class AllColumns implements ColumnChoicesProvider {
-
         @Override
         public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0).map(DataTableSpec::stream)//
@@ -307,5 +336,4 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
                 .toArray(DataColumnSpec[]::new);
         }
     }
-
 }

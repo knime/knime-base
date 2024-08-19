@@ -55,7 +55,6 @@ import org.knime.base.node.preproc.sorter.SorterNodeSettings.SortingCriterionSet
 import org.knime.base.node.preproc.sorter.dialog.DynamicSorterPanel;
 import org.knime.base.node.util.SortKeyItem;
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -69,11 +68,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPe
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultFieldNodeSettingsPersistorFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.IsColumnOfTypeCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
@@ -81,12 +76,18 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.AllColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
- *
  * @author Paul Bärnreuther
  * @since 5.3
  */
+@SuppressWarnings("restriction")
 final class SorterNodeSettings implements DefaultNodeSettings {
 
     SorterNodeSettings() {
@@ -103,7 +104,6 @@ final class SorterNodeSettings implements DefaultNodeSettings {
             m_column = column;
             m_sortingOrder = sortingOrder;
             m_stringComparison = stringComparison;
-
         }
 
         SortingCriterionSettings() {
@@ -120,13 +120,14 @@ final class SorterNodeSettings implements DefaultNodeSettings {
             m_column = colSpec == null ? SpecialColumns.ROWID.toColumnSelection() : new ColumnSelection(colSpec);
         }
 
-        static final class IsStringColumnCondition extends IsColumnOfTypeCondition {
+        interface ColumnRef extends Reference<ColumnSelection> {
+        }
 
+        static final class IsStringColumn implements PredicateProvider {
             @Override
-            public Class<? extends DataValue> getDataValueClass() {
-                return StringValue.class;
+            public Predicate init(final PredicateInitializer i) {
+                return i.getColumnSelection(ColumnRef.class).hasColumnType(StringValue.class);
             }
-
         }
 
         @Widget(title = "Column",
@@ -135,7 +136,7 @@ final class SorterNodeSettings implements DefaultNodeSettings {
                 + "The following criteria are only considered, if the comparison by all previous "
                 + "criteria results in a tie.")
         @ChoicesWidget(choices = AllColumnChoicesProvider.class, showRowKeysColumn = true)
-        @Signal(condition = IsStringColumnCondition.class)
+        @ValueReference(ColumnRef.class)
         ColumnSelection m_column;
 
         enum SortingOrder {
@@ -168,7 +169,7 @@ final class SorterNodeSettings implements DefaultNodeSettings {
 
         @Widget(title = "String comparison", description = "Specifies which type of sorting to apply to the strings:",
             advanced = true)
-        @Effect(signals = IsStringColumnCondition.class, type = EffectType.SHOW)
+        @Effect(predicate = IsStringColumn.class, type = EffectType.SHOW)
         @ValueSwitchWidget
         StringComparison m_stringComparison = StringComparison.NATURAL;
 
@@ -254,7 +255,6 @@ final class SorterNodeSettings implements DefaultNodeSettings {
                 .forDeprecatedConfigPath(LEGACY_SORTORDER_KEY) //
                 .forNewConfigPath(getConfigKey()).build()};
         }
-
     }
 
     @Section(title = "Sorting")
@@ -287,5 +287,4 @@ final class SorterNodeSettings implements DefaultNodeSettings {
             + "In case the input table is large and memory is scarce it is recommended not to check this option.")
     @Layout(Options.class)
     boolean m_sortInMemory;
-
 }

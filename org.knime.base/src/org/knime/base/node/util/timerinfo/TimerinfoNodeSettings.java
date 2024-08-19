@@ -51,13 +51,15 @@ package org.knime.base.node.util.timerinfo;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  * Node settings for the 'Timer Info' node.
@@ -76,10 +78,13 @@ public class TimerinfoNodeSettings implements DefaultNodeSettings {
     @Persist(configKey = "MaxDepth")
     int m_maxDepth = 2;
 
-    static class ComponentsOnlyPolicy extends OneOfEnumCondition<ComponentResolutionPolicy> {
+    interface ComponentResolutionPolicyRef extends Reference<ComponentResolutionPolicy> {
+    }
+
+    static final class ComponentsOnlyPolicy implements PredicateProvider {
         @Override
-        public ComponentResolutionPolicy[] oneOf() {
-            return new ComponentResolutionPolicy[]{ComponentResolutionPolicy.COMPONENTS};
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(ComponentResolutionPolicyRef.class).isOneOf(ComponentResolutionPolicy.COMPONENTS);
         }
     }
 
@@ -91,7 +96,7 @@ public class TimerinfoNodeSettings implements DefaultNodeSettings {
                 <li><b>Components and nested nodes</b> : Lists both</li>
             </ul>
             """)
-    @Signal(condition=ComponentsOnlyPolicy.class)
+    @ValueReference(ComponentResolutionPolicyRef.class)
     @ValueSwitchWidget
     @Persist(optional = true, defaultProvider = LegacyBehavior.class)
     // new instances of the node handle components similar to metanodes (but omitting component in/out "special" nodes)
@@ -108,11 +113,10 @@ public class TimerinfoNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Include component input and output nodes", advanced = true, description = """
             Includes the component input and output nodes in the output table.
             """)
-    @Effect(signals = ComponentsOnlyPolicy.class, type = EffectType.DISABLE)
+    @Effect(predicate = ComponentsOnlyPolicy.class, type = EffectType.DISABLE)
     @Persist(optional = true)
     // default is `true` to make it obvious that there are special nodes where time might be spent
     // this default value does not matter for old settings, since the components were opaque there
     // and no input/output nodes are encountered
     boolean m_includeComponentIO = true;
-
 }

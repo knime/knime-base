@@ -61,10 +61,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
@@ -72,6 +68,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  * Node Settings for the Value Lookup Node
@@ -108,15 +110,6 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
             /** Match to the queried number or, if not available, the next higher number */
             @Label("Match next larger")
             EQUALORLARGER;
-
-        static class IsNotEqual extends OneOfEnumCondition<MatchBehaviour> {
-
-            @Override
-            public MatchBehaviour[] oneOf() {
-                return new MatchBehaviour[]{EQUALORSMALLER, EQUALORLARGER};
-            }
-
-        }
     }
 
     /** In what direction to search (determines which match is selected, can speed up things) */
@@ -147,13 +140,6 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
             /** Remove the lookup column. */
             @Label("Remove")
             REMOVE;
-
-        private static class ShowLookupColumnReplacement extends OneOfEnumCondition<LookupColumnOutput> {
-            @Override
-            public LookupColumnOutput[] oneOf() {
-                return new LookupColumnOutput[]{LookupColumnOutput.REPLACE};
-            }
-        }
 
         private static final class LookupColumnOutputPersistor
             implements FieldNodeSettingsPersistor<LookupColumnOutput> {
@@ -247,6 +233,17 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     @Layout(MatchingSection.class)
     SearchDirection m_searchDirection = SearchDirection.FORWARD;
 
+    interface MatchBehaviourRef extends Reference<MatchBehaviour> {
+    }
+
+    static final class MatchBehaviourIsNotEqual implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(MatchBehaviourRef.class).isOneOf(MatchBehaviour.EQUALORSMALLER,
+                MatchBehaviour.EQUALORLARGER);
+        }
+    }
+
     /** The matching behaviour (only exact, exact or next lower, exact or next higher) */
     @Widget(title = "If no row matches", //
         description = "Defines what happens when a lookup key is not present in the dictionary: "
@@ -255,7 +252,7 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
             + "dictionary is matched, based on the value of the lookup key. "
             + "If no such element can be found, a missing value is inserted.")
     @RadioButtonsWidget(horizontal = true)
-    @Signal(condition = MatchBehaviour.IsNotEqual.class)
+    @ValueReference(MatchBehaviourRef.class)
     @Layout(MatchingSection.class)
     MatchBehaviour m_matchBehaviour = MatchBehaviour.EQUAL;
 
@@ -267,7 +264,7 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
             + "Wildcard and Regex matching match a lookup string if a pattern in the dictionary matches it.",
         advanced = true)
     @ValueSwitchWidget
-    @Effect(signals = MatchBehaviour.IsNotEqual.class, type = EffectType.DISABLE)
+    @Effect(predicate = MatchBehaviourIsNotEqual.class, type = EffectType.DISABLE)
     @Layout(MatchingSection.class)
     StringMatching m_stringMatchBehaviour = StringMatching.FULLSTRING;
 
@@ -276,7 +273,7 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
         description = "When enabled, the string matching will be case-sensitive, otherwise case-insensitive.",
         advanced = true)
     @Layout(MatchingSection.class)
-    @Effect(signals = MatchBehaviour.IsNotEqual.class, type = EffectType.DISABLE)
+    @Effect(predicate = MatchBehaviourIsNotEqual.class, type = EffectType.DISABLE)
     boolean m_caseSensitive = true;
 
     // ---- Output options
@@ -284,6 +281,16 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     @Section(title = "Output")
     @After(MatchingSection.class)
     interface OutputSection {
+    }
+
+    interface LookupColumnOutputRef extends Reference<LookupColumnOutput> {
+    }
+
+    static final class ShowLookupColumnReplacement implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(LookupColumnOutputRef.class).isOneOf(LookupColumnOutput.REPLACE);
+        }
     }
 
     /** Whether to keep, replace, or delete the lookup column in the output table */
@@ -297,7 +304,7 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
                 If "Delete" is selected, the lookup column is removed entirely from the output table.
                 """)
     @ValueSwitchWidget
-    @Signal(condition = LookupColumnOutput.ShowLookupColumnReplacement.class)
+    @ValueReference(LookupColumnOutputRef.class)
     @Persist(customPersistor = LookupColumnOutput.LookupColumnOutputPersistor.class)
     @Layout(OutputSection.class)
     LookupColumnOutput m_lookupColumnOutput = LookupColumnOutput.RETAIN;
@@ -313,7 +320,7 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
                 the new values for the lookup column in the data table.
                 """)
     @ChoicesWidget(choices = DictionaryTableChoices.class)
-    @Effect(type = EffectType.SHOW, signals = LookupColumnOutput.ShowLookupColumnReplacement.class)
+    @Effect(type = EffectType.SHOW, predicate = ShowLookupColumnReplacement.class)
     @Layout(OutputSection.class)
     @Persist(optional = true)
     String m_lookupReplacementCol;
@@ -330,7 +337,7 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
                 If "Insert missing" is selected, a missing value is used as content for the cell in the lookup column.
             """)
     @ValueSwitchWidget
-    @Effect(type = EffectType.SHOW, signals = LookupColumnOutput.ShowLookupColumnReplacement.class)
+    @Effect(type = EffectType.SHOW, predicate = ShowLookupColumnReplacement.class)
     @Layout(OutputSection.class)
     @Persist(optional = true)
     LookupColumnNoMatchReplacement m_columnNoMatchReplacement = LookupColumnNoMatchReplacement.RETAIN;
@@ -365,5 +372,4 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     ValueLookupNodeSettings(final DefaultNodeSettingsContext ctx) {
         m_dictValueCols = ColumnFilter.createDefault(DictionaryTableChoices.class, ctx);
     }
-
 }

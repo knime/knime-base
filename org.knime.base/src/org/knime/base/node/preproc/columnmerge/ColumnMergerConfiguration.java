@@ -51,8 +51,10 @@ import org.knime.core.data.StringValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 
 /**
  * Configuration to column merger node.
@@ -93,16 +95,14 @@ final class ColumnMergerConfiguration {
             @Label("Append as new column")
             AppendAsNewColumn;
 
-        static class IsAppendAsNewColumn extends OneOfEnumCondition<OutputPlacement> {
+        interface Ref extends Reference<OutputPlacement> {
+        }
 
-            /**
-             * {@inheritDoc}
-             */
+        static final class IsAppendAsNewColumn implements PredicateProvider {
             @Override
-            public OutputPlacement[] oneOf() {
-                return new OutputPlacement[]{AppendAsNewColumn};
+            public Predicate init(final PredicateInitializer i) {
+                return i.getEnum(Ref.class).isOneOf(OutputPlacement.AppendAsNewColumn);
             }
-
         }
     }
 

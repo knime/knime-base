@@ -67,10 +67,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.HasMultipleItemsCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
@@ -83,6 +79,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
@@ -117,7 +117,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                 criteria matches (union of matches)</li>
             </ul>
             """)
-    @Effect(signals = HasMultipleItemsCondition.class, type = EffectType.SHOW)
+    @Effect(predicate = HasMultipleFilterConditions.class, type = EffectType.SHOW)
     @ValueSwitchWidget
     @Layout(DialogSections.Filter.AllAny.class)
     Criteria m_matchCriteria = Criteria.AND;
@@ -323,10 +323,20 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
         }
     }
 
+    interface PredicatesRef extends Reference<FilterCriterion[]> {
+    }
+
+    static final class HasMultipleFilterConditions implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getArray(PredicatesRef.class).hasMultipleItems();
+        }
+    }
+
     @Widget(title = "Filter criteria", description = "The list of criteria that should be filtered on.")
     @ArrayWidget(elementTitle = "Criterion", showSortButtons = true, addButtonText = "Add criterion")
     @Layout(DialogSections.Filter.Conditions.class)
-    @Signal(condition = HasMultipleItemsCondition.class)
+    @ValueReference(PredicatesRef.class)
     FilterCriterion[] m_predicates;
 
     @Widget(title = "Column domains", description = """

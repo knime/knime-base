@@ -50,10 +50,6 @@ package org.knime.base.node.preproc.normalize3;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
@@ -61,6 +57,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.DoubleColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
@@ -74,30 +76,33 @@ final class NormalizerNodeSettings implements DefaultNodeSettings {
     @ChoicesWidget(choices = DoubleColumnChoicesProvider.class)
     ColumnFilter m_dataColumnFilterConfig = new ColumnFilter().withIncludeUnknownColumns();
 
+    interface NormalizerModeRef extends Reference<NormalizerMode> {
+    }
+
+    static final class NormalizerByMinMax implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(NormalizerModeRef.class).isOneOf(NormalizerMode.MINMAX);
+        }
+    }
+
     @Persist(configKey = "mode")
     @ValueSwitchWidget
     @Widget(title = "Normalization method", description = "The normalization method to use.")
-    @Signal(condition = MinMaxCondition.class)
+    @ValueReference(NormalizerModeRef.class)
     NormalizerMode m_mode = NormalizerMode.MINMAX;
 
     @Persist(configKey = "new-min")
-    @Effect(signals = {MinMaxCondition.class}, type = EffectType.SHOW)
+    @Effect(predicate = NormalizerByMinMax.class, type = EffectType.SHOW)
     @Widget(title = "Minimum",
         description = "Specifies the new minimum for the normalized columns. Only active for min-max normalization.")
     double m_min = 0;//NOSONAR make it explicit
 
     @Persist(configKey = "new-max")
-    @Effect(signals = {MinMaxCondition.class}, type = EffectType.SHOW)
+    @Effect(predicate = NormalizerByMinMax.class, type = EffectType.SHOW)
     @Widget(title = "Maximum",
         description = "Specifies the new maximum for the normalized columns. Only active for min-max normalization.")
     double m_max = 1;
-
-    static final class MinMaxCondition extends OneOfEnumCondition<NormalizerMode> {
-        @Override
-        public NormalizerMode[] oneOf() {
-            return new NormalizerMode[]{NormalizerMode.MINMAX};
-        }
-    }
 
     /**
      * Normalization Mode.

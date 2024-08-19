@@ -58,17 +58,19 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.TrueCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.BooleanReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  * Node Settings for the String Replacer (Dictionary)
@@ -106,19 +108,19 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
 
     // Rules
 
+    interface PatternTypeRef extends Reference<PatternType> {
+    }
+
     /** Indicates that the "Wildcard" pattern type is selected */
-    interface IsWildcard {
-        class Condition extends OneOfEnumCondition<PatternType> {
-            @Override
-            public PatternType[] oneOf() {
-                return new PatternType[]{PatternType.WILDCARD};
-            }
+    static final class IsWildcard implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(PatternTypeRef.class).isOneOf(PatternType.WILDCARD);
         }
     }
 
     /** Indicates that the option "Append column" is enabled **/
     interface IsAppendColumns {}
-
 
     // Helper methods
 
@@ -161,7 +163,6 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
         interface Output {}
     }
 
-
     // Settings
 
     @Layout(DialogSections.ColumnSelection.class)
@@ -172,7 +173,7 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
     @Layout(DialogSections.FindAndReplace.class)
     @Widget(title = PatternType.OPTION_NAME, description = PatternType.OPTION_DESCRIPTION)
     @ValueSwitchWidget
-    @Signal(id = IsWildcard.class, condition = IsWildcard.Condition.class)
+    @ValueReference(PatternTypeRef.class)
     PatternType m_patternType = PatternType.DEFAULT;
 
     @Layout(DialogSections.FindAndReplace.class)
@@ -181,7 +182,7 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
             will match the literal character <tt>?</tt> instead of an arbitrary character. In order to match a
             backslash you need to escape the backslash, too (<tt>\\</tt>).
             """)
-    @Effect(signals = IsWildcard.class, type = EffectType.SHOW)
+    @Effect(predicate = IsWildcard.class, type = EffectType.SHOW)
     boolean m_enableEscaping;
 
     @Layout(DialogSections.FindAndReplace.class)
@@ -218,18 +219,21 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
     @ValueSwitchWidget
     MultipleMatchHandling m_multipleMatchHandling = MultipleMatchHandling.REPLACEFIRST;
 
+    static final class AppendColumns implements BooleanReference {
+    }
+
     @Layout(DialogSections.Output.class)
     @Widget(title = "Append new columns", description = """
             If enabled, the strings will not be replaced in-place but new columns are appended that contains the
             original string with the replacement applied.
             """)
-    @Signal(id = IsAppendColumns.class, condition = TrueCondition.class)
+    @ValueReference(AppendColumns.class)
     boolean m_appendColumns;
 
     @Layout(DialogSections.Output.class)
     @Widget(title = "Suffix for new columns",
         description = "The suffix that is appended to the newly created columns with strings")
-    @Effect(signals = IsAppendColumns.class, type = EffectType.SHOW)
+    @Effect(predicate = AppendColumns.class, type = EffectType.SHOW)
     String m_columnSuffix = "_replaced";
 
     /**
@@ -242,5 +246,4 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
     StringReplacerDictNodeSettings(final DefaultNodeSettingsContext ctx) {
         m_targetColumns = ColumnFilter.createDefault(TargetColumnChoices.class, ctx);
     }
-
 }

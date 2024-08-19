@@ -12,6 +12,7 @@
     <entry key="pattern" type="xstring" value="pattern"/>
     <entry key="isCaseInsensitive" type="xboolean" value="true"/>
     <entry key="requireWholeMatch" type="xboolean" value="true"/>
+    <entry key="noMatchBehaviour" type="xstring" value="INSERT_MISSING"/>
     <config key="isUnixLines_Internals">
         <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
         <entry key="EnabledStatus" type="xboolean" value="true"/>
@@ -46,12 +47,11 @@
     <config key="output">
         <entry key="mode" type="xstring" value="COLUMNS"/>
         <entry key="columnPrefixMode" type="xstring" value="CUSTOM"/>
-        <entry key="removeInputColumn" type="xboolean" value="false"/>
         <entry key="columnPrefix" type="xstring" value="split_"/>
         <entry key="singleOutputColumnMode" type="xstring" value="APPEND"/>
         <entry key="columnName" type="xstring" value="Split"/>
         <entry key="groupLabels" type="xstring" value="CAPTURE_GROUP_NAMES"/>
-        <entry key="noMatchBehaviour" type="xstring" value="INSERT_MISSING"/>
+        <entry key="removeInputColumn" type="xboolean" value="false"/>
     </config>
     <config key="isLiteral_Internals">
         <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>

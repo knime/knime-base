@@ -55,14 +55,15 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.And;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  * Currently only used for the node dialogue, backwards compatible loading is ensured by the node model. If this is ever
@@ -106,11 +107,15 @@ public final class AppendedRowsNodeSettings implements DefaultNodeSettings {
 
     private static final class RowIdStrategySelection implements WidgetGroup {
         enum RowIdStrategy {
-            @Label("Create new")
-            CREATE_NEW,
+                @Label("Create new")
+                CREATE_NEW,
 
-            @Label("Reuse existing")
-            REUSE_EXISTING;
+                @Label("Reuse existing")
+                REUSE_EXISTING;
+        }
+
+        interface RowIdStrategyRef extends Reference<RowIdStrategy> {
+
         }
 
         @Widget(title = "RowID handling", description = """
@@ -122,7 +127,7 @@ public final class AppendedRowsNodeSettings implements DefaultNodeSettings {
                 </ul>
                 """)
         @ValueSwitchWidget
-        @Signal(condition = IsReuseExistingRowIDs.class)
+        @ValueReference(RowIdStrategyRef.class)
         RowIdStrategy m_strategy = RowIdStrategy.CREATE_NEW;
 
         enum DuplicateRowIdResolution {
@@ -134,6 +139,25 @@ public final class AppendedRowsNodeSettings implements DefaultNodeSettings {
 
                 @Label("Fail")
                 FAIL;
+        }
+
+        interface DuplicateRowIdResolutionRef extends Reference<DuplicateRowIdResolution> {
+        }
+
+        static final class ReuseExisting implements PredicateProvider {
+            @Override
+            public Predicate init(final PredicateInitializer i) {
+                return i.getEnum(RowIdStrategyRef.class).isOneOf(RowIdStrategy.REUSE_EXISTING);
+            }
+        }
+
+        static final class ReusedExistingAndAppend implements PredicateProvider {
+            @Override
+            public Predicate init(final PredicateInitializer i) {
+                final var isAppend =
+                    i.getEnum(DuplicateRowIdResolutionRef.class).isOneOf(DuplicateRowIdResolution.APPEND);
+                return isAppend.and(i.getPredicate(ReuseExisting.class));
+            }
         }
 
         @Widget(title = "Duplicate RowID strategy", description = """
@@ -149,29 +173,15 @@ public final class AppendedRowsNodeSettings implements DefaultNodeSettings {
                 </ul>
                 """)
         @ValueSwitchWidget
-        @Effect(signals = IsReuseExistingRowIDs.class, type = EffectType.SHOW)
-        @Signal(condition = IsAppend.class)
+        @Effect(predicate = ReuseExisting.class, type = EffectType.SHOW)
+        @ValueReference(DuplicateRowIdResolutionRef.class)
         DuplicateRowIdResolution m_rowIdResolution = DuplicateRowIdResolution.APPEND;
-
 
         @Persist(configKey = AppendedRowsNodeModel.CFG_SUFFIX)
         @Widget(title = "Suffix", description = "The suffix to be appended to RowIDs.")
-        @Effect(signals = {IsAppend.class, IsReuseExistingRowIDs.class}, operation = And.class, type = EffectType.SHOW)
+        @Effect(predicate = ReusedExistingAndAppend.class, type = EffectType.SHOW)
         String m_suffix = "_dup";
 
-        private static final class IsReuseExistingRowIDs extends OneOfEnumCondition<RowIdStrategy> {
-            @Override
-            public RowIdStrategy[] oneOf() {
-                return new RowIdStrategy[]{RowIdStrategy.REUSE_EXISTING};
-            }
-        }
-
-        private static final class IsAppend extends OneOfEnumCondition<DuplicateRowIdResolution> {
-            @Override
-            public DuplicateRowIdResolution[] oneOf() {
-                return new DuplicateRowIdResolution[]{DuplicateRowIdResolution.APPEND};
-            }
-        }
     }
 
     private static final class RowIdResolutionPersistor implements FieldNodeSettingsPersistor<RowIdStrategySelection> {

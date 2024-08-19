@@ -62,10 +62,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
@@ -76,6 +72,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  * Node settings for the 'Number Rounder' node
@@ -116,12 +118,6 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
             return m_persistKey != null ? m_persistKey : name();
         }
 
-        static class IsInteger extends OneOfEnumCondition<NumberMode> {
-            @Override
-            public NumberMode[] oneOf() {
-                return new NumberMode[]{INTEGER};
-            }
-        }
     }
 
     static final class RoundingMethod implements WidgetGroup, PersistableSettings {
@@ -174,13 +170,6 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
                 HALF_TO_EVEN_DIGIT
         }
 
-        static final class IsOtherRoundingMethod extends OneOfEnumCondition<Standard> {
-            @Override
-            public Standard[] oneOf() {
-                return new Standard[]{Standard.OTHER};
-            }
-        }
-
         RoundingMethod() {
         }
 
@@ -189,16 +178,26 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
             m_advanced = advanced;
         }
 
+        interface StandardRef extends Reference<Standard> {
+        }
+
+        static final class IsOtherRoundingMethod implements PredicateProvider {
+            @Override
+            public Predicate init(final PredicateInitializer i) {
+                return i.getEnum(StandardRef.class).isOneOf(Standard.OTHER);
+            }
+        }
+
         @Widget(title = "Rounding method", description = """
                 Select if you want to use the standard rounding method or one of the other available rounding methods.
                 """)
         @ValueSwitchWidget
-        @Signal(condition = IsOtherRoundingMethod.class)
+        @ValueReference(StandardRef.class)
         Standard m_standard = Standard.HALF_AWAY_FROM_ZERO;
 
         @Widget(title = "Other rounding methods", description = "Select the advanced rounding method to apply.")
         @RadioButtonsWidget
-        @Effect(signals = IsOtherRoundingMethod.class, type = EffectType.SHOW)
+        @Effect(predicate = IsOtherRoundingMethod.class, type = EffectType.SHOW)
         Advanced m_advanced = Advanced.AWAY_FROM_ZERO;
     }
 
@@ -208,13 +207,6 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
 
             @Label(value = "Append with suffix", description = "Appends additional output columns")
             APPEND;
-
-        static class IsReplace extends OneOfEnumCondition<OutputColumn> {
-            @Override
-            public OutputColumn[] oneOf() {
-                return new OutputColumn[]{REPLACE};
-            }
-        }
     }
 
     enum OutputMode {
@@ -263,9 +255,19 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
     @Persist(configKey = "StringColNames", customPersistor = LegacyColumnFilterPersistor.class)
     ColumnFilter m_columnsToFormat;
 
+    interface NumberModeRef extends Reference<NumberMode> {
+    }
+
+    static final class NumberModeIsInteger implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(NumberModeRef.class).isOneOf(NumberMode.INTEGER);
+        }
+    }
+
     @Widget(title = "Rounding mode", description = "Select the rounding mode to apply.")
     @ValueSwitchWidget
-    @Signal(condition = NumberMode.IsInteger.class)
+    @ValueReference(NumberModeRef.class)
     @Persist(configKey = "NumberMode", customPersistor = NumberModePersistor.class)
     NumberMode m_numberMode = NumberMode.DECIMALS;
 
@@ -274,7 +276,7 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
             When rounding to <b>Significant digits</b>, this sets the number of significant digits to keep.
             """)
     @NumberInputWidget(min = 0, max = 350)
-    @Effect(signals = NumberMode.IsInteger.class, type = EffectType.HIDE)
+    @Effect(predicate = NumberModeIsInteger.class, type = EffectType.HIDE)
     @Persist(configKey = "PrecisionNumer")
     int m_precision = 3;
 
@@ -282,15 +284,25 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
     @Persist(configKey = "RoundingMode", customPersistor = RoundingMethodPersistor.class)
     RoundingMethod m_roundingMethod = new RoundingMethod();
 
+    interface OutputColumnRef extends Reference<OutputColumn> {
+    }
+
+    static final class OutputColumnIsReplace implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(OutputColumnRef.class).isOneOf(OutputColumn.REPLACE);
+        }
+    }
+
     @Widget(title = "Output columns", description = "Configure output column behavior.")
     @ValueSwitchWidget
-    @Signal(condition = OutputColumn.IsReplace.class)
+    @ValueReference(OutputColumnRef.class)
     @Persist(configKey = "AppendColumns", customPersistor = OutputColumnPersistor.class)
     OutputColumn m_outputColumn = OutputColumn.APPEND;
 
     @Widget(title = "Output column suffix", description = "Set the suffix to append to the new column names.")
     @TextInputWidget
-    @Effect(signals = OutputColumn.IsReplace.class, type = EffectType.HIDE)
+    @Effect(predicate = OutputColumnIsReplace.class, type = EffectType.HIDE)
     @Persist(configKey = "ColumnSuffix")
     String m_suffix = " (Rounded)";
 

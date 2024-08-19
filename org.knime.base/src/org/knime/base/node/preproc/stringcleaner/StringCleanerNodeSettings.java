@@ -55,12 +55,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.And;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.TrueCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
@@ -69,6 +63,13 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.BooleanReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  * Node Settings for the Value Lookup Node
@@ -115,27 +116,6 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
         @Section(title = "Output")
         @After(Manipulation.class)
         interface Output {
-        }
-    }
-
-    // Signals
-    interface Signals {
-        interface RemoveCustomCharacters {
-        }
-
-        interface RemoveAllWhitespace {
-        }
-
-        interface ChangeCasingIsCapitalize {
-        }
-
-        interface CapitalizeAfterIsCustom {
-        }
-
-        interface DoPad {
-        }
-
-        interface AppendColumnsWithSuffix {
         }
     }
 
@@ -229,12 +209,16 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
     @Layout(DialogLayout.Characters.class)
     String m_removeCustomCharactersString = "";
 
+    static final class RemoveAllWhitespace implements BooleanReference {
+
+    }
+
     @Widget(title = "Remove all whitespace", description = """
             If enabled, all whitespace is removed. \
             This includes normal space ( ), line breaks (\\r\\n), tabulators (\\t) and all other whitespace.
             """)
     @Layout(DialogLayout.Whitespace.class)
-    @Signal(id = Signals.RemoveAllWhitespace.class, condition = TrueCondition.class)
+    @ValueReference(RemoveAllWhitespace.class)
     boolean m_removeAllWhitespace = false;
 
     @Widget(title = "Remove leading whitespace", description = """
@@ -242,7 +226,7 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
             first non-whitespace character.
             """)
     @Layout(DialogLayout.Whitespace.class)
-    @Effect(signals = Signals.RemoveAllWhitespace.class, type = EffectType.HIDE)
+    @Effect(predicate = RemoveAllWhitespace.class, type = EffectType.HIDE)
     boolean m_removeLeadingWhitespace = true;
 
     @Widget(title = "Remove trailing whitespace", description = """
@@ -250,7 +234,7 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
             to the end of the string.
             """)
     @Layout(DialogLayout.Whitespace.class)
-    @Effect(signals = Signals.RemoveAllWhitespace.class, type = EffectType.HIDE)
+    @Effect(predicate = RemoveAllWhitespace.class, type = EffectType.HIDE)
     boolean m_removeTrailingWhitespace = true;
 
     @Widget(title = "Remove duplicate whitespace", description = """
@@ -258,7 +242,7 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
             standard space.
             """)
     @Layout(DialogLayout.Whitespace.class)
-    @Effect(signals = Signals.RemoveAllWhitespace.class, type = EffectType.HIDE)
+    @Effect(predicate = RemoveAllWhitespace.class, type = EffectType.HIDE)
     boolean m_removeDuplicateWhitespace = true;
 
     /**
@@ -297,7 +281,7 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
             """)
     @ValueSwitchWidget
     @Layout(DialogLayout.Whitespace.class)
-    @Effect(signals = Signals.RemoveAllWhitespace.class, type = EffectType.HIDE)
+    @Effect(predicate = RemoveAllWhitespace.class, type = EffectType.HIDE)
     ReplaceLinebreakWithOption m_replaceLinebreakStrategy = ReplaceLinebreakWithOption.KEEP;
 
     /**
@@ -328,7 +312,7 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
             """)
     @ValueSwitchWidget
     @Layout(DialogLayout.Whitespace.class)
-    @Effect(signals = Signals.RemoveAllWhitespace.class, type = EffectType.HIDE)
+    @Effect(predicate = RemoveAllWhitespace.class, type = EffectType.HIDE)
     ReplaceWhitespaceWithOption m_replaceSpecialWhitespaceStrategy =
         ReplaceWhitespaceWithOption.REPLACE_WITH_STANDARDSPACE;
 
@@ -343,11 +327,17 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
             LOWERCASE;
     }
 
-    static class IsCapitalizeCondition extends OneOfEnumCondition<ChangeCasingOption> {
+    class ChangeCasingOptionRef implements Reference<ChangeCasingOption> {
+
+    }
+
+    static final class ChangeCasingIsCapitalize implements PredicateProvider {
+
         @Override
-        public ChangeCasingOption[] oneOf() {
-            return new ChangeCasingOption[]{ChangeCasingOption.CAPITALIZE};
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(ChangeCasingOptionRef.class).isOneOf(ChangeCasingOption.CAPITALIZE);
         }
+
     }
 
     @Widget(title = "Change casing", description = """
@@ -362,7 +352,7 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
             """)
     @ValueSwitchWidget
     @Layout(DialogLayout.Manipulation.CapitalizeAndPad.class)
-    @Signal(id = Signals.ChangeCasingIsCapitalize.class, condition = IsCapitalizeCondition.class)
+    @ValueReference(ChangeCasingOptionRef.class)
     ChangeCasingOption m_changeCasing = ChangeCasingOption.NO;
 
     enum CapitalizeAfterOption {
@@ -374,11 +364,8 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
             CUSTOM
     }
 
-    static class IsCustomCondition extends OneOfEnumCondition<CapitalizeAfterOption> {
-        @Override
-        public CapitalizeAfterOption[] oneOf() {
-            return new CapitalizeAfterOption[]{CapitalizeAfterOption.CUSTOM};
-        }
+    class CapitalizeAfterOptionRef implements Reference<CapitalizeAfterOption> {
+
     }
 
     @Widget(title = "Capitalize after", description = """
@@ -392,9 +379,19 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
             """)
     @ValueSwitchWidget
     @Layout(DialogLayout.Manipulation.CapitalizeAndPad.class)
-    @Effect(signals = Signals.ChangeCasingIsCapitalize.class, type = EffectType.SHOW)
-    @Signal(id = Signals.CapitalizeAfterIsCustom.class, condition = IsCustomCondition.class)
+    @Effect(predicate = ChangeCasingIsCapitalize.class, type = EffectType.SHOW)
+    @ValueReference(CapitalizeAfterOptionRef.class)
     CapitalizeAfterOption m_changeCasingCapitalizeAfter = CapitalizeAfterOption.WHITESPACE;
+
+    static class CapitalizeAfterCustom implements PredicateProvider {
+
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getPredicate(ChangeCasingIsCapitalize.class)
+                .and(i.getEnum(CapitalizeAfterOptionRef.class).isOneOf(CapitalizeAfterOption.CUSTOM));
+        }
+
+    }
 
     @Widget(title = "Capitalize after characters", description = """
             Here, custom characters can be defined after which characters should be capitalized. \
@@ -402,15 +399,14 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
             """)
     @TextInputWidget(minLength = 1)
     @Layout(DialogLayout.Manipulation.CapitalizeAndPad.class)
-    @Effect(signals = {Signals.ChangeCasingIsCapitalize.class, Signals.CapitalizeAfterIsCustom.class},
-        operation = And.class, type = EffectType.SHOW)
+    @Effect(predicate = CapitalizeAfterCustom.class, type = EffectType.SHOW)
     String m_changeCasingCapitalizeAfterCharacters = "";
 
     @Widget(title = "Capitalize character at the start of the string", description = """
             If enabled, a letter at the start of the string is always capitalized.
             """)
     @Layout(DialogLayout.Manipulation.CapitalizeAndPad.class)
-    @Effect(signals = Signals.ChangeCasingIsCapitalize.class, type = EffectType.SHOW)
+    @Effect(predicate = ChangeCasingIsCapitalize.class, type = EffectType.SHOW)
     boolean m_changeCasingCapitalizeFirstCharacter = true;
 
     enum PadOption { //
@@ -422,11 +418,17 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
             END,
     }
 
-    static class IsPadCondition extends OneOfEnumCondition<PadOption> {
+    class PadOptionRef implements Reference<PadOption> {
+
+    }
+
+    static final class DoPad implements PredicateProvider {
+
         @Override
-        public PadOption[] oneOf() {
-            return new PadOption[]{PadOption.START, PadOption.END};
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(PadOptionRef.class).isOneOf(PadOption.START, PadOption.END);
         }
+
     }
 
     @Widget(title = "Pad", description = """
@@ -439,7 +441,7 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
             """)
     @ValueSwitchWidget
     @Layout(DialogLayout.Manipulation.CapitalizeAndPad.class)
-    @Signal(id = Signals.DoPad.class, condition = IsPadCondition.class)
+@ValueReference(PadOptionRef.class)
     PadOption m_pad = PadOption.NO;
 
     @Widget(title = "Minimum string length", description = """
@@ -448,7 +450,7 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
             """)
     @NumberInputWidget(min = 1)
     @Layout(DialogLayout.Manipulation.PadOptions.class)
-    @Effect(signals = Signals.DoPad.class, type = EffectType.SHOW)
+    @Effect(predicate = DoPad.class, type = EffectType.SHOW)
     int m_padMinimumStringLength = 1;
 
     @Widget(title = "Fill character", description = """
@@ -456,7 +458,7 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
             """)
     @TextInputWidget(minLength = 1, maxLength = 1)
     @Layout(DialogLayout.Manipulation.PadOptions.class)
-    @Effect(signals = Signals.DoPad.class, type = EffectType.SHOW)
+    @Effect(predicate = DoPad.class, type = EffectType.SHOW)
     String m_padFillCharacter = "_";
 
     enum OutputOption {
@@ -466,11 +468,19 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
             APPEND
     }
 
-    static class OutputIsAppendCondition extends OneOfEnumCondition<OutputOption> {
+
+    class OutputOptionRef implements Reference<OutputOption> {
+
+    }
+
+    static final class AppendColumnsWithSuffix implements PredicateProvider {
+
+
         @Override
-        public OutputOption[] oneOf() {
-            return new OutputOption[]{OutputOption.APPEND};
+        public Predicate init(final PredicateInitializer i) {
+               return i.getEnum(OutputOptionRef.class).isOneOf(OutputOption.APPEND);
         }
+
     }
 
     @Widget(title = "Output columns", description = """
@@ -478,7 +488,7 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
             """)
     @ValueSwitchWidget
     @Layout(DialogLayout.Output.class)
-    @Signal(id = Signals.AppendColumnsWithSuffix.class, condition = OutputIsAppendCondition.class)
+    @ValueReference(OutputOptionRef.class)
     OutputOption m_output = OutputOption.REPLACE;
 
     @Widget(title = "Output column suffix", description = """
@@ -486,7 +496,7 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
             """)
     @TextInputWidget(minLength = 1)
     @Layout(DialogLayout.Output.class)
-    @Effect(signals = Signals.AppendColumnsWithSuffix.class, type = EffectType.SHOW)
+    @Effect(predicate = AppendColumnsWithSuffix.class, type = EffectType.SHOW)
     String m_outputSuffix = " (Cleaned)";
 
     // Constructor

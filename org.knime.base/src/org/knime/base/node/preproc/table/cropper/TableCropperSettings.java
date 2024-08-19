@@ -54,16 +54,18 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  * Settings of the Range Filter node.
@@ -97,6 +99,16 @@ public final class TableCropperSettings implements DefaultNodeSettings {
     interface ColumnsSection {
     }
 
+    interface ColumnRangeModeRef extends Reference<ColumnRangeMode> {
+    }
+
+    static final class ColumnRangeModeIsByName implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(ColumnRangeModeRef.class).isOneOf(ColumnRangeMode.BY_NAME);
+        }
+    }
+
     @Widget(title = "Column range mode",
         description = "Specify the range of columns included in the output by defining the start and end column. "
             + "The options for specifiying the start and end columns are:" //
@@ -106,46 +118,44 @@ public final class TableCropperSettings implements DefaultNodeSettings {
             + "The first column has number 1.</li>"//
             + "</ul>")
     @ValueSwitchWidget
-    @Signal(condition = ColumnRangeMode.IsByName.class)
+    @ValueReference(ColumnRangeModeRef.class)
     @Layout(ColumnsSection.class)
     ColumnRangeMode m_columnRangeMode = ColumnRangeMode.BY_NAME;
 
-    // TODO: UIEXT-1007 migrate String to ColumnSelection
-
     @Widget(title = "Start column", description = "Select the first column to include.")
     @ChoicesWidget(choices = AllColumns.class)
-    @Effect(signals = ColumnRangeMode.IsByName.class, type = EffectType.SHOW)
+    @Effect(predicate = ColumnRangeModeIsByName.class, type = EffectType.SHOW)
     @Layout(ColumnsSection.class)
     String m_startColumnName;
 
     @Widget(title = "End column (inclusive)", description = "Select the last column to include.")
     @ChoicesWidget(choices = AllColumns.class)
-    @Effect(signals = ColumnRangeMode.IsByName.class, type = EffectType.SHOW)
+    @Effect(predicate = ColumnRangeModeIsByName.class, type = EffectType.SHOW)
     @Layout(ColumnsSection.class)
     String m_endColumnName;
 
     @Widget(title = "Start column number",
         description = "Select the first column to include (the first column of the table has number 1).")
     @NumberInputWidget(min = 1)
-    @Effect(signals = ColumnRangeMode.IsByName.class, type = EffectType.HIDE)
+    @Effect(predicate = ColumnRangeModeIsByName.class, type = EffectType.HIDE)
     @Layout(ColumnsSection.class)
     int m_startColumnNumber = 1;
 
     @Widget(title = "Start counting columns from the end of the table",
         description = "If selected, the start column will be counted from the end of the table.")
-    @Effect(signals = ColumnRangeMode.IsByName.class, type = EffectType.HIDE)
+    @Effect(predicate = ColumnRangeModeIsByName.class, type = EffectType.HIDE)
     @Layout(ColumnsSection.class)
     boolean m_startColumnCountFromEnd;
 
     @Widget(title = "End column number (inclusive)", description = "Select the last column to include.")
     @NumberInputWidget(min = 1)
-    @Effect(signals = ColumnRangeMode.IsByName.class, type = EffectType.HIDE)
+    @Effect(predicate = ColumnRangeModeIsByName.class, type = EffectType.HIDE)
     @Layout(ColumnsSection.class)
     int m_endColumnNumber = 1;
 
     @Widget(title = "Start counting columns from the end of the table",
         description = "If selected, the end column will be counted from the end of the table.")
-    @Effect(signals = ColumnRangeMode.IsByName.class, type = EffectType.HIDE)
+    @Effect(predicate = ColumnRangeModeIsByName.class, type = EffectType.HIDE)
     @Layout(ColumnsSection.class)
     boolean m_endColumnCountFromEnd;
 
@@ -191,13 +201,11 @@ public final class TableCropperSettings implements DefaultNodeSettings {
     boolean m_updateDomains;
 
     private static final class AllColumns implements ChoicesProvider {
-
         @Override
         public String[] choices(final DefaultNodeSettingsContext context) {
             var spec = context.getDataTableSpecs()[0];
             return spec != null ? spec.getColumnNames() : new String[0];
         }
-
     }
 
     enum ColumnRangeMode {
@@ -205,15 +213,5 @@ public final class TableCropperSettings implements DefaultNodeSettings {
             BY_NAME, //
             @Label("By number") //
             BY_NUMBER;
-
-        static class IsByName extends OneOfEnumCondition<ColumnRangeMode> {
-
-            @Override
-            public ColumnRangeMode[] oneOf() {
-                return new ColumnRangeMode[]{BY_NAME};
-            }
-
-        }
     }
-
 }

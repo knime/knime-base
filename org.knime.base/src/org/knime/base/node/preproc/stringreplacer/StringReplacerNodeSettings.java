@@ -62,15 +62,17 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPe
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultFieldNodeSettingsPersistorFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.TrueCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.BooleanReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  * The StringReplacerNodeSettings define the WebUI dialog of the StringReplacer Node. The serialization must go via the
@@ -81,22 +83,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  */
 @SuppressWarnings("restriction")
 public final class StringReplacerNodeSettings implements DefaultNodeSettings {
-
-    // Rules
-
-    /** Indicates that the "Wildcard" pattern type is selected */
-    interface IsWildcard {
-        class Condition extends OneOfEnumCondition<PatternType> {
-            @Override
-            public PatternType[] oneOf() {
-                return new PatternType[]{PatternType.WILDCARD};
-            }
-        }
-    }
-
-    /** Indicates that the option "Append column" is enabled **/
-    interface IsAppendColumn {}
-
 
     // Layout
 
@@ -111,7 +97,6 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
         interface Output {}
     }
 
-
     // Settings
 
     @Layout(DialogSections.ColumnSelection.class)
@@ -120,11 +105,22 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
     @ChoicesWidget(choices = StringColumnChoices.class)
     String m_colName;
 
+    interface PatternTypeRef extends Reference<PatternType> {
+    }
+
+    /** Indicates that the "Wildcard" pattern type is selected */
+    static final class IsWildcard implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(PatternTypeRef.class).isOneOf(PatternType.WILDCARD);
+        }
+    }
+
     @Layout(DialogSections.FindAndReplace.class)
     @Persist(customPersistor = PatternTypePersistor.class)
     @Widget(title = PatternType.OPTION_NAME, description = PatternType.OPTION_DESCRIPTION)
     @ValueSwitchWidget
-    @Signal(id = IsWildcard.class, condition = IsWildcard.Condition.class)
+    @ValueReference(PatternTypeRef.class)
     PatternType m_patternType = PatternType.DEFAULT;
 
     @Layout(DialogSections.FindAndReplace.class)
@@ -134,7 +130,7 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
             will match the literal character <tt>?</tt> instead of an arbitrary character. In order to match a
             backslash you need to escape the backslash, too (<tt>\\</tt>).
             """)
-    @Effect(signals = IsWildcard.class, type = EffectType.SHOW)
+    @Effect(predicate = IsWildcard.class, type = EffectType.SHOW)
     boolean m_enableEscaping;
 
     @Layout(DialogSections.FindAndReplace.class)
@@ -166,21 +162,23 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
     @ValueSwitchWidget
     ReplacementStrategy m_replacementStrategy = ReplacementStrategy.DEFAULT;
 
+    static final class CreateNewCol implements BooleanReference {
+    }
+
     @Layout(DialogSections.Output.class)
     @Persist(configKey = StringReplacerSettings.CFG_CREATE_NEW_COL)
     @Widget(title = "Append new column", description = """
             If enabled, the strings will not be replaced in-place but a new column is appended that contains the
             original string with the replacement applied.
             """)
-    @Signal(id = IsAppendColumn.class, condition = TrueCondition.class)
+    @ValueReference(CreateNewCol.class)
     boolean m_createNewCol;
 
     @Layout(DialogSections.Output.class)
     @Persist(configKey = StringReplacerSettings.CFG_NEW_COL_NAME)
     @Widget(title = "New column name", description = "The name of the created column with replaced strings")
-    @Effect(signals = IsAppendColumn.class, type = EffectType.SHOW)
+    @Effect(predicate = CreateNewCol.class, type = EffectType.SHOW)
     String m_newColName = "ReplacedColumn";
-
 
     // Persistors
 

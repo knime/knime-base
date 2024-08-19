@@ -62,18 +62,18 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPe
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.EnumFieldPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.And;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.FalseCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.TrueCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.BooleanReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  * Settings for {@link RowKeyNodeModel2}.
@@ -86,27 +86,41 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
 
     private static final String LEGACY_NEW_ROW_KEY_COLUMN_CONFIG_KEY = "newRowKeyColumnName";
 
+    static final class ReplaceRowKey implements BooleanReference {
 
-    @Widget(title="Replace RowIDs", description = "If selected the RowIDs will be replaced")
+    }
+
+    @Widget(title = "Replace RowIDs", description = "If selected the RowIDs will be replaced")
     @Layout(ReplaceRowIdsSection.class)
-    @Signal(id = ReplaceIsFalse.class, condition = FalseCondition.class)
-    @Signal(id = ReplaceIsTrue.class, condition = TrueCondition.class)
+    @ValueReference(ReplaceRowKey.class)
     boolean m_replaceRowKey = true;
+
+    private static final class ReplacementModeRef implements Reference<ReplacementMode> {
+
+    }
 
     @Persist(customPersistor = ReplacementModePersistor.class)
     @ValueSwitchWidget
     @Widget(title = "Replacement mode",
         description = "Replace the RowID by a newly generated one or the values of a column.")
-    @Signal(condition = ReplacementModeIsColumn.class)
-    @Effect(signals = ReplaceIsFalse.class, type = EffectType.HIDE)
+    @ValueReference(ReplacementModeRef.class)
+    @Effect(predicate = ReplaceRowKey.class, type = EffectType.SHOW)
     @Layout(ReplaceRowIdsSection.class)
     ReplacementMode m_replaceRowKeyMode = ReplacementMode.GENERATE_NEW;
+
+    private static final class ReplaceByColumn implements PredicateProvider {
+
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getPredicate(ReplaceRowKey.class)
+                .and(i.getEnum(ReplacementModeRef.class).isOneOf(ReplacementMode.USE_COLUMN));
+        }
+    }
 
     @Persist(customPersistor = NewRowKeyColumnPersistor.class)
     @Widget(title = "ID column", description = "The column to replace the current RowID.")
     @ChoicesWidget(choices = AllColumns.class)
-    @Effect(signals = {ReplaceIsTrue.class, ReplacementModeIsColumn.class}, operation = And.class,
-        type = EffectType.SHOW)
+    @Effect(predicate = ReplaceByColumn.class, type = EffectType.SHOW)
     @Layout(ReplaceRowIdsSection.class)
     String m_newRowKeyColumnV2;
 
@@ -116,8 +130,7 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
     @Persist(configKey = "removeRowKeyCol", optional = true)
     @Widget(title = "Remove selected ID column",
         description = "If selected, the column replacing the current RowID is removed from the table.")
-    @Effect(signals = {ReplaceIsTrue.class, ReplacementModeIsColumn.class}, operation = And.class,
-        type = EffectType.SHOW)
+    @Effect(predicate = ReplaceByColumn.class, type = EffectType.SHOW)
     @Layout(ReplaceRowIdsSection.class)
     boolean m_removeRowKeyColumn;
 
@@ -125,8 +138,7 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
     @ValueSwitchWidget
     @Widget(title = "If ID column contains missing values",
         description = "Fail if encountering missing values, or replace them.")
-    @Effect(signals = {ReplaceIsTrue.class, ReplacementModeIsColumn.class}, operation = And.class,
-        type = EffectType.SHOW)
+    @Effect(predicate = ReplaceByColumn.class, type = EffectType.SHOW)
     @Layout(ReplaceRowIdsSection.class)
     HandleMissingValuesMode m_handleMissingsMode = HandleMissingValuesMode.FAIL;
 
@@ -134,8 +146,7 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
     @ValueSwitchWidget
     @Widget(title = "If ID column contains duplicates",
         description = "Fail if encountering duplicate values, or make them unique.")
-    @Effect(signals = {ReplaceIsTrue.class, ReplacementModeIsColumn.class}, operation = And.class,
-        type = EffectType.SHOW)
+    @Effect(predicate = ReplaceByColumn.class, type = EffectType.SHOW)
     @Layout(ReplaceRowIdsSection.class)
     HandleDuplicateValuesMode m_handleDuplicatesMode = HandleDuplicateValuesMode.FAIL;
 
@@ -146,20 +157,24 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Enable hiliting", description = """
             If selected, a map is maintained joining the old with the new RowID. Depending on the number of rows,
             enabling this feature might consume a lot of memory.""", advanced = true)
-    @Effect(signals = ReplaceIsFalse.class, type = EffectType.HIDE)
+    @Effect(predicate = ReplaceRowKey.class, type = EffectType.SHOW)
     @Layout(ReplaceRowIdsSection.class)
     boolean m_enableHilite;
+
+    static final class AppendRowKey implements BooleanReference {
+
+    }
 
     @Persist(configKey = "appendRowKeyCol")
     @Widget(title = "Append column with RowID values",
         description = "If selected, a new column with the values of the current RowID is appended to the table.")
-    @Signal(id = AppendRowKeyIsTrue.class, condition = TrueCondition.class)
+    @ValueReference(AppendRowKey.class)
     @Layout(ExtractRowIdsSection.class)
     boolean m_appendRowKey;
 
     @Persist(configKey = "newColumnName4RowKeyValues")
     @Widget(title = "Column Name", description = "The name of the column to append to the table.")
-    @Effect(signals = AppendRowKeyIsTrue.class, type = EffectType.SHOW)
+    @Effect(predicate = AppendRowKey.class, type = EffectType.SHOW)
     @Layout(ExtractRowIdsSection.class)
     String m_appendedColumnName = "Old RowID";
 
@@ -223,7 +238,7 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
          */
         @Override
         public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            if(settings.containsKey(LEGACY_NEW_ROW_KEY_COLUMN_CONFIG_KEY)) {
+            if (settings.containsKey(LEGACY_NEW_ROW_KEY_COLUMN_CONFIG_KEY)) {
                 return settings.getString(LEGACY_NEW_ROW_KEY_COLUMN_CONFIG_KEY);
             }
             return settings.getString(getConfigKey());
@@ -243,9 +258,9 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
         @Override
         public ConfigsDeprecation[] getConfigsDeprecations() {
             Builder configBuilder = new Builder() //
-                    .forNewConfigPath(getConfigKey()) //
-                    .forDeprecatedConfigPath(LEGACY_NEW_ROW_KEY_COLUMN_CONFIG_KEY);
-            return new ConfigsDeprecation[] {configBuilder.build()};
+                .forNewConfigPath(getConfigKey()) //
+                .forDeprecatedConfigPath(LEGACY_NEW_ROW_KEY_COLUMN_CONFIG_KEY);
+            return new ConfigsDeprecation[]{configBuilder.build()};
         }
     }
 
@@ -270,7 +285,7 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
         public ConfigsDeprecation[] getConfigsDeprecations() {
             Builder configBuilder = new Builder().forNewConfigPath(CONFIG_KEY);
             configBuilder.forDeprecatedConfigPath(DEPRECATED_MODE_KEY);
-            return new ConfigsDeprecation[] {configBuilder.build()};
+            return new ConfigsDeprecation[]{configBuilder.build()};
         }
 
         @Override
@@ -349,19 +364,6 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
             return context.getDataTableSpec(RowKeyNodeModel2.DATA_IN_PORT) //
                 .map(DataTableSpec::getColumnNames) //
                 .orElseGet(() -> new String[0]);
-        }
-    }
-
-    private interface AppendRowKeyIsTrue {}
-
-    private interface ReplaceIsTrue {}
-    private interface ReplaceIsFalse {}
-
-    private static final class ReplacementModeIsColumn extends OneOfEnumCondition<ReplacementMode> {
-
-        @Override
-        public ReplacementMode[] oneOf() {
-            return new ReplacementMode[]{ReplacementMode.USE_COLUMN};
         }
     }
 

@@ -76,11 +76,11 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/unifyHeaderPrefix",
       "rule" : {
-        "effect" : "HIDE",
+        "effect" : "SHOW",
         "condition" : {
           "scope" : "#/properties/model/properties/replaceColHeader",
           "schema" : {
-            "const" : false
+            "const" : true
           }
         }
       }

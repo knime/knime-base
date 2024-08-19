@@ -89,7 +89,6 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Values.ThousandsSeparator;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingOption;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.IfRowHasLessColumnsOption.IfRowHasLessColumnsOptionPersistor;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption.IsCustomRowDelimiter;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption.RowDelimiterPersistor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -101,11 +100,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPe
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.TrueCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
@@ -120,6 +114,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.button.Icon;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
@@ -290,13 +288,6 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
                 @Label(value = "Custom", description = RowDelimiter.DESCRIPTION_CUSTOM) //
                 CUSTOM; //
 
-            static final class IsCustomRowDelimiter extends OneOfEnumCondition<RowDelimiterOption> {
-                @Override
-                public RowDelimiterOption[] oneOf() {
-                    return new RowDelimiterOption[]{RowDelimiterOption.CUSTOM};
-                }
-            }
-
             static final class RowDelimiterPersistor extends NodeSettingsPersistorWithConfigKey<RowDelimiterOption> {
                 @Override
                 public RowDelimiterOption load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -325,10 +316,18 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         static class RowDelimiterOptionRef extends ReferenceStateProvider<RowDelimiterOption> {
         }
 
+        static final class HasCustomRowDelimiter implements PredicateProvider {
+
+            @Override
+            public Predicate init(final PredicateInitializer i) {
+                return i.getEnum(RowDelimiterOptionRef.class).isOneOf(RowDelimiterOption.CUSTOM);
+            }
+
+        }
+
         @Widget(title = "Row delimiter", description = RowDelimiter.DESCRIPTION)
         @ValueSwitchWidget
         @Layout(RowDelimiter.class)
-        @Signal(condition = IsCustomRowDelimiter.class)
         @Persist(configKey = "use_line_break_row_delimiter", customPersistor = RowDelimiterPersistor.class)
         @ValueReference(RowDelimiterOptionRef.class)
         @ValueProvider(RowDelimiterOptionProvider.class)
@@ -348,7 +347,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @Widget(title = "Custom row delimiter", description = CustomRowDelimiter.DESCRIPTION)
         @TextInputWidget(minLength = 1, pattern = ".|[\\t\\r\\n]|\\r\\n")
         @Layout(CustomRowDelimiter.class)
-        @Effect(signals = IsCustomRowDelimiter.class, type = EffectType.SHOW)
+        @Effect(predicate = HasCustomRowDelimiter.class, type = EffectType.SHOW)
         @Persist(configKey = "row_delimiter", customPersistor = StringEscapePersistor.class)
         @ValueReference(CustomRowDelimiterRef.class)
         @ValueProvider(CustomRowDelimiterProvider.class)
@@ -398,10 +397,18 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         static class AppendPathColumnRef extends ReferenceStateProvider<Boolean> {
         }
 
+        static final class AppendPathColumn implements PredicateProvider {
+
+            @Override
+            public Predicate init(final PredicateInitializer i) {
+                return i.getBoolean(AppendPathColumnRef.class).isTrue();
+            }
+
+        }
+
         @Widget(title = "Append file path column", description = AppendFilePathColumn.DESCRIPTION)
         @ValueReference(AppendPathColumnRef.class)
         @Layout(AppendFilePathColumn.class)
-        @Signal(id = AppendFilePathColumn.class, condition = TrueCondition.class)
         @Persist(configKey = "append_path_column", hidden = true)
         boolean m_appendPathColumn;
 
@@ -411,17 +418,25 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @Widget(title = "File path column name", description = FilePathColumnName.DESCRIPTION)
         @ValueReference(FilePathColumnNameRef.class)
         @Layout(FilePathColumnName.class)
-        @Effect(signals = AppendFilePathColumn.class, type = EffectType.SHOW)
+        @Effect(predicate = AppendPathColumn.class, type = EffectType.SHOW)
         @Persist(configKey = "path_column_name", hidden = true)
         String m_filePathColumnName = "File Path";
 
         static class LimitScannedRowsRef extends ReferenceStateProvider<Boolean> {
         }
 
+        static final class LimitScannedRowsPredicate implements PredicateProvider {
+
+            @Override
+            public Predicate init(final PredicateInitializer i) {
+                return i.getBoolean(LimitScannedRowsRef.class).isTrue();
+            }
+
+        }
+
         @Widget(title = "Limit scanned rows", description = LimitScannedRows.DESCRIPTION)
         @ValueReference(LimitScannedRowsRef.class)
         @Layout(LimitScannedRows.class)
-        @Signal(id = LimitScannedRows.class, condition = TrueCondition.class)
         @Persist(configKey = "limit_data_rows_scanned")
         boolean m_limitScannedRows = true;
         // TODO merge into a single widget with UIEXT-1742
@@ -433,7 +448,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @ValueReference(MaxDataRowsScannedRef.class)
         @NumberInputWidget(min = 0)
         @Layout(LimitScannedRows.class)
-        @Effect(signals = LimitScannedRows.class, type = EffectType.SHOW)
+        @Effect(predicate = LimitScannedRowsPredicate.class, type = EffectType.SHOW)
         @Persist(configKey = "max_data_rows_scanned")
         long m_maxDataRowsScanned = 10000;
 
@@ -631,9 +646,19 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @Persist(customPersistor = SkipFirstDataRowsPersistor.class)
         long m_skipFirstDataRows;
 
+        interface LimitNumberOfRowsRef extends Reference<Boolean> {
+        }
+
+        static final class LimitNumberOfRowsPredicate implements PredicateProvider {
+            @Override
+            public Predicate init(final PredicateInitializer i) {
+                return i.getBoolean(LimitNumberOfRowsRef.class).isTrue();
+            }
+        }
+
         @Widget(title = "Limit number of rows", description = LimitNumberOfRows.DESCRIPTION, advanced = true)
         @Layout(LimitNumberOfRows.class)
-        @Signal(id = LimitNumberOfRows.class, condition = TrueCondition.class)
+        @ValueReference(LimitNumberOfRowsRef.class)
         @Persist(configKey = "limit_data_rows")
         boolean m_limitNumberOfRows;
         // TODO merge into a single widget with UIEXT-1742
@@ -641,7 +666,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @Widget(title = "Maximum number of rows", description = MaximumNumberOfRows.DESCRIPTION)
         @NumberInputWidget(min = 0)
         @Layout(MaximumNumberOfRows.class)
-        @Effect(signals = LimitNumberOfRows.class, type = EffectType.SHOW)
+        @Effect(predicate = LimitNumberOfRowsPredicate.class, type = EffectType.SHOW)
         @Persist(configKey = "max_rows")
         long m_maximumNumberOfRows = 50;
     }
@@ -700,21 +725,22 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
                 }
             }
 
-            static final class IsOtherEncoding extends OneOfEnumCondition<FileEncodingOption> {
-                @Override
-                public FileEncodingOption[] oneOf() {
-                    return new FileEncodingOption[]{FileEncodingOption.OTHER};
-                }
+            static class FileEncodingRef extends ReferenceStateProvider<FileEncodingOption> {
             }
 
-            static class FileEncodingRef extends ReferenceStateProvider<FileEncodingOption> {
+            static final class IsOtherEncoding implements PredicateProvider {
+
+                @Override
+                public Predicate init(final PredicateInitializer i) {
+                    return i.getEnum(FileEncodingRef.class).isOneOf(FileEncodingOption.OTHER);
+                }
+
             }
 
             @Widget(title = "File encoding", description = FileEncoding.DESCRIPTION, advanced = true)
             @ValueReference(FileEncodingRef.class)
             @ChoicesWidget(choices = EncodingChoicesProvider.class)
             @Layout(FileEncoding.class)
-            @Signal(condition = IsOtherEncoding.class)
             FileEncodingOption m_fileEncoding;
 
             static class CustomEncodingRef extends ReferenceStateProvider<String> {
@@ -723,7 +749,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
             @Widget(title = "Custom encoding", description = CustomEncoding.DESCRIPTION, advanced = true)
             @ValueReference(CustomEncodingRef.class)
             @Layout(CustomEncoding.class)
-            @Effect(signals = IsOtherEncoding.class, type = EffectType.SHOW)
+            @Effect(predicate = IsOtherEncoding.class, type = EffectType.SHOW)
             String m_customEncoding;
 
             Charset() {

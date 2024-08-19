@@ -58,14 +58,16 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget.DoubleProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  * Settings for the Column Appender node.
@@ -94,7 +96,7 @@ public final class ColumnAppenderSettings implements DefaultNodeSettings {
         + "Tables with fewer rows will be filled with missing values accordingly. "//
         + "And tables with more rows will be truncated.</li>"//
         + "</ul>")
-    @Signal(condition = IsKeyTable.class)
+    @ValueReference(RowKeyModeRef.class)
     @RadioButtonsWidget
     RowKeyMode m_rowIdMode = RowKeyMode.IDENTICAL;
 
@@ -102,24 +104,24 @@ public final class ColumnAppenderSettings implements DefaultNodeSettings {
     @Widget(title = "RowID table number",
         description = "Select the table whose RowIDs should be used for the output table.")
     @NumberInputWidget(min = 1, maxProvider = NumTables.class)
-    @Effect(type = EffectType.SHOW, signals = IsKeyTable.class)
+    @Effect(type = EffectType.SHOW, predicate = IsKeyTable.class)
     int m_rowIdTableSelect = 1;
 
     private static final class NumTables implements DoubleProvider {
-
         @Override
         public double getValue(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpecs().length;
         }
-
     }
 
-    static class IsKeyTable extends OneOfEnumCondition<RowKeyMode> {
-        @Override
-        public RowKeyMode[] oneOf() {
-            return new RowKeyMode[]{ RowKeyMode.KEY_TABLE };
-        }
+    interface RowKeyModeRef extends Reference<RowKeyMode> {
+    }
 
+    static class IsKeyTable implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(RowKeyModeRef.class).isOneOf(RowKeyMode.KEY_TABLE);
+        }
     }
 
     private static final class RowIdTableSelectPersistor implements FieldNodeSettingsPersistor<Integer> {

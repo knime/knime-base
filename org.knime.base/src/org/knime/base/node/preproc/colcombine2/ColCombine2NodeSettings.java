@@ -62,10 +62,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.EnumFieldPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
@@ -73,6 +69,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvid
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  *
@@ -126,10 +128,13 @@ public final class ColCombine2NodeSettings implements DefaultNodeSettings {
     interface Output {
     }
 
-    private static final class IsQuote extends OneOfEnumCondition<DelimiterInputs> {
+    interface DelimiterInputsRef extends Reference<DelimiterInputs> {
+    }
+
+    private static final class IsQuote implements PredicateProvider {
         @Override
-        public DelimiterInputs[] oneOf() {
-            return new DelimiterInputs[] { DelimiterInputs.QUOTE } ;
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(DelimiterInputsRef.class).isOneOf(DelimiterInputs.QUOTE);
         }
     }
 
@@ -153,7 +158,7 @@ public final class ColCombine2NodeSettings implements DefaultNodeSettings {
     @Widget(title= "Handle delimiter inputs", description = "", advanced = true)
     @Persist(customPersistor = DelimiterInputPersistor.class)
     @Layout(Concatenation.class)
-    @Signal(condition = IsQuote.class)
+    @ValueReference(DelimiterInputsRef.class)
     @ValueSwitchWidget
     DelimiterInputs m_delimiterInputs = DelimiterInputs.QUOTE;
 
@@ -166,13 +171,13 @@ public final class ColCombine2NodeSettings implements DefaultNodeSettings {
             + "Alternatively, the user can also replace the delimiter  string in the cell content string (see below).")
     @Persist(configKey = "quote_char", customPersistor = QuoteCharacterPersistor.class)
     @Layout(Concatenation.class)
-    @Effect(signals = IsQuote.class, type = EffectType.SHOW)
+    @Effect(predicate = IsQuote.class, type = EffectType.SHOW)
     Character m_quoteCharacter = '"';
 
     @Widget(title = "Quote inputs", advanced = true, description = "")
     @Persist(configKey = "is_quoting_always", customPersistor = QuoteInputPersistor.class)
     @Layout(Concatenation.class)
-    @Effect(signals = IsQuote.class, type = EffectType.SHOW)
+    @Effect(predicate = IsQuote.class, type = EffectType.SHOW)
     @ValueSwitchWidget
     QuoteInputs m_quoteInputs = QuoteInputs.ONLY_NECESSARY;
 
@@ -182,7 +187,7 @@ public final class ColCombine2NodeSettings implements DefaultNodeSettings {
             + "the above example would be <i>some-value</i>).")
     @Persist(configKey = "replace_delimiter", customPersistor = ReplaceDelimiterPersistor.class)
     @Layout(Concatenation.class)
-    @Effect(signals = IsQuote.class, type = EffectType.HIDE)
+    @Effect(predicate = IsQuote.class, type = EffectType.HIDE)
     String m_replacementDelimiter = "";
 
     @Widget(title = "Output column name", description = "The name of the new column.")

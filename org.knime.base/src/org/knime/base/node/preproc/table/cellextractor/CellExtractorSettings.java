@@ -49,16 +49,18 @@
 package org.knime.base.node.preproc.table.cellextractor;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  * Settings of the Cell Extractor node.
@@ -88,24 +90,31 @@ public final class CellExtractorSettings implements DefaultNodeSettings {
      * Constructor for deserialization.
      */
     CellExtractorSettings() {
+    }
 
+    interface ColumnSpecificationModeRef extends Reference<ColumnSpecificationMode> {
+    }
+
+    static final class SpecifyByName implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(ColumnSpecificationModeRef.class).isOneOf(ColumnSpecificationMode.BY_NAME);
+        }
     }
 
     @Widget(title = "Column specification", description = "Select whether to specify the column by name or by number.")
     @ValueSwitchWidget
-    @Signal(condition = ColumnSpecificationMode.IsByName.class)
+    @ValueReference(ColumnSpecificationModeRef.class)
     ColumnSpecificationMode m_columnSpecificationMode = ColumnSpecificationMode.BY_NAME;
-
-    // TODO: UIEXT-1007 migrate String to ColumnSelection
 
     @Widget(title = "Column name", description = "Select the column that contains the target cell.")
     @ChoicesWidget(choices = AllColumns.class)
-    @Effect(signals = ColumnSpecificationMode.IsByName.class, type = EffectType.SHOW)
+    @Effect(predicate = SpecifyByName.class, type = EffectType.SHOW)
     String m_columnName;
 
     @Widget(title = "Column number", description = "Provide the number of the column that contains the target cell.")
     @NumberInputWidget(min = 1)
-    @Effect(signals = ColumnSpecificationMode.IsByName.class, type = EffectType.HIDE)
+    @Effect(predicate = SpecifyByName.class, type = EffectType.HIDE)
     int m_columnNumber = 1;
 
     @Widget(title = "Row number", description = "Provide the number of the row that contains the target cell.")
@@ -117,7 +126,6 @@ public final class CellExtractorSettings implements DefaultNodeSettings {
     boolean m_countFromEnd;
 
     private static final class AllColumns implements ChoicesProvider {
-
         @Override
         public String[] choices(final DefaultNodeSettingsContext context) {
             var specs = context.getDataTableSpecs();
@@ -126,7 +134,6 @@ public final class CellExtractorSettings implements DefaultNodeSettings {
             // handle the lack of spec when opening a workflow with an executed node
             return spec != null ? spec.getColumnNames() : new String[0];
         }
-
     }
 
     enum ColumnSpecificationMode {
@@ -135,15 +142,5 @@ public final class CellExtractorSettings implements DefaultNodeSettings {
 
             @Label("Number")
             BY_NUMBER;
-
-        static class IsByName extends OneOfEnumCondition<ColumnSpecificationMode> {
-
-            @Override
-            public ColumnSpecificationMode[] oneOf() {
-                return new ColumnSpecificationMode[]{BY_NAME};
-            }
-
-        }
     }
-
 }

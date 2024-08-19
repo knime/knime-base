@@ -59,10 +59,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
@@ -70,6 +66,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  * Settings for the {@link StringFormatManagerNodeModel}
@@ -192,11 +194,17 @@ public final class StringFormatManagerNodeSettings implements DefaultNodeSetting
             CUSTOM
     }
 
-    static class IsCustomCondition extends OneOfEnumCondition<CustomStringReplacementOption> {
+    class CustomStringReplacementOptionRef implements Reference<CustomStringReplacementOption> {
+
+    }
+
+    static final class ReplaceEmptyStrings implements PredicateProvider {
+
         @Override
-        public CustomStringReplacementOption[] oneOf() {
-            return new CustomStringReplacementOption[]{CustomStringReplacementOption.CUSTOM};
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(CustomStringReplacementOptionRef.class).isOneOf(CustomStringReplacementOption.CUSTOM);
         }
+
     }
 
     @Widget(title = "Show empty string as", description = """
@@ -210,7 +218,7 @@ public final class StringFormatManagerNodeSettings implements DefaultNodeSetting
             """)
     @Layout(DialogLayout.SpecialValues.ReplaceEmptyString.class)
     @ValueSwitchWidget
-    @Signal(id = Signals.ReplaceEmptyStrings.class, condition = IsCustomCondition.class)
+    @ValueReference(CustomStringReplacementOptionRef.class)
     CustomStringReplacementOption m_replaceEmptyString = CustomStringReplacementOption.BLANK;
 
     @Widget(title = "Substitute for empty string", description = """
@@ -218,7 +226,7 @@ public final class StringFormatManagerNodeSettings implements DefaultNodeSetting
             if <i>Show empty string as custom string</i> is enabled.
             """)
     @Layout(DialogLayout.SpecialValues.ReplaceEmptyString.class)
-    @Effect(signals = Signals.ReplaceEmptyStrings.class, type = EffectType.SHOW)
+    @Effect(predicate = ReplaceEmptyStrings.class, type = EffectType.SHOW)
     String m_emptyStringReplacement = "<empty>";
 
     @Widget(title = "Link hyperlinks and e-mail addresses", description = """

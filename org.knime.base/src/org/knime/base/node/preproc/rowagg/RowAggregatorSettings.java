@@ -55,10 +55,6 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.IsNoneColumnStringCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
@@ -66,6 +62,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvid
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  * Settings for the Row Aggregator node model.
@@ -75,22 +77,45 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColu
 @SuppressWarnings("restriction")
 public final class RowAggregatorSettings implements DefaultNodeSettings {
 
-    // TODO: UIEXT-1007 migrate String to ColumnSelection
+    interface CategoryColumnRef extends Reference<String> {
+    }
 
-    interface IsNoneCategoryColumnSelected {
+    static final class IsNoneCategoryColumnSelected implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getString(CategoryColumnRef.class).isNoneString();
+        }
     }
 
     @Widget(title = "Category column", description = "Select the column that defines the category on which rows "
         + "are grouped. If no category column is selected, \"grand total\" values in which all rows belong to the same "
         + "group will be calculated.")
     @ChoicesWidget(choices = CategoryColumns.class, showNoneColumn = true)
-    @Signal(id = IsNoneCategoryColumnSelected.class, condition = IsNoneColumnStringCondition.class)
+    @ValueReference(CategoryColumnRef.class)
     String m_categoryColumn = SpecialColumns.NONE.getId();
 
     static final class CategoryColumns implements ChoicesProvider {
         @Override
         public String[] choices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0).map(DataTableSpec::getColumnNames).orElse(new String[0]);
+        }
+    }
+
+    interface AggregationFunctionRef extends Reference<AggregationFunction> {
+    }
+
+    static final class AggregationFunctionIsCount implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(AggregationFunctionRef.class).isOneOf(AggregationFunction.COUNT);
+        }
+    }
+
+    static final class AggregationFunctionIsCountOrMinOrMax implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(AggregationFunctionRef.class).isOneOf(AggregationFunction.COUNT, AggregationFunction.MIN,
+                AggregationFunction.MAX);
         }
     }
 
@@ -109,17 +134,15 @@ public final class RowAggregatorSettings implements DefaultNodeSettings {
             // MAX
             + "<li><i>Maximum:</i>" + " Calculate the maximum value</li>" + "</ul>")
     @RadioButtonsWidget(horizontal = true)
-    @Signal(condition = AggregationFunction.IsCount.class)
-    @Signal(condition = AggregationFunction.IsCountOrMinOrMax.class)
+    @ValueReference(AggregationFunctionRef.class)
     AggregationFunction m_aggregationMethod = AggregationFunction.SUM;
 
     @Widget(title = "Aggregation columns", description = "Select the columns to apply the aggregation function to.")
     @ChoicesWidget(choices = AggregatableColumns.class)
-    @Effect(signals = AggregationFunction.IsCount.class, type = EffectType.DISABLE)
+    @Effect(predicate = AggregationFunctionIsCount.class, type = EffectType.DISABLE)
     ColumnFilter m_frequencyColumns;
 
     static final class AggregatableColumns implements ColumnChoicesProvider {
-
         @Override
         public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0).map(DataTableSpec::stream)//
@@ -127,18 +150,16 @@ public final class RowAggregatorSettings implements DefaultNodeSettings {
                 .filter(RowAggregatorNodeModel::isAggregatableColumn)//
                 .toArray(DataColumnSpec[]::new);
         }
-
     }
 
     @Widget(title = "Weight column", description = "Select the column that defines the weight with which a "
         + "value is multiplied before aggregation. Note, that only the aggregation functions \"Sum\" and \"Average\" "
         + "support a weight column")
     @ChoicesWidget(choices = WeightColumns.class, showNoneColumn = true)
-    @Effect(signals = AggregationFunction.IsCountOrMinOrMax.class, type = EffectType.DISABLE)
+    @Effect(predicate = AggregationFunctionIsCountOrMinOrMax.class, type = EffectType.DISABLE)
     String m_weightColumn;
 
     static final class WeightColumns implements ChoicesProvider {
-
         @Override
         public String[] choices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0).map(DataTableSpec::stream)//
@@ -146,14 +167,13 @@ public final class RowAggregatorSettings implements DefaultNodeSettings {
                 .filter(RowAggregatorNodeModel::isWeightColumn)//
                 .map(DataColumnSpec::getName).toArray(String[]::new);
         }
-
     }
 
     @Widget(title = "Additional \"grand totals\" at second output port",
         description = "If a category column is selected, additionally compute the aggregations <i>without</i> the "
             + "category column (\"grand totals\") and output them in the second output table. "
             + "The second output is inactive if no category " + "column is selected or this setting is not enabled.")
-    @Effect(signals = IsNoneCategoryColumnSelected.class, type = EffectType.DISABLE)
+    @Effect(predicate = IsNoneCategoryColumnSelected.class, type = EffectType.DISABLE)
     boolean m_grandTotals;
 
     @Widget(title = "Enable Hiliting", advanced = true,

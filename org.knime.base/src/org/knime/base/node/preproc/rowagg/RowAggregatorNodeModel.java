@@ -108,8 +108,9 @@ import org.knime.core.node.property.hilite.DefaultHiLiteMapper;
 import org.knime.core.node.property.hilite.HiLiteHandler;
 import org.knime.core.node.property.hilite.HiLiteTranslator;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 
@@ -288,28 +289,23 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
             return m_weighted != null;
         }
 
-        static class IsCount extends OneOfEnumCondition<AggregationFunction> {
-
-            /**
-             * {@inheritDoc}
-             */
-            @Override
-            public AggregationFunction[] oneOf() {
-                return new AggregationFunction[] {COUNT};
-            }
-
+        interface Ref extends Reference<AggregationFunction> {
         }
 
-        static class IsCountOrMinOrMax extends OneOfEnumCondition<AggregationFunction> {
-
-            /**
-             * {@inheritDoc}
-             */
+        static class IsCount implements PredicateProvider {
             @Override
-            public AggregationFunction[] oneOf() {
-                return new AggregationFunction[] {COUNT, MIN, MAX};
+            public org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate
+                init(final PredicateInitializer i) {
+                return i.getEnum(Ref.class).isOneOf(COUNT);
             }
+        }
 
+        static class IsCountOrMinOrMax implements PredicateProvider {
+            @Override
+            public org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate
+                init(final PredicateInitializer i) {
+                return i.getEnum(Ref.class).isOneOf(COUNT, MIN, MAX);
+            }
         }
     }
 

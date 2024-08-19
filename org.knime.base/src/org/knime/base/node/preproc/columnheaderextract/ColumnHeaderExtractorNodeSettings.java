@@ -60,13 +60,13 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.FalseCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.BooleanReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  * Settings of the Column Header Extractor dialog. Not used by the NodeModel, yet. If it ever is please double check
@@ -90,18 +90,22 @@ public final class ColumnHeaderExtractorNodeSettings implements DefaultNodeSetti
     @ValueSwitchWidget
     OutputFormat m_transposeColHeader;
 
+    static final class ReplaceColHeader implements BooleanReference {
+
+    }
+
     @Persist(settingsModel = SettingsModelBoolean.class)
     @Widget(title = "Generate new column names",
         description = "If selected, the column names of both output tables will be replaced "//
             + "with automatically generated names by combining the prefix provided below with the corresponding "//
             + "column number (e.g. \"Column 1\", \"Column 2\", and so on). "//
             + "<br><br>Otherwise, the original column names will be used.")
-    @Signal(condition = FalseCondition.class, id = DontReplaceColHeader.class)
+    @ValueReference(ReplaceColHeader.class)
     boolean m_replaceColHeader;
 
     @Persist(settingsModel = SettingsModelString.class)
     @Widget(title = "Prefix", description = "Prefix to use when generating new column names.")
-    @Effect(type = EffectType.HIDE, signals = DontReplaceColHeader.class)
+    @Effect(type = EffectType.SHOW, predicate = ReplaceColHeader.class)
     String m_unifyHeaderPrefix;
 
     @Persist(customPersistor = ColTypePersistor.class)

@@ -49,14 +49,16 @@
 package org.knime.base.node.meta.looper.chunk;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  * Settings for node.
@@ -79,32 +81,33 @@ public final class LoopStartChunkNodeSettings implements DefaultNodeSettings {
         NrOfChunks
     }
 
-    private interface ModeSignals {
-        class RowPerChunkCondition extends OneOfEnumCondition<Mode> {
-            @Override
-            public Mode[] oneOf() {
-                return new Mode[] {Mode.RowsPerChunk};
-            }
+    interface ModeRef extends Reference<Mode> {
+    }
+
+    static final class IsRowPerChunk implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(ModeRef.class).isOneOf(Mode.RowsPerChunk);
         }
     }
 
     @Widget(title ="Mode", description = "Select if the chunking is based on a fixed number of rows per chunk or a fixed number of chunks.")
     @ValueSwitchWidget
-    @Signal(id = ModeSignals.class, condition = ModeSignals.RowPerChunkCondition.class)
+    @ValueReference(ModeRef.class)
     Mode m_mode = Mode.RowsPerChunk;
 
     @Widget(title = "Rows per chunk", description = """
             Set the number of rows per chunk. The number of iterations is the row count of the input table divided by this value. To implement a streaming approach with one row at a time, set this value to 1.
             """)
     @NumberInputWidget(min = 1.0)
-    @Effect(type = EffectType.SHOW, signals = ModeSignals.class)
+    @Effect(type = EffectType.SHOW, predicate = IsRowPerChunk.class)
     int m_nrRowsPerChunk = 1;
 
 
     @Widget(title = "Number of chunks", description = """
             Set the number of chunks. The number of rows per chunk is the row count of the input table divided by this value.
             """)
-    @Effect(type = EffectType.HIDE, signals = ModeSignals.class)
+    @Effect(type = EffectType.HIDE, predicate = IsRowPerChunk.class)
     @NumberInputWidget(min = 1.0)
     int m_nrOfChunks = 1;
 }

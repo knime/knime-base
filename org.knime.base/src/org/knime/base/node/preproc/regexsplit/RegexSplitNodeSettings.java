@@ -62,14 +62,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 
 /**
  * Settings class for the String Splitter (Regex) (formerly known as Regex Split)
@@ -275,7 +275,7 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
             backwards-compatibility. Earlier versions of this node have this enabled to reflect how the node used to
             behave.""")
     @Persist(defaultProvider = TrueProvider.class) // If it's an old node instance, default to true
-    @Effect(signals = OutputGroupLabelMode.IsCaptureGroupNames.class, type = EffectType.SHOW)
+    @Effect(predicate = OutputGroupLabelMode.IsCaptureGroupNames.class, type = EffectType.SHOW)
     boolean m_decrementGroupIndexByOne = false;
 
     // Output Settings

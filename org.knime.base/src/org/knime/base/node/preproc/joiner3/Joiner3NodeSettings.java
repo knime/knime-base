@@ -50,8 +50,6 @@ package org.knime.base.node.preproc.joiner3;
 
 import java.util.stream.IntStream;
 
-import org.knime.base.node.preproc.joiner3.Joiner3NodeSettings.DuplicateHandling.IsAppendSuffix;
-import org.knime.base.node.preproc.joiner3.Joiner3NodeSettings.RowKeyFactory.IsConcatenate;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -70,10 +68,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPe
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultFieldNodeSettingsPersistorFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
@@ -84,6 +78,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateP
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  *
@@ -102,7 +102,6 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
 
         @CheckboxesWithVennDiagram
         interface WithVennDiagram {
-
 
             interface Matched {
             }
@@ -160,25 +159,20 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
             return context.getDataTableSpec(getInputPortIndex()).map(DataTableSpec::getColumnNames)
                 .orElse(new String[0]);
         }
-
     }
 
     static class LeftTableChoices extends TableChoices {
-
         @Override
         int getInputPortIndex() {
             return 0;
         }
-
     }
 
     static class RightTableChoices extends TableChoices {
-
         @Override
         int getInputPortIndex() {
             return 1;
         }
-
     }
 
     @ValueSwitchWidget
@@ -343,14 +337,6 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
                     + " output table will keep the input tables RowIDs.")
             KEEP_ROWID;
 
-        static class IsConcatenate extends OneOfEnumCondition<RowKeyFactory> {
-
-            @Override
-            public RowKeyFactory[] oneOf() {
-                return new RowKeyFactory[]{CONCATENATE};
-            }
-
-        }
     }
 
     @Widget(title = "Top input ('left' table)",
@@ -383,26 +369,27 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
             @Label(value = "Do not execute",
                 description = "Prevents the node to be executed if the columns have the same name.")
             DO_NOT_EXECUTE;
+    }
 
-        static class IsAppendSuffix extends OneOfEnumCondition<DuplicateHandling> {
+    interface DuplicateHandlingRef extends Reference<DuplicateHandling> {
+    }
 
-            @Override
-            public DuplicateHandling[] oneOf() {
-                return new DuplicateHandling[]{APPEND_SUFFIX};
-            }
-
+    static final class IsAppendSuffix implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(DuplicateHandlingRef.class).isOneOf(DuplicateHandling.APPEND_SUFFIX);
         }
     }
 
     @Widget(title = "If there are duplicate column names",
         description = "Defines what should happen if there are column names included in the output that have the same name:")
-    @Signal(condition = IsAppendSuffix.class)
+    @ValueReference(DuplicateHandlingRef.class)
     @Layout(OutputColumnsSection.class)
     @RadioButtonsWidget
     DuplicateHandling m_duplicateHandling = DuplicateHandling.APPEND_SUFFIX;
 
     @Widget(title = "Custom suffix", description = "The suffix to be added to the column name of the right table")
-    @Effect(signals = IsAppendSuffix.class, type = EffectType.SHOW)
+    @Effect(predicate = IsAppendSuffix.class, type = EffectType.SHOW)
     @Layout(OutputColumnsSection.class)
     String m_suffix = " (Right)";
 
@@ -418,15 +405,25 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
     @Layout(OutputRowsSection.class)
     boolean m_outputUnmatchedRowsToSeparatePorts;
 
+    interface RowKeyFactoryRef extends Reference<RowKeyFactory> {
+    }
+
+    static final class IsConcatenate implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(RowKeyFactoryRef.class).isOneOf(RowKeyFactory.CONCATENATE);
+        }
+    }
+
     @Widget(title = "RowIDs", description = "Defines how the RowIDs of the output table are generated:")
-    @Signal(condition = IsConcatenate.class)
+    @ValueReference(RowKeyFactoryRef.class)
     @RadioButtonsWidget
     @Layout(OutputRowsSection.class)
     RowKeyFactory m_rowKeyFactory = RowKeyFactory.CONCATENATE;
 
     @Widget(title = "Separator",
         description = "The separator to be added in between RowIDs of the input tables to generate the RowIDs of the output table.")
-    @Effect(signals = IsConcatenate.class, type = EffectType.SHOW)
+    @Effect(predicate = IsConcatenate.class, type = EffectType.SHOW)
     @Layout(OutputRowsSection.class)
     String m_rowKeySeparator = "_";
 
@@ -472,5 +469,4 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
 
     @Layout(PerformanceSection.class)
     boolean m_enableHiliting;
-
 }

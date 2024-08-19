@@ -1,6 +1,7 @@
 {
   "data" : {
     "model" : {
+      "column" : "test",
       "pattern" : "(.*)",
       "caseMatching" : "CASESENSITIVE",
       "requireWholeMatch" : true,
@@ -46,8 +47,9 @@
           },
           "column" : {
             "type" : "string",
-            "title" : "Target Column",
+            "title" : "String column",
             "description" : "Choose the column containing the strings to split",
+            "default" : "test",
             "configKeys" : [ "column" ]
           },
           "decrementGroupIndexByOne" : {
@@ -153,7 +155,7 @@
                   "const" : "NONE",
                   "title" : "None"
                 } ],
-                "title" : "Output columns prefix",
+                "title" : "Output column prefix",
                 "description" : "Define what prefix should be used for the output column names:\n<ul>\n    <li><i>Input column name</i>: The name of the column containing the string to split is used as a prefix.\n        </li>\n    <li><i>Custom</i>: Define a custom string that shall be used as a prefix.</li>\n    <li><i>None</i>: No prefix is added.</li>\n</ul>\n",
                 "default" : "INPUT_COL_NAME"
               },
@@ -412,15 +414,13 @@
           "format" : "valueSwitch"
         },
         "rule" : {
-          "effect" : "SHOW",
+          "effect" : "HIDE",
           "condition" : {
             "scope" : "#/properties/model/properties/output/properties/mode",
             "schema" : {
-              "not" : {
-                "oneOf" : [ {
-                  "const" : "COLUMNS"
-                } ]
-              }
+              "oneOf" : [ {
+                "const" : "COLUMNS"
+              } ]
             }
           }
         }

@@ -53,6 +53,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.knime.base.node.preproc.regexsplit.OutputSettings.ColumnPrefixMode;
@@ -81,7 +82,8 @@ class RegexSplitNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         super(Map.of(SettingsType.MODEL, RegexSplitNodeSettings.class), new DataTableSpec());
     }
 
-    static final class TestLegacySettings extends DefaultNodeSettingsCompatibilityTest<RegexSplitNodeSettings> {
+    @Nested
+    final class TestLegacySettings extends DefaultNodeSettingsCompatibilityTest<RegexSplitNodeSettings> {
         @Override
         protected List<Assert> assertions() {
             return List.of( //
@@ -90,7 +92,8 @@ class RegexSplitNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         }
     }
 
-    static final class RegexSplitNodeSettingsSnapshotTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    final class RegexSplitNodeSettingsSnapshotTest extends DefaultNodeSettingsSnapshotTest {
         protected RegexSplitNodeSettingsSnapshotTest() {
             super(SnapshotTestConfiguration.builder() //
                 .addInputTableSpec().withColumnNames("test").withTypes(StringCell.TYPE) //

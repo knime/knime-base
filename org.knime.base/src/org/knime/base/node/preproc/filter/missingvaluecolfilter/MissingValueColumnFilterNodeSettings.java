@@ -53,10 +53,6 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
@@ -65,6 +61,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  * Settings for Missing Value Column Filter node
@@ -104,21 +106,20 @@ final class MissingValueColumnFilterNodeSettings implements DefaultNodeSettings 
             NUMBER
     }
 
-    private interface ByPercentage {
-        class Condition extends OneOfEnumCondition<RemovalCriterion> {
-            @Override
-            public RemovalCriterion[] oneOf() {
-                return new RemovalCriterion[]{RemovalCriterion.PERCENTAGE};
-            }
+    interface RemovalCriterionRef extends Reference<RemovalCriterion> {
+    }
+
+    static final class ByPercentage implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(RemovalCriterionRef.class).isOneOf(RemovalCriterion.PERCENTAGE);
         }
     }
 
-    private interface ByNumber {
-        class Condition extends OneOfEnumCondition<RemovalCriterion> {
-            @Override
-            public RemovalCriterion[] oneOf() {
-                return new RemovalCriterion[]{RemovalCriterion.NUMBER};
-            }
+    static final class ByNumber implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(RemovalCriterionRef.class).isOneOf(RemovalCriterion.NUMBER);
         }
     }
 
@@ -133,8 +134,7 @@ final class MissingValueColumnFilterNodeSettings implements DefaultNodeSettings 
 
     @RadioButtonsWidget
     @Widget(title = "Remove columns", description = "Specify the threshold for the removal of selected columns.")
-    @Signal(id = ByPercentage.class, condition = ByPercentage.Condition.class)
-    @Signal(id = ByNumber.class, condition = ByNumber.Condition.class)
+    @ValueReference(RemovalCriterionRef.class)
     @Persist(defaultProvider = RemovalCriterionDefaultProvider.class) // added during webui transition
     RemovalCriterion m_removeColumnsBy = RemovalCriterion.ONLY;
 
@@ -143,13 +143,13 @@ final class MissingValueColumnFilterNodeSettings implements DefaultNodeSettings 
         description = "Selected columns with at least this percentage of missing values are filtered out.")
     @NumberInputWidget(max = 100, min = 0)
     @Persist(configKey = "missing_value_percentage")
-    @Effect(type = EffectType.SHOW, signals = ByPercentage.class)
+    @Effect(type = EffectType.SHOW, predicate = ByPercentage.class)
     double m_percentage = 100.0;
 
     @Widget(title = "Threshold number (equal or more than)", //
         description = "Selected columns with at least this number of missing values are filtered out.")
     @NumberInputWidget(min = 0)
-    @Effect(type = EffectType.SHOW, signals = ByNumber.class)
+    @Effect(type = EffectType.SHOW, predicate = ByNumber.class)
     @Persist(optional = true)
     long m_number = 1;
 

@@ -404,15 +404,13 @@
           "format" : "valueSwitch"
         },
         "rule" : {
-          "effect" : "SHOW",
+          "effect" : "HIDE",
           "condition" : {
             "scope" : "#/properties/model/properties/output/properties/mode",
             "schema" : {
-              "not" : {
-                "oneOf" : [ {
-                  "const" : "COLUMNS"
-                } ]
-              }
+              "oneOf" : [ {
+                "const" : "COLUMNS"
+              } ]
             }
           }
         }

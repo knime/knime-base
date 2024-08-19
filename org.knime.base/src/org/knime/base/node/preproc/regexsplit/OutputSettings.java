@@ -53,18 +53,17 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.And;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Not;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Or;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  * The output settings, output as columns, rows, collection, what to do if the pattern does not match, etc.
@@ -102,23 +101,28 @@ final class OutputSettings implements DefaultNodeSettings {
             return this == LIST || this == SET;
         }
 
-        interface IsColumns {
-            class Condition extends OneOfEnumCondition<OutputMode> {
-                @Override
-                public OutputMode[] oneOf() {
-                    return new OutputMode[]{OutputMode.COLUMNS};
-                }
-            }
+    }
+
+    static final class OutputModeRef implements Reference<OutputMode> {
+
+    }
+
+    static final class OutputModeIsColumns implements PredicateProvider {
+
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(OutputModeRef.class).isOneOf(OutputMode.COLUMNS);
         }
 
-        interface IsRows {
-            class Condition extends OneOfEnumCondition<OutputMode> {
-                @Override
-                public OutputMode[] oneOf() {
-                    return new OutputMode[]{OutputMode.ROWS};
-                }
-            }
+    }
+
+    static final class OutputModeIsRows implements PredicateProvider {
+
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(OutputModeRef.class).isOneOf(OutputMode.ROWS);
         }
+
     }
 
     @Layout(DialogSections.Output.class)
@@ -135,9 +139,8 @@ final class OutputSettings implements DefaultNodeSettings {
             </ul>
             """)
     @ValueSwitchWidget
-    @Signal(id = OutputMode.IsColumns.class, condition = OutputMode.IsColumns.Condition.class)
-    @Signal(id = OutputMode.IsRows.class, condition = OutputMode.IsRows.Condition.class)
     @Persist(optional = true)
+    @ValueReference(OutputModeRef.class)
     OutputMode m_mode = OutputMode.COLUMNS;
 
     //  -------------------  Output columns prefix: only for output as columns  -------------------
@@ -149,15 +152,19 @@ final class OutputSettings implements DefaultNodeSettings {
             CUSTOM, //
             @Label("None")
             NONE;
+    }
 
-        interface IsCustom {
-            class Condition extends OneOfEnumCondition<ColumnPrefixMode> {
-                @Override
-                public ColumnPrefixMode[] oneOf() {
-                    return new ColumnPrefixMode[]{ColumnPrefixMode.CUSTOM};
-                }
-            }
+    static final class ColumnPrefixModeRef implements Reference<ColumnPrefixMode> {
+
+    }
+
+    static final class UseCustomColumnPrefix implements PredicateProvider {
+
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(ColumnPrefixModeRef.class).isOneOf(ColumnPrefixMode.CUSTOM);
         }
+
     }
 
     @Layout(DialogSections.Output.class)
@@ -171,18 +178,25 @@ final class OutputSettings implements DefaultNodeSettings {
             </ul>
             """)
     @ValueSwitchWidget
-    @Signal(id = ColumnPrefixMode.IsCustom.class, condition = ColumnPrefixMode.IsCustom.Condition.class)
-    @Effect(signals = OutputMode.IsColumns.class, type = EffectType.SHOW)
+    @ValueReference(ColumnPrefixModeRef.class)
+    @Effect(predicate = OutputModeIsColumns.class, type = EffectType.SHOW)
     ColumnPrefixMode m_columnPrefixMode = ColumnPrefixMode.INPUT_COL_NAME;
 
     //  -------------------  Custom column prefix: only for output as columns with custom prefix -------------------
 
+    static final class CustomColumnPrefix implements PredicateProvider {
+
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getPredicate(OutputModeIsColumns.class).and(i.getPredicate(UseCustomColumnPrefix.class));
+        }
+
+    }
+
     @Layout(DialogSections.Output.class)
     @Widget(title = "Custom prefix", description = "Define a custom column prefix.")
-    @Effect(signals = {OutputMode.IsColumns.class, ColumnPrefixMode.IsCustom.class}, operation = And.class,
-        type = EffectType.SHOW)
+    @Effect(predicate = CustomColumnPrefix.class, type = EffectType.SHOW)
     String m_columnPrefix = "Split ";
-
 
     //  -------------------  Append column/replace input column: only for output as rows or collection  ----------------
 
@@ -191,33 +205,45 @@ final class OutputSettings implements DefaultNodeSettings {
             APPEND, //
             @Label("Replace")
             REPLACE;
+    }
 
-        interface IsReplace {
-            class Condition extends OneOfEnumCondition<SingleOutputColumnMode> {
-                @Override
-                public SingleOutputColumnMode[] oneOf() {
-                    return new SingleOutputColumnMode[]{SingleOutputColumnMode.REPLACE};
-                }
-            }
+    static final class SingleOutputColumnModeRef implements Reference<SingleOutputColumnMode> {
+
+    }
+
+    static final class ReplaceSingleOutputColumn implements PredicateProvider {
+
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(SingleOutputColumnModeRef.class).isOneOf(SingleOutputColumnMode.REPLACE);
         }
+
     }
 
     @Layout(DialogSections.Output.class)
     @Widget(title = "Output column",
         description = "Choose whether to append the output column or replace the input column.")
     @ValueSwitchWidget
-    @Effect(signals = OutputMode.IsColumns.class, operation = Not.class, type = EffectType.SHOW)
-    @Signal(id = SingleOutputColumnMode.IsReplace.class, condition = SingleOutputColumnMode.IsReplace.Condition.class)
+    @Effect(predicate = OutputModeIsColumns.class, type = EffectType.HIDE)
+    @ValueReference(SingleOutputColumnModeRef.class)
     @Persist(optional = true)
     SingleOutputColumnMode m_singleOutputColumnMode = SingleOutputColumnMode.APPEND;
 
     //  -------------------  Output column name: only for append column  -------------------
 
+    static final class OutputModeIsColumnsOrSingleOutpuModeIsReplace implements PredicateProvider {
+
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getPredicate(ReplaceSingleOutputColumn.class).or(i.getPredicate(OutputModeIsColumns.class));
+        }
+
+    }
+
     @Layout(DialogSections.Output.class)
     @Widget(title = "Output column name", description = "Choose a name for the output column")
     @TextInputWidget(minLength = 1)
-    @Effect(signals = {SingleOutputColumnMode.IsReplace.class, OutputMode.IsColumns.class}, operation = Or.class,
-        type = EffectType.HIDE)
+    @Effect(predicate = OutputModeIsColumnsOrSingleOutpuModeIsReplace.class, type = EffectType.HIDE)
     @Persist(optional = true)
     String m_columnName = "Split";
 
@@ -229,12 +255,13 @@ final class OutputSettings implements DefaultNodeSettings {
             @Label("Split input column name")
             SPLIT_INPUT_COL_NAME;
 
-        interface IsCaptureGroupNames {
-            class Condition extends OneOfEnumCondition<OutputGroupLabelMode> {
-                @Override
-                public OutputGroupLabelMode[] oneOf() {
-                    return new OutputGroupLabelMode[]{OutputGroupLabelMode.CAPTURE_GROUP_NAMES};
-                }
+        interface Ref extends Reference<OutputGroupLabelMode> {
+        }
+
+        static final class IsCaptureGroupNames implements PredicateProvider {
+            @Override
+            public Predicate init(final PredicateInitializer i) {
+                return i.getEnum(Ref.class).isOneOf(OutputGroupLabelMode.CAPTURE_GROUP_NAMES);
             }
         }
     }
@@ -258,8 +285,7 @@ final class OutputSettings implements DefaultNodeSettings {
             </ul>
             """)
     @RadioButtonsWidget
-    @Signal(id = OutputGroupLabelMode.IsCaptureGroupNames.class,
-        condition = OutputGroupLabelMode.IsCaptureGroupNames.Condition.class)
+    @ValueReference(OutputGroupLabelMode.Ref.class)
     @Persist(optional = true)
     OutputGroupLabelMode m_groupLabels = OutputGroupLabelMode.CAPTURE_GROUP_NAMES;
 
@@ -267,7 +293,7 @@ final class OutputSettings implements DefaultNodeSettings {
 
     @Layout(DialogSections.Output.class)
     @Widget(title = "Remove input column", description = "Remove the input column from the output table.")
-    @Effect(signals = OutputMode.IsColumns.class, type = EffectType.SHOW)
+    @Effect(predicate = OutputModeIsColumns.class, type = EffectType.SHOW)
     @Persist(optional = true)
     boolean m_removeInputColumn = false;
 

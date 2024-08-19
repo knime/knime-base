@@ -55,15 +55,17 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  * Settings of the Table Splitter node.
@@ -85,8 +87,6 @@ public final class TableSplitterNodeSettings implements DefaultNodeSettings {
     @ValueSwitchWidget
     FindSplittingRowMode m_findSplittingRowMode = FindSplittingRowMode.FIRST_MATCH;
 
-    // TODO: UIEXT-1007 migrate String to ColumnSelection
-
     @Widget( //
         title = "Lookup column",
         description = "Select the column that should be used to evaluate the matching criteria. "
@@ -94,6 +94,16 @@ public final class TableSplitterNodeSettings implements DefaultNodeSettings {
     @ChoicesWidget(choices = ColumnChoices.class, showRowKeysColumn = true)
     @Layout(FindSplittingRowSection.class)
     String m_lookupColumn = TableSplitterNodeModel.ROWID_PLACEHOLDER;
+
+    interface MatchingCriteriaRef extends Reference<MatchingCriteria> {
+    }
+
+    static final class MatchingCriteriaIsEquals implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(MatchingCriteriaRef.class).isOneOf(MatchingCriteria.EQUALS);
+        }
+    }
 
     @Widget( //
         title = "Matching criteria", //
@@ -104,7 +114,7 @@ public final class TableSplitterNodeSettings implements DefaultNodeSettings {
             + "Strings and RowIDs containing only whitespace characters will also match.</li>" + "</ul>"//
     )
     @Layout(FindSplittingRowSection.class)
-    @Signal(condition = MatchingCriteria.IsEquals.class)
+    @ValueReference(MatchingCriteriaRef.class)
     MatchingCriteria m_matchingCriteria = MatchingCriteria.EQUALS;
 
     @Widget( //
@@ -113,7 +123,7 @@ public final class TableSplitterNodeSettings implements DefaultNodeSettings {
             + "If a number column is selected the search pattern must be a parsable number." //
     )
     @Layout(FindSplittingRowSection.class)
-    @Effect(signals = MatchingCriteria.IsEquals.class, type = EffectType.SHOW)
+    @Effect(predicate = MatchingCriteriaIsEquals.class, type = EffectType.SHOW)
     String m_searchPattern = "";
 
     @Section(title = "Output")
@@ -160,15 +170,6 @@ public final class TableSplitterNodeSettings implements DefaultNodeSettings {
             MISSING, //
             @Label("Empty") //
             EMPTY;
-
-        static class IsEquals extends OneOfEnumCondition<MatchingCriteria> {
-
-            @Override
-            public MatchingCriteria[] oneOf() {
-                return new MatchingCriteria[]{EQUALS};
-            }
-
-        }
     }
 
     /**

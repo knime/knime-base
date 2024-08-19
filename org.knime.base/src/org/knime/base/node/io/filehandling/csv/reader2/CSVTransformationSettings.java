@@ -85,14 +85,14 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalArrayWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
@@ -386,13 +386,13 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
 
         @Widget(title = "Column name", description = "", hideTitle = true, hideFlowVariableButton = true) // TODO NOSONAR UIEXT-1901 add description
         @ValueProvider(ColumnNameResetter.class)
-        @Effect(signals = InternalArrayWidget.ElementIsEditedSignal.class, type = EffectType.SHOW)
+        @Effect(predicate = InternalArrayWidget.ElementIsEdited.class, type = EffectType.SHOW)
         String m_columnRename;
 
         @Widget(title = "Column type", description = "", hideTitle = true, hideFlowVariableButton = true) // TODO NOSONAR UIEXT-1901 add description
         @ChoicesWidget(choicesProvider = TypeChoicesProvider.class)
         @ValueProvider(TypeResetter.class)
-        @Effect(signals = InternalArrayWidget.ElementIsEditedSignal.class, type = EffectType.SHOW)
+        @Effect(predicate = InternalArrayWidget.ElementIsEdited.class, type = EffectType.SHOW)
         String m_type;
 
         TransformationElementSettings() {
