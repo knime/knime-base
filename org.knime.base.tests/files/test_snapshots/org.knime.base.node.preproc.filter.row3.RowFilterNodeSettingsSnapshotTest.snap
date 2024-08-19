@@ -82,22 +82,22 @@
                 "operator" : {
                   "oneOf" : [ {
                     "const" : "EQ",
-                    "title" : "="
+                    "title" : "Equals"
                   }, {
                     "const" : "NEQ",
-                    "title" : "≠"
+                    "title" : "Does not equal"
                   }, {
                     "const" : "LT",
-                    "title" : "&lt;"
+                    "title" : "Less than"
                   }, {
                     "const" : "LTE",
-                    "title" : "≤"
+                    "title" : "Less than or equal"
                   }, {
                     "const" : "GT",
-                    "title" : "&gt;"
+                    "title" : "Greater than"
                   }, {
                     "const" : "GTE",
-                    "title" : "≥"
+                    "title" : "Greater than or equal"
                   }, {
                     "const" : "FIRST_N_ROWS",
                     "title" : "First <i>n</i> rows"
@@ -124,7 +124,7 @@
                     "title" : "Is not missing"
                   } ],
                   "title" : "Operator",
-                  "description" : "The operator defining the filter criterion.\n<ul>\n<li><b>=</b>: Value in column must be <b>equal</b> to specified value</li>\n<li><b>≠</b>: Value in column must be <b>not equal</b> to specified value</li>\n<li><b>&lt;</b>: Value in column must be <b>strictly smaller</b> than specified value</li>\n<li><b>≤</b>: Value in column must be <b>smaller than or equal</b> to specified value</li>\n<li><b>&gt;</b>: Value in column must be <b>strictly larger</b> than specified value</li>\n<li><b>≥</b>: Value in column must be <b>larger than or equal</b> than specified value</li>\n<li><b>First <i>n</i> rows</b>: Matches the specified number of rows at the start of the input</li>\n<li><b>Last <i>n</i> rows</b>: Matches the specified number of rows at the end of the input</li>\n<li><b>Matches regex</b>: Value in column must match the specified regular expression</li>\n<li><b>Matches wildcard</b>: Value in column must match the specified pattern, which may contain wildcards <tt>*</tt> and <tt>?</tt></li>\n<li><b>Is true</b>: Boolean value in column must be <tt>true</tt></li>\n<li><b>Is false</b>: Boolean value in column must be <tt>false</tt></li>\n<li><b>Is missing</b>: Value in column must be <i>missing</i></li>\n<li><b>Is not missing</b>: Value in column must <em>not</em> be <i>missing</i></li>\n</ul>",
+                  "description" : "The operator defining the filter criterion.\n<ul>\n<li><b>Equals</b>: Value in column must be <b>equal</b> to specified value</li>\n<li><b>Does not equal</b>: Value in column must be <b>not equal</b> to specified value</li>\n<li><b>Less than</b>: Value in column must be <b>strictly smaller</b> than specified value</li>\n<li><b>Less than or equal</b>: Value in column must be <b>smaller than or equal</b> to specified value</li>\n<li><b>Greater than</b>: Value in column must be <b>strictly larger</b> than specified value</li>\n<li><b>Greater than or equal</b>: Value in column must be <b>larger than or equal</b> than specified value</li>\n<li><b>First <i>n</i> rows</b>: Matches the specified number of rows at the start of the input</li>\n<li><b>Last <i>n</i> rows</b>: Matches the specified number of rows at the end of the input</li>\n<li><b>Matches regex</b>: Value in column must match the specified regular expression</li>\n<li><b>Matches wildcard</b>: Value in column must match the specified pattern, which may contain wildcards <tt>*</tt> and <tt>?</tt></li>\n<li><b>Is true</b>: Boolean value in column must be <tt>true</tt></li>\n<li><b>Is false</b>: Boolean value in column must be <tt>false</tt></li>\n<li><b>Is missing</b>: Value in column must be <i>missing</i></li>\n<li><b>Is not missing</b>: Value in column must <em>not</em> be <i>missing</i></li>\n</ul>",
                   "default" : "EQ"
                 },
                 "predicateValues" : {

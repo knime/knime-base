@@ -76,20 +76,23 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValu
 @SuppressWarnings("restriction") // new ui
 enum FilterOperator {
 
-        @Label(value = "=", description = "Value in column must be <b>equal</b> to specified value")
-        EQ("=", new IsEq(), null, true),
-        @Label(value = "≠", description = "Value in column must be <b>not equal</b> to specified value")
-        NEQ("≠", new IsEq(), null, true),
+        @Label(value = "Equals", description = "Value in column must be <b>equal</b> to specified value")
+        EQ("Equals", new IsEq(), null, true),
+        @Label(value = "Does not equal", description = "Value in column must be <b>not equal</b> to specified value")
+        NEQ("Does not equal", new IsEq(), null, true),
 
-        @Label(value = "&lt;", description = "Value in column must be <b>strictly smaller</b> than specified value")
-        LT("<", new IsOrd(), new BoundedNumeric(), true),
-        @Label(value = "≤", description = "Value in column must be <b>smaller than or equal</b> to specified value")
-        LTE("≤", new IsOrd(), new BoundedNumeric(), true),
-        @Label(value = "&gt;", description = "Value in column must be <b>strictly larger</b> than specified value")
-        GT(">", new IsOrd(), new BoundedNumeric(), true),
-        @Label(value = "≥",
-            description = "Value in column must be <b>larger than or equal</b> than specified value")
-        GTE("≥", new IsOrd(), new BoundedNumeric(), true),
+        @Label(value = "Less than", //
+               description = "Value in column must be <b>strictly smaller</b> than specified value") //
+        LT("Less than", new IsOrd(), new BoundedNumeric(), true), //
+        @Label(value = "Less than or equal", //
+               description = "Value in column must be <b>smaller than or equal</b> to specified value") //
+        LTE("Less than or equal", new IsOrd(), new BoundedNumeric(), true), //
+        @Label(value = "Greater than", //
+               description = "Value in column must be <b>strictly larger</b> than specified value") //
+        GT("Greater than", new IsOrd(), new BoundedNumeric(), true), //
+        @Label(value = "Greater than or equal", //
+            description = "Value in column must be <b>larger than or equal</b> than specified value") //
+        GTE("Greater than or equal", new IsOrd(), new BoundedNumeric(), true), //
 
         @Label(value = "First <i>n</i> rows",
             description = "Matches the specified number of rows at the start of the input")
