@@ -111,14 +111,24 @@ final class FilterOperatorTest {
                 FilterOperator.GT, //
                 FilterOperator.GTE, //
                 FilterOperator.LT, //
-                FilterOperator.LTE //
+                FilterOperator.LTE, //
+                FilterOperator.WILDCARD, //
+                FilterOperator.REGEX //
             );
         assertThat(operatorChoicesFor("Long1", LongCell.TYPE))
             .as("The list of operators for int cells is the same as for long cells")
             .isEqualTo(operatorChoicesFor("Int1", IntCell.TYPE));
         assertThat(operatorChoicesFor("Double1", DoubleCell.TYPE))
-            .as("The list of operators for int cells is the same as for double cells")
-            .isEqualTo(operatorChoicesFor("Int1", IntCell.TYPE));
+            .as("The list of operators for a double column is what is expected").containsExactlyInAnyOrder( //
+                FilterOperator.IS_MISSING, //
+                FilterOperator.IS_NOT_MISSING, //
+                FilterOperator.EQ, //
+                FilterOperator.NEQ, //
+                FilterOperator.GT, //
+                FilterOperator.GTE, //
+                FilterOperator.LT, //
+                FilterOperator.LTE
+            );
         assertThat(operatorChoicesFor("Bool1", BooleanCell.TYPE))
             .as("The list of operators for a boolean column is what is expected").containsExactlyInAnyOrder( //
                 FilterOperator.IS_MISSING, //
@@ -144,7 +154,9 @@ final class FilterOperatorTest {
                 FilterOperator.LT, //
                 FilterOperator.LTE, //
                 FilterOperator.LAST_N_ROWS, //
-                FilterOperator.FIRST_N_ROWS //
+                FilterOperator.FIRST_N_ROWS, //
+                FilterOperator.WILDCARD, //
+                FilterOperator.REGEX //
             );
         assertThat(operatorChoicesFor(SpecialColumns.ROWID))
             .as("The list of operators for the row id column is what is expected").containsExactlyInAnyOrder( //

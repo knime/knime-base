@@ -307,10 +307,12 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                     // which we don't want to clear
                     return m_currentValue.get();
                 }
-                // provide an input field for the given type, if we can typemap it
-                if (DynamicValuesInput.supportsDataType(columnSpec.getType())) {
+                // provide an input field for the given type, if we can typemap it, or fall back to the column type
+                // if the operator does not require a specific type
+                final var type = m_currentOperator.get().getRequiredInputType().orElse(columnSpec.getType());
+                if (DynamicValuesInput.supportsDataType(type)) {
                     return keepCurrentValueIfPossible(DynamicValuesInput
-                        .singleValueWithCaseMatchingForStringWithDefault(columnSpec.getType()));
+                        .singleValueWithCaseMatchingForStringWithDefault(type));
                 }
                 // cannot provide an input field
                 return DynamicValuesInput.emptySingle();

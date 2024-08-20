@@ -49,6 +49,7 @@
 package org.knime.base.node.preproc.filter.row3;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.BiPredicate;
 
 import org.knime.base.node.preproc.filter.row3.RowReadPredicate.BooleanValuePredicate;
@@ -56,9 +57,9 @@ import org.knime.core.data.BooleanValue;
 import org.knime.core.data.BoundedValue;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.data.IntValue;
 import org.knime.core.data.LongValue;
 import org.knime.core.data.StringValue;
-import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.message.Message;
@@ -77,47 +78,54 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValu
 enum FilterOperator {
 
         @Label(value = "Equals", description = "Value in column must be <b>equal</b> to specified value")
-        EQ("Equals", new IsEq(), null, true),
+        EQ("Equals", null, new IsEq(), null, true),
         @Label(value = "Does not equal", description = "Value in column must be <b>not equal</b> to specified value")
-        NEQ("Does not equal", new IsEq(), null, true),
+        NEQ("Does not equal", null, new IsEq(), null, true),
 
         @Label(value = "Less than", //
                description = "Value in column must be <b>strictly smaller</b> than specified value") //
-        LT("Less than", new IsOrd(), new BoundedNumeric(), true), //
+        LT("Less than", null, new IsOrd(), new BoundedNumeric(), true), //
         @Label(value = "Less than or equal", //
                description = "Value in column must be <b>smaller than or equal</b> to specified value") //
-        LTE("Less than or equal", new IsOrd(), new BoundedNumeric(), true), //
+        LTE("Less than or equal", null, new IsOrd(), new BoundedNumeric(), true), //
         @Label(value = "Greater than", //
                description = "Value in column must be <b>strictly larger</b> than specified value") //
-        GT("Greater than", new IsOrd(), new BoundedNumeric(), true), //
+        GT("Greater than", null, new IsOrd(), new BoundedNumeric(), true), //
         @Label(value = "Greater than or equal", //
             description = "Value in column must be <b>larger than or equal</b> than specified value") //
-        GTE("Greater than or equal", new IsOrd(), new BoundedNumeric(), true), //
+        GTE("Greater than or equal", null, new IsOrd(), new BoundedNumeric(), true), //
 
         @Label(value = "First <i>n</i> rows",
             description = "Matches the specified number of rows at the start of the input")
-        FIRST_N_ROWS("First n rows", new IsRowNumber(), null, true), //
+        FIRST_N_ROWS("First n rows", null, new IsRowNumber(), null, true), //
         @Label(value = "Last <i>n</i> rows",
             description = "Matches the specified number of rows at the end of the input")
-        LAST_N_ROWS("Last n rows", new IsRowNumber(), null, true), //
+        LAST_N_ROWS("Last n rows", null, new IsRowNumber(), null, true), //
 
         @Label(value = "Matches regex", description = "Value in column must match the specified regular expression")
-        REGEX("Matches regex", new IsPatternMatchable(), null, true),
+        REGEX("Matches regex", StringCell.TYPE, new IsPatternMatchable(), null, true),
         @Label(value = "Matches wildcard", description = "Value in column must match the specified pattern, "
                 + "which may contain wildcards <tt>*</tt> and <tt>?</tt>")
-        WILDCARD("Matches wildcard", new IsPatternMatchable(), null, true),
+        WILDCARD("Matches wildcard", StringCell.TYPE, new IsPatternMatchable(), null, true),
 
         @Label(value = "Is true", description = "Boolean value in column must be <tt>true</tt>")
-        IS_TRUE("Is true", new IsTruthy(), null, false),
+        IS_TRUE("Is true", null, new IsTruthy(), null, false),
         @Label(value = "Is false", description = "Boolean value in column must be <tt>false</tt>")
-        IS_FALSE("Is false", new IsTruthy(), null, false),
+        IS_FALSE("Is false", null, new IsTruthy(), null, false),
 
         @Label(value = "Is missing", description = "Value in column must be <i>missing</i>")
-        IS_MISSING("Is missing", new IsMissing(), null, false),
+        IS_MISSING("Is missing", null, new IsMissing(), null, false),
         @Label(value = "Is not missing", description = "Value in column must <em>not</em> be <i>missing</i>")
-        IS_NOT_MISSING("Is not missing", new IsMissing(), null, false);
+        IS_NOT_MISSING("Is not missing", null, new IsMissing(), null, false);
 
     final String m_label;
+
+    /**
+     * If non-{@code null}, specifies the input type required for the operator. This field is used in the dialog to show
+     * an input widget that is of a different type than the column the filter criterion is configured for.
+     * For example, this will show a String input for Regex matching even though a Local Date column is selected.
+     */
+    private final DataType m_inputType;
 
     private final InputSpecValidator m_validator;
 
@@ -125,12 +133,18 @@ enum FilterOperator {
 
     final boolean m_isBinary;
 
-    FilterOperator(final String label, final InputSpecValidator validator,
-        final BiPredicate<SpecialColumns, DataType> isOffered, final boolean isBinary) {
+    FilterOperator(final String label, final DataType inputType,
+        final InputSpecValidator validator, final BiPredicate<SpecialColumns, DataType> isOffered,
+        final boolean isBinary) {
         m_label = label;
+        m_inputType = inputType;
         m_validator = validator;
         m_isOffered = isOffered != null ? isOffered : validator;
         m_isBinary = isBinary;
+    }
+
+    Optional<DataType> getRequiredInputType() {
+        return Optional.ofNullable(m_inputType);
     }
 
     private interface InputSpecValidator extends BiPredicate<SpecialColumns, DataType> {
@@ -182,7 +196,7 @@ enum FilterOperator {
         @Override
         public boolean test(final SpecialColumns specialColumn, final DataType dataType) {
             return DynamicValuesInput.supportsDataType(dataType)
-                && dataType != BooleanCell.TYPE && dataType != StringCell.TYPE // explicitly disabled cell types
+                && !BooleanValuePredicate.isApplicableFor(dataType) && dataType != StringCell.TYPE // disabled
                 && dataType.isCompatible(BoundedValue.class); // explicitly enabled value classes
         }
     }
@@ -194,7 +208,7 @@ enum FilterOperator {
             // than a lexicographic ordering. Still, we want to disallow ordering for boolean and string cells
             // explicitly for now.
             return DynamicValuesInput.supportsDataType(dataType)
-                    && dataType != BooleanCell.TYPE && dataType != StringCell.TYPE;
+                && !BooleanValuePredicate.isApplicableFor(dataType) && dataType != StringCell.TYPE;
         }
 
         @Override
@@ -257,17 +271,26 @@ enum FilterOperator {
     static final class IsPatternMatchable implements InputSpecValidator {
         @Override
         public boolean test(final SpecialColumns specialColumn, final DataType dataType) {
-            return DynamicValuesInput.supportsDataType(dataType) && dataType == StringCell.TYPE;
+            // boolean is handled with is-true/is-false
+            return DynamicValuesInput.supportsDataType(dataType)
+                && !BooleanValuePredicate.isApplicableFor(dataType) && isCompatible(dataType);
+        }
+
+        // We currently define pattern-matchable as everything that is already String-compatible and numbers.
+        // This should cover most of the use-cases currently, e.g. convenient Date&Time filtering.
+        private static boolean isCompatible(final DataType dataType) {
+            return dataType.isCompatible(StringValue.class) || dataType.isCompatible(IntValue.class)
+                || dataType.isCompatible(LongValue.class);
         }
 
         @Override
         public void validateImpl(final DataColumnSpec colSpec, final DynamicValuesInput predicateValues)
             throws InvalidSettingsException {
-            if (!colSpec.getType().isCompatible(StringValue.class)) {
+            if (!isCompatible(colSpec.getType())) {
                 throw Message.builder()
                     .withSummary("Cannot apply string pattern matching to "
-                        + "column \"%s\" of type \"%s\" - it is not string-compatible.".formatted(colSpec.getName(),
-                            colSpec.getType().toPrettyString()))
+                        + "column \"%s\" of type \"%s\" - it is not string-compatible and not numeric."
+                            .formatted(colSpec.getName(), colSpec.getType().toPrettyString()))
                     .addResolutions("Review configuration if the selected column is correct",
                         "Convert the input column to string using a converter node")
                     .build().orElseThrow().toInvalidSettingsException();
@@ -284,7 +307,7 @@ enum FilterOperator {
         @Override
         public void validateImpl(final DataColumnSpec colSpec, final DynamicValuesInput predicateValues)
             throws InvalidSettingsException {
-            LongValue count = (LongValue)predicateValues.getCellAt(0).orElseThrow();
+            final var count = (LongValue)predicateValues.getCellAt(0).orElseThrow();
             if (count.getLongValue() < 0) {
                 throw new InvalidSettingsException("Row number must be non-negative: " + count.getLongValue());
             }
