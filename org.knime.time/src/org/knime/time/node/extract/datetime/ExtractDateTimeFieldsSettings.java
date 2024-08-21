@@ -73,9 +73,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesUpdateHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.CompatibleColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
@@ -111,7 +111,7 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
     @Section(title = "Column selection")
     interface ColumnSection {}
 
-    static final class AutoGuessColumnReference implements Reference<String> {}
+    static final class SelectedColumnRef implements Reference<String> {}
     static final class AutoGuessColumnValueProvider implements StateProvider<String> {
 
         private Supplier<String> m_valueSupplier;
@@ -122,7 +122,7 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
         @Override
         public void init(final StateProviderInitializer initializer) {
             initializer.computeAfterOpenDialog();
-            m_valueSupplier = initializer.getValueSupplier(AutoGuessColumnReference.class);
+            m_valueSupplier = initializer.getValueSupplier(SelectedColumnRef.class);
         }
 
         /**
@@ -143,7 +143,7 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
     @Persist(configKey = "col_select")
     @ChoicesWidget(choices = DateTimeColumnChoices.class)
     @Layout(ColumnSection.class)
-    @ValueReference(AutoGuessColumnReference.class)
+    @ValueReference(SelectedColumnRef.class)
     @ValueProvider(AutoGuessColumnValueProvider.class)
     public String m_selectedColumn;
 
@@ -151,9 +151,25 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
     @After(ColumnSection.class)
     interface DateTimeFieldsSection {}
 
+    static final class DefaultExtractFieldProvider implements StateProvider<ExtractField> {
+
+        private Supplier<IdAndText[]> m_choicesSupplier;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            m_choicesSupplier = initializer.computeFromProvidedState(FilteredPossibleFieldsChoices.class);
+        }
+
+        @Override
+        public ExtractField computeState(final DefaultNodeSettingsContext context) {
+            return new ExtractField(DateTimeField.valueOf(m_choicesSupplier.get()[0].id()), "");
+        }
+    }
+
     @Widget(title = "Extracted fields", description = "Define date or time fields to extract and set column names.")
     @Persist(customPersistor = DateTimeFieldsPersistor.class)
-    @ArrayWidget(addButtonText = "Add field", showSortButtons = true)
+    @ArrayWidget(addButtonText = "Add field", showSortButtons = true,
+        elementDefaultValueProvider = DefaultExtractFieldProvider.class)
     @Layout(DateTimeFieldsSection.class)
     public ExtractField[] m_extractFields = new ExtractField[0];
 
@@ -193,7 +209,7 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
         interface ExtractFieldLayout {}
 
         @Widget(title = "Field", description = "The type of field to extract.")
-        @ChoicesWidget(choicesUpdateHandler = FilteredPossibleFieldsChoices.class)
+        @ChoicesWidget(choicesProvider = FilteredPossibleFieldsChoices.class)
         @Layout(ExtractFieldLayout.class)
         @ValueReference(DateTimeFieldReference.class)
         public DateTimeField m_field;
@@ -342,22 +358,24 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
         DateTimeField.TIME_ZONE_OFFSET
     };
 
-    static final class ColumnUpdateFilterTrigger {
-        String m_selectedColumn;
-    }
+    static final class FilteredPossibleFieldsChoices implements StringChoicesStateProvider {
 
-    static final class FilteredPossibleFieldsChoices implements ChoicesUpdateHandler<ColumnUpdateFilterTrigger> {
+        private Supplier<String> m_selectedColumnSupplier;
 
-        FilteredPossibleFieldsChoices() {
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            StringChoicesStateProvider.super.init(initializer);
+            m_selectedColumnSupplier = initializer.computeFromValueSupplier(SelectedColumnRef.class);
         }
 
         @Override
-        public IdAndText[] update(final ColumnUpdateFilterTrigger update, final DefaultNodeSettingsContext context)
+        public IdAndText[] computeState(final DefaultNodeSettingsContext context)
             throws WidgetHandlerException {
             List<IdAndText> filteredChoices = new ArrayList<>();
             var spec = context.getDataTableSpec(0);
-            if (update.m_selectedColumn != null && spec.isPresent() && spec.get() != null) {
-                var colSpec = spec.get().getColumnSpec(update.m_selectedColumn);
+            var selectedColumn = m_selectedColumnSupplier.get();
+            if (selectedColumn != null && spec.isPresent() && spec.get() != null) {
+                var colSpec = spec.get().getColumnSpec(selectedColumn);
                 if (isDateType(colSpec)) {
                     filteredChoices
                         .addAll(Arrays.stream(dateFields).map(ExtractDateTimeFieldsSettings::toIdAndText).toList());
@@ -373,12 +391,6 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
             }
             return filteredChoices.toArray(IdAndText[]::new);
         }
-
-        @Override
-        public boolean setFirstValueOnUpdate() {
-            return false;
-        }
-
     }
 
     static final class ColumnNameProvider implements StateProvider<String> {
