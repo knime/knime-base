@@ -100,6 +100,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TreeTypeHierarchy;
 
 /**
@@ -255,11 +256,14 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
 
         @ValueProvider(FilePathColumnNameRef.class)
         String m_filePathColumnName = "File Path";
+
+        @ValueProvider(TakeColumnsFromProvider.class)
+        ColumnFilterMode m_takeColumnsFrom = ColumnFilterMode.UNION;
     }
 
     PersistorSettings m_persistorSettings = new PersistorSettings();
 
-    static class TakeColumnsFromProvider implements StateProvider<String> {
+    static class TakeColumnsFromProvider implements StateProvider<ColumnFilterMode> {
 
         private Supplier<HowToCombineColumnsOption> m_howToCombineColumnsOptionSupplier;
 
@@ -271,13 +275,10 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
         }
 
         @Override
-        public String computeState(final DefaultNodeSettingsContext context) {
-            return m_howToCombineColumnsOptionSupplier.get().toColumnFilterMode().name();
+        public ColumnFilterMode computeState(final DefaultNodeSettingsContext context) {
+            return m_howToCombineColumnsOptionSupplier.get().toColumnFilterMode();
         }
     }
-
-    @ValueProvider(TakeColumnsFromProvider.class)
-    String m_takeColumnsFrom = "UNION";
 
     @Widget(title = "Enforce types", description = """
             Controls how columns whose type changes are dealt with.

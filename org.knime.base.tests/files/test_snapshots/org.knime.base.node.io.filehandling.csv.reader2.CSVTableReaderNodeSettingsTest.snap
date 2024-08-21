@@ -81,9 +81,9 @@
           "fsLocations" : [ ],
           "specs" : [ ],
           "appendPathColumn" : false,
-          "filePathColumnName" : "File Path"
+          "filePathColumnName" : "File Path",
+          "takeColumnsFrom" : "UNION"
         },
-        "takeColumnsFrom" : "UNION",
         "enforceTypes" : true,
         "columnTransformation" : [ ]
       }
@@ -758,6 +758,16 @@
                         }
                       }
                     }
+                  },
+                  "takeColumnsFrom" : {
+                    "oneOf" : [ {
+                      "const" : "UNION",
+                      "title" : "Union"
+                    }, {
+                      "const" : "INTERSECTION",
+                      "title" : "Intersection"
+                    } ],
+                    "default" : "UNION"
                   }
                 },
                 "default" : {
@@ -785,12 +795,9 @@
                   "fsLocations" : [ ],
                   "specs" : [ ],
                   "appendPathColumn" : false,
-                  "filePathColumnName" : "File Path"
+                  "filePathColumnName" : "File Path",
+                  "takeColumnsFrom" : "UNION"
                 }
-              },
-              "takeColumnsFrom" : {
-                "type" : "string",
-                "default" : "UNION"
               }
             },
             "default" : {
@@ -819,9 +826,9 @@
                 "fsLocations" : [ ],
                 "specs" : [ ],
                 "appendPathColumn" : false,
-                "filePathColumnName" : "File Path"
+                "filePathColumnName" : "File Path",
+                "takeColumnsFrom" : "UNION"
               },
-              "takeColumnsFrom" : "UNION",
               "enforceTypes" : true,
               "columnTransformation" : [ ]
             },
@@ -1269,7 +1276,7 @@
       "id" : null,
       "value" : "File Path"
     }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/takeColumnsFrom" ],
+      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/takeColumnsFrom" ],
       "id" : null,
       "value" : "UNION"
     } ],

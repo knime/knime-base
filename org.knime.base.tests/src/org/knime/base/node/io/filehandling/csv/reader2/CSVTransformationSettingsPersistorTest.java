@@ -72,7 +72,7 @@ class CSVTransformationSettingsPersistorTest {
     void testSaveLoad(final CSVTransformationSettings settings) throws InvalidSettingsException {
         final var copy = CSVTableReaderNodeSettingsTest.saveLoad(CSVTransformationSettingsPersistor.class,
             CSVTransformationSettings.class, settings);
-        assertEquals(settings.m_takeColumnsFrom, copy.m_takeColumnsFrom);
+        assertEquals(settings.m_persistorSettings.m_takeColumnsFrom, copy.m_persistorSettings.m_takeColumnsFrom);
         assertEquals(settings.m_columnTransformation.length, copy.m_columnTransformation.length);
         for (int i = 0; i < settings.m_columnTransformation.length; i++) {
             assertEquals(settings.m_columnTransformation[i].m_columnName, copy.m_columnTransformation[i].m_columnName);
@@ -96,7 +96,7 @@ class CSVTransformationSettingsPersistorTest {
     private static CSVTransformationSettings
         createTransformationSettings(final ColumnFilterMode columnFilterMode) {
         final var transformationSettings = new CSVTransformationSettings();
-        transformationSettings.m_takeColumnsFrom = columnFilterMode.name();
+        transformationSettings.m_persistorSettings.m_takeColumnsFrom = columnFilterMode;
         return transformationSettings;
     }
 

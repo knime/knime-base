@@ -128,8 +128,9 @@ final class CSVTransformationSettingsPersistor extends NodeSettingsPersistorWith
                     );
                 }).toArray(TransformationElementSettings[]::new);
 
-            transformationSettings.m_takeColumnsFrom = settings.getNodeSettings(getConfigKey())
-                .getNodeSettings("table_transformation").getString("column_filter_mode");
+            transformationSettings.m_persistorSettings.m_takeColumnsFrom =
+                ColumnFilterMode.valueOf(settings.getNodeSettings(getConfigKey())
+                    .getNodeSettings("table_transformation").getString("column_filter_mode"));
             transformationSettings.m_enforceTypes = settings.getNodeSettings(getConfigKey())
                 .getNodeSettings("table_transformation").getBoolean("enforce_types", true);
         }
@@ -148,7 +149,7 @@ final class CSVTransformationSettingsPersistor extends NodeSettingsPersistorWith
         final var unknownColsTrans = new ImmutableUnknownColumnsTransformation(1, true, false, null);
 
         final var tableTransformation = new DefaultTableTransformation<Class<?>>(rawSpec, transformations,
-            ColumnFilterMode.valueOf(transformationSettings.m_takeColumnsFrom), unknownColsTrans,
+            transformationSettings.m_persistorSettings.m_takeColumnsFrom, unknownColsTrans,
             transformationSettings.m_enforceTypes, false);
 
         DataColumnSpec itemIdentifierColumnSpec = determineAPpendPathColumnSpec(persistorSettings);
