@@ -162,7 +162,11 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
 
         @Override
         public ExtractField computeState(final DefaultNodeSettingsContext context) {
-            return new ExtractField(DateTimeField.valueOf(m_choicesSupplier.get()[0].id()), "");
+            final var choices = m_choicesSupplier.get();
+            if (choices == null || choices.length == 0) {
+                return new ExtractField();
+            }
+            return new ExtractField(DateTimeField.valueOf(choices[0].id()), "");
         }
     }
 

@@ -193,9 +193,7 @@
               "type" : "Control",
               "scope" : "#/properties/field",
               "options" : {
-                "choicesUpdateHandler" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$FilteredPossibleFieldsChoices",
-                "dependencies" : [ "#/properties/model/properties/selectedColumn" ],
-                "setFirstValueOnUpdate" : false,
+                "choicesProvider" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$FilteredPossibleFieldsChoices",
                 "format" : "dropDown",
                 "showNoneColumn" : false,
                 "showRowKeys" : false,
@@ -212,7 +210,8 @@
             } ]
           } ],
           "addButtonText" : "Add field",
-          "showSortButtons" : true
+          "showSortButtons" : true,
+          "elementDefaultValueProvider" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$DefaultExtractFieldProvider"
         }
       } ]
     }, {
@@ -231,6 +230,15 @@
         }
       } ]
     } ],
+    "initialUpdates" : [ {
+      "scopes" : null,
+      "id" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$DefaultExtractFieldProvider",
+      "value" : { }
+    }, {
+      "scopes" : null,
+      "id" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$FilteredPossibleFieldsChoices",
+      "value" : [ ]
+    } ],
     "globalUpdates" : [ {
       "trigger" : {
         "id" : "after-open-dialog",
@@ -238,7 +246,7 @@
       },
       "dependencies" : [ {
         "scopes" : [ "#/properties/model/properties/selectedColumn" ],
-        "id" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$AutoGuessColumnReference"
+        "id" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$SelectedColumnRef"
       } ]
     }, {
       "trigger" : {
@@ -248,6 +256,15 @@
       "dependencies" : [ {
         "scopes" : [ "#/properties/model/properties/extractFields", "#/properties/field" ],
         "id" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$ColumnNameProvider$DateTimeFieldReference"
+      } ]
+    }, {
+      "trigger" : {
+        "id" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$SelectedColumnRef",
+        "scopes" : [ "#/properties/model/properties/selectedColumn" ]
+      },
+      "dependencies" : [ {
+        "scopes" : [ "#/properties/model/properties/selectedColumn" ],
+        "id" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$SelectedColumnRef"
       } ]
     } ]
   }
