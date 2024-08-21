@@ -300,7 +300,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                         return keepCurrentValueIfPossible(DynamicValuesInput.forRowID());
                     }
                     if (isRowNumberSelected(selected)) {
-                        return DynamicValuesInput.forRowNumber();
+                        return keepCurrentValueIfPossible(DynamicValuesInput.forRowNumber());
                     }
                     // we don't know the column type, but we still have the (user-supplied) comparison value,
                     // which we don't want to clear
