@@ -1344,6 +1344,18 @@
       "dependencies" : [ {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/limitMemoryPerColumn" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$LimitMemoryPerColumnRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maximumNumberOfColumns" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaximumNumberOfColumnsRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FileChooserRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings$PersistorSettings$ConfigIdReference"
       } ]
     }, {
       "trigger" : {
@@ -1351,6 +1363,9 @@
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/limitMemoryPerColumn" ]
       },
       "dependencies" : [ {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/limitMemoryPerColumn" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$LimitMemoryPerColumnRef"
       }, {
@@ -1387,6 +1402,9 @@
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maximumNumberOfColumns" ]
       },
       "dependencies" : [ {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/limitMemoryPerColumn" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$LimitMemoryPerColumnRef"
       }, {
@@ -1515,6 +1533,9 @@
         "scopes" : [ "#/properties/model/properties/settings/properties/source" ]
       },
       "dependencies" : [ {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/limitMemoryPerColumn" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$LimitMemoryPerColumnRef"
       }, {
@@ -1578,6 +1599,9 @@
         "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ]
       },
       "dependencies" : [ {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/limitMemoryPerColumn" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$LimitMemoryPerColumnRef"
       }, {

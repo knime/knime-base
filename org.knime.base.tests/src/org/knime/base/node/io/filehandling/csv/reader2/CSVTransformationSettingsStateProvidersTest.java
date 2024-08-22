@@ -60,6 +60,8 @@ import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOptionRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.LimitMemoryPerColumnRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.MaximumNumberOfColumnsRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.QuotedStringsOption;
@@ -431,13 +433,20 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
     }
 
     @Test
-    void testTransformationElementSettingsProvider() throws IOException {
+    void testTransformationElementSettingsProviderUnion() throws IOException {
         final var file = m_tempFolder.resolve("file.csv").toAbsolutePath().toString();
         final var typedReaderTableSpecsProvider = createTypedReaderTableSpecsProvider(file);
 
+        testTransformationElementSettingsProvider(HowToCombineColumnsOption.UNION, typedReaderTableSpecsProvider);
+        testTransformationElementSettingsProvider(HowToCombineColumnsOption.INTERSECTION,
+            typedReaderTableSpecsProvider);
+    }
+
+    void testTransformationElementSettingsProvider(final HowToCombineColumnsOption howToCombineColumnsOption,
+        final TypedReaderTableSpecsProvider typedReaderTableSpecsProvider) throws IOException {
         final var transformationElementSettingsProvider = new TransformationElementSettingsProvider();
-        transformationElementSettingsProvider
-            .init(getTransformationElementSettingsProviderInitializer(typedReaderTableSpecsProvider));
+        transformationElementSettingsProvider.init(getTransformationElementSettingsProviderInitializer(
+            howToCombineColumnsOption, typedReaderTableSpecsProvider));
 
         final var transformationElements = transformationElementSettingsProvider.computeState(null);
 
@@ -457,8 +466,17 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
     }
 
     private static final StateProviderInitializer getTransformationElementSettingsProviderInitializer(
+        final HowToCombineColumnsOption howToCombineColumnsOption,
         final TypedReaderTableSpecsProvider typedReaderTableSpecsProvider) {
-        return new DependsOnTypedReaderTableSpecProviderInitializer(typedReaderTableSpecsProvider);
+        return new DependsOnTypedReaderTableSpecProviderInitializer(typedReaderTableSpecsProvider) {
+            @Override
+            public <T> Supplier<T> computeFromValueSupplier(final Class<? extends Reference<T>> ref) {
+                if (ref.equals(HowToCombineColumnsOptionRef.class)) {
+                    return () -> (T)howToCombineColumnsOption;
+                }
+                throw new IllegalStateException(String.format("Unexpected dependency %s", ref.getSimpleName()));
+            }
+        };
     }
 
     @Test
@@ -466,11 +484,11 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
         final var file = m_tempFolder.resolve("file.csv").toAbsolutePath().toString();
         final var typedReaderTableSpecsProvider = createTypedReaderTableSpecsProvider(file);
 
-        testTypeChoicesProviderIntCol(typedReaderTableSpecsProvider, "intCol", Integer.class);
-        testTypeChoicesProviderIntCol(typedReaderTableSpecsProvider, "stringCol", String.class);
+        testTypeChoicesProvider(typedReaderTableSpecsProvider, "intCol", Integer.class);
+        testTypeChoicesProvider(typedReaderTableSpecsProvider, "stringCol", String.class);
     }
 
-    private static void testTypeChoicesProviderIntCol(final TypedReaderTableSpecsProvider typedReaderTableSpecProvider,
+    private static void testTypeChoicesProvider(final TypedReaderTableSpecsProvider typedReaderTableSpecProvider,
         final String columnName, final Class<?> type) {
         final var typeChoicesProvider = new TypeChoicesProvider();
         typeChoicesProvider

@@ -59,6 +59,8 @@ import java.util.function.Supplier;
 
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReader;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOptionRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.LimitMemoryPerColumnRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.MaximumNumberOfColumnsRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FileChooserRef;
@@ -271,17 +273,28 @@ final class CSVTransformationSettingsStateProviders implements WidgetGroup, Pers
     static final class TransformationElementSettingsProvider
         extends DependsOnTypedReaderTableSpecProvider<TransformationElementSettings[]> {
 
+        private Supplier<HowToCombineColumnsOption> m_howToCombineColumnsOptionSupplier;
+
         @Override
-        public TransformationElementSettings[] computeState(final DefaultNodeSettingsContext context) {
-            return toTransformationElements(m_specSupplier.get());
+        public void init(final StateProviderInitializer initializer) {
+            super.init(initializer);
+            m_howToCombineColumnsOptionSupplier =
+                initializer.computeFromValueSupplier(HowToCombineColumnsOptionRef.class);
         }
 
-        static TransformationElementSettings[]
-            toTransformationElements(final Map<String, TypedReaderTableSpec<Class<?>>> specs) {
-            final var union = toRawSpec(specs).getUnion();
-            final var elements = new TransformationElementSettings[union.size()];
+        @Override
+        public TransformationElementSettings[] computeState(final DefaultNodeSettingsContext context) {
+            return toTransformationElements(m_specSupplier.get(), m_howToCombineColumnsOptionSupplier.get());
+        }
+
+        static TransformationElementSettings[] toTransformationElements(
+            final Map<String, TypedReaderTableSpec<Class<?>>> specs,
+            final HowToCombineColumnsOption howToCombineColumnsOption) {
+            final var rawSpec = toRawSpec(specs);
+            final var spec = howToCombineColumnsOption.toColumnFilterMode().getRelevantSpec(rawSpec);
+            final var elements = new TransformationElementSettings[spec.size()];
             int i = 0;
-            for (var column : union) {
+            for (var column : spec) {
                 final var name = column.getName().get(); // NOSONAR in the TypedReaderTableSpecProvider we make sure that names are always present
                 final var defPath = PRODUCTION_PATH_PROVIDER.getDefaultProductionPath(column.getType());
                 final var type = defPath.getConverterFactory().getIdentifier();
