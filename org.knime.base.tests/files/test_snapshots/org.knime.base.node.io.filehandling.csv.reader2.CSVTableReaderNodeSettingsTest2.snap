@@ -96,6 +96,13 @@
           "includeInOutput" : true,
           "columnRename" : "new name",
           "type" : "org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"
+        }, {
+          "columnName" : null,
+          "originalType" : "<default-columntype>",
+          "originalTypeLabel" : "Default columntype",
+          "includeInOutput" : true,
+          "columnRename" : null,
+          "type" : "<default-columntype>"
         } ]
       }
     }
@@ -501,7 +508,10 @@
                     "default" : {
                       "fsCategory" : "LOCAL",
                       "path" : "",
-                      "timeout" : 10000
+                      "timeout" : 10000,
+                      "context" : {
+                        "fsToString" : "(LOCAL, )"
+                      }
                     }
                   }
                 },
@@ -511,7 +521,10 @@
                   "path" : {
                     "fsCategory" : "LOCAL",
                     "path" : "",
-                    "timeout" : 10000
+                    "timeout" : 10000,
+                    "context" : {
+                      "fsToString" : "(LOCAL, )"
+                    }
                   }
                 },
                 "configKeys" : [ "file_selection" ]
@@ -522,7 +535,10 @@
                 "path" : {
                   "fsCategory" : "LOCAL",
                   "path" : "",
-                  "timeout" : 10000
+                  "timeout" : 10000,
+                  "context" : {
+                    "fsToString" : "(LOCAL, )"
+                  }
                 }
               },
               "fileSelectionInternal" : {
@@ -550,7 +566,14 @@
               "columnTransformation" : {
                 "title" : "Transformations",
                 "description" : "Use this option to modify the structure of the table. You can deselect each column to filter it out of the\noutput table, use the arrows to reorder the columns, or change the column name or column type of each\ncolumn. Note that the positions of columns are reset in the dialog if a new file or folder is selected.\nWhether and where to add unknown columns during execution is specified via the special row &lt;any unknown\nnew column&gt;. It is also possible to select the type new columns should be converted to. Note that the\nnode will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is\nof type Double.\n",
-                "default" : [ ],
+                "default" : [ {
+                  "columnName" : null,
+                  "originalType" : "<default-columntype>",
+                  "originalTypeLabel" : "Default columntype",
+                  "includeInOutput" : true,
+                  "columnRename" : null,
+                  "type" : "<default-columntype>"
+                } ],
                 "type" : "array",
                 "items" : {
                   "type" : "object",
@@ -841,7 +864,14 @@
                 "takeColumnsFrom" : "UNION"
               },
               "enforceTypes" : true,
-              "columnTransformation" : [ ]
+              "columnTransformation" : [ {
+                "columnName" : null,
+                "originalType" : "<default-columntype>",
+                "originalTypeLabel" : "Default columntype",
+                "includeInOutput" : true,
+                "columnRename" : null,
+                "type" : "<default-columntype>"
+              } ]
             },
             "configKeys" : [ "table_spec_config_Internals" ]
           }
@@ -1167,10 +1197,20 @@
             "rule" : {
               "effect" : "SHOW",
               "condition" : {
-                "scope" : "#/properties/_edit",
-                "schema" : {
-                  "const" : true
-                }
+                "type" : "AND",
+                "conditions" : [ {
+                  "scope" : "#/properties/_edit",
+                  "schema" : {
+                    "const" : true
+                  }
+                }, {
+                  "scope" : "#/properties/columnName",
+                  "schema" : {
+                    "not" : {
+                      "const" : null
+                    }
+                  }
+                } ]
               }
             }
           }, {
@@ -1308,6 +1348,9 @@
         "triggerInitially" : true
       },
       "dependencies" : [ {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/limitMemoryPerColumn" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$LimitMemoryPerColumnRef"
       }, {
@@ -1319,6 +1362,9 @@
       }, {
         "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings$PersistorSettings$ConfigIdReference"
+      }, {
+        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings$TransformationElementSettingsReference"
       } ]
     }, {
       "trigger" : {
@@ -1367,6 +1413,9 @@
       }, {
         "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings$PersistorSettings$ConfigIdReference"
+      }, {
+        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings$TransformationElementSettingsReference"
       } ]
     }, {
       "trigger" : {
@@ -1388,6 +1437,9 @@
       }, {
         "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings$PersistorSettings$ConfigIdReference"
+      }, {
+        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings$TransformationElementSettingsReference"
       } ]
     }, {
       "trigger" : {
@@ -1427,6 +1479,9 @@
       }, {
         "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings$PersistorSettings$ConfigIdReference"
+      }, {
+        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings$TransformationElementSettingsReference"
       } ]
     }, {
       "trigger" : {
@@ -1558,6 +1613,9 @@
       }, {
         "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings$PersistorSettings$ConfigIdReference"
+      }, {
+        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings$TransformationElementSettingsReference"
       } ]
     }, {
       "trigger" : {
@@ -1624,6 +1682,9 @@
       }, {
         "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings$PersistorSettings$ConfigIdReference"
+      }, {
+        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation" ],
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings$TransformationElementSettingsReference"
       } ]
     }, {
       "trigger" : {

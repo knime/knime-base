@@ -89,10 +89,13 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.LatentWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
@@ -102,6 +105,9 @@ import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TreeTypeHierarchy;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
@@ -293,7 +299,16 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
         static class ColumnNameRef implements Reference<String> {
         }
 
+        static final class ColumnNameIsNull implements PredicateProvider {
+            @Override
+            public Predicate init(final PredicateInitializer i) {
+                return i.getString(ColumnNameRef.class).isEqualTo(null);
+            }
+        }
+
         @ValueReference(ColumnNameRef.class)
+        @JsonInclude(Include.ALWAYS) // Necessary for the ColumnNameIsNull PredicateProvider to work
+        @LatentWidget // Necessary for the ColumnNameIsNull PredicateProvider to work
         String m_columnName;
 
         static class OriginalTypeRef implements Reference<String> {
@@ -356,7 +371,8 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
 
             @Override
             public String computeState(final DefaultNodeSettingsContext context) {
-                return m_originalColumnNameSupplier.get();
+                final var originalName = m_originalColumnNameSupplier.get();
+                return originalName == null ? "Any unknown column" : originalName;
             }
         }
 
@@ -375,9 +391,18 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
             }
         }
 
+        static final class ElementIsEditedAndColumnNameIsNotNull implements PredicateProvider {
+            @Override
+            public Predicate init(final PredicateInitializer i) {
+                return i.getPredicate(InternalArrayWidget.ElementIsEdited.class)
+                    .and(i.getPredicate(ColumnNameIsNull.class).negate());
+            }
+        }
+
         @Widget(title = "Column name", description = "", hideTitle = true, hideFlowVariableButton = true) // TODO NOSONAR UIEXT-1901 add description
         @ValueProvider(ColumnNameResetter.class)
-        @Effect(predicate = InternalArrayWidget.ElementIsEdited.class, type = EffectType.SHOW)
+        @Effect(predicate = ElementIsEditedAndColumnNameIsNotNull.class, type = EffectType.SHOW)
+        @JsonInclude(Include.ALWAYS) // Necessary for comparison against m_columnName
         String m_columnRename;
 
         @Widget(title = "Column type", description = "", hideTitle = true, hideFlowVariableButton = true) // TODO NOSONAR UIEXT-1901 add description
@@ -398,6 +423,14 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
             m_originalType = originalType;
             m_originalTypeLabel = originalTypeLabel;
         }
+
+        static TransformationElementSettings createUnknownElement() {
+            return new TransformationElementSettings(null, true, null, TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID,
+                TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID, TypeChoicesProvider.DEFAULT_COLUMNTYPE_TEXT);
+        }
+    }
+
+    static final class TransformationElementSettingsReference implements Reference<TransformationElementSettings[]> {
     }
 
     @Widget(title = "Transformations", description = """
@@ -415,6 +448,7 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
         titleProvider = TransformationElementSettings.TitleProvider.class,
         subTitleProvider = TransformationElementSettings.SubTitleProvider.class)
     @ValueProvider(TransformationElementSettingsProvider.class)
-    // TODO NOSONAR UIEXT-1914 the <any unknown new column> is not implemented yet
-    TransformationElementSettings[] m_columnTransformation = new TransformationElementSettings[0];
+    @ValueReference(TransformationElementSettingsReference.class)
+    TransformationElementSettings[] m_columnTransformation =
+        new TransformationElementSettings[]{TransformationElementSettings.createUnknownElement()};
 }

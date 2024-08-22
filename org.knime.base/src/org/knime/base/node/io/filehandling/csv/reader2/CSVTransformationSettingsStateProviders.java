@@ -51,11 +51,16 @@ package org.knime.base.node.io.filehandling.csv.reader2;
 import static org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.PRODUCTION_PATH_PROVIDER;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReader;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
@@ -70,6 +75,9 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TableSpecSettings;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElementSettings;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElementSettings.ColumnNameRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElementSettingsReference;
+import org.knime.core.data.DataType;
+import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
@@ -86,6 +94,7 @@ import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.RawSpecFactory;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
@@ -244,6 +253,7 @@ final class CSVTransformationSettingsStateProviders implements WidgetGroup, Pers
 
         @Override
         public void init(final StateProviderInitializer initializer) {
+            initializer.computeAfterOpenDialog();
             m_specSupplier = initializer.computeFromProvidedState(TypedReaderTableSpecsProvider.class);
             initializer.computeOnValueChange(ConfigIdReference.class);
             initializer.computeOnValueChange(FileChooserRef.class);
@@ -253,12 +263,6 @@ final class CSVTransformationSettingsStateProviders implements WidgetGroup, Pers
     }
 
     static final class TableSpecSettingsProvider extends DependsOnTypedReaderTableSpecProvider<TableSpecSettings[]> {
-
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            super.init(initializer);
-            initializer.computeAfterOpenDialog();
-        }
 
         @Override
         public TableSpecSettings[] computeState(final DefaultNodeSettingsContext context) {
@@ -275,38 +279,137 @@ final class CSVTransformationSettingsStateProviders implements WidgetGroup, Pers
 
         private Supplier<HowToCombineColumnsOption> m_howToCombineColumnsOptionSupplier;
 
+        private Supplier<TransformationElementSettings[]> m_existingSettings;
+
         @Override
         public void init(final StateProviderInitializer initializer) {
             super.init(initializer);
             m_howToCombineColumnsOptionSupplier =
                 initializer.computeFromValueSupplier(HowToCombineColumnsOptionRef.class);
+            m_existingSettings = initializer.getValueSupplier(TransformationElementSettingsReference.class);
         }
 
         @Override
         public TransformationElementSettings[] computeState(final DefaultNodeSettingsContext context) {
-            return toTransformationElements(m_specSupplier.get(), m_howToCombineColumnsOptionSupplier.get());
+            return toTransformationElements(m_specSupplier.get(), m_howToCombineColumnsOptionSupplier.get(),
+                m_existingSettings.get());
         }
 
         static TransformationElementSettings[] toTransformationElements(
             final Map<String, TypedReaderTableSpec<Class<?>>> specs,
-            final HowToCombineColumnsOption howToCombineColumnsOption) {
+            final HowToCombineColumnsOption howToCombineColumnsOption,
+            final TransformationElementSettings[] existingSettings) {
+
+            /**
+             * List of existing elements before the unknown element
+             */
+            final List<TransformationElementSettings> elementsBeforeUnknown = new ArrayList<>();
+            /**
+             * The existing unknown element.
+             */
+            TransformationElementSettings foundUnknownElement = null;
+            /**
+             * List of existing elements after the unknown element
+             */
+            final List<TransformationElementSettings> elementsAfterUnknown = new ArrayList<>();
+
             final var rawSpec = toRawSpec(specs);
-            final var spec = howToCombineColumnsOption.toColumnFilterMode().getRelevantSpec(rawSpec);
-            final var elements = new TransformationElementSettings[spec.size()];
-            int i = 0;
-            for (var column : spec) {
-                final var name = column.getName().get(); // NOSONAR in the TypedReaderTableSpecProvider we make sure that names are always present
-                final var defPath = PRODUCTION_PATH_PROVIDER.getDefaultProductionPath(column.getType());
-                final var type = defPath.getConverterFactory().getIdentifier();
-                elements[i] = new TransformationElementSettings(name, true, name, type, type,
-                    defPath.getDestinationType().toPrettyString());
-                i++;
+            final var newSpecs = howToCombineColumnsOption.toColumnFilterMode().getRelevantSpec(rawSpec);
+            final var newSpecsByName =
+                newSpecs.stream().collect(Collectors.toMap(column -> column.getName().get(), Function.identity()));
+
+            for (int i = 0; i < existingSettings.length; i++) { // NOSONAR
+                final var existingElement = existingSettings[i];
+                if (existingElement.m_columnName == null) {
+                    foundUnknownElement = existingSettings[i];
+                    continue;
+                }
+                final var newSpec = newSpecsByName.get(existingElement.m_columnName);
+                if (newSpec == null) {
+                    // element does not exist anymore -> it is removed
+                    continue;
+                }
+                final var targetList = foundUnknownElement == null ? elementsBeforeUnknown : elementsAfterUnknown;
+                targetList.add(mergeExistingWithNew(existingElement, newSpec));
             }
-            return elements;
+
+            /**
+             * foundUnknownElement can only be null when the dialog is opened for the first time
+             */
+            final var unknownElement = foundUnknownElement == null
+                ? TransformationElementSettings.createUnknownElement() : foundUnknownElement;
+
+            final var existingColumnNames = Stream.concat(elementsBeforeUnknown.stream(), elementsAfterUnknown.stream())
+                .map(element -> element.m_columnName).collect(Collectors.toSet());
+
+            final var unknownElementsType = getUnknownElementsType(unknownElement);
+            final var newElements =
+                newSpecs.stream().filter(colSpec -> !existingColumnNames.contains(colSpec.getName().get()))
+                    .map(colSpec -> createNewElement(colSpec, unknownElementsType.orElse(null),
+                        unknownElement.m_includeInOutput))
+                    .toList();
+
+            return Stream.concat( //
+                Stream.concat(elementsBeforeUnknown.stream(), newElements.stream()),
+                Stream.concat(Stream.of(unknownElement), elementsAfterUnknown.stream()))
+                .toArray(TransformationElementSettings[]::new);
+
+        }
+
+        private static TransformationElementSettings mergeExistingWithNew(
+            final TransformationElementSettings existingElement, final TypedReaderColumnSpec<Class<?>> newSpec) {
+            final var newElement = createNewElement(newSpec);
+            if (!newElement.m_originalType.equals(existingElement.m_originalType)) {
+                return newElement;
+            }
+            newElement.m_type = existingElement.m_type;
+            newElement.m_columnRename = existingElement.m_columnRename;
+            newElement.m_includeInOutput = existingElement.m_includeInOutput;
+            return newElement;
+
+        }
+
+        private static Optional<DataType> getUnknownElementsType(final TransformationElementSettings unknownElement) {
+            if (TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID.equals(unknownElement.m_type)) {
+                return Optional.empty();
+            }
+            return PRODUCTION_PATH_PROVIDER.getAvailableDataTypes().stream()
+                .filter(type -> type.getName().equals(unknownElement.m_type)).findFirst();
+        }
+
+        /**
+         * @return a new element as if it would be constructed as unknown new when the <any unknown column> element is
+         *         configured like the default.
+         */
+        private static TransformationElementSettings createNewElement(final TypedReaderColumnSpec<Class<?>> colSpec) {
+            return createNewElement(colSpec, null, true);
+        }
+
+        private static TransformationElementSettings createNewElement(final TypedReaderColumnSpec<Class<?>> colSpec,
+            final DataType unknownElementsType, final boolean includeInOutput) {
+            final var name = colSpec.getName().get(); // NOSONAR in the TypedReaderTableSpecProvider we make sure that names are always present
+            final var defPath = PRODUCTION_PATH_PROVIDER.getDefaultProductionPath(colSpec.getType());
+
+            final var path = Optional.ofNullable(unknownElementsType)
+                .flatMap(type -> findProductionPath(colSpec.getType(), type)).orElse(defPath);
+            final var type = path.getConverterFactory().getIdentifier();
+            final var defType = defPath.getConverterFactory().getIdentifier();
+            return new TransformationElementSettings(name, includeInOutput, name, type, defType,
+                defPath.getDestinationType().toPrettyString());
+
+        }
+
+        private static Optional<ProductionPath> findProductionPath(final Class<?> from, final DataType to) {
+            return PRODUCTION_PATH_PROVIDER.getAvailableProductionPaths(from).stream()
+                .filter(path -> to.equals(path.getDestinationType())).findFirst();
         }
     }
 
     static final class TypeChoicesProvider implements StringChoicesStateProvider {
+
+        static final String DEFAULT_COLUMNTYPE_ID = "<default-columntype>";
+
+        static final String DEFAULT_COLUMNTYPE_TEXT = "Default columntype";
 
         private Supplier<String> m_columnNameSupplier;
 
@@ -321,6 +424,15 @@ final class CSVTransformationSettingsStateProviders implements WidgetGroup, Pers
         @Override
         public IdAndText[] computeState(final DefaultNodeSettingsContext context) {
             final var columnName = m_columnNameSupplier.get();
+
+            if (columnName == null) {
+                final var defaultChoice = new IdAndText(DEFAULT_COLUMNTYPE_ID, DEFAULT_COLUMNTYPE_TEXT);
+                final var dataTypeChoices = PRODUCTION_PATH_PROVIDER.getAvailableDataTypes().stream()
+                    .sorted((t1, t2) -> t1.toPrettyString().compareTo(t2.toPrettyString()))
+                    .map(type -> new IdAndText(type.getName(), type.toPrettyString())).toList();
+                return Stream.concat(Stream.of(defaultChoice), dataTypeChoices.stream()).toArray(IdAndText[]::new);
+            }
+
             final var union = toRawSpec(m_specSupplier.get()).getUnion();
             final var columnSpecOpt =
                 union.stream().filter(colSpec -> colSpec.getName().get().equals(columnName)).findAny();

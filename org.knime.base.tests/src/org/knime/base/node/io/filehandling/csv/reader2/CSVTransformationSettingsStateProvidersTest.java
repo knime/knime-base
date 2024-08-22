@@ -70,7 +70,9 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSetting
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.ConfigIdSettings;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.PersistorSettings.ConfigIdReference;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElementSettings;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElementSettings.ColumnNameRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElementSettingsReference;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.DependenciesProvider;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.FSLocationsProvider;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.SourceIdProvider;
@@ -78,6 +80,10 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TransformationElementSettingsProvider;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TypeChoicesProvider;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TypedReaderTableSpecsProvider;
+import org.knime.core.data.DataType;
+import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.LongCell;
+import org.knime.core.data.xml.XMLCell;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
@@ -416,6 +422,11 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
                 String.format("Unexpected dependency %s", stateProviderClass.getSimpleName()));
         }
 
+        @Override
+        public void computeAfterOpenDialog() {
+            // Do nothing
+        }
+
         DependsOnTypedReaderTableSpecProviderInitializer(
             final TypedReaderTableSpecsProvider typedReaderTableSpecsProvider) {
             m_typedReaderTableSpecsProvider = typedReaderTableSpecsProvider;
@@ -424,12 +435,7 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
 
     private static final StateProviderInitializer
         getTableSpecSettingsProviderInitializer(final TypedReaderTableSpecsProvider typedReaderTableSpecsProvider) {
-        return new DependsOnTypedReaderTableSpecProviderInitializer(typedReaderTableSpecsProvider) {
-            @Override
-            public void computeAfterOpenDialog() {
-                // Do nothing
-            }
-        };
+        return new DependsOnTypedReaderTableSpecProviderInitializer(typedReaderTableSpecsProvider);
     }
 
     @Test
@@ -446,29 +452,135 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
         final TypedReaderTableSpecsProvider typedReaderTableSpecsProvider) throws IOException {
         final var transformationElementSettingsProvider = new TransformationElementSettingsProvider();
         transformationElementSettingsProvider.init(getTransformationElementSettingsProviderInitializer(
-            howToCombineColumnsOption, typedReaderTableSpecsProvider));
+            typedReaderTableSpecsProvider, howToCombineColumnsOption, new TransformationElementSettings[0]));
 
         final var transformationElements = transformationElementSettingsProvider.computeState(null);
 
-        assertThat(transformationElements).hasSize(2);
+        assertThat(transformationElements).hasSize(3);
 
         assertThat(transformationElements[0].m_columnName).isEqualTo("intCol");
         assertThat(transformationElements[0].m_includeInOutput).isTrue();
         assertThat(transformationElements[0].m_columnRename).isEqualTo("intCol");
-        assertThat(transformationElements[0].m_type).isEqualTo(
-            PRODUCTION_PATH_PROVIDER.getDefaultProductionPath(Integer.class).getConverterFactory().getIdentifier());
+        assertThat(transformationElements[0].m_type).isEqualTo(getDefaultPathIdentifier(Integer.class));
 
         assertThat(transformationElements[1].m_columnName).isEqualTo("stringCol");
         assertThat(transformationElements[1].m_includeInOutput).isTrue();
         assertThat(transformationElements[1].m_columnRename).isEqualTo("stringCol");
-        assertThat(transformationElements[1].m_type).isEqualTo(
-            PRODUCTION_PATH_PROVIDER.getDefaultProductionPath(String.class).getConverterFactory().getIdentifier());
+        assertThat(transformationElements[1].m_type).isEqualTo(getDefaultPathIdentifier(String.class));
+
+        assertThat(transformationElements[2].m_columnName).isNull();
+        assertThat(transformationElements[2].m_includeInOutput).isTrue();
+        assertThat(transformationElements[2].m_type).isEqualTo("<default-columntype>");
+    }
+
+    @Test
+    void testTransformationElementSettingsProviderUnknownColumns() throws IOException {
+        final var file = m_tempFolder.resolve("file.csv").toAbsolutePath().toString();
+        final var typedReaderTableSpecsProvider = createTypedReaderTableSpecsProvider(file);
+
+        final var transformationElementSettingsProvider = new TransformationElementSettingsProvider();
+        final var unknownElement = TransformationElementSettings.createUnknownElement();
+        unknownElement.m_includeInOutput = false;
+        unknownElement.m_type = getTypeIdentifierForUnknown(LongCell.TYPE);
+        transformationElementSettingsProvider
+            .init(getTransformationElementSettingsProviderInitializer(typedReaderTableSpecsProvider,
+                HowToCombineColumnsOption.UNION, new TransformationElementSettings[]{//
+                    createDummyElement("previousColumn"), //
+                    unknownElement, //
+                }));
+
+        final var transformationElements = transformationElementSettingsProvider.computeState(null);
+
+        assertThat(transformationElements).hasSize(3);
+
+        assertThat(transformationElements[0].m_columnName).isEqualTo("intCol");
+        assertThat(transformationElements[0].m_includeInOutput).isFalse();
+        assertThat(transformationElements[0].m_columnRename).isEqualTo("intCol");
+        assertThat(transformationElements[0].m_type).isEqualTo(getPathIdentifier(Integer.class, LongCell.TYPE));
+        assertThat(transformationElements[0].m_originalType).isEqualTo(getDefaultPathIdentifier(Integer.class));
+
+        assertThat(transformationElements[1].m_columnName).isEqualTo("stringCol");
+        assertThat(transformationElements[1].m_includeInOutput).isFalse();
+        assertThat(transformationElements[1].m_columnRename).isEqualTo("stringCol");
+        assertThat(transformationElements[1].m_type).isEqualTo(getDefaultPathIdentifier(String.class));
+        assertThat(transformationElements[1].m_originalType).isEqualTo(getDefaultPathIdentifier(String.class));
+
+        assertThat(transformationElements[2].m_columnName).isNull();
+        assertThat(transformationElements[2].m_includeInOutput).isFalse();
+        assertThat(transformationElements[2].m_type).isEqualTo(getTypeIdentifierForUnknown(LongCell.TYPE));
+
+    }
+
+    private static TransformationElementSettings createDummyElement(final String name) {
+        return new TransformationElementSettings(name, true, null, null, null, null);
+    }
+
+    @Test
+    void testTransformationElementSettingsProviderExistingColumns() throws IOException {
+        final var file = m_tempFolder.resolve("file.csv").toAbsolutePath().toString();
+        final var typedReaderTableSpecsProvider = createTypedReaderTableSpecsProvider(file);
+
+        final var transformationElementSettingsProvider = new TransformationElementSettingsProvider();
+        transformationElementSettingsProvider.init(getTransformationElementSettingsProviderInitializer(
+            typedReaderTableSpecsProvider, HowToCombineColumnsOption.UNION, new TransformationElementSettings[]{//
+                new TransformationElementSettings("stringCol", false, "Renamed stringCol",
+                    getPathIdentifier(String.class, XMLCell.TYPE), getDefaultPathIdentifier(String.class), "Integer"), //
+                new TransformationElementSettings("intCol", false, "Renamed intCol",
+                    getPathIdentifier(Double.class, DoubleCell.TYPE), getDefaultPathIdentifier(Double.class), "Double"), //
+            }));
+
+        final var transformationElements = transformationElementSettingsProvider.computeState(null);
+
+        assertThat(transformationElements).hasSize(3);
+
+        // Uses existing element since type and name match
+        assertThat(transformationElements[0].m_columnName).isEqualTo("stringCol");
+        assertThat(transformationElements[0].m_includeInOutput).isFalse();
+        assertThat(transformationElements[0].m_columnRename).isEqualTo("Renamed stringCol");
+        assertThat(transformationElements[0].m_type).isEqualTo(getPathIdentifier(String.class, XMLCell.TYPE));
+        assertThat(transformationElements[0].m_originalType).isEqualTo(getDefaultPathIdentifier(String.class));
+        assertThat(transformationElements[0].m_originalTypeLabel).isEqualTo("String");
+
+        // Uses new created element since the type changed
+        assertThat(transformationElements[1].m_columnName).isEqualTo("intCol");
+        assertThat(transformationElements[1].m_includeInOutput).isTrue();
+        assertThat(transformationElements[1].m_columnRename).isEqualTo("intCol");
+        assertThat(transformationElements[1].m_type).isEqualTo(getDefaultPathIdentifier(Integer.class));
+        assertThat(transformationElements[1].m_originalType).isEqualTo(getDefaultPathIdentifier(Integer.class));
+        assertThat(transformationElements[1].m_originalTypeLabel).isEqualTo("Number (integer)");
+
+        assertThat(transformationElements[2].m_columnName).isNull();
+
+    }
+
+    private String getTypeIdentifierForUnknown(final DataType dataType) {
+        return dataType.getName();
+    }
+
+    private String getDefaultPathIdentifier(final Class<?> typeClass) {
+        return PRODUCTION_PATH_PROVIDER.getDefaultProductionPath(typeClass).getConverterFactory().getIdentifier();
+    }
+
+    private String getPathIdentifier(final Class<?> typeClass, final DataType targetDataType) {
+        return PRODUCTION_PATH_PROVIDER.getAvailableProductionPaths(typeClass).stream()
+            .filter(path -> path.getDestinationType().equals(targetDataType)).findFirst().orElseThrow()
+            .getConverterFactory().getIdentifier();
     }
 
     private static final StateProviderInitializer getTransformationElementSettingsProviderInitializer(
+        final TypedReaderTableSpecsProvider typedReaderTableSpecsProvider,
         final HowToCombineColumnsOption howToCombineColumnsOption,
-        final TypedReaderTableSpecsProvider typedReaderTableSpecsProvider) {
+        final TransformationElementSettings[] existingSettings) {
         return new DependsOnTypedReaderTableSpecProviderInitializer(typedReaderTableSpecsProvider) {
+
+            @Override
+            public <T> Supplier<T> getValueSupplier(final Class<? extends Reference<T>> ref) {
+                if (ref.equals(TransformationElementSettingsReference.class)) {
+                    return () -> (T)existingSettings;
+                }
+                throw new IllegalStateException(String.format("Unexpected dependency %s", ref.getSimpleName()));
+            }
+
             @Override
             public <T> Supplier<T> computeFromValueSupplier(final Class<? extends Reference<T>> ref) {
                 if (ref.equals(HowToCombineColumnsOptionRef.class)) {

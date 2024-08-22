@@ -57,6 +57,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.ColumnSpecSettings;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TableSpecSettings;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElementSettings;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TransformationElementSettingsProvider;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.filehandling.core.connections.FSCategory;
@@ -89,13 +90,11 @@ class CSVTransformationSettingsPersistorTest {
 
     private static Stream<CSVTransformationSettings> testSaveLoad() {
         return Stream.of(createTransformationSettings(ColumnFilterMode.INTERSECTION),
-            createTransformationSettings(ColumnFilterMode.UNION),
-            createTransformationSettings(new TableSpecSettings[]{
+            createTransformationSettings(ColumnFilterMode.UNION), createTransformationSettings(new TableSpecSettings[]{
                 new TableSpecSettings("foo", new ColumnSpecSettings[]{new ColumnSpecSettings("bar", Integer.class)})}));
     }
 
-    private static CSVTransformationSettings
-        createTransformationSettings(final ColumnFilterMode columnFilterMode) {
+    private static CSVTransformationSettings createTransformationSettings(final ColumnFilterMode columnFilterMode) {
         final var transformationSettings = new CSVTransformationSettings();
         transformationSettings.m_persistorSettings.m_takeColumnsFrom = columnFilterMode;
         return transformationSettings;
@@ -108,8 +107,8 @@ class CSVTransformationSettingsPersistorTest {
         transformationSettings.m_persistorSettings.m_fsLocations =
             new FSLocation[]{new FSLocation(FSCategory.LOCAL, "foo"), new FSLocation(FSCategory.LOCAL, "bar")};
         final var specMap = CSVTransformationSettingsPersistor.toSpecMap(specs);
-        transformationSettings.m_columnTransformation =
-            TransformationElementSettingsProvider.toTransformationElements(specMap, HowToCombineColumnsOption.UNION);
+        transformationSettings.m_columnTransformation = TransformationElementSettingsProvider
+            .toTransformationElements(specMap, HowToCombineColumnsOption.UNION, new TransformationElementSettings[0]);
         return transformationSettings;
     }
 }

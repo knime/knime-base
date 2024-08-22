@@ -101,7 +101,7 @@
             <entry key="enforce_types" type="xboolean" value="true"/>
             <entry key="column_filter_mode" type="xstring" value="UNION"/>
             <config key="unknown_columns_transformation">
-                <entry key="position" type="xint" value="1"/>
+                <entry key="position" type="xint" value="0"/>
                 <entry key="keep" type="xboolean" value="true"/>
                 <entry key="force_type" type="xboolean" value="false"/>
             </config>
