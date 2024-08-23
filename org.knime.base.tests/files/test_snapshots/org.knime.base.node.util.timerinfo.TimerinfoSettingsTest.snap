@@ -1,8 +1,8 @@
 {
   "data" : {
     "model" : {
+      "recursionPolicy" : "NO_RECURSION",
       "maxDepth" : 2,
-      "componentResolution" : "NODES",
       "includeComponentIO" : true
     }
   },
@@ -12,22 +12,6 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "componentResolution" : {
-            "oneOf" : [ {
-              "const" : "COMPONENTS",
-              "title" : "Components"
-            }, {
-              "const" : "NODES",
-              "title" : "Nested nodes"
-            }, {
-              "const" : "COMPONENTS_AND_NODES",
-              "title" : "Components and nested nodes"
-            } ],
-            "title" : "Component resolution",
-            "description" : "Chooses how components are resolved regarding the timer information. <br/>\n<ul>\n    <li><b>Components</b> : Lists the whole component without the nested nodes</li>\n    <li><b>Nested nodes</b> : Lists only the nested component nodes without the component itself</li>\n    <li><b>Components and nested nodes</b> : Lists both</li>\n</ul>\n",
-            "default" : "NODES",
-            "configKeys" : [ "componentResolution" ]
-          },
           "includeComponentIO" : {
             "type" : "boolean",
             "title" : "Include component input and output nodes",
@@ -39,11 +23,27 @@
             "type" : "integer",
             "format" : "int32",
             "title" : "Max Depth",
-            "description" : "Controls depth of reporting of nodes in (nested) metanodes and components. A depth of &quot;0&quot; means\nno descent is performed.\n",
+            "description" : "Controls depth of reporting of nodes in (nested) metanodes and components.\n",
             "default" : 2,
             "minimum" : 0.0,
             "maximum" : 2147483647,
             "configKeys" : [ "MaxDepth" ]
+          },
+          "recursionPolicy" : {
+            "oneOf" : [ {
+              "const" : "NO_RECURSION",
+              "title" : "No recursion"
+            }, {
+              "const" : "ONLY_METANODES",
+              "title" : "Only metanodes"
+            }, {
+              "const" : "COMPONENTS_AND_METANODES",
+              "title" : "Components and metanodes"
+            } ],
+            "title" : "Recursion",
+            "description" : "Chooses a recursion option for metanodes and components <br/>\n<ul>\n    <li><b>No recursion</b> : Only lists the nodes on the top level of the workflow.</li>\n    <li><b>Only metanodes</b> : Recurses only the metanodes up to the specified depth.</li>\n    <li><b>Components and metanodes</b> : Recurses components and metanodes up to the specified depth.</li>\n</ul>\n",
+            "default" : "NO_RECURSION",
+            "configKeys" : [ "recursionPolicy" ]
           }
         }
       }
@@ -52,27 +52,39 @@
   "ui_schema" : {
     "elements" : [ {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/maxDepth"
-    }, {
-      "type" : "Control",
-      "scope" : "#/properties/model/properties/componentResolution",
+      "scope" : "#/properties/model/properties/recursionPolicy",
       "options" : {
         "format" : "valueSwitch"
       }
     }, {
       "type" : "Control",
+      "scope" : "#/properties/model/properties/maxDepth",
+      "rule" : {
+        "effect" : "DISABLE",
+        "condition" : {
+          "scope" : "#/properties/model/properties/recursionPolicy",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "NO_RECURSION"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
       "scope" : "#/properties/model/properties/includeComponentIO",
       "options" : {
-        "format" : "checkbox",
-        "isAdvanced" : true
+        "format" : "checkbox"
       },
       "rule" : {
         "effect" : "DISABLE",
         "condition" : {
-          "scope" : "#/properties/model/properties/componentResolution",
+          "scope" : "#/properties/model/properties/recursionPolicy",
           "schema" : {
             "oneOf" : [ {
-              "const" : "COMPONENTS"
+              "const" : "NO_RECURSION"
+            }, {
+              "const" : "ONLY_METANODES"
             } ]
           }
         }

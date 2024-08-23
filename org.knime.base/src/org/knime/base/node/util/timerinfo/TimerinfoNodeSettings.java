@@ -51,6 +51,7 @@ package org.knime.base.node.util.timerinfo;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -70,53 +71,86 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
 @SuppressWarnings("restriction")
 public class TimerinfoNodeSettings implements DefaultNodeSettings {
 
+    interface RecursionPolicyRef extends Reference<RecursionPolicy> {
+    }
+
+    static final class MaxDepthDisabledPolicy implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(RecursionPolicyRef.class).isOneOf(RecursionPolicy.NO_RECURSION);
+        }
+    }
+
+    static final class IncludeComponentIONodesPolicy implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(RecursionPolicyRef.class)
+                    .isOneOf(RecursionPolicy.NO_RECURSION, RecursionPolicy.ONLY_METANODES);
+        }
+    }
+
+    @Widget(title = "Recursion", description = """
+            Chooses a recursion option for metanodes and components <br/>
+            <ul>
+                <li><b>No recursion</b> : Only lists the nodes on the top level of the workflow.</li>
+                <li><b>Only metanodes</b> : Recurses only the metanodes up to the specified depth.</li>
+                <li><b>Components and metanodes</b> : Recurses components and metanodes up to the specified depth.</li>
+            </ul>
+            """)
+    @ValueReference(RecursionPolicyRef.class)
+    @ValueSwitchWidget
+    @Persist(defaultProvider = LegacyBehavior.class)
+    // new instances of the node handle components depending on the recursion policy
+    RecursionPolicy m_recursionPolicy = RecursionPolicy.NO_RECURSION;
+
+    private static final class LegacyBehavior implements DefaultProvider<RecursionPolicy> {
+        @Override
+        public RecursionPolicy getDefault() {
+            // use old behavior for existing nodes -> only metanode recursion
+            return RecursionPolicy.ONLY_METANODES;
+        }
+    }
+
     @Widget(title = "Max Depth", description = """
-            Controls depth of reporting of nodes in (nested) metanodes and components. A depth of &quot;0&quot; means
-            no descent is performed.
+            Controls depth of reporting of nodes in (nested) metanodes and components.
             """)
     @NumberInputWidget(min = 0, max = Integer.MAX_VALUE)
+    @Effect(predicate = MaxDepthDisabledPolicy.class, type = EffectType.DISABLE)
     @Persist(configKey = "MaxDepth")
     int m_maxDepth = 2;
 
-    interface ComponentResolutionPolicyRef extends Reference<ComponentResolutionPolicy> {
-    }
-
-    static final class ComponentsOnlyPolicy implements PredicateProvider {
-        @Override
-        public Predicate init(final PredicateInitializer i) {
-            return i.getEnum(ComponentResolutionPolicyRef.class).isOneOf(ComponentResolutionPolicy.COMPONENTS);
-        }
-    }
-
-    @Widget(title = "Component resolution", description = """
-            Chooses how components are resolved regarding the timer information. <br/>
-            <ul>
-                <li><b>Components</b> : Lists the whole component without the nested nodes</li>
-                <li><b>Nested nodes</b> : Lists only the nested component nodes without the component itself</li>
-                <li><b>Components and nested nodes</b> : Lists both</li>
-            </ul>
-            """)
-    @ValueReference(ComponentResolutionPolicyRef.class)
-    @ValueSwitchWidget
-    @Persist(optional = true, defaultProvider = LegacyBehavior.class)
-    // new instances of the node handle components similar to metanodes (but omitting component in/out "special" nodes)
-    ComponentResolutionPolicy m_componentResolution = ComponentResolutionPolicy.NODES;
-
-    private static final class LegacyBehavior implements DefaultProvider<ComponentResolutionPolicy> {
-        @Override
-        public ComponentResolutionPolicy getDefault() {
-            // use old behavior for existing nodes -> opaque components
-            return ComponentResolutionPolicy.COMPONENTS;
-        }
-    }
-
-    @Widget(title = "Include component input and output nodes", advanced = true, description = """
+    @Widget(title = "Include component input and output nodes", description = """
             Includes the component input and output nodes in the output table.
             """)
-    @Effect(predicate = ComponentsOnlyPolicy.class, type = EffectType.DISABLE)
+    @Effect(predicate = IncludeComponentIONodesPolicy.class, type = EffectType.DISABLE)
     @Persist(optional = true)
     // default is `true` to make it obvious that there are special nodes where time might be spent
     // this default value does not matter for old settings, since the components were opaque there
     // and no input/output nodes are encountered
     boolean m_includeComponentIO = true;
+
+    //Setting enums-----------------------------------------------------------------------------------------------------
+
+    enum RecursionPolicy {
+
+        /**
+         * No recursion policy.
+         */
+        @Label(value = "No recursion")
+        NO_RECURSION,
+
+        /**
+         * Only metanodes policy.
+         */
+        @Label(value = "Only metanodes")
+        ONLY_METANODES,
+
+        /**
+         * Components and metanodes policy.
+         */
+        @Label(value = "Components and metanodes")
+        COMPONENTS_AND_METANODES;
+
+    }
+
 }

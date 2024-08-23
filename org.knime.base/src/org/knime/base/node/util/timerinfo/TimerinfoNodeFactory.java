@@ -69,7 +69,7 @@ public final class TimerinfoNodeFactory extends WebUINodeFactory<TimerinfoNodeMo
             .fullDescription("""
                     <p>This node reports individual and aggregate timing/execution
                     information for all nodes of the workflow at this level and for (nested)
-                    metanodes and components up until the specified depth.</p>
+                    metanodes and components using the specified recursion option up until the specified depth.</p>
                     <p>The output table lists all nodes in the workflow that were executed
                     since the last reset. This also includes nodes in metanodes and components
                     up to the specified nesting depth. The detailed statistics are:
@@ -95,7 +95,7 @@ public final class TimerinfoNodeFactory extends WebUINodeFactory<TimerinfoNodeMo
                     """)//
             .modelSettingsClass(TimerinfoNodeSettings.class)//
             .nodeType(NodeType.Sink)//
-            .addInputPort("Variable Input", FlowVariablePortObject.TYPE,
+            .addInputPort("Variable Input", FlowVariablePortObject.TYPE_OPTIONAL,
                 "Allows to make sure node is executed after others.")//
             .addOutputTable("Output table", "The collected timer information.")//
             .build();

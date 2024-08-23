@@ -49,6 +49,7 @@ package org.knime.base.node.util.timerinfo;
 
 import java.util.Map;
 
+import org.knime.base.node.util.timerinfo.TimerinfoNodeSettings.RecursionPolicy;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
@@ -138,9 +139,13 @@ final class TimerinfoNodeModel extends WebUINodeModel<TimerinfoNodeSettings> imp
         var myNC = wfm.findNodeContainer(myID);
         WorkflowManager myWfm = myNC.getParent();
         BufferedDataContainer result = exec.createDataContainer(createSpec());
-        reportThisLayer(myWfm, result, settings.m_maxDepth, myWfm.getID(),
-            settings.m_componentResolution, settings.m_includeComponentIO);
-
+        // traverse workflow
+        var maxDepth = 0;
+        if (settings.m_recursionPolicy != TimerinfoNodeSettings.RecursionPolicy.NO_RECURSION) {
+            maxDepth = settings.m_maxDepth;
+        }
+        reportThisLayer(myWfm, myWfm.getID(), result,
+            settings.m_recursionPolicy, maxDepth, settings.m_includeComponentIO);
         result.close();
         return new PortObject[] { result.getTable() };
     }
@@ -148,28 +153,27 @@ final class TimerinfoNodeModel extends WebUINodeModel<TimerinfoNodeSettings> imp
     /**
      * Internal method writing timer info into table for all nodes of a given WFM until
      * a certain depth in the provided BDT. Metanodes are treated normally (to keep this node backwards compatible).
-     * Components are added depended on the settings. Either only components (depth = 0), only their nested leaf nodes
-     * (depth > 0) or component and their nested leaf nodes (depth > 0).
+     * Components are added depended on the {@link TimerinfoNodeSettings.RecursionPolicy}.
      *
      * @param wfm the {@link WorkflowManager} of this layer
-     * @param result the output table
-     * @param depth the timer info depth
      * @param toplevelprefix the prefix of the parent {@link WorkflowManager}
-     * @param componentResolution the {@link ComponentResolutionPolicy} chosen in the configuration
+     * @param result the output table
+     * @param recursionPolicy the configured {@link TimerinfoNodeSettings.RecursionPolicy}
+     * @param maxDepth the timer info depth
      * @param includeComponentIO whether to include the component input and output nodes
      */
-    private static void reportThisLayer(final WorkflowManager wfm, final BufferedDataContainer result,
-        final int depth, final NodeID toplevelprefix,
-        final ComponentResolutionPolicy componentResolution, final boolean includeComponentIO) {
+    private static void reportThisLayer(final WorkflowManager wfm, final NodeID toplevelprefix,
+        final BufferedDataContainer result, final TimerinfoNodeSettings.RecursionPolicy recursionPolicy,
+        final int maxDepth, final boolean includeComponentIO) {
         for (NodeContainer nc : wfm.getNodeContainers()) {
-            if (depth > 0 && nc instanceof WorkflowManager workflowManager) {
+            if (maxDepth > 0 && nc instanceof WorkflowManager workflowManager) {
                 // Metanode
-                reportThisLayer(workflowManager, result, depth-1, toplevelprefix,
-                    componentResolution, includeComponentIO);
-            } else if (depth > 0 && nc instanceof SubNodeContainer) {
+                reportThisLayer(workflowManager, toplevelprefix, result,
+                    recursionPolicy, maxDepth-1, includeComponentIO);
+            } else if (maxDepth > 0 && nc instanceof SubNodeContainer subnodeContainer) {
                 // Component
-                applyComponentResolutionPolicyOnThisLayer(((SubNodeContainer)nc).getWorkflowManager(), nc,
-                    componentResolution, includeComponentIO, result, depth, toplevelprefix);
+                applyRecursionPolicyOnThisLayer(subnodeContainer.getWorkflowManager(),
+                    toplevelprefix, result, recursionPolicy, maxDepth, includeComponentIO);
             } else {
                 // Node
                 if (includeComponentIO || !NativeNodeContainer.IS_VIRTUAL_IN_OUT_NODE.test(nc)) {
@@ -179,17 +183,13 @@ final class TimerinfoNodeModel extends WebUINodeModel<TimerinfoNodeSettings> imp
         }
     }
 
-    private static void applyComponentResolutionPolicyOnThisLayer(final WorkflowManager nestedWorkflowManager,
-        final NodeContainer nc, final ComponentResolutionPolicy componentResolution, final boolean includeComponentIO,
-        final BufferedDataContainer result, final int depth, final NodeID toplevelprefix) {
-        // Skip this layer if we want only leaves
-        if (componentResolution != ComponentResolutionPolicy.NODES) {
-            result.addRowToTable(createTimerInfoTableRow(nc, toplevelprefix));
-        }
-        // Skip going into components if not configured and respect component lock
-        if (componentResolution != ComponentResolutionPolicy.COMPONENTS && nestedWorkflowManager.isUnlocked()) {
-            reportThisLayer(nestedWorkflowManager, result, depth-1, toplevelprefix,
-                componentResolution, includeComponentIO);
+    private static void applyRecursionPolicyOnThisLayer(final WorkflowManager nestedWorkflowManager,
+        final NodeID toplevelprefix, final BufferedDataContainer result,
+        final TimerinfoNodeSettings.RecursionPolicy recursionPolicy, final int maxDepth,
+        final boolean includeComponentIO) {
+        if (recursionPolicy == RecursionPolicy.COMPONENTS_AND_METANODES && nestedWorkflowManager.isUnlocked()) {
+            reportThisLayer(nestedWorkflowManager, toplevelprefix, result,
+                recursionPolicy, maxDepth-1, includeComponentIO);
         }
     }
 

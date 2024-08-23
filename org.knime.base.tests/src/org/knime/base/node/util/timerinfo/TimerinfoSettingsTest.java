@@ -54,7 +54,6 @@ import java.io.IOException;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
@@ -74,15 +73,16 @@ class TimerinfoSettingsTest extends DefaultNodeSettingsSnapshotTest{
 
     private static SnapshotTestConfiguration getConfig() {
         return SnapshotTestConfiguration.builder() //
-            .withInputPortObjectSpecs(new PortObjectSpec[]{createDefaultTestTableSpec()}) //
+            .withInputPortObjectSpecs(new PortObjectSpec[]{}) //
             .testJsonFormsForModel(TimerinfoNodeSettings.class) //
             .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            // manually setup legacy settings
+            .testNodeSettingsStructure(legacySettings(), TimerinfoNodeSettings.class) //
+            // new settings
+            .testNodeSettingsStructure(settings(), TimerinfoNodeSettings.class) //
+            // settings from XML file generated in old version
             .testNodeSettingsStructure(() -> readSettings()) //
             .build();
-    }
-
-    private static FlowVariablePortObjectSpec createDefaultTestTableSpec() {
-        return FlowVariablePortObjectSpec.INSTANCE;
     }
 
     private static TimerinfoNodeSettings readSettings() {
@@ -97,6 +97,20 @@ class TimerinfoSettingsTest extends DefaultNodeSettingsSnapshotTest{
         } catch (IOException | InvalidSettingsException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static NodeSettings legacySettings() {
+        final var settings = new NodeSettings("key_is_not_used");
+        settings.addInt("MaxDepth", 0);
+        return settings;
+    }
+
+    private static NodeSettings settings() {
+        final var settings = new NodeSettings("key_is_not_used");
+        settings.addInt("MaxDepth", 0);
+        settings.addString("recursionPolicy", "COMPONENTS_AND_METANODES");
+        settings.addBoolean("includeComponentIO", true);
+        return settings;
     }
 
 }
