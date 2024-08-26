@@ -254,7 +254,7 @@ final class RowNumberFilter {
     static RowNumberFilterSpec getAsFilterSpec(final FilterCriterion criterion)
         throws InvalidSettingsException {
         validateRowNumberOperatorSupported(criterion.m_operator);
-        final var value = ((LongCell)criterion.m_predicateValues.getCellAt(0)
+        final var value = ((LongCell)criterion.m_predicateValues.getCellAt(0).filter(cell -> !cell.isMissing())
             .orElseThrow(() -> new InvalidSettingsException("Row number value is missing"))).getLongValue();
         final var op = criterion.m_operator;
         final var isNumberOfRows = op == FilterOperator.FIRST_N_ROWS || op == FilterOperator.LAST_N_ROWS;
