@@ -341,7 +341,8 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
     }
 
     @Widget(title = "Filter criteria", description = "The list of criteria that should be filtered on.")
-    @ArrayWidget(elementTitle = "Criterion", showSortButtons = true, addButtonText = "Add criterion")
+    @ArrayWidget(elementTitle = "Criterion", showSortButtons = true, addButtonText = "Add criterion",
+        elementDefaultValueProvider = DefaultFitlerCriterionProvider.class)
     @Layout(DialogSections.Filter.Conditions.class)
     @ValueReference(PredicatesRef.class)
     FilterCriterion[] m_predicates;
@@ -462,6 +463,11 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
         public List<FilterOperator> computeState(final DefaultNodeSettingsContext context)
             throws WidgetHandlerException {
             final var column = m_columnSelection.get().getSelected();
+            return getFilterOperators(context, column);
+        }
+
+        private static List<FilterOperator> getFilterOperators(final DefaultNodeSettingsContext context,
+            final String column) {
             if (column == null) {
                 return List.of();
             }
@@ -493,6 +499,25 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                 case NONE -> throw new IllegalArgumentException(
                     "Unsupported special column type \"%s\"".formatted(optionalSpecialColumn.name()));
             });
+        }
+    }
+
+    static class DefaultFitlerCriterionProvider implements StateProvider<FilterCriterion> {
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            initializer.computeBeforeOpenDialog();
+        }
+
+        @Override
+        public FilterCriterion computeState(final DefaultNodeSettingsContext context) {
+            final var filterCriterion = new FilterCriterion(context);
+            final var validOperators =
+                TypeBasedOperatorsProvider.getFilterOperators(context, filterCriterion.m_column.getSelected());
+            if (!validOperators.contains(FilterOperator.EQ)) {
+                filterCriterion.m_operator = validOperators.get(0);
+            }
+            return filterCriterion;
         }
     }
 

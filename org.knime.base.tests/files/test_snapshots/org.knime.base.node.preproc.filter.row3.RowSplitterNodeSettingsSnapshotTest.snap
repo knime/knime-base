@@ -226,7 +226,8 @@
           } ],
           "addButtonText" : "Add criterion",
           "arrayElementTitle" : "Criterion",
-          "showSortButtons" : true
+          "showSortButtons" : true,
+          "elementDefaultValueProvider" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$DefaultFitlerCriterionProvider"
         }
       } ]
     }, {
@@ -248,6 +249,25 @@
       } ]
     } ],
     "initialUpdates" : [ {
+      "scopes" : null,
+      "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$DefaultFitlerCriterionProvider",
+      "value" : {
+        "column" : {
+          "selected" : "BoolCol",
+          "compatibleTypes" : [ "org.knime.core.data.BooleanValue", "org.knime.core.data.DataValue", "org.knime.core.data.IntValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.NominalValue" ]
+        },
+        "operator" : "IS_TRUE",
+        "predicateValues" : {
+          "values" : [ {
+            "value" : false,
+            "cellClassName" : "org.knime.core.data.def.BooleanCell",
+            "valueDataType" : "{\"name\":\"dataTypeConfig\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+            "useStringCaseMatchingSettings" : false
+          } ],
+          "inputKind" : "SINGLE"
+        }
+      }
+    }, {
       "scopes" : null,
       "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$ColumnsWithTypeMapping",
       "value" : [ {
