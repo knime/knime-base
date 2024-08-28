@@ -102,7 +102,7 @@ class NodeSettingsSnapshotTests { // NOSONAR
     }
 
     @Nested
-    static class CellExtractorSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    class CellExtractorSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected CellExtractorSettingsTest() {
             super(Map.of(SettingsType.MODEL, CellExtractorSettings.class), createDefaultTestTableSpec());
         }

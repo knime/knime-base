@@ -157,8 +157,8 @@
                 "typeDisplays" : [ ]
               }
             },
-            "configKeys" : [ "include" ],
-            "subConfigKeys" : [ [ "filter-type" ], [ "included_names" ], [ "excluded_names" ], [ "enforce_option" ], [ "name_pattern", "pattern" ], [ "name_pattern", "type" ], [ "name_pattern", "caseSensitive" ], [ "name_pattern", "excludeMatching" ] ]
+            "configKeys" : [ "include.filter-type", "include.included_names", "include.excluded_names", "include.enforce_option", "include.name_pattern.pattern", "include.name_pattern.type", "include.name_pattern.caseSensitive", "include.name_pattern.excludeMatching" ],
+            "subConfigKeys" : [ ]
           }
         }
       }

@@ -221,8 +221,8 @@
                 "typeDisplays" : [ ]
               }
             },
-            "configKeys" : [ "leftColumnSelectionConfig" ],
-            "subConfigKeys" : [ [ "filter-type" ], [ "included_names" ], [ "excluded_names" ], [ "enforce_option" ], [ "name_pattern", "pattern" ], [ "name_pattern", "type" ], [ "name_pattern", "caseSensitive" ], [ "name_pattern", "excludeMatching" ] ]
+            "configKeys" : [ "leftColumnSelectionConfig.filter-type", "leftColumnSelectionConfig.included_names", "leftColumnSelectionConfig.excluded_names", "leftColumnSelectionConfig.enforce_option", "leftColumnSelectionConfig.name_pattern.pattern", "leftColumnSelectionConfig.name_pattern.type", "leftColumnSelectionConfig.name_pattern.caseSensitive", "leftColumnSelectionConfig.name_pattern.excludeMatching" ],
+            "subConfigKeys" : [ ]
           },
           "matchingCriteria" : {
             "title" : "Join columns",
@@ -422,8 +422,8 @@
                 "typeDisplays" : [ ]
               }
             },
-            "configKeys" : [ "rightColumnSelectionConfig" ],
-            "subConfigKeys" : [ [ "filter-type" ], [ "included_names" ], [ "excluded_names" ], [ "enforce_option" ], [ "name_pattern", "pattern" ], [ "name_pattern", "type" ], [ "name_pattern", "caseSensitive" ], [ "name_pattern", "excludeMatching" ] ]
+            "configKeys" : [ "rightColumnSelectionConfig.filter-type", "rightColumnSelectionConfig.included_names", "rightColumnSelectionConfig.excluded_names", "rightColumnSelectionConfig.enforce_option", "rightColumnSelectionConfig.name_pattern.pattern", "rightColumnSelectionConfig.name_pattern.type", "rightColumnSelectionConfig.name_pattern.caseSensitive", "rightColumnSelectionConfig.name_pattern.excludeMatching" ],
+            "subConfigKeys" : [ ]
           },
           "rowKeyFactory" : {
             "oneOf" : [ {

@@ -52,6 +52,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Map;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
@@ -72,7 +73,8 @@ import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 @SuppressWarnings("restriction")
 class ValueCounterNodeSettingsTest {
 
-    static class ValueCounterNodeSettingsSnapshotTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class ValueCounterNodeSettingsSnapshotTest extends DefaultNodeSettingsSnapshotTest {
         protected ValueCounterNodeSettingsSnapshotTest() {
             super(Map.of(SettingsType.MODEL, ValueCounterNodeSettings.class),
                 new DataTableSpec(new String[]{"test1", "test2"}, new DataType[]{DoubleCell.TYPE, StringCell.TYPE}));

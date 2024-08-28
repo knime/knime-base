@@ -183,6 +183,11 @@ public class NominalValueRowFilterSettings implements DefaultNodeSettings {
         }
 
         @Override
+        public String[] getConfigKeys() {
+            return m_legacyNameFilterPersistor.getConfigKeys();
+        }
+
+        @Override
         public String[][] getSubConfigKeys() {
             return m_legacyNameFilterPersistor.getSubConfigKeys();
         }
@@ -190,7 +195,7 @@ public class NominalValueRowFilterSettings implements DefaultNodeSettings {
         @Override
         public ConfigsDeprecation[] getConfigsDeprecations() {
             final var deprecationBuilder = new ConfigsDeprecation.Builder().forDeprecatedConfigPath(CFG_SELECTED_ATTR);
-            for (var subConfigKeys : getSubConfigKeys()) {
+            for (var subConfigKeys : LegacyNameFilterPersistor.subConfigKeys()) {
                 final var newConfigPath = Stream
                     .concat(Stream.of(getConfigKey()), Arrays.asList(subConfigKeys).stream()).toArray(String[]::new);
                 deprecationBuilder.forNewConfigPath(newConfigPath);

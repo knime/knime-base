@@ -223,8 +223,8 @@
                 "typeDisplays" : [ ]
               }
             },
-            "configKeys" : [ "column_selection" ],
-            "subConfigKeys" : [ [ "filter-type" ], [ "included_names" ], [ "excluded_names" ], [ "enforce_option" ], [ "name_pattern", "pattern" ], [ "name_pattern", "type" ], [ "name_pattern", "caseSensitive" ], [ "name_pattern", "excludeMatching" ] ]
+            "configKeys" : [ "column_selection.filter-type", "column_selection.included_names", "column_selection.excluded_names", "column_selection.enforce_option", "column_selection.name_pattern.pattern", "column_selection.name_pattern.type", "column_selection.name_pattern.caseSensitive", "column_selection.name_pattern.excludeMatching" ],
+            "subConfigKeys" : [ ]
           }
         }
       }

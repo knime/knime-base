@@ -166,8 +166,8 @@
                 "typeDisplays" : [ ]
               }
             },
-            "configKeys" : [ "StringColNames" ],
-            "subConfigKeys" : [ [ "filter-type" ], [ "included_names" ], [ "excluded_names" ], [ "enforce_option" ], [ "name_pattern", "pattern" ], [ "name_pattern", "type" ], [ "name_pattern", "caseSensitive" ], [ "name_pattern", "excludeMatching" ] ]
+            "configKeys" : [ "StringColNames.filter-type", "StringColNames.included_names", "StringColNames.excluded_names", "StringColNames.enforce_option", "StringColNames.name_pattern.pattern", "StringColNames.name_pattern.type", "StringColNames.name_pattern.caseSensitive", "StringColNames.name_pattern.excludeMatching" ],
+            "subConfigKeys" : [ ]
           },
           "numberMode" : {
             "oneOf" : [ {

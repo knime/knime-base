@@ -160,8 +160,8 @@
                 "typeDisplays" : [ ]
               }
             },
-            "configKeys" : [ "data-column-filter" ],
-            "subConfigKeys" : [ [ "filter-type" ], [ "included_names" ], [ "excluded_names" ], [ "enforce_option" ], [ "name_pattern", "pattern" ], [ "name_pattern", "type" ], [ "name_pattern", "caseSensitive" ], [ "name_pattern", "excludeMatching" ] ]
+            "configKeys" : [ "data-column-filter.filter-type", "data-column-filter.included_names", "data-column-filter.excluded_names", "data-column-filter.enforce_option", "data-column-filter.name_pattern.pattern", "data-column-filter.name_pattern.type", "data-column-filter.name_pattern.caseSensitive", "data-column-filter.name_pattern.excludeMatching" ],
+            "subConfigKeys" : [ ]
           },
           "max" : {
             "type" : "number",
