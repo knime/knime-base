@@ -190,8 +190,12 @@ final class CSVTransformationSettingsStateProviders implements WidgetGroup, Pers
                 return computeStateFromPaths(Collections.emptyList());
             }
 
-            try (final FileChooserPathAccessor accessor = new FileChooserPathAccessor(fileChooser,
-                FileSystemPortConnectionUtil.getFileSystemConnection(context))) {
+            var fsConnection = FileSystemPortConnectionUtil.getFileSystemConnection(context);
+            if (fileChooser.getFSLocation().getFSCategory() == FSCategory.CONNECTED && fsConnection.isEmpty()) {
+                return computeStateFromPaths(Collections.emptyList());
+            }
+
+            try (final FileChooserPathAccessor accessor = new FileChooserPathAccessor(fileChooser, fsConnection)) {
                 return computeStateFromPaths(accessor.getFSPaths(s -> {
                     switch (s.getType()) {
                         case INFO -> LOGGER.info(s.getMessage());
@@ -199,7 +203,7 @@ final class CSVTransformationSettingsStateProviders implements WidgetGroup, Pers
                         case ERROR -> LOGGER.error(s.getMessage());
                     }
                 }));
-            } catch (IOException | InvalidSettingsException | IllegalStateException e) {
+            } catch (IOException | InvalidSettingsException e) {
                 LOGGER.error(e);
                 return computeStateFromPaths(Collections.emptyList());
             }
