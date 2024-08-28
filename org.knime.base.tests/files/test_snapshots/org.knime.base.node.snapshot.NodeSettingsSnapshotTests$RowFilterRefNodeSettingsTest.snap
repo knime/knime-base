@@ -18,7 +18,7 @@
             "title" : "Data column",
             "description" : "The column from the table to be filtered that should be used for comparison.",
             "default" : "<row-keys>",
-            "configKeys" : [ "dataTableColumn" ]
+            "configKeys" : [ "dataTableColumn.columnName", "dataTableColumn.useRowID" ]
           },
           "inexclude" : {
             "oneOf" : [ {
@@ -38,7 +38,7 @@
             "title" : "Reference column",
             "description" : "The column from the filter table that should be used for comparison.",
             "default" : "<row-keys>",
-            "configKeys" : [ "referenceTableColumn" ]
+            "configKeys" : [ "referenceTableColumn.columnName", "referenceTableColumn.useRowID" ]
           },
           "updateDomains" : {
             "type" : "boolean",

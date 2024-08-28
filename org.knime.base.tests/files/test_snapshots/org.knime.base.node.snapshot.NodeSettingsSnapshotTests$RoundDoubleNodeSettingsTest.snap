@@ -164,7 +164,7 @@
                 "typeDisplays" : [ ]
               }
             },
-            "configKeys" : [ "StringColNames" ]
+            "configKeys" : [ "StringColNames.filter-type", "StringColNames.included_names", "StringColNames.excluded_names", "StringColNames.enforce_option", "StringColNames.name_pattern.pattern", "StringColNames.name_pattern.type", "StringColNames.name_pattern.caseSensitive", "StringColNames.name_pattern.excludeMatching" ]
           },
           "numberMode" : {
             "oneOf" : [ {

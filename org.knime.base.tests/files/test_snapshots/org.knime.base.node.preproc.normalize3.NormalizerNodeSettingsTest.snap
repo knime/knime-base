@@ -158,7 +158,7 @@
                 "typeDisplays" : [ ]
               }
             },
-            "configKeys" : [ "data-column-filter" ]
+            "configKeys" : [ "data-column-filter.filter-type", "data-column-filter.included_names", "data-column-filter.excluded_names", "data-column-filter.enforce_option", "data-column-filter.name_pattern.pattern", "data-column-filter.name_pattern.type", "data-column-filter.name_pattern.caseSensitive", "data-column-filter.name_pattern.excludeMatching" ]
           },
           "max" : {
             "type" : "number",

@@ -189,7 +189,7 @@
                 "typeDisplays" : [ ]
               }
             },
-            "configKeys" : [ "retained_columns" ]
+            "configKeys" : [ "retained_columns.filter-type", "retained_columns.included_names", "retained_columns.excluded_names", "retained_columns.enforce_option", "retained_columns.name_pattern.pattern", "retained_columns.name_pattern.type", "retained_columns.name_pattern.caseSensitive", "retained_columns.name_pattern.excludeMatching" ]
           },
           "valueColumns" : {
             "type" : "object",
@@ -319,7 +319,7 @@
                 "typeDisplays" : [ ]
               }
             },
-            "configKeys" : [ "value_columns" ]
+            "configKeys" : [ "value_columns.filter-type", "value_columns.included_names", "value_columns.excluded_names", "value_columns.enforce_option", "value_columns.name_pattern.pattern", "value_columns.name_pattern.type", "value_columns.name_pattern.caseSensitive", "value_columns.name_pattern.excludeMatching" ]
           }
         }
       }

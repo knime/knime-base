@@ -182,6 +182,11 @@ public class NominalValueRowFilterSettings implements DefaultNodeSettings {
         }
 
         @Override
+        public String[] getConfigKeys() {
+            return m_legacyNameFilterPersistor.getConfigKeys();
+        }
+
+        @Override
         public void save(final NameFilter nameFilter, final NodeSettingsWO settings) {
             m_legacyNameFilterPersistor.save(nameFilter, settings);
         }

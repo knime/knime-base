@@ -163,7 +163,7 @@
                 "typeDisplays" : [ ]
               }
             },
-            "configKeys" : [ "column-filter" ]
+            "configKeys" : [ "column-filter.filter-type", "column-filter.included_names", "column-filter.excluded_names", "column-filter.enforce_option", "column-filter.name_pattern.pattern", "column-filter.name_pattern.type", "column-filter.name_pattern.caseSensitive", "column-filter.name_pattern.excludeMatching" ]
           },
           "delimiter" : {
             "type" : "string",

@@ -150,7 +150,7 @@
             },
             "title" : "Choose columns for duplicates detection",
             "description" : "Allows the selection of columns identifying the duplicates. Columns not selected are handled under \"Row selection\" in the \"Advanced\" settings.",
-            "configKeys" : [ "group_cols" ]
+            "configKeys" : [ "group_cols.filter-type", "group_cols.included_names", "group_cols.excluded_names", "group_cols.enforce_option", "group_cols.name_pattern.pattern", "group_cols.name_pattern.type", "group_cols.name_pattern.caseSensitive", "group_cols.name_pattern.excludeMatching" ]
           },
           "duplicateHandling" : {
             "oneOf" : [ {

@@ -115,7 +115,7 @@
                 "includeUnknownColumns" : false
               }
             },
-            "configKeys" : [ "filter config" ]
+            "configKeys" : [ "filter config.filter-type", "filter config.included_names", "filter config.excluded_names", "filter config.enforce_option", "filter config.name_pattern.pattern", "filter config.name_pattern.type", "filter config.name_pattern.caseSensitive", "filter config.name_pattern.excludeMatching" ]
           },
           "selectedColumn" : {
             "type" : "string",
