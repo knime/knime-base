@@ -54,7 +54,8 @@ import java.util.stream.IntStream;
 
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.ConstantSignal;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 
@@ -83,7 +84,7 @@ final class FileSystemPortConnectionUtil {
     }
 
     /**
-     * Signal that applies whenever a file system port exists in the input but no connection to the file system could be
+     * Satisfied whenever a file system port exists in the input but no connection to the file system could be
      * established, i.e. when there is nothing connected, when the previous nodes are not executed or when the
      * connection is closed.
      *
@@ -91,10 +92,14 @@ final class FileSystemPortConnectionUtil {
      *
      * @author Paul Bärnreuther
      */
-    public static final class ConnectedWithoutFileSystemSpec implements ConstantSignal {
+    public static final class ConnectedWithoutFileSystemSpec implements PredicateProvider {
 
         @Override
-        public boolean applies(final DefaultNodeSettingsContext context) {
+        public Predicate init(final PredicateInitializer i) {
+            return i.getConstant(ConnectedWithoutFileSystemSpec::applies);
+        }
+
+        static boolean applies(final DefaultNodeSettingsContext context) {
             return hasFileSystemPort(context) && getFileSystemConnection(context).isEmpty();
         }
 

@@ -374,7 +374,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @Widget(title = "Autodetect format", description = AutodetectFormat.DESCRIPTION)
         @Layout(AutodetectFormat.class)
         @SimpleButtonWidget(ref = AutoDetectButtonRef.class, icon = Icon.RELOAD)
-        @Effect(signals = FileSystemPortConnectionUtil.ConnectedWithoutFileSystemSpec.class, type = EffectType.DISABLE)
+        @Effect(predicate = FileSystemPortConnectionUtil.ConnectedWithoutFileSystemSpec.class, type = EffectType.DISABLE)
         Void m_autoDetectButton;
 
         static class FileSelectionInternal implements WidgetGroup, PersistableSettings {

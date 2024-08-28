@@ -1010,7 +1010,7 @@
           "effect" : "DISABLE",
           "condition" : {
             "schema" : {
-              "const" : true
+              "not" : { }
             }
           }
         }
@@ -1248,7 +1248,7 @@
           "effect" : "HIDE",
           "condition" : {
             "schema" : {
-              "const" : true
+              "not" : { }
             }
           }
         }
