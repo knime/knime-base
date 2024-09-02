@@ -251,57 +251,63 @@
     "initialUpdates" : [ {
       "scopes" : null,
       "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$DefaultFitlerCriterionProvider",
-      "value" : {
-        "column" : {
-          "selected" : "BoolCol",
-          "compatibleTypes" : [ "org.knime.core.data.BooleanValue", "org.knime.core.data.DataValue", "org.knime.core.data.IntValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.NominalValue" ]
-        },
-        "operator" : "IS_TRUE",
-        "predicateValues" : {
-          "values" : [ {
-            "value" : false,
-            "cellClassName" : "org.knime.core.data.def.BooleanCell",
-            "valueDataType" : "{\"name\":\"dataTypeConfig\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-            "useStringCaseMatchingSettings" : false
-          } ],
-          "inputKind" : "SINGLE"
+      "values" : [ {
+        "indices" : [ ],
+        "value" : {
+          "column" : {
+            "selected" : "BoolCol",
+            "compatibleTypes" : [ "org.knime.core.data.BooleanValue", "org.knime.core.data.DataValue", "org.knime.core.data.IntValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.NominalValue" ]
+          },
+          "operator" : "IS_TRUE",
+          "predicateValues" : {
+            "values" : [ {
+              "value" : false,
+              "cellClassName" : "org.knime.core.data.def.BooleanCell",
+              "valueDataType" : "{\"name\":\"dataTypeConfig\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+              "useStringCaseMatchingSettings" : false
+            } ],
+            "inputKind" : "SINGLE"
+          }
         }
-      }
+      } ]
     }, {
       "scopes" : null,
       "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$ColumnsWithTypeMapping",
-      "value" : [ {
-        "id" : "DoubleCol",
-        "text" : "DoubleCol",
-        "type" : {
-          "id" : "org.knime.core.data.DoubleValue",
-          "text" : "Number (double)"
-        },
-        "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
-      }, {
-        "id" : "StringCol",
-        "text" : "StringCol",
-        "type" : {
-          "id" : "org.knime.core.data.StringValue",
-          "text" : "String"
-        },
-        "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
-      }, {
-        "id" : "IntCol",
-        "text" : "IntCol",
-        "type" : {
-          "id" : "org.knime.core.data.IntValue",
-          "text" : "Number (integer)"
-        },
-        "compatibleTypes" : [ "org.knime.core.data.IntValue", "org.knime.core.data.DataValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
-      }, {
-        "id" : "BoolCol",
-        "text" : "BoolCol",
-        "type" : {
-          "id" : "org.knime.core.data.BooleanValue",
-          "text" : "Boolean value"
-        },
-        "compatibleTypes" : [ "org.knime.core.data.BooleanValue", "org.knime.core.data.DataValue", "org.knime.core.data.IntValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.NominalValue" ]
+      "values" : [ {
+        "indices" : [ ],
+        "value" : [ {
+          "id" : "DoubleCol",
+          "text" : "DoubleCol",
+          "type" : {
+            "id" : "org.knime.core.data.DoubleValue",
+            "text" : "Number (double)"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+        }, {
+          "id" : "StringCol",
+          "text" : "StringCol",
+          "type" : {
+            "id" : "org.knime.core.data.StringValue",
+            "text" : "String"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+        }, {
+          "id" : "IntCol",
+          "text" : "IntCol",
+          "type" : {
+            "id" : "org.knime.core.data.IntValue",
+            "text" : "Number (integer)"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.IntValue", "org.knime.core.data.DataValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+        }, {
+          "id" : "BoolCol",
+          "text" : "BoolCol",
+          "type" : {
+            "id" : "org.knime.core.data.BooleanValue",
+            "text" : "Boolean value"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.BooleanValue", "org.knime.core.data.DataValue", "org.knime.core.data.IntValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.NominalValue" ]
+        } ]
       } ]
     } ],
     "globalUpdates" : [ {

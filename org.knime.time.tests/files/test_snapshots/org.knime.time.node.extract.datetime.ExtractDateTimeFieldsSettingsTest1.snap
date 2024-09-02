@@ -233,11 +233,17 @@
     "initialUpdates" : [ {
       "scopes" : null,
       "id" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$DefaultExtractFieldProvider",
-      "value" : { }
+      "values" : [ {
+        "indices" : [ ],
+        "value" : { }
+      } ]
     }, {
       "scopes" : null,
       "id" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$FilteredPossibleFieldsChoices",
-      "value" : [ ]
+      "values" : [ {
+        "indices" : [ ],
+        "value" : [ ]
+      } ]
     } ],
     "globalUpdates" : [ {
       "trigger" : {

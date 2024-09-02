@@ -634,22 +634,28 @@
     "initialUpdates" : [ {
       "scopes" : null,
       "id" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$LeftTableChoices",
-      "value" : [ {
-        "id" : "test1",
-        "text" : "test1"
-      }, {
-        "id" : "test2",
-        "text" : "test2"
+      "values" : [ {
+        "indices" : [ ],
+        "value" : [ {
+          "id" : "test1",
+          "text" : "test1"
+        }, {
+          "id" : "test2",
+          "text" : "test2"
+        } ]
       } ]
     }, {
       "scopes" : null,
       "id" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$RightTableChoices",
-      "value" : [ {
-        "id" : "test1",
-        "text" : "test1"
-      }, {
-        "id" : "test2",
-        "text" : "test2"
+      "values" : [ {
+        "indices" : [ ],
+        "value" : [ {
+          "id" : "test1",
+          "text" : "test1"
+        }, {
+          "id" : "test2",
+          "text" : "test2"
+        } ]
       } ]
     } ]
   }

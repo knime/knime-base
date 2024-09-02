@@ -191,61 +191,67 @@
     "initialUpdates" : [ {
       "scopes" : null,
       "id" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$DefaultExtractFieldProvider",
-      "value" : {
-        "field" : "YEAR",
-        "columnName" : ""
-      }
+      "values" : [ {
+        "indices" : [ ],
+        "value" : {
+          "field" : "YEAR",
+          "columnName" : ""
+        }
+      } ]
     }, {
       "scopes" : null,
       "id" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$FilteredPossibleFieldsChoices",
-      "value" : [ {
-        "id" : "YEAR",
-        "text" : "Year"
-      }, {
-        "id" : "YEAR_WEEK_BASED",
-        "text" : "Year (Week-based)"
-      }, {
-        "id" : "QUARTER",
-        "text" : "Quarter"
-      }, {
-        "id" : "MONTH_NUMBER",
-        "text" : "Month (Number)"
-      }, {
-        "id" : "MONTH_NAME",
-        "text" : "Month (Name)"
-      }, {
-        "id" : "WEEK",
-        "text" : "Week"
-      }, {
-        "id" : "DAY_OF_YEAR",
-        "text" : "Day of Year"
-      }, {
-        "id" : "DAY_OF_MONTH",
-        "text" : "Day of Month"
-      }, {
-        "id" : "DAY_OF_WEEK_NUMBER",
-        "text" : "Day of Week (Number)"
-      }, {
-        "id" : "DAY_OF_WEEK_NAME",
-        "text" : "Day of Week (Name)"
-      }, {
-        "id" : "HOUR",
-        "text" : "Hour"
-      }, {
-        "id" : "MINUTE",
-        "text" : "Minute"
-      }, {
-        "id" : "SECOND",
-        "text" : "Second"
-      }, {
-        "id" : "MILLISECOND",
-        "text" : "Millisecond"
-      }, {
-        "id" : "MICROSECOND",
-        "text" : "Microsecond"
-      }, {
-        "id" : "NANOSECOND",
-        "text" : "Nanosecond"
+      "values" : [ {
+        "indices" : [ ],
+        "value" : [ {
+          "id" : "YEAR",
+          "text" : "Year"
+        }, {
+          "id" : "YEAR_WEEK_BASED",
+          "text" : "Year (Week-based)"
+        }, {
+          "id" : "QUARTER",
+          "text" : "Quarter"
+        }, {
+          "id" : "MONTH_NUMBER",
+          "text" : "Month (Number)"
+        }, {
+          "id" : "MONTH_NAME",
+          "text" : "Month (Name)"
+        }, {
+          "id" : "WEEK",
+          "text" : "Week"
+        }, {
+          "id" : "DAY_OF_YEAR",
+          "text" : "Day of Year"
+        }, {
+          "id" : "DAY_OF_MONTH",
+          "text" : "Day of Month"
+        }, {
+          "id" : "DAY_OF_WEEK_NUMBER",
+          "text" : "Day of Week (Number)"
+        }, {
+          "id" : "DAY_OF_WEEK_NAME",
+          "text" : "Day of Week (Name)"
+        }, {
+          "id" : "HOUR",
+          "text" : "Hour"
+        }, {
+          "id" : "MINUTE",
+          "text" : "Minute"
+        }, {
+          "id" : "SECOND",
+          "text" : "Second"
+        }, {
+          "id" : "MILLISECOND",
+          "text" : "Millisecond"
+        }, {
+          "id" : "MICROSECOND",
+          "text" : "Microsecond"
+        }, {
+          "id" : "NANOSECOND",
+          "text" : "Nanosecond"
+        } ]
       } ]
     } ],
     "globalUpdates" : [ {
