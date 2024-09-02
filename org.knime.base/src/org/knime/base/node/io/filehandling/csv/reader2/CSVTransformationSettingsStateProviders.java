@@ -422,7 +422,8 @@ final class CSVTransformationSettingsStateProviders implements WidgetGroup, Pers
 
         @Override
         public void init(final StateProviderInitializer initializer) {
-            m_columnNameSupplier = initializer.computeFromValueSupplier(ColumnNameRef.class);
+            m_columnNameSupplier = initializer.getValueSupplier(ColumnNameRef.class);
+            initializer.computeOnValueChange(CSVTransformationSettings.PersistorSettings.TableSpecSettingsRef.class);
             m_specSupplier = initializer.computeFromProvidedState(TypedReaderTableSpecsProvider.class);
         }
 

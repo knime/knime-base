@@ -254,7 +254,11 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
         @ValueProvider(FSLocationsProvider.class)
         FSLocation[] m_fsLocations = new FSLocation[0];
 
+        static class TableSpecSettingsRef implements Reference<TableSpecSettings[]> {
+        }
+
         @ValueProvider(TableSpecSettingsProvider.class)
+        @ValueReference(TableSpecSettingsRef.class)
         TableSpecSettings[] m_specs = new TableSpecSettings[0];
 
         @ValueProvider(AppendPathColumnRef.class)
@@ -366,7 +370,8 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
 
             @Override
             public void init(final StateProviderInitializer initializer) {
-                m_originalColumnNameSupplier = initializer.computeFromValueSupplier(ColumnNameRef.class);
+                initializer.computeOnValueChange(PersistorSettings.TableSpecSettingsRef.class);
+                m_originalColumnNameSupplier = initializer.getValueSupplier(ColumnNameRef.class);
             }
 
             @Override
@@ -382,7 +387,8 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
 
             @Override
             public void init(final StateProviderInitializer initializer) {
-                m_originalTypeLabelSupplier = initializer.computeFromValueSupplier(OriginalTypeLabelRef.class);
+                initializer.computeOnValueChange(PersistorSettings.TableSpecSettingsRef.class);
+                m_originalTypeLabelSupplier = initializer.getValueSupplier(OriginalTypeLabelRef.class);
             }
 
             @Override

@@ -1279,87 +1279,150 @@
     "initialUpdates" : [ {
       "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/appendPathColumn" ],
       "id" : null,
-      "value" : false
+      "values" : [ {
+        "indices" : [ ],
+        "value" : false
+      } ]
     }, {
       "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/columnDelimiter" ],
       "id" : null,
-      "value" : ","
+      "values" : [ {
+        "indices" : [ ],
+        "value" : ","
+      } ]
     }, {
       "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/commentLineCharacter" ],
       "id" : null,
-      "value" : "#"
+      "values" : [ {
+        "indices" : [ ],
+        "value" : "#"
+      } ]
     }, {
       "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/customEncoding" ],
       "id" : null,
-      "value" : ""
+      "values" : [ {
+        "indices" : [ ],
+        "value" : ""
+      } ]
     }, {
       "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/customRowDelimiter" ],
       "id" : null,
-      "value" : "\\n"
+      "values" : [ {
+        "indices" : [ ],
+        "value" : "\\n"
+      } ]
     }, {
       "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/decimalSeparator" ],
       "id" : null,
-      "value" : "."
+      "values" : [ {
+        "indices" : [ ],
+        "value" : "."
+      } ]
     }, {
       "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/fileEncoding" ],
       "id" : null,
-      "value" : "UTF_8"
+      "values" : [ {
+        "indices" : [ ],
+        "value" : "UTF_8"
+      } ]
     }, {
       "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/firstColumnContainsRowIds" ],
       "id" : null,
-      "value" : false
+      "values" : [ {
+        "indices" : [ ],
+        "value" : false
+      } ]
     }, {
       "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/firstRowContainsColumnNames" ],
       "id" : null,
-      "value" : true
+      "values" : [ {
+        "indices" : [ ],
+        "value" : true
+      } ]
     }, {
       "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/limitScannedRows" ],
       "id" : null,
-      "value" : true
+      "values" : [ {
+        "indices" : [ ],
+        "value" : true
+      } ]
     }, {
       "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/maxDataRowsScanned" ],
       "id" : null,
-      "value" : 10000
+      "values" : [ {
+        "indices" : [ ],
+        "value" : 10000
+      } ]
     }, {
       "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/quoteCharacter" ],
       "id" : null,
-      "value" : "\""
+      "values" : [ {
+        "indices" : [ ],
+        "value" : "\""
+      } ]
     }, {
       "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/quoteEscapeCharacter" ],
       "id" : null,
-      "value" : "\""
+      "values" : [ {
+        "indices" : [ ],
+        "value" : "\""
+      } ]
     }, {
       "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/quotedStringsOption" ],
       "id" : null,
-      "value" : "REMOVE_QUOTES_AND_TRIM"
+      "values" : [ {
+        "indices" : [ ],
+        "value" : "REMOVE_QUOTES_AND_TRIM"
+      } ]
     }, {
       "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/replaceEmptyQuotedStringsByMissingValues" ],
       "id" : null,
-      "value" : true
+      "values" : [ {
+        "indices" : [ ],
+        "value" : true
+      } ]
     }, {
       "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/rowDelimiterOption" ],
       "id" : null,
-      "value" : "LINE_BREAK"
+      "values" : [ {
+        "indices" : [ ],
+        "value" : "LINE_BREAK"
+      } ]
     }, {
       "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/skipFirstDataRows" ],
       "id" : null,
-      "value" : 0
+      "values" : [ {
+        "indices" : [ ],
+        "value" : 0
+      } ]
     }, {
       "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/skipFirstLines" ],
       "id" : null,
-      "value" : 0
+      "values" : [ {
+        "indices" : [ ],
+        "value" : 0
+      } ]
     }, {
       "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/thousandsSeparator" ],
       "id" : null,
-      "value" : "\u0000"
+      "values" : [ {
+        "indices" : [ ],
+        "value" : "\u0000"
+      } ]
     }, {
       "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/filePathColumnName" ],
       "id" : null,
-      "value" : "Path"
+      "values" : [ {
+        "indices" : [ ],
+        "value" : "Path"
+      } ]
     }, {
       "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/takeColumnsFrom" ],
       "id" : null,
-      "value" : "UNION"
+      "values" : [ {
+        "indices" : [ ],
+        "value" : "UNION"
+      } ]
     } ],
     "globalUpdates" : [ {
       "trigger" : {
@@ -1718,8 +1781,8 @@
       } ]
     }, {
       "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings$TransformationElementSettings$ColumnNameRef",
-        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/columnName" ]
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings$PersistorSettings$TableSpecSettingsRef",
+        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ]
       },
       "dependencies" : [ {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/limitMemoryPerColumn" ],
@@ -1736,13 +1799,7 @@
       }, {
         "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/columnName" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings$TransformationElementSettings$ColumnNameRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings$TransformationElementSettings$OriginalTypeLabelRef",
-        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/originalTypeLabel" ]
-      },
-      "dependencies" : [ {
+      }, {
         "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/originalTypeLabel" ],
         "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings$TransformationElementSettings$OriginalTypeLabelRef"
       } ]

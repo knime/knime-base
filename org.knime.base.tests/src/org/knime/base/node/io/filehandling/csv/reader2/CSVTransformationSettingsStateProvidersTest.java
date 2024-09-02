@@ -622,11 +622,16 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
         return new NoopStateProviderInitializer() {
 
             @Override
-            public <T> Supplier<T> computeFromValueSupplier(final Class<? extends Reference<T>> ref) {
+            public <T> Supplier<T> getValueSupplier(final Class<? extends Reference<T>> ref) {
                 if (ref.equals(ColumnNameRef.class)) {
                     return () -> (T)columnName;
                 }
                 throw new IllegalStateException(String.format("Unexpected dependency %s", ref.getSimpleName()));
+            }
+
+            @Override
+            public <T> void computeOnValueChange(final Class<? extends Reference<T>> ref) {
+                // Do nothing
             }
 
             @Override
