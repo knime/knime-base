@@ -47,7 +47,10 @@
  */
 package org.knime.base.node.util.timerinfo;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.knime.base.node.util.timerinfo.TimerinfoNodeSettings.RecursionPolicy;
 import org.knime.core.data.DataColumnSpec;
@@ -137,79 +140,170 @@ final class TimerinfoNodeModel extends WebUINodeModel<TimerinfoNodeSettings> imp
                 "Expected to find 'this' node exactly once (result set has size %d)", m.size());
         NodeID myID = m.entrySet().iterator().next().getKey();
         var myNC = wfm.findNodeContainer(myID);
-        WorkflowManager myWfm = myNC.getParent();
+        WorkflowManager myWorkflowManager = myNC.getParent();
         BufferedDataContainer result = exec.createDataContainer(createSpec());
         // traverse workflow
         var maxDepth = 0;
         if (settings.m_recursionPolicy != TimerinfoNodeSettings.RecursionPolicy.NO_RECURSION) {
             maxDepth = settings.m_maxDepth;
         }
-        reportThisLayer(myWfm, myWfm.getID(), result,
-            settings.m_recursionPolicy, maxDepth, settings.m_includeComponentIO);
+
+        walkWorkflow(myWorkflowManager, new TimerNodeVisitor(myWorkflowManager.getID(), settings.m_recursionPolicy,
+            maxDepth, settings.m_includeComponentIO, result));
+
         result.close();
         return new PortObject[] { result.getTable() };
     }
 
     /**
-     * Internal method writing timer info into table for all nodes of a given WFM until
-     * a certain depth in the provided BDT. Metanodes are treated normally (to keep this node backwards compatible).
-     * Components are added depended on the {@link TimerinfoNodeSettings.RecursionPolicy}.
+     * Visitor interface for nodes in a workflow.
      *
-     * @param wfm the {@link WorkflowManager} of this layer
-     * @param toplevelprefix the prefix of the parent {@link WorkflowManager}
-     * @param result the output table
-     * @param recursionPolicy the configured {@link TimerinfoNodeSettings.RecursionPolicy}
-     * @param maxDepth the timer info depth
-     * @param includeComponentIO whether to include the component input and output nodes
+     * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
      */
-    private static void reportThisLayer(final WorkflowManager wfm, final NodeID toplevelprefix,
-        final BufferedDataContainer result, final TimerinfoNodeSettings.RecursionPolicy recursionPolicy,
-        final int maxDepth, final boolean includeComponentIO) {
-        for (NodeContainer nc : wfm.getNodeContainers()) {
-            if (maxDepth > 0 && nc instanceof WorkflowManager workflowManager) {
-                // Metanode
-                reportThisLayer(workflowManager, toplevelprefix, result,
-                    recursionPolicy, maxDepth-1, includeComponentIO);
-            } else if (maxDepth > 0 && nc instanceof SubNodeContainer subnodeContainer) {
-                // Component
-                applyRecursionPolicyOnThisLayer(subnodeContainer.getWorkflowManager(),
-                    toplevelprefix, result, recursionPolicy, maxDepth, includeComponentIO);
-            } else {
-                // Node
-                if (includeComponentIO || !NativeNodeContainer.IS_VIRTUAL_IN_OUT_NODE.test(nc)) {
-                    result.addRowToTable(createTimerInfoTableRow(nc, toplevelprefix));
-                }
+    private interface NodeVisitor {
+
+        enum NodeVisitResult {
+            /**
+             * Indicates that visiting should continue (and recurse into metanodes or components).
+             */
+            CONTINUE,
+            /**
+             * Indicates that children should be skipped.
+             */
+            SKIP_CHILDREN;
+        }
+
+        NodeVisitResult visitMetanode(WorkflowManager wfm, NodeContainer nc, int level);
+
+        NodeVisitResult visitComponent(WorkflowManager wfm, NodeContainer nc, int level);
+
+        void visitNode(NodeContainer nc, int level);
+
+    }
+
+    /**
+     * Visitor specific to the "Timer Info" node behavior that adds results into the given container. Metanodes are only
+     * output if they are at the maximum level, otherwise, their children are visited. Components are always included in
+     * the output, but their input/output nodes may be omitted based on the settings.
+     */
+    private static final class TimerNodeVisitor implements NodeVisitor {
+
+        private final NodeID m_toplevelprefix;
+        private final RecursionPolicy m_recursionPolicy;
+        private final int m_maxLevel;
+        private final boolean m_includeComponentIO;
+
+        private final BufferedDataContainer m_result;
+
+        TimerNodeVisitor(final NodeID toplevelprefix, final TimerinfoNodeSettings.RecursionPolicy recursionPolicy,
+                final int maxDepth, final boolean includeComponentIO, final BufferedDataContainer result) {
+            m_toplevelprefix = toplevelprefix;
+            m_recursionPolicy = recursionPolicy;
+            m_maxLevel = maxDepth;
+            m_includeComponentIO = includeComponentIO;
+            m_result = result;
+        }
+
+        @Override
+        public NodeVisitResult visitMetanode(final WorkflowManager wfm, final NodeContainer nc, final int level) {
+
+            final var outputChildren = level < m_maxLevel && switch (m_recursionPolicy) {
+                case ONLY_METANODES, COMPONENTS_AND_METANODES -> true;
+                case NO_RECURSION -> false;
+            };
+
+            if (outputChildren) {
+                return NodeVisitResult.CONTINUE;
+            }
+            // metanodes are only added if they are at the maximum depth (i.e. if their children are not listed)
+            // or we don't recurse
+            m_result.addRowToTable(createTimerInfoTableRow(nc, m_toplevelprefix));
+            return NodeVisitResult.SKIP_CHILDREN;
+        }
+
+        @Override
+        public NodeVisitResult visitComponent(final WorkflowManager wfm, final NodeContainer nc, final int level) {
+            final var outputChildren =
+                level < m_maxLevel && m_recursionPolicy == RecursionPolicy.COMPONENTS_AND_METANODES;
+            m_result.addRowToTable(createTimerInfoTableRow(nc, m_toplevelprefix));
+            return outputChildren ? NodeVisitResult.CONTINUE : NodeVisitResult.SKIP_CHILDREN;
+        }
+
+        @Override
+        public void visitNode(final NodeContainer nc, final int level) {
+            if (m_includeComponentIO || !NativeNodeContainer.IS_VIRTUAL_IN_OUT_NODE.test(nc)) {
+                m_result.addRowToTable(createTimerInfoTableRow(nc, m_toplevelprefix));
             }
         }
-    }
 
-    private static void applyRecursionPolicyOnThisLayer(final WorkflowManager nestedWorkflowManager,
-        final NodeID toplevelprefix, final BufferedDataContainer result,
-        final TimerinfoNodeSettings.RecursionPolicy recursionPolicy, final int maxDepth,
-        final boolean includeComponentIO) {
-        if (recursionPolicy == RecursionPolicy.COMPONENTS_AND_METANODES && nestedWorkflowManager.isUnlocked()) {
-            reportThisLayer(nestedWorkflowManager, toplevelprefix, result,
-                recursionPolicy, maxDepth-1, includeComponentIO);
+        private static DataRow createTimerInfoTableRow(final NodeContainer nc, final NodeID toplevelprefix) {
+            // For the RowID we only use the last part of the prefix - also to stay backwards compatible
+            String rowid = "Node " + nc.getID().toString().substring(toplevelprefix.toString().length() + 1);
+            var nt = nc.getNodeTimer();
+            return new DefaultRow(
+                new RowKey(rowid),
+                new StringCell(nc.getName()),
+                nt.getLastExecutionDuration() >= 0
+                    ? new LongCell(nt.getLastExecutionDuration()) : DataType.getMissingCell(),
+                new LongCell(nt.getExecutionDurationSinceReset()),
+                new LongCell(nt.getExecutionDurationSinceStart()),
+                new IntCell(nt.getNrExecsSinceReset()),
+                new IntCell(nt.getNrExecsSinceStart()),
+                new StringCell(nc.getID().toString()),
+                new StringCell(nc instanceof NativeNodeContainer nativeNodeContainer
+                    ? nativeNodeContainer.getNodeModel().getClass().getName() : "n/a")
+            );
         }
+
     }
 
-    private static DataRow createTimerInfoTableRow(final NodeContainer nc, final NodeID toplevelprefix) {
-        // For the RowID we only use the last part of the prefix - also to stay backwards compatible
-        String rowid = "Node " + nc.getID().toString().substring(toplevelprefix.toString().length() + 1);
-        var nt = nc.getNodeTimer();
-        return new DefaultRow(
-            new RowKey(rowid),
-            new StringCell(nc.getName()),
-            nt.getLastExecutionDuration() >= 0
-                ? new LongCell(nt.getLastExecutionDuration()) : DataType.getMissingCell(),
-            new LongCell(nt.getExecutionDurationSinceReset()),
-            new LongCell(nt.getExecutionDurationSinceStart()),
-            new IntCell(nt.getNrExecsSinceReset()),
-            new IntCell(nt.getNrExecsSinceStart()),
-            new StringCell(nc.getID().toString()),
-            new StringCell(nc instanceof NativeNodeContainer nativeNodeContainer
-                ? nativeNodeContainer.getNodeModel().getClass().getName() : "n/a")
-        );
+    private record Node(int level, NodeContainer nc) {
     }
 
+    /**
+     * Walks the workflow hierarchy starting at the given workflow manager.
+     * @param startWorkflowManager workflow manager to start at
+     * @param visitor visitor to call for each encountered node container
+     */
+    private static void walkWorkflow(final WorkflowManager startWorkflowManager, final NodeVisitor visitor) {
+        // we use a queue, to output nodes in the order they are encountered
+        final Deque<Node> stack = new ArrayDeque<>();
+        for (final var ncStart : startWorkflowManager.getNodeContainers()) {
+            stack.addFirst(new Node(0, ncStart));
+
+            while (!stack.isEmpty()) {
+                final var nc = stack.removeFirst();
+                final NodeVisitor.NodeVisitResult visitResult;
+                if (nc.nc instanceof WorkflowManager wfm) {
+                    // Metanode
+                    visitResult = visitor.visitMetanode(wfm, nc.nc, nc.level);
+                } else if (nc.nc instanceof SubNodeContainer snc) {
+                    // Component
+                    final var wfm = snc.getWorkflowManager();
+                    // Never recurse into locked components
+                    visitResult = wfm.isUnlocked() ? visitor.visitComponent(wfm, nc.nc, nc.level)
+                        : NodeVisitor.NodeVisitResult.SKIP_CHILDREN;
+                } else {
+                    // Node
+                    visitor.visitNode(nc.nc, nc.level);
+                    visitResult = null;
+                }
+                if (visitResult == null || visitResult == NodeVisitor.NodeVisitResult.SKIP_CHILDREN) {
+                    continue;
+                }
+                // continue with children
+                final int nextLevel = nc.level + 1;
+                final var wfm =
+                    nc.nc instanceof WorkflowManager wm ? wm : ((SubNodeContainer)nc.nc).getWorkflowManager();
+                // adding children in reverse order to maintain legacy node behavior.
+                final var iter = wfm.getNodeContainers().stream()
+                        .collect(Collectors.toCollection(ArrayDeque::new)).descendingIterator();
+                while (iter.hasNext()) {
+                    stack.addFirst(new Node(nextLevel, iter.next()));
+                }
+            }
+
+        }
+
+    }
 }
