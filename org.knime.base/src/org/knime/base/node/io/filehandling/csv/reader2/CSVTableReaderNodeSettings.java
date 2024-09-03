@@ -629,10 +629,23 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
             }
         }
 
+        static final class IfSchemaChangesOptionRef implements Reference<IfSchemaChangesOption> {
+        }
+
+        static final class UseNewSchema implements PredicateProvider {
+
+            @Override
+            public Predicate init(final PredicateInitializer i) {
+                return i.getEnum(IfSchemaChangesOptionRef.class).isOneOf(IfSchemaChangesOption.USE_NEW_SCHEMA);
+            }
+
+        }
+
         @Widget(title = "If schema changes", description = IfSchemaChanges.DESCRIPTION)
         @RadioButtonsWidget
         @Layout(IfSchemaChanges.class)
         @Persist(customPersistor = IfSchemaChangesPersistor.class)
+        @ValueReference(IfSchemaChangesOptionRef.class)
         IfSchemaChangesOption m_ifSchemaChangesOption = IfSchemaChangesOption.FAIL;
     }
 

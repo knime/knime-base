@@ -48,9 +48,12 @@
  */
 package org.knime.base.node.io.filehandling.csv.reader2;
 
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.UseNewSchema;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
@@ -394,7 +397,9 @@ public class CSVTableReaderNodeLayout {
                 Whether and where to add unknown columns during execution is specified via the special item "Any unknown new column".
                 It is possible to specify the data type to which new columns should be converted.
                 Note that the node will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is of type Double.
-                """)
+                """,
+        advanced = true)
+    @Effect(predicate = UseNewSchema.class, type = EffectType.HIDE)
     @After(MultipleFileHandling.class)
     interface Transformation {
     }
