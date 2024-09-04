@@ -81,26 +81,38 @@ public final class VariableFilterNodeFactory extends
               This node filters local flow variables from all connections passing through it to
               prevent their availability in downstream nodes. A <em>local</em> flow variable is one
               that is defined in the same scoped context (e.g., <em>local</em> contexts such as
-              components, KNIME loops, or Try-Catch blocks) as this filter node. If the filter is
-              used at the outermost level of the workflow, all variables can be filtered.
+              KNIME loops) as this filter node. If the filter is used at the outermost level of the
+              workflow, all variables can be filtered.
+            </p>
+            <p>
+              <b>Caution:</b> If a variable of the same name is passed in from another,
+              enclosing scope and only overwritten locally, the filter only removes the local
+              changes and restores the variable to its outside state. It is not possible to
+              completely remove variables from any context other than the one they were defined in.
+            </p>
+            <p>
+              The following KNIME constructs create scoped contexts:
+              <ul>
+                <li><em>Loops</em>, including the loop start and loop end nodes,</li>
+                <li><em>Try-Catch blocks</em>,</li>
+                <li><em>Workflow Capturing</em> (Integrated Deployment), and</li>
+                <li>
+                  <em>Components</em>, which have the special behavior of blocking all variables of outer
+                  contexts, with the option of copying some of them into the local context via the
+                  component input node, making them filterable.</li>
+              </ul>
             </p>
             <p>
               An arbitrary number of port pairs can be added to the node. These ports are
               pass-through, but the corresponding output connections will have the filtering
               applied as described above.
             </p>
-            <p>
-              <b>Caution:</b> If a variable of the same name is passed in from another,
-              enclosing scope and only overwritten locally, the filter only removes the local
-              changes and restores the variable to its outside state. It is not possible to
-              completely remove non-locally defined variables.
-            </p>
                 """;
 
     static final String PORT_GROUP = "Pass through";
 
     private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
-            .name("Local Variable Filter") //
+            .name("Variable Filter") //
             .icon("variable_filter.png") //
             .shortDescription("Filters flow variables by name.") //
             .fullDescription(
