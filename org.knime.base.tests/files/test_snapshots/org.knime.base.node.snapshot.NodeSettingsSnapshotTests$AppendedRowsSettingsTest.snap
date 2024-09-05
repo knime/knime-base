@@ -18,14 +18,14 @@
         "properties" : {
           "columnSetOperation" : {
             "oneOf" : [ {
-              "const" : "INTERSECTION",
-              "title" : "Intersection"
-            }, {
               "const" : "UNION",
               "title" : "Union"
+            }, {
+              "const" : "INTERSECTION",
+              "title" : "Intersection"
             } ],
             "title" : "How to combine input columns",
-            "description" : "Choose the output column selection process:<ul>\n<li><b>Intersection</b>: Use only the columns that appear in every input table. Any other column is ignored\n    and won't appear in the output table.</li>\n<li><b>Union</b>: Use all columns from all input tables. Fill rows with missing values if they miss cells\n    for some columns.</li>\n</ul>\n",
+            "description" : "Choose the output column selection process:<ul>\n<li><b>Union</b>: Use all columns from all input tables. Fill rows with missing values if they miss cells\n    for some columns.</li>\n<li><b>Intersection</b>: Use only the columns that appear in every input table. Any other column is ignored\n    and won't appear in the output table.</li>\n</ul>\n",
             "default" : "UNION",
             "configKeys" : [ "intersection_of_columns" ]
           },
@@ -41,17 +41,17 @@
             "properties" : {
               "rowIdResolution" : {
                 "oneOf" : [ {
-                  "const" : "SKIP",
-                  "title" : "Skip"
-                }, {
                   "const" : "APPEND",
                   "title" : "Append suffix"
+                }, {
+                  "const" : "SKIP",
+                  "title" : "Skip"
                 }, {
                   "const" : "FAIL",
                   "title" : "Fail"
                 } ],
                 "title" : "Duplicate RowID strategy",
-                "description" : "Select how duplicate RowIDs are handled:\n<ul>\n    <li><b>Skip</b>: Duplicate RowIDs in the additional tables are not added to the output table. This\n        option is memory intensive because it caches the RowIDs to find duplicates and requires full\n        data duplication.</li>\n    <li><b>Append suffix</b>: The output table will include all rows, but duplicate RowIDs will have a\n        suffix added. This method is also memory intensive, similar to the \"Skip\" option.</li>\n    <li><b>Fail</b>: The node will fail during execution if duplicate RowIDs are encountered. This\n        option is efficient for checking uniqueness.</li>\n</ul>\n",
+                "description" : "Select how duplicate RowIDs are handled:\n<ul>\n    <li><b>Append suffix</b>: The output table will include all rows, but duplicate RowIDs will have a\n        suffix added. This method is also memory intensive, similar to the \"Skip\" option.</li>\n    <li><b>Skip</b>: Duplicate RowIDs in the additional tables are not added to the output table. This\n        option is memory intensive because it caches the RowIDs to find duplicates and requires full\n        data duplication.</li>\n    <li><b>Fail</b>: The node will fail during execution if duplicate RowIDs are encountered. This\n        option is efficient for checking uniqueness.</li>\n</ul>\n",
                 "default" : "APPEND"
               },
               "strategy" : {

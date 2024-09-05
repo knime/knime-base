@@ -78,20 +78,20 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
 public final class AppendedRowsNodeSettings implements DefaultNodeSettings {
 
     enum ColumnSetOperation {
-            @Label("Intersection")
-            INTERSECTION,
-
             @Label("Union")
-            UNION;
+            UNION,
+
+            @Label("Intersection")
+            INTERSECTION;
     }
 
     @Persist(customPersistor = ColumnSetOperationPersistor.class)
     @Widget(title = "How to combine input columns", description = """
             Choose the output column selection process:<ul>
-            <li><b>Intersection</b>: Use only the columns that appear in every input table. Any other column is ignored
-                and won't appear in the output table.</li>
             <li><b>Union</b>: Use all columns from all input tables. Fill rows with missing values if they miss cells
                 for some columns.</li>
+            <li><b>Intersection</b>: Use only the columns that appear in every input table. Any other column is ignored
+                and won't appear in the output table.</li>
             </ul>
             """)
     @ValueSwitchWidget
@@ -131,11 +131,11 @@ public final class AppendedRowsNodeSettings implements DefaultNodeSettings {
         RowIdStrategy m_strategy = RowIdStrategy.CREATE_NEW;
 
         enum DuplicateRowIdResolution {
-                @Label("Skip")
-                SKIP,
-
                 @Label("Append suffix")
                 APPEND,
+
+                @Label("Skip")
+                SKIP,
 
                 @Label("Fail")
                 FAIL;
@@ -163,11 +163,11 @@ public final class AppendedRowsNodeSettings implements DefaultNodeSettings {
         @Widget(title = "Duplicate RowID strategy", description = """
                 Select how duplicate RowIDs are handled:
                 <ul>
+                    <li><b>Append suffix</b>: The output table will include all rows, but duplicate RowIDs will have a
+                        suffix added. This method is also memory intensive, similar to the "Skip" option.</li>
                     <li><b>Skip</b>: Duplicate RowIDs in the additional tables are not added to the output table. This
                         option is memory intensive because it caches the RowIDs to find duplicates and requires full
                         data duplication.</li>
-                    <li><b>Append suffix</b>: The output table will include all rows, but duplicate RowIDs will have a
-                        suffix added. This method is also memory intensive, similar to the "Skip" option.</li>
                     <li><b>Fail</b>: The node will fail during execution if duplicate RowIDs are encountered. This
                         option is efficient for checking uniqueness.</li>
                 </ul>
