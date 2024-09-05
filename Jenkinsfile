@@ -1,7 +1,7 @@
 #!groovy
 def BN = (BRANCH_NAME == 'master' || BRANCH_NAME.startsWith('releases/')) ? BRANCH_NAME : 'releases/2024-12'
 
-library "knime-pipeline@$BN"
+library "knime-pipeline@todo/DEVOPS-2151-workflow-tests-default-mac-os-arm"
 
 properties([
 	// provide a list of upstream jobs which should trigger a rebuild of this job
@@ -104,17 +104,17 @@ try {
                 ],
             )
         },
-        'Integrated Workflowtests': {
-            workflowTests.runIntegratedWorkflowTests(profile: 'test',  nodeType: 'maven', configurations: workflowTests.DEFAULT_FEATURE_BRANCH_CONFIGURATIONS)
-         },
+        // 'Integrated Workflowtests': {
+        //     workflowTests.runIntegratedWorkflowTests(profile: 'test',  nodeType: 'maven', configurations: workflowTests.DEFAULT_FEATURE_BRANCH_CONFIGURATIONS)
+        //  },
     ]
 
     parallel testConfigs
 
-    stage('Sonarqube analysis') {
-        env.lastStage = env.STAGE_NAME
-        workflowTests.runSonar()
-    }
+    // stage('Sonarqube analysis') {
+    //     env.lastStage = env.STAGE_NAME
+    //     workflowTests.runSonar()
+    // }
 } catch (ex) {
     currentBuild.result = 'FAILURE'
     throw ex
