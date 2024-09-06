@@ -207,9 +207,12 @@ public class StringReplacerDictNodeModel extends WebUINodeModel<StringReplacerDi
         }
         var targetColIndices = Arrays.stream(targetCols).mapToInt(targetSpec::findColumnIndex).toArray();
 
-        for (var targetIndex : targetColIndices) {
-            CheckUtils.checkSetting(targetSpec.getColumnSpec(targetIndex).getType().isCompatible(StringValue.class),
-                "The target column type is not string-compatible");
+        for (var i = 0; i < targetCols.length; i++) {
+            CheckUtils.checkSetting(targetColIndices[i] >= 0,
+                "There is no target column \"%s\" in the data table. Please reconfigure the node.", targetCols[i]);
+            CheckUtils.checkSetting(
+                targetSpec.getColumnSpec(targetColIndices[i]).getType().isCompatible(StringValue.class),
+                "The type of target column \"%s\" is not string-compatible.", targetCols[i]);
         }
 
         var patternColIndex = dictSpec.findColumnIndex(modelSettings.m_patternColumn);
