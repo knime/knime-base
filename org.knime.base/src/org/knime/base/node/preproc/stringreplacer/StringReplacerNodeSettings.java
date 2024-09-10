@@ -184,7 +184,7 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
     private static final class PatternTypePersistor implements FieldNodeSettingsPersistor<PatternType> {
         @Override
         public PatternType load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            if (settings.getBoolean(StringReplacerSettings.CFG_FIND_PATTERN, true)) {
+            if (settings.getBoolean(StringReplacerSettings.CFG_FIND_PATTERN)) {
                 final var isRegex = settings.getBoolean(StringReplacerSettings.CFG_PATTERN_IS_REGEX);
                 return isRegex ? PatternType.REGEX : PatternType.WILDCARD;
             } else {
