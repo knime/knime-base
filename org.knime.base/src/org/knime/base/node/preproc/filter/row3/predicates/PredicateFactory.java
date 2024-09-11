@@ -44,65 +44,43 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   24 May 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   27 Aug 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.base.node.preproc.filter.row3.predicates;
 
-import java.util.function.LongPredicate;
+import java.util.function.Predicate;
 
-import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
+import org.knime.core.data.v2.RowRead;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 
 /**
- * Predicate for filtering rows by row number.
+ * Factory for predicates that can be used to filter {@link RowRead rows}.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-interface RowNumberPredicate extends LongPredicate {
-
-    // TODO (performance): introduce and propagate ALWAYS_TRUE and ALWAYS_FALSE predicates
-
-    static RowNumberPredicate buildPredicate(final boolean isAnd, final Iterable<FilterCriterion> rowNumberCriteria,
-            final long optionalTableSize) throws InvalidSettingsException {
-        final var iter = rowNumberCriteria.iterator();
-        if (!iter.hasNext()) {
-            return null;
-        }
-        var filterPredicate = createFrom(iter.next(), optionalTableSize);
-        while (iter.hasNext()) {
-            final var predicate = createFrom(iter.next(), optionalTableSize);
-            filterPredicate = isAnd ? filterPredicate.and(predicate) : filterPredicate.or(predicate);
-        }
-        return filterPredicate;
-    }
-
-    private static RowNumberPredicate createFrom(final FilterCriterion criterion, final long optionalTableSize)
-            throws InvalidSettingsException {
-        final var filterSpec = RowNumberFilter.getAsFilterSpec(criterion);
-        final var offsetFilter = filterSpec.toOffsetFilter(optionalTableSize);
-        return offsetFilter.toPredicate();
-    }
+@FunctionalInterface
+public interface PredicateFactory {
 
     /**
-     * Short-circuiting AND.
-     * @param other other predicate
-     * @return combined predicate
-     * @see LongPredicate#and(LongPredicate)
+     * Predicate instance that always returns {@code true} and can be used to disable filtering.
      */
-    @Override
-    default RowNumberPredicate and(final LongPredicate other) {
-        return value -> test(value) && other.test(value);
-    }
-
+    Predicate<RowRead> ALWAYS_TRUE = row -> true;
 
     /**
-     * Short-circuiting OR.
-     * @param other other predicate
-     * @return combined predicate
-     * @see LongPredicate#or(LongPredicate)
+     * Predicate instance that always returns {@code false} and can be used to filter out all rows.
      */
-    @Override
-    default RowNumberPredicate or(final LongPredicate other) {
-        return value -> test(value) || other.test(value);
-    }
+    Predicate<RowRead> ALWAYS_FALSE = row -> false;
+
+    /**
+     * Creates a filter predicate given a column index and a reference value input.
+     *
+     * @param columnIndex column index to filter on
+     * @param inputValues input values to use as reference
+     * @return predicate predicate that can be used to filter rows
+     * @throws InvalidSettingsException in case the input values are missing or invalid
+     */
+    Predicate<RowRead> createPredicate(int columnIndex, final DynamicValuesInput inputValues)
+        throws InvalidSettingsException;
+
 }

@@ -44,65 +44,38 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   24 May 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   27 Aug 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.base.node.preproc.filter.row3.predicates;
 
-import java.util.function.LongPredicate;
+import java.util.Optional;
+import java.util.function.Predicate;
 
-import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
+import org.knime.core.data.DataType;
+import org.knime.core.data.def.BooleanCell;
+import org.knime.core.data.v2.RowRead;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 
-/**
- * Predicate for filtering rows by row number.
- *
- * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
- */
-interface RowNumberPredicate extends LongPredicate {
+final class BooleanPredicateFactory extends AbstractPredicateFactory {
 
-    // TODO (performance): introduce and propagate ALWAYS_TRUE and ALWAYS_FALSE predicates
+    private final boolean m_matchTrue;
 
-    static RowNumberPredicate buildPredicate(final boolean isAnd, final Iterable<FilterCriterion> rowNumberCriteria,
-            final long optionalTableSize) throws InvalidSettingsException {
-        final var iter = rowNumberCriteria.iterator();
-        if (!iter.hasNext()) {
-            return null;
-        }
-        var filterPredicate = createFrom(iter.next(), optionalTableSize);
-        while (iter.hasNext()) {
-            final var predicate = createFrom(iter.next(), optionalTableSize);
-            filterPredicate = isAnd ? filterPredicate.and(predicate) : filterPredicate.or(predicate);
-        }
-        return filterPredicate;
+    private BooleanPredicateFactory(final boolean matchTrue) {
+        m_matchTrue = matchTrue;
     }
 
-    private static RowNumberPredicate createFrom(final FilterCriterion criterion, final long optionalTableSize)
+    public static Optional<PredicateFactory> create(final DataType columnDataType, final boolean matchTrue) {
+        if (columnDataType.equals(BooleanCell.TYPE)) {
+            return Optional.of(new BooleanPredicateFactory(matchTrue));
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public Predicate<RowRead> createPredicate(final int columnIndex, final DynamicValuesInput ignored)
             throws InvalidSettingsException {
-        final var filterSpec = RowNumberFilter.getAsFilterSpec(criterion);
-        final var offsetFilter = filterSpec.toOffsetFilter(optionalTableSize);
-        return offsetFilter.toPredicate();
+        return rowRead -> rowRead.<BooleanCell>getValue(columnIndex).getBooleanValue() == m_matchTrue;
     }
 
-    /**
-     * Short-circuiting AND.
-     * @param other other predicate
-     * @return combined predicate
-     * @see LongPredicate#and(LongPredicate)
-     */
-    @Override
-    default RowNumberPredicate and(final LongPredicate other) {
-        return value -> test(value) && other.test(value);
-    }
-
-
-    /**
-     * Short-circuiting OR.
-     * @param other other predicate
-     * @return combined predicate
-     * @see LongPredicate#or(LongPredicate)
-     */
-    @Override
-    default RowNumberPredicate or(final LongPredicate other) {
-        return value -> test(value) || other.test(value);
-    }
 }

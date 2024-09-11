@@ -209,19 +209,16 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
             }
 
             final var operator = m_operator;
-            if (isFilterOnRowKeys()) {
-                CheckUtils.checkSetting(
-                    !(operator == FilterOperator.IS_MISSING || operator == FilterOperator.IS_NOT_MISSING),
-                    "Cannot filter RowID for presence.");
-                CheckUtils.checkSetting(operator.isApplicableFor(SpecialColumns.ROWID, StringCell.TYPE),
-                    "Filter operator \"%s\" cannot be applied to RowID.", operator.label());
-                return;
-            }
 
             final var columnName = m_column.getSelected();
-            final var colSpec = spec.getColumnSpec(columnName);
-            CheckUtils.checkSettingNotNull(colSpec, "Unknown column \"%s\".", columnName);
-            operator.validate(colSpec, m_predicateValues);
+
+            final var isRowKey = isFilterOnRowKeys();
+            final var columnIndex = isRowKey ? -1 : spec.findColumnIndex(columnName);
+            final var colSpec = isRowKey ? null : spec.getColumnSpec(columnName);
+            if (!isRowKey) {
+                CheckUtils.checkSettingNotNull(colSpec, "Unknown column \"%s\".", columnName);
+            }
+            operator.validate(colSpec, columnIndex, m_predicateValues);
         }
 
         boolean isFilterOnRowKeys() {
@@ -287,7 +284,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                     // show any existing value
                     return m_currentValue.get();
                 }
-                if (!m_currentOperator.get().m_isBinary) {
+                if (!m_currentOperator.get().isBinary()) {
                     // we don't need an input field
                     return DynamicValuesInput.emptySingle();
                 }
@@ -484,7 +481,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
             }
             // filter on top-level type
             return Arrays.stream(FilterOperator.values()) //
-                .filter(op -> op.isOfferedFor(specialColumn, dataType.get())) //
+                .filter(op -> !op.isHidden(specialColumn, dataType.get())) //
                 .toList();
         }
 

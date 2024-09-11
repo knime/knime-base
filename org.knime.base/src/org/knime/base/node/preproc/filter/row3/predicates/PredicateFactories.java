@@ -44,65 +44,64 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   24 May 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   26 Aug 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.base.node.preproc.filter.row3.predicates;
 
-import java.util.function.LongPredicate;
+import java.util.Optional;
 
-import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
-import org.knime.core.node.InvalidSettingsException;
+import org.knime.base.node.preproc.filter.row3.FilterOperator;
+import org.knime.core.data.DataType;
+import org.knime.core.data.v2.RowRead;
 
 /**
- * Predicate for filtering rows by row number.
+ * Utility to create factories for {@link RowRead row read} predicates.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-interface RowNumberPredicate extends LongPredicate {
+public final class PredicateFactories {
 
-    // TODO (performance): introduce and propagate ALWAYS_TRUE and ALWAYS_FALSE predicates
-
-    static RowNumberPredicate buildPredicate(final boolean isAnd, final Iterable<FilterCriterion> rowNumberCriteria,
-            final long optionalTableSize) throws InvalidSettingsException {
-        final var iter = rowNumberCriteria.iterator();
-        if (!iter.hasNext()) {
-            return null;
-        }
-        var filterPredicate = createFrom(iter.next(), optionalTableSize);
-        while (iter.hasNext()) {
-            final var predicate = createFrom(iter.next(), optionalTableSize);
-            filterPredicate = isAnd ? filterPredicate.and(predicate) : filterPredicate.or(predicate);
-        }
-        return filterPredicate;
-    }
-
-    private static RowNumberPredicate createFrom(final FilterCriterion criterion, final long optionalTableSize)
-            throws InvalidSettingsException {
-        final var filterSpec = RowNumberFilter.getAsFilterSpec(criterion);
-        final var offsetFilter = filterSpec.toOffsetFilter(optionalTableSize);
-        return offsetFilter.toPredicate();
+    private PredicateFactories() {
+        // hidden
     }
 
     /**
-     * Short-circuiting AND.
-     * @param other other predicate
-     * @return combined predicate
-     * @see LongPredicate#and(LongPredicate)
+     * Gets a factory for the given operator and column data type. If the operator does not support the given data type,
+     * the returned optional is empty.
+     *
+     * @param operator filter operator
+     * @param columnDataType column data type to apply operator on
+     * @return factory for the given operator and column, or empty if the operator is not supported for the given data
+     *         type
      */
-    @Override
-    default RowNumberPredicate and(final LongPredicate other) {
-        return value -> test(value) && other.test(value);
-    }
-
-
-    /**
-     * Short-circuiting OR.
-     * @param other other predicate
-     * @return combined predicate
-     * @see LongPredicate#or(LongPredicate)
-     */
-    @Override
-    default RowNumberPredicate or(final LongPredicate other) {
-        return value -> test(value) || other.test(value);
+    public static Optional<PredicateFactory> getFactory(final FilterOperator operator, final DataType columnDataType) {
+        return switch (operator) {
+            case EQ:
+                yield EqualityPredicateFactory.create(columnDataType, true);
+            case NEQ:
+                yield EqualityPredicateFactory.create(columnDataType, false);
+            case GT:
+                yield RangePredicateFactory.create(columnDataType, FilterOperator.GT);
+            case GTE:
+                yield RangePredicateFactory.create(columnDataType, FilterOperator.GTE);
+            case LT:
+                yield RangePredicateFactory.create(columnDataType, FilterOperator.LT);
+            case LTE:
+                yield RangePredicateFactory.create(columnDataType, FilterOperator.LTE);
+            case IS_TRUE:
+                yield BooleanPredicateFactory.create(columnDataType, true);
+            case IS_FALSE:
+                yield BooleanPredicateFactory.create(columnDataType, false);
+            case IS_MISSING:
+                yield Optional.of((columnIndex, inputValues) -> rowRead -> rowRead.isMissing(columnIndex));
+            case IS_NOT_MISSING:
+                yield Optional.of((columnIndex, inputValues) -> rowRead -> !rowRead.isMissing(columnIndex));
+            case REGEX:
+                yield PatternMatchingPredicateFactory.create(columnDataType, true);
+            case WILDCARD:
+                yield PatternMatchingPredicateFactory.create(columnDataType, false);
+            case FIRST_N_ROWS, LAST_N_ROWS:
+                yield Optional.empty();
+        };
     }
 }

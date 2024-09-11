@@ -44,65 +44,48 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   24 May 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   27 Aug 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.base.node.preproc.filter.row3.predicates;
 
-import java.util.function.LongPredicate;
-
-import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
+import org.knime.core.data.DataCell;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
+import org.knime.core.node.message.Message;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 
 /**
- * Predicate for filtering rows by row number.
+ * Base class that should be used for predicate factories. It provides a helper method to get the input value and a nice
+ * error message in case it is missing.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-interface RowNumberPredicate extends LongPredicate {
+abstract class AbstractPredicateFactory implements PredicateFactory {
 
-    // TODO (performance): introduce and propagate ALWAYS_TRUE and ALWAYS_FALSE predicates
+    protected static final NodeLogger LOGGER = NodeLogger.getLogger(AbstractPredicateFactory.class);
 
-    static RowNumberPredicate buildPredicate(final boolean isAnd, final Iterable<FilterCriterion> rowNumberCriteria,
-            final long optionalTableSize) throws InvalidSettingsException {
-        final var iter = rowNumberCriteria.iterator();
-        if (!iter.hasNext()) {
-            return null;
-        }
-        var filterPredicate = createFrom(iter.next(), optionalTableSize);
-        while (iter.hasNext()) {
-            final var predicate = createFrom(iter.next(), optionalTableSize);
-            filterPredicate = isAnd ? filterPredicate.and(predicate) : filterPredicate.or(predicate);
-        }
-        return filterPredicate;
-    }
-
-    private static RowNumberPredicate createFrom(final FilterCriterion criterion, final long optionalTableSize)
-            throws InvalidSettingsException {
-        final var filterSpec = RowNumberFilter.getAsFilterSpec(criterion);
-        final var offsetFilter = filterSpec.toOffsetFilter(optionalTableSize);
-        return offsetFilter.toPredicate();
+    /**
+     * Gets the input value at the specified index, throwing an exception if the value is missing.
+     *
+     * @param inputValues input values to access
+     * @param inputValueIndex index of the input value
+     * @return input value
+     * @throws InvalidSettingsException if the input value is missing
+     */
+    protected DataCell getCellAtOrThrow(final DynamicValuesInput inputValues, final int inputValueIndex)
+        throws InvalidSettingsException {
+        return inputValues.getCellAt(inputValueIndex)
+            .orElseThrow(AbstractPredicateFactory::createMissingReferenceValueException);
     }
 
     /**
-     * Short-circuiting AND.
-     * @param other other predicate
-     * @return combined predicate
-     * @see LongPredicate#and(LongPredicate)
+     * Creates a nice exception message with potential resolution.
+     *
+     * @return exception to throw
      */
-    @Override
-    default RowNumberPredicate and(final LongPredicate other) {
-        return value -> test(value) && other.test(value);
-    }
-
-
-    /**
-     * Short-circuiting OR.
-     * @param other other predicate
-     * @return combined predicate
-     * @see LongPredicate#or(LongPredicate)
-     */
-    @Override
-    default RowNumberPredicate or(final LongPredicate other) {
-        return value -> test(value) || other.test(value);
+    private static InvalidSettingsException createMissingReferenceValueException() {
+        return Message.builder().withSummary("Reference value is missing")
+            .addResolutions("Reconfigure the node to provide a reference value.").build().orElseThrow()
+            .toInvalidSettingsException();
     }
 }
