@@ -389,18 +389,29 @@ public class CSVTableReaderNodeLayout {
         }
     }
 
-    @Section(title = "Table Transformation",
-        description = """
-                This section lists every column to allow modifying the structure of the output table.
-                It supports reordering, filtering and renaming columns. It is also possible to change the type of the columns.
-                Note that the positions of columns are reset in the dialog if a new file or folder is selected.
-                Whether and where to add unknown columns during execution is specified via the special item "Any unknown new column".
-                It is possible to specify the data type to which new columns should be converted.
-                Note that the node will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is of type Double.
-                """,
-        advanced = true)
+    @Section(title = "Table Transformation", description = Transformation.DESCRIPTION, advanced = true)
     @Effect(predicate = UseNewSchema.class, type = EffectType.HIDE)
     @After(MultipleFileHandling.class)
     interface Transformation {
+        String DESCRIPTION =
+            """
+                    Use this option to modify the structure of the table. You can deselect each column to filter it out of the
+                    output table, use the arrows to reorder the columns, or change the column name or column type of each
+                    column. Note that the positions of columns are reset in the dialog if a new file or folder is selected.
+                    Whether and where to add unknown columns during execution is specified via the special row &lt;any unknown
+                    new column&gt;. It is also possible to select the type new columns should be converted to. Note that the
+                    node will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is
+                    of type Double.
+                    """;
+
+        interface EnforceTypes {
+            @SuppressWarnings("hiding")
+            String DESCRIPTION = """
+                    Controls how columns whose type changes are dealt with.
+                    If selected, the mapping to the KNIME type you configured is attempted.
+                    The node will fail if that is not possible.
+                    If unselected, the KNIME type corresponding to the new type is used.
+                    """;
+        }
     }
 }

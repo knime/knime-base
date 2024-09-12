@@ -91,11 +91,11 @@
         "enforceTypes" : true,
         "columnTransformation" : [ {
           "columnName" : "column1",
-          "originalType" : "org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)",
+          "originalType" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<config xmlns=\"http://www.knime.org/2008/09/XMLConfig\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd\" key=\"type\">\n    <config key=\"type\">\n        <entry key=\"cell_class\" type=\"xstring\" value=\"org.knime.core.data.def.StringCell\"/>\n        <entry key=\"is_null\" type=\"xboolean\" value=\"false\"/>\n    </config>\n</config>\n",
           "originalTypeLabel" : "String",
           "includeInOutput" : true,
           "columnRename" : "new name",
-          "type" : "org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"
+          "type" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<config xmlns=\"http://www.knime.org/2008/09/XMLConfig\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd\" key=\"type\">\n    <config key=\"type\">\n        <entry key=\"cell_class\" type=\"xstring\" value=\"org.knime.core.data.def.StringCell\"/>\n        <entry key=\"is_null\" type=\"xboolean\" value=\"false\"/>\n    </config>\n</config>\n"
         }, {
           "columnName" : null,
           "originalType" : "<default-columntype>",
@@ -888,7 +888,7 @@
         "scope" : "#/properties/model/properties/settings/properties/source",
         "options" : {
           "format" : "fileChooser",
-          "fileExtensions" : [ "csv", "tsv", "txt" ]
+          "fileExtensions" : [ "csv", "tsv", "txt", "gz" ]
         }
       }, {
         "type" : "Control",
@@ -1186,7 +1186,7 @@
       "options" : {
         "isAdvanced" : true
       },
-      "description" : "This section lists every column to allow modifying the structure of the output table.\nIt supports reordering, filtering and renaming columns. It is also possible to change the type of the columns.\nNote that the positions of columns are reset in the dialog if a new file or folder is selected.\nWhether and where to add unknown columns during execution is specified via the special item \"Any unknown new column\".\nIt is possible to specify the data type to which new columns should be converted.\nNote that the node will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is of type Double.\n",
+      "description" : "Use this option to modify the structure of the table. You can deselect each column to filter it out of the\noutput table, use the arrows to reorder the columns, or change the column name or column type of each\ncolumn. Note that the positions of columns are reset in the dialog if a new file or folder is selected.\nWhether and where to add unknown columns during execution is specified via the special row &lt;any unknown\nnew column&gt;. It is also possible to select the type new columns should be converted to. Note that the\nnode will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is\nof type Double.\n",
       "rule" : {
         "effect" : "HIDE",
         "condition" : {
