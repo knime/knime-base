@@ -49,17 +49,31 @@
 package org.knime.base.node.preproc.filter.row3.predicates;
 
 import java.util.Optional;
+import java.util.function.IntFunction;
+import java.util.function.Predicate;
 
 import org.knime.base.node.preproc.filter.row3.FilterOperator;
 import org.knime.core.data.DataType;
 import org.knime.core.data.v2.RowRead;
 
 /**
- * Utility to create factories for {@link RowRead row read} predicates.
+ * Utility to create value predicate factories for {@link RowRead row read} predicates.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 public final class PredicateFactories {
+
+    /**
+     * Factory instance to create "is missing" predicates for a given column index.
+     */
+    public static final IntFunction<Predicate<RowRead>> IS_MISSING_FACTORY =
+        columnIndex -> rowRead -> rowRead.isMissing(columnIndex);
+
+    /**
+     * Factory instance to create "is not missing" predicates for a given column index.
+     */
+    public static final IntFunction<Predicate<RowRead>> IS_NOT_MISSING_FACTORY =
+        columnIndex -> rowRead -> !rowRead.isMissing(columnIndex);
 
     private PredicateFactories() {
         // hidden
@@ -74,7 +88,8 @@ public final class PredicateFactories {
      * @return factory for the given operator and column, or empty if the operator is not supported for the given data
      *         type
      */
-    public static Optional<PredicateFactory> getFactory(final FilterOperator operator, final DataType columnDataType) {
+    public static Optional<PredicateFactory> getValuePredicateFactory(final FilterOperator operator,
+        final DataType columnDataType) {
         return switch (operator) {
             case EQ:
                 yield EqualityPredicateFactory.create(columnDataType, true);
@@ -92,15 +107,11 @@ public final class PredicateFactories {
                 yield BooleanPredicateFactory.create(columnDataType, true);
             case IS_FALSE:
                 yield BooleanPredicateFactory.create(columnDataType, false);
-            case IS_MISSING:
-                yield Optional.of((columnIndex, inputValues) -> rowRead -> rowRead.isMissing(columnIndex));
-            case IS_NOT_MISSING:
-                yield Optional.of((columnIndex, inputValues) -> rowRead -> !rowRead.isMissing(columnIndex));
             case REGEX:
                 yield PatternMatchingPredicateFactory.create(columnDataType, true);
             case WILDCARD:
                 yield PatternMatchingPredicateFactory.create(columnDataType, false);
-            case FIRST_N_ROWS, LAST_N_ROWS:
+            case IS_MISSING, IS_NOT_MISSING, FIRST_N_ROWS, LAST_N_ROWS:
                 yield Optional.empty();
         };
     }

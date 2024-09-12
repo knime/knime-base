@@ -148,7 +148,7 @@ public abstract class EqualityPredicateFactory extends AbstractPredicateFactory 
                 final var ref = intCell.getIntValue();
                 final var predicate = new IntValuePredicate(ref, m_matchEqual);
                 LOGGER.debug("Creating equality predicate for Integer column with Integer reference value");
-                return rowRead -> predicate.test(rowRead.<IntValue> getValue(columnIndex).getIntValue());
+                return rowRead -> predicate.test(rowRead.<IntValue>getValue(columnIndex).getIntValue());
             }
 
             if (refCell instanceof LongCell longCell) {
@@ -192,7 +192,7 @@ public abstract class EqualityPredicateFactory extends AbstractPredicateFactory 
             // long value is inside of the int domain, so matches are possible
             final var predicate = new IntValuePredicate((int)ref, m_matchEqual);
             LOGGER.debug("Creating equality predicate for Integer column with Long reference value");
-            return rowRead -> predicate.test(rowRead.<IntValue> getValue(columnIndex).getIntValue());
+            return rowRead -> predicate.test(rowRead.<IntValue>getValue(columnIndex).getIntValue());
         }
 
         private Predicate<RowRead> comparingWithDoubleValue(final int columnIndex, final double ref) {
@@ -211,7 +211,7 @@ public abstract class EqualityPredicateFactory extends AbstractPredicateFactory 
             // double value is inside of the int domain, so matches are possible
             LOGGER.debug("Creating equality predicate for Integer column with Double reference value");
             final var predicate = new DoubleValuePredicate(ref, m_matchEqual);
-            return rowRead -> predicate.test(rowRead.<IntValue> getValue(columnIndex).getIntValue());
+            return rowRead -> predicate.test(rowRead.<IntValue>getValue(columnIndex).getIntValue());
         }
 
     }

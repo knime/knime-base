@@ -56,10 +56,12 @@ import java.util.function.Predicate;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
 import org.knime.base.node.preproc.filter.row3.predicates.PredicateFactories;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.v2.RowRead;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 
 /**
  * Predicate for filtering rows by RowID, data values, or missingness.
@@ -110,7 +112,7 @@ final class RowReadPredicate {
     }
 
     private static Predicate<RowRead> createFrom(final FilterCriterion criterion, final DataTableSpec spec)
-            throws InvalidSettingsException {
+        throws InvalidSettingsException {
 
         final var column = criterion.m_column.getSelected();
         final var isRowKey = SpecialColumns.ROWID.getId().equals(column);
@@ -118,14 +120,52 @@ final class RowReadPredicate {
         if (!isRowKey && columnIndex < 0) {
             throw new InvalidSettingsException("Column \"%s\" could not be found in input table".formatted(column));
         }
-        final var columnType = isRowKey ? StringCell.TYPE : spec.getColumnSpec(columnIndex).getType();
+
+        return translateToPredicate(criterion.m_operator, criterion.m_predicateValues, columnIndex,
+            isRowKey ? StringCell.TYPE : spec.getColumnSpec(columnIndex).getType());
+    }
+
+    /**
+     * Translates the operator and predicate values into a predicate on a {@link RowRead}.
+     *
+     * @param operator filter operator
+     * @param predicateValues values for predicate
+     * @param columnIndex index of column to filter on, or negative for row key
+     * @param dataType data type of column (or {@link StringCell#TYPE} for row key)
+     * @return predicate on a row read
+     *
+     * @throws InvalidSettingsException in case the arguments are inconsistent, e.g. filtering a row key for missingness
+     */
+    static Predicate<RowRead> translateToPredicate(final FilterOperator operator,
+        final DynamicValuesInput predicateValues, final int columnIndex, final DataType dataType)
+        throws InvalidSettingsException {
+        final var isRowKey = columnIndex < 0;
+        // handle missingness tests early
+        if (operator == FilterOperator.IS_MISSING || operator == FilterOperator.IS_NOT_MISSING) {
+            // only missing value filter, no value predicate present
+            if (isRowKey) {
+                throw new InvalidSettingsException(
+                    "Cannot filter RowID for presence, since the RowID is never missing.");
+            }
+            final var isMissing = operator == FilterOperator.IS_MISSING;
+            return isMissing ? PredicateFactories.IS_MISSING_FACTORY.apply(columnIndex)
+                : PredicateFactories.IS_NOT_MISSING_FACTORY.apply(columnIndex);
+        }
+
+        // get an actual (non-missing) value predicate
+        return translateToValuePredicate(operator, predicateValues, columnIndex, dataType);
+    }
+
+    private static Predicate<RowRead> translateToValuePredicate(final FilterOperator operator,
+        final DynamicValuesInput predicateValues, final int columnIndex, final DataType dataType)
+        throws InvalidSettingsException {
+
 
         final var valuePredicate = PredicateFactories //
-                .getFactory(criterion.m_operator, columnType) //
-                .orElseThrow(() -> new InvalidSettingsException(
-                    "Unsupported operator for input column type \"%s\"".formatted(columnType.getName())))
-                .createPredicate(columnIndex, criterion.m_predicateValues);
-
+            .getValuePredicateFactory(operator, dataType) //
+            .orElseThrow(() -> new InvalidSettingsException(
+                "Unsupported operator for input column type \"%s\"".formatted(dataType.getName())))
+            .createPredicate(columnIndex, predicateValues);
 
         /*
          * Missing value handling:
@@ -143,20 +183,15 @@ final class RowReadPredicate {
         if (valuePredicate == ALWAYS_FALSE) {
             // the AND can never be true, if the value predicate always returns false
             return ALWAYS_FALSE;
-        } else if (valuePredicate == ALWAYS_TRUE) {
-            // we don't need to evaluate the value predicate at all
-            if (isRowKey) {
-                // since row keys are never missing, we can return always true here
-                return ALWAYS_TRUE;
-            }
+        }
+        final var isRowKey = columnIndex < 0;
+        if (valuePredicate == ALWAYS_TRUE) {
+            // since row keys are never missing, we can return always true here
             // for a non-rowkey column for which the predicate is always true, we still need to check its presence
-            return rowRead -> !rowRead.isMissing(columnIndex);
+            return isRowKey ? ALWAYS_TRUE : rowRead -> !rowRead.isMissing(columnIndex);
         }
 
-        if (isRowKey) {
-            // cannot be missing
-            return valuePredicate;
-        }
-        return rowRead -> !rowRead.isMissing(columnIndex) && valuePredicate.test(rowRead);
+        // rowKey cannot be missing, so we can safely evaluate the value predicate
+        return isRowKey ? valuePredicate : (rowRead -> !rowRead.isMissing(columnIndex) && valuePredicate.test(rowRead));
     }
 }

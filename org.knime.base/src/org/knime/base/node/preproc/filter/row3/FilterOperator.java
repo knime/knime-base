@@ -57,7 +57,6 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.message.Message;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
@@ -173,19 +172,19 @@ public enum FilterOperator {
      * @return {@code true} if the operator is applicable, {@code false} otherwise
      */
     boolean isApplicableFor(final SpecialColumns specialColumn, final DataType dataType) {
-        final var hasFactory = PredicateFactories.getFactory(this, dataType).isPresent();
         // we only need to check if the input supports the data type in case of a binary operator
-        final var hasReferenceValue = !isBinary() || DynamicValuesInput.supportsDataType(dataType);
-        return hasReferenceValue && switch (this) {
-            // special columns are never missing
-            case IS_MISSING, IS_NOT_MISSING -> specialColumn == null && hasFactory;
+        final var inputSupportsDataType = !isBinary() || DynamicValuesInput.supportsDataType(dataType);
+        return inputSupportsDataType && switch (this) {
+            // special columns are never missing, so that would be invalid
+            case IS_MISSING, IS_NOT_MISSING -> specialColumn == null;
             // a factory is not required for the Row Numbers special column, since we don't actually access anything
             // from the RowRead
             case FIRST_N_ROWS, LAST_N_ROWS -> specialColumn == SpecialColumns.ROW_NUMBERS;
             // booleans are handled with these two operators
-            case IS_TRUE, IS_FALSE -> dataType.equals(BooleanCell.TYPE) && hasFactory;
-            // exclude booleans from the remaining cases
-            case LT, LTE, GT, GTE, EQ, NEQ, REGEX, WILDCARD -> !dataType.equals(BooleanCell.TYPE) && hasFactory;
+            case IS_TRUE, IS_FALSE -> dataType.equals(BooleanCell.TYPE);
+            // we need to exclude booleans from the remaining test
+            case LT, LTE, GT, GTE, EQ, NEQ, REGEX, WILDCARD -> !dataType.equals(BooleanCell.TYPE)
+                && PredicateFactories.getValuePredicateFactory(this, dataType).isPresent();
         };
     }
 
@@ -207,32 +206,10 @@ public enum FilterOperator {
     }
 
     void validate(final DataColumnSpec colSpec, final int columnIndex, final DynamicValuesInput predicateValues)
-            throws InvalidSettingsException {
-        final var factory = PredicateFactories.getFactory(this, colSpec == null ? StringCell.TYPE : colSpec.getType());
-        if (factory.isPresent()) {
-            factory.get().createPredicate(columnIndex, predicateValues);
-            return;
-        }
-
-        final var builder = Message.builder();
-        if (colSpec == null) {
-            // User selected the RowID special column
-            builder //
-                .withSummary( //
-                    "Operator \"%s\" is not applicable for RowIDs." //
-                        .formatted(this.m_label)) //
-                .addResolutions("Review the node configuration to change the operator", //
-                    "Change the column to be compatible with the operator");
-        } else {
-            // normal column selected
-            builder //
-                .withSummary( //
-                    "Operator \"%s\" is not applicable for column \"%s\" of type \"%s\"." //
-                        .formatted(this.m_label, colSpec.getName(), colSpec.getType())) //
-                .addResolutions("Review the node configuration to change the operator", //
-                    "Change the input column type to be compatible with the operator");
-        }
-        throw builder.build().orElseThrow().toInvalidSettingsException();
+        throws InvalidSettingsException {
+        // validation is just to try building a predicate with the operator
+        RowReadPredicate.translateToPredicate(this, predicateValues, columnIndex,
+            colSpec == null ? StringCell.TYPE : colSpec.getType());
     }
 
 }
