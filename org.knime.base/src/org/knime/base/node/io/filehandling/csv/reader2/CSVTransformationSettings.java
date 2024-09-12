@@ -54,6 +54,8 @@ import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
 import org.knime.base.node.io.filehandling.csv.reader.api.EscapeUtils;
 import org.knime.base.node.io.filehandling.csv.reader.api.QuoteOption;
 import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Transformation;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Transformation.EnforceTypes;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.AppendPathColumnRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.DecimalSeparatorRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.FilePathColumnNameRef;
@@ -290,12 +292,7 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
         }
     }
 
-    @Widget(title = "Enforce types", description = """
-            Controls how columns whose type changes are dealt with.
-            If selected, the mapping to the KNIME type you configured is attempted.
-            The node will fail if that is not possible.
-            If unselected, the KNIME type corresponding to the new type is used.
-            """, hideFlowVariableButton = true)
+    @Widget(title = "Enforce types", description = EnforceTypes.DESCRIPTION, hideFlowVariableButton = true)
     boolean m_enforceTypes = true;
 
     static class TransformationElementSettings implements WidgetGroup, PersistableSettings {
@@ -439,15 +436,7 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
     static final class TransformationElementSettingsReference implements Reference<TransformationElementSettings[]> {
     }
 
-    @Widget(title = "Transformations", description = """
-            Use this option to modify the structure of the table. You can deselect each column to filter it out of the
-            output table, use the arrows to reorder the columns, or change the column name or column type of each
-            column. Note that the positions of columns are reset in the dialog if a new file or folder is selected.
-            Whether and where to add unknown columns during execution is specified via the special row &lt;any unknown
-            new column&gt;. It is also possible to select the type new columns should be converted to. Note that the
-            node will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is
-            of type Double.
-            """)
+    @Widget(title = "Transformations", description = Transformation.DESCRIPTION)
     // TODO NOSONAR UIEXT-1901 this description is currently not shown
     @ArrayWidget(elementTitle = "Column", showSortButtons = true, hasFixedSize = true)
     @InternalArrayWidget(withEditAndReset = true, withElementCheckboxes = true,

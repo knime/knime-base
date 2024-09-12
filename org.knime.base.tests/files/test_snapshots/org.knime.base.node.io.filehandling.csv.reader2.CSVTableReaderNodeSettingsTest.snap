@@ -880,7 +880,7 @@
         "scope" : "#/properties/model/properties/settings/properties/source",
         "options" : {
           "format" : "fileChooser",
-          "fileExtensions" : [ "csv", "tsv", "txt" ]
+          "fileExtensions" : [ "csv", "tsv", "txt", "gz" ]
         }
       }, {
         "type" : "Control",
@@ -1178,7 +1178,7 @@
       "options" : {
         "isAdvanced" : true
       },
-      "description" : "This section lists every column to allow modifying the structure of the output table.\nIt supports reordering, filtering and renaming columns. It is also possible to change the type of the columns.\nNote that the positions of columns are reset in the dialog if a new file or folder is selected.\nWhether and where to add unknown columns during execution is specified via the special item \"Any unknown new column\".\nIt is possible to specify the data type to which new columns should be converted.\nNote that the node will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is of type Double.\n",
+      "description" : "Use this option to modify the structure of the table. You can deselect each column to filter it out of the\noutput table, use the arrows to reorder the columns, or change the column name or column type of each\ncolumn. Note that the positions of columns are reset in the dialog if a new file or folder is selected.\nWhether and where to add unknown columns during execution is specified via the special row &lt;any unknown\nnew column&gt;. It is also possible to select the type new columns should be converted to. Note that the\nnode will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is\nof type Double.\n",
       "rule" : {
         "effect" : "HIDE",
         "condition" : {

@@ -76,14 +76,13 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElementSettings;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElementSettings.ColumnNameRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElementSettingsReference;
+import org.knime.base.node.io.filehandling.webui.DataTypeSerializationUtil;
 import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
@@ -103,7 +102,7 @@ import org.knime.filehandling.core.util.WorkflowContextUtil;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
-final class CSVTransformationSettingsStateProviders implements WidgetGroup, PersistableSettings {
+final class CSVTransformationSettingsStateProviders {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(CSVTransformationSettingsStateProviders.class);
 
@@ -397,11 +396,10 @@ final class CSVTransformationSettingsStateProviders implements WidgetGroup, Pers
 
             final var path = Optional.ofNullable(unknownElementsType)
                 .flatMap(type -> findProductionPath(colSpec.getType(), type)).orElse(defPath);
-            final var type = path.getConverterFactory().getIdentifier();
-            final var defType = defPath.getConverterFactory().getIdentifier();
+            final var type = DataTypeSerializationUtil.typeToString(path.getDestinationType());
+            final var defType = DataTypeSerializationUtil.typeToString(defPath.getDestinationType());
             return new TransformationElementSettings(name, includeInOutput, name, type, defType,
                 defPath.getDestinationType().toPrettyString());
-
         }
 
         private static Optional<ProductionPath> findProductionPath(final Class<?> from, final DataType to) {

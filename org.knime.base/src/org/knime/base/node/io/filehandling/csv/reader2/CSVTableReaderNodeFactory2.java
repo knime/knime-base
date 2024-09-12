@@ -84,11 +84,8 @@ public class CSVTableReaderNodeFactory2 extends CSVTableReaderNodeFactory // NOS
         """;
 
     @Override
-    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
-        final var builder = new PortsConfigurationBuilder();
-        builder.addOptionalInputPortGroup(FS_CONNECT_GRP_ID, FileSystemPortObject.TYPE);
-        builder.addFixedOutputPortGroup("Data Table", BufferedDataTable.TYPE);
-        return Optional.of(builder);
+    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() { // only to make this visible to testing
+        return super.createPortsConfigBuilder();
     }
 
     @Override
@@ -100,11 +97,6 @@ public class CSVTableReaderNodeFactory2 extends CSVTableReaderNodeFactory // NOS
                 "Data table based on the file being read with number and types of columns guessed automatically.")},
             "Reads CSV files", FULL_DESCRIPTION, CSVTableReaderNodeSettings.class, null, null, NodeType.Source,
             new String[]{"Text", "Comma", "File", "Input", "Read"});
-    }
-
-    @Override
-    protected boolean hasDialog() {
-        return true;
     }
 
     @Override

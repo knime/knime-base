@@ -164,7 +164,8 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
         final var file = createCsvFile();
 
         m_wfm.removeNode(m_csvReader.getID());
-        m_csvReader = WorkflowManagerUtil.createAndAddNode(m_wfm, new TestCSVTableReaderNodeFactory2(file.toUri().toURL()));
+        m_csvReader =
+            WorkflowManagerUtil.createAndAddNode(m_wfm, new TestCSVTableReaderNodeFactory2(file.toUri().toURL()));
 
         m_wfm.executeAllAndWaitUntilDone();
         assertTrue(m_csvReader.getNodeContainerState().isExecuted());
@@ -176,7 +177,8 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
         final var file = createTsvFile();
 
         m_wfm.removeNode(m_csvReader.getID());
-        m_csvReader = WorkflowManagerUtil.createAndAddNode(m_wfm, new TestCSVTableReaderNodeFactory2(file.toUri().toURL()));
+        m_csvReader =
+            WorkflowManagerUtil.createAndAddNode(m_wfm, new TestCSVTableReaderNodeFactory2(file.toUri().toURL()));
 
         m_wfm.executeAllAndWaitUntilDone();
         assertTrue(m_csvReader.getNodeContainerState().isExecuted());
@@ -195,7 +197,8 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
         m_wfm.loadNodeSettings(m_csvReader.getID(), nodeSettings);
     }
 
-    private static class TestCSVTableReaderNodeFactory2 extends ConfigurableNodeFactory<TableReaderNodeModel>
+    private static class TestCSVTableReaderNodeFactory2
+        extends ConfigurableNodeFactory<TableReaderNodeModel<FSPath, CSVTableReaderConfig, Class<?>>>
         implements NodeDialogFactory {
 
         private final CSVTableReaderNodeFactory2 m_delegate = new CSVTableReaderNodeFactory2();
@@ -218,7 +221,8 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
         }
 
         @Override
-        protected TableReaderNodeModel<FSPath, CSVTableReaderConfig, Class<?>> createNodeModel(final NodeCreationConfiguration creationConfig) {
+        protected TableReaderNodeModel<FSPath, CSVTableReaderConfig, Class<?>>
+            createNodeModel(final NodeCreationConfiguration creationConfig) {
             final var modifiableCreationConfig = (ModifiableNodeCreationConfiguration)creationConfig;
             modifiableCreationConfig.setURLConfiguration(m_url);
             return m_delegate.createNodeModel(modifiableCreationConfig);
@@ -235,14 +239,14 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
         }
 
         @Override
-        public NodeView<TableReaderNodeModel> createNodeView(final int viewIndex,
-            final TableReaderNodeModel nodeModel) {
+        public NodeView<TableReaderNodeModel<FSPath, CSVTableReaderConfig, Class<?>>> createNodeView(
+            final int viewIndex, final TableReaderNodeModel<FSPath, CSVTableReaderConfig, Class<?>> nodeModel) {
             return m_delegate.createNodeView(viewIndex, nodeModel);
         }
 
         @Override
         protected boolean hasDialog() {
-            return m_delegate.hasDialog();
+            return true;
         }
 
         @Override
