@@ -46,7 +46,7 @@
  * History
  *   Aug 12, 2024 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.webui;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -58,7 +58,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.knime.base.node.io.filehandling.csv.reader2.FileSystemPortConnectionUtil.ConnectedWithoutFileSystemSpec;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeFactory2;
+import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil.ConnectedWithoutFileSystemSpec;
 import org.knime.core.node.context.ports.ExtendablePortGroup;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.FileSystemBrowser;

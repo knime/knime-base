@@ -59,10 +59,13 @@ import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig
  *
  * @author Moditha Hewasinghage, KNIME GmbH, Berlin, Germany
  */
-final class KnimeTableMultiTableReadConfig extends
+public final class KnimeTableMultiTableReadConfig extends
     AbstractMultiTableReadConfig<TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>, DataType, KnimeTableMultiTableReadConfig> {
 
-    KnimeTableMultiTableReadConfig() {
+    /**
+     * Default constructor.
+     */
+    public KnimeTableMultiTableReadConfig() {
         super(new DefaultTableReadConfig<>(new TableManipulatorConfig()),
             KnimeTableMultiTableReadConfigSerializer.INSTANCE, KnimeTableMultiTableReadConfigSerializer.INSTANCE);
         final DefaultTableReadConfig<TableManipulatorConfig> tc = getTableReadConfig();
@@ -71,7 +74,7 @@ final class KnimeTableMultiTableReadConfig extends
         tc.setColumnHeaderIdx(0);
         tc.setLimitRowsForSpec(false);
         tc.setUseColumnHeaderIdx(false);
-        setItemIdentifierColumnName("Path");
+        setItemIdentifierColumnName("File Path");
     }
 
     @Override

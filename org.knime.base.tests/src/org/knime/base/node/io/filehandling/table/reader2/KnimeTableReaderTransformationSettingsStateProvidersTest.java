@@ -46,13 +46,12 @@
  * History
  *   May 28, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.table.reader2;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.PRODUCTION_PATH_PROVIDER;
+import static org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.PRODUCTION_PATH_PROVIDER;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Map;
@@ -63,33 +62,35 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOptionRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.LimitMemoryPerColumnRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.MaximumNumberOfColumnsRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.QuotedStringsOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FileChooserRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.ConfigIdSettings;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.PersistorSettings.ConfigIdReference;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElementSettings;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElementSettings.ColumnNameRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElementSettingsReference;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.DependenciesProvider;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.FSLocationsProvider;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.SourceIdProvider;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TableSpecSettingsProvider;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TransformationElementSettingsProvider;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TypeChoicesProvider;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TypedReaderTableSpecsProvider;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOptionRef;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.Settings.FileChooserRef;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TransformationElementSettings;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TransformationElementSettings.ColumnNameRef;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TransformationElementSettingsReference;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.DependenciesProvider;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.FSLocationsProvider;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.SourceIdProvider;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.TableSpecSettingsProvider;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.TypeChoicesProvider;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider;
 import org.knime.base.node.io.filehandling.webui.DataTypeSerializationUtil;
 import org.knime.base.node.io.filehandling.webui.LocalWorkflowContextTest;
-import org.knime.base.node.io.filehandling.webui.NoopStateProviderInitializer;
+import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.data.container.DataContainer;
+import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.data.xml.XMLCell;
+import org.knime.core.node.CanceledExecutionException;
+import org.knime.core.node.ExecutionMonitor;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.StateProviderInitializer;
@@ -101,55 +102,80 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings({"unchecked", "restriction", "static-method"})
-final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowContextTest {
+final class KnimeTableReaderTransformationSettingsStateProvidersTest extends LocalWorkflowContextTest {
 
     @TempDir
     Path m_tempFolder;
 
-    private static CSVTableReaderNodeSettings initSettings() {
-        final var settings = new CSVTableReaderNodeSettings();
+    public abstract static class NoopStateProviderInitializer implements StateProviderInitializer {
+        @Override
+        public <T> Supplier<T> getValueSupplier(final Class<? extends Reference<T>> ref) {
+            throw new IllegalAccessError("Should not be called within this test");
+        }
+
+        @Override
+        public <T> void computeOnValueChange(final Class<? extends Reference<T>> ref) {
+            throw new IllegalAccessError("Should not be called within this test");
+        }
+
+        @Override
+        public void computeOnButtonClick(final Class<? extends ButtonReference> ref) {
+            throw new IllegalAccessError("Should not be called within this test");
+        }
+
+        @Override
+        public <T> Supplier<T> computeFromValueSupplier(final Class<? extends Reference<T>> ref) {
+            throw new IllegalAccessError("Should not be called within this test");
+        }
+
+        @Override
+        public <T> Supplier<T> computeFromProvidedState(final Class<? extends StateProvider<T>> stateProviderClass) {
+            throw new IllegalAccessError("Should not be called within this test");
+        }
+
+        @Override
+        public void computeBeforeOpenDialog() {
+            throw new IllegalAccessError("Should not be called within this test");
+        }
+
+        @Override
+        public void computeAfterOpenDialog() {
+            throw new IllegalAccessError("Should not be called within this test");
+        }
+    }
+
+    private static KnimeTableReaderNodeSettings initSettings() {
+        final var settings = new KnimeTableReaderNodeSettings();
         settings.m_settings.m_source.m_path = new FSLocation(FSCategory.LOCAL, "foo");
-
-        settings.m_settings.m_firstRowContainsColumnNames = false;
-        settings.m_settings.m_firstColumnContainsRowIds = true;
-        settings.m_settings.m_commentLineCharacter = "?";
-        settings.m_settings.m_columnDelimiter = "\\t";
-        settings.m_settings.m_quoteCharacter = "'";
-        settings.m_settings.m_quoteEscapeCharacter = "'";
-        settings.m_settings.m_rowDelimiterOption = RowDelimiterOption.CUSTOM;
-        settings.m_settings.m_customRowDelimiter = "\\r\\n";
-        settings.m_advancedSettings.m_quotedStringsOption = QuotedStringsOption.KEEP_QUOTES;
-        settings.m_advancedSettings.m_replaceEmptyQuotedStringsByMissingValues = false;
-        settings.m_advancedSettings.m_limitScannedRows = false;
-        settings.m_advancedSettings.m_maxDataRowsScanned = 100;
-        settings.m_advancedSettings.m_thousandsSeparator = ".";
-        settings.m_advancedSettings.m_decimalSeparator = ",";
-        settings.m_encoding.m_charset.m_fileEncoding = FileEncodingOption.OTHER;
-        settings.m_encoding.m_charset.m_customEncoding = "foo";
-        settings.m_limitRows.m_skipFirstLines = 1;
-        settings.m_limitRows.m_skipFirstDataRows = 1;
-
-        settings.m_advancedSettings.m_limitMemoryPerColumn = false;
-        settings.m_advancedSettings.m_maximumNumberOfColumns = 1;
-
         return settings;
     }
 
-    private static CSVTableReaderNodeSettings createDefaultSettingsAndWriteCSV(final String file, final String... lines)
+    private static KnimeTableReaderNodeSettings createDefaultSettingsAndWriteKnimeTable(final String file)
         throws IOException {
-        try (final var writer = new BufferedWriter(new FileWriter(file))) {
-            for (String line : lines) {
-                writer.write(line);
-                writer.newLine();
-            }
-        }
-
-        final var settings = new CSVTableReaderNodeSettings();
+        createTableFile(file);
+        final var settings = new KnimeTableReaderNodeSettings();
         settings.m_settings.m_source.m_path = new FSLocation(FSCategory.LOCAL, file);
         return settings;
     }
 
-    private static DependenciesProvider createDependenciesProvider(final CSVTableReaderNodeSettings settings) {
+    static void createTableFile(final String file) throws IOException {
+        final var spec = new DataTableSpec(new DataColumnSpecCreator("intCol", IntCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("stringCol", StringCell.TYPE).createSpec());
+        final var cont = new DataContainer(spec);
+        for (int i = 0; i < 2; i++) {
+            final var s = Integer.toString(i);
+            cont.addRowToTable(new DefaultRow(s, new IntCell(i), new StringCell(s)));
+        }
+        cont.close();
+
+        try (var table = cont.getCloseableTable()) {
+            DataContainer.writeToZip(table, new File(file), new ExecutionMonitor());
+        } catch (CanceledExecutionException e) {
+            // do nothing
+        }
+    }
+
+    private static DependenciesProvider createDependenciesProvider(final KnimeTableReaderNodeSettings settings) {
         final var dependenciesProvider = new DependenciesProvider();
         dependenciesProvider.init(getDependenciesProviderInitializer(settings));
         return dependenciesProvider;
@@ -159,70 +185,16 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
     void testDependenciesProvider() {
         final var settings = initSettings();
         final var dependencies = createDependenciesProvider(settings).computeState(null);
-
-        final var configId = dependencies.m_configId;
-        assertThat(configId.m_firstRowContainsColumnNames).isEqualTo(settings.m_settings.m_firstRowContainsColumnNames);
-        assertThat(configId.m_firstColumnContainsRowIds).isEqualTo(settings.m_settings.m_firstColumnContainsRowIds);
-        assertThat(configId.m_commentLineCharacter).isEqualTo(settings.m_settings.m_commentLineCharacter);
-        assertThat(configId.m_columnDelimiter).isEqualTo(settings.m_settings.m_columnDelimiter);
-        assertThat(configId.m_quoteCharacter).isEqualTo(settings.m_settings.m_quoteCharacter);
-        assertThat(configId.m_quoteEscapeCharacter).isEqualTo(settings.m_settings.m_quoteEscapeCharacter);
-        assertThat(configId.m_rowDelimiterOption).isEqualTo(settings.m_settings.m_rowDelimiterOption);
-        assertThat(configId.m_customRowDelimiter).isEqualTo(settings.m_settings.m_customRowDelimiter);
-        assertThat(configId.m_quotedStringsOption).isEqualTo(settings.m_advancedSettings.m_quotedStringsOption);
-        assertThat(configId.m_replaceEmptyQuotedStringsByMissingValues)
-            .isEqualTo(settings.m_advancedSettings.m_replaceEmptyQuotedStringsByMissingValues);
-        assertThat(configId.m_limitScannedRows).isEqualTo(settings.m_advancedSettings.m_limitScannedRows);
-        assertThat(configId.m_maxDataRowsScanned).isEqualTo(settings.m_advancedSettings.m_maxDataRowsScanned);
-        assertThat(configId.m_thousandsSeparator).isEqualTo(settings.m_advancedSettings.m_thousandsSeparator);
-        assertThat(configId.m_decimalSeparator).isEqualTo(settings.m_advancedSettings.m_decimalSeparator);
-        assertThat(configId.m_fileEncoding).isEqualTo(settings.m_encoding.m_charset.m_fileEncoding);
-        assertThat(configId.m_customEncoding).isEqualTo(settings.m_encoding.m_charset.m_customEncoding);
-        assertThat(configId.m_skipFirstLines).isEqualTo(settings.m_limitRows.m_skipFirstLines);
-        assertThat(configId.m_skipFirstDataRows).isEqualTo(settings.m_limitRows.m_skipFirstDataRows);
-
         assertThat(dependencies.m_source).isEqualTo(settings.m_settings.m_source);
-        assertThat(dependencies.m_limitMemoryPerColumn).isEqualTo(settings.m_advancedSettings.m_limitMemoryPerColumn);
-        assertThat(dependencies.m_maximumNumberOfColumns)
-            .isEqualTo(settings.m_advancedSettings.m_maximumNumberOfColumns);
     }
 
     private static final StateProviderInitializer
-        getDependenciesProviderInitializer(final CSVTableReaderNodeSettings settings) {
+        getDependenciesProviderInitializer(final KnimeTableReaderNodeSettings settings) {
         return new NoopStateProviderInitializer() {
             @Override
             public <T> Supplier<T> getValueSupplier(final Class<? extends Reference<T>> ref) {
-                if (ref.equals(ConfigIdReference.class)) {
-                    final var configId = new ConfigIdSettings();
-                    configId.m_firstRowContainsColumnNames = settings.m_settings.m_firstRowContainsColumnNames;
-                    configId.m_firstColumnContainsRowIds = settings.m_settings.m_firstColumnContainsRowIds;
-                    configId.m_commentLineCharacter = settings.m_settings.m_commentLineCharacter;
-                    configId.m_columnDelimiter = settings.m_settings.m_columnDelimiter;
-                    configId.m_quoteCharacter = settings.m_settings.m_quoteCharacter;
-                    configId.m_quoteEscapeCharacter = settings.m_settings.m_quoteEscapeCharacter;
-                    configId.m_rowDelimiterOption = settings.m_settings.m_rowDelimiterOption;
-                    configId.m_customRowDelimiter = settings.m_settings.m_customRowDelimiter;
-                    configId.m_quotedStringsOption = settings.m_advancedSettings.m_quotedStringsOption;
-                    configId.m_replaceEmptyQuotedStringsByMissingValues =
-                        settings.m_advancedSettings.m_replaceEmptyQuotedStringsByMissingValues;
-                    configId.m_limitScannedRows = settings.m_advancedSettings.m_limitScannedRows;
-                    configId.m_maxDataRowsScanned = settings.m_advancedSettings.m_maxDataRowsScanned;
-                    configId.m_thousandsSeparator = settings.m_advancedSettings.m_thousandsSeparator;
-                    configId.m_decimalSeparator = settings.m_advancedSettings.m_decimalSeparator;
-                    configId.m_fileEncoding = settings.m_encoding.m_charset.m_fileEncoding;
-                    configId.m_customEncoding = settings.m_encoding.m_charset.m_customEncoding;
-                    configId.m_skipFirstLines = settings.m_limitRows.m_skipFirstLines;
-                    configId.m_skipFirstDataRows = settings.m_limitRows.m_skipFirstDataRows;
-                    return () -> (T)configId;
-                }
                 if (ref.equals(FileChooserRef.class)) {
                     return () -> (T)settings.m_settings.m_source;
-                }
-                if (ref.equals(LimitMemoryPerColumnRef.class)) {
-                    return () -> (T)(Object)settings.m_advancedSettings.m_limitMemoryPerColumn;
-                }
-                if (ref.equals(MaximumNumberOfColumnsRef.class)) {
-                    return () -> (T)(Object)settings.m_advancedSettings.m_maximumNumberOfColumns;
                 }
                 throw new IllegalStateException(String.format("Unexpected dependency %s", ref.getSimpleName()));
             }
@@ -271,8 +243,8 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
 
     @Test
     void testFSLocationsProvider() throws IOException {
-        final var file = m_tempFolder.resolve("file.csv").toAbsolutePath().toString();
-        final var settings = createDefaultSettingsAndWriteCSV(file, "intCol,stringCol", "\"1,two");
+        final var file = m_tempFolder.resolve("file.KnimeTableReader").toAbsolutePath().toString();
+        final var settings = createDefaultSettingsAndWriteKnimeTable(file);
         final var fsLocationsProvider = new FSLocationsProvider();
         fsLocationsProvider.init(getFileChooserRefDependentInitializer(createDependenciesProvider(settings)));
 
@@ -282,7 +254,7 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
 
     @Test
     void testTypedReaderTableSpecsProvider() throws IOException {
-        final var file = m_tempFolder.resolve("file.csv").toAbsolutePath().toString();
+        final var file = m_tempFolder.resolve("file.KnimeTableReader").toAbsolutePath().toString();
 
         final var typedReaderTableSpecsProvider = createTypedReaderTableSpecsProvider(file);
         final var specs = typedReaderTableSpecsProvider.computeState(null);
@@ -291,7 +263,7 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
     }
 
     static TypedReaderTableSpecsProvider createTypedReaderTableSpecsProvider(final String file) throws IOException {
-        final var settings = createDefaultSettingsAndWriteCSV(file, "intCol,stringCol", "1,two");
+        final var settings = createDefaultSettingsAndWriteKnimeTable(file);
         final var typedReaderTableSpecsProvider = new TypedReaderTableSpecsProvider();
         typedReaderTableSpecsProvider
             .init(getTypedReaderTableSpecProviderStateProviderInitializer(createDependenciesProvider(settings)));
@@ -314,7 +286,7 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
     }
 
     private void assertTypedReaderTableSpecs(final String file,
-        final Map<String, TypedReaderTableSpec<Class<?>>> specs) {
+        final Map<String, TypedReaderTableSpec<DataType>> specs) {
         assertThat(specs).containsKey(file);
         assertThat(specs).size().isEqualTo(1);
 
@@ -324,32 +296,17 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
         final var col1 = spec.getColumnSpec(0);
         assertThat(col1.getName()).isPresent().hasValue("intCol");
         assertThat(col1.hasType()).isTrue();
-        assertThat(col1.getType()).isEqualTo(Integer.class);
+        assertThat(col1.getType()).isEqualTo(IntCell.TYPE);
 
         final var col2 = spec.getColumnSpec(1);
         assertThat(col2.getName()).isPresent().hasValue("stringCol");
         assertThat(col2.hasType()).isTrue();
-        assertThat(col2.getType()).isEqualTo(String.class);
+        assertThat(col2.getType()).isEqualTo(StringCell.TYPE);
     }
 
     @Test
-    void testTypedReaderTableSpecsProviderUnescapeDelimiters() throws IOException {
-        final var file = m_tempFolder.resolve("file.csv").toAbsolutePath().toString();
-        final var settings = createDefaultSettingsAndWriteCSV(file, "intCol\tstringCol\r\n", "1\ttwo\r\n");
-        settings.m_settings.m_columnDelimiter = "\\t";
-        settings.m_settings.m_customRowDelimiter = "\\r\\n";
-
-        final var typedReaderTableSpecsProvider = new TypedReaderTableSpecsProvider();
-        typedReaderTableSpecsProvider
-            .init(getTypedReaderTableSpecProviderStateProviderInitializer(createDependenciesProvider(settings)));
-        final var specs = typedReaderTableSpecsProvider.computeState(null);
-
-        assertTypedReaderTableSpecs(file, specs);
-    }
-
-    @Test
-    void testTableSpecSettingsProvider() throws IOException {
-        final var file = m_tempFolder.resolve("file.csv").toAbsolutePath().toString();
+    void testTableSpecSettingsProvider() throws IOException, InvalidSettingsException {
+        final var file = m_tempFolder.resolve("file.KnimeTableReader").toAbsolutePath().toString();
         final var typedReaderTableSpecsProvider = createTypedReaderTableSpecsProvider(file);
 
         final var tableSpecSettingsProvider = new TableSpecSettingsProvider();
@@ -361,10 +318,10 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
         assertThat(specs[0].m_sourceId).isEqualTo(file);
 
         assertThat(specs[0].m_spec[0].m_name).isEqualTo("intCol");
-        assertThat(specs[0].m_spec[0].m_type).isEqualTo(Integer.class);
+        assertThat(DataTypeSerializationUtil.stringToType(specs[0].m_spec[0].m_type)).isEqualTo(IntCell.TYPE);
 
         assertThat(specs[0].m_spec[1].m_name).isEqualTo("stringCol");
-        assertThat(specs[0].m_spec[1].m_type).isEqualTo(String.class);
+        assertThat(DataTypeSerializationUtil.stringToType(specs[0].m_spec[1].m_type)).isEqualTo(StringCell.TYPE);
     }
 
     static class DependsOnTypedReaderTableSpecProviderInitializer extends NoopStateProviderInitializer {
@@ -373,8 +330,7 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
 
         @Override
         public <T> void computeOnValueChange(final Class<? extends Reference<T>> ref) {
-            if (ref.equals(ConfigIdReference.class) || ref.equals(FileChooserRef.class)
-                || ref.equals(LimitMemoryPerColumnRef.class) || ref.equals(MaximumNumberOfColumnsRef.class)) {
+            if (ref.equals(FileChooserRef.class)) {
                 // Do nothing
             } else {
                 throw new IllegalStateException(String.format("Unexpected dependency %s", ref.getSimpleName()));
@@ -410,7 +366,7 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
     @MethodSource
     void testTransformationElementSettingsProvider(final HowToCombineColumnsOption howToCombineColumnsOption)
         throws IOException {
-        final var file = m_tempFolder.resolve("file.csv").toAbsolutePath().toString();
+        final var file = m_tempFolder.resolve("file.KnimeTableReader").toAbsolutePath().toString();
         final var typedReaderTableSpecsProvider = createTypedReaderTableSpecsProvider(file);
 
         final var transformationElementSettingsProvider = new TransformationElementSettingsProvider();
@@ -424,12 +380,13 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
         assertThat(transformationElements[0].m_columnName).isEqualTo("intCol");
         assertThat(transformationElements[0].m_includeInOutput).isTrue();
         assertThat(transformationElements[0].m_columnRename).isEqualTo("intCol");
-        assertThat(transformationElements[0].m_type).isEqualTo(getDefaultPathDestinationTypeIdentifier(Integer.class));
+        assertThat(transformationElements[0].m_type).isEqualTo(getDefaultPathDestinationTypeIdentifier(IntCell.TYPE));
 
         assertThat(transformationElements[1].m_columnName).isEqualTo("stringCol");
         assertThat(transformationElements[1].m_includeInOutput).isTrue();
         assertThat(transformationElements[1].m_columnRename).isEqualTo("stringCol");
-        assertThat(transformationElements[1].m_type).isEqualTo(getDefaultPathDestinationTypeIdentifier(String.class));
+        assertThat(transformationElements[1].m_type)
+            .isEqualTo(getDefaultPathDestinationTypeIdentifier(StringCell.TYPE));
 
         assertThat(transformationElements[2].m_columnName).isNull();
         assertThat(transformationElements[2].m_includeInOutput).isTrue();
@@ -441,8 +398,8 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
     }
 
     @Test
-    void testTransformationElementSettingsProviderUnknownColumns() throws IOException {
-        final var file = m_tempFolder.resolve("file.csv").toAbsolutePath().toString();
+    void testTransformationElementSettingsProviderUnknownColumns() throws IOException, InvalidSettingsException {
+        final var file = m_tempFolder.resolve("file.KnimeTableReader").toAbsolutePath().toString();
         final var typedReaderTableSpecsProvider = createTypedReaderTableSpecsProvider(file);
 
         final var transformationElementSettingsProvider = new TransformationElementSettingsProvider();
@@ -464,17 +421,17 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
         assertThat(transformationElements[0].m_includeInOutput).isFalse();
         assertThat(transformationElements[0].m_columnRename).isEqualTo("intCol");
         assertThat(transformationElements[0].m_type)
-            .isEqualTo(getPathDestinationTypeIdentifier(Integer.class, LongCell.TYPE));
+            .isEqualTo(getPathDestinationTypeIdentifier(IntCell.TYPE, LongCell.TYPE));
         assertThat(transformationElements[0].m_originalType)
-            .isEqualTo(getDefaultPathDestinationTypeIdentifier(Integer.class));
+            .isEqualTo(getDefaultPathDestinationTypeIdentifier(IntCell.TYPE));
 
         assertThat(transformationElements[1].m_columnName).isEqualTo("stringCol");
         assertThat(transformationElements[1].m_includeInOutput).isFalse();
         assertThat(transformationElements[1].m_columnRename).isEqualTo("stringCol");
         assertThat(transformationElements[1].m_type)
-            .isEqualTo(getPathDestinationTypeIdentifier(String.class, LongCell.TYPE));
+            .isEqualTo(getPathDestinationTypeIdentifier(StringCell.TYPE, LongCell.TYPE));
         assertThat(transformationElements[1].m_originalType)
-            .isEqualTo(getDefaultPathDestinationTypeIdentifier(String.class));
+            .isEqualTo(getDefaultPathDestinationTypeIdentifier(StringCell.TYPE));
 
         assertThat(transformationElements[2].m_columnName).isNull();
         assertThat(transformationElements[2].m_includeInOutput).isFalse();
@@ -488,7 +445,7 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
 
     @Test
     void testTransformationElementSettingsProviderExistingColumns() throws IOException {
-        final var file = m_tempFolder.resolve("file.csv").toAbsolutePath().toString();
+        final var file = m_tempFolder.resolve("file.KnimeTableReader").toAbsolutePath().toString();
         final var typedReaderTableSpecsProvider = createTypedReaderTableSpecsProvider(file);
 
         final var transformationElementSettingsProvider = new TransformationElementSettingsProvider();
@@ -496,11 +453,11 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
             .init(getTransformationElementSettingsProviderInitializer(typedReaderTableSpecsProvider,
                 HowToCombineColumnsOption.UNION, new TransformationElementSettings[]{//
                     new TransformationElementSettings("stringCol", false, "Renamed stringCol",
-                        getPathDestinationTypeIdentifier(String.class, XMLCell.TYPE),
-                        getDefaultPathDestinationTypeIdentifier(String.class), "Integer"), //
+                        getPathDestinationTypeIdentifier(StringCell.TYPE, XMLCell.TYPE),
+                        getDefaultPathDestinationTypeIdentifier(StringCell.TYPE), "Integer"), //
                     new TransformationElementSettings("intCol", false, "Renamed intCol",
-                        getPathDestinationTypeIdentifier(Double.class, DoubleCell.TYPE),
-                        getDefaultPathDestinationTypeIdentifier(Double.class), "Double"), //
+                        getPathDestinationTypeIdentifier(DoubleCell.TYPE, DoubleCell.TYPE),
+                        getDefaultPathDestinationTypeIdentifier(DoubleCell.TYPE), "Double"), //
                 }));
 
         final var transformationElements = transformationElementSettingsProvider.computeState(null);
@@ -512,18 +469,18 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
         assertThat(transformationElements[0].m_includeInOutput).isFalse();
         assertThat(transformationElements[0].m_columnRename).isEqualTo("Renamed stringCol");
         assertThat(transformationElements[0].m_type)
-            .isEqualTo(getPathDestinationTypeIdentifier(String.class, XMLCell.TYPE));
+            .isEqualTo(getPathDestinationTypeIdentifier(StringCell.TYPE, XMLCell.TYPE));
         assertThat(transformationElements[0].m_originalType)
-            .isEqualTo(getDefaultPathDestinationTypeIdentifier(String.class));
+            .isEqualTo(getDefaultPathDestinationTypeIdentifier(StringCell.TYPE));
         assertThat(transformationElements[0].m_originalTypeLabel).isEqualTo("String");
 
         // Uses new created element since the type changed
         assertThat(transformationElements[1].m_columnName).isEqualTo("intCol");
         assertThat(transformationElements[1].m_includeInOutput).isTrue();
         assertThat(transformationElements[1].m_columnRename).isEqualTo("intCol");
-        assertThat(transformationElements[1].m_type).isEqualTo(getDefaultPathDestinationTypeIdentifier(Integer.class));
+        assertThat(transformationElements[1].m_type).isEqualTo(getDefaultPathDestinationTypeIdentifier(IntCell.TYPE));
         assertThat(transformationElements[1].m_originalType)
-            .isEqualTo(getDefaultPathDestinationTypeIdentifier(Integer.class));
+            .isEqualTo(getDefaultPathDestinationTypeIdentifier(IntCell.TYPE));
         assertThat(transformationElements[1].m_originalTypeLabel).isEqualTo("Number (integer)");
 
         assertThat(transformationElements[2].m_columnName).isNull();
@@ -534,15 +491,15 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
         return dataType.getName();
     }
 
-    private String getDefaultPathDestinationTypeIdentifier(final Class<?> typeClass) {
+    private String getDefaultPathDestinationTypeIdentifier(final DataType type) {
         return DataTypeSerializationUtil
-            .typeToString(PRODUCTION_PATH_PROVIDER.getDefaultProductionPath(typeClass).getDestinationType());
+            .typeToString(PRODUCTION_PATH_PROVIDER.getDefaultProductionPath(type).getDestinationType());
     }
 
-    private String getPathDestinationTypeIdentifier(final Class<?> typeClass, final DataType targetDataType) {
-        return DataTypeSerializationUtil.typeToString(PRODUCTION_PATH_PROVIDER.getAvailableProductionPaths(typeClass)
+    private String getPathDestinationTypeIdentifier(final DataType type, final DataType targetDataType) {
+        return DataTypeSerializationUtil.typeToString(PRODUCTION_PATH_PROVIDER.getAvailableProductionPaths(type)
             .stream().filter(path -> path.getDestinationType().equals(targetDataType)).findFirst()
-            .orElseGet(() -> PRODUCTION_PATH_PROVIDER.getDefaultProductionPath(typeClass)).getDestinationType());
+            .orElseGet(() -> PRODUCTION_PATH_PROVIDER.getDefaultProductionPath(type)).getDestinationType());
     }
 
     private static final StateProviderInitializer getTransformationElementSettingsProviderInitializer(
@@ -571,15 +528,15 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
 
     @Test
     void testTypeChoicesProviderIntCol() throws IOException {
-        final var file = m_tempFolder.resolve("file.csv").toAbsolutePath().toString();
+        final var file = m_tempFolder.resolve("file.KnimeTableReader").toAbsolutePath().toString();
         final var typedReaderTableSpecsProvider = createTypedReaderTableSpecsProvider(file);
 
-        testTypeChoicesProvider(typedReaderTableSpecsProvider, "intCol", Integer.class);
-        testTypeChoicesProvider(typedReaderTableSpecsProvider, "stringCol", String.class);
+        testTypeChoicesProvider(typedReaderTableSpecsProvider, "intCol", IntCell.TYPE);
+        testTypeChoicesProvider(typedReaderTableSpecsProvider, "stringCol", StringCell.TYPE);
     }
 
     private static void testTypeChoicesProvider(final TypedReaderTableSpecsProvider typedReaderTableSpecProvider,
-        final String columnName, final Class<?> type) {
+        final String columnName, final DataType type) {
         final var typeChoicesProvider = new TypeChoicesProvider();
         typeChoicesProvider
             .init(getTypeChoicesProviderStateProviderInitializer(columnName, typedReaderTableSpecProvider));

@@ -60,6 +60,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.knime.base.node.io.filehandling.csv.reader.CSVFormatAutoDetectionUtil.FullyBufferedReader;
+import org.knime.base.node.io.filehandling.webui.FileChooserPathAccessor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
 import org.knime.filehandling.core.connections.FSConnection;

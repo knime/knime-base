@@ -46,9 +46,9 @@
  * History
  *   May 15, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.table.reader2;
 
-import static org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.PRODUCTION_PATH_PROVIDER;
+import static org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.PRODUCTION_PATH_PROVIDER;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -62,23 +62,20 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReader;
-import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOptionRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.LimitMemoryPerColumnRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.MaximumNumberOfColumnsRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FileChooserRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.ColumnSpecSettings;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.ConfigIdSettings;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.PersistorSettings.ConfigIdReference;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TableSpecSettings;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElementSettings;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElementSettings.ColumnNameRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElementSettingsReference;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings;
+import org.knime.base.node.io.filehandling.table.reader.KnimeTableReader;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOptionRef;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.Settings.FileChooserRef;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.ColumnSpecSettings;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TableSpecSettings;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TransformationElementSettings;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TransformationElementSettings.ColumnNameRef;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TransformationElementSettingsReference;
 import org.knime.base.node.io.filehandling.webui.DataTypeSerializationUtil;
 import org.knime.base.node.io.filehandling.webui.FileChooserPathAccessor;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
+import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
 import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.ExecutionMonitor;
@@ -104,9 +101,10 @@ import org.knime.filehandling.core.util.WorkflowContextUtil;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
-final class CSVTransformationSettingsStateProviders {
+final class KnimeTableReaderTransformationSettingsStateProviders {
 
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(CSVTransformationSettingsStateProviders.class);
+    private static final NodeLogger LOGGER =
+        NodeLogger.getLogger(KnimeTableReaderTransformationSettingsStateProviders.class);
 
     /**
      * This object holds copies of the subset of settings in {@link CSVTableReaderNodeSettings} that can affect the spec
@@ -114,46 +112,35 @@ final class CSVTransformationSettingsStateProviders {
      */
     static final class Dependencies {
 
-        final ConfigIdSettings m_configId;
+        //??? the dependencies (and thus also the DependenciesProvider) has less fields than the CSV reader's
+
+        //        final ConfigIdSettings m_configId;
 
         final FileChooser m_source;
 
-        // The settings below are NOT a part of the CSV reader's ConfigId even though they probably should be.
-        final boolean m_limitMemoryPerColumn;
-
-        final int m_maximumNumberOfColumns;
-
-        Dependencies(final ConfigIdSettings configId, final FileChooser fileChooser, final boolean limitMemoryPerColumn,
-            final int maximumNumberOfColumns) {
-            m_configId = configId;
+        //        Dependencies(final ConfigIdSettings configId, final FileChooser fileChooser) {
+        Dependencies(final FileChooser fileChooser) {
+            //            m_configId = configId;
             m_source = fileChooser;
-            m_limitMemoryPerColumn = limitMemoryPerColumn;
-            m_maximumNumberOfColumns = maximumNumberOfColumns;
         }
     }
 
     static final class DependenciesProvider implements StateProvider<Dependencies> {
 
-        private Supplier<ConfigIdSettings> m_configIdSupplier;
+//        private Supplier<ConfigIdSettings> m_configIdSupplier;
 
         private Supplier<FileChooser> m_fileChooserSupplier;
 
-        private Supplier<Boolean> m_limitMemoryPerColumnSupplier;
-
-        private Supplier<Integer> m_maximumNumberOfColumnsSupplier;
-
         @Override
         public void init(final StateProviderInitializer initializer) {
-            m_configIdSupplier = initializer.getValueSupplier(ConfigIdReference.class);
+//            m_configIdSupplier = initializer.getValueSupplier(ConfigIdReference.class);
             m_fileChooserSupplier = initializer.getValueSupplier(FileChooserRef.class);
-            m_limitMemoryPerColumnSupplier = initializer.getValueSupplier(LimitMemoryPerColumnRef.class);
-            m_maximumNumberOfColumnsSupplier = initializer.getValueSupplier(MaximumNumberOfColumnsRef.class);
         }
 
         @Override
         public Dependencies computeState(final DefaultNodeSettingsContext context) {
-            return new Dependencies(m_configIdSupplier.get(), m_fileChooserSupplier.get(),
-                m_limitMemoryPerColumnSupplier.get(), m_maximumNumberOfColumnsSupplier.get());
+//            return new Dependencies(m_configIdSupplier.get(), m_fileChooserSupplier.get());
+            return new Dependencies(m_fileChooserSupplier.get());
         }
     }
 
@@ -227,23 +214,24 @@ final class CSVTransformationSettingsStateProviders {
         }
     }
 
+    // ??? different type (DataType instead of Class<?>)
     static final class TypedReaderTableSpecsProvider
-        extends PathsProvider<Map<String, TypedReaderTableSpec<Class<?>>>> {
+        extends PathsProvider<Map<String, TypedReaderTableSpec<DataType>>> {
         @Override
-        Map<String, TypedReaderTableSpec<Class<?>>> computeStateFromPaths(final List<FSPath> paths) {
-            final var csvTableReader = new CSVTableReader();
+        Map<String, TypedReaderTableSpec<DataType>> computeStateFromPaths(final List<FSPath> paths) {
+            // ??? different reader here
+            final var tableReader = new KnimeTableReader();
             final var exec = new ExecutionMonitor();
-            final var specs = new HashMap<String, TypedReaderTableSpec<Class<?>>>();
-            final var csvConfig = new CSVTableReaderConfig();
-            final var config = new DefaultTableReadConfig<>(csvConfig);
-            final var dependencies = m_dependenciesSupplier.get();
-            dependencies.m_configId.applyToConfig(config);
-            csvConfig.limitCharsPerColumn(dependencies.m_limitMemoryPerColumn);
-            csvConfig.setMaxColumns(dependencies.m_maximumNumberOfColumns);
+            final var specs = new HashMap<String, TypedReaderTableSpec<DataType>>();
+            // ??? different config here
+            final var tmConfig = new TableManipulatorConfig();
+            final var config = new DefaultTableReadConfig<>(tmConfig);
+//            final var dependencies = m_dependenciesSupplier.get();
+//            dependencies.m_configId.applyToConfig(config);
             for (var path : paths) {
                 try {
                     specs.put(path.toFSLocation().getPath(),
-                        MultiTableUtils.assignNamesIfMissing(csvTableReader.readSpec(path, config, exec)));
+                        MultiTableUtils.assignNamesIfMissing(tableReader.readSpec(path, config, exec)));
                 } catch (IOException e) {
                     LOGGER.error(e);
                     return Collections.emptyMap();
@@ -255,16 +243,14 @@ final class CSVTransformationSettingsStateProviders {
 
     abstract static class DependsOnTypedReaderTableSpecProvider<S> implements StateProvider<S> {
 
-        protected Supplier<Map<String, TypedReaderTableSpec<Class<?>>>> m_specSupplier;
+        protected Supplier<Map<String, TypedReaderTableSpec<DataType>>> m_specSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
             initializer.computeAfterOpenDialog();
             m_specSupplier = initializer.computeFromProvidedState(TypedReaderTableSpecsProvider.class);
-            initializer.computeOnValueChange(ConfigIdReference.class);
+//            initializer.computeOnValueChange(ConfigIdReference.class);
             initializer.computeOnValueChange(FileChooserRef.class);
-            initializer.computeOnValueChange(LimitMemoryPerColumnRef.class);
-            initializer.computeOnValueChange(MaximumNumberOfColumnsRef.class);
         }
     }
 
@@ -302,7 +288,7 @@ final class CSVTransformationSettingsStateProviders {
         }
 
         static TransformationElementSettings[] toTransformationElements(
-            final Map<String, TypedReaderTableSpec<Class<?>>> specs,
+            final Map<String, TypedReaderTableSpec<DataType>> specs,
             final HowToCombineColumnsOption howToCombineColumnsOption,
             final TransformationElementSettings[] existingSettings) {
 
@@ -363,7 +349,7 @@ final class CSVTransformationSettingsStateProviders {
         }
 
         private static TransformationElementSettings mergeExistingWithNew(
-            final TransformationElementSettings existingElement, final TypedReaderColumnSpec<Class<?>> newSpec) {
+            final TransformationElementSettings existingElement, final TypedReaderColumnSpec<DataType> newSpec) {
             final var newElement = createNewElement(newSpec);
             if (!newElement.m_originalType.equals(existingElement.m_originalType)) {
                 return newElement;
@@ -387,11 +373,11 @@ final class CSVTransformationSettingsStateProviders {
          * @return a new element as if it would be constructed as unknown new when the <any unknown column> element is
          *         configured like the default.
          */
-        private static TransformationElementSettings createNewElement(final TypedReaderColumnSpec<Class<?>> colSpec) {
+        private static TransformationElementSettings createNewElement(final TypedReaderColumnSpec<DataType> colSpec) {
             return createNewElement(colSpec, null, true);
         }
 
-        private static TransformationElementSettings createNewElement(final TypedReaderColumnSpec<Class<?>> colSpec,
+        private static TransformationElementSettings createNewElement(final TypedReaderColumnSpec<DataType> colSpec,
             final DataType unknownElementsType, final boolean includeInOutput) {
             final var name = colSpec.getName().get(); // NOSONAR in the TypedReaderTableSpecProvider we make sure that names are always present
             final var defPath = PRODUCTION_PATH_PROVIDER.getDefaultProductionPath(colSpec.getType());
@@ -399,12 +385,13 @@ final class CSVTransformationSettingsStateProviders {
             final var path = Optional.ofNullable(unknownElementsType)
                 .flatMap(type -> findProductionPath(colSpec.getType(), type)).orElse(defPath);
             final var type = DataTypeSerializationUtil.typeToString(path.getDestinationType());
-            final var defType = DataTypeSerializationUtil.typeToString(defPath.getDestinationType());
+            final var defType = DataTypeSerializationUtil.typeToString(colSpec.getType());
             return new TransformationElementSettings(name, includeInOutput, name, type, defType,
                 defPath.getDestinationType().toPrettyString());
+
         }
 
-        private static Optional<ProductionPath> findProductionPath(final Class<?> from, final DataType to) {
+        private static Optional<ProductionPath> findProductionPath(final DataType from, final DataType to) {
             return PRODUCTION_PATH_PROVIDER.getAvailableProductionPaths(from).stream()
                 .filter(path -> to.equals(path.getDestinationType())).findFirst();
         }
@@ -418,12 +405,13 @@ final class CSVTransformationSettingsStateProviders {
 
         private Supplier<String> m_columnNameSupplier;
 
-        private Supplier<Map<String, TypedReaderTableSpec<Class<?>>>> m_specSupplier;
+        private Supplier<Map<String, TypedReaderTableSpec<DataType>>> m_specSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
             m_columnNameSupplier = initializer.getValueSupplier(ColumnNameRef.class);
-            initializer.computeOnValueChange(CSVTransformationSettings.PersistorSettings.TableSpecSettingsRef.class);
+            initializer.computeOnValueChange(
+                KnimeTableReaderTransformationSettings.PersistorSettings.TableSpecSettingsRef.class);
             m_specSupplier = initializer.computeFromProvidedState(TypedReaderTableSpecsProvider.class);
         }
 
@@ -453,15 +441,15 @@ final class CSVTransformationSettingsStateProviders {
         }
     }
 
-    static RawSpec<Class<?>> toRawSpec(final Map<String, TypedReaderTableSpec<Class<?>>> spec) {
+    static RawSpec<DataType> toRawSpec(final Map<String, TypedReaderTableSpec<DataType>> spec) {
         if (spec.isEmpty()) {
-            final var emptySpec = new TypedReaderTableSpec<Class<?>>();
+            final var emptySpec = new TypedReaderTableSpec<DataType>();
             return new RawSpec<>(emptySpec, emptySpec);
         }
-        return new RawSpecFactory<>(CSVTransformationSettings.TYPE_HIERARCHY).create(spec.values());
+        return new RawSpecFactory<>(KnimeTableReaderTransformationSettings.TYPE_HIERARCHY).create(spec.values());
     }
 
-    private CSVTransformationSettingsStateProviders() {
+    private KnimeTableReaderTransformationSettingsStateProviders() {
         // Not intended to be initialized
     }
 }

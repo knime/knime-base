@@ -44,42 +44,56 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 26, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Sep 13, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.webui;
 
-import java.util.Optional;
+import java.util.function.Supplier;
 
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
-import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractFileChooserPathAccessor;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
-import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
-import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.StateProviderInitializer;
 
 /**
- * Allows access to the {@link FSPath FSPaths} referred to by a {@link FileChooser} provided in the constructor. The
- * paths are also validated and respective exceptions are thrown if the settings yield invalid paths.
+ * A StateProviderInitializer that throws {@link IllegalAccessError IllegalAccessErrors} whenever any of its methods is
+ * called, unless overridden. For testing purposes only.
  *
- * @author Paul Bärnreuther
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-@SuppressWarnings("restriction")
-final class FileChooserPathAccessor extends AbstractFileChooserPathAccessor {
+public abstract class NoopStateProviderInitializer implements StateProviderInitializer {
+    @Override
+    public <T> Supplier<T> getValueSupplier(final Class<? extends Reference<T>> ref) {
+        throw new IllegalAccessError("Should not be called within this test");
+    }
 
-    /**
-     * Creates a new FileChooserAccessor for the provided location.</br>
-     * The settings are not validated in this constructor but instead if
-     * {@link ReadPathAccessor#getPaths(java.util.function.Consumer)} is called.
-     *
-     * @param fileChooser provided by the user
-     * @param portObjectConnection an optional connection of a connected {@link FileSystemPortObjectSpec}
-     */
-    public FileChooserPathAccessor(final FileChooser fileChooser, final Optional<FSConnection> portObjectConnection) { //NOSONAR
-        super(new FileChooserPathAccessorSettings(fileChooser.getFSLocation(),
-            new FilterSettings(FilterMode.FILE, false,
-                // FilterOptionsSettings not used at the moment with filter mode FILE.
-                null, false)),
-            portObjectConnection);
+    @Override
+    public <T> void computeOnValueChange(final Class<? extends Reference<T>> ref) {
+        throw new IllegalAccessError("Should not be called within this test");
+    }
+
+    @Override
+    public void computeOnButtonClick(final Class<? extends ButtonReference> ref) {
+        throw new IllegalAccessError("Should not be called within this test");
+    }
+
+    @Override
+    public <T> Supplier<T> computeFromValueSupplier(final Class<? extends Reference<T>> ref) {
+        throw new IllegalAccessError("Should not be called within this test");
+    }
+
+    @Override
+    public <T> Supplier<T> computeFromProvidedState(final Class<? extends StateProvider<T>> stateProviderClass) {
+        throw new IllegalAccessError("Should not be called within this test");
+    }
+
+    @Override
+    public void computeBeforeOpenDialog() {
+        throw new IllegalAccessError("Should not be called within this test");
+    }
+
+    @Override
+    public void computeAfterOpenDialog() {
+        throw new IllegalAccessError("Should not be called within this test");
     }
 }

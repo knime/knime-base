@@ -46,7 +46,7 @@
  * History
  *   Aug 12, 2024 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.webui;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -64,13 +64,21 @@ import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
  *
  * @author Paul Bärnreuther
  */
-final class FileSystemPortConnectionUtil {
+@SuppressWarnings("restriction")
+public final class FileSystemPortConnectionUtil {
 
     private FileSystemPortConnectionUtil() {
         // Utility
     }
 
-    static Optional<FSConnection> getFileSystemConnection(final DefaultNodeSettingsContext context) {
+    /**
+     * Utility method for retrieving the {@link FSConnection File System Connection} from the first file system port of
+     * the specs of a given {@link DefaultNodeSettingsContext}.
+     *
+     * @param context the context from which to obtain the file system connection
+     * @return the file system connection of the first file system port
+     */
+    public static Optional<FSConnection> getFileSystemConnection(final DefaultNodeSettingsContext context) {
         if (context == null) {
             return Optional.empty();
         }

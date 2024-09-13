@@ -46,10 +46,11 @@
  * History
  *   May 15, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.webui;
 
 import java.util.function.Supplier;
 
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
@@ -59,9 +60,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
  *
  * TODO NOSONAR UIEXT-1959 will make it such that all References are also TargetStateProviders and can therefore
  * directly be used as StatePrtoviders. Once this is implemented, this ReferenceStateProvider class can be removed.
+ *
+ * @param <V> the type of the associated field in the {@link DefaultNodeSettings}.
  */
 @SuppressWarnings("restriction")
-abstract class ReferenceStateProvider<V> implements Reference<V>, StateProvider<V> {
+public abstract class ReferenceStateProvider<V> implements Reference<V>, StateProvider<V> {
 
     private Supplier<V> m_v;
 

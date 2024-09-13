@@ -44,72 +44,42 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 27, 2024 (Paul Bärnreuther): created
+ *   May 26, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.webui;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Optional;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.node.workflow.WorkflowManager;
-import org.knime.core.node.workflow.contextv2.AnalyticsPlatformExecutorInfo;
-import org.knime.core.node.workflow.contextv2.LocalLocationInfo;
-import org.knime.core.node.workflow.contextv2.WorkflowContextV2;
-import org.knime.testing.util.WorkflowManagerUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
+import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractFileChooserPathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 
 /**
- * Initializes a workflow context. Needed, e.g., when accessing file systems.
+ * Allows access to the {@link FSPath FSPaths} referred to by a {@link FileChooser} provided in the constructor. The
+ * paths are also validated and respective exceptions are thrown if the settings yield invalid paths.
  *
  * @author Paul Bärnreuther
  */
-abstract class LocalWorkflowContextTest {
-
-    final private static String SOURCE_OBJ = "workflowContextSourceObject";
-
-    private NodeContext.ContextObjectSupplier m_contextObjectSupplier;
+@SuppressWarnings("restriction")
+public final class FileChooserPathAccessor extends AbstractFileChooserPathAccessor {
 
     /**
-     * A workflow with local context named "workflow"
+     * Creates a new FileChooserAccessor for the provided location.</br>
+     * The settings are not validated in this constructor but instead if
+     * {@link ReadPathAccessor#getPaths(java.util.function.Consumer)} is called.
+     *
+     * @param fileChooser provided by the user
+     * @param portObjectConnection an optional connection of a connected {@link FileSystemPortObjectSpec}
      */
-    protected WorkflowManager m_wfm;
-
-    @BeforeEach
-    void createWorkflowManagerWithContext() throws IOException {
-        final var workflowContext = createLocalWorkflowContext(Files.createTempDirectory("workflow"));
-
-        m_contextObjectSupplier = new NodeContext.ContextObjectSupplier() {
-            @SuppressWarnings("unchecked")
-            @Override
-            public <C> Optional<C> getObjOfClass(final Class<C> contextObjClass, final Object srcObj) {
-                if ((WorkflowContextV2.class.isAssignableFrom(contextObjClass)) && SOURCE_OBJ.equals(srcObj)) {
-                    return Optional.of((C)workflowContext);
-                }
-                return Optional.empty();
-            }
-        };
-
-        NodeContext.addContextObjectSupplier(m_contextObjectSupplier);
-        NodeContext.pushContext(SOURCE_OBJ);
-        m_wfm = WorkflowManagerUtil.createEmptyWorkflow();
+    public FileChooserPathAccessor(final FileChooser fileChooser, final Optional<FSConnection> portObjectConnection) { //NOSONAR
+        super(new FileChooserPathAccessorSettings(fileChooser.getFSLocation(),
+            new FilterSettings(FilterMode.FILE, false,
+                // FilterOptionsSettings not used at the moment with filter mode FILE.
+                null, false)),
+            portObjectConnection);
     }
-
-    private static WorkflowContextV2 createLocalWorkflowContext(final Path workflowPath) throws IOException {
-        var executorInfo =
-            AnalyticsPlatformExecutorInfo.builder().withUserId("knime").withLocalWorkflowPath(workflowPath).build();
-        var locationInfo = LocalLocationInfo.getInstance(null);
-        return WorkflowContextV2.builder().withExecutor(executorInfo).withLocation(locationInfo).build();
-    }
-
-    @AfterEach
-    void removeContextAndDisposeWorkflow() {
-        NodeContext.removeContextObjectSupplier(m_contextObjectSupplier);
-        NodeContext.removeLastContext();
-        WorkflowManagerUtil.disposeWorkflow(m_wfm);
-    }
-
 }

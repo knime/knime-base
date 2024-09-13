@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <config key="settings">
+        <config key="file_selection">
+            <config key="path">
+                <entry key="location_present" type="xboolean" value="true"/>
+                <entry key="file_system_type" type="xstring" value="RELATIVE"/>
+                <entry key="path" type="xstring" value="foo"/>
+            </config>
+            <config key="filter_mode">
+                <entry key="filter_mode" type="xstring" value="FILE"/>
+                <entry key="include_subfolders" type="xboolean" value="false"/>
+                <config key="filter_options">
+                    <entry key="filter_files_extension" type="xboolean" value="false"/>
+                    <entry key="files_extension_expression" type="xstring" value=""/>
+                    <entry key="files_extension_case_sensitive" type="xboolean" value="false"/>
+                    <entry key="filter_files_name" type="xboolean" value="false"/>
+                    <entry key="files_name_expression" type="xstring" value="*"/>
+                    <entry key="files_name_case_sensitive" type="xboolean" value="false"/>
+                    <entry key="files_name_filter_type" type="xstring" value="WILDCARD"/>
+                    <entry key="include_hidden_files" type="xboolean" value="false"/>
+                    <entry key="include_special_files" type="xboolean" value="true"/>
+                    <entry key="filter_folders_name" type="xboolean" value="false"/>
+                    <entry key="folders_name_expression" type="xstring" value="*"/>
+                    <entry key="folders_name_case_sensitive" type="xboolean" value="false"/>
+                    <entry key="folders_name_filter_type" type="xstring" value="WILDCARD"/>
+                    <entry key="include_hidden_folders" type="xboolean" value="false"/>
+                    <entry key="follow_links" type="xboolean" value="true"/>
+                </config>
+            </config>
+            <config key="file_system_chooser__Internals">
+                <entry key="has_fs_port" type="xboolean" value="false"/>
+                <entry key="overwritten_by_variable" type="xboolean" value="false"/>
+                <entry key="convenience_fs_category" type="xstring" value="RELATIVE"/>
+                <entry key="relative_to" type="xstring" value="knime.workflow"/>
+                <entry key="mountpoint" type="xstring" value="LOCAL"/>
+                <entry key="spaceId" type="xstring" value=""/>
+                <entry key="spaceName" type="xstring" value=""/>
+                <entry key="custom_url_timeout" type="xint" value="1000"/>
+                <entry key="connected_fs" type="xboolean" value="true"/>
+            </config>
+        </config>
+        <config key="file_selection_Internals">
+            <entry key="SettingsModelID" type="xstring" value="SMID_ReaderFileChooser"/>
+            <entry key="EnabledStatus" type="xboolean" value="true"/>
+        </config>
+        <entry key="has_row_id" type="xboolean" value="false"/>
+        <entry key="prepend_table_index_to_row_id" type="xboolean" value="false"/>
+    </config>
+    <config key="advanced_settings">
+        <entry key="fail_on_differing_specs" type="xboolean" value="true"/>
+        <entry key="spec_merge_mode" type="xstring" value="UNION"/>
+        <entry key="append_path_column_Internals" type="xboolean" value="false"/>
+        <entry key="path_column_name_Internals" type="xstring" value="File Path"/>
+        <entry key="skip_data_rows" type="xboolean" value="false"/>
+        <entry key="number_of_rows_to_skip" type="xlong" value="0"/>
+        <entry key="limit_data_rows" type="xboolean" value="false"/>
+        <entry key="max_rows" type="xlong" value="50"/>
+        <entry key="save_table_spec_config_Internals" type="xboolean" value="true"/>
+        <entry key="check_table_spec" type="xboolean" value="true"/>
+    </config>
+    <config key="table_spec_config_Internals">
+        <entry key="version" type="xstring" value="V4_4"/>
+        <config key="individual_specs"/>
+        <config key="table_transformation">
+            <config key="columns">
+                <entry key="num_columns" type="xint" value="0"/>
+                <config key="intersection_indices">
+                    <entry key="array-size" type="xint" value="0"/>
+                </config>
+            </config>
+            <entry key="skip_empty_columns" type="xboolean" value="false"/>
+            <entry key="enforce_types" type="xboolean" value="true"/>
+            <entry key="column_filter_mode" type="xstring" value="UNION"/>
+            <config key="unknown_columns_transformation">
+                <entry key="position" type="xint" value="0"/>
+                <entry key="keep" type="xboolean" value="true"/>
+                <entry key="force_type" type="xboolean" value="false"/>
+            </config>
+        </config>
+        <entry key="source_group_id" type="xstring" value=""/>
+        <config key="config_id">
+            <config key="table_reader"/>
+        </config>
+    </config>
+</config>
