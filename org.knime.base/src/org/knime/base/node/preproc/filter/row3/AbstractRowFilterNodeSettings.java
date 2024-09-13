@@ -345,8 +345,8 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
     FilterCriterion[] m_predicates;
 
     @Widget(title = "Column domains", description = """
-            <p>Specify whether to take domains of all input columns as output domains as-is or compute them on the output
-            rows.</p>
+            <p>Specify whether to take domains of all input columns as output domains as-is or compute them on the
+            output rows.</p>
 
             <p>
             Depending on the use case, one or the other setting may be preferable:
@@ -374,7 +374,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                     "><em>Edit Nominal Domain</em></a> nodes.</p>
             """)
     @ValueSwitchWidget()
-    @Layout(DialogSections.Output.class)
+    @Layout(DialogSections.Output.Domain.class)
     ColumnDomains m_domains = ColumnDomains.RETAIN;
 
     enum ColumnDomains {
@@ -566,6 +566,8 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
         @Section(title = "Output")
         @After(Filter.class)
         interface Output {
+            interface OutputMode {}
+            interface Domain {}
         }
     }
 

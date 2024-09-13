@@ -85,7 +85,7 @@ final class RowFilterNodeSettings extends AbstractRowFilterNodeSettings {
     @Widget(title = "Filter behavior",
         description = "Determines whether only matching or non-matching rows are output.")
     @ValueSwitchWidget
-    @Layout(DialogSections.Output.class)
+    @Layout(DialogSections.Output.OutputMode.class)
     FilterMode m_outputMode = FilterMode.MATCHING;
 
 }

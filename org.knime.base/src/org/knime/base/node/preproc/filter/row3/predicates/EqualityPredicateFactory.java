@@ -179,12 +179,12 @@ public abstract class EqualityPredicateFactory extends AbstractPredicateFactory 
         private Predicate<RowRead> comparingWithLongValue(final int columnIndex, final long ref) {
             // two cases where we can already determine that the predicate will never/always match
             if (ref > Integer.MAX_VALUE) {
-                LOGGER.debug("Creating static predicate for Integer column with Double reference value for "
+                LOGGER.debug("Creating static predicate for Integer column with Long reference value for "
                     + "ref > Integer.MAX_VALUE");
                 return m_matchEqual ? PredicateFactory.ALWAYS_FALSE : PredicateFactory.ALWAYS_TRUE;
             }
             if (ref < Integer.MIN_VALUE) {
-                LOGGER.debug("Creating static predicate for Integer column with Double reference value for "
+                LOGGER.debug("Creating static predicate for Integer column with Long reference value for "
                     + "ref < Integer.MIN_VALUE");
                 return m_matchEqual ? PredicateFactory.ALWAYS_TRUE : PredicateFactory.ALWAYS_FALSE;
             }

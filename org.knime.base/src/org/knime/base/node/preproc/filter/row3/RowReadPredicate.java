@@ -64,7 +64,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColu
 import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 
 /**
- * Predicate for filtering rows by RowID, data values, or missingness.
+ * Utility to create predicates for filtering rows by RowID, data values, or missingness.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
@@ -75,17 +75,26 @@ final class RowReadPredicate {
         // hidden
     }
 
+    /**
+     * Builds a single predicate from filter criteria, combined by AND or OR.
+     *
+     * @param isAnd if {@code true}, combine predicates with AND, otherwise with OR
+     * @param filterCriteria filter criteria to build predicates from
+     * @param spec data table spec to filter on
+     * @return predicate that combines all filter criteria
+     * @throws InvalidSettingsException if a filter criterion is invalid
+     */
     static Predicate<RowRead> buildPredicate(final boolean isAnd, final Iterable<FilterCriterion> filterCriteria,
-        final DataTableSpec inSpec) throws InvalidSettingsException {
+        final DataTableSpec spec) throws InvalidSettingsException {
         final var iter = filterCriteria.iterator();
         if (!iter.hasNext()) {
             return null;
         }
         // collect predicates from filter criteria, short-circuiting whenever we can prove that the predicate will
         // always be true or false
-        var filterPredicate = createFrom(iter.next(), inSpec);
+        var filterPredicate = createFrom(iter.next(), spec);
         while (iter.hasNext()) {
-            final var predicate = createFrom(iter.next(), inSpec);
+            final var predicate = createFrom(iter.next(), spec);
             if (isAnd) {
                 // x AND false -> false
                 // x AND true -> x
