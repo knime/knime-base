@@ -49,9 +49,11 @@
 package org.knime.base.node.preproc.filter.row3.predicates;
 
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.knime.core.data.DataType;
+import org.knime.core.data.DataValue;
 import org.knime.core.data.IntValue;
 import org.knime.core.data.LongValue;
 import org.knime.core.data.StringValue;
@@ -66,16 +68,28 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValu
 final class PatternMatchingPredicateFactory extends AbstractPredicateFactory {
 
     private final boolean m_isRegex;
+    private final Function<DataValue, String> m_toStringFn;
 
-    private PatternMatchingPredicateFactory(final boolean isRegex) {
+    private PatternMatchingPredicateFactory(final boolean isRegex, final Function<DataValue, String> toStringFn) {
         m_isRegex = isRegex;
+        m_toStringFn = toStringFn;
     }
 
     static Optional<PredicateFactory> create(final DataType inputDataType, final boolean isRegex) {
         if (!isSupported(inputDataType)) {
             return Optional.empty();
         }
-        return Optional.of(new PatternMatchingPredicateFactory(isRegex));
+
+        final Function<DataValue, String> toStringFunction;
+        final var preferredValueClass = inputDataType.getPreferredValueClass();
+        if (preferredValueClass.equals(LongValue.class)) {
+            toStringFunction = value -> Long.toString(((LongValue)value).getLongValue());
+        } else if (preferredValueClass.equals(IntValue.class)) {
+            toStringFunction = value -> Integer.toString(((IntValue)value).getIntValue());
+        } else {
+            toStringFunction = value -> ((StringValue)value).getStringValue();
+        }
+        return Optional.of(new PatternMatchingPredicateFactory(isRegex, toStringFunction));
     }
 
     private static boolean isSupported(final DataType type) {
@@ -98,22 +112,14 @@ final class PatternMatchingPredicateFactory extends AbstractPredicateFactory {
                 .build().orElseThrow().toInvalidSettingsException();
         }
 
-        final String pattern;
-        if (patternCell instanceof IntValue intValue) {
-            pattern = Integer.toString(intValue.getIntValue());
-        } else if (patternCell instanceof LongValue longValue) {
-            pattern = Long.toString(longValue.getLongValue());
-        } else {
-            pattern = ((StringValue)patternCell).getStringValue();
-        }
-
+        final var pattern = ((StringValue)patternCell).getStringValue();
         final var isCaseSensitive = inputValues.isStringMatchCaseSensitive(valueIndex);
         final var patternPredicate = StringPredicate.pattern(pattern, m_isRegex, isCaseSensitive);
         final var isRowKey = columnIndex < 0;
         if (isRowKey) {
             return rowRead -> patternPredicate.test(rowRead.getRowKey().getString());
         }
-        return rowRead -> patternPredicate.test(rowRead.<StringValue> getValue(columnIndex).getStringValue());
+        return rowRead -> patternPredicate.test(m_toStringFn.apply(rowRead.getValue(columnIndex)));
     }
 
 }
