@@ -46,15 +46,12 @@
  * History
  *   Jan 10, 2024 (Marc Bux, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.table.reader2;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -64,9 +61,9 @@ import java.util.Optional;
 import org.apache.xmlbeans.XmlException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingOption;
 import org.knime.base.node.io.filehandling.webui.LocalWorkflowContextTest;
+import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
+import org.knime.core.data.DataType;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.InvalidSettingsException;
@@ -92,121 +89,88 @@ import org.xml.sax.SAXException;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
-class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
+class KnimeTableReaderNodeModel2Test extends LocalWorkflowContextTest {
 
-    private NativeNodeContainer m_csvReader;
+    private NativeNodeContainer m_tableReader;
 
     @BeforeEach
-    void addCSVReaderToWorkflow() throws IOException {
-        m_csvReader = WorkflowManagerUtil.createAndAddNode(m_wfm, new CSVTableReaderNodeFactory2());
+    void addTableReaderToWorkflow() throws IOException {
+        m_tableReader = WorkflowManagerUtil.createAndAddNode(m_wfm, new KnimeTableReaderNodeFactory2());
     }
 
     @Test
-    void testReadValidCSV() throws IOException, InvalidSettingsException {
-        final var file = createCsvFile();
+    void testReadValidTable() throws IOException, InvalidSettingsException {
+        final var file = createTableFile();
 
-        final var settings = new CSVTableReaderNodeSettings();
+        final var settings = new KnimeTableReaderNodeSettings();
         settings.m_settings.m_source = new FileChooser(new FSLocation(FSCategory.LOCAL, file.toString()));
         setSettings(settings);
 
         m_wfm.executeAllAndWaitUntilDone();
-        assertTrue(m_csvReader.getNodeContainerState().isExecuted());
-        assertArrayEquals(new String[]{"colName", "colName2"}, getOutputTable().getSpec().getColumnNames());
+        assertTrue(m_tableReader.getNodeContainerState().isExecuted());
+        assertArrayEquals(new String[]{"intCol", "stringCol"}, getOutputTable().getSpec().getColumnNames());
     }
 
-    private static Path createCsvFile() throws IOException {
-        final var file = Files.createTempFile(null, ".csv").toAbsolutePath();
-        try (final var writer = new BufferedWriter(new FileWriter(file.toString()))) {
-            writer.write("colName, colName2\n");
-            writer.write("1, 2\n");
-        }
-        return file;
-    }
-
-    private static Path createTsvFile() throws IOException {
-        final var file = Files.createTempFile(null, ".tsv").toAbsolutePath();
-        try (final var writer = new BufferedWriter(new FileWriter(file.toString()))) {
-            writer.write("colName\tcolName2\n");
-            writer.write("1\t2\n");
-        }
+    private static Path createTableFile() throws IOException {
+        final var file = Files.createTempFile(null, ".table").toAbsolutePath();
+        KnimeTableReaderTransformationSettingsStateProvidersTest.createTableFile(file.toString());
         return file;
     }
 
     @Test
     void testReadMissingFile() throws InvalidSettingsException {
-        final var settings = new CSVTableReaderNodeSettings();
+        final var settings = new KnimeTableReaderNodeSettings();
         final var missingFile = "foo";
         settings.m_settings.m_source = new FileChooser(new FSLocation(FSCategory.LOCAL, missingFile));
         setSettings(settings);
 
-        assertTrue(m_csvReader.getNodeContainerState().isConfigured());
+        assertTrue(m_tableReader.getNodeContainerState().isConfigured());
         m_wfm.executeAllAndWaitUntilDone();
-        assertTrue(m_csvReader.getNodeContainerState().isConfigured());
+        assertTrue(m_tableReader.getNodeContainerState().isConfigured());
         assertEquals(String.format("ERROR: Execute failed: The specified file %s does not exist.", missingFile),
-            m_csvReader.getNodeMessage().toString());
-    }
-
-    @Test
-    void testThrowInvalidSettingsExceptionOnBlankCustomEncoding() throws IOException, InvalidSettingsException {
-        final var settings = new CSVTableReaderNodeSettings();
-        settings.m_encoding.m_charset.m_fileEncoding = FileEncodingOption.OTHER;
-        settings.m_encoding.m_charset.m_customEncoding = " ";
-        assertThrows(InvalidSettingsException.class, () -> setSettings(settings));
+            m_tableReader.getNodeMessage().toString());
     }
 
     @Test
     void testWarningMessagesAfterInitialConfigure() throws Exception {
-        assertTrue(m_csvReader.getNodeContainerState().isIdle());
-        assertEquals("WARNING: Please specify a file", m_csvReader.getNodeMessage().toString());
+        assertTrue(m_tableReader.getNodeContainerState().isIdle());
+        assertEquals("WARNING: Please specify a file", m_tableReader.getNodeMessage().toString());
     }
 
     @Test
-    void testReadValidCSVFromURL() throws IOException, InvalidSettingsException {
-        final var file = createCsvFile();
+    void testReadValidTableFromURL() throws IOException, InvalidSettingsException {
+        final var file = createTableFile();
 
-        m_wfm.removeNode(m_csvReader.getID());
-        m_csvReader =
-            WorkflowManagerUtil.createAndAddNode(m_wfm, new TestCSVTableReaderNodeFactory2(file.toUri().toURL()));
-
-        m_wfm.executeAllAndWaitUntilDone();
-        assertTrue(m_csvReader.getNodeContainerState().isExecuted());
-        assertArrayEquals(new String[]{"colName", "colName2"}, getOutputTable().getSpec().getColumnNames());
-    }
-
-    @Test
-    void testReadValidTSVFromURL() throws IOException, InvalidSettingsException {
-        final var file = createTsvFile();
-
-        m_wfm.removeNode(m_csvReader.getID());
-        m_csvReader =
-            WorkflowManagerUtil.createAndAddNode(m_wfm, new TestCSVTableReaderNodeFactory2(file.toUri().toURL()));
+        m_wfm.removeNode(m_tableReader.getID());
+        m_tableReader =
+            WorkflowManagerUtil.createAndAddNode(m_wfm, new TestKnimeTableReaderNodeFactory2(file.toUri().toURL()));
 
         m_wfm.executeAllAndWaitUntilDone();
-        assertTrue(m_csvReader.getNodeContainerState().isExecuted());
-        assertArrayEquals(new String[]{"colName", "colName2"}, getOutputTable().getSpec().getColumnNames());
+        assertTrue(m_tableReader.getNodeContainerState().isExecuted());
+        assertArrayEquals(new String[]{"intCol", "stringCol"}, getOutputTable().getSpec().getColumnNames());
     }
 
     private BufferedDataTable getOutputTable() {
-        return (BufferedDataTable)m_csvReader.getOutPort(1).getPortObject();
+        return (BufferedDataTable)m_tableReader.getOutPort(1).getPortObject();
     }
 
-    private void setSettings(final CSVTableReaderNodeSettings settings) throws InvalidSettingsException {
-        final var nodeSettings = new NodeSettings("CSVReader");
-        m_wfm.saveNodeSettings(m_csvReader.getID(), nodeSettings);
+    private void setSettings(final KnimeTableReaderNodeSettings settings) throws InvalidSettingsException {
+        final var nodeSettings = new NodeSettings("KnimeTableReader");
+        m_wfm.saveNodeSettings(m_tableReader.getID(), nodeSettings);
         var modelSettings = nodeSettings.addNodeSettings("model");
-        DefaultNodeSettings.saveSettings(CSVTableReaderNodeSettings.class, settings, modelSettings);
-        m_wfm.loadNodeSettings(m_csvReader.getID(), nodeSettings);
+        DefaultNodeSettings.saveSettings(KnimeTableReaderNodeSettings.class, settings, modelSettings);
+        m_wfm.loadNodeSettings(m_tableReader.getID(), nodeSettings);
     }
 
-    private static class TestCSVTableReaderNodeFactory2
-        extends ConfigurableNodeFactory<TableReaderNodeModel<FSPath, CSVTableReaderConfig, Class<?>>>
+    private static class TestKnimeTableReaderNodeFactory2
+        extends ConfigurableNodeFactory<TableReaderNodeModel<FSPath, TableManipulatorConfig, DataType>>
         implements NodeDialogFactory {
 
-        private final CSVTableReaderNodeFactory2 m_delegate = new CSVTableReaderNodeFactory2();
+        private final KnimeTableReaderNodeFactory2 m_delegate = new KnimeTableReaderNodeFactory2();
 
         private final URL m_url;
 
-        TestCSVTableReaderNodeFactory2(final URL url) {
+        TestKnimeTableReaderNodeFactory2(final URL url) {
             super(true);
             m_url = url;
         }
@@ -222,7 +186,7 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
         }
 
         @Override
-        protected TableReaderNodeModel<FSPath, CSVTableReaderConfig, Class<?>>
+        protected TableReaderNodeModel<FSPath, TableManipulatorConfig, DataType>
             createNodeModel(final NodeCreationConfiguration creationConfig) {
             final var modifiableCreationConfig = (ModifiableNodeCreationConfiguration)creationConfig;
             modifiableCreationConfig.setURLConfiguration(m_url);
@@ -240,8 +204,8 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
         }
 
         @Override
-        public NodeView<TableReaderNodeModel<FSPath, CSVTableReaderConfig, Class<?>>> createNodeView(
-            final int viewIndex, final TableReaderNodeModel<FSPath, CSVTableReaderConfig, Class<?>> nodeModel) {
+        public NodeView<TableReaderNodeModel<FSPath, TableManipulatorConfig, DataType>> createNodeView(
+            final int viewIndex, final TableReaderNodeModel<FSPath, TableManipulatorConfig, DataType> nodeModel) {
             return m_delegate.createNodeView(viewIndex, nodeModel);
         }
 
@@ -255,5 +219,4 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
             return m_delegate.createNodeDescription();
         }
     }
-
 }

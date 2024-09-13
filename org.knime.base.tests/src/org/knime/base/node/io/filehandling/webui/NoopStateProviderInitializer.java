@@ -48,54 +48,52 @@
  */
 package org.knime.base.node.io.filehandling.webui;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.util.function.Supplier;
 
-import org.knime.base.node.preproc.manipulator.TableManipulatorConfigSerializer.DataTypeSerializer;
-import org.knime.core.data.DataType;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.StateProviderInitializer;
 
 /**
+ * A StateProviderInitializer that throws {@link IllegalAccessError IllegalAccessErrors} whenever any of its methods is
+ * called, unless overridden. For testing purposes only.
+ *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-public class DataTypeSerializationUtil {
-
-    /**
-     * Serializes a given {@link DataType} into a string
-     *
-     * @param type the to-be-serialized {@link DataType}
-     * @return the serialized string
-     */
-    public static String typeToString(final DataType type) {
-        final var settings = new NodeSettings("type");
-        DataTypeSerializer.SERIALIZER_INSTANCE.save(type, settings);
-        try (var bos = new ByteArrayOutputStream()) {
-            settings.saveToXML(bos);
-            return new String(bos.toByteArray());
-        } catch (IOException e) {
-            return null; // TODO
-        }
+public abstract class NoopStateProviderInitializer implements StateProviderInitializer {
+    @Override
+    public <T> Supplier<T> getValueSupplier(final Class<? extends Reference<T>> ref) {
+        throw new IllegalAccessError("Should not be called within this test");
     }
 
-    /**
-     * De-serializes a string that has been generated via {@link DataTypeSerializationUtil#typeToString} into a
-     * {@link DataType}.
-     *
-     * @param string the previously serialized string
-     * @return the de-serialized {@link DataType}
-     */
-    public static DataType stringToType(final String string) {
-        try (ByteArrayInputStream bis = new ByteArrayInputStream(string.getBytes())) {
-            final var settings = NodeSettings.loadFromXML(bis);
-            return DataTypeSerializer.SERIALIZER_INSTANCE.load(settings);
-        } catch (IOException | InvalidSettingsException e) {
-            return DataType.getMissingCell().getType(); // TODO
-        }
+    @Override
+    public <T> void computeOnValueChange(final Class<? extends Reference<T>> ref) {
+        throw new IllegalAccessError("Should not be called within this test");
     }
 
-    private DataTypeSerializationUtil() {
-        // Utility class not intended to be initialized
+    @Override
+    public void computeOnButtonClick(final Class<? extends ButtonReference> ref) {
+        throw new IllegalAccessError("Should not be called within this test");
+    }
+
+    @Override
+    public <T> Supplier<T> computeFromValueSupplier(final Class<? extends Reference<T>> ref) {
+        throw new IllegalAccessError("Should not be called within this test");
+    }
+
+    @Override
+    public <T> Supplier<T> computeFromProvidedState(final Class<? extends StateProvider<T>> stateProviderClass) {
+        throw new IllegalAccessError("Should not be called within this test");
+    }
+
+    @Override
+    public void computeBeforeOpenDialog() {
+        throw new IllegalAccessError("Should not be called within this test");
+    }
+
+    @Override
+    public void computeAfterOpenDialog() {
+        throw new IllegalAccessError("Should not be called within this test");
     }
 }

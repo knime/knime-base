@@ -80,7 +80,8 @@ import org.knime.filehandling.core.util.CompressionAwareCountingInputStream;
  *
  * @author Moditha Hewasinghage, KNIME GmbH, Berlin, Germany
  */
-final class KnimeTableReader implements TableReader<TableManipulatorConfig, DataType, DataValue>, KeepReadOpenReader {
+public final class KnimeTableReader
+    implements TableReader<TableManipulatorConfig, DataType, DataValue>, KeepReadOpenReader {
 
     private static final String ERROR_MSG_DATA_BIN_EXCEPTION =
         "Cannot read file! The file is either not in KNIME table format or corrupted.";

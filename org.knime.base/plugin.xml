@@ -863,6 +863,12 @@
             factory-class="org.knime.base.node.io.filehandling.table.reader.KnimeTableReaderNodeFactory">
         </node>
         <node
+            after="org.knime.base.node.io.filehandling.table.reader.KnimeTableReaderNodeFactory"
+            category-path="/io/read"
+            deprecated="false"
+            factory-class="org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeFactory2"
+            hidden="true"/>
+        <node
               after="org.knime.base.node.io.arffwriter.ARFFWriterNodeFactory"
               category-path="/io/write"
               deprecated="true"
@@ -2284,7 +2290,7 @@
             factory-class="org.knime.base.node.io.filehandling.model.reader.ModelReaderNodeFactory">
       </node>
       <node
-            after="org.knime.base.node.io.filehandling.table.reader.KnimeTableReaderNodeFactory"
+            after="org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeFactory2"
             category-path="/io/read"
             deprecated="false"
             factory-class="org.knime.base.node.io.filehandling.pmml.reader.PMMLReaderNodeFactory3">

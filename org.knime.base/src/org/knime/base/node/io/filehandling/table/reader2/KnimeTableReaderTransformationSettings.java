@@ -46,47 +46,32 @@
  * History
  *   May 8, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.table.reader2;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.function.Supplier;
 
-import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
-import org.knime.base.node.io.filehandling.csv.reader.api.EscapeUtils;
-import org.knime.base.node.io.filehandling.csv.reader.api.QuoteOption;
-import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Transformation;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Transformation.EnforceTypes;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.AppendPathColumnRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.DecimalSeparatorRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.FilePathColumnNameRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOptionRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.LimitScannedRowsRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.MaxDataRowsScannedRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.QuotedStringsOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.QuotedStringsOptionRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.ReplaceEmptyQuotedStringsByMissingValuesRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.ThousandsSeparatorRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.CustomEncodingRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.LimitRows.SkipFirstDataRowsRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.LimitRows.SkipFirstLinesRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.ColumnDelimiterRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.CommentStartRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.CustomRowDelimiterRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FirstColumnContainsRowIdsRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FirstRowContainsColumnNamesRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.QuoteCharacterRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.QuoteEscapeCharacterRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOptionRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.FSLocationsProvider;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.SourceIdProvider;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TableSpecSettingsProvider;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TransformationElementSettingsProvider;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TypeChoicesProvider;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.Transformation;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.Transformation.EnforceTypes;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.AdvancedSettings.AppendPathColumnRef;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.AdvancedSettings.FilePathColumnNameRef;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOptionRef;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.FSLocationsProvider;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.SourceIdProvider;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.TableSpecSettingsProvider;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.TypeChoicesProvider;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
+import org.knime.base.node.preproc.manipulator.TableManipulatorConfigSerializer.DataTypeSerializer;
+import org.knime.base.node.preproc.manipulator.mapping.DataTypeTypeHierarchy;
+import org.knime.base.node.preproc.manipulator.mapping.DataValueReadAdapterFactory;
+import org.knime.core.data.DataType;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.config.base.JSONConfig;
+import org.knime.core.node.config.base.JSONConfig.WriterConfig;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
@@ -104,10 +89,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.node.table.reader.DefaultProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
-import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
-import org.knime.filehandling.core.node.table.reader.type.hierarchy.TreeTypeHierarchy;
+import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -116,111 +101,76 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
-final class CSVTransformationSettings implements WidgetGroup, PersistableSettings {
+final class KnimeTableReaderTransformationSettings implements WidgetGroup, PersistableSettings {
 
-    static final ProductionPathProvider<Class<?>> PRODUCTION_PATH_PROVIDER =
-        StringReadAdapterFactory.INSTANCE.createProductionPathProvider();
+    // ??? this is different
+    static final ProductionPathProvider<DataType> PRODUCTION_PATH_PROVIDER =
+        new DefaultProductionPathProvider<>(DataValueReadAdapterFactory.INSTANCE.getProducerRegistry(),
+            DataValueReadAdapterFactory.INSTANCE::getDefaultType);
 
-    static final TreeTypeHierarchy<Class<?>, Class<?>> TYPE_HIERARCHY = StringReadAdapterFactory.TYPE_HIERARCHY;
+    static final TypeHierarchy<DataType, DataType> TYPE_HIERARCHY = DataTypeTypeHierarchy.INSTANCE;
 
-    static final class ConfigIdSettings implements WidgetGroup, PersistableSettings {
-
-        @ValueProvider(FirstRowContainsColumnNamesRef.class)
-        boolean m_firstRowContainsColumnNames = true;
-
-        @ValueProvider(FirstColumnContainsRowIdsRef.class)
-        boolean m_firstColumnContainsRowIds;
-
-        @ValueProvider(CommentStartRef.class)
-        String m_commentLineCharacter = "#";
-
-        @ValueProvider(ColumnDelimiterRef.class)
-        String m_columnDelimiter = ",";
-
-        @ValueProvider(QuoteCharacterRef.class)
-        String m_quoteCharacter = "\"";
-
-        @ValueProvider(QuoteEscapeCharacterRef.class)
-        String m_quoteEscapeCharacter = "\"";
-
-        @ValueProvider(RowDelimiterOptionRef.class)
-        RowDelimiterOption m_rowDelimiterOption = RowDelimiterOption.LINE_BREAK;
-
-        @ValueProvider(CustomRowDelimiterRef.class)
-        String m_customRowDelimiter = "\n";
-
-        @ValueProvider(QuotedStringsOptionRef.class)
-        QuotedStringsOption m_quotedStringsOption = QuotedStringsOption.REMOVE_QUOTES_AND_TRIM;
-
-        @ValueProvider(ReplaceEmptyQuotedStringsByMissingValuesRef.class)
-        boolean m_replaceEmptyQuotedStringsByMissingValues = true;
-
-        @ValueProvider(LimitScannedRowsRef.class)
-        boolean m_limitScannedRows = true;
-
-        @ValueProvider(MaxDataRowsScannedRef.class)
-        long m_maxDataRowsScanned = 10000;
-
-        @ValueProvider(ThousandsSeparatorRef.class)
-        String m_thousandsSeparator = "";
-
-        @ValueProvider(DecimalSeparatorRef.class)
-        String m_decimalSeparator = ".";
-
-        @ValueProvider(FileEncodingRef.class)
-        FileEncodingOption m_fileEncoding = FileEncodingOption.DEFAULT;
-
-        @ValueProvider(CustomEncodingRef.class)
-        String m_customEncoding = "";
-
-        @ValueProvider(SkipFirstLinesRef.class)
-        long m_skipFirstLines;
-
-        @ValueProvider(SkipFirstDataRowsRef.class)
-        long m_skipFirstDataRows;
-
-        void applyToConfig(final DefaultTableReadConfig<CSVTableReaderConfig> config) {
-            config.setColumnHeaderIdx(0);
-            config.setLimitRowsForSpec(m_limitScannedRows);
-            config.setMaxRowsForSpec(m_maxDataRowsScanned);
-            config.setSkipRows(m_skipFirstDataRows > 0);
-            config.setNumRowsToSkip(m_skipFirstDataRows);
-            config.setRowIDIdx(0);
-            config.setUseColumnHeaderIdx(m_firstRowContainsColumnNames);
-            config.setUseRowIDIdx(m_firstColumnContainsRowIds);
-
-            final var csvConfig = config.getReaderSpecificConfig();
-            csvConfig.setCharSetName(
-                m_fileEncoding == FileEncodingOption.OTHER ? m_customEncoding : m_fileEncoding.m_persistId);
-            csvConfig.setComment(m_commentLineCharacter);
-            csvConfig.setDecimalSeparator(m_decimalSeparator);
-            csvConfig.setDelimiter(EscapeUtils.unescape(m_columnDelimiter));
-            csvConfig.setLineSeparator(EscapeUtils.unescape(m_customRowDelimiter));
-            csvConfig.setSkipLines(m_skipFirstLines > 0);
-            csvConfig.setNumLinesToSkip(m_skipFirstLines);
-            csvConfig.setQuote(m_quoteCharacter);
-            csvConfig.setQuoteEscape(m_quoteEscapeCharacter);
-            csvConfig.setQuoteOption(QuoteOption.valueOf(m_quotedStringsOption.name()));
-            csvConfig.setReplaceEmptyWithMissing(m_replaceEmptyQuotedStringsByMissingValues);
-            csvConfig.setThousandsSeparator(m_thousandsSeparator);
-            csvConfig.useLineBreakRowDelimiter(m_rowDelimiterOption == RowDelimiterOption.LINE_BREAK);
-        }
-    }
+    //    // ??? we don't actually need this class, but we leave it in since it should make de-duplication easier
+    //    static final class ConfigIdSettings implements WidgetGroup, PersistableSettings {
+    //
+    //        // FirstColumnContainsRowIdsRef and SkipFirstDataRowsRef settings are part of the table reader settings AND part of the CSV reader config id, but not currently part of the table reader config id
+    //        // see TableManipulatorConfigSerializer::createFromConfig versus CSVMultiTableReadConfigSerializer::createFromConfig
+    //        // the reason is that these settings are relevant for the spec in the CSV reader, but, if you think about it, not for the table reader
+    //
+    //        void applyToConfig(final DefaultTableReadConfig<TableManipulatorConfig> config) {
+    //            //            config.setColumnHeaderIdx(0);
+    //            //            config.setRowIDIdx(0);
+    //            //            config.setLimitRowsForSpec(false);
+    //            //            config.setUseColumnHeaderIdx(false);
+    //        }
+    //    }
 
     static final class ColumnSpecSettings implements WidgetGroup, PersistableSettings {
 
         String m_name;
 
-        Class<?> m_type;
+        //??? this type is different
+        String m_type;
 
-        ColumnSpecSettings(final String name, final Class<?> type) {
+        ColumnSpecSettings(final String name, final DataType type) {
             m_name = name;
-            m_type = type;
+            m_type = typeToString(type);
         }
 
         ColumnSpecSettings() {
         }
+
+        /**
+         * Serializes a given {@link DataType} into a string
+         *
+         * @param type the to-be-serialized {@link DataType}
+         * @return the serialized string
+         */
+        public static String typeToString(final DataType type) {
+            final var settings = new NodeSettings("type");
+            DataTypeSerializer.SERIALIZER_INSTANCE.save(type, settings);
+            return JSONConfig.toJSONString(settings, WriterConfig.DEFAULT);
+        }
+
+        /**
+         * De-serializes a string that has been generated via {@link DataTypeSerializationUtil#typeToString} into a
+         * {@link DataType}.
+         *
+         * @param string the previously serialized string
+         * @return the de-serialized {@link DataType}
+         */
+        public static DataType stringToType(final String string) {
+            try {
+                final var settings = new NodeSettings("type");
+                JSONConfig.readJSON(settings, new StringReader(string));
+                return DataTypeSerializer.SERIALIZER_INSTANCE.load(settings);
+            } catch (IOException | InvalidSettingsException e) {
+                return DataType.getMissingCell().getType(); // TODO
+            }
+        }
     }
+
+    // ??? from here on out, everything is copied from the CSV reader
 
     static final class TableSpecSettings implements WidgetGroup, PersistableSettings {
 
@@ -245,11 +195,11 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
      */
     static final class PersistorSettings implements WidgetGroup, PersistableSettings {
 
-        static class ConfigIdReference implements Reference<ConfigIdSettings> {
-        }
-
-        @ValueReference(ConfigIdReference.class)
-        ConfigIdSettings m_configId = new ConfigIdSettings();
+        //        static class ConfigIdReference implements Reference<ConfigIdSettings> {
+        //        }
+        //
+        //        @ValueReference(ConfigIdReference.class)
+        //        ConfigIdSettings m_configId = new ConfigIdSettings();
 
         @ValueProvider(SourceIdProvider.class)
         String m_sourceId = "";
@@ -415,6 +365,8 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
         @Effect(predicate = InternalArrayWidget.ElementIsEdited.class, type = EffectType.SHOW)
         String m_type;
 
+        // extra field source type serialized
+
         TransformationElementSettings() {
         }
 
@@ -423,8 +375,8 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
             m_columnName = columnName;
             m_includeInOutput = includeInOutput;
             m_columnRename = columnRename;
-            m_type = type;
-            m_originalType = originalType;
+            m_type = type; // converter fac id
+            m_originalType = originalType; // converter fac id
             m_originalTypeLabel = originalTypeLabel;
         }
 
