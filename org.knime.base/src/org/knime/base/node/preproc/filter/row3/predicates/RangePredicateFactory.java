@@ -113,6 +113,9 @@ abstract class RangePredicateFactory extends AbstractPredicateFactory {
         return Optional.of(factory);
     }
 
+    /**
+     * Predicates on {@link IntValue} colums with compatible reference values.
+     */
     private static final class RangeIntPredicateFactory extends RangePredicateFactory {
 
         private RangeIntPredicateFactory(final FilterOperator operator) {
@@ -175,6 +178,9 @@ abstract class RangePredicateFactory extends AbstractPredicateFactory {
 
     }
 
+    /**
+     * Predicates on {@link LongValue} colums with compatible reference values.
+     */
     private static final class RangeLongPredicateFactory extends RangePredicateFactory {
 
         private RangeLongPredicateFactory(final FilterOperator operator) {
@@ -184,11 +190,34 @@ abstract class RangePredicateFactory extends AbstractPredicateFactory {
         @Override
         public Predicate<RowRead> createPredicate(final int columnIndex, final DynamicValuesInput inputValues)
             throws InvalidSettingsException {
-            throw new UnsupportedOperationException("Not yet implemented");
+            final var refCell = getCellAtOrThrow(inputValues, 0);
+            long ref;
+            if (refCell instanceof IntCell intCell) {
+                ref = intCell.getIntValue();
+            } else if (refCell instanceof LongCell longCell) {
+                ref = longCell.getLongValue();
+            } else {
+                final var refCellType = refCell.getType();
+                throw Message.builder()
+                    .withSummary("Cannot compare column of type \"%s\" with a value of type \"%s\""
+                        .formatted(LongCell.TYPE, refCellType))
+                    .addResolutions(
+                        "Reconfigure the node to provide a reference value of \"%s\" or \"%s\" type."
+                            .formatted(IntCell.TYPE, LongCell.TYPE),
+                        "Convert the input column to \"%s\" using a converter node, e.g. an expression node"
+                            .formatted(refCellType))
+                    .build().orElseThrow().toInvalidSettingsException();
+            }
+
+            final var predicate = LongRangePredicate.create(ref, m_operator);
+            return rowRead -> predicate.test(rowRead.<LongValue> getValue(columnIndex).getLongValue());
         }
 
     }
 
+    /**
+     * Predicates on {@link DoubleValue} colums with compatible reference values.
+     */
     private static final class RangeDoublePredicateFactory extends RangePredicateFactory {
 
         private RangeDoublePredicateFactory(final FilterOperator operator) {
@@ -198,11 +227,36 @@ abstract class RangePredicateFactory extends AbstractPredicateFactory {
         @Override
         public Predicate<RowRead> createPredicate(final int columnIndex, final DynamicValuesInput inputValues)
             throws InvalidSettingsException {
-            throw new UnsupportedOperationException("Not yet implemented");
+            final var refCell = getCellAtOrThrow(inputValues, 0);
+            double ref;
+            if (refCell instanceof IntCell intCell) {
+                LOGGER.debug("Creating equality predicate for Double column with Integer reference value");
+                ref = intCell.getIntValue();
+            } else if (refCell instanceof DoubleCell doubleCell) {
+                LOGGER.debug("Creating equality predicate for Double column with Double reference value");
+                ref = doubleCell.getDoubleValue();
+            } else {
+                final var refCellType = refCell.getType();
+                throw Message.builder()
+                    .withSummary("Cannot compare column of type \"%s\" with a value of type \"%s\""
+                        .formatted(DoubleCell.TYPE, refCellType))
+                    .addResolutions(
+                        "Reconfigure the node to provide a reference value of \"%s\" or \"%s\" type."
+                            .formatted(IntCell.TYPE, DoubleCell.TYPE),
+                        "Convert the input column to \"%s\" using a converter node, e.g. an expression node"
+                            .formatted(refCellType))
+                    .build().orElseThrow().toInvalidSettingsException();
+            }
+            final var predicate = DoubleRangePredicate.create(ref, m_operator);
+            return rowRead -> predicate.test(rowRead.<DoubleValue> getValue(columnIndex).getDoubleValue());
         }
 
     }
 
+    /**
+     * Predicates on {@link DataValue} using the data value type's comparator (then the value types of the column
+     * and reference must be the same).
+     */
     private static final class RangeDataValuePredicateFactory extends RangePredicateFactory {
 
         private final Comparator<DataValue> m_comparator;
@@ -308,11 +362,12 @@ abstract class RangePredicateFactory extends AbstractPredicateFactory {
          * @return the range predicate
          */
         static DoubleRangePredicate create(final double bound, final RangeOperator operator) {
+            // use Double.compare for NaN handling
             return switch (operator) {
-                case LT -> v -> v < bound;
-                case LTE -> v -> v <= bound;
-                case GT -> v -> v > bound;
-                case GTE -> v -> v >= bound;
+                case LT -> v -> Double.compare(v, bound) < 0;
+                case LTE -> v -> Double.compare(v, bound) <= 0;
+                case GT -> v -> Double.compare(v, bound) > 0;
+                case GTE -> v -> Double.compare(v, bound) >= 0;
             };
         }
     }
