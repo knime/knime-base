@@ -48,14 +48,15 @@
  */
 package org.knime.base.node.io.filehandling.webui;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.StringReader;
 
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfigSerializer.DataTypeSerializer;
 import org.knime.core.data.DataType;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
+import org.knime.core.node.config.base.JSONConfig;
+import org.knime.core.node.config.base.JSONConfig.WriterConfig;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
@@ -71,12 +72,7 @@ public class DataTypeSerializationUtil {
     public static String typeToString(final DataType type) {
         final var settings = new NodeSettings("type");
         DataTypeSerializer.SERIALIZER_INSTANCE.save(type, settings);
-        try (var bos = new ByteArrayOutputStream()) {
-            settings.saveToXML(bos);
-            return new String(bos.toByteArray());
-        } catch (IOException e) {
-            return null; // TODO
-        }
+        return JSONConfig.toJSONString(settings, WriterConfig.DEFAULT);
     }
 
     /**
@@ -87,8 +83,9 @@ public class DataTypeSerializationUtil {
      * @return the de-serialized {@link DataType}
      */
     public static DataType stringToType(final String string) {
-        try (ByteArrayInputStream bis = new ByteArrayInputStream(string.getBytes())) {
-            final var settings = NodeSettings.loadFromXML(bis);
+        try {
+            final var settings = new NodeSettings("type");
+            JSONConfig.readJSON(settings, new StringReader(string));
             return DataTypeSerializer.SERIALIZER_INSTANCE.load(settings);
         } catch (IOException | InvalidSettingsException e) {
             return DataType.getMissingCell().getType(); // TODO
