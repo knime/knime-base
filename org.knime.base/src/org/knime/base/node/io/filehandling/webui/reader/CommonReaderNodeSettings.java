@@ -48,14 +48,28 @@
  */
 package org.knime.base.node.io.filehandling.webui.reader;
 
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.DataArea.FirstColumnContainsRowIds;
 import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout.DataArea.UseExistingRowId;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 
 /**
  *
@@ -63,27 +77,194 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
  */
 public final class CommonReaderNodeSettings {
 
-    static class Settings implements WidgetGroup, PersistableSettings {
+    public static class Settings implements WidgetGroup, PersistableSettings {
 
+        @Persist(configKey = "file_selection", hidden = true)
+        FileSelectionInternal m_fileSelectionInternal = new FileSelectionInternal();
+
+        static class FileSelectionInternal implements WidgetGroup, PersistableSettings {
+            @Persist(configKey = "SettingsModelID")
+            String m_settingsModelID = "SMID_ReaderFileChooser";
+
+            @Persist(configKey = "EnabledStatus")
+            boolean m_enabledStatus = true;
+        }
+
+        static class FirstColumnContainsRowIdsRef extends ReferenceStateProvider<Boolean> {
+        }
+
+        @Widget(title = "Use existing RowID", description = UseExistingRowId.DESCRIPTION)
+        @ValueReference(FirstColumnContainsRowIdsRef.class)
+        @Layout(UseExistingRowId.class)
+        @Persist(configKey = "has_row_id")
+        boolean m_firstColumnContainsRowIds;
     }
-    @Persist(configKey = "file_selection", hidden = true)
-    FileSelectionInternal m_fileSelectionInternal = new FileSelectionInternal();
 
-    static class FileSelectionInternal implements WidgetGroup, PersistableSettings {
-        @Persist(configKey = "SettingsModelID")
-        String m_settingsModelID = "SMID_ReaderFileChooser";
+    public static class AdvancedSettings implements WidgetGroup, PersistableSettings {
+        public enum HowToCombineColumnsOption {
+                @Label(value = "Fail if different",
+                    description = CommonReaderLayout.MultipleFileHandling.HowToCombineColumns.DESCRIPTION_FAIL)
+                FAIL(ColumnFilterMode.UNION),
 
-        @Persist(configKey = "EnabledStatus")
-        boolean m_enabledStatus = true;
+                @Label(value = "Union",
+                    description = CommonReaderLayout.MultipleFileHandling.HowToCombineColumns.DESCRIPTION_UNION)
+                UNION(ColumnFilterMode.UNION),
+
+                @Label(value = "Intersection",
+                    description = CommonReaderLayout.MultipleFileHandling.HowToCombineColumns.DESCRIPTION_INTERSECTION)
+                INTERSECTION(ColumnFilterMode.INTERSECTION);
+
+            private final ColumnFilterMode m_columnFilterMode;
+
+            HowToCombineColumnsOption(final ColumnFilterMode columnFilterMode) {
+                m_columnFilterMode = columnFilterMode;
+            }
+
+            /**
+             * @return the corresponding ColumnFilterMode
+             */
+            public ColumnFilterMode toColumnFilterMode() {
+                return m_columnFilterMode;
+            }
+        }
+
+        static final class HowToCombineColumnsOptionPersistor
+            implements FieldNodeSettingsPersistor<HowToCombineColumnsOption> {
+
+            private static final String CFG_FAIL_ON_DIFFERING_SPECS = "fail_on_differing_specs";
+
+            private static final String CFG_SPEC_MERGE_MODE = "spec_merge_mode";
+
+            @Override
+            public HowToCombineColumnsOption load(final NodeSettingsRO settings) throws InvalidSettingsException {
+                if (settings.getBoolean(CFG_FAIL_ON_DIFFERING_SPECS, true)) {
+                    return HowToCombineColumnsOption.FAIL;
+                }
+                if (settings.getString(CFG_SPEC_MERGE_MODE, "UNION").equals("UNION")) {
+                    return HowToCombineColumnsOption.UNION;
+                }
+                return HowToCombineColumnsOption.INTERSECTION;
+            }
+
+            @Override
+            public void save(final HowToCombineColumnsOption howToCombineColumnsOption, final NodeSettingsWO settings) {
+                settings.addBoolean(CFG_FAIL_ON_DIFFERING_SPECS,
+                    howToCombineColumnsOption == HowToCombineColumnsOption.FAIL);
+                settings.addString(CFG_SPEC_MERGE_MODE, howToCombineColumnsOption.toColumnFilterMode().name());
+            }
+
+            @Override
+            public String[] getConfigKeys() {
+                return new String[]{CFG_FAIL_ON_DIFFERING_SPECS, CFG_SPEC_MERGE_MODE};
+            }
+        }
+
+        public static class HowToCombineColumnsOptionRef implements Reference<HowToCombineColumnsOption> {
+        }
+
+        @Widget(title = "How to combine columns",
+            description = CommonReaderLayout.MultipleFileHandling.HowToCombineColumns.DESCRIPTION)
+        @ValueSwitchWidget
+        @ValueReference(HowToCombineColumnsOptionRef.class)
+        @Layout(CommonReaderLayout.MultipleFileHandling.HowToCombineColumns.class)
+        @Persist(customPersistor = HowToCombineColumnsOptionPersistor.class)
+        HowToCombineColumnsOption m_howToCombineColumns = HowToCombineColumnsOption.FAIL;
+        // TODO this setting should be shown when reading multiple files; currently blocked by UIEXT-1805
+
+        public static class AppendPathColumnRef extends ReferenceStateProvider<Boolean> {
+        }
+
+        static final class AppendPathColumn implements PredicateProvider {
+
+            @Override
+            public Predicate init(final PredicateInitializer i) {
+                return i.getBoolean(AppendPathColumnRef.class).isTrue();
+            }
+
+        }
+
+        @Widget(title = "Append file path column",
+            description = CommonReaderLayout.MultipleFileHandling.AppendFilePathColumn.DESCRIPTION)
+        @ValueReference(AppendPathColumnRef.class)
+        @Layout(CommonReaderLayout.MultipleFileHandling.AppendFilePathColumn.class)
+        @Persist(configKey = "append_path_column", hidden = true)
+        boolean m_appendPathColumn;
+
+        public static class FilePathColumnNameRef extends ReferenceStateProvider<String> {
+        }
+
+        @Widget(title = "File path column name",
+            description = CommonReaderLayout.MultipleFileHandling.FilePathColumnName.DESCRIPTION)
+        @ValueReference(FilePathColumnNameRef.class)
+        @Layout(CommonReaderLayout.MultipleFileHandling.FilePathColumnName.class)
+        @Effect(predicate = AppendPathColumn.class, type = EffectType.SHOW)
+        @Persist(configKey = "path_column_name", hidden = true)
+        String m_filePathColumnName = "File Path";
+
+        enum IfSchemaChangesOption {
+                @Label(value = "Fail",
+                    description = CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.DESCRIPTION_FAIL) //
+                FAIL, //
+                @Label(value = "Use new schema",
+                    description = CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.DESCRIPTION_USE_NEW_SCHEMA) //
+                USE_NEW_SCHEMA, //
+                @Label(value = "Ignore (deprecated)",
+                    description = CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.DESCRIPTION_IGNORE,
+                    disabled = true)
+                IGNORE; //
+        }
+
+        static final class IfSchemaChangesPersistor implements FieldNodeSettingsPersistor<IfSchemaChangesOption> {
+
+            // ??? in the csv reader, this is not hidden / internal
+            private static final String CFG_SAVE_TABLE_SPEC_CONFIG =
+                "save_table_spec_config" + SettingsModel.CFGKEY_INTERNAL;
+
+            private static final String CFG_CHECK_TABLE_SPEC = "check_table_spec";
+
+            @Override
+            public IfSchemaChangesOption load(final NodeSettingsRO settings) throws InvalidSettingsException {
+                final var saveTableSpecConfig = settings.getBoolean(CFG_SAVE_TABLE_SPEC_CONFIG, true);
+                if (saveTableSpecConfig) {
+                    if (settings.getBoolean(CFG_CHECK_TABLE_SPEC, false)) {
+                        return IfSchemaChangesOption.FAIL;
+                    } else {
+                        return IfSchemaChangesOption.IGNORE;
+                    }
+                }
+                return IfSchemaChangesOption.USE_NEW_SCHEMA;
+            }
+
+            @Override
+            public void save(final IfSchemaChangesOption ifSchemaChangesOption, final NodeSettingsWO settings) {
+                settings.addBoolean(CFG_SAVE_TABLE_SPEC_CONFIG,
+                    ifSchemaChangesOption != IfSchemaChangesOption.USE_NEW_SCHEMA);
+                settings.addBoolean(CFG_CHECK_TABLE_SPEC, ifSchemaChangesOption == IfSchemaChangesOption.FAIL);
+            }
+
+            @Override
+            public String[] getConfigKeys() {
+                return new String[]{CFG_SAVE_TABLE_SPEC_CONFIG, CFG_CHECK_TABLE_SPEC};
+            }
+        }
+
+        static final class IfSchemaChangesOptionRef implements Reference<IfSchemaChangesOption> {
+        }
+
+        static final class UseNewSchema implements PredicateProvider {
+            @Override
+            public Predicate init(final PredicateInitializer i) {
+                return i.getEnum(IfSchemaChangesOptionRef.class).isOneOf(IfSchemaChangesOption.USE_NEW_SCHEMA);
+            }
+        }
+
+        @Widget(title = "If schema changes",
+            description = CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.DESCRIPTION)
+        @RadioButtonsWidget
+        @Layout(CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.class)
+        @Persist(customPersistor = IfSchemaChangesPersistor.class)
+        @ValueReference(IfSchemaChangesOptionRef.class)
+        IfSchemaChangesOption m_ifSchemaChangesOption = IfSchemaChangesOption.FAIL;
     }
-
-    static class FirstColumnContainsRowIdsRef extends ReferenceStateProvider<Boolean> {
-    }
-
-    @Widget(title = "First column contains RowIDs", description = FirstColumnContainsRowIds.DESCRIPTION)
-    @ValueReference(FirstColumnContainsRowIdsRef.class)
-    @Layout(FirstColumnContainsRowIds.class)
-    @Persist(configKey = "has_row_id")
-    boolean m_firstColumnContainsRowIds;
 
 }

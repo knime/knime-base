@@ -52,18 +52,14 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.function.Supplier;
 
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.Transformation;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.Transformation.EnforceTypes;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.AdvancedSettings.AppendPathColumnRef;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.AdvancedSettings.FilePathColumnNameRef;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOptionRef;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.FSLocationsProvider;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.SourceIdProvider;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.TableSpecSettingsProvider;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.TypeChoicesProvider;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfigSerializer.DataTypeSerializer;
 import org.knime.base.node.preproc.manipulator.mapping.DataTypeTypeHierarchy;
 import org.knime.base.node.preproc.manipulator.mapping.DataValueReadAdapterFactory;
@@ -214,10 +210,10 @@ final class KnimeTableReaderTransformationSettings implements WidgetGroup, Persi
         @ValueReference(TableSpecSettingsRef.class)
         TableSpecSettings[] m_specs = new TableSpecSettings[0];
 
-        @ValueProvider(AppendPathColumnRef.class)
+        @ValueProvider(CommonReaderNodeSettings.AdvancedSettings.AppendPathColumnRef.class)
         boolean m_appendPathColumn;
 
-        @ValueProvider(FilePathColumnNameRef.class)
+        @ValueProvider(CommonReaderNodeSettings.AdvancedSettings.FilePathColumnNameRef.class)
         String m_filePathColumnName = "File Path";
 
         @ValueProvider(TakeColumnsFromProvider.class)
@@ -228,13 +224,13 @@ final class KnimeTableReaderTransformationSettings implements WidgetGroup, Persi
 
     static class TakeColumnsFromProvider implements StateProvider<ColumnFilterMode> {
 
-        private Supplier<HowToCombineColumnsOption> m_howToCombineColumnsOptionSupplier;
+        private Supplier<CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption> m_howToCombineColumnsOptionSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
             initializer.computeBeforeOpenDialog();
-            m_howToCombineColumnsOptionSupplier =
-                initializer.computeFromValueSupplier(HowToCombineColumnsOptionRef.class);
+            m_howToCombineColumnsOptionSupplier = initializer
+                .computeFromValueSupplier(CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOptionRef.class);
         }
 
         @Override
@@ -243,7 +239,8 @@ final class KnimeTableReaderTransformationSettings implements WidgetGroup, Persi
         }
     }
 
-    @Widget(title = "Enforce types", description = EnforceTypes.DESCRIPTION, hideFlowVariableButton = true)
+    @Widget(title = "Enforce types", description = CommonReaderLayout.Transformation.EnforceTypes.DESCRIPTION,
+        hideFlowVariableButton = true)
     boolean m_enforceTypes = true;
 
     static class TransformationElementSettings implements WidgetGroup, PersistableSettings {
@@ -389,7 +386,7 @@ final class KnimeTableReaderTransformationSettings implements WidgetGroup, Persi
     static final class TransformationElementSettingsReference implements Reference<TransformationElementSettings[]> {
     }
 
-    @Widget(title = "Transformations", description = Transformation.DESCRIPTION)
+    @Widget(title = "Transformations", description = CommonReaderLayout.Transformation.DESCRIPTION)
     // TODO NOSONAR UIEXT-1901 this description is currently not shown
     @ArrayWidget(elementTitle = "Column", showSortButtons = true, hasFixedSize = true)
     @InternalArrayWidget(withEditAndReset = true, withElementCheckboxes = true,

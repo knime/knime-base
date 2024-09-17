@@ -48,6 +48,7 @@
  */
 package org.knime.base.node.io.filehandling.webui.reader;
 
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettings.UseNewSchema;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
@@ -58,11 +59,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.Effe
  * @author marcbux
  */
 @SuppressWarnings({"restriction", "javadoc"})
-public final class Layout {
+public interface CommonReaderLayout {
 
     @Section(title = "File")
-    public final class File {
-        public final class Source {
+    interface File {
+        interface Source {
             // TODO will be updated in UIEXT-1764
             String DESCRIPTION = """
                     Select a file location which stores the data you want to read. When clicking on the browse button,
@@ -79,8 +80,8 @@ public final class Layout {
 
     @Section(title = "Data Area")
     @After(File.class)
-    public final class DataArea {
-        public final class SkipFirstDataRows {
+    interface DataArea {
+        interface SkipFirstDataRows {
             String DESCRIPTION =
                 """
                         Use this option to skip the specified number of valid data rows. This has no effect on which row will be
@@ -89,7 +90,7 @@ public final class Layout {
         }
 
         @After(SkipFirstDataRows.class)
-        public final class LimitNumberOfRows {
+        interface LimitNumberOfRows {
             String DESCRIPTION =
                 """
                         If enabled, only the specified number of data rows are read. The column header row (if selected) is not
@@ -98,15 +99,25 @@ public final class Layout {
         }
 
         @After(LimitNumberOfRows.class)
-        public final class MaximumNumberOfRows {
+        interface MaximumNumberOfRows {
             String DESCRIPTION = "Defines the maximum number of rows that are read.";
+        }
+
+        @After(MaximumNumberOfRows.class)
+        interface UseExistingRowId {
+            String DESCRIPTION = """
+                    Check this box if the RowIDs from the input tables should be used for
+                    the
+                    output tables. If unchecked, a new RowID is generated.
+                    The generated RowID follows the schema "Row0", "Row1" and so on.
+                                """;
         }
     }
 
     @Section(title = "Column and Data Type Detection", advanced = true)
     @After(DataArea.class)
-    public final class ColumnAndDataTypeDetection {
-        public final class IfSchemaChanges {
+    interface ColumnAndDataTypeDetection {
+        interface IfSchemaChanges {
             String DESCRIPTION = """
                     Specifies the node behavior if the content of the configured file/folder changes between executions,
                     i.e., columns are added/removed to/from the file(s) or their types change. The following options are
@@ -137,8 +148,8 @@ public final class Layout {
 
     @Section(title = "Multiple File Handling", advanced = true)
     @After(ColumnAndDataTypeDetection.class)
-    public final class MultipleFileHandling {
-        public final class HowToCombineColumns {
+    interface MultipleFileHandling {
+        interface HowToCombineColumns {
             String DESCRIPTION =
                 "Specifies how to deal with reading multiple files in which not all column names are identical.";
 
@@ -154,19 +165,9 @@ public final class Layout {
                 "Only columns that appear in all files are considered for the output table.";
         }
 
-        @After(HowToCombineColumns.class)
-        public final class PrependFileIndexToRowId {
-            String DESCRIPTION =
-                """
-                        Select this box if you want to prepend a prefix that depends on the index of the source file to the
-                        RowIDs. The prefix for the first file is "File_0_", for the second "File_1_" and so on. This option is
-                        useful if the RowIDs within a single file are unique but the same RowIDs appear in multiple files.
-                        Prepending the file index prevents parallel reading of individual files.
-                        """;
-        }
 
-        @After(PrependFileIndexToRowId.class)
-        public final class AppendFilePathColumn {
+        @After(HowToCombineColumns.class)
+        interface AppendFilePathColumn {
             String DESCRIPTION =
                 """
                         Select this box if you want to add a column containing the path of the file from which the row is read.
@@ -176,7 +177,7 @@ public final class Layout {
         }
 
         @After(AppendFilePathColumn.class)
-        public final class FilePathColumnName {
+        interface FilePathColumnName {
             String DESCRIPTION = "The name of the column containing the file path.";
         }
     }
@@ -184,7 +185,7 @@ public final class Layout {
     @Section(title = "Table Transformation", description = Transformation.DESCRIPTION, advanced = true)
     @Effect(predicate = UseNewSchema.class, type = EffectType.HIDE)
     @After(MultipleFileHandling.class)
-    public final class Transformation {
+    interface Transformation {
         String DESCRIPTION =
             """
                     Use this option to modify the structure of the table. You can deselect each column to filter it out of the
@@ -196,7 +197,7 @@ public final class Layout {
                     of type Double.
                     """;
 
-        public final class EnforceTypes {
+        interface EnforceTypes {
             String DESCRIPTION = """
                     Controls how columns whose type changes are dealt with.
                     If selected, the mapping to the KNIME type you configured is attempted.

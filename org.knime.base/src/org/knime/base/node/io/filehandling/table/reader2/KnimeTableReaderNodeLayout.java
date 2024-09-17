@@ -48,8 +48,9 @@
  */
 package org.knime.base.node.io.filehandling.table.reader2;
 
-import org.knime.base.node.io.filehandling.webui.reader.Layout.DataArea.MaximumNumberOfRows;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
@@ -60,13 +61,15 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 @SuppressWarnings({"restriction", "java:S1214", "java:S103"})
 public class KnimeTableReaderNodeLayout {
 
-    @After(MaximumNumberOfRows.class)
-    interface FirstColumnContainsRowIds {
-        // TODO description taken from CSV reader, but the Table reader actually has a different description (and naming)
-        String DESCRIPTION = "Select this box if the first column contains RowIDs (no duplicates allowed).";
+    @After(CommonReaderLayout.MultipleFileHandling.HowToCombineColumns.class)
+    @Before(CommonReaderLayout.MultipleFileHandling.AppendFilePathColumn.class)
+    interface PrependTableIndexToRowId {
+        String DESCRIPTION = """
+                Only enabled if the existing RowIDs are used. If checked, a prefix is
+                prepended to the RowIDs that indicates which table the row came
+                from.
+                The format of the prefix is “File_0_“, “File_1_” and so on.
+                    """;
     }
-
-
-
 
 }

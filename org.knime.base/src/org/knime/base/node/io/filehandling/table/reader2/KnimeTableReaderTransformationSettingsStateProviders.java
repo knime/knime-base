@@ -64,8 +64,6 @@ import java.util.stream.Stream;
 
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings;
 import org.knime.base.node.io.filehandling.table.reader.KnimeTableReader;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOptionRef;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.Settings.FileChooserRef;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.ColumnSpecSettings;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TableSpecSettings;
@@ -74,6 +72,7 @@ import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransfo
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TransformationElementSettingsReference;
 import org.knime.base.node.io.filehandling.webui.FileChooserPathAccessor;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
 import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProductionPath;
@@ -126,19 +125,19 @@ final class KnimeTableReaderTransformationSettingsStateProviders {
 
     static final class DependenciesProvider implements StateProvider<Dependencies> {
 
-//        private Supplier<ConfigIdSettings> m_configIdSupplier;
+        //        private Supplier<ConfigIdSettings> m_configIdSupplier;
 
         private Supplier<FileChooser> m_fileChooserSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
-//            m_configIdSupplier = initializer.getValueSupplier(ConfigIdReference.class);
+            //            m_configIdSupplier = initializer.getValueSupplier(ConfigIdReference.class);
             m_fileChooserSupplier = initializer.getValueSupplier(FileChooserRef.class);
         }
 
         @Override
         public Dependencies computeState(final DefaultNodeSettingsContext context) {
-//            return new Dependencies(m_configIdSupplier.get(), m_fileChooserSupplier.get());
+            //            return new Dependencies(m_configIdSupplier.get(), m_fileChooserSupplier.get());
             return new Dependencies(m_fileChooserSupplier.get());
         }
     }
@@ -225,8 +224,8 @@ final class KnimeTableReaderTransformationSettingsStateProviders {
             // ??? different config here
             final var tmConfig = new TableManipulatorConfig();
             final var config = new DefaultTableReadConfig<>(tmConfig);
-//            final var dependencies = m_dependenciesSupplier.get();
-//            dependencies.m_configId.applyToConfig(config);
+            //            final var dependencies = m_dependenciesSupplier.get();
+            //            dependencies.m_configId.applyToConfig(config);
             for (var path : paths) {
                 try {
                     specs.put(path.toFSLocation().getPath(),
@@ -248,7 +247,7 @@ final class KnimeTableReaderTransformationSettingsStateProviders {
         public void init(final StateProviderInitializer initializer) {
             initializer.computeAfterOpenDialog();
             m_specSupplier = initializer.computeFromProvidedState(TypedReaderTableSpecsProvider.class);
-//            initializer.computeOnValueChange(ConfigIdReference.class);
+            //            initializer.computeOnValueChange(ConfigIdReference.class);
             initializer.computeOnValueChange(FileChooserRef.class);
         }
     }
@@ -268,15 +267,15 @@ final class KnimeTableReaderTransformationSettingsStateProviders {
     static final class TransformationElementSettingsProvider
         extends DependsOnTypedReaderTableSpecProvider<TransformationElementSettings[]> {
 
-        private Supplier<HowToCombineColumnsOption> m_howToCombineColumnsOptionSupplier;
+        private Supplier<CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption> m_howToCombineColumnsOptionSupplier;
 
         private Supplier<TransformationElementSettings[]> m_existingSettings;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
             super.init(initializer);
-            m_howToCombineColumnsOptionSupplier =
-                initializer.computeFromValueSupplier(HowToCombineColumnsOptionRef.class);
+            m_howToCombineColumnsOptionSupplier = initializer
+                .computeFromValueSupplier(CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOptionRef.class);
             m_existingSettings = initializer.getValueSupplier(TransformationElementSettingsReference.class);
         }
 
@@ -288,7 +287,7 @@ final class KnimeTableReaderTransformationSettingsStateProviders {
 
         static TransformationElementSettings[] toTransformationElements(
             final Map<String, TypedReaderTableSpec<DataType>> specs,
-            final HowToCombineColumnsOption howToCombineColumnsOption,
+            final CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption howToCombineColumnsOption,
             final TransformationElementSettings[] existingSettings) {
 
             /**
