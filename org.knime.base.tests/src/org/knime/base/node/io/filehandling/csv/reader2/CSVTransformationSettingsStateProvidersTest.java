@@ -49,566 +49,317 @@
 package org.knime.base.node.io.filehandling.csv.reader2;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.PRODUCTION_PATH_PROVIDER;
+import static org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviderTestUtils.getConfigIdSettings;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.util.Map;
-import java.util.function.Supplier;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOptionRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.DecimalSeparatorRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.LimitMemoryPerColumnRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.LimitScannedRowsRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.MaxDataRowsScannedRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.MaximumNumberOfColumnsRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.QuotedStringsOption;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.QuotedStringsOptionRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.ReplaceEmptyQuotedStringsByMissingValuesRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.ThousandsSeparatorRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.CustomEncodingRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FileChooserRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.LimitRows.SkipFirstDataRowsRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.LimitRows.SkipFirstLinesRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.ColumnDelimiterRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.CommentStartRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.CustomRowDelimiterRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FirstRowContainsColumnNamesRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.QuoteCharacterRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.QuoteEscapeCharacterRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOptionRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.ConfigIdSettings;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.PersistorSettings.ConfigIdReference;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElementSettings;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElementSettings.ColumnNameRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElementSettingsReference;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.DependenciesProvider;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.FSLocationsProvider;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.SourceIdProvider;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TableSpecSettingsProvider;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TransformationElementSettingsProvider;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.DependenciesProvider.ConfigIdRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TypeChoicesProvider;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TypedReaderTableSpecsProvider;
-import org.knime.base.node.io.filehandling.webui.LocalWorkflowContextTest;
-import org.knime.base.node.io.filehandling.webui.NoopStateProviderInitializer;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettings;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.Settings;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.Settings.FirstColumnContainsRowIdsRef;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviderTestUtils.CommonReaderTransformationSettingsUpdatesTestClassBased;
 import org.knime.core.data.DataType;
-import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.LongCell;
-import org.knime.core.data.xml.XMLCell;
+import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.StateProviderInitializer;
-import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
+import org.knime.testing.node.dialog.updates.DialogUpdateSimulator;
+import org.knime.testing.node.dialog.updates.UpdateSimulator;
+import org.knime.testing.node.dialog.updates.UpdateSimulator.UpdateSimulatorResult;
 
 /**
+ *
+ * @author Paul Bärnreuther
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-@SuppressWarnings({"unchecked", "restriction", "static-method"})
-final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowContextTest {
+final class CSVTransformationSettingsStateProvidersTest {
 
-    @TempDir
-    Path m_tempFolder;
-
-    private static CSVTableReaderNodeSettings initSettings() {
-        final var settings = new CSVTableReaderNodeSettings();
-        settings.m_settings.m_source.m_path = new FSLocation(FSCategory.LOCAL, "foo");
-
-        settings.m_settings.m_firstRowContainsColumnNames = false;
-        settings.m_settings.m_firstColumnContainsRowIds = true;
-        settings.m_settings.m_commentLineCharacter = "?";
-        settings.m_settings.m_columnDelimiter = "\\t";
-        settings.m_settings.m_quoteCharacter = "'";
-        settings.m_settings.m_quoteEscapeCharacter = "'";
-        settings.m_settings.m_rowDelimiterOption = RowDelimiterOption.CUSTOM;
-        settings.m_settings.m_customRowDelimiter = "\\r\\n";
-        settings.m_advancedSettings.m_quotedStringsOption = QuotedStringsOption.KEEP_QUOTES;
-        settings.m_advancedSettings.m_replaceEmptyQuotedStringsByMissingValues = false;
-        settings.m_advancedSettings.m_limitScannedRows = false;
-        settings.m_advancedSettings.m_maxDataRowsScanned = 100;
-        settings.m_advancedSettings.m_thousandsSeparator = ".";
-        settings.m_advancedSettings.m_decimalSeparator = ",";
-        settings.m_encoding.m_charset.m_fileEncoding = FileEncodingOption.OTHER;
-        settings.m_encoding.m_charset.m_customEncoding = "foo";
-        settings.m_limitRows.m_skipFirstLines = 1;
-        settings.m_limitRows.m_skipFirstDataRows = 1;
-
-        settings.m_advancedSettings.m_limitMemoryPerColumn = false;
-        settings.m_advancedSettings.m_maximumNumberOfColumns = 1;
-
-        return settings;
+    record ConfigIdFieldSpec<T>(String fieldName, BiConsumer<ConfigIdSettings, T> setter,
+        Function<CSVTableReaderNodeSettings, T> dependency, Class<? extends Reference<T>> referenceClass) {
     }
 
-    private static CSVTableReaderNodeSettings createDefaultSettingsAndWriteCSV(final String file, final String... lines)
-        throws IOException {
-        try (final var writer = new BufferedWriter(new FileWriter(file))) {
-            for (String line : lines) {
-                writer.write(line);
-                writer.newLine();
-            }
+    @SuppressWarnings("rawtypes")
+    private static final List<ConfigIdFieldSpec> depedencies = List.of(
+        new ConfigIdFieldSpec<>("firstRowContainsColumnNames", //
+            (c, v) -> c.m_firstRowContainsColumnNames = v, //
+            s -> s.m_settings.m_firstRowContainsColumnNames, //
+            FirstRowContainsColumnNamesRef.class), //
+        new ConfigIdFieldSpec<>("firstColumnContainsRowIds", //
+            (c, v) -> c.m_firstColumnContainsRowIds = v, //
+            s -> s.m_settings.m_firstColumnContainsRowIds, //
+            FirstColumnContainsRowIdsRef.class), //
+        new ConfigIdFieldSpec<>("commentLineCharacter", //
+            (c, v) -> c.m_commentLineCharacter = v, //
+            s -> s.m_settings.m_commentLineCharacter, //
+            CommentStartRef.class), //
+        new ConfigIdFieldSpec<>("columnDelimiter", //
+            (c, v) -> c.m_columnDelimiter = v, //
+            s -> s.m_settings.m_columnDelimiter, //
+            ColumnDelimiterRef.class), //
+        new ConfigIdFieldSpec<>("quoteCharacter", //
+            (c, v) -> c.m_quoteCharacter = v, //
+            s -> s.m_settings.m_quoteCharacter, //
+            QuoteCharacterRef.class), //
+        new ConfigIdFieldSpec<>("quoteEscapeCharacter", //
+            (c, v) -> c.m_quoteEscapeCharacter = v, //
+            s -> s.m_settings.m_quoteEscapeCharacter, //
+            QuoteEscapeCharacterRef.class), //
+        new ConfigIdFieldSpec<>("rowDelimiterOption", //
+            (c, v) -> c.m_rowDelimiterOption = v, //
+            s -> s.m_settings.m_rowDelimiterOption, //
+            RowDelimiterOptionRef.class), //
+        new ConfigIdFieldSpec<>("customRowDelimiter", //
+            (c, v) -> c.m_customRowDelimiter = v, //
+            s -> s.m_settings.m_customRowDelimiter, //
+            CustomRowDelimiterRef.class), //
+        new ConfigIdFieldSpec<>("quotedStringsOption", //
+            (c, v) -> c.m_quotedStringsOption = v, //
+            s -> s.m_advancedSettings.m_quotedStringsOption, //
+            QuotedStringsOptionRef.class), //
+        new ConfigIdFieldSpec<>("replaceEmptyQuotedStringsByMissingValues", //
+            (c, v) -> c.m_replaceEmptyQuotedStringsByMissingValues = v, //
+            s -> s.m_advancedSettings.m_replaceEmptyQuotedStringsByMissingValues, //
+            ReplaceEmptyQuotedStringsByMissingValuesRef.class), //
+        new ConfigIdFieldSpec<>("limitScannedRows", //
+            (c, v) -> c.m_limitScannedRows = v, //
+            s -> s.m_advancedSettings.m_limitScannedRows, //
+            LimitScannedRowsRef.class), //
+        new ConfigIdFieldSpec<>("maxDataRowsScanned", //
+            (c, v) -> c.m_maxDataRowsScanned = v, //
+            s -> s.m_advancedSettings.m_maxDataRowsScanned, //
+            MaxDataRowsScannedRef.class), //
+        new ConfigIdFieldSpec<>("thousandsSeparator", //
+            (c, v) -> c.m_thousandsSeparator = v, //
+            s -> s.m_advancedSettings.m_thousandsSeparator, //
+            ThousandsSeparatorRef.class), //
+        new ConfigIdFieldSpec<>("decimalSeparator", //
+            (c, v) -> c.m_decimalSeparator = v, //
+            s -> s.m_advancedSettings.m_decimalSeparator, //
+            DecimalSeparatorRef.class), //
+        new ConfigIdFieldSpec<>("fileEncoding", //
+            (c, v) -> c.m_fileEncoding = v, //
+            s -> s.m_encoding.m_charset.m_fileEncoding, //
+            FileEncodingRef.class), //
+        new ConfigIdFieldSpec<>("customEncoding", //
+            (c, v) -> c.m_customEncoding = v, //
+            s -> s.m_encoding.m_charset.m_customEncoding, //
+            CustomEncodingRef.class), //
+        new ConfigIdFieldSpec<>("skipFirstLines", //
+            (c, v) -> c.m_skipFirstLines = v, //
+            s -> s.m_limitRows.m_skipFirstLines, //
+            SkipFirstLinesRef.class), //
+        new ConfigIdFieldSpec<>("skipFirstDataRows", //
+            (c, v) -> c.m_skipFirstDataRows = v, //
+            s -> s.m_limitRows.m_skipFirstDataRows, //
+            SkipFirstDataRowsRef.class) //
+    );
+
+    @Nested
+    static final class DependenciesUpdateConfigIdSettingsTest {
+
+        static final CSVTableReaderNodeSettings m_settings = initSettings();
+
+        private static CSVTableReaderNodeSettings initSettings() {
+            final var settings = new CSVTableReaderNodeSettings();
+
+            settings.m_settings.m_firstRowContainsColumnNames = false;
+            settings.m_settings.m_firstColumnContainsRowIds = true;
+            settings.m_settings.m_commentLineCharacter = "?";
+            settings.m_settings.m_columnDelimiter = "\\t";
+            settings.m_settings.m_quoteCharacter = "'";
+            settings.m_settings.m_quoteEscapeCharacter = "'";
+            settings.m_settings.m_rowDelimiterOption = RowDelimiterOption.CUSTOM;
+            settings.m_settings.m_customRowDelimiter = "\\r\\n";
+            settings.m_advancedSettings.m_quotedStringsOption = QuotedStringsOption.KEEP_QUOTES;
+            settings.m_advancedSettings.m_replaceEmptyQuotedStringsByMissingValues = false;
+            settings.m_advancedSettings.m_limitScannedRows = false;
+            settings.m_advancedSettings.m_maxDataRowsScanned = 100;
+            settings.m_advancedSettings.m_thousandsSeparator = ".";
+            settings.m_advancedSettings.m_decimalSeparator = ",";
+            settings.m_encoding.m_charset.m_fileEncoding = FileEncodingOption.OTHER;
+            settings.m_encoding.m_charset.m_customEncoding = "foo";
+            settings.m_limitRows.m_skipFirstLines = 1;
+            settings.m_limitRows.m_skipFirstDataRows = 1;
+
+            settings.m_advancedSettings.m_limitMemoryPerColumn = false;
+            settings.m_advancedSettings.m_maximumNumberOfColumns = 1;
+
+            return settings;
         }
 
-        final var settings = new CSVTableReaderNodeSettings();
-        settings.m_settings.m_source.m_path = new FSLocation(FSCategory.LOCAL, file);
-        return settings;
+        static final UpdateSimulator simulator = new DialogUpdateSimulator(m_settings, null);
+
+        static final UpdateSimulatorResult beforeOpenDialogResults = simulator.simulateBeforeOpenDialog();
+
+        @ParameterizedTest
+        @MethodSource
+        @SuppressWarnings("static-method")
+        void testConfigId(final String fieldName, final Function<CSVTableReaderNodeSettings, Object> dependency,
+            final Class<? extends Reference<?>> referenceClass) {
+            final var onValueChangeResult = simulator.simulateValueChange(referenceClass);
+            List.of(onValueChangeResult, beforeOpenDialogResults).forEach(result -> {
+                assertThat(result.getValueUpdateAt("tableSpecConfig", "persistorSettings", "configId", fieldName))
+                    .isEqualTo(dependency.apply(m_settings));
+            });
+        }
+
+        static Stream<Arguments> testConfigId() {
+            return depedencies.stream().map(d -> Arguments.of(d.fieldName, d.dependency, d.referenceClass));
+        }
     }
 
-    private static DependenciesProvider createDependenciesProvider(final CSVTableReaderNodeSettings settings) {
-        final var dependenciesProvider = new DependenciesProvider();
-        dependenciesProvider.init(getDependenciesProviderInitializer(settings));
-        return dependenciesProvider;
-    }
-
-    @Test
-    void testDependenciesProvider() {
-        final var settings = initSettings();
-        final var dependencies = createDependenciesProvider(settings).computeState(null);
-
-        final var configId = dependencies.m_configId;
-        assertThat(configId.m_firstRowContainsColumnNames).isEqualTo(settings.m_settings.m_firstRowContainsColumnNames);
-        assertThat(configId.m_firstColumnContainsRowIds).isEqualTo(settings.m_settings.m_firstColumnContainsRowIds);
-        assertThat(configId.m_commentLineCharacter).isEqualTo(settings.m_settings.m_commentLineCharacter);
-        assertThat(configId.m_columnDelimiter).isEqualTo(settings.m_settings.m_columnDelimiter);
-        assertThat(configId.m_quoteCharacter).isEqualTo(settings.m_settings.m_quoteCharacter);
-        assertThat(configId.m_quoteEscapeCharacter).isEqualTo(settings.m_settings.m_quoteEscapeCharacter);
-        assertThat(configId.m_rowDelimiterOption).isEqualTo(settings.m_settings.m_rowDelimiterOption);
-        assertThat(configId.m_customRowDelimiter).isEqualTo(settings.m_settings.m_customRowDelimiter);
-        assertThat(configId.m_quotedStringsOption).isEqualTo(settings.m_advancedSettings.m_quotedStringsOption);
-        assertThat(configId.m_replaceEmptyQuotedStringsByMissingValues)
-            .isEqualTo(settings.m_advancedSettings.m_replaceEmptyQuotedStringsByMissingValues);
-        assertThat(configId.m_limitScannedRows).isEqualTo(settings.m_advancedSettings.m_limitScannedRows);
-        assertThat(configId.m_maxDataRowsScanned).isEqualTo(settings.m_advancedSettings.m_maxDataRowsScanned);
-        assertThat(configId.m_thousandsSeparator).isEqualTo(settings.m_advancedSettings.m_thousandsSeparator);
-        assertThat(configId.m_decimalSeparator).isEqualTo(settings.m_advancedSettings.m_decimalSeparator);
-        assertThat(configId.m_fileEncoding).isEqualTo(settings.m_encoding.m_charset.m_fileEncoding);
-        assertThat(configId.m_customEncoding).isEqualTo(settings.m_encoding.m_charset.m_customEncoding);
-        assertThat(configId.m_skipFirstLines).isEqualTo(settings.m_limitRows.m_skipFirstLines);
-        assertThat(configId.m_skipFirstDataRows).isEqualTo(settings.m_limitRows.m_skipFirstDataRows);
-
-        assertThat(dependencies.m_source).isEqualTo(settings.m_settings.m_source);
-        assertThat(dependencies.m_limitMemoryPerColumn).isEqualTo(settings.m_advancedSettings.m_limitMemoryPerColumn);
-        assertThat(dependencies.m_maximumNumberOfColumns)
-            .isEqualTo(settings.m_advancedSettings.m_maximumNumberOfColumns);
-    }
-
-    private static final StateProviderInitializer
-        getDependenciesProviderInitializer(final CSVTableReaderNodeSettings settings) {
-        return new NoopStateProviderInitializer() {
-            @Override
-            public <T> Supplier<T> getValueSupplier(final Class<? extends Reference<T>> ref) {
-                if (ref.equals(ConfigIdReference.class)) {
-                    final var configId = new ConfigIdSettings();
-                    configId.m_firstRowContainsColumnNames = settings.m_settings.m_firstRowContainsColumnNames;
-                    configId.m_firstColumnContainsRowIds = settings.m_settings.m_firstColumnContainsRowIds;
-                    configId.m_commentLineCharacter = settings.m_settings.m_commentLineCharacter;
-                    configId.m_columnDelimiter = settings.m_settings.m_columnDelimiter;
-                    configId.m_quoteCharacter = settings.m_settings.m_quoteCharacter;
-                    configId.m_quoteEscapeCharacter = settings.m_settings.m_quoteEscapeCharacter;
-                    configId.m_rowDelimiterOption = settings.m_settings.m_rowDelimiterOption;
-                    configId.m_customRowDelimiter = settings.m_settings.m_customRowDelimiter;
-                    configId.m_quotedStringsOption = settings.m_advancedSettings.m_quotedStringsOption;
-                    configId.m_replaceEmptyQuotedStringsByMissingValues =
-                        settings.m_advancedSettings.m_replaceEmptyQuotedStringsByMissingValues;
-                    configId.m_limitScannedRows = settings.m_advancedSettings.m_limitScannedRows;
-                    configId.m_maxDataRowsScanned = settings.m_advancedSettings.m_maxDataRowsScanned;
-                    configId.m_thousandsSeparator = settings.m_advancedSettings.m_thousandsSeparator;
-                    configId.m_decimalSeparator = settings.m_advancedSettings.m_decimalSeparator;
-                    configId.m_fileEncoding = settings.m_encoding.m_charset.m_fileEncoding;
-                    configId.m_customEncoding = settings.m_encoding.m_charset.m_customEncoding;
-                    configId.m_skipFirstLines = settings.m_limitRows.m_skipFirstLines;
-                    configId.m_skipFirstDataRows = settings.m_limitRows.m_skipFirstDataRows;
-                    return () -> (T)configId;
-                }
-                if (ref.equals(FileChooserRef.class)) {
-                    return () -> (T)settings.m_settings.m_source;
-                }
-                if (ref.equals(LimitMemoryPerColumnRef.class)) {
-                    return () -> (T)(Object)settings.m_advancedSettings.m_limitMemoryPerColumn;
-                }
-                if (ref.equals(MaximumNumberOfColumnsRef.class)) {
-                    return () -> (T)(Object)settings.m_advancedSettings.m_maximumNumberOfColumns;
-                }
-                throw new IllegalStateException(String.format("Unexpected dependency %s", ref.getSimpleName()));
-            }
-        };
-    }
-
-    @Test
-    void testSourceIdProvider() {
-        final var settings = initSettings();
-        final var sourceIdProvider = new SourceIdProvider();
-        sourceIdProvider.init(getFileChooserRefDependentInitializer(createDependenciesProvider(settings)));
-
-        assertThat(sourceIdProvider.computeState(null))
-            .isEqualTo(settings.m_settings.m_source.getFSLocation().getPath());
-    }
-
-    private static final StateProviderInitializer
-        getFileChooserRefDependentInitializer(final DependenciesProvider dependenciesProvider) {
-        return new NoopStateProviderInitializer() {
-
-            @Override
-            public <T> void computeOnValueChange(final Class<? extends Reference<T>> ref) {
-                if (ref.equals(FileChooserRef.class)) {
-                    // Do nothing
-                } else {
-                    throw new IllegalStateException(String.format("Unexpected dependency %s", ref.getSimpleName()));
-                }
-            }
-
-            @Override
-            public <T> Supplier<T>
-                computeFromProvidedState(final Class<? extends StateProvider<T>> stateProviderClass) {
-                if (stateProviderClass.equals(DependenciesProvider.class)) {
-                    return () -> (T)dependenciesProvider.computeState(null);
-                }
-                throw new IllegalStateException(
-                    String.format("Unexpected dependency %s", stateProviderClass.getSimpleName()));
-            }
-
-            @Override
-            public void computeAfterOpenDialog() {
-                // Do nothing
-            }
-        };
-    }
-
-    @Test
-    void testFSLocationsProvider() throws IOException {
-        final var file = m_tempFolder.resolve("file.csv").toAbsolutePath().toString();
-        final var settings = createDefaultSettingsAndWriteCSV(file, "intCol,stringCol", "\"1,two");
-        final var fsLocationsProvider = new FSLocationsProvider();
-        fsLocationsProvider.init(getFileChooserRefDependentInitializer(createDependenciesProvider(settings)));
-
-        assertThat(fsLocationsProvider.computeState(null))
-            .isEqualTo(new FSLocation[]{new FSLocation(FSCategory.LOCAL, file)});
-    }
-
-    @Test
-    void testTypedReaderTableSpecsProvider() throws IOException {
-        final var file = m_tempFolder.resolve("file.csv").toAbsolutePath().toString();
-
-        final var typedReaderTableSpecsProvider = createTypedReaderTableSpecsProvider(file);
-        final var specs = typedReaderTableSpecsProvider.computeState(null);
-
-        assertTypedReaderTableSpecs(file, specs);
-    }
-
-    static TypedReaderTableSpecsProvider createTypedReaderTableSpecsProvider(final String file) throws IOException {
-        final var settings = createDefaultSettingsAndWriteCSV(file, "intCol,stringCol", "1,two");
-        final var typedReaderTableSpecsProvider = new TypedReaderTableSpecsProvider();
-        typedReaderTableSpecsProvider
-            .init(getTypedReaderTableSpecProviderStateProviderInitializer(createDependenciesProvider(settings)));
-        return typedReaderTableSpecsProvider;
-    }
-
-    private static final StateProviderInitializer
-        getTypedReaderTableSpecProviderStateProviderInitializer(final DependenciesProvider dependenciesProvider) {
-        return new NoopStateProviderInitializer() {
-            @Override
-            public <T> Supplier<T>
-                computeFromProvidedState(final Class<? extends StateProvider<T>> stateProviderClass) {
-                if (stateProviderClass.equals(DependenciesProvider.class)) {
-                    return () -> (T)dependenciesProvider.computeState(null);
-                }
-                throw new IllegalStateException(
-                    String.format("Unexpected dependency %s", stateProviderClass.getSimpleName()));
-            }
-        };
-    }
-
-    private void assertTypedReaderTableSpecs(final String file,
-        final Map<String, TypedReaderTableSpec<Class<?>>> specs) {
-        assertThat(specs).containsKey(file);
-        assertThat(specs).size().isEqualTo(1);
-
-        final var spec = specs.get(file);
-        assertThat(spec.size()).isEqualTo(2);
-
-        final var col1 = spec.getColumnSpec(0);
-        assertThat(col1.getName()).isPresent().hasValue("intCol");
-        assertThat(col1.hasType()).isTrue();
-        assertThat(col1.getType()).isEqualTo(Integer.class);
-
-        final var col2 = spec.getColumnSpec(1);
-        assertThat(col2.getName()).isPresent().hasValue("stringCol");
-        assertThat(col2.hasType()).isTrue();
-        assertThat(col2.getType()).isEqualTo(String.class);
-    }
-
-    @Test
-    void testTypedReaderTableSpecsProviderUnescapeDelimiters() throws IOException {
-        final var file = m_tempFolder.resolve("file.csv").toAbsolutePath().toString();
-        final var settings = createDefaultSettingsAndWriteCSV(file, "intCol\tstringCol\r\n", "1\ttwo\r\n");
-        settings.m_settings.m_columnDelimiter = "\\t";
-        settings.m_settings.m_customRowDelimiter = "\\r\\n";
-
-        final var typedReaderTableSpecsProvider = new TypedReaderTableSpecsProvider();
-        typedReaderTableSpecsProvider
-            .init(getTypedReaderTableSpecProviderStateProviderInitializer(createDependenciesProvider(settings)));
-        final var specs = typedReaderTableSpecsProvider.computeState(null);
-
-        assertTypedReaderTableSpecs(file, specs);
-    }
-
-    @Test
-    void testTableSpecSettingsProvider() throws IOException {
-        final var file = m_tempFolder.resolve("file.csv").toAbsolutePath().toString();
-        final var typedReaderTableSpecsProvider = createTypedReaderTableSpecsProvider(file);
-
-        final var tableSpecSettingsProvider = new TableSpecSettingsProvider();
-        tableSpecSettingsProvider.init(getTableSpecSettingsProviderInitializer(typedReaderTableSpecsProvider));
-        final var specs = tableSpecSettingsProvider.computeState(null);
-
-        assertThat(specs).hasSize(1);
-        assertThat(specs[0].m_spec).hasSize(2);
-        assertThat(specs[0].m_sourceId).isEqualTo(file);
-
-        assertThat(specs[0].m_spec[0].m_name).isEqualTo("intCol");
-        assertThat(specs[0].m_spec[0].m_type).isEqualTo(Integer.class);
-
-        assertThat(specs[0].m_spec[1].m_name).isEqualTo("stringCol");
-        assertThat(specs[0].m_spec[1].m_type).isEqualTo(String.class);
-    }
-
-    static class DependsOnTypedReaderTableSpecProviderInitializer extends NoopStateProviderInitializer {
-
-        private final TypedReaderTableSpecsProvider m_typedReaderTableSpecsProvider;
+    @Nested
+    static final class TransformationSettingsUpdatesTest
+        extends CommonReaderTransformationSettingsUpdatesTestClassBased<CSVTableReaderNodeSettings> {
 
         @Override
-        public <T> void computeOnValueChange(final Class<? extends Reference<T>> ref) {
-            if (ref.equals(ConfigIdReference.class) || ref.equals(FileChooserRef.class)
-                || ref.equals(LimitMemoryPerColumnRef.class) || ref.equals(MaximumNumberOfColumnsRef.class)) {
-                // Do nothing
-            } else {
-                throw new IllegalStateException(String.format("Unexpected dependency %s", ref.getSimpleName()));
-            }
+        protected Settings getSettings(final CSVTableReaderNodeSettings settings) {
+            return settings.m_settings;
         }
 
         @Override
-        public <T> Supplier<T> computeFromProvidedState(final Class<? extends StateProvider<T>> stateProviderClass) {
-            if (stateProviderClass.equals(TypedReaderTableSpecsProvider.class)) {
-                return () -> (T)m_typedReaderTableSpecsProvider.computeState(null);
-            }
-            throw new IllegalStateException(
-                String.format("Unexpected dependency %s", stateProviderClass.getSimpleName()));
+        protected AdvancedSettings getAdvancedSettings(final CSVTableReaderNodeSettings settings) {
+            return settings.m_advancedSettings;
         }
 
         @Override
-        public void computeAfterOpenDialog() {
-            // Do nothing
+        protected CommonReaderTransformationSettings<?, Class<?>>
+            getTransformationSettings(final CSVTableReaderNodeSettings settings) {
+            return settings.m_tableSpecConfig;
         }
 
-        DependsOnTypedReaderTableSpecProviderInitializer(
-            final TypedReaderTableSpecsProvider typedReaderTableSpecsProvider) {
-            m_typedReaderTableSpecsProvider = typedReaderTableSpecsProvider;
+        @Override
+        protected void writeFileWithIntegerAndStringColumn(final String filePath) throws IOException {
+            writeCSV(filePath, "intCol,stringCol", "1,two");
         }
-    }
 
-    private static final StateProviderInitializer
-        getTableSpecSettingsProviderInitializer(final TypedReaderTableSpecsProvider typedReaderTableSpecsProvider) {
-        return new DependsOnTypedReaderTableSpecProviderInitializer(typedReaderTableSpecsProvider);
-    }
-
-    @ParameterizedTest
-    @MethodSource
-    void testTransformationElementSettingsProvider(final HowToCombineColumnsOption howToCombineColumnsOption)
-        throws IOException {
-        final var file = m_tempFolder.resolve("file.csv").toAbsolutePath().toString();
-        final var typedReaderTableSpecsProvider = createTypedReaderTableSpecsProvider(file);
-
-        final var transformationElementSettingsProvider = new TransformationElementSettingsProvider();
-        transformationElementSettingsProvider.init(getTransformationElementSettingsProviderInitializer(
-            typedReaderTableSpecsProvider, howToCombineColumnsOption, new TransformationElementSettings[0]));
-
-        final var transformationElements = transformationElementSettingsProvider.computeState(null);
-
-        assertThat(transformationElements).hasSize(3);
-
-        assertThat(transformationElements[0].m_columnName).isEqualTo("intCol");
-        assertThat(transformationElements[0].m_includeInOutput).isTrue();
-        assertThat(transformationElements[0].m_columnRename).isEqualTo("intCol");
-        assertThat(transformationElements[0].m_type).isEqualTo(getDefaultPathIdentifier(Integer.class));
-
-        assertThat(transformationElements[1].m_columnName).isEqualTo("stringCol");
-        assertThat(transformationElements[1].m_includeInOutput).isTrue();
-        assertThat(transformationElements[1].m_columnRename).isEqualTo("stringCol");
-        assertThat(transformationElements[1].m_type).isEqualTo(getDefaultPathIdentifier(String.class));
-
-        assertThat(transformationElements[2].m_columnName).isNull();
-        assertThat(transformationElements[2].m_includeInOutput).isTrue();
-        assertThat(transformationElements[2].m_type).isEqualTo("<default-columntype>");
-    }
-
-    private static Stream<HowToCombineColumnsOption> testTransformationElementSettingsProvider() {
-        return Stream.of(HowToCombineColumnsOption.UNION, HowToCombineColumnsOption.INTERSECTION);
-    }
-
-    @Test
-    void testTransformationElementSettingsProviderUnknownColumns() throws IOException {
-        final var file = m_tempFolder.resolve("file.csv").toAbsolutePath().toString();
-        final var typedReaderTableSpecsProvider = createTypedReaderTableSpecsProvider(file);
-
-        final var transformationElementSettingsProvider = new TransformationElementSettingsProvider();
-        final var unknownElement = TransformationElementSettings.createUnknownElement();
-        unknownElement.m_includeInOutput = false;
-        unknownElement.m_type = getTypeIdentifierForUnknown(LongCell.TYPE);
-        transformationElementSettingsProvider
-            .init(getTransformationElementSettingsProviderInitializer(typedReaderTableSpecsProvider,
-                HowToCombineColumnsOption.UNION, new TransformationElementSettings[]{//
-                    createDummyElement("previousColumn"), //
-                    unknownElement, //
-                }));
-
-        final var transformationElements = transformationElementSettingsProvider.computeState(null);
-
-        assertThat(transformationElements).hasSize(3);
-
-        assertThat(transformationElements[0].m_columnName).isEqualTo("intCol");
-        assertThat(transformationElements[0].m_includeInOutput).isFalse();
-        assertThat(transformationElements[0].m_columnRename).isEqualTo("intCol");
-        assertThat(transformationElements[0].m_type).isEqualTo(getPathIdentifier(Integer.class, LongCell.TYPE));
-        assertThat(transformationElements[0].m_originalType).isEqualTo(getDefaultPathIdentifier(Integer.class));
-
-        assertThat(transformationElements[1].m_columnName).isEqualTo("stringCol");
-        assertThat(transformationElements[1].m_includeInOutput).isFalse();
-        assertThat(transformationElements[1].m_columnRename).isEqualTo("stringCol");
-        assertThat(transformationElements[1].m_type).isEqualTo(getPathIdentifier(String.class, LongCell.TYPE));
-        assertThat(transformationElements[1].m_originalType).isEqualTo(getDefaultPathIdentifier(String.class));
-
-        assertThat(transformationElements[2].m_columnName).isNull();
-        assertThat(transformationElements[2].m_includeInOutput).isFalse();
-        assertThat(transformationElements[2].m_type).isEqualTo(getTypeIdentifierForUnknown(LongCell.TYPE));
-
-    }
-
-    private static TransformationElementSettings createDummyElement(final String name) {
-        return new TransformationElementSettings(name, true, null, null, null, null);
-    }
-
-    @Test
-    void testTransformationElementSettingsProviderExistingColumns() throws IOException {
-        final var file = m_tempFolder.resolve("file.csv").toAbsolutePath().toString();
-        final var typedReaderTableSpecsProvider = createTypedReaderTableSpecsProvider(file);
-
-        final var transformationElementSettingsProvider = new TransformationElementSettingsProvider();
-        transformationElementSettingsProvider.init(getTransformationElementSettingsProviderInitializer(
-            typedReaderTableSpecsProvider, HowToCombineColumnsOption.UNION, new TransformationElementSettings[]{//
-                new TransformationElementSettings("stringCol", false, "Renamed stringCol",
-                    getPathIdentifier(String.class, XMLCell.TYPE), getDefaultPathIdentifier(String.class), "Integer"), //
-                new TransformationElementSettings("intCol", false, "Renamed intCol",
-                    getPathIdentifier(Double.class, DoubleCell.TYPE), getDefaultPathIdentifier(Double.class), "Double"), //
-            }));
-
-        final var transformationElements = transformationElementSettingsProvider.computeState(null);
-
-        assertThat(transformationElements).hasSize(3);
-
-        // Uses existing element since type and name match
-        assertThat(transformationElements[0].m_columnName).isEqualTo("stringCol");
-        assertThat(transformationElements[0].m_includeInOutput).isFalse();
-        assertThat(transformationElements[0].m_columnRename).isEqualTo("Renamed stringCol");
-        assertThat(transformationElements[0].m_type).isEqualTo(getPathIdentifier(String.class, XMLCell.TYPE));
-        assertThat(transformationElements[0].m_originalType).isEqualTo(getDefaultPathIdentifier(String.class));
-        assertThat(transformationElements[0].m_originalTypeLabel).isEqualTo("String");
-
-        // Uses new created element since the type changed
-        assertThat(transformationElements[1].m_columnName).isEqualTo("intCol");
-        assertThat(transformationElements[1].m_includeInOutput).isTrue();
-        assertThat(transformationElements[1].m_columnRename).isEqualTo("intCol");
-        assertThat(transformationElements[1].m_type).isEqualTo(getDefaultPathIdentifier(Integer.class));
-        assertThat(transformationElements[1].m_originalType).isEqualTo(getDefaultPathIdentifier(Integer.class));
-        assertThat(transformationElements[1].m_originalTypeLabel).isEqualTo("Number (integer)");
-
-        assertThat(transformationElements[2].m_columnName).isNull();
-
-    }
-
-    private String getTypeIdentifierForUnknown(final DataType dataType) {
-        return dataType.getName();
-    }
-
-    private String getDefaultPathIdentifier(final Class<?> typeClass) {
-        return PRODUCTION_PATH_PROVIDER.getDefaultProductionPath(typeClass).getConverterFactory().getIdentifier();
-    }
-
-    private String getPathIdentifier(final Class<?> typeClass, final DataType targetDataType) {
-        return PRODUCTION_PATH_PROVIDER.getAvailableProductionPaths(typeClass).stream()
-            .filter(path -> path.getDestinationType().equals(targetDataType)).findFirst().orElseThrow()
-            .getConverterFactory().getIdentifier();
-    }
-
-    private static final StateProviderInitializer getTransformationElementSettingsProviderInitializer(
-        final TypedReaderTableSpecsProvider typedReaderTableSpecsProvider,
-        final HowToCombineColumnsOption howToCombineColumnsOption,
-        final TransformationElementSettings[] existingSettings) {
-        return new DependsOnTypedReaderTableSpecProviderInitializer(typedReaderTableSpecsProvider) {
-
-            @Override
-            public <T> Supplier<T> getValueSupplier(final Class<? extends Reference<T>> ref) {
-                if (ref.equals(TransformationElementSettingsReference.class)) {
-                    return () -> (T)existingSettings;
+        private static void writeCSV(final String filePath, final String... lines) throws IOException {
+            try (final var writer = new BufferedWriter(new FileWriter(filePath))) {
+                for (String line : lines) {
+                    writer.write(line);
+                    writer.newLine();
                 }
-                throw new IllegalStateException(String.format("Unexpected dependency %s", ref.getSimpleName()));
             }
 
-            @Override
-            public <T> Supplier<T> computeFromValueSupplier(final Class<? extends Reference<T>> ref) {
-                if (ref.equals(HowToCombineColumnsOptionRef.class)) {
-                    return () -> (T)howToCombineColumnsOption;
-                }
-                throw new IllegalStateException(String.format("Unexpected dependency %s", ref.getSimpleName()));
-            }
-        };
-    }
-
-    @Test
-    void testTypeChoicesProviderIntCol() throws IOException {
-        final var file = m_tempFolder.resolve("file.csv").toAbsolutePath().toString();
-        final var typedReaderTableSpecsProvider = createTypedReaderTableSpecsProvider(file);
-
-        testTypeChoicesProvider(typedReaderTableSpecsProvider, "intCol", Integer.class);
-        testTypeChoicesProvider(typedReaderTableSpecsProvider, "stringCol", String.class);
-    }
-
-    private static void testTypeChoicesProvider(final TypedReaderTableSpecsProvider typedReaderTableSpecProvider,
-        final String columnName, final Class<?> type) {
-        final var typeChoicesProvider = new TypeChoicesProvider();
-        typeChoicesProvider
-            .init(getTypeChoicesProviderStateProviderInitializer(columnName, typedReaderTableSpecProvider));
-
-        final var productionPaths = PRODUCTION_PATH_PROVIDER.getAvailableProductionPaths(type);
-        final var typesIdAndText = typeChoicesProvider.computeState(null);
-
-        assertThat(typesIdAndText).hasSize(productionPaths.size());
-        for (int i = 0; i < productionPaths.size(); i++) {
-            assertThat(typesIdAndText[i].id()).isEqualTo(productionPaths.get(i).getConverterFactory().getIdentifier());
-            assertThat(typesIdAndText[i].text())
-                .isEqualTo(productionPaths.get(i).getDestinationType().toPrettyString());
         }
+
+        @Override
+        protected ProductionPathProvider<Class<?>> getProductionPathProvider() {
+            return CSVReaderSpecific.PRODUCTION_PATH_PROVIDER;
+        }
+
+        @Override
+        protected Pair<DataType, Collection<IntOrString>> getUnreachableType() {
+            return new Pair<>(LongCell.TYPE, List.of(IntOrString.STRING));
+        }
+
+        @Override
+        protected List<String> getPathToTransformationSettings() {
+            return List.of("tableSpecConfig");
+        }
+
+        @Override
+        protected CSVTableReaderNodeSettings constructNewSettings() {
+            return new CSVTableReaderNodeSettings();
+        }
+
+        @Override
+        protected Class<TypeChoicesProvider> getTypeChoicesProviderClass() {
+            return TypeChoicesProvider.class;
+        }
+
+        @Override
+        protected String getFileName() {
+            return "test.csv";
+        }
+
+        @SuppressWarnings("unchecked")
+        private void updateConfigIdFromSettings() {
+            depedencies.forEach(d -> d.setter.accept(getConfigIdSettings(getTransformationSettings(m_settings)),
+                d.dependency.apply(m_settings)));
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(RunSimulationForAdditionalCSVSpecChangesProvider.class)
+        void testTableSpecSettingsProviderCSVSpecific(final Function<UpdateSimulator, UpdateSimulatorResult> simulate)
+            throws IOException {
+            testTableSpecSettingsProvider(simulate);
+        }
+
+        @Test
+        void testTableSpecsProviderUnescapeDelimiters() throws IOException {
+            m_settings.m_settings.m_columnDelimiter = "\\t";
+            m_settings.m_settings.m_customRowDelimiter = "\\r\\n";
+            updateConfigIdFromSettings();
+            writeCSV(m_filePath, "intCol\tstringCol\r\n", "1\ttwo\r\n");
+
+            final var simulatorResult = m_simulator.simulateAfterOpenDialog();
+            final var specs = getSpecsValueUpdate(simulatorResult);
+
+            assertIntegerAndStringColumn(specs);
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(RunSimulationForAdditionalCSVSpecChangesProvider.class)
+        void testTransformationElementSettingsProviderCSVSpecific(
+            final Function<UpdateSimulator, UpdateSimulatorResult> simulate) throws IOException {
+            testTableSpecSettingsProvider(simulate);
+        }
+
+        static final class RunSimulationForAdditionalCSVSpecChangesProvider implements ArgumentsProvider {
+
+            @Override
+            public Stream<? extends Arguments> provideArguments(final ExtensionContext context) throws Exception {
+                return getSimulations().map(Arguments::of);
+            }
+
+            static Stream<Function<UpdateSimulator, UpdateSimulatorResult>> getSimulations() {
+                return Stream.of(simulator -> simulator.simulateValueChange(ConfigIdRef.class),
+                    simulator -> simulator.simulateValueChange(LimitMemoryPerColumnRef.class),
+                    simulator -> simulator.simulateValueChange(MaximumNumberOfColumnsRef.class));
+            }
+        }
+
     }
 
-    private static final StateProviderInitializer getTypeChoicesProviderStateProviderInitializer(
-        final String columnName, final TypedReaderTableSpecsProvider typedReaderTableSpecProvider) {
-        return new NoopStateProviderInitializer() {
-
-            @Override
-            public <T> Supplier<T> getValueSupplier(final Class<? extends Reference<T>> ref) {
-                if (ref.equals(ColumnNameRef.class)) {
-                    return () -> (T)columnName;
-                }
-                throw new IllegalStateException(String.format("Unexpected dependency %s", ref.getSimpleName()));
-            }
-
-            @Override
-            public <T> void computeOnValueChange(final Class<? extends Reference<T>> ref) {
-                // Do nothing
-            }
-
-            @Override
-            public <T> Supplier<T>
-                computeFromProvidedState(final Class<? extends StateProvider<T>> stateProviderClass) {
-                if (stateProviderClass.equals(TypedReaderTableSpecsProvider.class)) {
-                    return () -> (T)typedReaderTableSpecProvider.computeState(null);
-                }
-                throw new IllegalStateException(
-                    String.format("Unexpected dependency %s", stateProviderClass.getSimpleName()));
-            }
-        };
-    }
 }

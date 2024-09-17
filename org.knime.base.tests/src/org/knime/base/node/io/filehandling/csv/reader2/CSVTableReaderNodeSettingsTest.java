@@ -49,6 +49,7 @@
 package org.knime.base.node.io.filehandling.csv.reader2;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettingsTest.saveLoad;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -56,14 +57,9 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOptionPersistor;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.IfSchemaChangesOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.IfSchemaChangesPersistor;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingOption;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.CharsetPersistor;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.LimitRows.SkipFirstDataRowsPersistor;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.LimitRows.SkipFirstLinesPersistor;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.IfRowHasLessColumnsOption;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.IfRowHasLessColumnsOption.IfRowHasLessColumnsOptionPersistor;
@@ -73,7 +69,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
@@ -146,50 +141,12 @@ class CSVTableReaderNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
     @ParameterizedTest
     @MethodSource
-    void testHowToCombineColumnsOptionPersistor(final HowToCombineColumnsOption howToCombineColumnsOption)
-        throws InvalidSettingsException {
-        final var copy = saveLoad(HowToCombineColumnsOptionPersistor.class, HowToCombineColumnsOption.class,
-            howToCombineColumnsOption);
-        assertEquals(howToCombineColumnsOption, copy);
-    }
-
-    private static Stream<HowToCombineColumnsOption> testHowToCombineColumnsOptionPersistor() {
-        return Stream.of(HowToCombineColumnsOption.FAIL, HowToCombineColumnsOption.UNION,
-            HowToCombineColumnsOption.INTERSECTION);
-    }
-
-    @ParameterizedTest
-    @MethodSource
-    void testIfSchemaChangesPersistor(final IfSchemaChangesOption ifSchemaChangesOption)
-        throws InvalidSettingsException {
-        final var copy = saveLoad(IfSchemaChangesPersistor.class, IfSchemaChangesOption.class, ifSchemaChangesOption);
-        assertEquals(ifSchemaChangesOption, copy);
-    }
-
-    private static Stream<IfSchemaChangesOption> testIfSchemaChangesPersistor() {
-        return Stream.of(IfSchemaChangesOption.FAIL, IfSchemaChangesOption.USE_NEW_SCHEMA,
-            IfSchemaChangesOption.IGNORE);
-    }
-
-    @ParameterizedTest
-    @MethodSource
     void testSkipFirstLinesPersistor(final Long l) throws InvalidSettingsException {
         final var copy = saveLoad(SkipFirstLinesPersistor.class, Long.class, l);
         assertEquals(l, copy);
     }
 
     private static Stream<Long> testSkipFirstLinesPersistor() {
-        return Stream.of(0l, 1l);
-    }
-
-    @ParameterizedTest
-    @MethodSource
-    void testSkipFirstDataRowsPersistor(final Long l) throws InvalidSettingsException {
-        final var copy = saveLoad(SkipFirstDataRowsPersistor.class, Long.class, l);
-        assertEquals(l, copy);
-    }
-
-    private static Stream<Long> testSkipFirstDataRowsPersistor() {
         return Stream.of(0l, 1l);
     }
 
@@ -206,12 +163,5 @@ class CSVTableReaderNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
             new Charset(FileEncodingOption.OTHER, "foo"));
     }
 
-    static <S, P extends FieldNodeSettingsPersistor<S>> S saveLoad(final Class<P> persistorType,
-        final Class<S> settingsType, final S value) throws InvalidSettingsException {
-        var persistor = FieldNodeSettingsPersistor.createInstance(persistorType, settingsType, "key");
-        var nodeSettings = new NodeSettings("settings");
-        persistor.save(value, nodeSettings);
-        return persistor.load(nodeSettings);
-    }
 
 }

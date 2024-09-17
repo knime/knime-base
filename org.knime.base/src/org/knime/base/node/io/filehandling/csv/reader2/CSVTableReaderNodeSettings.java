@@ -57,19 +57,14 @@ import org.knime.base.node.io.filehandling.csv.reader.OSIndependentNewLineReader
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
 import org.knime.base.node.io.filehandling.csv.reader.api.EscapeUtils;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider.ProviderFromCSVFormat;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.ColumnAndDataTypeDetection.IfSchemaChanges;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.ColumnAndDataTypeDetection.LimitMemoryPerColumn;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.ColumnAndDataTypeDetection.LimitScannedRows;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.ColumnAndDataTypeDetection.MaximumNumberOfColumns;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.DataArea.FirstColumnContainsRowIds;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.DataArea.FirstRowContainsColumnNames;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.DataArea.IfRowHasLessColumns;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.DataArea.LimitNumberOfRows;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.DataArea.MaximumNumberOfRows;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.DataArea.SkipFirstDataRows;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.File.CustomEncoding;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.File.FileEncoding;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.File.Source;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.FileFormat.AutodetectFormat;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.FileFormat.ColumnDelimiter;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.FileFormat.CommentLineCharacter;
@@ -80,11 +75,7 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.FileFormat.QuotedStringsContainNoRowDelimiters;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.FileFormat.RowDelimiter;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.FileFormat.SkipFirstLines;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.MultipleFileHandling.AppendFilePathColumn;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.MultipleFileHandling.FilePathColumnName;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.MultipleFileHandling.HowToCombineColumns;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.MultipleFileHandling.PrependFileIndexToRowId;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Transformation;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.MulitpleFileHandling.PrependFileIndexToRowId;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Values.DecimalSeparator;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Values.QuotedStrings;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Values.ReplaceEmptyQuotedStringsByMissingValues;
@@ -92,8 +83,14 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingOption;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.IfRowHasLessColumnsOption.IfRowHasLessColumnsOptionPersistor;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption.RowDelimiterPersistor;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.SetCSVExtensions;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.SetTitleAndDescriptionForUseExistingRowIds;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout.DataArea.LimitNumberOfRows;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout.DataArea.MaximumNumberOfRows;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout.DataArea.SkipFirstDataRows;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -104,11 +101,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPe
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.LegacyReaderFilerChooserPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
@@ -126,7 +120,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicatePr
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
@@ -147,23 +140,30 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
     Encoding m_encoding = new Encoding();
 
     @Persist(configKey = "table_spec_config", hidden = true, customPersistor = CSVTransformationSettingsPersistor.class)
-    @Layout(Transformation.class)
     CSVTransformationSettings m_tableSpecConfig = new CSVTransformationSettings();
 
-    static class Settings implements WidgetGroup, PersistableSettings {
+    @Modification({SetCSVExtensions.class, SetTitleAndDescriptionForUseExistingRowIds.class})
+    static class Settings extends CommonReaderNodeSettings.Settings {
 
-        static final class FileChooserRef extends ReferenceStateProvider<FileChooser> {
+        static final class SetCSVExtensions extends CommonReaderNodeSettings.Settings.SetFileReaderWidgetExtensions {
+
+            @Override
+            protected String[] getExtensions() {
+                return new String[]{"csv", "tsv", "txt", "gz"};
+            }
+
         }
 
-        @Widget(title = "Source", description = Source.DESCRIPTION)
-        @ValueReference(FileChooserRef.class)
-        @Layout(Source.class)
-        @Persist(configKey = "file_selection", customPersistor = LegacyReaderFilerChooserPersistor.class)
-        @FileReaderWidget(fileExtensions = {"csv", "tsv", "txt", "gz"})
-        FileChooser m_source = new FileChooser();
+        static final class SetTitleAndDescriptionForUseExistingRowIds implements WidgetGroup.Modifier {
 
-        @Persist(configKey = "file_selection", hidden = true)
-        FileSelectionInternal m_fileSelectionInternal = new FileSelectionInternal();
+            @Override
+            public void modify(final WidgetGroupModifier group) {
+                group.find(UseExistingRowIdWidgetRef.class).modifyAnnotation(Widget.class)
+                    .withProperty("title", FirstColumnContainsRowIds.TITLE)
+                    .withProperty("description", FirstColumnContainsRowIds.DESCRIPTION).modify();
+            }
+
+        }
 
         static class FirstRowContainsColumnNamesRef extends ReferenceStateProvider<Boolean> {
         }
@@ -173,15 +173,6 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @Layout(FirstRowContainsColumnNames.class)
         @Persist(configKey = "has_column_header")
         boolean m_firstRowContainsColumnNames = true;
-
-        static class FirstColumnContainsRowIdsRef extends ReferenceStateProvider<Boolean> {
-        }
-
-        @Widget(title = "First column contains RowIDs", description = FirstColumnContainsRowIds.DESCRIPTION)
-        @ValueReference(FirstColumnContainsRowIdsRef.class)
-        @Layout(FirstColumnContainsRowIds.class)
-        @Persist(configKey = "has_row_id")
-        boolean m_firstColumnContainsRowIds;
 
         enum IfRowHasLessColumnsOption {
                 @Label(value = "Fail", description = IfRowHasLessColumns.DESCRIPTION_FAIL) //
@@ -213,7 +204,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         // TODO defaults are currently not applied when the node is created anew; will be addressed in UIEXT-1740
 
         @Persist(configKey = "skip_empty_data_rows")
-        boolean m_skipEmptyDataRows ;
+        boolean m_skipEmptyDataRows;
 
         @Widget(title = "Prepend file index to RowID", description = PrependFileIndexToRowId.DESCRIPTION)
         @Layout(PrependFileIndexToRowId.class)
@@ -389,98 +380,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    static class AdvancedSettings implements WidgetGroup, PersistableSettings {
-
-        enum HowToCombineColumnsOption {
-                @Label(value = "Fail if different", description = HowToCombineColumns.DESCRIPTION_FAIL)
-                FAIL(ColumnFilterMode.UNION),
-
-                @Label(value = "Union", description = HowToCombineColumns.DESCRIPTION_UNION)
-                UNION(ColumnFilterMode.UNION),
-
-                @Label(value = "Intersection", description = HowToCombineColumns.DESCRIPTION_INTERSECTION)
-                INTERSECTION(ColumnFilterMode.INTERSECTION);
-
-            private final ColumnFilterMode m_columnFilterMode;
-
-            HowToCombineColumnsOption(final ColumnFilterMode columnFilterMode) {
-                m_columnFilterMode = columnFilterMode;
-            }
-
-            ColumnFilterMode toColumnFilterMode() {
-                return m_columnFilterMode;
-            }
-        }
-
-        static final class HowToCombineColumnsOptionPersistor
-            implements FieldNodeSettingsPersistor<HowToCombineColumnsOption> {
-
-            private static final String CFG_FAIL_ON_DIFFERING_SPECS = "fail_on_differing_specs";
-
-            private static final String CFG_SPEC_MERGE_MODE = "spec_merge_mode";
-
-            @Override
-            public HowToCombineColumnsOption load(final NodeSettingsRO settings) throws InvalidSettingsException {
-                if (settings.getBoolean(CFG_FAIL_ON_DIFFERING_SPECS, true)) {
-                    return HowToCombineColumnsOption.FAIL;
-                }
-                if (settings.getString(CFG_SPEC_MERGE_MODE, "UNION").equals("UNION")) {
-                    return HowToCombineColumnsOption.UNION;
-                }
-                return HowToCombineColumnsOption.INTERSECTION;
-            }
-
-            @Override
-            public void save(final HowToCombineColumnsOption howToCombineColumnsOption, final NodeSettingsWO settings) {
-                settings.addBoolean(CFG_FAIL_ON_DIFFERING_SPECS,
-                    howToCombineColumnsOption == HowToCombineColumnsOption.FAIL);
-                settings.addString(CFG_SPEC_MERGE_MODE, howToCombineColumnsOption.toColumnFilterMode().name());
-            }
-
-            @Override
-            public String[] getConfigKeys() {
-                return new String[]{CFG_FAIL_ON_DIFFERING_SPECS, CFG_SPEC_MERGE_MODE};
-            }
-        }
-
-        static class HowToCombineColumnsOptionRef implements Reference<HowToCombineColumnsOption> {
-        }
-
-        @Widget(title = "How to combine columns", description = HowToCombineColumns.DESCRIPTION)
-        @ValueSwitchWidget
-        @ValueReference(HowToCombineColumnsOptionRef.class)
-        @Layout(HowToCombineColumns.class)
-        @Persist(customPersistor = HowToCombineColumnsOptionPersistor.class)
-        HowToCombineColumnsOption m_howToCombineColumns = HowToCombineColumnsOption.FAIL;
-        // TODO this setting should be shown when reading multiple files; currently blocked by UIEXT-1805
-
-        static class AppendPathColumnRef extends ReferenceStateProvider<Boolean> {
-        }
-
-        static final class AppendPathColumn implements PredicateProvider {
-
-            @Override
-            public Predicate init(final PredicateInitializer i) {
-                return i.getBoolean(AppendPathColumnRef.class).isTrue();
-            }
-
-        }
-
-        @Widget(title = "Append file path column", description = AppendFilePathColumn.DESCRIPTION)
-        @ValueReference(AppendPathColumnRef.class)
-        @Layout(AppendFilePathColumn.class)
-        @Persist(configKey = "append_path_column", hidden = true)
-        boolean m_appendPathColumn;
-
-        static class FilePathColumnNameRef extends ReferenceStateProvider<String> {
-        }
-
-        @Widget(title = "File path column name", description = FilePathColumnName.DESCRIPTION)
-        @ValueReference(FilePathColumnNameRef.class)
-        @Layout(FilePathColumnName.class)
-        @Effect(predicate = AppendPathColumn.class, type = EffectType.SHOW)
-        @Persist(configKey = "path_column_name", hidden = true)
-        String m_filePathColumnName = "File Path";
+    static class AdvancedSettings extends CommonReaderNodeSettings.AdvancedSettings {
 
         static class LimitScannedRowsRef extends ReferenceStateProvider<Boolean> {
         }
@@ -590,65 +490,6 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @Persist(configKey = "decimal_separator")
         String m_decimalSeparator = ".";
 
-        enum IfSchemaChangesOption {
-                @Label(value = "Fail", description = IfSchemaChanges.DESCRIPTION_FAIL) //
-                FAIL, //
-                @Label(value = "Use new schema", description = IfSchemaChanges.DESCRIPTION_USE_NEW_SCHEMA) //
-                USE_NEW_SCHEMA, //
-                @Label(value = "Ignore (deprecated)", description = IfSchemaChanges.DESCRIPTION_IGNORE, disabled = true)
-                IGNORE; //
-        }
-
-        static final class IfSchemaChangesPersistor implements FieldNodeSettingsPersistor<IfSchemaChangesOption> {
-
-            private static final String CFG_SAVE_TABLE_SPEC_CONFIG = "save_table_spec_config";
-
-            private static final String CFG_CHECK_TABLE_SPEC = "check_table_spec";
-
-            @Override
-            public IfSchemaChangesOption load(final NodeSettingsRO settings) throws InvalidSettingsException {
-                final var saveTableSpecConfig = settings.getBoolean(CFG_SAVE_TABLE_SPEC_CONFIG, true);
-                if (saveTableSpecConfig) {
-                    if (settings.getBoolean(CFG_CHECK_TABLE_SPEC, false)) {
-                        return IfSchemaChangesOption.FAIL;
-                    } else {
-                        return IfSchemaChangesOption.IGNORE;
-                    }
-                }
-                return IfSchemaChangesOption.USE_NEW_SCHEMA;
-            }
-
-            @Override
-            public void save(final IfSchemaChangesOption ifSchemaChangesOption, final NodeSettingsWO settings) {
-                settings.addBoolean(CFG_SAVE_TABLE_SPEC_CONFIG,
-                    ifSchemaChangesOption != IfSchemaChangesOption.USE_NEW_SCHEMA);
-                settings.addBoolean(CFG_CHECK_TABLE_SPEC, ifSchemaChangesOption == IfSchemaChangesOption.FAIL);
-            }
-
-            @Override
-            public String[] getConfigKeys() {
-                return new String[]{CFG_SAVE_TABLE_SPEC_CONFIG, CFG_CHECK_TABLE_SPEC};
-            }
-        }
-
-        static final class IfSchemaChangesOptionRef implements Reference<IfSchemaChangesOption> {
-        }
-
-        static final class UseNewSchema implements PredicateProvider {
-
-            @Override
-            public Predicate init(final PredicateInitializer i) {
-                return i.getEnum(IfSchemaChangesOptionRef.class).isOneOf(IfSchemaChangesOption.USE_NEW_SCHEMA);
-            }
-
-        }
-
-        @Widget(title = "If schema changes", description = IfSchemaChanges.DESCRIPTION)
-        @RadioButtonsWidget
-        @Layout(IfSchemaChanges.class)
-        @Persist(customPersistor = IfSchemaChangesPersistor.class)
-        @ValueReference(IfSchemaChangesOptionRef.class)
-        IfSchemaChangesOption m_ifSchemaChangesOption = IfSchemaChangesOption.FAIL;
     }
 
     static class LimitRows implements WidgetGroup, PersistableSettings {
@@ -686,29 +527,6 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @Persist(customPersistor = SkipFirstLinesPersistor.class)
         long m_skipFirstLines;
 
-        static final class SkipFirstDataRowsPersistor implements FieldNodeSettingsPersistor<Long> {
-
-            private static final String CFG_SKIP_DATA_ROWS = "skip_data_rows";
-
-            private static final String CFG_NUMBER_OF_DATA_ROWS_TO_SKIP = "number_of_rows_to_skip";
-
-            @Override
-            public Long load(final NodeSettingsRO settings) throws InvalidSettingsException {
-                return settings.getBoolean(CFG_SKIP_DATA_ROWS) ? settings.getLong(CFG_NUMBER_OF_DATA_ROWS_TO_SKIP) : 0;
-            }
-
-            @Override
-            public void save(final Long skipFirstDataRows, final NodeSettingsWO settings) {
-                settings.addBoolean(CFG_SKIP_DATA_ROWS, skipFirstDataRows > 0);
-                settings.addLong(CFG_NUMBER_OF_DATA_ROWS_TO_SKIP, skipFirstDataRows);
-            }
-
-            @Override
-            public String[] getConfigKeys() {
-                return new String[]{CFG_SKIP_DATA_ROWS, CFG_NUMBER_OF_DATA_ROWS_TO_SKIP};
-            }
-        }
-
         static class SkipFirstDataRowsRef extends ReferenceStateProvider<Long> {
         }
 
@@ -716,22 +534,12 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @ValueReference(SkipFirstDataRowsRef.class)
         @NumberInputWidget(min = 0)
         @Layout(SkipFirstDataRows.class)
-        @Persist(customPersistor = SkipFirstDataRowsPersistor.class)
+        @Persist(customPersistor = CommonReaderNodeSettings.SkipFirstDataRowsPersistor.class)
         long m_skipFirstDataRows;
-
-        interface LimitNumberOfRowsRef extends Reference<Boolean> {
-        }
-
-        static final class LimitNumberOfRowsPredicate implements PredicateProvider {
-            @Override
-            public Predicate init(final PredicateInitializer i) {
-                return i.getBoolean(LimitNumberOfRowsRef.class).isTrue();
-            }
-        }
 
         @Widget(title = "Limit number of rows", description = LimitNumberOfRows.DESCRIPTION, advanced = true)
         @Layout(LimitNumberOfRows.class)
-        @ValueReference(LimitNumberOfRowsRef.class)
+        @ValueReference(CommonReaderNodeSettings.LimitNumberOfRowsRef.class)
         @Persist(configKey = "limit_data_rows")
         boolean m_limitNumberOfRows;
         // TODO merge into a single widget with UIEXT-1742
@@ -739,7 +547,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @Widget(title = "Maximum number of rows", description = MaximumNumberOfRows.DESCRIPTION)
         @NumberInputWidget(min = 0)
         @Layout(MaximumNumberOfRows.class)
-        @Effect(predicate = LimitNumberOfRowsPredicate.class, type = EffectType.SHOW)
+        @Effect(predicate = CommonReaderNodeSettings.LimitNumberOfRowsPredicate.class, type = EffectType.SHOW)
         @Persist(configKey = "max_rows")
         long m_maximumNumberOfRows = 50;
     }

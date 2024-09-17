@@ -17,19 +17,20 @@
           "enabledStatus" : true
         },
         "firstColumnContainsRowIds" : false,
-        "prependFileIndexToRowId" : false
+        "prependTableIndexToRowId" : false
       },
       "advancedSettings" : {
         "howToCombineColumns" : "FAIL",
         "appendPathColumn" : false,
-        "filePathColumnName" : "File Path",
+        "filePathColumnName" : "Path",
+        "ifSchemaChangesOption" : "FAIL",
         "skipFirstDataRows" : 0,
         "limitNumberOfRows" : false,
-        "maximumNumberOfRows" : 50,
-        "ifSchemaChangesOption" : "FAIL"
+        "maximumNumberOfRows" : 50
       },
       "tableSpecConfig" : {
         "persistorSettings" : {
+          "configId" : { },
           "sourceId" : "",
           "fsLocations" : [ ],
           "specs" : [ ],
@@ -134,10 +135,10 @@
               "howToCombineColumns" : "FAIL",
               "appendPathColumn" : false,
               "filePathColumnName" : "File Path",
+              "ifSchemaChangesOption" : "FAIL",
               "skipFirstDataRows" : 0,
               "limitNumberOfRows" : false,
-              "maximumNumberOfRows" : 50,
-              "ifSchemaChangesOption" : "FAIL"
+              "maximumNumberOfRows" : 50
             },
             "configKeys" : [ "advanced_settings" ]
           },
@@ -166,15 +167,15 @@
               },
               "firstColumnContainsRowIds" : {
                 "type" : "boolean",
-                "title" : "First column contains RowIDs",
-                "description" : "Select this box if the first column contains RowIDs (no duplicates allowed).",
+                "title" : "Use existing RowID",
+                "description" : "Check this box if the RowIDs from the input tables should be used for\nthe output tables. If unchecked, a new RowID is generated.\nThe generated RowID follows the schema \"Row0\", \"Row1\" and so on.\n",
                 "default" : false,
                 "configKeys" : [ "has_row_id" ]
               },
-              "prependFileIndexToRowId" : {
+              "prependTableIndexToRowId" : {
                 "type" : "boolean",
-                "title" : "Prepend file index to RowID",
-                "description" : "Select this box if you want to prepend a prefix that depends on the index of the source file to the\nRowIDs. The prefix for the first file is \"File_0_\", for the second \"File_1_\" and so on. This option is\nuseful if the RowIDs within a single file are unique but the same RowIDs appear in multiple files.\nPrepending the file index prevents parallel reading of individual files.\n",
+                "title" : "Prepend table index to RowID",
+                "description" : "Only enabled if the existing RowIDs are used. If checked, a prefix is\nprepended to the RowIDs that indicates which table the row came\nfrom.\nThe format of the prefix is “File_0_“, “File_1_” and so on.\n",
                 "default" : false,
                 "configKeys" : [ "prepend_table_index_to_row_id" ]
               },
@@ -224,7 +225,7 @@
                 "enabledStatus" : true
               },
               "firstColumnContainsRowIds" : false,
-              "prependFileIndexToRowId" : false
+              "prependTableIndexToRowId" : false
             },
             "configKeys" : [ "settings" ]
           },
@@ -232,16 +233,6 @@
             "type" : "object",
             "properties" : {
               "columnTransformation" : {
-                "title" : "Transformations",
-                "description" : "Use this option to modify the structure of the table. You can deselect each column to filter it out of the\noutput table, use the arrows to reorder the columns, or change the column name or column type of each\ncolumn. Note that the positions of columns are reset in the dialog if a new file or folder is selected.\nWhether and where to add unknown columns during execution is specified via the special row &lt;any unknown\nnew column&gt;. It is also possible to select the type new columns should be converted to. Note that the\nnode will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is\nof type Double.\n",
-                "default" : [ {
-                  "columnName" : null,
-                  "originalType" : "<default-columntype>",
-                  "originalTypeLabel" : "Default columntype",
-                  "includeInOutput" : true,
-                  "columnRename" : null,
-                  "type" : "<default-columntype>"
-                } ],
                 "type" : "array",
                 "items" : {
                   "type" : "object",
@@ -269,7 +260,17 @@
                       "title" : "Column type"
                     }
                   }
-                }
+                },
+                "title" : "Transformations",
+                "description" : "Use this option to modify the structure of the table. You can deselect each column to filter it out of the\noutput table, use the arrows to reorder the columns, or change the column name or column type of each\ncolumn. Note that the positions of columns are reset in the dialog if a new file or folder is selected.\nWhether and where to add unknown columns during execution is specified via the special row &lt;any unknown\nnew column&gt;. It is also possible to select the type new columns should be converted to. Note that the\nnode will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is\nof type Double.\n",
+                "default" : [ {
+                  "columnName" : null,
+                  "originalType" : "<default-columntype>",
+                  "originalTypeLabel" : "Default columntype",
+                  "includeInOutput" : true,
+                  "columnRename" : null,
+                  "type" : "<default-columntype>"
+                } ]
               },
               "enforceTypes" : {
                 "type" : "boolean",
@@ -284,23 +285,25 @@
                     "type" : "boolean",
                     "default" : false
                   },
+                  "configId" : {
+                    "type" : "object"
+                  },
                   "filePathColumnName" : {
                     "type" : "string",
                     "default" : "File Path"
                   },
                   "fsLocations" : {
-                    "default" : [ ],
                     "type" : "array",
                     "items" : {
                       "type" : "object"
-                    }
+                    },
+                    "default" : [ ]
                   },
                   "sourceId" : {
                     "type" : "string",
                     "default" : ""
                   },
                   "specs" : {
-                    "default" : [ ],
                     "type" : "array",
                     "items" : {
                       "type" : "object",
@@ -323,7 +326,8 @@
                           }
                         }
                       }
-                    }
+                    },
+                    "default" : [ ]
                   },
                   "takeColumnsFrom" : {
                     "oneOf" : [ {
@@ -337,6 +341,7 @@
                   }
                 },
                 "default" : {
+                  "configId" : { },
                   "sourceId" : "",
                   "fsLocations" : [ ],
                   "specs" : [ ],
@@ -348,6 +353,7 @@
             },
             "default" : {
               "persistorSettings" : {
+                "configId" : { },
                 "sourceId" : "",
                 "fsLocations" : [ ],
                 "specs" : [ ],
@@ -444,7 +450,7 @@
         }
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/settings/properties/prependFileIndexToRowId",
+        "scope" : "#/properties/model/properties/settings/properties/prependTableIndexToRowId",
         "options" : {
           "format" : "checkbox"
         }
@@ -527,7 +533,7 @@
             "scope" : "#/properties/type",
             "options" : {
               "hideFlowVariableButton" : true,
-              "choicesProvider" : "org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders$TypeChoicesProvider",
+              "choicesProvider" : "org.knime.base.node.io.filehandling.table.reader2.TableReaderTransformationSettingsStateProviders$TypeChoicesProvider",
               "format" : "dropDown",
               "showNoneColumn" : false,
               "showRowKeys" : false,
@@ -550,8 +556,8 @@
           "hasFixedSize" : true,
           "withEditAndReset" : true,
           "elementCheckboxScope" : "#/properties/includeInOutput",
-          "elementTitleProvider" : "org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings$TransformationElementSettings$TitleProvider",
-          "elementSubTitleProvider" : "org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings$TransformationElementSettings$SubTitleProvider"
+          "elementTitleProvider" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettings$TitleProvider",
+          "elementSubTitleProvider" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettings$SubTitleProvider"
         },
         "rule" : {
           "effect" : "HIDE",
@@ -575,7 +581,7 @@
       "id" : null,
       "values" : [ {
         "indices" : [ ],
-        "value" : "File Path"
+        "value" : "Path"
       } ]
     }, {
       "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/takeColumnsFrom" ],
@@ -591,10 +597,10 @@
       },
       "dependencies" : [ {
         "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/columnName" ],
-        "id" : "org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings$TransformationElementSettings$ColumnNameRef"
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettings$ColumnNameRef"
       }, {
         "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/originalType" ],
-        "id" : "org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings$TransformationElementSettings$OriginalTypeRef"
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettings$OriginalTypeRef"
       } ]
     }, {
       "trigger" : {
@@ -603,76 +609,85 @@
       },
       "dependencies" : [ {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
-        "id" : "org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef"
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings$Settings$FileChooserRef"
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileChooserRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ],
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TableSpecSettingsRef"
       }, {
         "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation" ],
-        "id" : "org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings$TransformationElementSettingsReference"
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettingsRef"
       } ]
     }, {
       "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings$AdvancedSettings$AppendPathColumnRef",
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$AppendPathColumnRef",
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/appendPathColumn" ]
       },
       "dependencies" : [ {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/appendPathColumn" ],
-        "id" : "org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings$AdvancedSettings$AppendPathColumnRef"
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$AppendPathColumnRef"
       } ]
     }, {
       "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings$AdvancedSettings$FilePathColumnNameRef",
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$FilePathColumnNameRef",
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/filePathColumnName" ]
       },
       "dependencies" : [ {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/filePathColumnName" ],
-        "id" : "org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings$AdvancedSettings$FilePathColumnNameRef"
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$FilePathColumnNameRef"
       } ]
     }, {
       "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef",
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef",
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ]
       },
       "dependencies" : [ {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
-        "id" : "org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef"
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings$Settings$FileChooserRef"
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileChooserRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ],
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TableSpecSettingsRef"
       }, {
         "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation" ],
-        "id" : "org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings$TransformationElementSettingsReference"
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettingsRef"
       } ]
     }, {
       "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings$Settings$FileChooserRef",
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileChooserRef",
         "scopes" : [ "#/properties/model/properties/settings/properties/source" ]
       },
       "dependencies" : [ {
         "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
-        "id" : "org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef"
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef"
       }, {
         "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings$Settings$FileChooserRef"
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileChooserRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ],
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TableSpecSettingsRef"
       }, {
         "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation" ],
-        "id" : "org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings$TransformationElementSettingsReference"
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettingsRef"
       } ]
     }, {
       "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings$PersistorSettings$TableSpecSettingsRef",
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TableSpecSettingsRef",
         "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ]
       },
       "dependencies" : [ {
         "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings$Settings$FileChooserRef"
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileChooserRef"
       }, {
         "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/columnName" ],
-        "id" : "org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings$TransformationElementSettings$ColumnNameRef"
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettings$ColumnNameRef"
       }, {
         "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/originalTypeLabel" ],
-        "id" : "org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings$TransformationElementSettings$OriginalTypeLabelRef"
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettings$OriginalTypeLabelRef"
       } ]
     } ]
   }

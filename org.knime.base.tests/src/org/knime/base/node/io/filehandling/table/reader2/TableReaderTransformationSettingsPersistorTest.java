@@ -46,42 +46,44 @@
  * History
  *   May 28, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.table.reader2;
 
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsPersistorTest;
+import org.knime.base.node.io.filehandling.webui.reader.DataTypeStringSerializer;
+import org.knime.core.data.def.IntCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-class CSVTransformationSettingsPersistorTest
-    extends CommonReaderTransformationSettingsPersistorTest<CSVTransformationSettings> {
+class TableReaderTransformationSettingsPersistorTest
+    extends CommonReaderTransformationSettingsPersistorTest<TableReaderTransformationSettings> {
 
-    CSVTransformationSettingsPersistorTest() {
-        super(new CSVTransformationSettingsPersistor(), CSVTransformationSettings.class);
+    public TableReaderTransformationSettingsPersistorTest() {
+        super(new TableReaderTransformationSettingsPersistor(), TableReaderTransformationSettings.class);
     }
 
     @Test
     void testSaveLoad() throws InvalidSettingsException {
-        for (CSVTransformationSettings settings : testSettings()) {
+        for (TableReaderTransformationSettings settings : testSettings()) {
             testSaveLoad(settings);
         }
     }
 
-    private List<CSVTransformationSettings> testSettings() {
+    private List<TableReaderTransformationSettings> testSettings() {
         return List.of(//
             createTransformationSettings(ColumnFilterMode.INTERSECTION), //
             createTransformationSettings(ColumnFilterMode.UNION), //
-            createTransformationSettingsWithSpecs(Integer.class)//
+            createTransformationSettingsWithSpecs(DataTypeStringSerializer.typeToString(IntCell.TYPE))//
         );
     }
 
     @Override
-    protected CSVTransformationSettings constructSettings() {
-        return new CSVTransformationSettings();
+    protected TableReaderTransformationSettings constructSettings() {
+        return new TableReaderTransformationSettings();
     }
 }

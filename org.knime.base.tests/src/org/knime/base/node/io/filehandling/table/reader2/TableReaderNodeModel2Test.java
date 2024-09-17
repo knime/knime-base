@@ -89,20 +89,20 @@ import org.xml.sax.SAXException;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
-class KnimeTableReaderNodeModel2Test extends LocalWorkflowContextTest {
+class TableReaderNodeModel2Test extends LocalWorkflowContextTest {
 
     private NativeNodeContainer m_tableReader;
 
     @BeforeEach
     void addTableReaderToWorkflow() throws IOException {
-        m_tableReader = WorkflowManagerUtil.createAndAddNode(m_wfm, new KnimeTableReaderNodeFactory2());
+        m_tableReader = WorkflowManagerUtil.createAndAddNode(m_wfm, new TableReaderNodeFactory2());
     }
 
     @Test
     void testReadValidTable() throws IOException, InvalidSettingsException {
         final var file = createTableFile();
 
-        final var settings = new KnimeTableReaderNodeSettings();
+        final var settings = new TableReaderNodeSettings();
         settings.m_settings.m_source = new FileChooser(new FSLocation(FSCategory.LOCAL, file.toString()));
         setSettings(settings);
 
@@ -113,13 +113,13 @@ class KnimeTableReaderNodeModel2Test extends LocalWorkflowContextTest {
 
     private static Path createTableFile() throws IOException {
         final var file = Files.createTempFile(null, ".table").toAbsolutePath();
-        KnimeTableReaderTransformationSettingsStateProvidersTest.createTableFile(file.toString());
+        TableReaderTransformationSettingsStateProvidersTest.createTableFile(file.toString());
         return file;
     }
 
     @Test
     void testReadMissingFile() throws InvalidSettingsException {
-        final var settings = new KnimeTableReaderNodeSettings();
+        final var settings = new TableReaderNodeSettings();
         final var missingFile = "foo";
         settings.m_settings.m_source = new FileChooser(new FSLocation(FSCategory.LOCAL, missingFile));
         setSettings(settings);
@@ -143,7 +143,7 @@ class KnimeTableReaderNodeModel2Test extends LocalWorkflowContextTest {
 
         m_wfm.removeNode(m_tableReader.getID());
         m_tableReader =
-            WorkflowManagerUtil.createAndAddNode(m_wfm, new TestKnimeTableReaderNodeFactory2(file.toUri().toURL()));
+            WorkflowManagerUtil.createAndAddNode(m_wfm, new TestTableReaderNodeFactory2(file.toUri().toURL()));
 
         m_wfm.executeAllAndWaitUntilDone();
         assertTrue(m_tableReader.getNodeContainerState().isExecuted());
@@ -154,23 +154,23 @@ class KnimeTableReaderNodeModel2Test extends LocalWorkflowContextTest {
         return (BufferedDataTable)m_tableReader.getOutPort(1).getPortObject();
     }
 
-    private void setSettings(final KnimeTableReaderNodeSettings settings) throws InvalidSettingsException {
-        final var nodeSettings = new NodeSettings("KnimeTableReader");
+    private void setSettings(final TableReaderNodeSettings settings) throws InvalidSettingsException {
+        final var nodeSettings = new NodeSettings("TableReader");
         m_wfm.saveNodeSettings(m_tableReader.getID(), nodeSettings);
         var modelSettings = nodeSettings.addNodeSettings("model");
-        DefaultNodeSettings.saveSettings(KnimeTableReaderNodeSettings.class, settings, modelSettings);
+        DefaultNodeSettings.saveSettings(TableReaderNodeSettings.class, settings, modelSettings);
         m_wfm.loadNodeSettings(m_tableReader.getID(), nodeSettings);
     }
 
-    private static class TestKnimeTableReaderNodeFactory2
+    private static class TestTableReaderNodeFactory2
         extends ConfigurableNodeFactory<TableReaderNodeModel<FSPath, TableManipulatorConfig, DataType>>
         implements NodeDialogFactory {
 
-        private final KnimeTableReaderNodeFactory2 m_delegate = new KnimeTableReaderNodeFactory2();
+        private final TableReaderNodeFactory2 m_delegate = new TableReaderNodeFactory2();
 
         private final URL m_url;
 
-        TestKnimeTableReaderNodeFactory2(final URL url) {
+        TestTableReaderNodeFactory2(final URL url) {
             super(true);
             m_url = url;
         }

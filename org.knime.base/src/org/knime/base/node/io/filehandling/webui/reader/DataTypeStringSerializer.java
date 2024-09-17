@@ -44,44 +44,63 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 28, 2024 (marcbux): created
+ *   Sep 20, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.webui.reader;
 
-import java.util.List;
+import java.io.IOException;
+import java.io.StringReader;
 
-import org.junit.jupiter.api.Test;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsPersistorTest;
+import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.ExternalDataTypeSerializer;
+import org.knime.base.node.preproc.manipulator.TableManipulatorConfigSerializer.DataTypeSerializer;
+import org.knime.core.data.DataType;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.config.base.JSONConfig;
+import org.knime.core.node.config.base.JSONConfig.WriterConfig;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-class CSVTransformationSettingsPersistorTest
-    extends CommonReaderTransformationSettingsPersistorTest<CSVTransformationSettings> {
+public interface DataTypeStringSerializer extends ExternalDataTypeSerializer<String, DataType> {
 
-    CSVTransformationSettingsPersistorTest() {
-        super(new CSVTransformationSettingsPersistor(), CSVTransformationSettings.class);
-    }
-
-    @Test
-    void testSaveLoad() throws InvalidSettingsException {
-        for (CSVTransformationSettings settings : testSettings()) {
-            testSaveLoad(settings);
-        }
-    }
-
-    private List<CSVTransformationSettings> testSettings() {
-        return List.of(//
-            createTransformationSettings(ColumnFilterMode.INTERSECTION), //
-            createTransformationSettings(ColumnFilterMode.UNION), //
-            createTransformationSettingsWithSpecs(Integer.class)//
-        );
+    @Override
+    default String toSerializableType(final DataType externalType) {
+        return typeToString(externalType);
     }
 
     @Override
-    protected CSVTransformationSettings constructSettings() {
-        return new CSVTransformationSettings();
+    default DataType toExternalType(final String serializedType) {
+        return stringToType(serializedType);
+    }
+
+    /**
+     * Serializes a given {@link DataType} into a string
+     *
+     * @param type the to-be-serialized {@link DataType}
+     * @return the serialized string
+     */
+    public static String typeToString(final DataType type) {
+        final var settings = new NodeSettings("type");
+        DataTypeSerializer.SERIALIZER_INSTANCE.save(type, settings);
+        return JSONConfig.toJSONString(settings, WriterConfig.DEFAULT);
+    }
+
+    /**
+     * De-serializes a string that has been generated via {@link JSONConfig#toJSONString} into a {@link DataType}.
+     *
+     * @param string the previously serialized string
+     * @return the de-serialized {@link DataType}
+     */
+    public static DataType stringToType(final String string) {
+        try {
+            final var settings = new NodeSettings("type");
+            JSONConfig.readJSON(settings, new StringReader(string));
+            return DataTypeSerializer.SERIALIZER_INSTANCE.load(settings);
+        } catch (IOException | InvalidSettingsException e) {
+            CommonReaderTransformationSettingsStateProviders.LOGGER
+                .error("Unknown and new columns can't be converted to the configured data type.");
+            return null;
+        }
     }
 }

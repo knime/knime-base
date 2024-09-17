@@ -44,26 +44,25 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 15, 2024 (marcbux): created
+ *   Sep 20, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.table.reader2;
+package org.knime.base.node.io.filehandling.webui.reader;
 
-import static org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.PRODUCTION_PATH_PROVIDER;
+import static org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.fromDataTypeId;
+import static org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.getDataTypeId;
+import static org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.toSpecMap;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import org.knime.base.node.io.filehandling.table.reader.KnimeTableMultiTableReadConfig;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.ColumnSpecSettings;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.PersistorSettings;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TableSpecSettings;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TransformationElementSettings;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.TypeChoicesProvider;
-import org.knime.base.node.preproc.manipulator.TableManipulatorConfigSerializer.DataTypeSerializer;
-import org.knime.base.node.preproc.manipulator.mapping.DataTypeProducerRegistry;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdSettings;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.PersistorSettings;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TransformationElementSettings;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TypeChoicesProvider;
+import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.ConfigAndReader;
+import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.ExternalDataTypeSerializer;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataType;
@@ -76,7 +75,7 @@ import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
 import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCellFactory;
 import org.knime.filehandling.core.node.table.reader.DefaultTableTransformation;
 import org.knime.filehandling.core.node.table.reader.ImmutableColumnTransformation;
-import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
+import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDLoader;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.DefaultTableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.NodeSettingsConfigID;
@@ -86,43 +85,40 @@ import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformati
 import org.knime.filehandling.core.node.table.reader.selector.ImmutableUnknownColumnsTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.selector.UnknownColumnsTransformation;
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec.TypedReaderTableSpecBuilder;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-@SuppressWarnings("restriction")
-final class KnimeTableReaderTransformationSettingsPersistor
-    extends NodeSettingsPersistorWithConfigKey<KnimeTableReaderTransformationSettings> {
+@SuppressWarnings({"javadoc", "restriction"})
+// TODO Javadoc
+public abstract class CommonReaderTransformationSettingsPersistor<C extends ReaderSpecificConfig<C>, I extends ConfigIdSettings<C>, S, T, R extends CommonReaderTransformationSettings<I, S>>
+    extends NodeSettingsPersistorWithConfigKey<R> implements ReaderSpecific.ProductionPathProviderAndTypeHierarchy<T>,
+    ExternalDataTypeSerializer<S, T>, ConfigAndReader<C, T> {
 
-    private enum MultiTableReadConfigIdLoader implements ConfigIDLoader {
-            ID_LOADER;
+    protected abstract R createDefaultTransformationSettings();
 
-        @Override
-        public ConfigID createFromSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-            // ??? this is different
-            return new NodeSettingsConfigID(settings.getNodeSettings("table_reader"));
-        }
+    protected abstract TableSpecConfigSerializer<T> createTableSpecConfigSerializer(ConfigIDLoader configIdLoader);
+
+    private TableSpecConfigSerializer<T> createTableSpecConfigSerializer() {
+        final ConfigIDLoader configIdLoader =
+            s -> new NodeSettingsConfigID(s.getNodeSettings(getConfigIdSettingsKey()));
+        return createTableSpecConfigSerializer(configIdLoader);
     }
 
+    protected abstract String getConfigIdSettingsKey();
+
     @Override
-    public KnimeTableReaderTransformationSettings load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        final var transformationSettings = new KnimeTableReaderTransformationSettings();
+    public R load(final NodeSettingsRO settings) throws InvalidSettingsException {
+        final var transformationSettings = createDefaultTransformationSettings();
         if (settings.containsKey(getConfigKey())) {
             // TODO NOSONAR We do not need to load the PersistorSettings here since they are not needed in the frontend.
             // This will change once we tackle UIEXT-1740 and this code will be used by the node model.
 
-            // ??? this is vastly different
-            final var tableSpecConfigSerializer =
-                TableSpecConfigSerializer.createStartingV43(DataTypeProducerRegistry.PATH_SERIALIZER,
-                    MultiTableReadConfigIdLoader.ID_LOADER, DataTypeSerializer.SERIALIZER_INSTANCE);
-            //            final var tableSpecConfigSerializer = TableSpecConfigSerializer.createStartingV42(PRODUCER_REGISTRY,
-            //                MultiTableReadConfigIdLoader.ID_LOADER, DataTypeSerializer.SERIALIZER_INSTANCE, DataType.class);
+            final var tableSpecConfigSerializer = createTableSpecConfigSerializer();
             final var tableSpecConfig = tableSpecConfigSerializer.load(settings.getNodeSettings(getConfigKey()));
 
-            final var transformationElements = tableSpecConfig.getTableTransformation().stream()
-                .map(KnimeTableReaderTransformationSettingsPersistor::getTransformationElement).toList();
+            final var transformationElements =
+                tableSpecConfig.getTableTransformation().stream().map(this::getTransformationElement).toList();
             final var unknownTransformationElement =
                 getTransformationElement(tableSpecConfig.getTableTransformation().getTransformationForUnknownColumns());
             transformationSettings.m_columnTransformation =
@@ -138,8 +134,8 @@ final class KnimeTableReaderTransformationSettingsPersistor
         return transformationSettings;
     }
 
-    private static Pair<Integer, TransformationElementSettings>
-        getTransformationElement(final ColumnTransformation<DataType> knownTransformation) {
+    private Pair<Integer, TransformationElementSettings>
+        getTransformationElement(final ColumnTransformation<T> knownTransformation) {
         return new Pair<>(knownTransformation.getPosition(), toTransformationElementSettings(knownTransformation));
     }
 
@@ -149,10 +145,9 @@ final class KnimeTableReaderTransformationSettingsPersistor
             toTransformationElementSettings(unknownColumnsTansformation));
     }
 
-    private static TransformationElementSettings
-        toTransformationElementSettings(final ColumnTransformation<DataType> t) {
+    private TransformationElementSettings toTransformationElementSettings(final ColumnTransformation<T> t) {
         final var defaultProductionPath =
-            PRODUCTION_PATH_PROVIDER.getDefaultProductionPath(t.getExternalSpec().getType());
+            getProductionPathProvider().getDefaultProductionPath(t.getExternalSpec().getType());
         return new TransformationElementSettings( //
             t.getOriginalName(), //
             t.keep(), //
@@ -169,39 +164,34 @@ final class KnimeTableReaderTransformationSettingsPersistor
 
     private static String getForcedType(final UnknownColumnsTransformation t) {
         if (t.forceType()) {
-            return t.getForcedType().getName();
+            return getDataTypeId(t.getForcedType());
         }
         return TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID;
     }
 
     @Override
-    public void save(final KnimeTableReaderTransformationSettings transformationSettings,
-        final NodeSettingsWO settings) {
+    public void save(final R transformationSettings, final NodeSettingsWO settings) {
         final var persistorSettings = transformationSettings.m_persistorSettings;
 
-        final var individualSpecs = toSpecMap(persistorSettings.m_specs);
-        final var rawSpec = KnimeTableReaderTransformationSettingsStateProviders.toRawSpec(individualSpecs);
+        final var individualSpecs = toSpecMap(this, persistorSettings.m_specs);
+        final var rawSpec = toRawSpec(individualSpecs);
         final var transformations = determineTransformations(transformationSettings, rawSpec);
-        final var tableTransformation = new DefaultTableTransformation<DataType>(rawSpec, transformations.getFirst(),
+        final var tableTransformation = new DefaultTableTransformation<T>(rawSpec, transformations.getFirst(),
             transformationSettings.m_persistorSettings.m_takeColumnsFrom, transformations.getSecond(),
             transformationSettings.m_enforceTypes, false);
 
         DataColumnSpec itemIdentifierColumnSpec = determineAppendPathColumnSpec(persistorSettings);
 
-        // ??? differs from CSV reader
-        final var config = new KnimeTableMultiTableReadConfig();
-        //        persistorSettings.m_configId.applyToConfig(config.getTableReadConfig());
-        final var tableSpecConfigSerializer =
-            TableSpecConfigSerializer.createStartingV43(DataTypeProducerRegistry.PATH_SERIALIZER,
-                MultiTableReadConfigIdLoader.ID_LOADER, DataTypeSerializer.SERIALIZER_INSTANCE);
+        final var config = getMultiTableReadConfig();
+        persistorSettings.m_configId.applyToConfig(config.getTableReadConfig());
+        final var tableSpecConfigSerializer = createTableSpecConfigSerializer();
         final var tableSpecConfig = DefaultTableSpecConfig.createFromTransformationModel(persistorSettings.m_sourceId,
             config.getConfigID(), individualSpecs, tableTransformation, itemIdentifierColumnSpec);
         tableSpecConfigSerializer.save(tableSpecConfig, settings.addNodeSettings(getConfigKey()));
     }
 
-    private static Pair<ArrayList<ColumnTransformation<DataType>>, UnknownColumnsTransformation>
-        determineTransformations(final KnimeTableReaderTransformationSettings transformationSettings,
-            final RawSpec<DataType> rawSpec) {
+    private Pair<ArrayList<ColumnTransformation<T>>, UnknownColumnsTransformation>
+        determineTransformations(final R transformationSettings, final RawSpec<T> rawSpec) {
         final Map<String, Integer> transformationIndexByColumnName = new HashMap<>();
         int unknownColumnsTransformationPosition = -1;
         for (int i = 0; i < transformationSettings.m_columnTransformation.length; i++) {
@@ -212,7 +202,7 @@ final class KnimeTableReaderTransformationSettingsPersistor
                 transformationIndexByColumnName.put(columnName, i);
             }
         }
-        final var transformations = new ArrayList<ColumnTransformation<DataType>>();
+        final var transformations = new ArrayList<ColumnTransformation<T>>();
         for (var column : rawSpec.getUnion()) {
 
             final var columnName = column.getName().get(); // NOSONAR in the TypedReaderTableSpecsProvider we make sure that names are always present
@@ -222,12 +212,12 @@ final class KnimeTableReaderTransformationSettingsPersistor
             final var position = transformationIndexByColumnName.get(columnName);
             final var transformation = transformationSettings.m_columnTransformation[position];
             final var externalType = column.getType();
-            final var productionPath = PRODUCTION_PATH_PROVIDER.getAvailableProductionPaths(externalType).stream()
+            final var productionPath = getProductionPathProvider().getAvailableProductionPaths(externalType).stream()
                 .filter(p -> p.getConverterFactory().getIdentifier().equals(transformation.m_type)).findFirst()
                 .orElseGet(() -> {
                     LOGGER.error(
                         String.format("The column '%s' can't be converted to the configured data type.", column));
-                    return PRODUCTION_PATH_PROVIDER.getDefaultProductionPath(externalType);
+                    return getProductionPathProvider().getDefaultProductionPath(externalType);
                 });
 
             transformations.add(new ImmutableColumnTransformation<>(column, productionPath,
@@ -243,19 +233,14 @@ final class KnimeTableReaderTransformationSettingsPersistor
         final TransformationElementSettings unknownTransformation, final int unknownColumnsTransformationPosition) {
         DataType forcedUnknownType = null;
         if (!unknownTransformation.m_type.equals(TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID)) {
-            forcedUnknownType = PRODUCTION_PATH_PROVIDER.getAvailableDataTypes().stream()
-                .filter(dataType -> dataType.getName().equals(unknownTransformation.m_type)).findFirst()
-                .orElseGet(() -> {
-                    LOGGER.error("Unknown and new columns can't be converted to the configured data type.");
-                    return null;
-                });
+            forcedUnknownType = fromDataTypeId(unknownTransformation.m_type);
         }
         return new ImmutableUnknownColumnsTransformation(unknownColumnsTransformationPosition,
             unknownTransformation.m_includeInOutput, forcedUnknownType != null, forcedUnknownType);
     }
 
     // TODO NOSONAR De-duplicate this code when migrating the node model in UIEXT-1740
-    private static DataColumnSpec determineAppendPathColumnSpec(final PersistorSettings persistorSettings) {
+    private static DataColumnSpec determineAppendPathColumnSpec(final PersistorSettings<?, ?> persistorSettings) {
         // code taken from DefaultMultiTableReadFactory.createItemIdentifierColumn
         if (persistorSettings.m_appendPathColumn) {
             DataColumnSpecCreator itemIdColCreator = null;
@@ -277,18 +262,5 @@ final class KnimeTableReaderTransformationSettingsPersistor
             }
         }
         return null;
-    }
-
-    static Map<String, TypedReaderTableSpec<DataType>> toSpecMap(final TableSpecSettings[] specs) {
-        final var individualSpecs = new LinkedHashMap<String, TypedReaderTableSpec<DataType>>();
-        for (final var tableSpec : specs) {
-            final TypedReaderTableSpecBuilder<DataType> specBuilder = TypedReaderTableSpec.builder();
-            for (final var colSpec : tableSpec.m_spec) {
-                specBuilder.addColumn(colSpec.m_name, ColumnSpecSettings.stringToType(colSpec.m_type), true);
-            }
-            final var spec = specBuilder.build();
-            individualSpecs.put(tableSpec.m_sourceId, spec);
-        }
-        return individualSpecs;
     }
 }

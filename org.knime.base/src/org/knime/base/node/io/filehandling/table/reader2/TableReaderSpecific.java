@@ -44,44 +44,56 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 28, 2024 (marcbux): created
+ *   Sep 20, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.table.reader2;
 
-import java.util.List;
-
-import org.junit.jupiter.api.Test;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsPersistorTest;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
+import org.knime.base.node.io.filehandling.table.reader.KnimeTableMultiTableReadConfig;
+import org.knime.base.node.io.filehandling.table.reader.KnimeTableReader;
+import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific;
+import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
+import org.knime.base.node.preproc.manipulator.mapping.DataTypeTypeHierarchy;
+import org.knime.base.node.preproc.manipulator.mapping.DataValueReadAdapterFactory;
+import org.knime.core.data.DataType;
+import org.knime.filehandling.core.node.table.reader.DefaultProductionPathProvider;
+import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
+import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-class CSVTransformationSettingsPersistorTest
-    extends CommonReaderTransformationSettingsPersistorTest<CSVTransformationSettings> {
+class TableReaderSpecific {
 
-    CSVTransformationSettingsPersistorTest() {
-        super(new CSVTransformationSettingsPersistor(), CSVTransformationSettings.class);
-    }
+    static final ProductionPathProvider<DataType> PRODUCTION_PATH_PROVIDER =
+        new DefaultProductionPathProvider<>(DataValueReadAdapterFactory.INSTANCE.getProducerRegistry(),
+            DataValueReadAdapterFactory.INSTANCE::getDefaultType);
 
-    @Test
-    void testSaveLoad() throws InvalidSettingsException {
-        for (CSVTransformationSettings settings : testSettings()) {
-            testSaveLoad(settings);
+    interface ProductionPathProviderAndTypeHierarchy
+        extends ReaderSpecific.ProductionPathProviderAndTypeHierarchy<DataType> {
+        @Override
+        default ProductionPathProvider<DataType> getProductionPathProvider() {
+            return PRODUCTION_PATH_PROVIDER;
+        }
+
+        @Override
+        default TypeHierarchy<DataType, DataType> getTypeHierarchy() {
+            return DataTypeTypeHierarchy.INSTANCE;
         }
     }
 
-    private List<CSVTransformationSettings> testSettings() {
-        return List.of(//
-            createTransformationSettings(ColumnFilterMode.INTERSECTION), //
-            createTransformationSettings(ColumnFilterMode.UNION), //
-            createTransformationSettingsWithSpecs(Integer.class)//
-        );
+    interface ConfigAndReader extends ReaderSpecific.ConfigAndReader<TableManipulatorConfig, DataType> {
+        @Override
+        default KnimeTableMultiTableReadConfig getMultiTableReadConfig() {
+            return new KnimeTableMultiTableReadConfig();
+        }
+
+        @Override
+        default KnimeTableReader getTableReader() {
+            return new KnimeTableReader();
+        }
     }
 
-    @Override
-    protected CSVTransformationSettings constructSettings() {
-        return new CSVTransformationSettings();
+    private TableReaderSpecific() {
+        // Utility class
     }
 }

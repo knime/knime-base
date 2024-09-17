@@ -48,43 +48,32 @@
  */
 package org.knime.base.node.io.filehandling.table.reader2;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.stream.Stream;
 
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOptionPersistor;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.AdvancedSettings.IfSchemaChangesOption;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.AdvancedSettings.IfSchemaChangesPersistor;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.AdvancedSettings.SkipFirstDataRowsPersistor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * {@link DefaultNodeSettingsSnapshotTest} for the {@link KnimeTableReaderNodeSettings}.
+ * {@link DefaultNodeSettingsSnapshotTest} for the {@link TableReaderNodeSettings}.
  *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
-class KnimeTableReaderNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
-    protected KnimeTableReaderNodeSettingsTest() {
+class TableReaderNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    protected TableReaderNodeSettingsTest() {
         super(getConfig());
     }
 
     private static SnapshotTestConfiguration getConfig() {
         return SnapshotTestConfiguration.builder() //
-            .testJsonFormsForModel(KnimeTableReaderNodeSettings.class) //
+            .testJsonFormsForModel(TableReaderNodeSettings.class) //
             .testJsonFormsWithInstance(SettingsType.MODEL, () -> createSettings()) //
             .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
             .testNodeSettingsStructure(() -> createSettings()) //
@@ -92,69 +81,24 @@ class KnimeTableReaderNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
             .build();
     }
 
-    private static KnimeTableReaderNodeSettings createSettings() {
-        var res = new KnimeTableReaderNodeSettings();
+    private static TableReaderNodeSettings createSettings() {
+        var res = new TableReaderNodeSettings();
         res.m_settings.m_source.m_path = new FSLocation(FSCategory.RELATIVE, "foo");
         return res;
     }
 
-    private static KnimeTableReaderNodeSettings readSettings() {
+    private static TableReaderNodeSettings readSettings() {
         try {
-            var path = getSnapshotPath(KnimeTableReaderNodeSettingsTest.class).getParent().resolve("node_settings")
-                .resolve("KnimeTableReaderNodeSettings.xml");
+            var path = getSnapshotPath(TableReaderNodeSettingsTest.class).getParent().resolve("node_settings")
+                .resolve("TableReaderNodeSettings.xml");
             try (var fis = new FileInputStream(path.toFile())) {
                 var nodeSettings = NodeSettings.loadFromXML(fis);
                 return DefaultNodeSettings.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
-                    KnimeTableReaderNodeSettings.class);
+                    TableReaderNodeSettings.class);
             }
         } catch (IOException | InvalidSettingsException e) {
             throw new RuntimeException(e);
         }
     }
 
-    @ParameterizedTest
-    @MethodSource
-    void testHowToCombineColumnsOptionPersistor(final HowToCombineColumnsOption howToCombineColumnsOption)
-        throws InvalidSettingsException {
-        final var copy = saveLoad(HowToCombineColumnsOptionPersistor.class, HowToCombineColumnsOption.class,
-            howToCombineColumnsOption);
-        assertEquals(howToCombineColumnsOption, copy);
-    }
-
-    private static Stream<HowToCombineColumnsOption> testHowToCombineColumnsOptionPersistor() {
-        return Stream.of(HowToCombineColumnsOption.FAIL, HowToCombineColumnsOption.UNION,
-            HowToCombineColumnsOption.INTERSECTION);
-    }
-
-    @ParameterizedTest
-    @MethodSource
-    void testIfSchemaChangesPersistor(final IfSchemaChangesOption ifSchemaChangesOption)
-        throws InvalidSettingsException {
-        final var copy = saveLoad(IfSchemaChangesPersistor.class, IfSchemaChangesOption.class, ifSchemaChangesOption);
-        assertEquals(ifSchemaChangesOption, copy);
-    }
-
-    private static Stream<IfSchemaChangesOption> testIfSchemaChangesPersistor() {
-        return Stream.of(IfSchemaChangesOption.FAIL, IfSchemaChangesOption.USE_NEW_SCHEMA,
-            IfSchemaChangesOption.IGNORE);
-    }
-
-    @ParameterizedTest
-    @MethodSource
-    void testSkipFirstDataRowsPersistor(final Long l) throws InvalidSettingsException {
-        final var copy = saveLoad(SkipFirstDataRowsPersistor.class, Long.class, l);
-        assertEquals(l, copy);
-    }
-
-    private static Stream<Long> testSkipFirstDataRowsPersistor() {
-        return Stream.of(0l, 1l);
-    }
-
-    static <S, P extends FieldNodeSettingsPersistor<S>> S saveLoad(final Class<P> persistorType,
-        final Class<S> settingsType, final S value) throws InvalidSettingsException {
-        var persistor = FieldNodeSettingsPersistor.createInstance(persistorType, settingsType, "key");
-        var nodeSettings = new NodeSettings("settings");
-        persistor.save(value, nodeSettings);
-        return persistor.load(nodeSettings);
-    }
 }

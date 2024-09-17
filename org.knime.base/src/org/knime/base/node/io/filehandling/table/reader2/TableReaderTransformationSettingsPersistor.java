@@ -44,44 +44,43 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 28, 2024 (marcbux): created
+ *   May 15, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.table.reader2;
 
-import java.util.List;
-
-import org.junit.jupiter.api.Test;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsPersistorTest;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
+import org.knime.base.node.io.filehandling.table.reader2.TableReaderSpecific.ConfigAndReader;
+import org.knime.base.node.io.filehandling.table.reader2.TableReaderSpecific.ProductionPathProviderAndTypeHierarchy;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdSettings;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsPersistor;
+import org.knime.base.node.io.filehandling.webui.reader.DataTypeStringSerializer;
+import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
+import org.knime.base.node.preproc.manipulator.TableManipulatorConfigSerializer.DataTypeSerializer;
+import org.knime.base.node.preproc.manipulator.mapping.DataTypeProducerRegistry;
+import org.knime.core.data.DataType;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDLoader;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigSerializer;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-class CSVTransformationSettingsPersistorTest
-    extends CommonReaderTransformationSettingsPersistorTest<CSVTransformationSettings> {
+final class TableReaderTransformationSettingsPersistor extends
+    CommonReaderTransformationSettingsPersistor<TableManipulatorConfig, ConfigIdSettings<TableManipulatorConfig>, String, DataType, TableReaderTransformationSettings>
+    implements ProductionPathProviderAndTypeHierarchy,
+    DataTypeStringSerializer, ConfigAndReader {
 
-    CSVTransformationSettingsPersistorTest() {
-        super(new CSVTransformationSettingsPersistor(), CSVTransformationSettings.class);
-    }
-
-    @Test
-    void testSaveLoad() throws InvalidSettingsException {
-        for (CSVTransformationSettings settings : testSettings()) {
-            testSaveLoad(settings);
-        }
-    }
-
-    private List<CSVTransformationSettings> testSettings() {
-        return List.of(//
-            createTransformationSettings(ColumnFilterMode.INTERSECTION), //
-            createTransformationSettings(ColumnFilterMode.UNION), //
-            createTransformationSettingsWithSpecs(Integer.class)//
-        );
+    @Override
+    protected TableReaderTransformationSettings createDefaultTransformationSettings() {
+        return new TableReaderTransformationSettings();
     }
 
     @Override
-    protected CSVTransformationSettings constructSettings() {
-        return new CSVTransformationSettings();
+    protected TableSpecConfigSerializer<DataType> createTableSpecConfigSerializer(final ConfigIDLoader configIdLoader) {
+        return TableSpecConfigSerializer.createStartingV43(DataTypeProducerRegistry.PATH_SERIALIZER, configIdLoader,
+            DataTypeSerializer.SERIALIZER_INSTANCE);
+    }
+
+    @Override
+    protected String getConfigIdSettingsKey() {
+        return "table_reader";
     }
 }

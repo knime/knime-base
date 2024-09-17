@@ -59,8 +59,8 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSetting
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.AutoDetectButtonRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.BufferSizeRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.CommentStartRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FileChooserRef;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
@@ -151,7 +151,7 @@ public final class CSVFormatProvider extends CSVFormatAutoDetector implements St
         initializer.computeOnButtonClick(AutoDetectButtonRef.class);
 
         // Dependencies
-        m_fileChooserSupplier = initializer.getValueSupplier(FileChooserRef.class);
+        m_fileChooserSupplier = initializer.getValueSupplier(CommonReaderNodeSettings.Settings.FileChooserRef.class);
         m_skipFirstLinesSupplier = initializer.getValueSupplier(SkipFirstLinesRef.class);
         m_charsetSupplier = initializer.getValueSupplier(CharsetRef.class);
         m_bufferSizeSupplier = initializer.getValueSupplier(BufferSizeRef.class);

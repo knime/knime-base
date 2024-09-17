@@ -44,44 +44,51 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 28, 2024 (marcbux): created
+ *   Sep 20, 2024 (Paul Bärnreuther): created
  */
 package org.knime.base.node.io.filehandling.csv.reader2;
 
-import java.util.List;
+import org.knime.base.node.io.filehandling.csv.reader.CSVMultiTableReadConfig;
+import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReader;
+import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
+import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
+import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific;
+import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
+import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 
-import org.junit.jupiter.api.Test;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsPersistorTest;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
+class CSVReaderSpecific {
 
-/**
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
- */
-class CSVTransformationSettingsPersistorTest
-    extends CommonReaderTransformationSettingsPersistorTest<CSVTransformationSettings> {
+    static final ProductionPathProvider<Class<?>> PRODUCTION_PATH_PROVIDER =
+        StringReadAdapterFactory.INSTANCE.createProductionPathProvider();
 
-    CSVTransformationSettingsPersistorTest() {
-        super(new CSVTransformationSettingsPersistor(), CSVTransformationSettings.class);
-    }
+    interface ProductionPathProviderAndTypeHierarchy
+        extends ReaderSpecific.ProductionPathProviderAndTypeHierarchy<Class<?>> {
+        @Override
+        default ProductionPathProvider<Class<?>> getProductionPathProvider() {
+            return PRODUCTION_PATH_PROVIDER;
+        }
 
-    @Test
-    void testSaveLoad() throws InvalidSettingsException {
-        for (CSVTransformationSettings settings : testSettings()) {
-            testSaveLoad(settings);
+        @Override
+        default TypeHierarchy<Class<?>, Class<?>> getTypeHierarchy() {
+            return StringReadAdapterFactory.TYPE_HIERARCHY;
         }
     }
 
-    private List<CSVTransformationSettings> testSettings() {
-        return List.of(//
-            createTransformationSettings(ColumnFilterMode.INTERSECTION), //
-            createTransformationSettings(ColumnFilterMode.UNION), //
-            createTransformationSettingsWithSpecs(Integer.class)//
-        );
+    interface ConfigAndReader extends ReaderSpecific.ConfigAndReader<CSVTableReaderConfig, Class<?>> {
+
+        @Override
+        default CSVMultiTableReadConfig getMultiTableReadConfig() {
+            return new CSVMultiTableReadConfig();
+        }
+
+        @Override
+        default CSVTableReader getTableReader() {
+            return new CSVTableReader();
+        }
+
     }
 
-    @Override
-    protected CSVTransformationSettings constructSettings() {
-        return new CSVTransformationSettings();
+    private CSVReaderSpecific() {
+        // Utility class
     }
 }

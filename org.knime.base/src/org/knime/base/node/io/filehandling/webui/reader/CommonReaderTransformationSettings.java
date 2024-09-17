@@ -44,39 +44,25 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 8, 2024 (marcbux): created
+ *   Sep 19, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.table.reader2;
+package org.knime.base.node.io.filehandling.webui.reader;
 
-import java.io.IOException;
-import java.io.StringReader;
+import java.util.List;
 import java.util.function.Supplier;
 
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.Transformation;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.Transformation.EnforceTypes;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.AdvancedSettings.AppendPathColumnRef;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.AdvancedSettings.FilePathColumnNameRef;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOptionRef;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.FSLocationsProvider;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.SourceIdProvider;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.TableSpecSettingsProvider;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.TypeChoicesProvider;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
-import org.knime.base.node.preproc.manipulator.TableManipulatorConfigSerializer.DataTypeSerializer;
-import org.knime.base.node.preproc.manipulator.mapping.DataTypeTypeHierarchy;
-import org.knime.base.node.preproc.manipulator.mapping.DataValueReadAdapterFactory;
-import org.knime.core.data.DataType;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettings;
-import org.knime.core.node.config.base.JSONConfig;
-import org.knime.core.node.config.base.JSONConfig.WriterConfig;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdSettings;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.FSLocationsProvider;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.SourceIdProvider;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TransformationSettingsWidgetModification;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TypeChoicesProvider;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LatentWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalArrayWidget;
@@ -89,96 +75,63 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.filehandling.core.node.table.reader.DefaultProductionPathProvider;
-import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
-import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @param <C> the type of the config settings
+ * @param <S> the type of the serializable form for external data types
  */
-@SuppressWarnings("restriction")
-final class KnimeTableReaderTransformationSettings implements WidgetGroup, PersistableSettings {
+@SuppressWarnings({"javadoc", "restriction"})
+@Layout(CommonReaderLayout.Transformation.class)
+public abstract class CommonReaderTransformationSettings<C extends ConfigIdSettings<?>, S>
+    implements PersistableSettings, WidgetGroup {
 
-    // ??? this is different
-    static final ProductionPathProvider<DataType> PRODUCTION_PATH_PROVIDER =
-        new DefaultProductionPathProvider<>(DataValueReadAdapterFactory.INSTANCE.getProducerRegistry(),
-            DataValueReadAdapterFactory.INSTANCE::getDefaultType);
+    protected CommonReaderTransformationSettings(final C configId) {
+        m_persistorSettings = new PersistorSettings<>(configId);
+    }
 
-    static final TypeHierarchy<DataType, DataType> TYPE_HIERARCHY = DataTypeTypeHierarchy.INSTANCE;
+    CommonReaderTransformationSettings() {
+        // Default constructor required as per {@link PersistablSettings} contract
+    }
 
-    //    // ??? we don't actually need this class, but we leave it in since it should make de-duplication easier
-    //    static final class ConfigIdSettings implements WidgetGroup, PersistableSettings {
-    //
-    //        // FirstColumnContainsRowIdsRef and SkipFirstDataRowsRef settings are part of the table reader settings AND part of the CSV reader config id, but not currently part of the table reader config id
-    //        // see TableManipulatorConfigSerializer::createFromConfig versus CSVMultiTableReadConfigSerializer::createFromConfig
-    //        // the reason is that these settings are relevant for the spec in the CSV reader, but, if you think about it, not for the table reader
-    //
-    //        void applyToConfig(final DefaultTableReadConfig<TableManipulatorConfig> config) {
-    //            //            config.setColumnHeaderIdx(0);
-    //            //            config.setRowIDIdx(0);
-    //            //            config.setLimitRowsForSpec(false);
-    //            //            config.setUseColumnHeaderIdx(false);
-    //        }
-    //    }
+    public static class ConfigIdSettings<C extends ReaderSpecificConfig<C>>
+        implements WidgetGroup, PersistableSettings {
+        /**
+         * @param config
+         */
+        protected void applyToConfig(final DefaultTableReadConfig<C> config) {
+            // Do nothing per default
+        }
+    }
 
-    static final class ColumnSpecSettings implements WidgetGroup, PersistableSettings {
+    static final class ColumnSpecSettings<S> implements WidgetGroup, PersistableSettings {
 
         String m_name;
 
-        //??? this type is different
-        String m_type;
+        S m_type;
 
-        ColumnSpecSettings(final String name, final DataType type) {
+        ColumnSpecSettings(final String name, final S type) {
             m_name = name;
-            m_type = typeToString(type);
+            m_type = type;
         }
 
         ColumnSpecSettings() {
         }
-
-        /**
-         * Serializes a given {@link DataType} into a string
-         *
-         * @param type the to-be-serialized {@link DataType}
-         * @return the serialized string
-         */
-        public static String typeToString(final DataType type) {
-            final var settings = new NodeSettings("type");
-            DataTypeSerializer.SERIALIZER_INSTANCE.save(type, settings);
-            return JSONConfig.toJSONString(settings, WriterConfig.DEFAULT);
-        }
-
-        /**
-         * De-serializes a string that has been generated via {@link DataTypeSerializationUtil#typeToString} into a
-         * {@link DataType}.
-         *
-         * @param string the previously serialized string
-         * @return the de-serialized {@link DataType}
-         */
-        public static DataType stringToType(final String string) {
-            try {
-                final var settings = new NodeSettings("type");
-                JSONConfig.readJSON(settings, new StringReader(string));
-                return DataTypeSerializer.SERIALIZER_INSTANCE.load(settings);
-            } catch (IOException | InvalidSettingsException e) {
-                return DataType.getMissingCell().getType(); // TODO
-            }
-        }
     }
 
-    // ??? from here on out, everything is copied from the CSV reader
-
-    static final class TableSpecSettings implements WidgetGroup, PersistableSettings {
+    public static final class TableSpecSettings<T> implements WidgetGroup, PersistableSettings {
 
         String m_sourceId;
 
-        ColumnSpecSettings[] m_spec;
+        List<ColumnSpecSettings<T>> m_spec;
 
-        TableSpecSettings(final String sourceId, final ColumnSpecSettings[] spec) {
+        TableSpecSettings(final String sourceId, final List<ColumnSpecSettings<T>> spec) {
             m_sourceId = sourceId;
             m_spec = spec;
         }
@@ -187,19 +140,28 @@ final class KnimeTableReaderTransformationSettings implements WidgetGroup, Persi
         }
     }
 
+    static class TableSpecSettingsRef implements Reference<List<TableSpecSettings<?>>> {
+    }
+
     /**
      * TODO NOSONAR UIEXT-1946 These settings are sent to the frontend where they are not needed. They are merely held
      * here to be used in the CSVTransformationSettingsPersistor. We should look for an alternative mechanism to provide
      * these settings to the persistor. This would then also allow us to use non-serializable types like the
      * TypedReaderTableSpec instead of the TableSpecSettings, saving us the back-and-forth conversion.
      */
-    static final class PersistorSettings implements WidgetGroup, PersistableSettings {
+    static class PersistorSettings<C extends ConfigIdSettings<?>, S> implements WidgetGroup, PersistableSettings {
 
-        //        static class ConfigIdReference implements Reference<ConfigIdSettings> {
-        //        }
-        //
-        //        @ValueReference(ConfigIdReference.class)
-        //        ConfigIdSettings m_configId = new ConfigIdSettings();
+        private PersistorSettings(final C configId) {
+            CheckUtils.checkArgumentNotNull(configId);
+            m_configId = configId;
+        }
+
+        PersistorSettings() {
+            // Default constructor required as per {@link PersistablSettings} contract
+        }
+
+        @Modification.WidgetReference(TransformationSettingsWidgetModification.ConfigIdSettingsRef.class) // for adding dynamic ref
+        C m_configId;
 
         @ValueProvider(SourceIdProvider.class)
         String m_sourceId = "";
@@ -207,34 +169,31 @@ final class KnimeTableReaderTransformationSettings implements WidgetGroup, Persi
         @ValueProvider(FSLocationsProvider.class)
         FSLocation[] m_fsLocations = new FSLocation[0];
 
-        static class TableSpecSettingsRef implements Reference<TableSpecSettings[]> {
-        }
-
-        @ValueProvider(TableSpecSettingsProvider.class)
         @ValueReference(TableSpecSettingsRef.class)
-        TableSpecSettings[] m_specs = new TableSpecSettings[0];
+        @Modification.WidgetReference(TransformationSettingsWidgetModification.SpecsRef.class) // for adding dynamic and provider
+        List<TableSpecSettings<S>> m_specs = List.of();
 
-        @ValueProvider(AppendPathColumnRef.class)
+        @ValueProvider(CommonReaderNodeSettings.AdvancedSettings.AppendPathColumnRef.class)
         boolean m_appendPathColumn;
 
-        @ValueProvider(FilePathColumnNameRef.class)
+        @ValueProvider(CommonReaderNodeSettings.AdvancedSettings.FilePathColumnNameRef.class)
         String m_filePathColumnName = "File Path";
 
         @ValueProvider(TakeColumnsFromProvider.class)
         ColumnFilterMode m_takeColumnsFrom = ColumnFilterMode.UNION;
     }
 
-    PersistorSettings m_persistorSettings = new PersistorSettings();
+    PersistorSettings<C, S> m_persistorSettings = new PersistorSettings<>();
 
     static class TakeColumnsFromProvider implements StateProvider<ColumnFilterMode> {
 
-        private Supplier<HowToCombineColumnsOption> m_howToCombineColumnsOptionSupplier;
+        private Supplier<CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption> m_howToCombineColumnsOptionSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
             initializer.computeBeforeOpenDialog();
-            m_howToCombineColumnsOptionSupplier =
-                initializer.computeFromValueSupplier(HowToCombineColumnsOptionRef.class);
+            m_howToCombineColumnsOptionSupplier = initializer
+                .computeFromValueSupplier(CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOptionRef.class);
         }
 
         @Override
@@ -243,7 +202,8 @@ final class KnimeTableReaderTransformationSettings implements WidgetGroup, Persi
         }
     }
 
-    @Widget(title = "Enforce types", description = EnforceTypes.DESCRIPTION, hideFlowVariableButton = true)
+    @Widget(title = "Enforce types", description = CommonReaderLayout.Transformation.EnforceTypes.DESCRIPTION,
+        hideFlowVariableButton = true)
     boolean m_enforceTypes = true;
 
     static class TransformationElementSettings implements WidgetGroup, PersistableSettings {
@@ -293,7 +253,6 @@ final class KnimeTableReaderTransformationSettings implements WidgetGroup, Persi
             public String computeState(final DefaultNodeSettingsContext context) {
                 return m_originalColumnNameSupplier.get();
             }
-
         }
 
         static final class TypeResetter implements StateProvider<String> {
@@ -318,7 +277,7 @@ final class KnimeTableReaderTransformationSettings implements WidgetGroup, Persi
 
             @Override
             public void init(final StateProviderInitializer initializer) {
-                initializer.computeOnValueChange(PersistorSettings.TableSpecSettingsRef.class);
+                initializer.computeOnValueChange(TableSpecSettingsRef.class);
                 m_originalColumnNameSupplier = initializer.getValueSupplier(ColumnNameRef.class);
             }
 
@@ -335,7 +294,7 @@ final class KnimeTableReaderTransformationSettings implements WidgetGroup, Persi
 
             @Override
             public void init(final StateProviderInitializer initializer) {
-                initializer.computeOnValueChange(PersistorSettings.TableSpecSettingsRef.class);
+                initializer.computeOnValueChange(TableSpecSettingsRef.class);
                 m_originalTypeLabelSupplier = initializer.getValueSupplier(OriginalTypeLabelRef.class);
             }
 
@@ -353,19 +312,17 @@ final class KnimeTableReaderTransformationSettings implements WidgetGroup, Persi
             }
         }
 
-        @Widget(title = "Column name", description = "", hideTitle = true, hideFlowVariableButton = true) // TODO NOSONAR UIEXT-1901 add description
+        @Widget(title = "Column name", description = "", hideTitle = true, hideFlowVariableButton = true)
         @ValueProvider(ColumnNameResetter.class)
         @Effect(predicate = ElementIsEditedAndColumnNameIsNotNull.class, type = EffectType.SHOW)
         @JsonInclude(Include.ALWAYS) // Necessary for comparison against m_columnName
         String m_columnRename;
 
-        @Widget(title = "Column type", description = "", hideTitle = true, hideFlowVariableButton = true) // TODO NOSONAR UIEXT-1901 add description
-        @ChoicesWidget(choicesProvider = TypeChoicesProvider.class)
+        @Widget(title = "Column type", description = "", hideTitle = true, hideFlowVariableButton = true)
+        @Modification.WidgetReference(TransformationSettingsWidgetModification.TypeChoicesWidgetRef.class) // for adding dynamic choices
         @ValueProvider(TypeResetter.class)
         @Effect(predicate = InternalArrayWidget.ElementIsEdited.class, type = EffectType.SHOW)
         String m_type;
-
-        // extra field source type serialized
 
         TransformationElementSettings() {
         }
@@ -386,18 +343,19 @@ final class KnimeTableReaderTransformationSettings implements WidgetGroup, Persi
         }
     }
 
-    static final class TransformationElementSettingsReference implements Reference<TransformationElementSettings[]> {
+    static final class TransformationElementSettingsRef implements Reference<TransformationElementSettings[]> {
     }
 
-    @Widget(title = "Transformations", description = Transformation.DESCRIPTION)
+    @Widget(title = "Transformations", description = CommonReaderLayout.Transformation.DESCRIPTION)
     // TODO NOSONAR UIEXT-1901 this description is currently not shown
     @ArrayWidget(elementTitle = "Column", showSortButtons = true, hasFixedSize = true)
     @InternalArrayWidget(withEditAndReset = true, withElementCheckboxes = true,
         titleProvider = TransformationElementSettings.TitleProvider.class,
         subTitleProvider = TransformationElementSettings.SubTitleProvider.class)
-    @ValueProvider(TransformationElementSettingsProvider.class)
-    @ValueReference(TransformationElementSettingsReference.class)
+    @ValueReference(TransformationElementSettingsRef.class)
+    @Modification.WidgetReference(TransformationSettingsWidgetModification.TransformationElementSettingsArrayWidgetRef.class) // for adding dynamic choices
     @Effect(predicate = FileSystemPortConnectionUtil.ConnectedWithoutFileSystemSpec.class, type = EffectType.HIDE)
     TransformationElementSettings[] m_columnTransformation =
         new TransformationElementSettings[]{TransformationElementSettings.createUnknownElement()};
+
 }

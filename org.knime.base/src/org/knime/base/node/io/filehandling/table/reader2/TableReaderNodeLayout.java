@@ -44,44 +44,32 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 28, 2024 (marcbux): created
+ *   Mar 6, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.table.reader2;
 
-import java.util.List;
-
-import org.junit.jupiter.api.Test;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsPersistorTest;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ *
+ *         ??? this file is basically a subset of the CSV Layout; however, the naming and description of a few settings
+ *         slightly vary
  */
-class CSVTransformationSettingsPersistorTest
-    extends CommonReaderTransformationSettingsPersistorTest<CSVTransformationSettings> {
+@SuppressWarnings({"restriction", "java:S1214", "java:S103"})
+public class TableReaderNodeLayout {
 
-    CSVTransformationSettingsPersistorTest() {
-        super(new CSVTransformationSettingsPersistor(), CSVTransformationSettings.class);
+    @After(CommonReaderLayout.MultipleFileHandling.HowToCombineColumns.class)
+    @Before(CommonReaderLayout.MultipleFileHandling.AppendFilePathColumn.class)
+    interface PrependTableIndexToRowId {
+        String DESCRIPTION = """
+                Only enabled if the existing RowIDs are used. If checked, a prefix is
+                prepended to the RowIDs that indicates which table the row came
+                from.
+                The format of the prefix is “File_0_“, “File_1_” and so on.
+                    """;
     }
 
-    @Test
-    void testSaveLoad() throws InvalidSettingsException {
-        for (CSVTransformationSettings settings : testSettings()) {
-            testSaveLoad(settings);
-        }
-    }
-
-    private List<CSVTransformationSettings> testSettings() {
-        return List.of(//
-            createTransformationSettings(ColumnFilterMode.INTERSECTION), //
-            createTransformationSettings(ColumnFilterMode.UNION), //
-            createTransformationSettingsWithSpecs(Integer.class)//
-        );
-    }
-
-    @Override
-    protected CSVTransformationSettings constructSettings() {
-        return new CSVTransformationSettings();
-    }
 }

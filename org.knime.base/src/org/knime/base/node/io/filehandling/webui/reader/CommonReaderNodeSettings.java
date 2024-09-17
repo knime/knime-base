@@ -44,36 +44,25 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 9, 2024 (marcbux): created
+ *   Sep 17, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.table.reader2;
+package org.knime.base.node.io.filehandling.webui.reader;
 
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.ColumnAndDataTypeDetection.IfSchemaChanges;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.DataArea.FirstColumnContainsRowIds;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.DataArea.LimitNumberOfRows;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.DataArea.MaximumNumberOfRows;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.DataArea.SkipFirstDataRows;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.File.Source;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.MultipleFileHandling.AppendFilePathColumn;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.MultipleFileHandling.FilePathColumnName;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.MultipleFileHandling.HowToCombineColumns;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.MultipleFileHandling.PrependFileIndexToRowId;
 import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.Transformation;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout.DataArea.UseExistingRowId;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.LegacyReaderFilerChooserPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -83,37 +72,37 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-@SuppressWarnings("restriction")
-public class KnimeTableReaderNodeSettings implements DefaultNodeSettings {
+@SuppressWarnings({"javadoc", "restriction"})
+public final class CommonReaderNodeSettings {
 
-    @Persist(configKey = "settings")
-    Settings m_settings = new Settings();
+    public static class Settings implements WidgetGroup, PersistableSettings {
 
-    @Persist(configKey = "advanced_settings")
-    AdvancedSettings m_advancedSettings = new AdvancedSettings();
-
-    @Persist(configKey = "table_spec_config", hidden = true,
-        customPersistor = KnimeTableReaderTransformationSettingsPersistor.class)
-    @Layout(Transformation.class)
-    KnimeTableReaderTransformationSettings m_tableSpecConfig = new KnimeTableReaderTransformationSettings();
-
-    static class Settings implements WidgetGroup, PersistableSettings {
-
-        static final class FileChooserRef extends ReferenceStateProvider<FileChooser> {
+        public static final class FileChooserRef extends ReferenceStateProvider<FileChooser>
+            implements Modification.Reference {
         }
 
-        @Widget(title = "Source", description = Source.DESCRIPTION)
+        public static abstract class SetFileReaderWidgetExtensions implements WidgetGroup.Modifier {
+            @Override
+            public void modify(final WidgetGroupModifier group) {
+                group.find(FileChooserRef.class).modifyAnnotation(FileReaderWidget.class)
+                    .withProperty("fileExtensions", getExtensions()).modify();
+            }
+
+            protected abstract String[] getExtensions();
+        }
+
+        @Widget(title = "Source", description = CommonReaderLayout.File.Source.DESCRIPTION)
         @ValueReference(FileChooserRef.class)
-        @Layout(Source.class)
-        @Persist(configKey = "file_selection", settingsModel = SettingsModelReaderFileChooser.class)
-        @FileReaderWidget(fileExtensions = {"table"}) // ??? different to CSV reader
-        FileChooser m_source = new FileChooser();
+        @Layout(CommonReaderLayout.File.Source.class)
+        @Persist(configKey = "file_selection", customPersistor = LegacyReaderFilerChooserPersistor.class)
+        @Modification.WidgetReference(FileChooserRef.class)
+        @FileReaderWidget()
+        public FileChooser m_source = new FileChooser(); // TODO should not be public
 
         @Persist(configKey = "file_selection", hidden = true)
         FileSelectionInternal m_fileSelectionInternal = new FileSelectionInternal();
@@ -126,33 +115,32 @@ public class KnimeTableReaderNodeSettings implements DefaultNodeSettings {
             boolean m_enabledStatus = true;
         }
 
-        static class FirstColumnContainsRowIdsRef extends ReferenceStateProvider<Boolean> {
+        public static class FirstColumnContainsRowIdsRef extends ReferenceStateProvider<Boolean> {
         }
 
-        @Widget(title = "First column contains RowIDs", description = FirstColumnContainsRowIds.DESCRIPTION)
+        public static class UseExistingRowIdWidgetRef implements Modification.Reference {
+        }
+
+        @Widget(title = "Use existing RowID", description = UseExistingRowId.DESCRIPTION)
         @ValueReference(FirstColumnContainsRowIdsRef.class)
-        @Layout(FirstColumnContainsRowIds.class)
+        @Layout(UseExistingRowId.class)
         @Persist(configKey = "has_row_id")
-        boolean m_firstColumnContainsRowIds;
-
-        @Widget(title = "Prepend file index to RowID", description = PrependFileIndexToRowId.DESCRIPTION)
-        @Layout(PrependFileIndexToRowId.class)
-        @Persist(configKey = "prepend_table_index_to_row_id") // ??? this key is different to the CSV reader
-        boolean m_prependFileIndexToRowId;
-        // TODO this setting should be shown when reading multiple files; currently blocked by UIEXT-1805
-
+        @Modification.WidgetReference(UseExistingRowIdWidgetRef.class)
+        public boolean m_firstColumnContainsRowIds;
     }
 
-    static class AdvancedSettings implements WidgetGroup, PersistableSettings {
-
-        enum HowToCombineColumnsOption {
-                @Label(value = "Fail if different", description = HowToCombineColumns.DESCRIPTION_FAIL)
+    public static class AdvancedSettings implements WidgetGroup, PersistableSettings {
+        public enum HowToCombineColumnsOption {
+                @Label(value = "Fail if different",
+                    description = CommonReaderLayout.MultipleFileHandling.HowToCombineColumns.DESCRIPTION_FAIL)
                 FAIL(ColumnFilterMode.UNION),
 
-                @Label(value = "Union", description = HowToCombineColumns.DESCRIPTION_UNION)
+                @Label(value = "Union",
+                    description = CommonReaderLayout.MultipleFileHandling.HowToCombineColumns.DESCRIPTION_UNION)
                 UNION(ColumnFilterMode.UNION),
 
-                @Label(value = "Intersection", description = HowToCombineColumns.DESCRIPTION_INTERSECTION)
+                @Label(value = "Intersection",
+                    description = CommonReaderLayout.MultipleFileHandling.HowToCombineColumns.DESCRIPTION_INTERSECTION)
                 INTERSECTION(ColumnFilterMode.INTERSECTION);
 
             private final ColumnFilterMode m_columnFilterMode;
@@ -161,7 +149,10 @@ public class KnimeTableReaderNodeSettings implements DefaultNodeSettings {
                 m_columnFilterMode = columnFilterMode;
             }
 
-            ColumnFilterMode toColumnFilterMode() {
+            /**
+             * @return the corresponding ColumnFilterMode
+             */
+            public ColumnFilterMode toColumnFilterMode() {
                 return m_columnFilterMode;
             }
         }
@@ -197,18 +188,19 @@ public class KnimeTableReaderNodeSettings implements DefaultNodeSettings {
             }
         }
 
-        static class HowToCombineColumnsOptionRef implements Reference<HowToCombineColumnsOption> {
+        public static class HowToCombineColumnsOptionRef implements Reference<HowToCombineColumnsOption> {
         }
 
-        @Widget(title = "How to combine columns", description = HowToCombineColumns.DESCRIPTION)
+        @Widget(title = "How to combine columns",
+            description = CommonReaderLayout.MultipleFileHandling.HowToCombineColumns.DESCRIPTION)
         @ValueSwitchWidget
         @ValueReference(HowToCombineColumnsOptionRef.class)
-        @Layout(HowToCombineColumns.class)
+        @Layout(CommonReaderLayout.MultipleFileHandling.HowToCombineColumns.class)
         @Persist(customPersistor = HowToCombineColumnsOptionPersistor.class)
-        HowToCombineColumnsOption m_howToCombineColumns = HowToCombineColumnsOption.FAIL;
+        public HowToCombineColumnsOption m_howToCombineColumns = HowToCombineColumnsOption.FAIL;
         // TODO this setting should be shown when reading multiple files; currently blocked by UIEXT-1805
 
-        static class AppendPathColumnRef extends ReferenceStateProvider<Boolean> {
+        public static class AppendPathColumnRef extends ReferenceStateProvider<Boolean> {
         }
 
         static final class AppendPathColumn implements PredicateProvider {
@@ -220,85 +212,34 @@ public class KnimeTableReaderNodeSettings implements DefaultNodeSettings {
 
         }
 
-        @Widget(title = "Append file path column", description = AppendFilePathColumn.DESCRIPTION)
+        @Widget(title = "Append file path column",
+            description = CommonReaderLayout.MultipleFileHandling.AppendFilePathColumn.DESCRIPTION)
         @ValueReference(AppendPathColumnRef.class)
-        @Layout(AppendFilePathColumn.class)
+        @Layout(CommonReaderLayout.MultipleFileHandling.AppendFilePathColumn.class)
         @Persist(configKey = "append_path_column", hidden = true)
         boolean m_appendPathColumn;
 
-        static class FilePathColumnNameRef extends ReferenceStateProvider<String> {
+        public static class FilePathColumnNameRef extends ReferenceStateProvider<String> {
         }
 
-        @Widget(title = "File path column name", description = FilePathColumnName.DESCRIPTION)
+        @Widget(title = "File path column name",
+            description = CommonReaderLayout.MultipleFileHandling.FilePathColumnName.DESCRIPTION)
         @ValueReference(FilePathColumnNameRef.class)
-        @Layout(FilePathColumnName.class)
+        @Layout(CommonReaderLayout.MultipleFileHandling.FilePathColumnName.class)
         @Effect(predicate = AppendPathColumn.class, type = EffectType.SHOW)
         @Persist(configKey = "path_column_name", hidden = true)
         String m_filePathColumnName = "File Path";
 
-        static final class SkipFirstDataRowsPersistor implements FieldNodeSettingsPersistor<Long> {
-
-            private static final String CFG_SKIP_DATA_ROWS = "skip_data_rows";
-
-            private static final String CFG_NUMBER_OF_DATA_ROWS_TO_SKIP = "number_of_rows_to_skip";
-
-            @Override
-            public Long load(final NodeSettingsRO settings) throws InvalidSettingsException {
-                return settings.getBoolean(CFG_SKIP_DATA_ROWS) ? settings.getLong(CFG_NUMBER_OF_DATA_ROWS_TO_SKIP) : 0;
-            }
-
-            @Override
-            public void save(final Long skipFirstDataRows, final NodeSettingsWO settings) {
-                settings.addBoolean(CFG_SKIP_DATA_ROWS, skipFirstDataRows > 0);
-                settings.addLong(CFG_NUMBER_OF_DATA_ROWS_TO_SKIP, skipFirstDataRows);
-            }
-
-            @Override
-            public String[] getConfigKeys() {
-                return new String[]{CFG_SKIP_DATA_ROWS, CFG_NUMBER_OF_DATA_ROWS_TO_SKIP};
-            }
-        }
-
-        static class SkipFirstDataRowsRef extends ReferenceStateProvider<Long> {
-        }
-
-        @Widget(title = "Skip first data rows", description = SkipFirstDataRows.DESCRIPTION) // ??? these widgets live in LimitRows in the CSV reader
-        @ValueReference(SkipFirstDataRowsRef.class)
-        @NumberInputWidget(min = 0)
-        @Layout(SkipFirstDataRows.class)
-        @Persist(customPersistor = SkipFirstDataRowsPersistor.class)
-        long m_skipFirstDataRows;
-
-        interface LimitNumberOfRowsRef extends Reference<Boolean> {
-        }
-
-        static final class LimitNumberOfRowsPredicate implements PredicateProvider {
-            @Override
-            public Predicate init(final PredicateInitializer i) {
-                return i.getBoolean(LimitNumberOfRowsRef.class).isTrue();
-            }
-        }
-
-        @Widget(title = "Limit number of rows", description = LimitNumberOfRows.DESCRIPTION, advanced = true)
-        @Layout(LimitNumberOfRows.class)
-        @ValueReference(LimitNumberOfRowsRef.class)
-        @Persist(configKey = "limit_data_rows")
-        boolean m_limitNumberOfRows;
-        // TODO merge into a single widget with UIEXT-1742
-
-        @Widget(title = "Maximum number of rows", description = MaximumNumberOfRows.DESCRIPTION)
-        @NumberInputWidget(min = 0)
-        @Layout(MaximumNumberOfRows.class)
-        @Effect(predicate = LimitNumberOfRowsPredicate.class, type = EffectType.SHOW)
-        @Persist(configKey = "max_rows")
-        long m_maximumNumberOfRows = 50;
-
         enum IfSchemaChangesOption {
-                @Label(value = "Fail", description = IfSchemaChanges.DESCRIPTION_FAIL) //
+                @Label(value = "Fail",
+                    description = CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.DESCRIPTION_FAIL) //
                 FAIL, //
-                @Label(value = "Use new schema", description = IfSchemaChanges.DESCRIPTION_USE_NEW_SCHEMA) //
+                @Label(value = "Use new schema",
+                    description = CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.DESCRIPTION_USE_NEW_SCHEMA) //
                 USE_NEW_SCHEMA, //
-                @Label(value = "Ignore (deprecated)", description = IfSchemaChanges.DESCRIPTION_IGNORE, disabled = true)
+                @Label(value = "Ignore (deprecated)",
+                    description = CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.DESCRIPTION_IGNORE,
+                    disabled = true)
                 IGNORE; //
         }
 
@@ -346,11 +287,46 @@ public class KnimeTableReaderNodeSettings implements DefaultNodeSettings {
             }
         }
 
-        @Widget(title = "If schema changes", description = IfSchemaChanges.DESCRIPTION)
+        @Widget(title = "If schema changes",
+            description = CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.DESCRIPTION)
         @RadioButtonsWidget
-        @Layout(IfSchemaChanges.class)
+        @Layout(CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.class)
         @Persist(customPersistor = IfSchemaChangesPersistor.class)
         @ValueReference(IfSchemaChangesOptionRef.class)
         IfSchemaChangesOption m_ifSchemaChangesOption = IfSchemaChangesOption.FAIL;
     }
+
+    public static final class SkipFirstDataRowsPersistor implements FieldNodeSettingsPersistor<Long> {
+
+        private static final String CFG_SKIP_DATA_ROWS = "skip_data_rows";
+
+        private static final String CFG_NUMBER_OF_DATA_ROWS_TO_SKIP = "number_of_rows_to_skip";
+
+        @Override
+        public Long load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return settings.getBoolean(CFG_SKIP_DATA_ROWS) ? settings.getLong(CFG_NUMBER_OF_DATA_ROWS_TO_SKIP) : 0;
+        }
+
+        @Override
+        public void save(final Long skipFirstDataRows, final NodeSettingsWO settings) {
+            settings.addBoolean(CFG_SKIP_DATA_ROWS, skipFirstDataRows > 0);
+            settings.addLong(CFG_NUMBER_OF_DATA_ROWS_TO_SKIP, skipFirstDataRows);
+        }
+
+        @Override
+        public String[] getConfigKeys() {
+            return new String[]{CFG_SKIP_DATA_ROWS, CFG_NUMBER_OF_DATA_ROWS_TO_SKIP};
+        }
+    }
+
+    public interface LimitNumberOfRowsRef extends Reference<Boolean> {
+    }
+
+    public static final class LimitNumberOfRowsPredicate implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getBoolean(LimitNumberOfRowsRef.class).isTrue();
+        }
+    }
+
 }

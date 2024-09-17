@@ -44,11 +44,11 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 6, 2024 (marcbux): created
+ *   Sep 17, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.table.reader2;
+package org.knime.base.node.io.filehandling.webui.reader;
 
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.AdvancedSettings.UseNewSchema;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettings.UseNewSchema;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
@@ -56,12 +56,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.Effe
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
- *
- *         ??? this file is basically a subset of the CSV Layout; however, the naming and description of a few settings
- *         slightly vary
  */
-@SuppressWarnings({"restriction", "java:S1214", "java:S103"})
-public class KnimeTableReaderNodeLayout {
+@SuppressWarnings({"restriction", "javadoc"})
+public interface CommonReaderLayout {
 
     @Section(title = "File")
     interface File {
@@ -106,9 +103,12 @@ public class KnimeTableReaderNodeLayout {
         }
 
         @After(MaximumNumberOfRows.class)
-        interface FirstColumnContainsRowIds {
-            // TODO description taken from CSV reader, but the Table reader actually has a different description (and naming)
-            String DESCRIPTION = "Select this box if the first column contains RowIDs (no duplicates allowed).";
+        interface UseExistingRowId {
+            String DESCRIPTION = """
+                    Check this box if the RowIDs from the input tables should be used for
+                    the output tables. If unchecked, a new RowID is generated.
+                    The generated RowID follows the schema "Row0", "Row1" and so on.
+                                """;
         }
     }
 
@@ -164,17 +164,6 @@ public class KnimeTableReaderNodeLayout {
         }
 
         @After(HowToCombineColumns.class)
-        interface PrependFileIndexToRowId {
-            String DESCRIPTION =
-                """
-                        Select this box if you want to prepend a prefix that depends on the index of the source file to the
-                        RowIDs. The prefix for the first file is "File_0_", for the second "File_1_" and so on. This option is
-                        useful if the RowIDs within a single file are unique but the same RowIDs appear in multiple files.
-                        Prepending the file index prevents parallel reading of individual files.
-                        """;
-        }
-
-        @After(PrependFileIndexToRowId.class)
         interface AppendFilePathColumn {
             String DESCRIPTION =
                 """
@@ -206,6 +195,7 @@ public class KnimeTableReaderNodeLayout {
                     """;
 
         interface EnforceTypes {
+            @SuppressWarnings("hiding")
             String DESCRIPTION = """
                     Controls how columns whose type changes are dealt with.
                     If selected, the mapping to the KNIME type you configured is attempted.
@@ -214,4 +204,5 @@ public class KnimeTableReaderNodeLayout {
                     """;
         }
     }
+
 }
