@@ -76,7 +76,6 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElementSettings;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElementSettings.ColumnNameRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElementSettingsReference;
-import org.knime.base.node.io.filehandling.webui.DataTypeSerializationUtil;
 import org.knime.base.node.io.filehandling.webui.FileChooserPathAccessor;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.core.data.DataType;
@@ -398,8 +397,8 @@ final class CSVTransformationSettingsStateProviders {
 
             final var path = Optional.ofNullable(unknownElementsType)
                 .flatMap(type -> findProductionPath(colSpec.getType(), type)).orElse(defPath);
-            final var type = DataTypeSerializationUtil.typeToString(path.getDestinationType());
-            final var defType = DataTypeSerializationUtil.typeToString(defPath.getDestinationType());
+            final var type = path.getConverterFactory().getIdentifier();
+            final var defType = defPath.getConverterFactory().getIdentifier();
             return new TransformationElementSettings(name, includeInOutput, name, type, defType,
                 defPath.getDestinationType().toPrettyString());
         }

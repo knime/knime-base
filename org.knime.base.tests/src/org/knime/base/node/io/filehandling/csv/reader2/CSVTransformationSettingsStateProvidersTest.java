@@ -83,7 +83,6 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TransformationElementSettingsProvider;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TypeChoicesProvider;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TypedReaderTableSpecsProvider;
-import org.knime.base.node.io.filehandling.webui.DataTypeSerializationUtil;
 import org.knime.base.node.io.filehandling.webui.LocalWorkflowContextTest;
 import org.knime.base.node.io.filehandling.webui.NoopStateProviderInitializer;
 import org.knime.core.data.DataType;
@@ -424,12 +423,12 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
         assertThat(transformationElements[0].m_columnName).isEqualTo("intCol");
         assertThat(transformationElements[0].m_includeInOutput).isTrue();
         assertThat(transformationElements[0].m_columnRename).isEqualTo("intCol");
-        assertThat(transformationElements[0].m_type).isEqualTo(getDefaultPathDestinationTypeIdentifier(Integer.class));
+        assertThat(transformationElements[0].m_type).isEqualTo(getDefaultPathIdentifier(Integer.class));
 
         assertThat(transformationElements[1].m_columnName).isEqualTo("stringCol");
         assertThat(transformationElements[1].m_includeInOutput).isTrue();
         assertThat(transformationElements[1].m_columnRename).isEqualTo("stringCol");
-        assertThat(transformationElements[1].m_type).isEqualTo(getDefaultPathDestinationTypeIdentifier(String.class));
+        assertThat(transformationElements[1].m_type).isEqualTo(getDefaultPathIdentifier(String.class));
 
         assertThat(transformationElements[2].m_columnName).isNull();
         assertThat(transformationElements[2].m_includeInOutput).isTrue();
@@ -463,18 +462,14 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
         assertThat(transformationElements[0].m_columnName).isEqualTo("intCol");
         assertThat(transformationElements[0].m_includeInOutput).isFalse();
         assertThat(transformationElements[0].m_columnRename).isEqualTo("intCol");
-        assertThat(transformationElements[0].m_type)
-            .isEqualTo(getPathDestinationTypeIdentifier(Integer.class, LongCell.TYPE));
-        assertThat(transformationElements[0].m_originalType)
-            .isEqualTo(getDefaultPathDestinationTypeIdentifier(Integer.class));
+        assertThat(transformationElements[0].m_type).isEqualTo(getPathIdentifier(Integer.class, LongCell.TYPE));
+        assertThat(transformationElements[0].m_originalType).isEqualTo(getDefaultPathIdentifier(Integer.class));
 
         assertThat(transformationElements[1].m_columnName).isEqualTo("stringCol");
         assertThat(transformationElements[1].m_includeInOutput).isFalse();
         assertThat(transformationElements[1].m_columnRename).isEqualTo("stringCol");
-        assertThat(transformationElements[1].m_type)
-            .isEqualTo(getPathDestinationTypeIdentifier(String.class, LongCell.TYPE));
-        assertThat(transformationElements[1].m_originalType)
-            .isEqualTo(getDefaultPathDestinationTypeIdentifier(String.class));
+        assertThat(transformationElements[1].m_type).isEqualTo(getPathIdentifier(String.class, LongCell.TYPE));
+        assertThat(transformationElements[1].m_originalType).isEqualTo(getDefaultPathIdentifier(String.class));
 
         assertThat(transformationElements[2].m_columnName).isNull();
         assertThat(transformationElements[2].m_includeInOutput).isFalse();
@@ -492,16 +487,13 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
         final var typedReaderTableSpecsProvider = createTypedReaderTableSpecsProvider(file);
 
         final var transformationElementSettingsProvider = new TransformationElementSettingsProvider();
-        transformationElementSettingsProvider
-            .init(getTransformationElementSettingsProviderInitializer(typedReaderTableSpecsProvider,
-                HowToCombineColumnsOption.UNION, new TransformationElementSettings[]{//
-                    new TransformationElementSettings("stringCol", false, "Renamed stringCol",
-                        getPathDestinationTypeIdentifier(String.class, XMLCell.TYPE),
-                        getDefaultPathDestinationTypeIdentifier(String.class), "Integer"), //
-                    new TransformationElementSettings("intCol", false, "Renamed intCol",
-                        getPathDestinationTypeIdentifier(Double.class, DoubleCell.TYPE),
-                        getDefaultPathDestinationTypeIdentifier(Double.class), "Double"), //
-                }));
+        transformationElementSettingsProvider.init(getTransformationElementSettingsProviderInitializer(
+            typedReaderTableSpecsProvider, HowToCombineColumnsOption.UNION, new TransformationElementSettings[]{//
+                new TransformationElementSettings("stringCol", false, "Renamed stringCol",
+                    getPathIdentifier(String.class, XMLCell.TYPE), getDefaultPathIdentifier(String.class), "Integer"), //
+                new TransformationElementSettings("intCol", false, "Renamed intCol",
+                    getPathIdentifier(Double.class, DoubleCell.TYPE), getDefaultPathIdentifier(Double.class), "Double"), //
+            }));
 
         final var transformationElements = transformationElementSettingsProvider.computeState(null);
 
@@ -511,19 +503,16 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
         assertThat(transformationElements[0].m_columnName).isEqualTo("stringCol");
         assertThat(transformationElements[0].m_includeInOutput).isFalse();
         assertThat(transformationElements[0].m_columnRename).isEqualTo("Renamed stringCol");
-        assertThat(transformationElements[0].m_type)
-            .isEqualTo(getPathDestinationTypeIdentifier(String.class, XMLCell.TYPE));
-        assertThat(transformationElements[0].m_originalType)
-            .isEqualTo(getDefaultPathDestinationTypeIdentifier(String.class));
+        assertThat(transformationElements[0].m_type).isEqualTo(getPathIdentifier(String.class, XMLCell.TYPE));
+        assertThat(transformationElements[0].m_originalType).isEqualTo(getDefaultPathIdentifier(String.class));
         assertThat(transformationElements[0].m_originalTypeLabel).isEqualTo("String");
 
         // Uses new created element since the type changed
         assertThat(transformationElements[1].m_columnName).isEqualTo("intCol");
         assertThat(transformationElements[1].m_includeInOutput).isTrue();
         assertThat(transformationElements[1].m_columnRename).isEqualTo("intCol");
-        assertThat(transformationElements[1].m_type).isEqualTo(getDefaultPathDestinationTypeIdentifier(Integer.class));
-        assertThat(transformationElements[1].m_originalType)
-            .isEqualTo(getDefaultPathDestinationTypeIdentifier(Integer.class));
+        assertThat(transformationElements[1].m_type).isEqualTo(getDefaultPathIdentifier(Integer.class));
+        assertThat(transformationElements[1].m_originalType).isEqualTo(getDefaultPathIdentifier(Integer.class));
         assertThat(transformationElements[1].m_originalTypeLabel).isEqualTo("Number (integer)");
 
         assertThat(transformationElements[2].m_columnName).isNull();
@@ -534,15 +523,14 @@ final class CSVTransformationSettingsStateProvidersTest extends LocalWorkflowCon
         return dataType.getName();
     }
 
-    private String getDefaultPathDestinationTypeIdentifier(final Class<?> typeClass) {
-        return DataTypeSerializationUtil
-            .typeToString(PRODUCTION_PATH_PROVIDER.getDefaultProductionPath(typeClass).getDestinationType());
+    private String getDefaultPathIdentifier(final Class<?> typeClass) {
+        return PRODUCTION_PATH_PROVIDER.getDefaultProductionPath(typeClass).getConverterFactory().getIdentifier();
     }
 
-    private String getPathDestinationTypeIdentifier(final Class<?> typeClass, final DataType targetDataType) {
-        return DataTypeSerializationUtil.typeToString(PRODUCTION_PATH_PROVIDER.getAvailableProductionPaths(typeClass)
-            .stream().filter(path -> path.getDestinationType().equals(targetDataType)).findFirst()
-            .orElseGet(() -> PRODUCTION_PATH_PROVIDER.getDefaultProductionPath(typeClass)).getDestinationType());
+    private String getPathIdentifier(final Class<?> typeClass, final DataType targetDataType) {
+        return PRODUCTION_PATH_PROVIDER.getAvailableProductionPaths(typeClass).stream()
+            .filter(path -> path.getDestinationType().equals(targetDataType)).findFirst().orElseThrow()
+            .getConverterFactory().getIdentifier();
     }
 
     private static final StateProviderInitializer getTransformationElementSettingsProviderInitializer(

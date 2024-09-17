@@ -63,7 +63,6 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TableSpecSettings;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.TransformationElementSettings;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TypeChoicesProvider;
-import org.knime.base.node.io.filehandling.webui.DataTypeSerializationUtil;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataType;
@@ -155,8 +154,8 @@ final class CSVTransformationSettingsPersistor extends NodeSettingsPersistorWith
             t.getOriginalName(), //
             t.keep(), //
             t.getName(), //
-            DataTypeSerializationUtil.typeToString(t.getProductionPath().getDestinationType()), //
-            DataTypeSerializationUtil.typeToString(defaultProductionPath.getDestinationType()), //
+            t.getProductionPath().getConverterFactory().getIdentifier(), //
+            defaultProductionPath.getConverterFactory().getIdentifier(), //
             defaultProductionPath.getDestinationType().toPrettyString());
     }
 
@@ -167,7 +166,7 @@ final class CSVTransformationSettingsPersistor extends NodeSettingsPersistorWith
 
     private static String getForcedType(final UnknownColumnsTransformation t) {
         if (t.forceType()) {
-            return DataTypeSerializationUtil.typeToString(t.getForcedType());
+            return t.getForcedType().getName();
         }
         return TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID;
     }

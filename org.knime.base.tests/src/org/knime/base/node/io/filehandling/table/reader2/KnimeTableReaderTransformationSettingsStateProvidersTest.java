@@ -65,6 +65,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOptionRef;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.Settings.FileChooserRef;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.ColumnSpecSettings;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TransformationElementSettings;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TransformationElementSettings.ColumnNameRef;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TransformationElementSettingsReference;
@@ -75,7 +76,6 @@ import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransfo
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.TypeChoicesProvider;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider;
-import org.knime.base.node.io.filehandling.webui.DataTypeSerializationUtil;
 import org.knime.base.node.io.filehandling.webui.LocalWorkflowContextTest;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
@@ -318,10 +318,10 @@ final class KnimeTableReaderTransformationSettingsStateProvidersTest extends Loc
         assertThat(specs[0].m_sourceId).isEqualTo(file);
 
         assertThat(specs[0].m_spec[0].m_name).isEqualTo("intCol");
-        assertThat(DataTypeSerializationUtil.stringToType(specs[0].m_spec[0].m_type)).isEqualTo(IntCell.TYPE);
+        assertThat(ColumnSpecSettings.stringToType(specs[0].m_spec[0].m_type)).isEqualTo(IntCell.TYPE);
 
         assertThat(specs[0].m_spec[1].m_name).isEqualTo("stringCol");
-        assertThat(DataTypeSerializationUtil.stringToType(specs[0].m_spec[1].m_type)).isEqualTo(StringCell.TYPE);
+        assertThat(ColumnSpecSettings.stringToType(specs[0].m_spec[1].m_type)).isEqualTo(StringCell.TYPE);
     }
 
     static class DependsOnTypedReaderTableSpecProviderInitializer extends NoopStateProviderInitializer {

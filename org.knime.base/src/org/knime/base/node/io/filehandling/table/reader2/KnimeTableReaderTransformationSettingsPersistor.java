@@ -57,11 +57,11 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import org.knime.base.node.io.filehandling.table.reader.KnimeTableMultiTableReadConfig;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.ColumnSpecSettings;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.PersistorSettings;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TableSpecSettings;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TransformationElementSettings;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.TypeChoicesProvider;
-import org.knime.base.node.io.filehandling.webui.DataTypeSerializationUtil;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfigSerializer.DataTypeSerializer;
 import org.knime.base.node.preproc.manipulator.mapping.DataTypeProducerRegistry;
 import org.knime.core.data.DataColumnSpec;
@@ -284,7 +284,7 @@ final class KnimeTableReaderTransformationSettingsPersistor
         for (final var tableSpec : specs) {
             final TypedReaderTableSpecBuilder<DataType> specBuilder = TypedReaderTableSpec.builder();
             for (final var colSpec : tableSpec.m_spec) {
-                specBuilder.addColumn(colSpec.m_name, DataTypeSerializationUtil.stringToType(colSpec.m_type), true);
+                specBuilder.addColumn(colSpec.m_name, ColumnSpecSettings.stringToType(colSpec.m_type), true);
             }
             final var spec = specBuilder.build();
             individualSpecs.put(tableSpec.m_sourceId, spec);
