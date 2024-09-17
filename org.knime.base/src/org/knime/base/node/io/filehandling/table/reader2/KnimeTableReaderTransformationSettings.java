@@ -330,6 +330,8 @@ final class KnimeTableReaderTransformationSettings implements WidgetGroup, Persi
         @Effect(predicate = InternalArrayWidget.ElementIsEdited.class, type = EffectType.SHOW)
         String m_type;
 
+        // extra field source type serialized
+
         TransformationElementSettings() {
         }
 
@@ -338,8 +340,8 @@ final class KnimeTableReaderTransformationSettings implements WidgetGroup, Persi
             m_columnName = columnName;
             m_includeInOutput = includeInOutput;
             m_columnRename = columnRename;
-            m_type = type;
-            m_originalType = originalType;
+            m_type = type; // converter fac id
+            m_originalType = originalType; // converter fac id
             m_originalTypeLabel = originalTypeLabel;
         }
 

@@ -72,7 +72,6 @@ import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransfo
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TransformationElementSettings;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TransformationElementSettings.ColumnNameRef;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TransformationElementSettingsReference;
-import org.knime.base.node.io.filehandling.webui.DataTypeSerializationUtil;
 import org.knime.base.node.io.filehandling.webui.FileChooserPathAccessor;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
@@ -384,8 +383,8 @@ final class KnimeTableReaderTransformationSettingsStateProviders {
 
             final var path = Optional.ofNullable(unknownElementsType)
                 .flatMap(type -> findProductionPath(colSpec.getType(), type)).orElse(defPath);
-            final var type = DataTypeSerializationUtil.typeToString(path.getDestinationType());
-            final var defType = DataTypeSerializationUtil.typeToString(colSpec.getType());
+            final var type = path.getConverterFactory().getIdentifier();
+            final var defType = defPath.getConverterFactory().getIdentifier();
             return new TransformationElementSettings(name, includeInOutput, name, type, defType,
                 defPath.getDestinationType().toPrettyString());
 

@@ -380,13 +380,13 @@ final class KnimeTableReaderTransformationSettingsStateProvidersTest extends Loc
         assertThat(transformationElements[0].m_columnName).isEqualTo("intCol");
         assertThat(transformationElements[0].m_includeInOutput).isTrue();
         assertThat(transformationElements[0].m_columnRename).isEqualTo("intCol");
-        assertThat(transformationElements[0].m_type).isEqualTo(getDefaultPathDestinationTypeIdentifier(IntCell.TYPE));
+        assertThat(transformationElements[0].m_type).isEqualTo(getDefaultPathIdentifier(IntCell.TYPE));
 
         assertThat(transformationElements[1].m_columnName).isEqualTo("stringCol");
         assertThat(transformationElements[1].m_includeInOutput).isTrue();
         assertThat(transformationElements[1].m_columnRename).isEqualTo("stringCol");
         assertThat(transformationElements[1].m_type)
-            .isEqualTo(getDefaultPathDestinationTypeIdentifier(StringCell.TYPE));
+            .isEqualTo(getDefaultPathIdentifier(StringCell.TYPE));
 
         assertThat(transformationElements[2].m_columnName).isNull();
         assertThat(transformationElements[2].m_includeInOutput).isTrue();
@@ -421,17 +421,17 @@ final class KnimeTableReaderTransformationSettingsStateProvidersTest extends Loc
         assertThat(transformationElements[0].m_includeInOutput).isFalse();
         assertThat(transformationElements[0].m_columnRename).isEqualTo("intCol");
         assertThat(transformationElements[0].m_type)
-            .isEqualTo(getPathDestinationTypeIdentifier(IntCell.TYPE, LongCell.TYPE));
+            .isEqualTo(getPathIdentifier(IntCell.TYPE, LongCell.TYPE));
         assertThat(transformationElements[0].m_originalType)
-            .isEqualTo(getDefaultPathDestinationTypeIdentifier(IntCell.TYPE));
+            .isEqualTo(getDefaultPathIdentifier(IntCell.TYPE));
 
         assertThat(transformationElements[1].m_columnName).isEqualTo("stringCol");
         assertThat(transformationElements[1].m_includeInOutput).isFalse();
         assertThat(transformationElements[1].m_columnRename).isEqualTo("stringCol");
         assertThat(transformationElements[1].m_type)
-            .isEqualTo(getPathDestinationTypeIdentifier(StringCell.TYPE, LongCell.TYPE));
+            .isEqualTo(getPathIdentifier(StringCell.TYPE, LongCell.TYPE));
         assertThat(transformationElements[1].m_originalType)
-            .isEqualTo(getDefaultPathDestinationTypeIdentifier(StringCell.TYPE));
+            .isEqualTo(getDefaultPathIdentifier(StringCell.TYPE));
 
         assertThat(transformationElements[2].m_columnName).isNull();
         assertThat(transformationElements[2].m_includeInOutput).isFalse();
@@ -453,11 +453,11 @@ final class KnimeTableReaderTransformationSettingsStateProvidersTest extends Loc
             .init(getTransformationElementSettingsProviderInitializer(typedReaderTableSpecsProvider,
                 HowToCombineColumnsOption.UNION, new TransformationElementSettings[]{//
                     new TransformationElementSettings("stringCol", false, "Renamed stringCol",
-                        getPathDestinationTypeIdentifier(StringCell.TYPE, XMLCell.TYPE),
-                        getDefaultPathDestinationTypeIdentifier(StringCell.TYPE), "Integer"), //
+                        getPathIdentifier(StringCell.TYPE, XMLCell.TYPE),
+                        getDefaultPathIdentifier(StringCell.TYPE), "Integer"), //
                     new TransformationElementSettings("intCol", false, "Renamed intCol",
-                        getPathDestinationTypeIdentifier(DoubleCell.TYPE, DoubleCell.TYPE),
-                        getDefaultPathDestinationTypeIdentifier(DoubleCell.TYPE), "Double"), //
+                        getPathIdentifier(DoubleCell.TYPE, DoubleCell.TYPE),
+                        getDefaultPathIdentifier(DoubleCell.TYPE), "Double"), //
                 }));
 
         final var transformationElements = transformationElementSettingsProvider.computeState(null);
@@ -469,18 +469,18 @@ final class KnimeTableReaderTransformationSettingsStateProvidersTest extends Loc
         assertThat(transformationElements[0].m_includeInOutput).isFalse();
         assertThat(transformationElements[0].m_columnRename).isEqualTo("Renamed stringCol");
         assertThat(transformationElements[0].m_type)
-            .isEqualTo(getPathDestinationTypeIdentifier(StringCell.TYPE, XMLCell.TYPE));
+            .isEqualTo(getPathIdentifier(StringCell.TYPE, XMLCell.TYPE));
         assertThat(transformationElements[0].m_originalType)
-            .isEqualTo(getDefaultPathDestinationTypeIdentifier(StringCell.TYPE));
+            .isEqualTo(getDefaultPathIdentifier(StringCell.TYPE));
         assertThat(transformationElements[0].m_originalTypeLabel).isEqualTo("String");
 
         // Uses new created element since the type changed
         assertThat(transformationElements[1].m_columnName).isEqualTo("intCol");
         assertThat(transformationElements[1].m_includeInOutput).isTrue();
         assertThat(transformationElements[1].m_columnRename).isEqualTo("intCol");
-        assertThat(transformationElements[1].m_type).isEqualTo(getDefaultPathDestinationTypeIdentifier(IntCell.TYPE));
+        assertThat(transformationElements[1].m_type).isEqualTo(getDefaultPathIdentifier(IntCell.TYPE));
         assertThat(transformationElements[1].m_originalType)
-            .isEqualTo(getDefaultPathDestinationTypeIdentifier(IntCell.TYPE));
+            .isEqualTo(getDefaultPathIdentifier(IntCell.TYPE));
         assertThat(transformationElements[1].m_originalTypeLabel).isEqualTo("Number (integer)");
 
         assertThat(transformationElements[2].m_columnName).isNull();
@@ -491,15 +491,15 @@ final class KnimeTableReaderTransformationSettingsStateProvidersTest extends Loc
         return dataType.getName();
     }
 
-    private String getDefaultPathDestinationTypeIdentifier(final DataType type) {
-        return DataTypeSerializationUtil
-            .typeToString(PRODUCTION_PATH_PROVIDER.getDefaultProductionPath(type).getDestinationType());
+    private String getDefaultPathIdentifier(final DataType type) {
+        return PRODUCTION_PATH_PROVIDER.getDefaultProductionPath(type).getConverterFactory().getIdentifier();
     }
 
-    private String getPathDestinationTypeIdentifier(final DataType type, final DataType targetDataType) {
-        return DataTypeSerializationUtil.typeToString(PRODUCTION_PATH_PROVIDER.getAvailableProductionPaths(type)
-            .stream().filter(path -> path.getDestinationType().equals(targetDataType)).findFirst()
-            .orElseGet(() -> PRODUCTION_PATH_PROVIDER.getDefaultProductionPath(type)).getDestinationType());
+    private String getPathIdentifier(final DataType type, final DataType targetDataType) {
+        return PRODUCTION_PATH_PROVIDER.getAvailableProductionPaths(type).stream()
+            .filter(path -> path.getDestinationType().equals(targetDataType)).findFirst()
+            .orElseGet(() -> PRODUCTION_PATH_PROVIDER.getDefaultProductionPath(type)).getConverterFactory()
+            .getIdentifier();
     }
 
     private static final StateProviderInitializer getTransformationElementSettingsProviderInitializer(

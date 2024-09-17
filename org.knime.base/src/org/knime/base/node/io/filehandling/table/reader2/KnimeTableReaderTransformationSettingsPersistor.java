@@ -157,8 +157,8 @@ final class KnimeTableReaderTransformationSettingsPersistor
             t.getOriginalName(), //
             t.keep(), //
             t.getName(), //
-            DataTypeSerializationUtil.typeToString(t.getProductionPath().getDestinationType()), //
-            DataTypeSerializationUtil.typeToString(defaultProductionPath.getDestinationType()), //
+            t.getProductionPath().getConverterFactory().getIdentifier(), //
+            defaultProductionPath.getConverterFactory().getIdentifier(), //
             defaultProductionPath.getDestinationType().toPrettyString());
     }
 
@@ -169,7 +169,7 @@ final class KnimeTableReaderTransformationSettingsPersistor
 
     private static String getForcedType(final UnknownColumnsTransformation t) {
         if (t.forceType()) {
-            return DataTypeSerializationUtil.typeToString(t.getForcedType());
+            return t.getForcedType().getName();
         }
         return TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID;
     }
