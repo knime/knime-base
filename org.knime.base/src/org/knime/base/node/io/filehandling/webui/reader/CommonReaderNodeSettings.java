@@ -44,29 +44,46 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 6, 2024 (marcbux): created
+ *   Sep 17, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.table.reader2;
+package org.knime.base.node.io.filehandling.webui.reader;
 
-import org.knime.base.node.io.filehandling.webui.reader.Layout.DataArea.MaximumNumberOfRows;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.DataArea.FirstColumnContainsRowIds;
+import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
  *
- *         ??? this file is basically a subset of the CSV Layout; however, the naming and description of a few settings
- *         slightly vary
+ * @author marcbux
  */
-@SuppressWarnings({"restriction", "java:S1214", "java:S103"})
-public class KnimeTableReaderNodeLayout {
+public final class CommonReaderNodeSettings {
 
-    @After(MaximumNumberOfRows.class)
-    interface FirstColumnContainsRowIds {
-        // TODO description taken from CSV reader, but the Table reader actually has a different description (and naming)
-        String DESCRIPTION = "Select this box if the first column contains RowIDs (no duplicates allowed).";
+    static class Settings implements WidgetGroup, PersistableSettings {
+
+    }
+    @Persist(configKey = "file_selection", hidden = true)
+    FileSelectionInternal m_fileSelectionInternal = new FileSelectionInternal();
+
+    static class FileSelectionInternal implements WidgetGroup, PersistableSettings {
+        @Persist(configKey = "SettingsModelID")
+        String m_settingsModelID = "SMID_ReaderFileChooser";
+
+        @Persist(configKey = "EnabledStatus")
+        boolean m_enabledStatus = true;
     }
 
+    static class FirstColumnContainsRowIdsRef extends ReferenceStateProvider<Boolean> {
+    }
 
-
+    @Widget(title = "First column contains RowIDs", description = FirstColumnContainsRowIds.DESCRIPTION)
+    @ValueReference(FirstColumnContainsRowIdsRef.class)
+    @Layout(FirstColumnContainsRowIds.class)
+    @Persist(configKey = "has_row_id")
+    boolean m_firstColumnContainsRowIds;
 
 }

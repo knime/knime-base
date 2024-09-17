@@ -75,7 +75,7 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarch
  *
  * @author Moditha Hewasinghage, KNIME GmbH, Berlin, Germany
  */
-public final class KnimeTableReaderNodeFactory
+public class KnimeTableReaderNodeFactory
     extends AbstractTableReaderNodeFactory<TableManipulatorConfig, DataType, DataValue> {
 
     private static final String[] FILE_SUFFIXES = new String[]{".table"};

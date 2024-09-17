@@ -48,18 +48,8 @@
  */
 package org.knime.base.node.io.filehandling.table.reader2;
 
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.ColumnAndDataTypeDetection.IfSchemaChanges;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.DataArea.FirstColumnContainsRowIds;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.DataArea.LimitNumberOfRows;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.DataArea.MaximumNumberOfRows;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.DataArea.SkipFirstDataRows;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.File.Source;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.MultipleFileHandling.AppendFilePathColumn;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.MultipleFileHandling.FilePathColumnName;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.MultipleFileHandling.HowToCombineColumns;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.MultipleFileHandling.PrependFileIndexToRowId;
 import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.Transformation;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -103,7 +93,7 @@ public class KnimeTableReaderNodeSettings implements DefaultNodeSettings {
     @Layout(Transformation.class)
     KnimeTableReaderTransformationSettings m_tableSpecConfig = new KnimeTableReaderTransformationSettings();
 
-    static class Settings implements WidgetGroup, PersistableSettings {
+    static class Settings extends CommonReaderNodeSettings.Settings {
 
         static final class FileChooserRef extends ReferenceStateProvider<FileChooser> {
         }
@@ -115,25 +105,7 @@ public class KnimeTableReaderNodeSettings implements DefaultNodeSettings {
         @FileReaderWidget(fileExtensions = {"table"}) // ??? different to CSV reader
         FileChooser m_source = new FileChooser();
 
-        @Persist(configKey = "file_selection", hidden = true)
-        FileSelectionInternal m_fileSelectionInternal = new FileSelectionInternal();
 
-        static class FileSelectionInternal implements WidgetGroup, PersistableSettings {
-            @Persist(configKey = "SettingsModelID")
-            String m_settingsModelID = "SMID_ReaderFileChooser";
-
-            @Persist(configKey = "EnabledStatus")
-            boolean m_enabledStatus = true;
-        }
-
-        static class FirstColumnContainsRowIdsRef extends ReferenceStateProvider<Boolean> {
-        }
-
-        @Widget(title = "First column contains RowIDs", description = FirstColumnContainsRowIds.DESCRIPTION)
-        @ValueReference(FirstColumnContainsRowIdsRef.class)
-        @Layout(FirstColumnContainsRowIds.class)
-        @Persist(configKey = "has_row_id")
-        boolean m_firstColumnContainsRowIds;
 
         @Widget(title = "Prepend file index to RowID", description = PrependFileIndexToRowId.DESCRIPTION)
         @Layout(PrependFileIndexToRowId.class)

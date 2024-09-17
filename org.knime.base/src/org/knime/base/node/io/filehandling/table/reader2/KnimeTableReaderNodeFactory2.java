@@ -52,19 +52,11 @@ import java.io.IOException;
 import java.util.Optional;
 
 import org.apache.xmlbeans.XmlException;
-import org.knime.base.node.io.filehandling.table.reader.KnimeTableMultiTableReadConfig;
-import org.knime.base.node.io.filehandling.table.reader.KnimeTableReader;
 import org.knime.base.node.io.filehandling.table.reader.KnimeTableReaderNodeFactory;
-import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
-import org.knime.base.node.preproc.manipulator.mapping.DataTypeTypeHierarchy;
-import org.knime.base.node.preproc.manipulator.mapping.DataValueReadAdapterFactory;
-import org.knime.core.data.DataType;
-import org.knime.core.data.DataValue;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.context.NodeCreationConfiguration;
-import org.knime.core.node.context.url.URLConfiguration;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
@@ -72,18 +64,6 @@ import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 import org.knime.core.webui.node.impl.PortDescription;
 import org.knime.core.webui.node.impl.WebUINodeFactory;
-import org.knime.filehandling.core.connections.FSLocationUtil;
-import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
-import org.knime.filehandling.core.node.table.reader.AbstractTableReaderNodeFactory;
-import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
-import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
-import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
-import org.knime.filehandling.core.node.table.reader.TableReader;
-import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractPathTableReaderNodeDialog;
-import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 import org.knime.filehandling.core.port.FileSystemPortObject;
 import org.xml.sax.SAXException;
 
@@ -95,66 +75,19 @@ import org.xml.sax.SAXException;
  */
 @SuppressWarnings("restriction")
 public final class KnimeTableReaderNodeFactory2
-    extends AbstractTableReaderNodeFactory<TableManipulatorConfig, DataType, DataValue> implements NodeDialogFactory {
-
-    private static final String[] FILE_SUFFIXES = new String[]{".table"};
-
-    @Override
-    protected SettingsModelReaderFileChooser createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
-        final SettingsModelReaderFileChooser settingsModel = new SettingsModelReaderFileChooser("file_selection",
-            nodeCreationConfig.getPortConfig().orElseThrow(IllegalStateException::new), FS_CONNECT_GRP_ID,
-            EnumConfig.create(FilterMode.FILE, FilterMode.FILES_IN_FOLDERS), FILE_SUFFIXES);
-        final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
-        if (urlConfig.isPresent()) {
-            settingsModel.setLocation(FSLocationUtil.createFromURL(urlConfig.get().getUrl().toString()));
-        }
-        return settingsModel;
-    }
-
-    @Override
-    protected ReadAdapterFactory<DataType, DataValue> getReadAdapterFactory() {
-        return DataValueReadAdapterFactory.INSTANCE;
-    }
-
-    @Override
-    protected TableReader<TableManipulatorConfig, DataType, DataValue> createReader() {
-        return new KnimeTableReader();
-    }
-
-    @Override
-    protected String extractRowKey(final DataValue value) {
-        return value.toString();
-    }
-
-    @Override
-    protected TypeHierarchy<DataType, DataType> getTypeHierarchy() {
-        return DataTypeTypeHierarchy.INSTANCE;
-    }
-
-    @Override
-    protected AbstractPathTableReaderNodeDialog<TableManipulatorConfig, DataType> createNodeDialogPane(
-        final NodeCreationConfiguration creationConfig,
-        final MultiTableReadFactory<FSPath, TableManipulatorConfig, DataType> readFactory,
-        final ProductionPathProvider<DataType> defaultProductionPathFn) {
-        return null;
-    }
-
-    @Override
-    protected KnimeTableMultiTableReadConfig createConfig(final NodeCreationConfiguration nodeCreationConfig) {
-        return new KnimeTableMultiTableReadConfig();
-    }
+    extends KnimeTableReaderNodeFactory implements NodeDialogFactory {
 
     @Override
     protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() { // only to make this visible to testing
         return super.createPortsConfigBuilder();
     }
 
-    // above: copied from KnimeTableReaderNodeFactory; below: new stuff / taken from CSVTableReaderNodeFactory2
-
     private static final String FULL_DESCRIPTION = """
             This node reads files that have been written using the Table Writer node (which uses an internal format).
             It retains all meta information such as domain, properties, colors, size.
             """;
+
+    // TODO consider de-duplicating methods below
 
     @Override
     protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
