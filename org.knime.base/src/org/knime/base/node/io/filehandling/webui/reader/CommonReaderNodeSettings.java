@@ -59,16 +59,20 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.WidgetModification;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 
 /**
@@ -78,6 +82,28 @@ import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 public final class CommonReaderNodeSettings {
 
     public static class Settings implements WidgetGroup, PersistableSettings {
+
+        public static final class FileChooserRef extends ReferenceStateProvider<FileChooser>
+            implements WidgetModification.Reference {
+        }
+
+        public static abstract class SetFileReaderWidgetExtensions implements WidgetModification.ImperativeWidgetModification {
+            @Override
+            public void modify(final WidgetGroupModifier group) {
+                group.find(FileChooserRef.class).modifyAnnotation(FileReaderWidget.class).withProperty("fileExtensions",
+                    getExtensions()).build();
+            }
+
+            protected abstract String[] getExtensions();
+        }
+
+        @Widget(title = "Source", description = CommonReaderLayout.File.Source.DESCRIPTION)
+        @ValueReference(FileChooserRef.class)
+        @Layout(CommonReaderLayout.File.Source.class)
+        @Persist(configKey = "file_selection", settingsModel = SettingsModelReaderFileChooser.class)
+        @WidgetModification.WidgetReference(FileChooserRef.class)
+        @FileReaderWidget()
+        public FileChooser m_source = new FileChooser(); // TODO should not be public
 
         @Persist(configKey = "file_selection", hidden = true)
         FileSelectionInternal m_fileSelectionInternal = new FileSelectionInternal();

@@ -64,7 +64,6 @@ import java.util.stream.Stream;
 
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings;
 import org.knime.base.node.io.filehandling.table.reader.KnimeTableReader;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.Settings.FileChooserRef;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.ColumnSpecSettings;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TableSpecSettings;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TransformationElementSettings;
@@ -73,6 +72,7 @@ import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransfo
 import org.knime.base.node.io.filehandling.webui.FileChooserPathAccessor;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.Settings.FileChooserRef;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
 import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProductionPath;

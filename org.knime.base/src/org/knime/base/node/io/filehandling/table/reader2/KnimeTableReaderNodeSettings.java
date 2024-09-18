@@ -49,6 +49,7 @@
 package org.knime.base.node.io.filehandling.table.reader2;
 
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.PrependTableIndexToRowId;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.Settings.SetTableReaderExtensions;
 import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings;
@@ -59,17 +60,15 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.WidgetModification;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
@@ -78,6 +77,7 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.Settin
 public class KnimeTableReaderNodeSettings implements DefaultNodeSettings {
 
     @Persist(configKey = "settings")
+
     Settings m_settings = new Settings();
 
     @Persist(configKey = "advanced_settings")
@@ -88,17 +88,17 @@ public class KnimeTableReaderNodeSettings implements DefaultNodeSettings {
     @Layout(CommonReaderLayout.Transformation.class)
     KnimeTableReaderTransformationSettings m_tableSpecConfig = new KnimeTableReaderTransformationSettings();
 
+    @WidgetModification(SetTableReaderExtensions.class)
     static class Settings extends CommonReaderNodeSettings.Settings {
 
-        static final class FileChooserRef extends ReferenceStateProvider<FileChooser> {
-        }
+        static final class SetTableReaderExtensions
+            extends CommonReaderNodeSettings.Settings.SetFileReaderWidgetExtensions {
 
-        @Widget(title = "Source", description = CommonReaderLayout.File.Source.DESCRIPTION)
-        @ValueReference(FileChooserRef.class)
-        @Layout(CommonReaderLayout.File.Source.class)
-        @Persist(configKey = "file_selection", settingsModel = SettingsModelReaderFileChooser.class)
-        @FileReaderWidget(fileExtensions = {"table"}) // TODO: Deduplicate using imperative widget API (UIEXT-1724)
-        FileChooser m_source = new FileChooser();
+            @Override
+            protected String[] getExtensions() {
+                return new String[]{"table"};
+            }
+        }
 
         @Widget(title = "Prepend table index to RowID", description = PrependTableIndexToRowId.DESCRIPTION)
         @Layout(PrependTableIndexToRowId.class)
