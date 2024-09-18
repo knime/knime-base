@@ -58,10 +58,7 @@ import java.util.function.UnaryOperator;
 
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.ColumnDomains;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
-import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataValue;
-import org.knime.core.data.RowKeyValue;
 import org.knime.core.data.container.DataContainerSettings;
 import org.knime.core.data.v2.RowRead;
 import org.knime.core.node.BufferedDataTable;
@@ -339,8 +336,14 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
         }
 
         private static void filterOnPredicate(final ExecutionContext exec, final RowInput input,
-                final PortOutput[] outputs, final AbstractRowFilterNodeSettings settings)
-                throws CanceledExecutionException, InvalidSettingsException, InterruptedException {
+            final PortOutput[] outputs, final AbstractRowFilterNodeSettings settings)
+            // The method uses InterruptibleRowCursor and InterruptibleRowWriteCursor, which for
+            // backwards-compatibility do not annotate that they may throw InterruptedException.
+            // However, by re-annotating here, we can signal to callers that we might throw this.
+            // See ExceptionUtils#asRuntimeException.
+            throws CanceledExecutionException, //
+                   InvalidSettingsException, //
+                   InterruptedException { // NOSONAR InterruptedException from cursors
             final var inSpec = input.getDataTableSpec();
 
             final var predicates = partitionCriteria(settings.m_predicates);
@@ -355,28 +358,34 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
             final Supplier<String> progress = () -> "%s/%s rows included" //
                 .formatted(numFormat.format(matchedRead[0]), numFormat.format(matchedRead[1]));
 
-            final var rowRead = new DataRowAdapter();
             final var included = (RowOutput)outputs[MATCHING_OUTPUT];
             final var excluded = outputs.length > 1 ? (RowOutput)outputs[NON_MATCHING_OUTPUT] : null;
-            for (DataRow row; (row = input.poll()) != null;) {
-                exec.checkCanceled();
-                final var index = matchedRead[1];
-                matchedRead[1]++;
+            try (final var in = input.asCursor();
+                    // the cursors might block and throw InterruptedException
+                    final var incl = included.asWriteCursor(inSpec);
+                    @SuppressWarnings("resource")
+                    final var excl = excluded != null ? excluded.asWriteCursor(inSpec) : null) {
+                for (RowRead rowRead; (rowRead = in.forward()) != null;) {
+                    exec.checkCanceled();
+                    final var index = matchedRead[1];
+                    matchedRead[1]++;
 
-                rowRead.setDataRow(row);
-                if (includeMatches == rowPredicate.test(index, rowRead)) {
-                    included.push(row);
-                    matchedRead[0]++;
-                } else if (excluded != null) {
-                    excluded.push(row);
+                    if (includeMatches == rowPredicate.test(index, rowRead)) {
+                        incl.forward().setFrom(rowRead);
+                        matchedRead[0]++;
+                    } else if (excl != null) {
+                        excl.forward().setFrom(rowRead);
+                    }
+                    exec.setMessage(progress);
                 }
-                exec.setMessage(progress);
             }
         }
 
         private static void filterRange(final ExecutionContext exec, final RowInput input, // NOSONAR
                 final PortOutput[] outputs, final AbstractRowFilterNodeSettings settings)
-                throws CanceledExecutionException, InterruptedException, InvalidSettingsException {
+                throws CanceledExecutionException, //
+                       InvalidSettingsException, //
+                       InterruptedException { // NOSONAR cursors from RowInput/RowOutput can throw InterruptedException
             final var isSplitter = outputs.length > 1;
 
             final var rowNumberCriteria = partitionCriteria(settings.m_predicates).getFirst();
@@ -409,88 +418,63 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
              *              ─────────►  ROWS   ├─────────────────────────────────────────┘
              *               start   └─────────┘              input ends
              */
-            DataRow row;
-            for (var nextRange = 0;; nextRange++) {
+            RowRead rowRead;
+            try (final var in = input.asCursor();
+                    // the cursors might block and throw InterruptedException
+                    final var incl = included.asWriteCursor(input.getDataTableSpec());
+                    final var excl = excluded != null ? excluded.asWriteCursor(input.getDataTableSpec()) : null) {
+                for (var nextRange = 0;; nextRange++) {
 
-                // === EXCLUDE ROWS state ===
-                final long lastExclRow;
-                if (nextRange < numIncludeRanges) {
-                    // there's another include range ahead, everything before is excluded
-                    lastExclRow = includeRanges.get(nextRange).lowerEndpoint() - 1;
-                } else {
-                    // only excluded rows remain
-                    if (excluded == null) {
-                        // not a splitter, nothing left to do
-                        return;
+                    // === EXCLUDE ROWS state ===
+                    final long lastExclRow;
+                    if (nextRange < numIncludeRanges) {
+                        // there's another include range ahead, everything before is excluded
+                        lastExclRow = includeRanges.get(nextRange).lowerEndpoint() - 1;
+                    } else {
+                        // only excluded rows remain
+                        if (excluded == null) { // NOSONAR
+                            // not a splitter, nothing left to do
+                            return;
+                        }
+                        incl.close(); // NOSONAR closing resource as soon as possible in streaming execution
+                        lastExclRow = Long.MAX_VALUE; // effectively makes `while` condition below `true`
                     }
-                    included.close();
-                    lastExclRow = Long.MAX_VALUE; // effectively makes `while` condition below `true`
+                    while (matchedRead[1] <= lastExclRow) {
+                        exec.checkCanceled();
+                        if ((rowRead = in.forward()) == null) { // NOSONAR
+                            return;
+                        }
+                        if (excl != null) { // NOSONAR
+                            excl.forward().setFrom(rowRead);
+                        }
+                        matchedRead[1]++;
+                        exec.setMessage(progress);
+                    }
+
+                    // === INCLUDE ROWS state ===
+                    final var currentRange = includeRanges.get(nextRange);
+                    final long lastInclRow;
+                    if (currentRange.hasUpperBound()) {
+                        // current include range ends somewhere
+                        lastInclRow = currentRange.upperEndpoint() - 1;
+                    } else {
+                        // only included rows remain
+                        if (excl != null) { // NOSONAR
+                            excl.close(); // NOSONAR closing resource as soon as possible in streaming execution
+                        }
+                        lastInclRow = Long.MAX_VALUE; // effectively makes `while` condition below `true`
+                    }
+                    while (matchedRead[1] <= lastInclRow) {
+                        exec.checkCanceled();
+                        if ((rowRead = in.forward()) == null) { // NOSONAR
+                            return;
+                        }
+                        incl.forward().setFrom(rowRead);
+                        matchedRead[1]++;
+                        matchedRead[0]++;
+                        exec.setMessage(progress);
+                    }
                 }
-                while (matchedRead[1] <= lastExclRow) {
-                    exec.checkCanceled();
-                    if ((row = input.poll()) == null) {
-                        return;
-                    }
-                    if (excluded != null) {
-                        excluded.push(row);
-                    }
-                    matchedRead[1]++;
-                    exec.setMessage(progress);
-                }
-
-                // === INCLUDE ROWS state ===
-                final var currentRange = includeRanges.get(nextRange);
-                final long lastInclRow;
-                if (currentRange.hasUpperBound()) {
-                    // current include range ends somewhere
-                    lastInclRow = currentRange.upperEndpoint() - 1;
-                } else {
-                    // only included rows remain
-                    if (excluded != null) {
-                        excluded.close();
-                    }
-                    lastInclRow = Long.MAX_VALUE; // effectively makes `while` condition below `true`
-                }
-                while (matchedRead[1] <= lastInclRow) {
-                    exec.checkCanceled();
-                    if ((row = input.poll()) == null) {
-                        return;
-                    }
-                    included.push(row);
-                    matchedRead[1]++;
-                    matchedRead[0]++;
-                    exec.setMessage(progress);
-                }
-            }
-        }
-
-        private static final class DataRowAdapter implements RowRead {
-
-            private DataRow m_row;
-
-            void setDataRow(final DataRow row) {
-                m_row = row;
-            }
-
-            @Override
-            public boolean isMissing(final int index) {
-                return m_row.getCell(index).isMissing();
-            }
-
-            @Override
-            @SuppressWarnings("unchecked")
-            public <D extends DataValue> D getValue(final int index) {
-                return (D)m_row.getCell(index);
-            }
-
-            @Override
-            public int getNumColumns() {
-                return m_row.getNumCells();
-            }
-
-            @Override
-            public RowKeyValue getRowKey() {
-                return m_row.getKey();
             }
         }
     }
