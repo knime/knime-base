@@ -60,6 +60,7 @@ import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransfo
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings;
+import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfigSerializer.DataTypeSerializer;
 import org.knime.base.node.preproc.manipulator.mapping.DataTypeTypeHierarchy;
 import org.knime.base.node.preproc.manipulator.mapping.DataValueReadAdapterFactory;
@@ -87,6 +88,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.node.table.reader.DefaultProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 
@@ -106,20 +108,20 @@ final class KnimeTableReaderTransformationSettings implements WidgetGroup, Persi
 
     static final TypeHierarchy<DataType, DataType> TYPE_HIERARCHY = DataTypeTypeHierarchy.INSTANCE;
 
-    //    // ??? we don't actually need this class, but we leave it in since it should make de-duplication easier
-    //    static final class ConfigIdSettings implements WidgetGroup, PersistableSettings {
-    //
-    //        // FirstColumnContainsRowIdsRef and SkipFirstDataRowsRef settings are part of the table reader settings AND part of the CSV reader config id, but not currently part of the table reader config id
-    //        // see TableManipulatorConfigSerializer::createFromConfig versus CSVMultiTableReadConfigSerializer::createFromConfig
-    //        // the reason is that these settings are relevant for the spec in the CSV reader, but, if you think about it, not for the table reader
-    //
-    //        void applyToConfig(final DefaultTableReadConfig<TableManipulatorConfig> config) {
-    //            //            config.setColumnHeaderIdx(0);
-    //            //            config.setRowIDIdx(0);
-    //            //            config.setLimitRowsForSpec(false);
-    //            //            config.setUseColumnHeaderIdx(false);
-    //        }
-    //    }
+        // ??? we don't actually need this class, but we leave it in since it should make de-duplication easier
+        static final class ConfigIdSettings implements WidgetGroup, PersistableSettings {
+
+            // FirstColumnContainsRowIdsRef and SkipFirstDataRowsRef settings are part of the table reader settings AND part of the CSV reader config id, but not currently part of the table reader config id
+            // see TableManipulatorConfigSerializer::createFromConfig versus CSVMultiTableReadConfigSerializer::createFromConfig
+            // the reason is that these settings are relevant for the spec in the CSV reader, but, if you think about it, not for the table reader
+
+            void applyToConfig(final DefaultTableReadConfig<TableManipulatorConfig> config) {
+                //            config.setColumnHeaderIdx(0);
+                //            config.setRowIDIdx(0);
+                //            config.setLimitRowsForSpec(false);
+                //            config.setUseColumnHeaderIdx(false);
+            }
+        }
 
     static final class ColumnSpecSettings implements WidgetGroup, PersistableSettings {
 
@@ -191,11 +193,11 @@ final class KnimeTableReaderTransformationSettings implements WidgetGroup, Persi
      */
     static final class PersistorSettings implements WidgetGroup, PersistableSettings {
 
-        //        static class ConfigIdReference implements Reference<ConfigIdSettings> {
-        //        }
-        //
-        //        @ValueReference(ConfigIdReference.class)
-        //        ConfigIdSettings m_configId = new ConfigIdSettings();
+                static class ConfigIdReference implements Reference<ConfigIdSettings> {
+                }
+
+                @ValueReference(ConfigIdReference.class)
+                ConfigIdSettings m_configId = new ConfigIdSettings();
 
         @ValueProvider(SourceIdProvider.class)
         String m_sourceId = "";
