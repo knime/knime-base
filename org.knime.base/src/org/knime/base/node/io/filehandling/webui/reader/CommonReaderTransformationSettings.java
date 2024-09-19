@@ -49,12 +49,28 @@
 package org.knime.base.node.io.filehandling.webui.reader;
 
 import java.util.List;
+import java.util.function.Supplier;
 
+import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.PersistorSettings.SetStateProviders.ConfigIdSettingsRef;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.PersistorSettings.SetStateProviders.SpecsRef;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.FSLocationsProvider;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.SourceIdProvider;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TypeChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.LatentWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.WidgetModification;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalArrayWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
@@ -62,6 +78,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
+import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
@@ -130,14 +150,11 @@ public class CommonReaderTransformationSettings {
                 group.find(ConfigIdSettingsRef.class).addAnnotation(ValueReference.class)
                     .withProperty("value", getConfigIdSettingsValueRef()).build();
 
-                final var specs = group.find(SpecsRef.class);
-                specs.addAnnotation(ValueReference.class).withProperty("value", getSpecsValueRef()).build();
-                specs.addAnnotation(ValueProvider.class).withProperty("value", getSpecsValueProvider()).build();
+                group.find(SpecsRef.class).addAnnotation(ValueProvider.class)
+                    .withProperty("value", getSpecsValueProvider()).build();
             }
 
             protected abstract Class<? extends Reference<C>> getConfigIdSettingsValueRef();
-
-            protected abstract Class<? extends Reference<List<TableSpecSettings<T>>>> getSpecsValueRef();
 
             protected abstract Class<? extends StateProvider<List<TableSpecSettings<T>>>> getSpecsValueProvider();
         }
@@ -151,8 +168,11 @@ public class CommonReaderTransformationSettings {
         @ValueProvider(FSLocationsProvider.class)
         FSLocation[] m_fsLocations = new FSLocation[0];
 
+        static class TableSpecSettingsRef implements Reference<List<TableSpecSettings<?>>> {
+        }
 
-        @WidgetModification.WidgetReference(SpecsRef.class) // for adding dynamic ref and provider
+        @ValueReference(TableSpecSettingsRef.class)
+        @WidgetModification.WidgetReference(SpecsRef.class) // for adding dynamic and provider
         List<TableSpecSettings<T>> m_specs = List.of();
 
         @ValueProvider(CommonReaderNodeSettings.AdvancedSettings.AppendPathColumnRef.class)
@@ -164,5 +184,181 @@ public class CommonReaderTransformationSettings {
         @ValueProvider(TakeColumnsFromProvider.class)
         ColumnFilterMode m_takeColumnsFrom = ColumnFilterMode.UNION;
     }
+
+    static class TakeColumnsFromProvider implements StateProvider<ColumnFilterMode> {
+
+        private Supplier<CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption> m_howToCombineColumnsOptionSupplier;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            initializer.computeBeforeOpenDialog();
+            m_howToCombineColumnsOptionSupplier = initializer
+                .computeFromValueSupplier(CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOptionRef.class);
+        }
+
+        @Override
+        public ColumnFilterMode computeState(final DefaultNodeSettingsContext context) {
+            return m_howToCombineColumnsOptionSupplier.get().toColumnFilterMode();
+        }
+    }
+
+    @Widget(title = "Enforce types", description = CommonReaderLayout.Transformation.EnforceTypes.DESCRIPTION,
+        hideFlowVariableButton = true)
+    boolean m_enforceTypes = true;
+
+    static class TransformationElementSettings implements WidgetGroup, PersistableSettings {
+
+        static class ColumnNameRef implements Reference<String> {
+        }
+
+        static final class ColumnNameIsNull implements PredicateProvider {
+            @Override
+            public Predicate init(final PredicateInitializer i) {
+                return i.getString(ColumnNameRef.class).isEqualTo(null);
+            }
+        }
+
+        @ValueReference(ColumnNameRef.class)
+        @JsonInclude(Include.ALWAYS) // Necessary for the ColumnNameIsNull PredicateProvider to work
+        @LatentWidget // Necessary for the ColumnNameIsNull PredicateProvider to work
+        String m_columnName;
+
+        static class OriginalTypeRef implements Reference<String> {
+        }
+
+        @ValueReference(OriginalTypeRef.class)
+        String m_originalType;
+
+        static class OriginalTypeLabelRef implements Reference<String> {
+        }
+
+        @ValueReference(OriginalTypeLabelRef.class)
+        String m_originalTypeLabel;
+
+        @Widget(title = "Include in output", description = "", hideFlowVariableButton = true) // TODO NOSONAR UIEXT-1901 add description
+        @InternalArrayWidget.ElementCheckboxWidget
+        boolean m_includeInOutput;
+
+        static final class ColumnNameResetter implements StateProvider<String> {
+
+            private Supplier<String> m_originalColumnNameSupplier;
+
+            @Override
+            public void init(final StateProviderInitializer initializer) {
+                initializer.computeOnButtonClick(InternalArrayWidget.ElementResetButton.class);
+                m_originalColumnNameSupplier = initializer.getValueSupplier(ColumnNameRef.class);
+            }
+
+            @Override
+            public String computeState(final DefaultNodeSettingsContext context) {
+                return m_originalColumnNameSupplier.get();
+            }
+
+        }
+
+        static final class TypeResetter implements StateProvider<String> {
+
+            private Supplier<String> m_originalTypeSupplier;
+
+            @Override
+            public void init(final StateProviderInitializer initializer) {
+                initializer.computeOnButtonClick(InternalArrayWidget.ElementResetButton.class);
+                m_originalTypeSupplier = initializer.getValueSupplier(OriginalTypeRef.class);
+            }
+
+            @Override
+            public String computeState(final DefaultNodeSettingsContext context) {
+                return m_originalTypeSupplier.get();
+            }
+        }
+
+        static final class TitleProvider implements StateProvider<String> {
+
+            private Supplier<String> m_originalColumnNameSupplier;
+
+            @Override
+            public void init(final StateProviderInitializer initializer) {
+                initializer.computeOnValueChange(PersistorSettings.TableSpecSettingsRef.class);
+                m_originalColumnNameSupplier = initializer.getValueSupplier(ColumnNameRef.class);
+            }
+
+            @Override
+            public String computeState(final DefaultNodeSettingsContext context) {
+                final var originalName = m_originalColumnNameSupplier.get();
+                return originalName == null ? "Any unknown column" : originalName;
+            }
+        }
+
+        static final class SubTitleProvider implements StateProvider<String> {
+
+            private Supplier<String> m_originalTypeLabelSupplier;
+
+            @Override
+            public void init(final StateProviderInitializer initializer) {
+                initializer.computeOnValueChange(PersistorSettings.TableSpecSettingsRef.class);
+                m_originalTypeLabelSupplier = initializer.getValueSupplier(OriginalTypeLabelRef.class);
+            }
+
+            @Override
+            public String computeState(final DefaultNodeSettingsContext context) {
+                return m_originalTypeLabelSupplier.get();
+            }
+        }
+
+        static final class ElementIsEditedAndColumnNameIsNotNull implements PredicateProvider {
+            @Override
+            public Predicate init(final PredicateInitializer i) {
+                return i.getPredicate(InternalArrayWidget.ElementIsEdited.class)
+                    .and(i.getPredicate(ColumnNameIsNull.class).negate());
+            }
+        }
+
+        @Widget(title = "Column name", description = "", hideTitle = true, hideFlowVariableButton = true) // TODO NOSONAR UIEXT-1901 add description
+        @ValueProvider(ColumnNameResetter.class)
+        @Effect(predicate = ElementIsEditedAndColumnNameIsNotNull.class, type = EffectType.SHOW)
+        @JsonInclude(Include.ALWAYS) // Necessary for comparison against m_columnName
+        String m_columnRename;
+
+        @Widget(title = "Column type", description = "", hideTitle = true, hideFlowVariableButton = true) // TODO NOSONAR UIEXT-1901 add description
+        @ChoicesWidget(choicesProvider = TypeChoicesProvider.class)
+        @ValueProvider(TypeResetter.class)
+        @Effect(predicate = InternalArrayWidget.ElementIsEdited.class, type = EffectType.SHOW)
+        String m_type;
+
+        // extra field source type serialized
+
+        TransformationElementSettings() {
+        }
+
+        TransformationElementSettings(final String columnName, final boolean includeInOutput, final String columnRename,
+            final String type, final String originalType, final String originalTypeLabel) {
+            m_columnName = columnName;
+            m_includeInOutput = includeInOutput;
+            m_columnRename = columnRename;
+            m_type = type; // converter fac id
+            m_originalType = originalType; // converter fac id
+            m_originalTypeLabel = originalTypeLabel;
+        }
+
+        static TransformationElementSettings createUnknownElement() {
+            return new TransformationElementSettings(null, true, null, TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID,
+                TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID, TypeChoicesProvider.DEFAULT_COLUMNTYPE_TEXT);
+        }
+    }
+
+    static final class TransformationElementSettingsReference implements Reference<TransformationElementSettings[]> {
+    }
+
+    @Widget(title = "Transformations", description = CommonReaderLayout.Transformation.DESCRIPTION)
+    // TODO NOSONAR UIEXT-1901 this description is currently not shown
+    @ArrayWidget(elementTitle = "Column", showSortButtons = true, hasFixedSize = true)
+    @InternalArrayWidget(withEditAndReset = true, withElementCheckboxes = true,
+        titleProvider = TransformationElementSettings.TitleProvider.class,
+        subTitleProvider = TransformationElementSettings.SubTitleProvider.class)
+    @ValueProvider(TransformationElementSettingsProvider.class)
+    @ValueReference(TransformationElementSettingsReference.class)
+    @Effect(predicate = FileSystemPortConnectionUtil.ConnectedWithoutFileSystemSpec.class, type = EffectType.HIDE)
+    TransformationElementSettings[] m_columnTransformation =
+        new TransformationElementSettings[]{TransformationElementSettings.createUnknownElement()};
 
 }
