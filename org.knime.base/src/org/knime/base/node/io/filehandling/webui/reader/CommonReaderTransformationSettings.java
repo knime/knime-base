@@ -110,10 +110,11 @@ public class CommonReaderTransformationSettings {
      * these settings to the persistor. This would then also allow us to use non-serializable types like the
      * TypedReaderTableSpec instead of the TableSpecSettings, saving us the back-and-forth conversion.
      */
-    public static abstract class PersistorSettings<C extends ReaderSpecificConfig<C>>
+    public static abstract class PersistorSettings<C extends ConfigIdSettings<?>>
         implements WidgetGroup, PersistableSettings {
 
-        public abstract class SetConfigIdSettingsValueRef implements WidgetModification.ImperativeWidgetModification {
+        public static abstract class SetConfigIdSettingsValueRef<C extends ConfigIdSettings<?>>
+            implements WidgetModification.ImperativeWidgetModification {
             static class ConfigIdSettingsRef implements WidgetModification.Reference {
             }
 
@@ -123,11 +124,11 @@ public class CommonReaderTransformationSettings {
                     .withProperty("value", getConfigIdSettingsValueRef()).build();
             }
 
-            protected abstract Class<? extends Reference<ConfigIdSettings<C>>> getConfigIdSettingsValueRef();
+            protected abstract Class<? extends Reference<C>> getConfigIdSettingsValueRef();
         }
 
         @WidgetModification.WidgetReference(ConfigIdSettingsRef.class)
-        ConfigIdSettings<C> m_configId;
+        C m_configId;
 
         //        @ValueProvider(SourceIdProvider.class)
         //        String m_sourceId = "";

@@ -80,6 +80,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LatentWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.WidgetModification;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
@@ -155,8 +156,9 @@ final class KnimeTableReaderTransformationSettings implements WidgetGroup, Persi
      * these settings to the persistor. This would then also allow us to use non-serializable types like the
      * TypedReaderTableSpec instead of the TableSpecSettings, saving us the back-and-forth conversion.
      */
+    @WidgetModification(PersistorSettings.SetConfigIdSettingsValueRef.class)
     static final class PersistorSettings
-        extends CommonReaderTransformationSettings.PersistorSettings<TableManipulatorConfig> {
+        extends CommonReaderTransformationSettings.PersistorSettings<KnimeTableReaderConfigIdSettings> {
 
         //        static class ConfigIdReference implements Reference<KnimeTableReaderConfigIdSettings> {
         //        }
@@ -165,11 +167,15 @@ final class KnimeTableReaderTransformationSettings implements WidgetGroup, Persi
         //        KnimeTableReaderConfigIdSettings m_configId = new KnimeTableReaderConfigIdSettings();
 
         final class SetConfigIdSettingsValueRef extends
-            CommonReaderTransformationSettings.PersistorSettings.SetConfigIdSettingsValueRef<TableManipulatorConfig> {
+            CommonReaderTransformationSettings.PersistorSettings.SetConfigIdSettingsValueRef<KnimeTableReaderConfigIdSettings> {
+
+            static final class KnimeTableReaderConfigIdSettingsValueRef
+                implements Reference<KnimeTableReaderConfigIdSettings> {
+            }
+
             @Override
-            protected Class getConfigIdSettingsValueRef() {
-                // TODO Auto-generated method stub
-                return null;
+            protected Class<? extends Reference<KnimeTableReaderConfigIdSettings>> getConfigIdSettingsValueRef() {
+                return KnimeTableReaderConfigIdSettingsValueRef.class;
             }
         }
 

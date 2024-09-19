@@ -65,7 +65,7 @@ import java.util.stream.Stream;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings;
 import org.knime.base.node.io.filehandling.table.reader.KnimeTableReader;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.KnimeTableReaderConfigIdSettings;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.PersistorSettings.ConfigIdReference;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.PersistorSettings.SetConfigIdSettingsValueRef.KnimeTableReaderConfigIdSettingsValueRef;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TransformationElementSettings;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TransformationElementSettings.ColumnNameRef;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TransformationElementSettingsReference;
@@ -133,7 +133,7 @@ final class KnimeTableReaderTransformationSettingsStateProviders {
 
         @Override
         public void init(final StateProviderInitializer initializer) {
-            m_configIdSupplier = initializer.getValueSupplier(ConfigIdReference.class);
+            m_configIdSupplier = initializer.getValueSupplier(KnimeTableReaderConfigIdSettingsValueRef.class);
             m_fileChooserSupplier = initializer.getValueSupplier(FileChooserRef.class);
         }
 
@@ -249,21 +249,23 @@ final class KnimeTableReaderTransformationSettingsStateProviders {
         public void init(final StateProviderInitializer initializer) {
             initializer.computeAfterOpenDialog();
             m_specSupplier = initializer.computeFromProvidedState(TypedReaderTableSpecsProvider.class);
-            //                        initializer.computeOnValueChange(ConfigIdReference.class);
+            initializer.computeOnValueChange(KnimeTableReaderConfigIdSettingsValueRef.class);
             initializer.computeOnValueChange(FileChooserRef.class);
         }
     }
 
-    static final class TableSpecSettingsProvider extends DependsOnTypedReaderTableSpecProvider<List<TableSpecSettings<String>>> {
+    static final class TableSpecSettingsProvider
+        extends DependsOnTypedReaderTableSpecProvider<List<TableSpecSettings<String>>> {
 
         @Override
         public List<TableSpecSettings<String>> computeState(final DefaultNodeSettingsContext context) {
             return m_specSupplier.get().entrySet().stream()
-                .map(e -> new TableSpecSettings<>(e.getKey(),
-                    e.getValue().stream()
-                        .map(spec -> new ColumnSpecSettings<>(spec.getName().get(),
-                            KnimeTableReaderTransformationSettings.typeToString(spec.getType())))
-                        .toList()))
+                .map(
+                    e -> new TableSpecSettings<>(e.getKey(),
+                        e.getValue().stream()
+                            .map(spec -> new ColumnSpecSettings<>(spec.getName().get(),
+                                KnimeTableReaderTransformationSettings.typeToString(spec.getType())))
+                            .toList()))
                 .toList();
         }
     }
