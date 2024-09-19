@@ -107,7 +107,7 @@ public class CommonReaderTransformationSettingsStateProviders {
      * This object holds copies of the subset of settings in {@link CSVTableReaderNodeSettings} that can affect the spec
      * of the output table. I.e., if any of these settings change, the spec has to be re-calculcated.
      */
-    static class Dependencies {
+    public static class Dependencies {
 
         final FileChooser m_source;
 
@@ -156,7 +156,7 @@ public class CommonReaderTransformationSettingsStateProviders {
         }
     }
 
-    abstract static class PathsProvider<S, D extends Dependencies> implements StateProvider<S> {
+    public abstract static class PathsProvider<S, D extends Dependencies> implements StateProvider<S> {
 
         protected abstract Class<? extends DependenciesProvider<D>> getDependenciesProvider();
 
@@ -197,7 +197,7 @@ public class CommonReaderTransformationSettingsStateProviders {
         abstract S computeStateFromPaths(List<FSPath> paths);
     }
 
-    static abstract class FSLocationsProvider<D extends Dependencies> extends PathsProvider<FSLocation[], D> {
+    public static abstract class FSLocationsProvider<D extends Dependencies> extends PathsProvider<FSLocation[], D> {
         @Override
         public void init(final StateProviderInitializer initializer) {
             super.init(initializer);
@@ -211,12 +211,12 @@ public class CommonReaderTransformationSettingsStateProviders {
         }
     }
 
-    static abstract class TypedReaderTableSpecsProvider<C extends ReaderSpecificConfig<C>, T, D extends Dependencies>
+    public static abstract class TypedReaderTableSpecsProvider<C extends ReaderSpecificConfig<C>, T, D extends Dependencies>
         extends PathsProvider<Map<String, TypedReaderTableSpec<T>>, D> {
 
-        abstract TableReader<C, T, ?> getTableReader();
+        protected abstract TableReader<C, T, ?> getTableReader();
 
-        abstract C getReaderSpecificConfig();
+        protected abstract C getReaderSpecificConfig();
 
         @Override
         Map<String, TypedReaderTableSpec<T>> computeStateFromPaths(final List<FSPath> paths) {
@@ -240,7 +240,12 @@ public class CommonReaderTransformationSettingsStateProviders {
         }
     }
 
-    abstract static class DependsOnTypedReaderTableSpecProvider<S, T> implements StateProvider<S> {
+    interface GetTypedReaderTableSpecProvider<T> {
+        Class<? extends TypedReaderTableSpecsProvider<?, T, ?>> getTypedReaderTableSpecsProvider();
+    }
+
+    abstract static class DependsOnTypedReaderTableSpecProvider<S, T>
+        implements StateProvider<S>, GetTypedReaderTableSpecProvider<T> {
 
         protected Supplier<Map<String, TypedReaderTableSpec<T>>> m_specSupplier;
 
@@ -252,15 +257,26 @@ public class CommonReaderTransformationSettingsStateProviders {
             initializer.computeOnValueChange(FileChooserRef.class);
         }
 
-        abstract List<Class<? extends Reference<?>>> getAdditionalTriggers();
+        /**
+         * TODO: Rethink this. We originally had to postpone triggers to those state providers which only concern the
+         * outside of the array (i.e. not the type choices provider) but we now allow triggering from outside the array.
+         *
+         * But it is not so straightforward as now setting all these dependencies as triggers in the dependency
+         * provider, because we then run into a timing issue: We currently require, that first all element values are
+         * determined and then secondly, the choices of these elements are computed (with a second backend call).
+         *
+         * @return a list of postponed triggers
+         */
+        protected List<Class<? extends Reference<?>>> getAdditionalTriggers() {
+            return Collections.emptyList();
+        }
 
-        abstract Class<? extends TypedReaderTableSpecsProvider<?, T, ?>> getTypedReaderTableSpecsProvider();
     }
 
-    static abstract class TableSpecSettingsProvider<S, T>
+    public static abstract class TableSpecSettingsProvider<S, T>
         extends DependsOnTypedReaderTableSpecProvider<List<TableSpecSettings<S>>, T> {
 
-        abstract S toSerializableType(T value);
+        protected abstract S toSerializableType(T value);
 
         @Override
         public List<TableSpecSettings<S>> computeState(final DefaultNodeSettingsContext context) {
@@ -406,7 +422,7 @@ public class CommonReaderTransformationSettingsStateProviders {
     }
 
     public static abstract class TypeChoicesProvider<T>
-        implements StringChoicesStateProvider, ProductionPathAndTypeHierarchy<T> {
+        implements StringChoicesStateProvider, ProductionPathAndTypeHierarchy<T>, GetTypedReaderTableSpecProvider<T> {
 
         static final String DEFAULT_COLUMNTYPE_ID = "<default-columntype>";
 
@@ -416,13 +432,11 @@ public class CommonReaderTransformationSettingsStateProviders {
 
         private Supplier<Map<String, TypedReaderTableSpec<T>>> m_specSupplier;
 
-        protected abstract Class<? extends StateProvider<Map<String, TypedReaderTableSpec<T>>>> getSpecStateProvider();
-
         @Override
         public void init(final StateProviderInitializer initializer) {
             m_columnNameSupplier = initializer.getValueSupplier(ColumnNameRef.class);
             initializer.computeOnValueChange(CommonReaderTransformationSettings.TableSpecSettingsRef.class);
-            m_specSupplier = initializer.computeFromProvidedState(getSpecStateProvider());
+            m_specSupplier = initializer.computeFromProvidedState(getTypedReaderTableSpecsProvider());
         }
 
         @Override
