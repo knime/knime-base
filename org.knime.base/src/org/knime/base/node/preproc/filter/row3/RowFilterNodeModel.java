@@ -178,10 +178,10 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
                 final var read = input.forward();
                 final var index = readRows.getAndIncrement();
                 if (includeMatches == predicate.test(index, read)) {
-                    matchesCursor.forward().setFrom(read);
+                    matchesCursor.commit(read);
                     matchingRows.incrementAndGet();
                 } else if (nonMatchesCursor != null) {
-                    nonMatchesCursor.forward().setFrom(read);
+                    nonMatchesCursor.commit(read);
                 }
                 exec.setProgress(1.0 * readRows.get() / tableSize);
             }

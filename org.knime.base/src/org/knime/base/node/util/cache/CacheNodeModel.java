@@ -60,8 +60,6 @@ import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.data.container.DataContainerSettings;
 import org.knime.core.data.v2.RowContainer;
 import org.knime.core.data.v2.RowCursor;
-import org.knime.core.data.v2.RowRead;
-import org.knime.core.data.v2.RowWrite;
 import org.knime.core.data.v2.RowWriteCursor;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
@@ -124,15 +122,15 @@ final class CacheNodeModel extends WebUINodeModel<CacheNodeSettings> {
                 exec.setProgress(row.longValue() / (double)totalCount,
                     () -> progressFractionBuilder.apply(new StringBuilder("Caching row ")).toString());
                 exec.checkCanceled();
-                writeCursor.forward().setFrom(readCursor.forward());
+                writeCursor.commit(readCursor.forward());
             }
             return con.finish();
         }
     }
 
+    // TODO (TP): This is identical to colBackendFull --> Remove
     private static BufferedDataTable colBackendCellByCellCopy(final BufferedDataTable data, final ExecutionContext exec,
         final DataContainerSettings dcSettings) throws CanceledExecutionException, IOException {
-        final int numCells = data.getDataTableSpec().getNumColumns();
         try (RowContainer con = exec.createRowContainer(data.getDataTableSpec(), dcSettings);
                 RowCursor readCursor = data.cursor();
                 RowWriteCursor writeCursor = con.createCursor()) {
@@ -144,21 +142,13 @@ final class CacheNodeModel extends WebUINodeModel<CacheNodeSettings> {
                 exec.setProgress(row.longValue() / (double)totalCount,
                     () -> progressFractionBuilder.apply(new StringBuilder("Caching row ")).toString());
                 exec.checkCanceled();
-                RowWrite write = writeCursor.forward();
-                RowRead read = readCursor.forward();
-                write.setRowKey(read.getRowKey());
-                for (int i = 0; i < numCells; i++) {
-                    if (read.isMissing(i)) { // NOSONAR (nesting)
-                        write.setMissing(i);
-                    } else {
-                        write.getWriteValue(i).setValue(read.getValue(i));
-                    }
-                }
+                writeCursor.commit(readCursor.forward());
             }
             return con.finish();
         }
     }
 
+    // TODO (TP): The special case could be handled in RowWrite.commit()? --> Remove?
     private static BufferedDataTable rowBackendFullRowCopy(final BufferedDataTable data,
         final ExecutionContext exec, final DataContainerSettings dcSettings) throws CanceledExecutionException {
         // it writes only the cells that are "visible" in the input table
