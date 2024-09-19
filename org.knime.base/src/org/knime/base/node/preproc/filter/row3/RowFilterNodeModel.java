@@ -175,10 +175,10 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
                 final var read = input.forward();
                 final var index = readRows.getAndIncrement();
                 if (includeMatches == predicate.test(index, read)) {
-                    matchesCursor.forward().setFrom(read);
+                    matchesCursor.commit(read);
                     matchingRows.incrementAndGet();
                 } else if (nonMatchesCursor != null) {
-                    nonMatchesCursor.forward().setFrom(read);
+                    nonMatchesCursor.commit(read);
                 }
                 exec.setProgress(1.0 * readRows.get() / tableSize);
             }
@@ -360,10 +360,10 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
                     matchedRead[1]++;
 
                     if (includeMatches == rowPredicate.test(index, rowRead)) {
-                        incl.forward().setFrom(rowRead);
+                        incl.commit(rowRead);
                         matchedRead[0]++;
                     } else if (excl != null) {
-                        excl.forward().setFrom(rowRead);
+                        excl.commit(rowRead);
                     }
                     exec.setMessage(progress);
                 }
@@ -434,7 +434,7 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
                             return;
                         }
                         if (excl != null) { // NOSONAR
-                            excl.forward().setFrom(rowRead);
+                            excl.commit(rowRead);
                         }
                         matchedRead[1]++;
                         exec.setMessage(progress);
@@ -458,7 +458,7 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
                         if ((rowRead = in.forward()) == null) { // NOSONAR
                             return;
                         }
-                        incl.forward().setFrom(rowRead);
+                        incl.commit(rowRead);
                         matchedRead[1]++;
                         matchedRead[0]++;
                         exec.setMessage(progress);
