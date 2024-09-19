@@ -50,11 +50,14 @@ package org.knime.base.node.io.filehandling.webui.reader;
 
 import java.util.List;
 
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.PersistorSettings.SetConfigIdSettingsValueRef.ConfigIdSettingsRef;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.PersistorSettings.SetStateProviders.ConfigIdSettingsRef;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.PersistorSettings.SetStateProviders.SpecsRef;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.WidgetModification;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
@@ -110,21 +113,32 @@ public class CommonReaderTransformationSettings {
      * these settings to the persistor. This would then also allow us to use non-serializable types like the
      * TypedReaderTableSpec instead of the TableSpecSettings, saving us the back-and-forth conversion.
      */
-    public static abstract class PersistorSettings<C extends ConfigIdSettings<?>>
+    public static abstract class PersistorSettings<C extends ConfigIdSettings<?>, T>
         implements WidgetGroup, PersistableSettings {
 
-        public static abstract class SetConfigIdSettingsValueRef<C extends ConfigIdSettings<?>>
+        public static abstract class SetStateProviders<C extends ConfigIdSettings<?>, T>
             implements WidgetModification.ImperativeWidgetModification {
             static class ConfigIdSettingsRef implements WidgetModification.Reference {
+            }
+
+            static class SpecsRef implements WidgetModification.Reference {
             }
 
             @Override
             public void modify(final WidgetGroupModifier group) {
                 group.find(ConfigIdSettingsRef.class).addAnnotation(ValueReference.class)
                     .withProperty("value", getConfigIdSettingsValueRef()).build();
+
+                final var specs = group.find(SpecsRef.class);
+                specs.addAnnotation(ValueReference.class).withProperty("value", getSpecsValueRef()).build();
+                specs.addAnnotation(ValueProvider.class).withProperty("value", getSpecsValueProvider()).build();
             }
 
             protected abstract Class<? extends Reference<C>> getConfigIdSettingsValueRef();
+
+            protected abstract Class<? extends Reference<List<TableSpecSettings<T>>>> getSpecsValueRef();
+
+            protected abstract Class<? extends StateProvider<List<TableSpecSettings<T>>>> getSpecsValueProvider();
         }
 
         @WidgetModification.WidgetReference(ConfigIdSettingsRef.class)
@@ -136,10 +150,9 @@ public class CommonReaderTransformationSettings {
         //        @ValueProvider(FSLocationsProvider.class)
         //        FSLocation[] m_fsLocations = new FSLocation[0];
         //
-        //        static class TableSpecSettingsRef implements Reference<List<TableSpecSettings<String>>> {
-        //        }
-        //
-        //        List<TableSpecSettings<T>> m_specs = List.of();
+
+        @WidgetModification.WidgetReference(SpecsRef.class)
+        List<TableSpecSettings<T>> m_specs = List.of();
         //
         //        @ValueProvider(CommonReaderNodeSettings.AdvancedSettings.AppendPathColumnRef.class)
         //        boolean m_appendPathColumn;

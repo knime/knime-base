@@ -158,7 +158,7 @@ final class KnimeTableReaderTransformationSettings implements WidgetGroup, Persi
      */
     @WidgetModification(PersistorSettings.SetConfigIdSettingsValueRef.class)
     static final class PersistorSettings
-        extends CommonReaderTransformationSettings.PersistorSettings<KnimeTableReaderConfigIdSettings> {
+        extends CommonReaderTransformationSettings.PersistorSettings<KnimeTableReaderConfigIdSettings, String> {
 
         //        static class ConfigIdReference implements Reference<KnimeTableReaderConfigIdSettings> {
         //        }
@@ -167,7 +167,7 @@ final class KnimeTableReaderTransformationSettings implements WidgetGroup, Persi
         //        KnimeTableReaderConfigIdSettings m_configId = new KnimeTableReaderConfigIdSettings();
 
         final class SetConfigIdSettingsValueRef extends
-            CommonReaderTransformationSettings.PersistorSettings.SetConfigIdSettingsValueRef<KnimeTableReaderConfigIdSettings> {
+            CommonReaderTransformationSettings.PersistorSettings.SetStateProviders<KnimeTableReaderConfigIdSettings, String> {
 
             static final class KnimeTableReaderConfigIdSettingsValueRef
                 implements Reference<KnimeTableReaderConfigIdSettings> {
@@ -176,6 +176,16 @@ final class KnimeTableReaderTransformationSettings implements WidgetGroup, Persi
             @Override
             protected Class<? extends Reference<KnimeTableReaderConfigIdSettings>> getConfigIdSettingsValueRef() {
                 return KnimeTableReaderConfigIdSettingsValueRef.class;
+            }
+
+            @Override
+            protected Class<? extends Reference<List<TableSpecSettings<String>>>> getSpecsValueRef() {
+                return TableSpecSettingsRef.class;
+            }
+
+            @Override
+            protected Class<? extends StateProvider<List<TableSpecSettings<String>>>> getSpecsValueProvider() {
+                return TableSpecSettingsProvider.class;
             }
         }
 
