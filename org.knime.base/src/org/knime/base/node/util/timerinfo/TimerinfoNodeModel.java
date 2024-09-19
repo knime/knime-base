@@ -48,12 +48,13 @@
 package org.knime.base.node.util.timerinfo;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.knime.base.node.util.timerinfo.TimerinfoNodeSettings.RecursionPolicy;
-import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
@@ -106,19 +107,20 @@ final class TimerinfoNodeModel extends WebUINodeModel<TimerinfoNodeSettings> imp
         return new PortObjectSpec[] { createSpec() };
     }
 
-    private static DataTableSpec createSpec() {
-        var dtsc = new DataTableSpecCreator();
-        var colSpecs = new DataColumnSpec[] {
-            new DataColumnSpecCreator("Name", StringCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("Execution Time", LongCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("Execution Time since last Reset", LongCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("Execution Time since Start", LongCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("Nr of Executions since last Reset", IntCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("Nr of Executions since Start", IntCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("NodeID", StringCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("Classname", StringCell.TYPE).createSpec()
-        };
-        dtsc.addColumns(colSpecs);
+    private DataTableSpec createSpec() {
+        final var dtsc =
+            new DataTableSpecCreator().addColumns(//
+                new DataColumnSpecCreator("Name", StringCell.TYPE).createSpec(),
+                new DataColumnSpecCreator("Execution Time", LongCell.TYPE).createSpec(),
+                new DataColumnSpecCreator("Execution Time since last Reset", LongCell.TYPE).createSpec(),
+                new DataColumnSpecCreator("Execution Time since Start", LongCell.TYPE).createSpec(),
+                new DataColumnSpecCreator("Nr of Executions since last Reset", IntCell.TYPE).createSpec(),
+                new DataColumnSpecCreator("Nr of Executions since Start", IntCell.TYPE).createSpec(),
+                new DataColumnSpecCreator("NodeID", StringCell.TYPE).createSpec(),
+                new DataColumnSpecCreator("Classname", StringCell.TYPE).createSpec());
+        if (getSettings().map(s -> s.m_includeNodeComments).orElse(false)) {
+            dtsc.addColumns(new DataColumnSpecCreator("Node Comment", StringCell.TYPE).createSpec());
+        }
         return dtsc.createSpec();
     }
 
@@ -149,7 +151,7 @@ final class TimerinfoNodeModel extends WebUINodeModel<TimerinfoNodeSettings> imp
         }
 
         walkWorkflow(myWorkflowManager, new TimerNodeVisitor(myWorkflowManager.getID(), settings.m_recursionPolicy,
-            maxDepth, settings.m_includeComponentIO, result));
+            maxDepth, settings.m_includeComponentIO, settings.m_includeNodeComments, result));
 
         result.close();
         return new PortObject[] { result.getTable() };
@@ -192,15 +194,18 @@ final class TimerinfoNodeModel extends WebUINodeModel<TimerinfoNodeSettings> imp
         private final RecursionPolicy m_recursionPolicy;
         private final int m_maxLevel;
         private final boolean m_includeComponentIO;
+        private final boolean m_includeNodeComments;
 
         private final BufferedDataContainer m_result;
 
         TimerNodeVisitor(final NodeID toplevelprefix, final TimerinfoNodeSettings.RecursionPolicy recursionPolicy,
-                final int maxDepth, final boolean includeComponentIO, final BufferedDataContainer result) {
+            final int maxDepth, final boolean includeComponentIO, final boolean includeNodeComments,
+            final BufferedDataContainer result) {
             m_toplevelprefix = toplevelprefix;
             m_recursionPolicy = recursionPolicy;
             m_maxLevel = maxDepth;
             m_includeComponentIO = includeComponentIO;
+            m_includeNodeComments = includeNodeComments;
             m_result = result;
         }
 
@@ -217,7 +222,7 @@ final class TimerinfoNodeModel extends WebUINodeModel<TimerinfoNodeSettings> imp
             }
             // metanodes are only added if they are at the maximum depth (i.e. if their children are not listed)
             // or we don't recurse
-            m_result.addRowToTable(createTimerInfoTableRow(nc, m_toplevelprefix));
+            m_result.addRowToTable(createTimerInfoTableRow(nc));
             return NodeVisitResult.SKIP_CHILDREN;
         }
 
@@ -225,34 +230,38 @@ final class TimerinfoNodeModel extends WebUINodeModel<TimerinfoNodeSettings> imp
         public NodeVisitResult visitComponent(final WorkflowManager wfm, final NodeContainer nc, final int level) {
             final var outputChildren =
                 level < m_maxLevel && m_recursionPolicy == RecursionPolicy.COMPONENTS_AND_METANODES;
-            m_result.addRowToTable(createTimerInfoTableRow(nc, m_toplevelprefix));
+            m_result.addRowToTable(createTimerInfoTableRow(nc));
             return outputChildren ? NodeVisitResult.CONTINUE : NodeVisitResult.SKIP_CHILDREN;
         }
 
         @Override
         public void visitNode(final NodeContainer nc, final int level) {
             if (m_includeComponentIO || !NativeNodeContainer.IS_VIRTUAL_IN_OUT_NODE.test(nc)) {
-                m_result.addRowToTable(createTimerInfoTableRow(nc, m_toplevelprefix));
+                m_result.addRowToTable(createTimerInfoTableRow(nc));
             }
         }
 
-        private static DataRow createTimerInfoTableRow(final NodeContainer nc, final NodeID toplevelprefix) {
+        private DataRow createTimerInfoTableRow(final NodeContainer nc) {
             // For the RowID we only use the last part of the prefix - also to stay backwards compatible
-            String rowid = "Node " + nc.getID().toString().substring(toplevelprefix.toString().length() + 1);
+            String rowid = "Node " + nc.getID().toString().substring(m_toplevelprefix.toString().length() + 1);
             var nt = nc.getNodeTimer();
-            return new DefaultRow(
-                new RowKey(rowid),
-                new StringCell(nc.getName()),
-                nt.getLastExecutionDuration() >= 0
-                    ? new LongCell(nt.getLastExecutionDuration()) : DataType.getMissingCell(),
-                new LongCell(nt.getExecutionDurationSinceReset()),
-                new LongCell(nt.getExecutionDurationSinceStart()),
-                new IntCell(nt.getNrExecsSinceReset()),
-                new IntCell(nt.getNrExecsSinceStart()),
-                new StringCell(nc.getID().toString()),
-                new StringCell(nc instanceof NativeNodeContainer nativeNodeContainer
-                    ? nativeNodeContainer.getNodeModel().getClass().getName() : "n/a")
-            );
+
+            final var cells = new ArrayList<DataCell>();
+            cells.add(new StringCell(nc.getName()));
+            cells.add(nt.getLastExecutionDuration() >= 0 ? new LongCell(nt.getLastExecutionDuration())
+                : DataType.getMissingCell());
+            cells.add(new LongCell(nt.getExecutionDurationSinceReset()));
+            cells.add(new LongCell(nt.getExecutionDurationSinceStart()));
+            cells.add(new IntCell(nt.getNrExecsSinceReset()));
+            cells.add(new IntCell(nt.getNrExecsSinceStart()));
+            cells.add(new StringCell(nc.getID().toString()));
+            cells.add(new StringCell(nc instanceof NativeNodeContainer nativeNodeContainer
+                ? nativeNodeContainer.getNodeModel().getClass().getName() : "n/a"));
+            if (m_includeNodeComments) {
+                cells.add(new StringCell(nc.getNodeAnnotation().getText()));
+            }
+
+            return new DefaultRow(new RowKey(rowid), cells);
         }
 
     }

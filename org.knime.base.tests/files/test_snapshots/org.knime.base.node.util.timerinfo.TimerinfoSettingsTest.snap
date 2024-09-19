@@ -3,7 +3,8 @@
     "model" : {
       "recursionPolicy" : "NO_RECURSION",
       "maxDepth" : 2,
-      "includeComponentIO" : true
+      "includeComponentIO" : true,
+      "includeNodeComments" : true
     }
   },
   "schema" : {
@@ -18,6 +19,13 @@
             "description" : "Includes the component input and output nodes in the output table.\n",
             "default" : true,
             "configKeys" : [ "includeComponentIO" ]
+          },
+          "includeNodeComments" : {
+            "type" : "boolean",
+            "title" : "Include node comments",
+            "description" : "Include node comments for each node in the output table",
+            "default" : true,
+            "configKeys" : [ "includeNodeComments" ]
           },
           "maxDepth" : {
             "type" : "integer",
@@ -88,6 +96,12 @@
             } ]
           }
         }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/includeNodeComments",
+      "options" : {
+        "format" : "checkbox"
       }
     } ]
   }

@@ -3,4 +3,5 @@
     <entry key="recursionPolicy" type="xstring" value="ONLY_METANODES"/>
     <entry key="MaxDepth" type="xint" value="0"/>
     <entry key="includeComponentIO" type="xboolean" value="true"/>
+    <entry key="includeNodeComments" type="xboolean" value="false"/>
 </config>

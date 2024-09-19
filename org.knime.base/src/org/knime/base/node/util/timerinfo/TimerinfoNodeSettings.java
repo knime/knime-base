@@ -129,6 +129,17 @@ public class TimerinfoNodeSettings implements DefaultNodeSettings {
     // and no input/output nodes are encountered
     boolean m_includeComponentIO = true;
 
+    @Widget(title = "Include node comments", description = "Include node comments for each node in the output table")
+    @Persist(defaultProvider = FalseProvider.class)
+    boolean m_includeNodeComments = true;
+
+    private static class FalseProvider implements DefaultProvider<Boolean> {
+        @Override
+        public Boolean getDefault() {
+            return false;
+        }
+    }
+
     //Setting enums-----------------------------------------------------------------------------------------------------
 
     enum RecursionPolicy {

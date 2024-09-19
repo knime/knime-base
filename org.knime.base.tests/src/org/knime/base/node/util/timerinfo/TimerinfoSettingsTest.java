@@ -65,7 +65,7 @@ import org.knime.testing.node.dialog.SnapshotTestConfiguration;
  * @author Magnus Gohm, KNIME AG, Konstanz, Germany
  */
 @SuppressWarnings("restriction") // webui
-class TimerinfoSettingsTest extends DefaultNodeSettingsSnapshotTest{
+class TimerinfoSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
     protected TimerinfoSettingsTest() {
         super(getConfig());
