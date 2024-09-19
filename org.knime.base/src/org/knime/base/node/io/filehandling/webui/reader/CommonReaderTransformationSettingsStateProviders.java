@@ -424,9 +424,11 @@ public class CommonReaderTransformationSettingsStateProviders {
     public static abstract class TypeChoicesProvider<T>
         implements StringChoicesStateProvider, ProductionPathAndTypeHierarchy<T>, GetTypedReaderTableSpecProvider<T> {
 
-        static final String DEFAULT_COLUMNTYPE_ID = "<default-columntype>";
+        // TODO: Non-public
+        public static final String DEFAULT_COLUMNTYPE_ID = "<default-columntype>";
 
-        static final String DEFAULT_COLUMNTYPE_TEXT = "Default columntype";
+        // TODO: Non-public
+        public static final String DEFAULT_COLUMNTYPE_TEXT = "Default columntype";
 
         private Supplier<String> m_columnNameSupplier;
 

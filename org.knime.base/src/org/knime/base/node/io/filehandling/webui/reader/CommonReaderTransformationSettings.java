@@ -55,6 +55,7 @@ import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.FSLocationsProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.SourceIdProvider;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TableSpecSettingsProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TypeChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
@@ -84,9 +85,11 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @param <C> the type of the config settings
+ * @param <S> the type of the serializable form for external data types
  */
 @SuppressWarnings({"javadoc", "restriction"})
-public class CommonReaderTransformationSettings<C extends ConfigIdSettings<?>, T> {
+public class CommonReaderTransformationSettings<C extends ConfigIdSettings<?>, S> {
 
     public static class ConfigIdSettings<C extends ReaderSpecificConfig<C>>
         implements WidgetGroup, PersistableSettings {
@@ -136,7 +139,7 @@ public class CommonReaderTransformationSettings<C extends ConfigIdSettings<?>, T
     public static class TableSpecSettingsRef implements Reference<List<TableSpecSettings<?>>> { // TODO: Non-public
     }
 
-    public static abstract class SetStateProvidersAndReferences<C extends ConfigIdSettings<?>, T>
+    public static abstract class SetStateProvidersAndReferences<C extends ConfigIdSettings<?>, S, T>
         implements WidgetModification.ImperativeWidgetModification {
         static class ConfigIdSettingsRef implements WidgetModification.Reference {
         }
@@ -144,18 +147,39 @@ public class CommonReaderTransformationSettings<C extends ConfigIdSettings<?>, T
         static class SpecsRef implements WidgetModification.Reference {
         }
 
+        static class TypeChoicesWidgetRef implements WidgetModification.Reference {
+        }
+
+        static final class TransformationElementSettingsArrayWidgetRef implements WidgetModification.Reference {
+        }
+
+        static class FsLocationRef implements WidgetModification.Reference {
+        }
+
         @Override
         public void modify(final WidgetGroupModifier group) {
             group.find(ConfigIdSettingsRef.class).addAnnotation(ValueReference.class)
                 .withProperty("value", getConfigIdSettingsValueRef()).build();
-
             group.find(SpecsRef.class).addAnnotation(ValueProvider.class).withProperty("value", getSpecsValueProvider())
                 .build();
+            group.find(TypeChoicesWidgetRef.class).addAnnotation(ChoicesWidget.class)
+                .withProperty("choicesProvider", getTypeChoicesProvider()).build();
+            group.find(TransformationElementSettingsArrayWidgetRef.class).addAnnotation(ValueProvider.class)
+                .withProperty("value", getTransformationSettingsValueProvider()).build();
+            group.find(FsLocationRef.class).addAnnotation(ValueProvider.class)
+                .withProperty("value", getFsLocationProvider()).build();
         }
 
         protected abstract Class<? extends Reference<C>> getConfigIdSettingsValueRef();
 
-        protected abstract Class<? extends StateProvider<List<TableSpecSettings<T>>>> getSpecsValueProvider();
+        protected abstract Class<? extends TableSpecSettingsProvider<S, T>> getSpecsValueProvider();
+
+        protected abstract Class<? extends TypeChoicesProvider<T>> getTypeChoicesProvider();
+
+        protected abstract Class<? extends TransformationElementSettingsProvider<T>>
+            getTransformationSettingsValueProvider();
+
+        protected abstract Class<? extends FSLocationsProvider<?>> getFsLocationProvider();
     }
 
     /**
@@ -164,7 +188,9 @@ public class CommonReaderTransformationSettings<C extends ConfigIdSettings<?>, T
      * these settings to the persistor. This would then also allow us to use non-serializable types like the
      * TypedReaderTableSpec instead of the TableSpecSettings, saving us the back-and-forth conversion.
      */
-    class PersistorSettings implements WidgetGroup, PersistableSettings {
+    // TODO: Non-public
+    public static class PersistorSettings<C extends ConfigIdSettings<?>, S>
+        implements WidgetGroup, PersistableSettings {
 
         @WidgetModification.WidgetReference(SetStateProvidersAndReferences.ConfigIdSettingsRef.class) // for adding dynamic ref
         C m_configId;
@@ -172,12 +198,13 @@ public class CommonReaderTransformationSettings<C extends ConfigIdSettings<?>, T
         @ValueProvider(SourceIdProvider.class)
         String m_sourceId = "";
 
-        @ValueProvider(FSLocationsProvider.class)
+        @WidgetModification.WidgetReference(SetStateProvidersAndReferences.FsLocationRef.class) // for adding dynamic provider
         FSLocation[] m_fsLocations = new FSLocation[0];
 
         @ValueReference(TableSpecSettingsRef.class)
         @WidgetModification.WidgetReference(SetStateProvidersAndReferences.SpecsRef.class) // for adding dynamic and provider
-        List<TableSpecSettings<T>> m_specs = List.of();
+        // TODO: Non-public
+        public List<TableSpecSettings<S>> m_specs = List.of();
 
         @ValueProvider(CommonReaderNodeSettings.AdvancedSettings.AppendPathColumnRef.class)
         boolean m_appendPathColumn;
@@ -186,10 +213,12 @@ public class CommonReaderTransformationSettings<C extends ConfigIdSettings<?>, T
         String m_filePathColumnName = "File Path";
 
         @ValueProvider(TakeColumnsFromProvider.class)
-        ColumnFilterMode m_takeColumnsFrom = ColumnFilterMode.UNION;
+        // TODO: Non-public
+        public ColumnFilterMode m_takeColumnsFrom = ColumnFilterMode.UNION;
     }
 
-    PersistorSettings m_persistorSettings = new PersistorSettings();
+    // TODO: Non-public
+    public PersistorSettings<C, S> m_persistorSettings = new PersistorSettings<>();
 
     static class TakeColumnsFromProvider implements StateProvider<ColumnFilterMode> {
 
@@ -210,9 +239,11 @@ public class CommonReaderTransformationSettings<C extends ConfigIdSettings<?>, T
 
     @Widget(title = "Enforce types", description = CommonReaderLayout.Transformation.EnforceTypes.DESCRIPTION,
         hideFlowVariableButton = true)
-    boolean m_enforceTypes = true;
+    // TODO: Non-Public
+    public boolean m_enforceTypes = true;
 
-    static class TransformationElementSettings implements WidgetGroup, PersistableSettings {
+    // TODO: Public not necessary
+    public static class TransformationElementSettings implements WidgetGroup, PersistableSettings {
 
         static class ColumnNameRef implements Reference<String> {
         }
@@ -319,14 +350,14 @@ public class CommonReaderTransformationSettings<C extends ConfigIdSettings<?>, T
             }
         }
 
-        @Widget(title = "Column name", description = "", hideTitle = true, hideFlowVariableButton = true) // TODO NOSONAR UIEXT-1901 add description
+        @Widget(title = "Column name", description = "", hideTitle = true, hideFlowVariableButton = true)
         @ValueProvider(ColumnNameResetter.class)
         @Effect(predicate = ElementIsEditedAndColumnNameIsNotNull.class, type = EffectType.SHOW)
         @JsonInclude(Include.ALWAYS) // Necessary for comparison against m_columnName
         String m_columnRename;
 
-        @Widget(title = "Column type", description = "", hideTitle = true, hideFlowVariableButton = true) // TODO NOSONAR UIEXT-1901 add description
-        @ChoicesWidget(choicesProvider = TypeChoicesProvider.class)
+        @Widget(title = "Column type", description = "", hideTitle = true, hideFlowVariableButton = true)
+        @WidgetModification.WidgetReference(SetStateProvidersAndReferences.TypeChoicesWidgetRef.class) // for adding dynamic choices
         @ValueProvider(TypeResetter.class)
         @Effect(predicate = InternalArrayWidget.ElementIsEdited.class, type = EffectType.SHOW)
         String m_type;
@@ -336,8 +367,9 @@ public class CommonReaderTransformationSettings<C extends ConfigIdSettings<?>, T
         TransformationElementSettings() {
         }
 
-        TransformationElementSettings(final String columnName, final boolean includeInOutput, final String columnRename,
-            final String type, final String originalType, final String originalTypeLabel) {
+        // TODO: Non-public
+        public TransformationElementSettings(final String columnName, final boolean includeInOutput,
+            final String columnRename, final String type, final String originalType, final String originalTypeLabel) {
             m_columnName = columnName;
             m_includeInOutput = includeInOutput;
             m_columnRename = columnRename;
@@ -361,10 +393,11 @@ public class CommonReaderTransformationSettings<C extends ConfigIdSettings<?>, T
     @InternalArrayWidget(withEditAndReset = true, withElementCheckboxes = true,
         titleProvider = TransformationElementSettings.TitleProvider.class,
         subTitleProvider = TransformationElementSettings.SubTitleProvider.class)
-    @ValueProvider(TransformationElementSettingsProvider.class)
     @ValueReference(TransformationElementSettingsReference.class)
+    @WidgetModification.WidgetReference(SetStateProvidersAndReferences.TransformationElementSettingsArrayWidgetRef.class) // for adding dynamic choices
     @Effect(predicate = FileSystemPortConnectionUtil.ConnectedWithoutFileSystemSpec.class, type = EffectType.HIDE)
-    TransformationElementSettings[] m_columnTransformation =
+    // TODO Non-public
+    public TransformationElementSettings[] m_columnTransformation =
         new TransformationElementSettings[]{TransformationElementSettings.createUnknownElement()};
 
 }

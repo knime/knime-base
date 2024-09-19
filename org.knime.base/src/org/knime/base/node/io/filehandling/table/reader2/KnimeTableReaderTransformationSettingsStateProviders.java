@@ -51,11 +51,7 @@ package org.knime.base.node.io.filehandling.table.reader2;
 import static org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.PRODUCTION_PATH_PROVIDER;
 import static org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TYPE_HIERARCHY;
 
-import java.util.Map;
-import java.util.function.Supplier;
-
 import org.knime.base.node.io.filehandling.table.reader.KnimeTableReader;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.SetStateProvidersAndReferences.KnimeTableReaderConfigIdSettingsValueRef;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.Settings.FileChooserRef;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.Dependencies;
@@ -63,12 +59,8 @@ import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformati
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
 import org.knime.core.data.DataType;
 import org.knime.core.node.NodeLogger;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
-import org.knime.filehandling.core.node.table.reader.RawSpecFactory;
 import org.knime.filehandling.core.node.table.reader.TableReader;
-import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 
 /**
@@ -114,19 +106,6 @@ final class KnimeTableReaderTransformationSettingsStateProviders {
             return CommonReaderTransformationSettingsStateProviders.NoAdditionalDependencies.class;
         }
 
-    }
-
-    abstract static class DependsOnTypedReaderTableSpecProvider<S> implements StateProvider<S> {
-
-        protected Supplier<Map<String, TypedReaderTableSpec<DataType>>> m_specSupplier;
-
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            initializer.computeAfterOpenDialog();
-            m_specSupplier = initializer.computeFromProvidedState(TypedReaderTableSpecsProvider.class);
-            initializer.computeOnValueChange(KnimeTableReaderConfigIdSettingsValueRef.class);
-            initializer.computeOnValueChange(FileChooserRef.class);
-        }
     }
 
     static final class TableSpecSettingsProvider
@@ -189,14 +168,6 @@ final class KnimeTableReaderTransformationSettingsStateProviders {
             return TypedReaderTableSpecsProvider.class;
         }
 
-    }
-
-    static RawSpec<DataType> toRawSpec(final Map<String, TypedReaderTableSpec<DataType>> spec) {
-        if (spec.isEmpty()) {
-            final var emptySpec = new TypedReaderTableSpec<DataType>();
-            return new RawSpec<>(emptySpec, emptySpec);
-        }
-        return new RawSpecFactory<>(KnimeTableReaderTransformationSettings.TYPE_HIERARCHY).create(spec.values());
     }
 
     private KnimeTableReaderTransformationSettingsStateProviders() {

@@ -50,12 +50,15 @@ package org.knime.base.node.io.filehandling.table.reader2;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.List;
 
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.SetStateProvidersAndReferences;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.FSLocationsProvider;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.TableSpecSettingsProvider;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.TypeChoicesProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdSettings;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfigSerializer.DataTypeSerializer;
 import org.knime.base.node.preproc.manipulator.mapping.DataTypeTypeHierarchy;
@@ -67,7 +70,6 @@ import org.knime.core.node.config.base.JSONConfig;
 import org.knime.core.node.config.base.JSONConfig.WriterConfig;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.WidgetModification;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.filehandling.core.node.table.reader.DefaultProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
@@ -116,7 +118,7 @@ final class KnimeTableReaderTransformationSettings
     }
 
     static final class SetStateProvidersAndReferences extends
-        CommonReaderTransformationSettings.SetStateProvidersAndReferences<ConfigIdSettings<TableManipulatorConfig>, String> {
+        CommonReaderTransformationSettings.SetStateProvidersAndReferences<ConfigIdSettings<TableManipulatorConfig>, String, DataType> {
 
         static final class KnimeTableReaderConfigIdSettingsValueRef
             implements Reference<ConfigIdSettings<TableManipulatorConfig>> {
@@ -128,9 +130,31 @@ final class KnimeTableReaderTransformationSettings
         }
 
         @Override
-        protected Class<? extends StateProvider<List<TableSpecSettings<String>>>> getSpecsValueProvider() {
+        protected
+            Class<? extends CommonReaderTransformationSettingsStateProviders.TableSpecSettingsProvider<String, DataType>>
+            getSpecsValueProvider() {
             return TableSpecSettingsProvider.class;
         }
+
+        @Override
+        protected Class<? extends CommonReaderTransformationSettingsStateProviders.TypeChoicesProvider<DataType>>
+            getTypeChoicesProvider() {
+            return TypeChoicesProvider.class;
+        }
+
+        @Override
+        protected
+            Class<? extends CommonReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider<DataType>>
+            getTransformationSettingsValueProvider() {
+            return TransformationElementSettingsProvider.class;
+        }
+
+        @Override
+        protected Class<? extends CommonReaderTransformationSettingsStateProviders.FSLocationsProvider<?>>
+            getFsLocationProvider() {
+            return FSLocationsProvider.class;
+        }
+
     }
 
 }
