@@ -59,6 +59,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 
@@ -141,27 +142,27 @@ public class CommonReaderTransformationSettings {
             protected abstract Class<? extends StateProvider<List<TableSpecSettings<T>>>> getSpecsValueProvider();
         }
 
-        @WidgetModification.WidgetReference(ConfigIdSettingsRef.class)
+        @WidgetModification.WidgetReference(ConfigIdSettingsRef.class) // for adding dynamic ref
         C m_configId;
 
-        //        @ValueProvider(SourceIdProvider.class)
-        //        String m_sourceId = "";
-        //
-        //        @ValueProvider(FSLocationsProvider.class)
-        //        FSLocation[] m_fsLocations = new FSLocation[0];
-        //
+        @ValueProvider(SourceIdProvider.class)
+        String m_sourceId = "";
 
-        @WidgetModification.WidgetReference(SpecsRef.class)
+        @ValueProvider(FSLocationsProvider.class)
+        FSLocation[] m_fsLocations = new FSLocation[0];
+
+
+        @WidgetModification.WidgetReference(SpecsRef.class) // for adding dynamic ref and provider
         List<TableSpecSettings<T>> m_specs = List.of();
-        //
-        //        @ValueProvider(CommonReaderNodeSettings.AdvancedSettings.AppendPathColumnRef.class)
-        //        boolean m_appendPathColumn;
-        //
-        //        @ValueProvider(CommonReaderNodeSettings.AdvancedSettings.FilePathColumnNameRef.class)
-        //        String m_filePathColumnName = "File Path";
-        //
-        //        @ValueProvider(TakeColumnsFromProvider.class)
-        //        ColumnFilterMode m_takeColumnsFrom = ColumnFilterMode.UNION;
+
+        @ValueProvider(CommonReaderNodeSettings.AdvancedSettings.AppendPathColumnRef.class)
+        boolean m_appendPathColumn;
+
+        @ValueProvider(CommonReaderNodeSettings.AdvancedSettings.FilePathColumnNameRef.class)
+        String m_filePathColumnName = "File Path";
+
+        @ValueProvider(TakeColumnsFromProvider.class)
+        ColumnFilterMode m_takeColumnsFrom = ColumnFilterMode.UNION;
     }
 
 }

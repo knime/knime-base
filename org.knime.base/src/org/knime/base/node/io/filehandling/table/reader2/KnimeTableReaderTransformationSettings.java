@@ -148,25 +148,11 @@ final class KnimeTableReaderTransformationSettings implements WidgetGroup, Persi
         }
     }
 
-    // ??? from here on out, everything is copied from the CSV reader
-
-    /**
-     * TODO NOSONAR UIEXT-1946 These settings are sent to the frontend where they are not needed. They are merely held
-     * here to be used in the CSVTransformationSettingsPersistor. We should look for an alternative mechanism to provide
-     * these settings to the persistor. This would then also allow us to use non-serializable types like the
-     * TypedReaderTableSpec instead of the TableSpecSettings, saving us the back-and-forth conversion.
-     */
     @WidgetModification(PersistorSettings.SetConfigIdSettingsValueRef.class)
     static final class PersistorSettings
         extends CommonReaderTransformationSettings.PersistorSettings<KnimeTableReaderConfigIdSettings, String> {
 
-        //        static class ConfigIdReference implements Reference<KnimeTableReaderConfigIdSettings> {
-        //        }
-        //
-        //        @ValueReference(ConfigIdReference.class)
-        //        KnimeTableReaderConfigIdSettings m_configId = new KnimeTableReaderConfigIdSettings();
-
-        final class SetConfigIdSettingsValueRef extends
+        static final class SetConfigIdSettingsValueRef extends
             CommonReaderTransformationSettings.PersistorSettings.SetStateProviders<KnimeTableReaderConfigIdSettings, String> {
 
             static final class KnimeTableReaderConfigIdSettingsValueRef
@@ -197,10 +183,6 @@ final class KnimeTableReaderTransformationSettings implements WidgetGroup, Persi
 
         static class TableSpecSettingsRef implements Reference<List<TableSpecSettings<String>>> {
         }
-
-        @ValueProvider(TableSpecSettingsProvider.class)
-        @ValueReference(TableSpecSettingsRef.class)
-        List<TableSpecSettings<String>> m_specs = List.of();
 
         @ValueProvider(CommonReaderNodeSettings.AdvancedSettings.AppendPathColumnRef.class)
         boolean m_appendPathColumn;
