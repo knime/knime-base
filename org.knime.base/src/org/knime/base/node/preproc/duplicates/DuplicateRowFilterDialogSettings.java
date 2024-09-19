@@ -55,7 +55,6 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
@@ -64,6 +63,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
@@ -91,7 +91,7 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
     interface DuplicateDetectionSection {
     }
 
-    @Persist(configKey = DuplicateRowFilterSettings.GROUP_COLS_KEY, settingsModel = SettingsModelColumnFilter2.class)
+    @Persist(configKey = DuplicateRowFilterSettings.GROUP_COLS_KEY, customPersistor = LegacyColumnFilterPersistor.class)
     @Widget(title = "Choose columns for duplicates detection",
         description = "Allows the selection of columns identifying the duplicates. "
             + "Columns not selected are handled under \"Row selection\" in the \"Advanced\" settings.")

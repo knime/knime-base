@@ -55,11 +55,11 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
@@ -88,7 +88,7 @@ final class GroupLoopStartNodeSettings implements DefaultNodeSettings {
         m_columnFilter = ColumnFilter.createDefault(AllColumns.class, context);
     }
 
-    @Persist(configKey = GroupLoopStartConfigKeys.COLUMN_NAMES, settingsModel = SettingsModelColumnFilter2.class)
+    @Persist(configKey = GroupLoopStartConfigKeys.COLUMN_NAMES, customPersistor = LegacyColumnFilterPersistor.class)
     @Widget(title = "Category columns", description = "The columns used to identify the groups.")
     @ChoicesWidget(choices = AllColumns.class)
     ColumnFilter m_columnFilter = new ColumnFilter();

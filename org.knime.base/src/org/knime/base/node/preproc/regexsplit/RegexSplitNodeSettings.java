@@ -53,8 +53,6 @@ import org.knime.core.data.StringValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
@@ -62,6 +60,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.settingsmodel.SettingsModelBooleanPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.settingsmodel.SettingsModelStringPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
@@ -117,7 +117,7 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
     @Layout(DialogSections.Splitting.class)
     @Widget(title = "String column", description = "Choose the column containing the strings to split")
     @ChoicesWidget(choices = ColumnChoicesProviderUtil.StringColumnChoicesProvider.class)
-    @Persist(configKey = "column", settingsModel = SettingsModelString.class)
+    @Persist(configKey = "column", customPersistor = SettingsModelStringPersistor.class)
     String m_column;
 
     @Layout(DialogSections.Splitting.class)
@@ -138,7 +138,7 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
             <tt>(?:pattern)</tt>
             """)
     @TextInputWidget(minLength = 1)
-    @Persist(configKey = "pattern", settingsModel = SettingsModelString.class)
+    @Persist(configKey = "pattern", customPersistor = SettingsModelStringPersistor.class)
     String m_pattern = "(.*)";
 
     enum CaseMatching {
@@ -219,7 +219,7 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
     @Layout(DialogSections.SplittingAdvanced.class)
     @Widget(title = "Enable Unix lines mode", advanced = true,
         description = "In this mode, only the '\\n' line terminator is recognized in the behavior of ., ^, and $.")
-    @Persist(configKey = "isUnixLines", settingsModel = SettingsModelBoolean.class)
+    @Persist(configKey = "isUnixLines", customPersistor = SettingsModelBooleanPersistor.class)
     boolean m_isUnixLines = false;
 
     @Layout(DialogSections.SplittingAdvanced.class)
@@ -228,14 +228,14 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
                 In multiline mode the expressions ^ and $ match just after or just before, respectively, a line
                 terminator or the end of the input sequence. By default these expressions only match at the beginning
                 and the end of the entire input sequence.""")
-    @Persist(configKey = "isMultiLine", settingsModel = SettingsModelBoolean.class)
+    @Persist(configKey = "isMultiLine", customPersistor = SettingsModelBooleanPersistor.class)
     boolean m_isMultiLine = false;
 
     @Layout(DialogSections.SplittingAdvanced.class)
     @Widget(title = "Enable dotall mode (Dot . also matches newline characters)", advanced = true, description = """
             In dotall mode, the expression . matches any character, including a line terminator. By default this
             expression does not match line terminators.""")
-    @Persist(configKey = "isDotAll", settingsModel = SettingsModelBoolean.class)
+    @Persist(configKey = "isDotAll", customPersistor = SettingsModelBooleanPersistor.class)
     boolean m_isDotAll = false;
 
     @Layout(DialogSections.SplittingAdvanced.class)
@@ -244,7 +244,7 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
             Unicode Standard. By default, case-insensitive matching assumes that only characters in the US-ASCII charset
             are being matched. <br />
             Enabling this may impose a performance penalty.""")
-    @Persist(configKey = "isUniCodeCase", settingsModel = SettingsModelBoolean.class)
+    @Persist(configKey = "isUniCodeCase", customPersistor = SettingsModelBooleanPersistor.class)
     boolean m_isUnicodeCase = false;
 
     @Layout(DialogSections.SplittingAdvanced.class)
@@ -252,7 +252,7 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
             When enabled, two characters will be considered to match if, and only if, their full canonical
             decompositions match. The expression "a\\u030A", for example, will match the string "\\u00E5" when this is
             enabled. By default, matching does not take canonical equivalence into account.""")
-    @Persist(configKey = "isCanonEQ", settingsModel = SettingsModelBoolean.class)
+    @Persist(configKey = "isCanonEQ", customPersistor  = SettingsModelBooleanPersistor.class)
     boolean m_isCanonEQ = false;
 
     @Layout(DialogSections.SplittingAdvanced.class)
@@ -260,7 +260,8 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
             When enabled, the (US-ASCII only) <i>Predefined character classes</i> and <i>POSIX character classes</i> are
             in conformance with the Unicode Standard. <br />
             Enabling this may impose a performance penalty.""")
-    @Persist(configKey = "isUnicodeCharacterClass", settingsModel = SettingsModelBoolean.class, optional = true)
+    @Persist(configKey = "isUnicodeCharacterClass", customPersistor = SettingsModelBooleanPersistor.class,
+        optional = true)
     boolean m_isUnicodeCharacterClass = false;
 
     /**
@@ -301,7 +302,7 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
      *
      * @deprecated
      */
-    @Persist(configKey = "isLiteral", settingsModel = SettingsModelBoolean.class, optional = true)
+    @Persist(configKey = "isLiteral", customPersistor  = SettingsModelBooleanPersistor.class, optional = true)
     @Deprecated // NOSONAR: Deprecated since the beginning of this classes existence
     boolean m_isLiteral = false; // NOSONAR: kept for backwards-compatibility
 
@@ -312,7 +313,7 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
      *
      * @deprecated
      */
-    @Persist(configKey = "isComments", settingsModel = SettingsModelBoolean.class, optional = true)
+    @Persist(configKey = "isComments", customPersistor = SettingsModelBooleanPersistor.class, optional = true)
     @Deprecated // NOSONAR: Deprecated since the beginning of this classes existence
     boolean m_isComments = false; // NOSONAR: kept for backwards-compatibility
 

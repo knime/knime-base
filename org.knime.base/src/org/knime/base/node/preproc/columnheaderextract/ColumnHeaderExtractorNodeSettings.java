@@ -55,11 +55,11 @@ import org.knime.base.node.preproc.columnheaderextract.ColumnHeaderExtractorNode
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.settingsmodel.SettingsModelBooleanPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.settingsmodel.SettingsModelStringPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -94,7 +94,7 @@ public final class ColumnHeaderExtractorNodeSettings implements DefaultNodeSetti
 
     }
 
-    @Persist(settingsModel = SettingsModelBoolean.class)
+    @Persist(customPersistor = SettingsModelBooleanPersistor.class)
     @Widget(title = "Generate new column names",
         description = "If selected, the column names of both output tables will be replaced "//
             + "with automatically generated names by combining the prefix provided below with the corresponding "//
@@ -103,7 +103,7 @@ public final class ColumnHeaderExtractorNodeSettings implements DefaultNodeSetti
     @ValueReference(ReplaceColHeader.class)
     boolean m_replaceColHeader;
 
-    @Persist(settingsModel = SettingsModelString.class)
+    @Persist(customPersistor = SettingsModelStringPersistor.class)
     @Widget(title = "Prefix", description = "Prefix to use when generating new column names.")
     @Effect(type = EffectType.SHOW, predicate = ReplaceColHeader.class)
     String m_unifyHeaderPrefix;

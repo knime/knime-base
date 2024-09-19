@@ -52,11 +52,11 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.settingsmodel.SettingsModelBooleanPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.settingsmodel.SettingsModelColumnNamePersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
@@ -75,13 +75,13 @@ public final class RowFilterRefNodeSettings implements DefaultNodeSettings {
 
     // TODO: UIEXT-1007 migrate String to ColumnSelection
 
-    @Persist(settingsModel = SettingsModelColumnName.class, configKey = "dataTableColumn")
+    @Persist(customPersistor = SettingsModelColumnNamePersistor.class, configKey = "dataTableColumn")
     @Widget(title = "Data column",
         description = "The column from the table to be filtered that should be used for comparison.")
     @ChoicesWidget(choices = DataColumnChoices.class, showRowKeysColumn = true)
     String m_dataColumn = "<row-keys>";
 
-    @Persist(settingsModel = SettingsModelColumnName.class, configKey = "referenceTableColumn")
+    @Persist(customPersistor = SettingsModelColumnNamePersistor.class, configKey = "referenceTableColumn")
     @Widget(title = "Reference column",
         description = "The column from the filter table that should be used for comparison.")
     @ChoicesWidget(choices = ReferenceColumnChoices.class, showRowKeysColumn = true)
@@ -94,7 +94,7 @@ public final class RowFilterRefNodeSettings implements DefaultNodeSettings {
     @ValueSwitchWidget
     IncludeOrExcludeRows m_inexclude = IncludeOrExcludeRows.INCLUDE;
 
-    @Persist(settingsModel = SettingsModelBoolean.class)
+    @Persist(customPersistor = SettingsModelBooleanPersistor.class)
     @Widget( //
         title = "Update domains of all columns", //
         description = "Advanced setting to enable recomputation of the domains of all columns in the output table " //

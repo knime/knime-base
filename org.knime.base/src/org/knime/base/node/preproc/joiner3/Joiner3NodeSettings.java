@@ -54,7 +54,6 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
@@ -69,6 +68,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSet
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultFieldNodeSettingsPersistorFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
@@ -342,14 +342,14 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
     @Widget(title = "Top input ('left' table)",
         description = "Select columns from top input ('left' table) that should be included or excluded in the output table.")
     @Layout(OutputColumnsSection.class)
-    @Persist(settingsModel = SettingsModelColumnFilter2.class)
+    @Persist(customPersistor = LegacyColumnFilterPersistor.class)
     @ChoicesWidget(choicesProvider = LeftTableChoices.class)
     ColumnFilter m_leftColumnSelectionConfig;
 
     @Widget(title = "Bottom input ('right' table)",
         description = "Select columns from bottom input ('right' table) that should be included or excluded in the output table.")
     @Layout(OutputColumnsSection.class)
-    @Persist(settingsModel = SettingsModelColumnFilter2.class)
+    @Persist(customPersistor = LegacyColumnFilterPersistor.class)
     @ChoicesWidget(choicesProvider = RightTableChoices.class)
     ColumnFilter m_rightColumnSelectionConfig;
 

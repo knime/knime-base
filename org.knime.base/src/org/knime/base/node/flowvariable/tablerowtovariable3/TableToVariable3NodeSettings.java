@@ -54,15 +54,15 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.settingsmodel.EnumSettingsModelStringPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
@@ -117,7 +117,7 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
     interface MissingValuesSection {
     }
 
-    @Persist(configKey = CFG_KEY_COLUMNS, settingsModel = SettingsModelColumnFilter2.class)
+    @Persist(configKey = CFG_KEY_COLUMNS, customPersistor = LegacyColumnFilterPersistor.class)
     @Widget(title = "Output as variables", description = """
             Select the columns to be converted to flow variables. For each selected column, a flow variable
             is created. The name of the flow variable corresponds to the column name and the value corresponds
@@ -140,8 +140,19 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
 
     }
 
-    @Persist(configKey = CFG_KEY_ON_MISSING, settingsModel = SettingsModelString.class)
-    @Widget(title = "If value in cell is missing", description = """
+    static final class MissingValuePolicySettingsModelStringPersistor
+        extends EnumSettingsModelStringPersistor<MissingValuePolicy> {
+
+        @Override
+        protected Class<MissingValuePolicy> enumType() {
+            return MissingValuePolicy.class;
+        }
+
+    }
+
+    @Persist(configKey = CFG_KEY_ON_MISSING, customPersistor = MissingValuePolicySettingsModelStringPersistor.class)
+    @Widget(title = "If value in cell is missing",
+        description = """
             Behavior in case of missing values in the first row or an input table with no rows.
             <ul>
                 <li>

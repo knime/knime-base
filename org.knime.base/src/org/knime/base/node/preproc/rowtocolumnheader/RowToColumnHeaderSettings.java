@@ -48,10 +48,10 @@
  */
 package org.knime.base.node.preproc.rowtocolumnheader;
 
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.settingsmodel.SettingsModelBooleanPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.settingsmodel.SettingsModelIntegerPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
@@ -63,19 +63,19 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 @SuppressWarnings("restriction")
 public final class RowToColumnHeaderSettings implements DefaultNodeSettings {
 
-    @Persist(settingsModel = SettingsModelInteger.class)
+    @Persist(customPersistor = SettingsModelIntegerPersistor.class)
     @Widget(title = "Number of rows before the header",
         description = "Number of rows in the input table that precede the row that should be used as new column header")
     @NumberInputWidget(min = 0)
     int m_headerRowIndex;
 
-    @Persist(settingsModel = SettingsModelBoolean.class)
+    @Persist(customPersistor = SettingsModelBooleanPersistor.class)
     @Widget(title = "Discard rows before header row",
         description = "Whether rows before the row containing the new column header should be discarded. "
             + "Otherwise they are treated as additional output rows.")
     boolean m_discardBefore;
 
-    @Persist(settingsModel = SettingsModelBoolean.class)
+    @Persist(customPersistor = SettingsModelBooleanPersistor.class)
     @Widget(title = "Detect types of resulting columns",
         description = "Whether type analysis should be applied to the output table. "
             + "For each column, the most specific of the four column types <i>double</i> "

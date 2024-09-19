@@ -103,6 +103,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSet
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.LegacyReaderFilerChooserPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
@@ -123,7 +124,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicatePr
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 
 /**
@@ -156,7 +156,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @Widget(title = "Source", description = Source.DESCRIPTION)
         @ValueReference(FileChooserRef.class)
         @Layout(Source.class)
-        @Persist(configKey = "file_selection", settingsModel = SettingsModelReaderFileChooser.class)
+        @Persist(configKey = "file_selection", customPersistor = LegacyReaderFilerChooserPersistor.class)
         @FileReaderWidget(fileExtensions = {"csv", "tsv", "txt"})
         FileChooser m_source = new FileChooser();
 
