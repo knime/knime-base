@@ -61,6 +61,8 @@ import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransfo
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TableSpecSettings;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfigSerializer.DataTypeSerializer;
@@ -110,49 +112,40 @@ final class KnimeTableReaderTransformationSettings implements WidgetGroup, Persi
 
     static final TypeHierarchy<DataType, DataType> TYPE_HIERARCHY = DataTypeTypeHierarchy.INSTANCE;
 
-        // ??? we don't actually need this class, but we leave it in since it should make de-duplication easier
-        static final class ConfigIdSettings implements WidgetGroup, PersistableSettings {
-
-            // FirstColumnContainsRowIdsRef and SkipFirstDataRowsRef settings are part of the table reader settings AND part of the CSV reader config id, but not currently part of the table reader config id
-            // see TableManipulatorConfigSerializer::createFromConfig versus CSVMultiTableReadConfigSerializer::createFromConfig
-            // the reason is that these settings are relevant for the spec in the CSV reader, but, if you think about it, not for the table reader
-
-            void applyToConfig(final DefaultTableReadConfig<TableManipulatorConfig> config) {
-                //            config.setColumnHeaderIdx(0);
-                //            config.setRowIDIdx(0);
-                //            config.setLimitRowsForSpec(false);
-                //            config.setUseColumnHeaderIdx(false);
-            }
+    static final class KnimeTableReaderConfigIdSettings implements ConfigIdSettings<TableManipulatorConfig> {
+        @Override
+        public void applyToConfig(final DefaultTableReadConfig<TableManipulatorConfig> config) {
         }
+    }
 
-        /**
-         * Serializes a given {@link DataType} into a string
-         *
-         * @param type the to-be-serialized {@link DataType}
-         * @return the serialized string
-         */
-        public static String typeToString(final DataType type) {
+    /**
+     * Serializes a given {@link DataType} into a string
+     *
+     * @param type the to-be-serialized {@link DataType}
+     * @return the serialized string
+     */
+    public static String typeToString(final DataType type) {
+        final var settings = new NodeSettings("type");
+        DataTypeSerializer.SERIALIZER_INSTANCE.save(type, settings);
+        return JSONConfig.toJSONString(settings, WriterConfig.DEFAULT);
+    }
+
+    /**
+     * De-serializes a string that has been generated via {@link DataTypeSerializationUtil#typeToString} into a
+     * {@link DataType}.
+     *
+     * @param string the previously serialized string
+     * @return the de-serialized {@link DataType}
+     */
+    public static DataType stringToType(final String string) {
+        try {
             final var settings = new NodeSettings("type");
-            DataTypeSerializer.SERIALIZER_INSTANCE.save(type, settings);
-            return JSONConfig.toJSONString(settings, WriterConfig.DEFAULT);
+            JSONConfig.readJSON(settings, new StringReader(string));
+            return DataTypeSerializer.SERIALIZER_INSTANCE.load(settings);
+        } catch (IOException | InvalidSettingsException e) {
+            return DataType.getMissingCell().getType(); // TODO
         }
-
-        /**
-         * De-serializes a string that has been generated via {@link DataTypeSerializationUtil#typeToString} into a
-         * {@link DataType}.
-         *
-         * @param string the previously serialized string
-         * @return the de-serialized {@link DataType}
-         */
-        public static DataType stringToType(final String string) {
-            try {
-                final var settings = new NodeSettings("type");
-                JSONConfig.readJSON(settings, new StringReader(string));
-                return DataTypeSerializer.SERIALIZER_INSTANCE.load(settings);
-            } catch (IOException | InvalidSettingsException e) {
-                return DataType.getMissingCell().getType(); // TODO
-            }
-        }
+    }
 
     // ??? from here on out, everything is copied from the CSV reader
 
@@ -162,13 +155,23 @@ final class KnimeTableReaderTransformationSettings implements WidgetGroup, Persi
      * these settings to the persistor. This would then also allow us to use non-serializable types like the
      * TypedReaderTableSpec instead of the TableSpecSettings, saving us the back-and-forth conversion.
      */
-    static final class PersistorSettings implements WidgetGroup, PersistableSettings {
+    static final class PersistorSettings
+        extends CommonReaderTransformationSettings.PersistorSettings<TableManipulatorConfig> {
 
-                static class ConfigIdReference implements Reference<ConfigIdSettings> {
-                }
+        //        static class ConfigIdReference implements Reference<KnimeTableReaderConfigIdSettings> {
+        //        }
+        //
+        //        @ValueReference(ConfigIdReference.class)
+        //        KnimeTableReaderConfigIdSettings m_configId = new KnimeTableReaderConfigIdSettings();
 
-                @ValueReference(ConfigIdReference.class)
-                ConfigIdSettings m_configId = new ConfigIdSettings();
+        final class SetConfigIdSettingsValueRef extends
+            CommonReaderTransformationSettings.PersistorSettings.SetConfigIdSettingsValueRef<TableManipulatorConfig> {
+            @Override
+            protected Class getConfigIdSettingsValueRef() {
+                // TODO Auto-generated method stub
+                return null;
+            }
+        }
 
         @ValueProvider(SourceIdProvider.class)
         String m_sourceId = "";

@@ -64,7 +64,7 @@ import java.util.stream.Stream;
 
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings;
 import org.knime.base.node.io.filehandling.table.reader.KnimeTableReader;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.ConfigIdSettings;
+import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.KnimeTableReaderConfigIdSettings;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.PersistorSettings.ConfigIdReference;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TransformationElementSettings;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TransformationElementSettings.ColumnNameRef;
@@ -114,11 +114,11 @@ final class KnimeTableReaderTransformationSettingsStateProviders {
 
         //??? the dependencies (and thus also the DependenciesProvider) has less fields than the CSV reader's
 
-        final ConfigIdSettings m_configId;
+        final KnimeTableReaderConfigIdSettings m_configId;
 
         final FileChooser m_source;
 
-        Dependencies(final ConfigIdSettings configId, final FileChooser fileChooser) {
+        Dependencies(final KnimeTableReaderConfigIdSettings configId, final FileChooser fileChooser) {
             //        Dependencies(final FileChooser fileChooser) {
             m_configId = configId;
             m_source = fileChooser;
@@ -127,7 +127,7 @@ final class KnimeTableReaderTransformationSettingsStateProviders {
 
     static final class DependenciesProvider implements StateProvider<Dependencies> {
 
-        private Supplier<ConfigIdSettings> m_configIdSupplier;
+        private Supplier<KnimeTableReaderConfigIdSettings> m_configIdSupplier;
 
         private Supplier<FileChooser> m_fileChooserSupplier;
 

@@ -50,8 +50,12 @@ package org.knime.base.node.io.filehandling.webui.reader;
 
 import java.util.List;
 
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.PersistorSettings.SetConfigIdSettingsValueRef.ConfigIdSettingsRef;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.WidgetModification;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 
@@ -61,7 +65,7 @@ import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig
 @SuppressWarnings({"javadoc", "restriction"})
 public class CommonReaderTransformationSettings {
 
-    interface ConfigIdSettings<C extends ReaderSpecificConfig<C>> extends WidgetGroup, PersistableSettings {
+    public interface ConfigIdSettings<C extends ReaderSpecificConfig<C>> extends WidgetGroup, PersistableSettings {
         void applyToConfig(final DefaultTableReadConfig<C> config);
     }
 
@@ -98,6 +102,52 @@ public class CommonReaderTransformationSettings {
 
         public TableSpecSettings() {
         }
+    }
+
+    /**
+     * TODO NOSONAR UIEXT-1946 These settings are sent to the frontend where they are not needed. They are merely held
+     * here to be used in the CSVTransformationSettingsPersistor. We should look for an alternative mechanism to provide
+     * these settings to the persistor. This would then also allow us to use non-serializable types like the
+     * TypedReaderTableSpec instead of the TableSpecSettings, saving us the back-and-forth conversion.
+     */
+    public static abstract class PersistorSettings<C extends ReaderSpecificConfig<C>>
+        implements WidgetGroup, PersistableSettings {
+
+        public abstract class SetConfigIdSettingsValueRef implements WidgetModification.ImperativeWidgetModification {
+            static class ConfigIdSettingsRef implements WidgetModification.Reference {
+            }
+
+            @Override
+            public void modify(final WidgetGroupModifier group) {
+                group.find(ConfigIdSettingsRef.class).addAnnotation(ValueReference.class)
+                    .withProperty("value", getConfigIdSettingsValueRef()).build();
+            }
+
+            protected abstract Class<? extends Reference<ConfigIdSettings<C>>> getConfigIdSettingsValueRef();
+        }
+
+        @WidgetModification.WidgetReference(ConfigIdSettingsRef.class)
+        ConfigIdSettings<C> m_configId;
+
+        //        @ValueProvider(SourceIdProvider.class)
+        //        String m_sourceId = "";
+        //
+        //        @ValueProvider(FSLocationsProvider.class)
+        //        FSLocation[] m_fsLocations = new FSLocation[0];
+        //
+        //        static class TableSpecSettingsRef implements Reference<List<TableSpecSettings<String>>> {
+        //        }
+        //
+        //        List<TableSpecSettings<T>> m_specs = List.of();
+        //
+        //        @ValueProvider(CommonReaderNodeSettings.AdvancedSettings.AppendPathColumnRef.class)
+        //        boolean m_appendPathColumn;
+        //
+        //        @ValueProvider(CommonReaderNodeSettings.AdvancedSettings.FilePathColumnNameRef.class)
+        //        String m_filePathColumnName = "File Path";
+        //
+        //        @ValueProvider(TakeColumnsFromProvider.class)
+        //        ColumnFilterMode m_takeColumnsFrom = ColumnFilterMode.UNION;
     }
 
 }
