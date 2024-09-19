@@ -54,6 +54,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -66,6 +68,9 @@ import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ColumnSpecSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TableSpecSettings;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TransformationElementSettings;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TransformationElementSettings.ColumnNameRef;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TransformationElementSettingsReference;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
 import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProductionPath;
@@ -80,6 +85,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.RawSpecFactory;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
@@ -205,8 +211,8 @@ public class CommonReaderTransformationSettingsStateProviders {
     }
 
     // ??? different type (DataType instead of Class<?>)
-    static final class TypedReaderTableSpecsProvider
-        extends PathsProvider<Map<String, TypedReaderTableSpec<DataType>>> {
+    static final class TypedReaderTableSpecsProvider<T>
+        extends PathsProvider<Map<String, TypedReaderTableSpec<T>>> {
         @Override
         Map<String, TypedReaderTableSpec<DataType>> computeStateFromPaths(final List<FSPath> paths) {
             // ??? different reader here
@@ -231,17 +237,19 @@ public class CommonReaderTransformationSettingsStateProviders {
         }
     }
 
-    abstract static class DependsOnTypedReaderTableSpecProvider<S> implements StateProvider<S> {
+    abstract static class DependsOnTypedReaderTableSpecProvider<S, T> implements StateProvider<S> {
 
-        protected Supplier<Map<String, TypedReaderTableSpec<DataType>>> m_specSupplier;
+        protected Supplier<Map<String, TypedReaderTableSpec<T>>> m_specSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
             initializer.computeAfterOpenDialog();
-            m_specSupplier = initializer.computeFromProvidedState(TypedReaderTableSpecsProvider.class);
+            m_specSupplier = initializer.computeFromProvidedState(getTypedReaderTableSpecsProvider());
             initializer.computeOnValueChange(KnimeTableReaderConfigIdSettingsValueRef.class);
             initializer.computeOnValueChange(FileChooserRef.class);
         }
+
+        abstract Class<? extends TypedReaderTableSpecsProvider<T>> getTypedReaderTableSpecsProvider();
     }
 
     static final class TableSpecSettingsProvider
@@ -260,8 +268,8 @@ public class CommonReaderTransformationSettingsStateProviders {
         }
     }
 
-    static final class TransformationElementSettingsProvider
-        extends DependsOnTypedReaderTableSpecProvider<TransformationElementSettings[]> {
+    public static abstract class TransformationElementSettingsProvider<T>
+        extends DependsOnTypedReaderTableSpecProvider<TransformationElementSettings[], T> {
 
         private Supplier<CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption> m_howToCombineColumnsOptionSupplier;
 
@@ -281,8 +289,8 @@ public class CommonReaderTransformationSettingsStateProviders {
                 m_existingSettings.get());
         }
 
-        static TransformationElementSettings[] toTransformationElements(
-            final Map<String, TypedReaderTableSpec<DataType>> specs,
+        TransformationElementSettings[] toTransformationElements(
+            final Map<String, TypedReaderTableSpec<T>> specs,
             final CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption howToCombineColumnsOption,
             final TransformationElementSettings[] existingSettings) {
 
@@ -342,8 +350,8 @@ public class CommonReaderTransformationSettingsStateProviders {
 
         }
 
-        private static TransformationElementSettings mergeExistingWithNew(
-            final TransformationElementSettings existingElement, final TypedReaderColumnSpec<DataType> newSpec) {
+        private TransformationElementSettings mergeExistingWithNew(
+            final TransformationElementSettings existingElement, final TypedReaderColumnSpec<T> newSpec) {
             final var newElement = createNewElement(newSpec);
             if (!newElement.m_originalType.equals(existingElement.m_originalType)) {
                 return newElement;
@@ -355,26 +363,28 @@ public class CommonReaderTransformationSettingsStateProviders {
 
         }
 
-        private static Optional<DataType> getUnknownElementsType(final TransformationElementSettings unknownElement) {
+        private Optional<DataType> getUnknownElementsType(final TransformationElementSettings unknownElement) {
             if (TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID.equals(unknownElement.m_type)) {
                 return Optional.empty();
             }
-            return PRODUCTION_PATH_PROVIDER.getAvailableDataTypes().stream()
+            return getProductionPathProvider().getAvailableDataTypes().stream()
                 .filter(type -> type.getName().equals(unknownElement.m_type)).findFirst();
         }
+
+        protected abstract ProductionPathProvider<T> getProductionPathProvider();
 
         /**
          * @return a new element as if it would be constructed as unknown new when the <any unknown column> element is
          *         configured like the default.
          */
-        private static TransformationElementSettings createNewElement(final TypedReaderColumnSpec<DataType> colSpec) {
+        private TransformationElementSettings createNewElement(final TypedReaderColumnSpec<T> colSpec) {
             return createNewElement(colSpec, null, true);
         }
 
-        private static TransformationElementSettings createNewElement(final TypedReaderColumnSpec<DataType> colSpec,
+        private TransformationElementSettings createNewElement(final TypedReaderColumnSpec<T> colSpec,
             final DataType unknownElementsType, final boolean includeInOutput) {
             final var name = colSpec.getName().get(); // NOSONAR in the TypedReaderTableSpecProvider we make sure that names are always present
-            final var defPath = PRODUCTION_PATH_PROVIDER.getDefaultProductionPath(colSpec.getType());
+            final var defPath = getProductionPathProvider().getDefaultProductionPath(colSpec.getType());
 
             final var path = Optional.ofNullable(unknownElementsType)
                 .flatMap(type -> findProductionPath(colSpec.getType(), type)).orElse(defPath);
@@ -385,8 +395,8 @@ public class CommonReaderTransformationSettingsStateProviders {
 
         }
 
-        private static Optional<ProductionPath> findProductionPath(final DataType from, final DataType to) {
-            return PRODUCTION_PATH_PROVIDER.getAvailableProductionPaths(from).stream()
+        private Optional<ProductionPath> findProductionPath(final T from, final DataType to) {
+            return getProductionPathProvider().getAvailableProductionPaths(from).stream()
                 .filter(path -> to.equals(path.getDestinationType())).findFirst();
         }
     }
@@ -404,8 +414,8 @@ public class CommonReaderTransformationSettingsStateProviders {
         @Override
         public void init(final StateProviderInitializer initializer) {
             m_columnNameSupplier = initializer.getValueSupplier(ColumnNameRef.class);
-            initializer.computeOnValueChange(
-                KnimeTableReaderTransformationSettings.PersistorSettings.TableSpecSettingsRef.class);
+            initializer
+                .computeOnValueChange(CommonReaderTransformationSettings.PersistorSettings.TableSpecSettingsRef.class);
             m_specSupplier = initializer.computeFromProvidedState(TypedReaderTableSpecsProvider.class);
         }
 
@@ -435,15 +445,12 @@ public class CommonReaderTransformationSettingsStateProviders {
         }
     }
 
-    static RawSpec<DataType> toRawSpec(final Map<String, TypedReaderTableSpec<DataType>> spec) {
+    static <T> RawSpec<T> toRawSpec(final Map<String, TypedReaderTableSpec<T>> spec) {
         if (spec.isEmpty()) {
-            final var emptySpec = new TypedReaderTableSpec<DataType>();
+            final var emptySpec = new TypedReaderTableSpec<T>();
             return new RawSpec<>(emptySpec, emptySpec);
         }
         return new RawSpecFactory<>(KnimeTableReaderTransformationSettings.TYPE_HIERARCHY).create(spec.values());
     }
 
-    private KnimeTableReaderTransformationSettingsStateProviders() {
-        // Not intended to be initialized
-    }
 }

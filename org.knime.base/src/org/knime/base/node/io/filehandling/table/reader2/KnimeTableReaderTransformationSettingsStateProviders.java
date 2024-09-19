@@ -73,6 +73,7 @@ import org.knime.base.node.io.filehandling.webui.FileChooserPathAccessor;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.Settings.FileChooserRef;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ColumnSpecSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TableSpecSettings;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
@@ -415,7 +416,7 @@ final class KnimeTableReaderTransformationSettingsStateProviders {
         public void init(final StateProviderInitializer initializer) {
             m_columnNameSupplier = initializer.getValueSupplier(ColumnNameRef.class);
             initializer.computeOnValueChange(
-                KnimeTableReaderTransformationSettings.PersistorSettings.TableSpecSettingsRef.class);
+               CommonReaderTransformationSettings.PersistorSettings.TableSpecSettingsRef.class);
             m_specSupplier = initializer.computeFromProvidedState(TypedReaderTableSpecsProvider.class);
         }
 

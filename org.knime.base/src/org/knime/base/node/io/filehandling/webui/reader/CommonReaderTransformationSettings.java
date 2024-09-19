@@ -52,8 +52,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.PersistorSettings.SetStateProviders.ConfigIdSettingsRef;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.PersistorSettings.SetStateProviders.SpecsRef;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.FSLocationsProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.SourceIdProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider;
@@ -87,10 +86,16 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings({"javadoc", "restriction"})
-public class CommonReaderTransformationSettings {
+public class CommonReaderTransformationSettings<C extends ConfigIdSettings<?>, T> {
 
-    public interface ConfigIdSettings<C extends ReaderSpecificConfig<C>> extends WidgetGroup, PersistableSettings {
-        void applyToConfig(final DefaultTableReadConfig<C> config);
+    public static class ConfigIdSettings<C extends ReaderSpecificConfig<C>>
+        implements WidgetGroup, PersistableSettings {
+        /**
+         * @param config
+         */
+        void applyToConfig(final DefaultTableReadConfig<C> config) {
+            // Do nothing per default
+        }
     }
 
     /**
@@ -128,38 +133,40 @@ public class CommonReaderTransformationSettings {
         }
     }
 
+    public static class TableSpecSettingsRef implements Reference<List<TableSpecSettings<?>>> { // TODO: Non-public
+    }
+
+    public static abstract class SetStateProvidersAndReferences<C extends ConfigIdSettings<?>, T>
+        implements WidgetModification.ImperativeWidgetModification {
+        static class ConfigIdSettingsRef implements WidgetModification.Reference {
+        }
+
+        static class SpecsRef implements WidgetModification.Reference {
+        }
+
+        @Override
+        public void modify(final WidgetGroupModifier group) {
+            group.find(ConfigIdSettingsRef.class).addAnnotation(ValueReference.class)
+                .withProperty("value", getConfigIdSettingsValueRef()).build();
+
+            group.find(SpecsRef.class).addAnnotation(ValueProvider.class).withProperty("value", getSpecsValueProvider())
+                .build();
+        }
+
+        protected abstract Class<? extends Reference<C>> getConfigIdSettingsValueRef();
+
+        protected abstract Class<? extends StateProvider<List<TableSpecSettings<T>>>> getSpecsValueProvider();
+    }
+
     /**
      * TODO NOSONAR UIEXT-1946 These settings are sent to the frontend where they are not needed. They are merely held
      * here to be used in the CSVTransformationSettingsPersistor. We should look for an alternative mechanism to provide
      * these settings to the persistor. This would then also allow us to use non-serializable types like the
      * TypedReaderTableSpec instead of the TableSpecSettings, saving us the back-and-forth conversion.
      */
-    public static abstract class PersistorSettings<C extends ConfigIdSettings<?>, T>
-        implements WidgetGroup, PersistableSettings {
+    class PersistorSettings implements WidgetGroup, PersistableSettings {
 
-        public static abstract class SetStateProviders<C extends ConfigIdSettings<?>, T>
-            implements WidgetModification.ImperativeWidgetModification {
-            static class ConfigIdSettingsRef implements WidgetModification.Reference {
-            }
-
-            static class SpecsRef implements WidgetModification.Reference {
-            }
-
-            @Override
-            public void modify(final WidgetGroupModifier group) {
-                group.find(ConfigIdSettingsRef.class).addAnnotation(ValueReference.class)
-                    .withProperty("value", getConfigIdSettingsValueRef()).build();
-
-                group.find(SpecsRef.class).addAnnotation(ValueProvider.class)
-                    .withProperty("value", getSpecsValueProvider()).build();
-            }
-
-            protected abstract Class<? extends Reference<C>> getConfigIdSettingsValueRef();
-
-            protected abstract Class<? extends StateProvider<List<TableSpecSettings<T>>>> getSpecsValueProvider();
-        }
-
-        @WidgetModification.WidgetReference(ConfigIdSettingsRef.class) // for adding dynamic ref
+        @WidgetModification.WidgetReference(SetStateProvidersAndReferences.ConfigIdSettingsRef.class) // for adding dynamic ref
         C m_configId;
 
         @ValueProvider(SourceIdProvider.class)
@@ -168,11 +175,8 @@ public class CommonReaderTransformationSettings {
         @ValueProvider(FSLocationsProvider.class)
         FSLocation[] m_fsLocations = new FSLocation[0];
 
-        static class TableSpecSettingsRef implements Reference<List<TableSpecSettings<?>>> {
-        }
-
         @ValueReference(TableSpecSettingsRef.class)
-        @WidgetModification.WidgetReference(SpecsRef.class) // for adding dynamic and provider
+        @WidgetModification.WidgetReference(SetStateProvidersAndReferences.SpecsRef.class) // for adding dynamic and provider
         List<TableSpecSettings<T>> m_specs = List.of();
 
         @ValueProvider(CommonReaderNodeSettings.AdvancedSettings.AppendPathColumnRef.class)
@@ -184,6 +188,8 @@ public class CommonReaderTransformationSettings {
         @ValueProvider(TakeColumnsFromProvider.class)
         ColumnFilterMode m_takeColumnsFrom = ColumnFilterMode.UNION;
     }
+
+    PersistorSettings m_persistorSettings = new PersistorSettings();
 
     static class TakeColumnsFromProvider implements StateProvider<ColumnFilterMode> {
 
@@ -278,7 +284,7 @@ public class CommonReaderTransformationSettings {
 
             @Override
             public void init(final StateProviderInitializer initializer) {
-                initializer.computeOnValueChange(PersistorSettings.TableSpecSettingsRef.class);
+                initializer.computeOnValueChange(TableSpecSettingsRef.class);
                 m_originalColumnNameSupplier = initializer.getValueSupplier(ColumnNameRef.class);
             }
 
@@ -295,7 +301,7 @@ public class CommonReaderTransformationSettings {
 
             @Override
             public void init(final StateProviderInitializer initializer) {
-                initializer.computeOnValueChange(PersistorSettings.TableSpecSettingsRef.class);
+                initializer.computeOnValueChange(TableSpecSettingsRef.class);
                 m_originalTypeLabelSupplier = initializer.getValueSupplier(OriginalTypeLabelRef.class);
             }
 
