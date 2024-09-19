@@ -53,15 +53,15 @@ import static org.knime.base.node.io.filehandling.table.reader2.KnimeTableReader
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
 import org.knime.base.node.io.filehandling.table.reader.KnimeTableMultiTableReadConfig;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.ColumnSpecSettings;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.PersistorSettings;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TableSpecSettings;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TransformationElementSettings;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.TypeChoicesProvider;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TableSpecSettings;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfigSerializer.DataTypeSerializer;
 import org.knime.base.node.preproc.manipulator.mapping.DataTypeProducerRegistry;
 import org.knime.core.data.DataColumnSpec;
@@ -279,12 +279,12 @@ final class KnimeTableReaderTransformationSettingsPersistor
         return null;
     }
 
-    static Map<String, TypedReaderTableSpec<DataType>> toSpecMap(final TableSpecSettings[] specs) {
+    static Map<String, TypedReaderTableSpec<DataType>> toSpecMap(final List<TableSpecSettings<String>> specs) {
         final var individualSpecs = new LinkedHashMap<String, TypedReaderTableSpec<DataType>>();
         for (final var tableSpec : specs) {
             final TypedReaderTableSpecBuilder<DataType> specBuilder = TypedReaderTableSpec.builder();
             for (final var colSpec : tableSpec.m_spec) {
-                specBuilder.addColumn(colSpec.m_name, ColumnSpecSettings.stringToType(colSpec.m_type), true);
+                specBuilder.addColumn(colSpec.m_name, KnimeTableReaderTransformationSettings.stringToType(colSpec.m_type), true);
             }
             final var spec = specBuilder.build();
             individualSpecs.put(tableSpec.m_sourceId, spec);

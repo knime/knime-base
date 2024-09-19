@@ -198,6 +198,7 @@ public interface CommonReaderLayout {
                     """;
 
         interface EnforceTypes {
+            @SuppressWarnings("hiding")
             String DESCRIPTION = """
                     Controls how columns whose type changes are dealt with.
                     If selected, the mapping to the KNIME type you configured is attempted.

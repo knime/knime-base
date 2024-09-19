@@ -50,6 +50,7 @@ package org.knime.base.node.io.filehandling.table.reader2;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.List;
 import java.util.function.Supplier;
 
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.FSLocationsProvider;
@@ -60,6 +61,7 @@ import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransfo
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TableSpecSettings;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfigSerializer.DataTypeSerializer;
 import org.knime.base.node.preproc.manipulator.mapping.DataTypeTypeHierarchy;
@@ -123,21 +125,6 @@ final class KnimeTableReaderTransformationSettings implements WidgetGroup, Persi
             }
         }
 
-    static final class ColumnSpecSettings implements WidgetGroup, PersistableSettings {
-
-        String m_name;
-
-        //??? this type is different
-        String m_type;
-
-        ColumnSpecSettings(final String name, final DataType type) {
-            m_name = name;
-            m_type = typeToString(type);
-        }
-
-        ColumnSpecSettings() {
-        }
-
         /**
          * Serializes a given {@link DataType} into a string
          *
@@ -166,24 +153,8 @@ final class KnimeTableReaderTransformationSettings implements WidgetGroup, Persi
                 return DataType.getMissingCell().getType(); // TODO
             }
         }
-    }
 
     // ??? from here on out, everything is copied from the CSV reader
-
-    static final class TableSpecSettings implements WidgetGroup, PersistableSettings {
-
-        String m_sourceId;
-
-        ColumnSpecSettings[] m_spec;
-
-        TableSpecSettings(final String sourceId, final ColumnSpecSettings[] spec) {
-            m_sourceId = sourceId;
-            m_spec = spec;
-        }
-
-        TableSpecSettings() {
-        }
-    }
 
     /**
      * TODO NOSONAR UIEXT-1946 These settings are sent to the frontend where they are not needed. They are merely held
@@ -205,12 +176,12 @@ final class KnimeTableReaderTransformationSettings implements WidgetGroup, Persi
         @ValueProvider(FSLocationsProvider.class)
         FSLocation[] m_fsLocations = new FSLocation[0];
 
-        static class TableSpecSettingsRef implements Reference<TableSpecSettings[]> {
+        static class TableSpecSettingsRef implements Reference<List<TableSpecSettings<String>>> {
         }
 
         @ValueProvider(TableSpecSettingsProvider.class)
         @ValueReference(TableSpecSettingsRef.class)
-        TableSpecSettings[] m_specs = new TableSpecSettings[0];
+        List<TableSpecSettings<String>> m_specs = List.of();
 
         @ValueProvider(CommonReaderNodeSettings.AdvancedSettings.AppendPathColumnRef.class)
         boolean m_appendPathColumn;

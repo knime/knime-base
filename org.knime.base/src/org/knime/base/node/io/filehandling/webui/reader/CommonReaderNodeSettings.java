@@ -79,6 +79,7 @@ import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
  *
  * @author marcbux
  */
+@SuppressWarnings({"javadoc", "restriction"})
 public final class CommonReaderNodeSettings {
 
     public static class Settings implements WidgetGroup, PersistableSettings {
