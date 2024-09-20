@@ -102,9 +102,6 @@ public class CommonReaderTransformationSettings<C extends ConfigIdSettings<?>, S
     }
 
 
-    @Widget(title = "Test", description = "Test description")
-    String m_test = "test";
-
     /**
      * @param <T> the type used to serialize external data types
      */

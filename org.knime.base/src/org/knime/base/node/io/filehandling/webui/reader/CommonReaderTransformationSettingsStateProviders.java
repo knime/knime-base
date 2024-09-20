@@ -243,14 +243,14 @@ public class CommonReaderTransformationSettingsStateProviders {
             }
             return specs;
         }
-    }
 
-    interface GetTypedReaderTableSpecProvider<T> {
-        Class<? extends TypedReaderTableSpecsProvider<?, T, ?>> getTypedReaderTableSpecsProvider();
+        public interface Dependent<T> {
+            Class<? extends TypedReaderTableSpecsProvider<?, T, ?>> getTypedReaderTableSpecsProvider();
+        }
     }
 
     abstract static class DependsOnTypedReaderTableSpecProvider<S, T>
-        implements StateProvider<S>, GetTypedReaderTableSpecProvider<T> {
+        implements StateProvider<S>, TypedReaderTableSpecsProvider.Dependent<T> {
 
         protected Supplier<Map<String, TypedReaderTableSpec<T>>> m_specSupplier;
 
@@ -425,8 +425,8 @@ public class CommonReaderTransformationSettingsStateProviders {
         }
     }
 
-    public static abstract class TypeChoicesProvider<T>
-        implements StringChoicesStateProvider, ProductionPathAndTypeHierarchy<T>, GetTypedReaderTableSpecProvider<T> {
+    public static abstract class TypeChoicesProvider<T> implements StringChoicesStateProvider,
+        ProductionPathAndTypeHierarchy<T>, TypedReaderTableSpecsProvider.Dependent<T> {
 
         // TODO: Non-public
         public static final String DEFAULT_COLUMNTYPE_ID = "<default-columntype>";
@@ -475,7 +475,7 @@ public class CommonReaderTransformationSettingsStateProviders {
         }
     }
 
-    interface ProductionPathAndTypeHierarchy<T> {
+    public interface ProductionPathAndTypeHierarchy<T> {
         ProductionPathProvider<T> getProductionPathProvider();
 
         TypeHierarchy<T, T> getTypeHierarchy();

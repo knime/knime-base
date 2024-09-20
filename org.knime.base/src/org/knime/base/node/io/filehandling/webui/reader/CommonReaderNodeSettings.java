@@ -84,7 +84,7 @@ public final class CommonReaderNodeSettings {
 
     public static class Settings implements WidgetGroup, PersistableSettings {
 
-        public static final class FileChooserRef extends ReferenceStateProvider<FileChooser>
+        static final class FileChooserRef extends ReferenceStateProvider<FileChooser>
             implements WidgetModification.Reference {
         }
 

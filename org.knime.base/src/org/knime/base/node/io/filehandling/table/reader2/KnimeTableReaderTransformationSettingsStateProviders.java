@@ -52,13 +52,11 @@ import static org.knime.base.node.io.filehandling.table.reader2.KnimeTableReader
 import static org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.TYPE_HIERARCHY;
 
 import org.knime.base.node.io.filehandling.table.reader.KnimeTableReader;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.Settings.FileChooserRef;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.Dependencies;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.DependenciesProvider;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
 import org.knime.core.data.DataType;
-import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.TableReader;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
@@ -66,20 +64,22 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarch
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-@SuppressWarnings("restriction")
 final class KnimeTableReaderTransformationSettingsStateProviders {
+    interface ProductionPathAndTypeHierarchy
+        extends CommonReaderTransformationSettingsStateProviders.ProductionPathAndTypeHierarchy<DataType> {
+        @Override
+        default ProductionPathProvider<DataType> getProductionPathProvider() {
+            return PRODUCTION_PATH_PROVIDER;
+        }
 
-    private static final NodeLogger LOGGER =
-        NodeLogger.getLogger(KnimeTableReaderTransformationSettingsStateProviders.class);
+        @Override
+        default TypeHierarchy<DataType, DataType> getTypeHierarchy() {
+            return TYPE_HIERARCHY;
+        }
+    }
 
     static final class FSLocationsProvider
         extends CommonReaderTransformationSettingsStateProviders.FSLocationsProvider<Dependencies> {
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            super.init(initializer);
-            initializer.computeAfterOpenDialog();
-            initializer.computeOnValueChange(FileChooserRef.class);
-        }
 
         @Override
         protected Class<? extends DependenciesProvider<Dependencies>> getDependenciesProvider() {
@@ -106,10 +106,21 @@ final class KnimeTableReaderTransformationSettingsStateProviders {
             return CommonReaderTransformationSettingsStateProviders.NoAdditionalDependencies.class;
         }
 
+        interface Dependent
+            extends CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider.Dependent<DataType> {
+            @Override
+            default
+                Class<? extends CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider<?, DataType, ?>>
+                getTypedReaderTableSpecsProvider() {
+                return TypedReaderTableSpecsProvider.class;
+            }
+        }
+
     }
 
     static final class TableSpecSettingsProvider
-        extends CommonReaderTransformationSettingsStateProviders.TableSpecSettingsProvider<String, DataType> {
+        extends CommonReaderTransformationSettingsStateProviders.TableSpecSettingsProvider<String, DataType>
+        implements TypedReaderTableSpecsProvider.Dependent {
 
         @Override
         protected String toSerializableType(final DataType value) {
@@ -117,56 +128,17 @@ final class KnimeTableReaderTransformationSettingsStateProviders {
 
         }
 
-        @Override
-        public
-            Class<? extends CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider<?, DataType, ?>>
-            getTypedReaderTableSpecsProvider() {
-            return TypedReaderTableSpecsProvider.class;
-        }
-
     }
 
     static final class TransformationElementSettingsProvider
-        extends CommonReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider<DataType> {
-
-        @Override
-        public ProductionPathProvider<DataType> getProductionPathProvider() {
-            return PRODUCTION_PATH_PROVIDER;
-        }
-
-        @Override
-        public TypeHierarchy<DataType, DataType> getTypeHierarchy() {
-            return TYPE_HIERARCHY;
-        }
-
-        @Override
-        public
-            Class<? extends CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider<?, DataType, ?>>
-            getTypedReaderTableSpecsProvider() {
-            return TypedReaderTableSpecsProvider.class;
-        }
+        extends CommonReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider<DataType>
+        implements ProductionPathAndTypeHierarchy, TypedReaderTableSpecsProvider.Dependent {
 
     }
 
     static final class TypeChoicesProvider
-        extends CommonReaderTransformationSettingsStateProviders.TypeChoicesProvider<DataType> {
-
-        @Override
-        public ProductionPathProvider<DataType> getProductionPathProvider() {
-            return PRODUCTION_PATH_PROVIDER;
-        }
-
-        @Override
-        public TypeHierarchy<DataType, DataType> getTypeHierarchy() {
-            return TYPE_HIERARCHY;
-        }
-
-        @Override
-        public
-            Class<? extends CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider<?, DataType, ?>>
-            getTypedReaderTableSpecsProvider() {
-            return TypedReaderTableSpecsProvider.class;
-        }
+        extends CommonReaderTransformationSettingsStateProviders.TypeChoicesProvider<DataType>
+        implements ProductionPathAndTypeHierarchy, TypedReaderTableSpecsProvider.Dependent {
 
     }
 
