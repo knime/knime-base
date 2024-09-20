@@ -49,7 +49,6 @@
 package org.knime.base.node.io.filehandling.webui.reader;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -66,38 +65,35 @@ import org.knime.base.node.io.filehandling.webui.FileChooserPathAccessor;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.Settings.FileChooserRef;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ColumnSpecSettings;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TableSpecSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TransformationElementSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TransformationElementSettings.ColumnNameRef;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TransformationElementSettingsReference;
-import org.knime.base.node.preproc.manipulator.TableManipulatorConfigSerializer.DataTypeSerializer;
+import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.ExternalDataTypeSerializer;
+import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.ProductionPathProviderAndTypeHierarchy;
 import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeSettings;
-import org.knime.core.node.config.base.JSONConfig;
-import org.knime.core.node.config.base.JSONConfig.WriterConfig;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.WidgetModification;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
-import org.knime.filehandling.core.node.table.reader.RawSpecFactory;
-import org.knime.filehandling.core.node.table.reader.TableReader;
-import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
-import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
-import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
@@ -107,8 +103,7 @@ import org.knime.filehandling.core.util.WorkflowContextUtil;
 @SuppressWarnings({"javadoc", "restriction"})
 public class CommonReaderTransformationSettingsStateProviders {
 
-    private static final NodeLogger LOGGER =
-        NodeLogger.getLogger(CommonReaderTransformationSettingsStateProviders.class);
+    static final NodeLogger LOGGER = NodeLogger.getLogger(CommonReaderTransformationSettingsStateProviders.class);
 
     /**
      * This object holds copies of the subset of settings in {@link CSVTableReaderNodeSettings} that can affect the spec
@@ -119,7 +114,6 @@ public class CommonReaderTransformationSettingsStateProviders {
         default void applyToConfig(@SuppressWarnings("unused") final TableReadConfig<?> config) {
             // do nothing per default
         }
-
     }
 
     public interface ReaderSpecificDependenciesProvider<D extends ReaderSpecificDependencies> extends StateProvider<D> {
@@ -240,16 +234,8 @@ public class CommonReaderTransformationSettingsStateProviders {
         }
     }
 
-    public interface GetMultiTableReadConfig<C extends ReaderSpecificConfig<C>, T> {
-
-        MultiTableReadConfig<C, T> getMultiTableReadConfig();
-
-    }
-
     public static abstract class TypedReaderTableSpecsProvider<C extends ReaderSpecificConfig<C>, T, D extends ReaderSpecificDependencies>
-        extends PathsProvider<Map<String, TypedReaderTableSpec<T>>, D> implements GetMultiTableReadConfig<C, T> {
-
-        protected abstract TableReader<C, T, ?> getTableReader();
+        extends PathsProvider<Map<String, TypedReaderTableSpec<T>>, D> implements ReaderSpecific.ConfigAndReader<C, T> {
 
         @Override
         Map<String, TypedReaderTableSpec<T>> computeStateFromPaths(final List<FSPath> paths) {
@@ -291,57 +277,6 @@ public class CommonReaderTransformationSettingsStateProviders {
 
     }
 
-    interface ExternalDataTypeSerializer<S, T> {
-
-        S toSerializableType(T externalType);
-
-        T toExternalType(S serializedType);
-
-    }
-
-    public interface DataTypeStringSerializer extends ExternalDataTypeSerializer<String, DataType> {
-
-        @Override
-        default String toSerializableType(final DataType externalType) {
-            return typeToString(externalType);
-        }
-
-        @Override
-        default DataType toExternalType(final String serializedType) {
-            return stringToType(serializedType);
-        }
-
-        /**
-         * Serializes a given {@link DataType} into a string
-         *
-         * @param type the to-be-serialized {@link DataType}
-         * @return the serialized string
-         */
-        // TODO move to utility class
-        public static String typeToString(final DataType type) {
-            final var settings = new NodeSettings("type");
-            DataTypeSerializer.SERIALIZER_INSTANCE.save(type, settings);
-            return JSONConfig.toJSONString(settings, WriterConfig.DEFAULT);
-        }
-
-        /**
-         * De-serializes a string that has been generated via {@link JSONConfig#toJSONString} into a {@link DataType}.
-         *
-         * @param string the previously serialized string
-         * @return the de-serialized {@link DataType}
-         */
-        public static DataType stringToType(final String string) {
-            try {
-                final var settings = new NodeSettings("type");
-                JSONConfig.readJSON(settings, new StringReader(string));
-                return DataTypeSerializer.SERIALIZER_INSTANCE.load(settings);
-            } catch (IOException | InvalidSettingsException e) {
-                LOGGER.error("Unknown and new columns can't be converted to the configured data type.");
-                return null;
-            }
-        }
-    }
-
     public static abstract class TableSpecSettingsProvider<S, T>
         extends DependsOnTypedReaderTableSpecProvider<List<TableSpecSettings<S>>, T>
         implements ExternalDataTypeSerializer<S, T> {
@@ -360,7 +295,7 @@ public class CommonReaderTransformationSettingsStateProviders {
 
     public static abstract class TransformationElementSettingsProvider<T>
         extends DependsOnTypedReaderTableSpecProvider<TransformationElementSettings[], T>
-        implements ProductionPathAndTypeHierarchy<T> {
+        implements ProductionPathProviderAndTypeHierarchy<T> {
 
         private Supplier<CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption> m_howToCombineColumnsOptionSupplier;
 
@@ -489,7 +424,7 @@ public class CommonReaderTransformationSettingsStateProviders {
     }
 
     public static abstract class TypeChoicesProvider<T> implements StringChoicesStateProvider,
-        ProductionPathAndTypeHierarchy<T>, TypedReaderTableSpecsProvider.Dependent<T> {
+        ProductionPathProviderAndTypeHierarchy<T>, TypedReaderTableSpecsProvider.Dependent<T> {
 
         // TODO: Non-public
         public static final String DEFAULT_COLUMNTYPE_ID = "<default-columntype>";
@@ -538,19 +473,51 @@ public class CommonReaderTransformationSettingsStateProviders {
         }
     }
 
-    // TODO rename to PPProvider...
-    public interface ProductionPathAndTypeHierarchy<T> {
-        ProductionPathProvider<T> getProductionPathProvider();
+    public static abstract class TransformationSettingsWidgetModification<C extends ConfigIdSettings<?>, S, T>
+        implements WidgetModification.ImperativeWidgetModification {
 
-        TypeHierarchy<T, T> getTypeHierarchy();
-
-        default RawSpec<T> toRawSpec(final Map<String, TypedReaderTableSpec<T>> spec) {
-            if (spec.isEmpty()) {
-                final var emptySpec = new TypedReaderTableSpec<T>();
-                return new RawSpec<>(emptySpec, emptySpec);
-            }
-            return new RawSpecFactory<>(getTypeHierarchy()).create(spec.values());
+        static class ConfigIdSettingsRef implements WidgetModification.Reference {
         }
 
+        static class SpecsRef implements WidgetModification.Reference {
+        }
+
+        static class TypeChoicesWidgetRef implements WidgetModification.Reference {
+        }
+
+        static final class TransformationElementSettingsArrayWidgetRef implements WidgetModification.Reference {
+        }
+
+        static class FsLocationRef implements WidgetModification.Reference {
+        }
+
+        @Override
+        public void modify(final WidgetGroupModifier group) {
+            group.find(ConfigIdSettingsRef.class).addAnnotation(ValueReference.class)
+                .withProperty("value", getConfigIdSettingsValueRef()).build();
+            group.find(SpecsRef.class).addAnnotation(ValueProvider.class).withProperty("value", getSpecsValueProvider())
+                .build();
+            group.find(TypeChoicesWidgetRef.class).addAnnotation(ChoicesWidget.class)
+                .withProperty("choicesProvider", getTypeChoicesProvider()).build();
+            group.find(TransformationElementSettingsArrayWidgetRef.class).addAnnotation(ValueProvider.class)
+                .withProperty("value", getTransformationSettingsValueProvider()).build();
+            group.find(FsLocationRef.class).addAnnotation(ValueProvider.class)
+                .withProperty("value", getFsLocationProvider()).build();
+        }
+
+        protected abstract Class<? extends Reference<C>> getConfigIdSettingsValueRef();
+
+        protected abstract Class<? extends TableSpecSettingsProvider<S, T>> getSpecsValueProvider();
+
+        protected abstract Class<? extends TypeChoicesProvider<T>> getTypeChoicesProvider();
+
+        protected abstract Class<? extends TransformationElementSettingsProvider<T>>
+            getTransformationSettingsValueProvider();
+
+        protected abstract Class<? extends FSLocationsProvider<?>> getFsLocationProvider();
+    }
+
+    private CommonReaderTransformationSettingsStateProviders() {
+        // Utility class
     }
 }

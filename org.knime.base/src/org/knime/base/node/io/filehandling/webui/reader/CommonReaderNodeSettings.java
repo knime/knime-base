@@ -76,8 +76,7 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.Settin
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 
 /**
- *
- * @author marcbux
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings({"javadoc", "restriction"})
 public final class CommonReaderNodeSettings {

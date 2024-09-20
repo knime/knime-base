@@ -74,7 +74,7 @@ import org.xml.sax.SAXException;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
-public final class KnimeTableReaderNodeFactory2
+public final class TableReaderNodeFactory2
     extends KnimeTableReaderNodeFactory implements NodeDialogFactory {
 
     @Override
@@ -96,13 +96,13 @@ public final class KnimeTableReaderNodeFactory2
                 new PortDescription(FS_CONNECT_GRP_ID, FileSystemPortObject.TYPE, "The file system connection.", true)},
             new PortDescription[]{new PortDescription("File Table", BufferedDataTable.TYPE,
                 "The table contained in the selected file.")},
-            "Reads table written by the Table Writer node.", FULL_DESCRIPTION, KnimeTableReaderNodeSettings.class, null,
+            "Reads table written by the Table Writer node.", FULL_DESCRIPTION, TableReaderNodeSettings.class, null,
             null, NodeType.Source, new String[]{"KNIME", "Table", "Input", "Read"});
     }
 
     @Override
     public NodeDialog createNodeDialog() {
-        return new DefaultNodeDialog(SettingsType.MODEL, KnimeTableReaderNodeSettings.class);
+        return new DefaultNodeDialog(SettingsType.MODEL, TableReaderNodeSettings.class);
     }
 
     @Override

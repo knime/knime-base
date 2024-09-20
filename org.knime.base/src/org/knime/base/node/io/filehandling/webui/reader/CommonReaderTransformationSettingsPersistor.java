@@ -59,11 +59,9 @@ import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformati
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.PersistorSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TableSpecSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TransformationElementSettings;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.DataTypeStringSerializer;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.ExternalDataTypeSerializer;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.GetMultiTableReadConfig;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.ProductionPathAndTypeHierarchy;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TypeChoicesProvider;
+import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.ExternalDataTypeSerializer;
+import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.ConfigAndReader;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataType;
@@ -95,8 +93,8 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec.T
 @SuppressWarnings({"javadoc", "restriction"})
 // TODO Javadoc
 public abstract class CommonReaderTransformationSettingsPersistor<C extends ReaderSpecificConfig<C>, I extends ConfigIdSettings<C>, S, T, R extends CommonReaderTransformationSettings<I, S>>
-    extends NodeSettingsPersistorWithConfigKey<R>
-    implements ProductionPathAndTypeHierarchy<T>, ExternalDataTypeSerializer<S, T>, GetMultiTableReadConfig<C, T> {
+    extends NodeSettingsPersistorWithConfigKey<R> implements ReaderSpecific.ProductionPathProviderAndTypeHierarchy<T>,
+    ExternalDataTypeSerializer<S, T>, ConfigAndReader<C, T> {
 
     protected abstract R createDefaultTransformationSettings();
 
@@ -279,5 +277,4 @@ public abstract class CommonReaderTransformationSettingsPersistor<C extends Read
         }
         return individualSpecs;
     }
-
 }

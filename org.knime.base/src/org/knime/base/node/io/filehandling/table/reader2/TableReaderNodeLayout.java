@@ -59,7 +59,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
  *         slightly vary
  */
 @SuppressWarnings({"restriction", "java:S1214", "java:S103"})
-public class KnimeTableReaderNodeLayout {
+public class TableReaderNodeLayout {
 
     @After(CommonReaderLayout.MultipleFileHandling.HowToCombineColumns.class)
     @Before(CommonReaderLayout.MultipleFileHandling.AppendFilePathColumn.class)

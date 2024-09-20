@@ -48,8 +48,8 @@
  */
 package org.knime.base.node.io.filehandling.table.reader2;
 
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeLayout.PrependTableIndexToRowId;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeSettings.Settings.SetTableReaderExtensions;
+import org.knime.base.node.io.filehandling.table.reader2.TableReaderNodeLayout.PrependTableIndexToRowId;
+import org.knime.base.node.io.filehandling.table.reader2.TableReaderNodeSettings.Settings.SetTableReaderExtensions;
 import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings;
@@ -74,7 +74,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
-public class KnimeTableReaderNodeSettings implements DefaultNodeSettings {
+public class TableReaderNodeSettings implements DefaultNodeSettings {
 
     @Persist(configKey = "settings")
     Settings m_settings = new Settings();
@@ -83,9 +83,9 @@ public class KnimeTableReaderNodeSettings implements DefaultNodeSettings {
     AdvancedSettings m_advancedSettings = new AdvancedSettings();
 
     @Persist(configKey = "table_spec_config", hidden = true,
-        customPersistor = KnimeTableReaderTransformationSettingsPersistor.class)
+        customPersistor = TableReaderTransformationSettingsPersistor.class)
     @Layout(CommonReaderLayout.Transformation.class)
-    KnimeTableReaderTransformationSettings m_tableSpecConfig = new KnimeTableReaderTransformationSettings();
+    TableReaderTransformationSettings m_tableSpecConfig = new TableReaderTransformationSettings();
 
     @WidgetModification(SetTableReaderExtensions.class)
     static class Settings extends CommonReaderNodeSettings.Settings {
@@ -167,6 +167,5 @@ public class KnimeTableReaderNodeSettings implements DefaultNodeSettings {
         @Effect(predicate = LimitNumberOfRowsPredicate.class, type = EffectType.SHOW)
         @Persist(configKey = "max_rows")
         long m_maximumNumberOfRows = 50;
-
     }
 }

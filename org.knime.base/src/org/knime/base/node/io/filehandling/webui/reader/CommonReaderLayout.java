@@ -55,8 +55,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 
 /**
- *
- * @author marcbux
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings({"restriction", "javadoc"})
 public interface CommonReaderLayout {

@@ -866,7 +866,7 @@
             after="org.knime.base.node.io.filehandling.table.reader.KnimeTableReaderNodeFactory"
             category-path="/io/read"
             deprecated="false"
-            factory-class="org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeFactory2"
+            factory-class="org.knime.base.node.io.filehandling.table.reader2.TableReaderNodeFactory2"
             hidden="true"/>
         <node
               after="org.knime.base.node.io.arffwriter.ARFFWriterNodeFactory"

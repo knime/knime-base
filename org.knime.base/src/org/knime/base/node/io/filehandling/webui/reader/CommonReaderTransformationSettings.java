@@ -53,17 +53,14 @@ import java.util.function.Supplier;
 
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdSettings;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.FSLocationsProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.SourceIdProvider;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TableSpecSettingsProvider;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TransformationSettingsWidgetModification;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TypeChoicesProvider;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LatentWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.WidgetModification;
@@ -106,90 +103,42 @@ public abstract class CommonReaderTransformationSettings<C extends ConfigIdSetti
         /**
          * @param config
          */
-        void applyToConfig(final TableReadConfig<C> config) {
+        protected void applyToConfig(final TableReadConfig<C> config) {
             // Do nothing per default
         }
     }
 
-    /**
-     * @param <T> the type used to serialize external data types
-     */
-    public static final class ColumnSpecSettings<T> implements WidgetGroup, PersistableSettings {
+    static final class ColumnSpecSettings<T> implements WidgetGroup, PersistableSettings {
 
-        public String m_name;
+        String m_name;
 
-        public T m_type;
+        T m_type;
 
-        public ColumnSpecSettings(final String name, final T type) {
+        ColumnSpecSettings(final String name, final T type) {
             m_name = name;
             m_type = type;
         }
 
-        public ColumnSpecSettings() {
+        ColumnSpecSettings() {
         }
     }
 
-    // ??? from here on out, everything is copied from the CSV reader
+    static final class TableSpecSettings<T> implements WidgetGroup, PersistableSettings {
 
-    public static final class TableSpecSettings<T> implements WidgetGroup, PersistableSettings {
+        String m_sourceId;
 
-        public String m_sourceId;
+        List<ColumnSpecSettings<T>> m_spec;
 
-        public List<ColumnSpecSettings<T>> m_spec;
-
-        public TableSpecSettings(final String sourceId, final List<ColumnSpecSettings<T>> spec) {
+        TableSpecSettings(final String sourceId, final List<ColumnSpecSettings<T>> spec) {
             m_sourceId = sourceId;
             m_spec = spec;
         }
 
-        public TableSpecSettings() {
+        TableSpecSettings() {
         }
     }
 
-    public static class TableSpecSettingsRef implements Reference<List<TableSpecSettings<?>>> { // TODO: Non-public
-    }
-
-    public static abstract class SetStateProvidersAndReferences<C extends ConfigIdSettings<?>, S, T>
-        implements WidgetModification.ImperativeWidgetModification {
-        static class ConfigIdSettingsRef implements WidgetModification.Reference {
-        }
-
-        static class SpecsRef implements WidgetModification.Reference {
-        }
-
-        static class TypeChoicesWidgetRef implements WidgetModification.Reference {
-        }
-
-        static final class TransformationElementSettingsArrayWidgetRef implements WidgetModification.Reference {
-        }
-
-        static class FsLocationRef implements WidgetModification.Reference {
-        }
-
-        @Override
-        public void modify(final WidgetGroupModifier group) {
-            group.find(ConfigIdSettingsRef.class).addAnnotation(ValueReference.class)
-                .withProperty("value", getConfigIdSettingsValueRef()).build();
-            group.find(SpecsRef.class).addAnnotation(ValueProvider.class).withProperty("value", getSpecsValueProvider())
-                .build();
-            group.find(TypeChoicesWidgetRef.class).addAnnotation(ChoicesWidget.class)
-                .withProperty("choicesProvider", getTypeChoicesProvider()).build();
-            group.find(TransformationElementSettingsArrayWidgetRef.class).addAnnotation(ValueProvider.class)
-                .withProperty("value", getTransformationSettingsValueProvider()).build();
-            group.find(FsLocationRef.class).addAnnotation(ValueProvider.class)
-                .withProperty("value", getFsLocationProvider()).build();
-        }
-
-        protected abstract Class<? extends Reference<C>> getConfigIdSettingsValueRef();
-
-        protected abstract Class<? extends TableSpecSettingsProvider<S, T>> getSpecsValueProvider();
-
-        protected abstract Class<? extends TypeChoicesProvider<T>> getTypeChoicesProvider();
-
-        protected abstract Class<? extends TransformationElementSettingsProvider<T>>
-            getTransformationSettingsValueProvider();
-
-        protected abstract Class<? extends FSLocationsProvider<?>> getFsLocationProvider();
+    static class TableSpecSettingsRef implements Reference<List<TableSpecSettings<?>>> {
     }
 
     /**
@@ -209,19 +158,18 @@ public abstract class CommonReaderTransformationSettings<C extends ConfigIdSetti
             // Default constructor required as per {@link PersistablSettings} contract
         }
 
-        @WidgetModification.WidgetReference(SetStateProvidersAndReferences.ConfigIdSettingsRef.class) // for adding dynamic ref
+        @WidgetModification.WidgetReference(TransformationSettingsWidgetModification.ConfigIdSettingsRef.class) // for adding dynamic ref
         C m_configId;
 
         @ValueProvider(SourceIdProvider.class)
         String m_sourceId = "";
 
-        @WidgetModification.WidgetReference(SetStateProvidersAndReferences.FsLocationRef.class) // for adding dynamic provider
+        @WidgetModification.WidgetReference(TransformationSettingsWidgetModification.FsLocationRef.class) // for adding dynamic provider
         FSLocation[] m_fsLocations = new FSLocation[0];
 
         @ValueReference(TableSpecSettingsRef.class)
-        @WidgetModification.WidgetReference(SetStateProvidersAndReferences.SpecsRef.class) // for adding dynamic and provider
-        // TODO: Non-public
-        public List<TableSpecSettings<S>> m_specs = List.of();
+        @WidgetModification.WidgetReference(TransformationSettingsWidgetModification.SpecsRef.class) // for adding dynamic and provider
+        List<TableSpecSettings<S>> m_specs = List.of();
 
         @ValueProvider(CommonReaderNodeSettings.AdvancedSettings.AppendPathColumnRef.class)
         boolean m_appendPathColumn;
@@ -230,12 +178,10 @@ public abstract class CommonReaderTransformationSettings<C extends ConfigIdSetti
         String m_filePathColumnName = "File Path";
 
         @ValueProvider(TakeColumnsFromProvider.class)
-        // TODO: Non-public
-        public ColumnFilterMode m_takeColumnsFrom = ColumnFilterMode.UNION;
+        ColumnFilterMode m_takeColumnsFrom = ColumnFilterMode.UNION;
     }
 
-    // TODO: Non-public
-    public PersistorSettings<C, S> m_persistorSettings = new PersistorSettings<>();
+    PersistorSettings<C, S> m_persistorSettings = new PersistorSettings<>();
 
     static class TakeColumnsFromProvider implements StateProvider<ColumnFilterMode> {
 
@@ -256,11 +202,9 @@ public abstract class CommonReaderTransformationSettings<C extends ConfigIdSetti
 
     @Widget(title = "Enforce types", description = CommonReaderLayout.Transformation.EnforceTypes.DESCRIPTION,
         hideFlowVariableButton = true)
-    // TODO: Non-Public
-    public boolean m_enforceTypes = true;
+    boolean m_enforceTypes = true;
 
-    // TODO: Public not necessary
-    public static class TransformationElementSettings implements WidgetGroup, PersistableSettings {
+    static class TransformationElementSettings implements WidgetGroup, PersistableSettings {
 
         static class ColumnNameRef implements Reference<String> {
         }
@@ -307,7 +251,6 @@ public abstract class CommonReaderTransformationSettings<C extends ConfigIdSetti
             public String computeState(final DefaultNodeSettingsContext context) {
                 return m_originalColumnNameSupplier.get();
             }
-
         }
 
         static final class TypeResetter implements StateProvider<String> {
@@ -374,19 +317,16 @@ public abstract class CommonReaderTransformationSettings<C extends ConfigIdSetti
         String m_columnRename;
 
         @Widget(title = "Column type", description = "", hideTitle = true, hideFlowVariableButton = true)
-        @WidgetModification.WidgetReference(SetStateProvidersAndReferences.TypeChoicesWidgetRef.class) // for adding dynamic choices
+        @WidgetModification.WidgetReference(TransformationSettingsWidgetModification.TypeChoicesWidgetRef.class) // for adding dynamic choices
         @ValueProvider(TypeResetter.class)
         @Effect(predicate = InternalArrayWidget.ElementIsEdited.class, type = EffectType.SHOW)
         String m_type;
 
-        // extra field source type serialized
-
         TransformationElementSettings() {
         }
 
-        // TODO: Non-public
-        public TransformationElementSettings(final String columnName, final boolean includeInOutput,
-            final String columnRename, final String type, final String originalType, final String originalTypeLabel) {
+        TransformationElementSettings(final String columnName, final boolean includeInOutput, final String columnRename,
+            final String type, final String originalType, final String originalTypeLabel) {
             m_columnName = columnName;
             m_includeInOutput = includeInOutput;
             m_columnRename = columnRename;
@@ -411,10 +351,9 @@ public abstract class CommonReaderTransformationSettings<C extends ConfigIdSetti
         titleProvider = TransformationElementSettings.TitleProvider.class,
         subTitleProvider = TransformationElementSettings.SubTitleProvider.class)
     @ValueReference(TransformationElementSettingsReference.class)
-    @WidgetModification.WidgetReference(SetStateProvidersAndReferences.TransformationElementSettingsArrayWidgetRef.class) // for adding dynamic choices
+    @WidgetModification.WidgetReference(TransformationSettingsWidgetModification.TransformationElementSettingsArrayWidgetRef.class) // for adding dynamic choices
     @Effect(predicate = FileSystemPortConnectionUtil.ConnectedWithoutFileSystemSpec.class, type = EffectType.HIDE)
-    // TODO Non-public
-    public TransformationElementSettings[] m_columnTransformation =
+    TransformationElementSettings[] m_columnTransformation =
         new TransformationElementSettings[]{TransformationElementSettings.createUnknownElement()};
 
 }

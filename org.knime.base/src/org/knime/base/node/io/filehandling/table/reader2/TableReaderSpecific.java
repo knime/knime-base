@@ -44,84 +44,59 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 8, 2024 (marcbux): created
+ *   Sep 20, 2024 (marcbux): created
  */
 package org.knime.base.node.io.filehandling.table.reader2;
 
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.SetStateProvidersAndReferences;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.FSLocationsProvider;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.TableSpecSettingsProvider;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.TypeChoicesProvider;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdSettings;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders;
+
+import org.knime.base.node.io.filehandling.table.reader.KnimeTableMultiTableReadConfig;
+import org.knime.base.node.io.filehandling.table.reader.KnimeTableReader;
+import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
 import org.knime.base.node.preproc.manipulator.mapping.DataTypeTypeHierarchy;
 import org.knime.base.node.preproc.manipulator.mapping.DataValueReadAdapterFactory;
 import org.knime.core.data.DataType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.WidgetModification;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.filehandling.core.node.table.reader.DefaultProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
+import org.knime.filehandling.core.node.table.reader.TableReader;
+import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-@SuppressWarnings("restriction")
-@WidgetModification(SetStateProvidersAndReferences.class)
-final class KnimeTableReaderTransformationSettings
-    extends CommonReaderTransformationSettings<ConfigIdSettings<TableManipulatorConfig>, String> {
-
-    KnimeTableReaderTransformationSettings() {
-        super(new ConfigIdSettings<>());
-    }
+class TableReaderSpecific {
 
     static final ProductionPathProvider<DataType> PRODUCTION_PATH_PROVIDER =
-        new DefaultProductionPathProvider<>(DataValueReadAdapterFactory.INSTANCE.getProducerRegistry(),
-            DataValueReadAdapterFactory.INSTANCE::getDefaultType);
+            new DefaultProductionPathProvider<>(DataValueReadAdapterFactory.INSTANCE.getProducerRegistry(),
+                DataValueReadAdapterFactory.INSTANCE::getDefaultType);
 
-    static final TypeHierarchy<DataType, DataType> TYPE_HIERARCHY = DataTypeTypeHierarchy.INSTANCE;
-
-    static final class SetStateProvidersAndReferences extends
-        CommonReaderTransformationSettings.SetStateProvidersAndReferences<ConfigIdSettings<TableManipulatorConfig>, String, DataType> {
-
-        static final class KnimeTableReaderConfigIdSettingsValueRef
-            implements Reference<ConfigIdSettings<TableManipulatorConfig>> {
+    interface ProductionPathProviderAndTypeHierarchy
+        extends ReaderSpecific.ProductionPathProviderAndTypeHierarchy<DataType> {
+        @Override
+        default ProductionPathProvider<DataType> getProductionPathProvider() {
+            return PRODUCTION_PATH_PROVIDER;
         }
 
         @Override
-        protected Class<? extends Reference<ConfigIdSettings<TableManipulatorConfig>>> getConfigIdSettingsValueRef() {
-            return KnimeTableReaderConfigIdSettingsValueRef.class;
+        default TypeHierarchy<DataType, DataType> getTypeHierarchy() {
+            return DataTypeTypeHierarchy.INSTANCE;
         }
-
-        @Override
-        protected
-            Class<? extends CommonReaderTransformationSettingsStateProviders.TableSpecSettingsProvider<String, DataType>>
-            getSpecsValueProvider() {
-            return TableSpecSettingsProvider.class;
-        }
-
-        @Override
-        protected Class<? extends CommonReaderTransformationSettingsStateProviders.TypeChoicesProvider<DataType>>
-            getTypeChoicesProvider() {
-            return TypeChoicesProvider.class;
-        }
-
-        @Override
-        protected
-            Class<? extends CommonReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider<DataType>>
-            getTransformationSettingsValueProvider() {
-            return TransformationElementSettingsProvider.class;
-        }
-
-        @Override
-        protected Class<? extends CommonReaderTransformationSettingsStateProviders.FSLocationsProvider<?>>
-            getFsLocationProvider() {
-            return FSLocationsProvider.class;
-        }
-
     }
 
+    interface ConfigAndReader extends ReaderSpecific.ConfigAndReader<TableManipulatorConfig, DataType> {
+        @Override
+        default MultiTableReadConfig<TableManipulatorConfig, DataType> getMultiTableReadConfig() {
+            return new KnimeTableMultiTableReadConfig();
+        }
+
+        @Override
+        default TableReader<TableManipulatorConfig, DataType, ?> getTableReader() {
+            return new KnimeTableReader();
+        }
+    }
+
+    private TableReaderSpecific() {
+        // Utility class
+    }
 }

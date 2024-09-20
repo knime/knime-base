@@ -48,11 +48,11 @@
  */
 package org.knime.base.node.io.filehandling.table.reader2;
 
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.GetKnimeTableMultiTableReadConfig;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.ProductionPathAndTypeHierarchy;
+import org.knime.base.node.io.filehandling.table.reader2.TableReaderSpecific.ConfigAndReader;
+import org.knime.base.node.io.filehandling.table.reader2.TableReaderSpecific.ProductionPathProviderAndTypeHierarchy;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsPersistor;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders;
+import org.knime.base.node.io.filehandling.webui.reader.DataTypeStringSerializer;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfigSerializer.DataTypeSerializer;
 import org.knime.base.node.preproc.manipulator.mapping.DataTypeProducerRegistry;
@@ -63,14 +63,14 @@ import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecC
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-final class KnimeTableReaderTransformationSettingsPersistor extends
-    CommonReaderTransformationSettingsPersistor<TableManipulatorConfig, ConfigIdSettings<TableManipulatorConfig>, String, DataType, KnimeTableReaderTransformationSettings>
-    implements ProductionPathAndTypeHierarchy,
-    CommonReaderTransformationSettingsStateProviders.DataTypeStringSerializer, GetKnimeTableMultiTableReadConfig {
+final class TableReaderTransformationSettingsPersistor extends
+    CommonReaderTransformationSettingsPersistor<TableManipulatorConfig, ConfigIdSettings<TableManipulatorConfig>, String, DataType, TableReaderTransformationSettings>
+    implements ProductionPathProviderAndTypeHierarchy,
+    DataTypeStringSerializer, ConfigAndReader {
 
     @Override
-    protected KnimeTableReaderTransformationSettings createDefaultTransformationSettings() {
-        return new KnimeTableReaderTransformationSettings();
+    protected TableReaderTransformationSettings createDefaultTransformationSettings() {
+        return new TableReaderTransformationSettings();
     }
 
     @Override
