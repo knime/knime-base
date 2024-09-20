@@ -58,6 +58,7 @@ import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformati
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TableSpecSettingsProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TypeChoicesProvider;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
@@ -76,8 +77,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
+import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -89,18 +90,26 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  * @param <S> the type of the serializable form for external data types
  */
 @SuppressWarnings({"javadoc", "restriction"})
-public class CommonReaderTransformationSettings<C extends ConfigIdSettings<?>, S> implements PersistableSettings, WidgetGroup {
+public abstract class CommonReaderTransformationSettings<C extends ConfigIdSettings<?>, S>
+    implements PersistableSettings, WidgetGroup {
+
+    protected CommonReaderTransformationSettings(final C configId) {
+        m_persistorSettings = new PersistorSettings<>(configId);
+    }
+
+    CommonReaderTransformationSettings() {
+        // Default constructor required as per {@link PersistablSettings} contract
+    }
 
     public static class ConfigIdSettings<C extends ReaderSpecificConfig<C>>
         implements WidgetGroup, PersistableSettings {
         /**
          * @param config
          */
-        void applyToConfig(final DefaultTableReadConfig<C> config) {
+        void applyToConfig(final TableReadConfig<C> config) {
             // Do nothing per default
         }
     }
-
 
     /**
      * @param <T> the type used to serialize external data types
@@ -189,9 +198,16 @@ public class CommonReaderTransformationSettings<C extends ConfigIdSettings<?>, S
      * these settings to the persistor. This would then also allow us to use non-serializable types like the
      * TypedReaderTableSpec instead of the TableSpecSettings, saving us the back-and-forth conversion.
      */
-    // TODO: Non-public
-    public static class PersistorSettings<C extends ConfigIdSettings<?>, S>
-        implements WidgetGroup, PersistableSettings {
+    static class PersistorSettings<C extends ConfigIdSettings<?>, S> implements WidgetGroup, PersistableSettings {
+
+        private PersistorSettings(final C configId) {
+            CheckUtils.checkArgumentNotNull(configId);
+            m_configId = configId;
+        }
+
+        PersistorSettings() {
+            // Default constructor required as per {@link PersistablSettings} contract
+        }
 
         @WidgetModification.WidgetReference(SetStateProvidersAndReferences.ConfigIdSettingsRef.class) // for adding dynamic ref
         C m_configId;

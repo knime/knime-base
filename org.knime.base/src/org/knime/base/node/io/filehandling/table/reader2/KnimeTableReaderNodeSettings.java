@@ -77,7 +77,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
 public class KnimeTableReaderNodeSettings implements DefaultNodeSettings {
 
     @Persist(configKey = "settings")
-
     Settings m_settings = new Settings();
 
     @Persist(configKey = "advanced_settings")

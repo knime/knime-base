@@ -91,8 +91,9 @@ import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.RawSpecFactory;
 import org.knime.filehandling.core.node.table.reader.TableReader;
-import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
+import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
@@ -103,6 +104,7 @@ import org.knime.filehandling.core.util.WorkflowContextUtil;
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
+@SuppressWarnings({"javadoc", "restriction"})
 public class CommonReaderTransformationSettingsStateProviders {
 
     private static final NodeLogger LOGGER =
@@ -114,7 +116,7 @@ public class CommonReaderTransformationSettingsStateProviders {
      */
     public interface ReaderSpecificDependencies {
 
-        default void applyToConfig(final DefaultTableReadConfig<?> config) {
+        default void applyToConfig(@SuppressWarnings("unused") final TableReadConfig<?> config) {
             // do nothing per default
         }
 
@@ -145,13 +147,17 @@ public class CommonReaderTransformationSettingsStateProviders {
         }
 
         public interface Dependent<D extends ReaderSpecificDependencies> {
+            @SuppressWarnings("unchecked")
             default Class<? extends ReaderSpecificDependenciesProvider<D>> getDependenciesProvider() {
+                // when running into a ClassCastException here, you should extends the Dependent interface
                 return (Class<? extends ReaderSpecificDependenciesProvider<D>>)NoAdditionalDependencies.class;
             }
         }
     }
 
-    static final class NoAdditionalDependencies<D extends ReaderSpecificDependencies> implements ReaderSpecificDependenciesProvider<ReaderSpecificDependencies> {
+    @SuppressWarnings("unused")
+    static final class NoAdditionalDependencies<D extends ReaderSpecificDependencies>
+        implements ReaderSpecificDependenciesProvider<ReaderSpecificDependencies> {
 
         @Override
         public ReaderSpecificDependencies computeState(final DefaultNodeSettingsContext context) {
@@ -177,7 +183,7 @@ public class CommonReaderTransformationSettingsStateProviders {
     }
 
     public abstract static class PathsProvider<S, D extends ReaderSpecificDependencies>
-        implements StateProvider<S>, ReaderSpecificDependenciesProvider.Dependent {
+        implements StateProvider<S>, ReaderSpecificDependenciesProvider.Dependent<D> {
 
         protected Supplier<D> m_dependenciesSupplier;
 
@@ -219,7 +225,8 @@ public class CommonReaderTransformationSettingsStateProviders {
         abstract S computeStateFromPaths(List<FSPath> paths);
     }
 
-    public static abstract class FSLocationsProvider<D extends ReaderSpecificDependencies> extends PathsProvider<FSLocation[], D> {
+    public static abstract class FSLocationsProvider<D extends ReaderSpecificDependencies>
+        extends PathsProvider<FSLocation[], D> {
         @Override
         public void init(final StateProviderInitializer initializer) {
             super.init(initializer);
@@ -233,20 +240,23 @@ public class CommonReaderTransformationSettingsStateProviders {
         }
     }
 
+    public interface GetMultiTableReadConfig<C extends ReaderSpecificConfig<C>, T> {
+
+        MultiTableReadConfig<C, T> getMultiTableReadConfig();
+
+    }
+
     public static abstract class TypedReaderTableSpecsProvider<C extends ReaderSpecificConfig<C>, T, D extends ReaderSpecificDependencies>
-        extends PathsProvider<Map<String, TypedReaderTableSpec<T>>, D> {
+        extends PathsProvider<Map<String, TypedReaderTableSpec<T>>, D> implements GetMultiTableReadConfig<C, T> {
 
         protected abstract TableReader<C, T, ?> getTableReader();
-
-        protected abstract C getReaderSpecificConfig();
 
         @Override
         Map<String, TypedReaderTableSpec<T>> computeStateFromPaths(final List<FSPath> paths) {
             final var tableReader = getTableReader();
             final var exec = new ExecutionMonitor();
             final var specs = new HashMap<String, TypedReaderTableSpec<T>>();
-            final var tmConfig = getReaderSpecificConfig();
-            final var config = new DefaultTableReadConfig<>(tmConfig);
+            final var config = getMultiTableReadConfig().getTableReadConfig();
             final var dependencies = m_dependenciesSupplier.get();
             dependencies.applyToConfig(config);
             for (var path : paths) {
@@ -266,8 +276,8 @@ public class CommonReaderTransformationSettingsStateProviders {
         }
     }
 
-    abstract static class DependsOnTypedReaderTableSpecProvider<S, T>
-        implements StateProvider<S>, TypedReaderTableSpecsProvider.Dependent<T>, ReaderSpecificDependenciesProvider.GetReferences {
+    abstract static class DependsOnTypedReaderTableSpecProvider<S, T> implements StateProvider<S>,
+        TypedReaderTableSpecsProvider.Dependent<T>, ReaderSpecificDependenciesProvider.GetReferences {
 
         protected Supplier<Map<String, TypedReaderTableSpec<T>>> m_specSupplier;
 
@@ -281,10 +291,60 @@ public class CommonReaderTransformationSettingsStateProviders {
 
     }
 
-    public static abstract class TableSpecSettingsProvider<S, T>
-        extends DependsOnTypedReaderTableSpecProvider<List<TableSpecSettings<S>>, T> {
+    interface ExternalDataTypeSerializer<S, T> {
 
-        protected abstract S toSerializableType(T value);
+        S toSerializableType(T externalType);
+
+        T toExternalType(S serializedType);
+
+    }
+
+    public interface DataTypeStringSerializer extends ExternalDataTypeSerializer<String, DataType> {
+
+        @Override
+        default String toSerializableType(final DataType externalType) {
+            return typeToString(externalType);
+        }
+
+        @Override
+        default DataType toExternalType(final String serializedType) {
+            return stringToType(serializedType);
+        }
+
+        /**
+         * Serializes a given {@link DataType} into a string
+         *
+         * @param type the to-be-serialized {@link DataType}
+         * @return the serialized string
+         */
+        // TODO move to utility class
+        public static String typeToString(final DataType type) {
+            final var settings = new NodeSettings("type");
+            DataTypeSerializer.SERIALIZER_INSTANCE.save(type, settings);
+            return JSONConfig.toJSONString(settings, WriterConfig.DEFAULT);
+        }
+
+        /**
+         * De-serializes a string that has been generated via {@link JSONConfig#toJSONString} into a {@link DataType}.
+         *
+         * @param string the previously serialized string
+         * @return the de-serialized {@link DataType}
+         */
+        public static DataType stringToType(final String string) {
+            try {
+                final var settings = new NodeSettings("type");
+                JSONConfig.readJSON(settings, new StringReader(string));
+                return DataTypeSerializer.SERIALIZER_INSTANCE.load(settings);
+            } catch (IOException | InvalidSettingsException e) {
+                LOGGER.error("Unknown and new columns can't be converted to the configured data type.");
+                return null;
+            }
+        }
+    }
+
+    public static abstract class TableSpecSettingsProvider<S, T>
+        extends DependsOnTypedReaderTableSpecProvider<List<TableSpecSettings<S>>, T>
+        implements ExternalDataTypeSerializer<S, T> {
 
         @Override
         public List<TableSpecSettings<S>> computeState(final DefaultNodeSettingsContext context) {
@@ -393,11 +453,11 @@ public class CommonReaderTransformationSettingsStateProviders {
 
         }
 
-        private Optional<DataType> getUnknownElementsType(final TransformationElementSettings unknownElement) {
+        private static Optional<DataType> getUnknownElementsType(final TransformationElementSettings unknownElement) {
             if (TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID.equals(unknownElement.m_type)) {
                 return Optional.empty();
             }
-            return Optional.of(stringToType(unknownElement.m_type));
+            return Optional.of(DataTypeStringSerializer.stringToType(unknownElement.m_type));
         }
 
         /**
@@ -474,10 +534,11 @@ public class CommonReaderTransformationSettingsStateProviders {
         }
 
         static String getDataTypeId(final DataType type) {
-            return typeToString(type);
+            return DataTypeStringSerializer.typeToString(type);
         }
     }
 
+    // TODO rename to PPProvider...
     public interface ProductionPathAndTypeHierarchy<T> {
         ProductionPathProvider<T> getProductionPathProvider();
 
@@ -492,33 +553,4 @@ public class CommonReaderTransformationSettingsStateProviders {
         }
 
     }
-
-    /**
-     * Serializes a given {@link DataType} into a string
-     *
-     * @param type the to-be-serialized {@link DataType}
-     * @return the serialized string
-     */
-    public static String typeToString(final DataType type) {
-        final var settings = new NodeSettings("type");
-        DataTypeSerializer.SERIALIZER_INSTANCE.save(type, settings);
-        return JSONConfig.toJSONString(settings, WriterConfig.DEFAULT);
-    }
-
-    /**
-     * De-serializes a string that has been generated via {@link JSONConfig#toJSONString} into a {@link DataType}.
-     *
-     * @param string the previously serialized string
-     * @return the de-serialized {@link DataType}
-     */
-    public static DataType stringToType(final String string) {
-        try {
-            final var settings = new NodeSettings("type");
-            JSONConfig.readJSON(settings, new StringReader(string));
-            return DataTypeSerializer.SERIALIZER_INSTANCE.load(settings);
-        } catch (IOException | InvalidSettingsException e) {
-            return DataType.getMissingCell().getType(); // TODO
-        }
-    }
-
 }

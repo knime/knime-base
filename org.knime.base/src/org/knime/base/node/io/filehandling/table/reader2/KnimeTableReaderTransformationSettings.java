@@ -48,9 +48,6 @@
  */
 package org.knime.base.node.io.filehandling.table.reader2;
 
-import java.io.IOException;
-import java.io.StringReader;
-
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettings.SetStateProvidersAndReferences;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.FSLocationsProvider;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderTransformationSettingsStateProviders.TableSpecSettingsProvider;
@@ -60,14 +57,9 @@ import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformati
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
-import org.knime.base.node.preproc.manipulator.TableManipulatorConfigSerializer.DataTypeSerializer;
 import org.knime.base.node.preproc.manipulator.mapping.DataTypeTypeHierarchy;
 import org.knime.base.node.preproc.manipulator.mapping.DataValueReadAdapterFactory;
 import org.knime.core.data.DataType;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettings;
-import org.knime.core.node.config.base.JSONConfig;
-import org.knime.core.node.config.base.JSONConfig.WriterConfig;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.WidgetModification;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.filehandling.core.node.table.reader.DefaultProductionPathProvider;
@@ -82,39 +74,15 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarch
 final class KnimeTableReaderTransformationSettings
     extends CommonReaderTransformationSettings<ConfigIdSettings<TableManipulatorConfig>, String> {
 
+    KnimeTableReaderTransformationSettings() {
+        super(new ConfigIdSettings<>());
+    }
+
     static final ProductionPathProvider<DataType> PRODUCTION_PATH_PROVIDER =
         new DefaultProductionPathProvider<>(DataValueReadAdapterFactory.INSTANCE.getProducerRegistry(),
             DataValueReadAdapterFactory.INSTANCE::getDefaultType);
 
     static final TypeHierarchy<DataType, DataType> TYPE_HIERARCHY = DataTypeTypeHierarchy.INSTANCE;
-
-    /**
-     * Serializes a given {@link DataType} into a string
-     *
-     * @param type the to-be-serialized {@link DataType}
-     * @return the serialized string
-     */
-    public static String typeToString(final DataType type) {
-        final var settings = new NodeSettings("type");
-        DataTypeSerializer.SERIALIZER_INSTANCE.save(type, settings);
-        return JSONConfig.toJSONString(settings, WriterConfig.DEFAULT);
-    }
-
-    /**
-     * De-serializes a string that has been generated via {@link JSONConfig#toJSONString} into a {@link DataType}.
-     *
-     * @param string the previously serialized string
-     * @return the de-serialized {@link DataType}
-     */
-    public static DataType stringToType(final String string) {
-        try {
-            final var settings = new NodeSettings("type");
-            JSONConfig.readJSON(settings, new StringReader(string));
-            return DataTypeSerializer.SERIALIZER_INSTANCE.load(settings);
-        } catch (IOException | InvalidSettingsException e) {
-            return DataType.getMissingCell().getType(); // TODO
-        }
-    }
 
     static final class SetStateProvidersAndReferences extends
         CommonReaderTransformationSettings.SetStateProvidersAndReferences<ConfigIdSettings<TableManipulatorConfig>, String, DataType> {
