@@ -112,35 +112,51 @@ public class CommonReaderTransformationSettingsStateProviders {
      * This object holds copies of the subset of settings in {@link CSVTableReaderNodeSettings} that can affect the spec
      * of the output table. I.e., if any of these settings change, the spec has to be re-calculcated.
      */
-    public static class Dependencies {
+    public interface ReaderSpecificDependencies {
 
-        final FileChooser m_source;
-
-        Dependencies(final FileChooser fileChooser) {
-            m_source = fileChooser;
-        }
-
-        protected void applyToConfig(final DefaultTableReadConfig<?> config) {
+        default void applyToConfig(final DefaultTableReadConfig<?> config) {
             // do nothing per default
         }
+
     }
 
-    public static abstract class DependenciesProvider<D extends Dependencies> implements StateProvider<D> {
-
-        protected Supplier<FileChooser> m_fileChooserSupplier;
+    public interface ReaderSpecificDependenciesProvider<D extends ReaderSpecificDependencies> extends StateProvider<D> {
 
         @Override
-        public void init(final StateProviderInitializer initializer) {
-            m_fileChooserSupplier = initializer.getValueSupplier(FileChooserRef.class);
+        default public void init(final StateProviderInitializer initializer) {
         }
 
+        public interface GetReferences {
+            /**
+             * TODO: Rethink this. We originally had to postpone triggers to those state providers which only concern
+             * the outside of the array (i.e. not the type choices provider) but we now allow triggering from outside
+             * the array.
+             *
+             * But it is not so straightforward as now setting all these dependencies as triggers in the dependency
+             * provider, because we then run into a timing issue: We currently require, that first all element values
+             * are determined and then secondly, the choices of these elements are computed (with a second backend
+             * call).
+             *
+             * @return a list of postponed triggers
+             */
+            default List<Class<? extends Reference<?>>> getDependencyReferences() {
+                return List.of();
+            }
+        }
+
+        public interface Dependent<D extends ReaderSpecificDependencies> {
+            default Class<? extends ReaderSpecificDependenciesProvider<D>> getDependenciesProvider() {
+                return (Class<? extends ReaderSpecificDependenciesProvider<D>>)NoAdditionalDependencies.class;
+            }
+        }
     }
 
-    public static class NoAdditionalDependencies extends DependenciesProvider<Dependencies> {
+    static final class NoAdditionalDependencies<D extends ReaderSpecificDependencies> implements ReaderSpecificDependenciesProvider<ReaderSpecificDependencies> {
 
         @Override
-        public Dependencies computeState(final DefaultNodeSettingsContext context) {
-            return new Dependencies(m_fileChooserSupplier.get());
+        public ReaderSpecificDependencies computeState(final DefaultNodeSettingsContext context) {
+            return new ReaderSpecificDependencies() {
+            };
         }
     }
 
@@ -150,9 +166,8 @@ public class CommonReaderTransformationSettingsStateProviders {
 
         @Override
         public void init(final StateProviderInitializer initializer) {
-            m_fileChooserSupplier = initializer.getValueSupplier(FileChooserRef.class);
+            m_fileChooserSupplier = initializer.computeFromValueSupplier(FileChooserRef.class);
             initializer.computeAfterOpenDialog();
-            initializer.computeOnValueChange(FileChooserRef.class);
         }
 
         @Override
@@ -161,20 +176,22 @@ public class CommonReaderTransformationSettingsStateProviders {
         }
     }
 
-    public abstract static class PathsProvider<S, D extends Dependencies> implements StateProvider<S> {
-
-        protected abstract Class<? extends DependenciesProvider<D>> getDependenciesProvider();
+    public abstract static class PathsProvider<S, D extends ReaderSpecificDependencies>
+        implements StateProvider<S>, ReaderSpecificDependenciesProvider.Dependent {
 
         protected Supplier<D> m_dependenciesSupplier;
 
+        private Supplier<FileChooser> m_fileChooserSupplier;
+
         @Override
         public void init(final StateProviderInitializer initializer) {
+            m_fileChooserSupplier = initializer.getValueSupplier(FileChooserRef.class);
             m_dependenciesSupplier = initializer.computeFromProvidedState(getDependenciesProvider());
         }
 
         @Override
         public S computeState(final DefaultNodeSettingsContext context) {
-            final var fileChooser = m_dependenciesSupplier.get().m_source;
+            final var fileChooser = m_fileChooserSupplier.get();
             if (!WorkflowContextUtil.hasWorkflowContext() // no workflow context available
                 || fileChooser.getFSLocation().equals(new FSLocation(FSCategory.LOCAL, ""))) { // no file selected (yet)
                 return computeStateFromPaths(Collections.emptyList());
@@ -202,7 +219,7 @@ public class CommonReaderTransformationSettingsStateProviders {
         abstract S computeStateFromPaths(List<FSPath> paths);
     }
 
-    public static abstract class FSLocationsProvider<D extends Dependencies> extends PathsProvider<FSLocation[], D> {
+    public static abstract class FSLocationsProvider<D extends ReaderSpecificDependencies> extends PathsProvider<FSLocation[], D> {
         @Override
         public void init(final StateProviderInitializer initializer) {
             super.init(initializer);
@@ -216,7 +233,7 @@ public class CommonReaderTransformationSettingsStateProviders {
         }
     }
 
-    public static abstract class TypedReaderTableSpecsProvider<C extends ReaderSpecificConfig<C>, T, D extends Dependencies>
+    public static abstract class TypedReaderTableSpecsProvider<C extends ReaderSpecificConfig<C>, T, D extends ReaderSpecificDependencies>
         extends PathsProvider<Map<String, TypedReaderTableSpec<T>>, D> {
 
         protected abstract TableReader<C, T, ?> getTableReader();
@@ -250,7 +267,7 @@ public class CommonReaderTransformationSettingsStateProviders {
     }
 
     abstract static class DependsOnTypedReaderTableSpecProvider<S, T>
-        implements StateProvider<S>, TypedReaderTableSpecsProvider.Dependent<T> {
+        implements StateProvider<S>, TypedReaderTableSpecsProvider.Dependent<T>, ReaderSpecificDependenciesProvider.GetReferences {
 
         protected Supplier<Map<String, TypedReaderTableSpec<T>>> m_specSupplier;
 
@@ -258,22 +275,8 @@ public class CommonReaderTransformationSettingsStateProviders {
         public void init(final StateProviderInitializer initializer) {
             initializer.computeAfterOpenDialog();
             m_specSupplier = initializer.computeFromProvidedState(getTypedReaderTableSpecsProvider());
-            getAdditionalTriggers().forEach(initializer::computeOnValueChange);
+            getDependencyReferences().forEach(initializer::computeOnValueChange);
             initializer.computeOnValueChange(FileChooserRef.class);
-        }
-
-        /**
-         * TODO: Rethink this. We originally had to postpone triggers to those state providers which only concern the
-         * outside of the array (i.e. not the type choices provider) but we now allow triggering from outside the array.
-         *
-         * But it is not so straightforward as now setting all these dependencies as triggers in the dependency
-         * provider, because we then run into a timing issue: We currently require, that first all element values are
-         * determined and then secondly, the choices of these elements are computed (with a second backend call).
-         *
-         * @return a list of postponed triggers
-         */
-        protected List<Class<? extends Reference<?>>> getAdditionalTriggers() {
-            return Collections.emptyList();
         }
 
     }

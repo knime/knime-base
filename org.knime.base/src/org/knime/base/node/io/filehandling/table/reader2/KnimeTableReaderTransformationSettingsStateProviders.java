@@ -53,8 +53,7 @@ import static org.knime.base.node.io.filehandling.table.reader2.KnimeTableReader
 
 import org.knime.base.node.io.filehandling.table.reader.KnimeTableReader;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.Dependencies;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.DependenciesProvider;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.ReaderSpecificDependencies;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
 import org.knime.core.data.DataType;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
@@ -79,17 +78,12 @@ final class KnimeTableReaderTransformationSettingsStateProviders {
     }
 
     static final class FSLocationsProvider
-        extends CommonReaderTransformationSettingsStateProviders.FSLocationsProvider<Dependencies> {
-
-        @Override
-        protected Class<? extends DependenciesProvider<Dependencies>> getDependenciesProvider() {
-            return CommonReaderTransformationSettingsStateProviders.NoAdditionalDependencies.class;
-        }
+        extends CommonReaderTransformationSettingsStateProviders.FSLocationsProvider<ReaderSpecificDependencies> {
 
     }
 
     static final class TypedReaderTableSpecsProvider extends
-        CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider<TableManipulatorConfig, DataType, Dependencies> {
+        CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider<TableManipulatorConfig, DataType, ReaderSpecificDependencies> {
 
         @Override
         protected TableReader<TableManipulatorConfig, DataType, ?> getTableReader() {
@@ -99,11 +93,6 @@ final class KnimeTableReaderTransformationSettingsStateProviders {
         @Override
         protected TableManipulatorConfig getReaderSpecificConfig() {
             return new TableManipulatorConfig();
-        }
-
-        @Override
-        protected Class<? extends DependenciesProvider<Dependencies>> getDependenciesProvider() {
-            return CommonReaderTransformationSettingsStateProviders.NoAdditionalDependencies.class;
         }
 
         interface Dependent
