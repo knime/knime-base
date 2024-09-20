@@ -89,7 +89,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  * @param <S> the type of the serializable form for external data types
  */
 @SuppressWarnings({"javadoc", "restriction"})
-public class CommonReaderTransformationSettings<C extends ConfigIdSettings<?>, S> {
+public class CommonReaderTransformationSettings<C extends ConfigIdSettings<?>, S> implements PersistableSettings, WidgetGroup {
 
     public static class ConfigIdSettings<C extends ReaderSpecificConfig<C>>
         implements WidgetGroup, PersistableSettings {
@@ -100,6 +100,10 @@ public class CommonReaderTransformationSettings<C extends ConfigIdSettings<?>, S
             // Do nothing per default
         }
     }
+
+
+    @Widget(title = "Test", description = "Test description")
+    String m_test = "test";
 
     /**
      * @param <T> the type used to serialize external data types

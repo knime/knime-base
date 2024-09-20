@@ -82,7 +82,6 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarch
 final class KnimeTableReaderTransformationSettings
     extends CommonReaderTransformationSettings<ConfigIdSettings<TableManipulatorConfig>, String> {
 
-    // ??? this is different
     static final ProductionPathProvider<DataType> PRODUCTION_PATH_PROVIDER =
         new DefaultProductionPathProvider<>(DataValueReadAdapterFactory.INSTANCE.getProducerRegistry(),
             DataValueReadAdapterFactory.INSTANCE::getDefaultType);
