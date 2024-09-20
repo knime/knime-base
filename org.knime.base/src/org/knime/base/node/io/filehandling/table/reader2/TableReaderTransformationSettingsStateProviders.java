@@ -63,12 +63,13 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
  */
 final class TableReaderTransformationSettingsStateProviders {
 
-    static final class FSLocationsProvider
-        extends CommonReaderTransformationSettingsStateProviders.FSLocationsProvider<ReaderSpecificDependencies> {
+    static final class FSLocationsProvider extends
+        CommonReaderTransformationSettingsStateProviders.FSLocationsProvider<ReaderSpecificDependencies<TableManipulatorConfig>> {
     }
 
     static final class TypedReaderTableSpecsProvider extends
-        CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider<TableManipulatorConfig, DataType, ReaderSpecificDependencies>
+        CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider<TableManipulatorConfig, DataType, ReaderSpecificDependencies<TableManipulatorConfig>>
+
         implements ConfigAndReader {
 
         interface Dependent

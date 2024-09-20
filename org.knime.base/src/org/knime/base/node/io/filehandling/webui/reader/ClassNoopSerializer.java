@@ -44,62 +44,27 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 20, 2024 (marcbux): created
+ *   Sep 20, 2024 (Paul Bärnreuther): created
  */
 package org.knime.base.node.io.filehandling.webui.reader;
 
-import java.util.Map;
-
-import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
-import org.knime.filehandling.core.node.table.reader.RawSpecFactory;
-import org.knime.filehandling.core.node.table.reader.TableReader;
-import org.knime.filehandling.core.node.table.reader.config.AbstractMultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
-import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
-import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
+import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.ExternalDataTypeSerializer;
 
 /**
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * A serializer for classes that does not change the class, since Class<?> is already serializable.
+ *
+ * @author Paul Bärnreuther
  */
-@SuppressWarnings("javadoc")
-public class ReaderSpecific {
+public interface ClassNoopSerializer extends ExternalDataTypeSerializer<Class<?>, Class<?>> {
 
-    public interface ConfigAndReader<C extends ReaderSpecificConfig<C>, T> {
-
-        /**
-         * ??? We need to use the AbstractMultiTableReadConfig as a type here because the MultiTableReadConfig does not
-         * allow to set the TableReadConfig generic.
-         */
-        AbstractMultiTableReadConfig<C, DefaultTableReadConfig<C>, T, ?> getMultiTableReadConfig();
-
-        TableReader<C, T, ?> getTableReader();
+    @Override
+    default Class<?> toSerializableType(final Class<?> externalType) {
+        return externalType;
     }
 
-    interface ExternalDataTypeSerializer<S, T> {
-
-        S toSerializableType(T externalType);
-
-        T toExternalType(S serializedType);
+    @Override
+    default Class<?> toExternalType(final Class<?> serializedType) {
+        return serializedType;
     }
 
-    public interface ProductionPathProviderAndTypeHierarchy<T> {
-
-        ProductionPathProvider<T> getProductionPathProvider();
-
-        TypeHierarchy<T, T> getTypeHierarchy();
-
-        default RawSpec<T> toRawSpec(final Map<String, TypedReaderTableSpec<T>> spec) {
-            if (spec.isEmpty()) {
-                final var emptySpec = new TypedReaderTableSpec<T>();
-                return new RawSpec<>(emptySpec, emptySpec);
-            }
-            return new RawSpecFactory<>(getTypeHierarchy()).create(spec.values());
-        }
-    }
-
-    private ReaderSpecific() {
-        // Utility class
-    }
 }

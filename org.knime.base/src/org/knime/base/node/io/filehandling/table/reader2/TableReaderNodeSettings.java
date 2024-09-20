@@ -51,7 +51,9 @@ package org.knime.base.node.io.filehandling.table.reader2;
 import org.knime.base.node.io.filehandling.table.reader2.TableReaderNodeLayout.PrependTableIndexToRowId;
 import org.knime.base.node.io.filehandling.table.reader2.TableReaderNodeSettings.Settings.SetTableReaderExtensions;
 import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout.DataArea.LimitNumberOfRows;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout.DataArea.MaximumNumberOfRows;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout.DataArea.SkipFirstDataRows;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -84,7 +86,6 @@ public class TableReaderNodeSettings implements DefaultNodeSettings {
 
     @Persist(configKey = "table_spec_config", hidden = true,
         customPersistor = TableReaderTransformationSettingsPersistor.class)
-    @Layout(CommonReaderLayout.Transformation.class)
     TableReaderTransformationSettings m_tableSpecConfig = new TableReaderTransformationSettings();
 
     @WidgetModification(SetTableReaderExtensions.class)
@@ -135,10 +136,10 @@ public class TableReaderNodeSettings implements DefaultNodeSettings {
         static class SkipFirstDataRowsRef extends ReferenceStateProvider<Long> {
         }
 
-        @Widget(title = "Skip first data rows", description = CommonReaderLayout.DataArea.SkipFirstDataRows.DESCRIPTION)
+        @Widget(title = "Skip first data rows", description = SkipFirstDataRows.DESCRIPTION)
         @ValueReference(SkipFirstDataRowsRef.class)
         @NumberInputWidget(min = 0)
-        @Layout(CommonReaderLayout.DataArea.SkipFirstDataRows.class)
+        @Layout(SkipFirstDataRows.class)
         @Persist(customPersistor = SkipFirstDataRowsPersistor.class)
         long m_skipFirstDataRows;
 
@@ -152,18 +153,16 @@ public class TableReaderNodeSettings implements DefaultNodeSettings {
             }
         }
 
-        @Widget(title = "Limit number of rows", description = CommonReaderLayout.DataArea.LimitNumberOfRows.DESCRIPTION,
-            advanced = true)
-        @Layout(CommonReaderLayout.DataArea.LimitNumberOfRows.class)
+        @Widget(title = "Limit number of rows", description = LimitNumberOfRows.DESCRIPTION, advanced = true)
+        @Layout(LimitNumberOfRows.class)
         @ValueReference(LimitNumberOfRowsRef.class)
         @Persist(configKey = "limit_data_rows")
         boolean m_limitNumberOfRows;
         // TODO merge into a single widget with UIEXT-1742
 
-        @Widget(title = "Maximum number of rows",
-            description = CommonReaderLayout.DataArea.MaximumNumberOfRows.DESCRIPTION)
+        @Widget(title = "Maximum number of rows", description = MaximumNumberOfRows.DESCRIPTION)
         @NumberInputWidget(min = 0)
-        @Layout(CommonReaderLayout.DataArea.MaximumNumberOfRows.class)
+        @Layout(MaximumNumberOfRows.class)
         @Effect(predicate = LimitNumberOfRowsPredicate.class, type = EffectType.SHOW)
         @Persist(configKey = "max_rows")
         long m_maximumNumberOfRows = 50;

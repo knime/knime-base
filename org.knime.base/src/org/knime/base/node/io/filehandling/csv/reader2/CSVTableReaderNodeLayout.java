@@ -48,12 +48,11 @@
  */
 package org.knime.base.node.io.filehandling.csv.reader2;
 
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.UseNewSchema;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
@@ -61,23 +60,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.Effe
 @SuppressWarnings({"restriction", "java:S1214", "java:S103"})
 public class CSVTableReaderNodeLayout {
 
-    @Section(title = "File")
     interface File {
-        interface Source {
-            // TODO will be updated in UIEXT-1764
-            String DESCRIPTION = """
-                    Select a file location which stores the data you want to read. When clicking on the browse button,
-                    there are two default file system options to choose from:
-                    <br/>
-                    <ul>
-                        <li><b>The current Hub space</b>: Allows to select a file relative to the Hub space on which the
-                            workflow is run.</li>
-                        <li><b>URL</b>: Allows to specify a URL (e.g. file://, http:// or knime:// protocol).</li>
-                    </ul>
-                    """;
-        }
-
-        @After(Source.class)
+        @After(CommonReaderLayout.File.Source.class)
         interface FileEncoding {
             String DESCRIPTION =
                 """
@@ -114,7 +98,7 @@ public class CSVTableReaderNodeLayout {
     }
 
     @Section(title = "File Format")
-    @After(File.class)
+    @After(CommonReaderLayout.File.class)
     interface FileFormat {
         interface SkipFirstLines {
             String DESCRIPTION =
@@ -196,42 +180,14 @@ public class CSVTableReaderNodeLayout {
         }
     }
 
-    @Section(title = "Data Area")
-    @After(FileFormat.class)
     interface DataArea {
+
+        @Before(CommonReaderLayout.DataArea.SkipFirstDataRows.class)
         interface FirstRowContainsColumnNames {
             String DESCRIPTION = "Select this box if the first row contains column name headers.";
         }
 
-        @After(FirstRowContainsColumnNames.class)
-        interface SkipFirstDataRows {
-            String DESCRIPTION =
-                """
-                        Use this option to skip the specified number of valid data rows. This has no effect on which row will be
-                        chosen as a column header. Skipping rows prevents parallel reading of individual files.
-                        """;
-        }
-
-        @After(SkipFirstDataRows.class)
-        interface LimitNumberOfRows {
-            String DESCRIPTION =
-                """
-                        If enabled, only the specified number of data rows are read. The column header row (if selected) is not
-                        taken into account. Limiting rows prevents parallel reading of individual files.
-                        """;
-        }
-
-        @After(LimitNumberOfRows.class)
-        interface MaximumNumberOfRows {
-            String DESCRIPTION = "Defines the maximum number of rows that are read.";
-        }
-
-        @After(MaximumNumberOfRows.class)
-        interface FirstColumnContainsRowIds {
-            String DESCRIPTION = "Select this box if the first column contains RowIDs (no duplicates allowed).";
-        }
-
-        @After(FirstColumnContainsRowIds.class)
+        @After(CommonReaderLayout.DataArea.UseExistingRowId.class)
         interface IfRowHasLessColumns {
             String DESCRIPTION = "Specifies the behavior in case some rows are shorter than others. ";
 
@@ -242,7 +198,8 @@ public class CSVTableReaderNodeLayout {
     }
 
     @Section(title = "Values")
-    @After(DataArea.class)
+    @After(CommonReaderLayout.DataArea.class)
+    @Before(CommonReaderLayout.ColumnAndDataTypeDetection.class)
     interface Values {
         interface DecimalSeparator {
             String DESCRIPTION =
@@ -280,9 +237,9 @@ public class CSVTableReaderNodeLayout {
         }
     }
 
-    @Section(title = "Column and Data Type Detection", advanced = true)
-    @After(Values.class)
     interface ColumnAndDataTypeDetection {
+
+        @Before(CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.class)
         interface LimitScannedRows {
             String DESCRIPTION =
                 """
@@ -295,36 +252,7 @@ public class CSVTableReaderNodeLayout {
                         """;
         }
 
-        @After(LimitScannedRows.class)
-        interface IfSchemaChanges {
-            String DESCRIPTION = """
-                    Specifies the node behavior if the content of the configured file/folder changes between executions,
-                    i.e., columns are added/removed to/from the file(s) or their types change. The following options are
-                    available:
-                    """;
-
-            String DESCRIPTION_FAIL =
-                """
-                        If set, the node fails if the column names in the file have changed. Changes in column types will not be
-                        detected.
-                        """;
-
-            String DESCRIPTION_USE_NEW_SCHEMA =
-                """
-                        If set, the node will compute a new table specification for the current schema of the file at the time
-                        when the node is executed. Note that the node will not output a table specification before execution and
-                        that it will not apply transformations, therefore the transformation tab is disabled.
-                        """;
-
-            String DESCRIPTION_IGNORE =
-                """
-                        If set, the node tries to ignore the changes and outputs a table with the old table specification. This
-                        option is deprecated and should never be selected for new workflows, as it may lead to invalid data in
-                        the resulting table. Use one of the other options instead.
-                        """;
-        }
-
-        @After(IfSchemaChanges.class)
+        @After(CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.class)
         interface MaximumNumberOfColumns {
             String DESCRIPTION =
                 """
@@ -343,26 +271,9 @@ public class CSVTableReaderNodeLayout {
         }
     }
 
-    @Section(title = "Multiple File Handling", advanced = true)
-    @After(ColumnAndDataTypeDetection.class)
-    interface MultipleFileHandling {
-        interface HowToCombineColumns {
-            String DESCRIPTION =
-                "Specifies how to deal with reading multiple files in which not all column names are identical.";
-
-            String DESCRIPTION_FAIL =
-                "The node will fail if multiple files are read and not all files have the same column names.";
-
-            String DESCRIPTION_UNION = """
-                    Any column that is part of any input file is considered. If a file is missing a column, it is filled
-                    up with missing values.
-                    """;
-
-            String DESCRIPTION_INTERSECTION =
-                "Only columns that appear in all files are considered for the output table.";
-        }
-
-        @After(HowToCombineColumns.class)
+    interface MulitpleFileHandling {
+        @After(CommonReaderLayout.MultipleFileHandling.HowToCombineColumns.class)
+        @Before(CommonReaderLayout.MultipleFileHandling.AppendFilePathColumn.class)
         interface PrependFileIndexToRowId {
             String DESCRIPTION =
                 """
@@ -373,45 +284,5 @@ public class CSVTableReaderNodeLayout {
                         """;
         }
 
-        @After(PrependFileIndexToRowId.class)
-        interface AppendFilePathColumn {
-            String DESCRIPTION =
-                """
-                        Select this box if you want to add a column containing the path of the file from which the row is read.
-                        The node will fail if adding the column with the provided name causes a name collision with any of the
-                        columns in the read table.
-                        """;
-        }
-
-        @After(AppendFilePathColumn.class)
-        interface FilePathColumnName {
-            String DESCRIPTION = "The name of the column containing the file path.";
-        }
-    }
-
-    @Section(title = "Table Transformation", description = Transformation.DESCRIPTION, advanced = true)
-    @Effect(predicate = UseNewSchema.class, type = EffectType.HIDE)
-    @After(MultipleFileHandling.class)
-    interface Transformation {
-        String DESCRIPTION =
-            """
-                    Use this option to modify the structure of the table. You can deselect each column to filter it out of the
-                    output table, use the arrows to reorder the columns, or change the column name or column type of each
-                    column. Note that the positions of columns are reset in the dialog if a new file or folder is selected.
-                    Whether and where to add unknown columns during execution is specified via the special row &lt;any unknown
-                    new column&gt;. It is also possible to select the type new columns should be converted to. Note that the
-                    node will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is
-                    of type Double.
-                    """;
-
-        interface EnforceTypes {
-            @SuppressWarnings("hiding")
-            String DESCRIPTION = """
-                    Controls how columns whose type changes are dealt with.
-                    If selected, the mapping to the KNIME type you configured is attempted.
-                    The node will fail if that is not possible.
-                    If unselected, the KNIME type corresponding to the new type is used.
-                    """;
-        }
     }
 }

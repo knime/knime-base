@@ -83,7 +83,7 @@ public final class CommonReaderNodeSettings {
 
     public static class Settings implements WidgetGroup, PersistableSettings {
 
-        static final class FileChooserRef extends ReferenceStateProvider<FileChooser>
+        public static final class FileChooserRef extends ReferenceStateProvider<FileChooser>
             implements WidgetModification.Reference {
         }
 
@@ -116,7 +116,7 @@ public final class CommonReaderNodeSettings {
             boolean m_enabledStatus = true;
         }
 
-        static class FirstColumnContainsRowIdsRef extends ReferenceStateProvider<Boolean> {
+        public static class FirstColumnContainsRowIdsRef extends ReferenceStateProvider<Boolean> {
         }
 
         @Widget(title = "Use existing RowID", description = UseExistingRowId.DESCRIPTION)

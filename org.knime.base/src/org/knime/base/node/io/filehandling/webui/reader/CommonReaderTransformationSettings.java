@@ -58,6 +58,7 @@ import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformati
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TypeChoicesProvider;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
@@ -74,8 +75,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
-import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -87,6 +88,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  * @param <S> the type of the serializable form for external data types
  */
 @SuppressWarnings({"javadoc", "restriction"})
+@Layout(CommonReaderLayout.Transformation.class)
 public abstract class CommonReaderTransformationSettings<C extends ConfigIdSettings<?>, S>
     implements PersistableSettings, WidgetGroup {
 
@@ -103,7 +105,7 @@ public abstract class CommonReaderTransformationSettings<C extends ConfigIdSetti
         /**
          * @param config
          */
-        protected void applyToConfig(final TableReadConfig<C> config) {
+        protected void applyToConfig(final DefaultTableReadConfig<C> config) {
             // Do nothing per default
         }
     }

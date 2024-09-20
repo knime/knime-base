@@ -90,8 +90,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
-import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
@@ -109,9 +109,9 @@ public class CommonReaderTransformationSettingsStateProviders {
      * This object holds copies of the subset of settings in {@link CSVTableReaderNodeSettings} that can affect the spec
      * of the output table. I.e., if any of these settings change, the spec has to be re-calculcated.
      */
-    public interface ReaderSpecificDependencies {
+    public interface ReaderSpecificDependencies<C extends ReaderSpecificConfig<C>> {
 
-        default void applyToConfig(@SuppressWarnings("unused") final TableReadConfig<?> config) {
+        default void applyToConfig(@SuppressWarnings("unused") final DefaultTableReadConfig<C> config) {
             // do nothing per default
         }
     }
@@ -234,7 +234,7 @@ public class CommonReaderTransformationSettingsStateProviders {
         }
     }
 
-    public static abstract class TypedReaderTableSpecsProvider<C extends ReaderSpecificConfig<C>, T, D extends ReaderSpecificDependencies>
+    public static abstract class TypedReaderTableSpecsProvider<C extends ReaderSpecificConfig<C>, T, D extends ReaderSpecificDependencies<C>>
         extends PathsProvider<Map<String, TypedReaderTableSpec<T>>, D> implements ReaderSpecific.ConfigAndReader<C, T> {
 
         @Override

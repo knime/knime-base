@@ -44,62 +44,51 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 20, 2024 (marcbux): created
+ *   Sep 20, 2024 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.webui.reader;
+package org.knime.base.node.io.filehandling.csv.reader2;
 
-import java.util.Map;
-
+import org.knime.base.node.io.filehandling.csv.reader.CSVMultiTableReadConfig;
+import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReader;
+import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
+import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
+import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
-import org.knime.filehandling.core.node.table.reader.RawSpecFactory;
-import org.knime.filehandling.core.node.table.reader.TableReader;
-import org.knime.filehandling.core.node.table.reader.config.AbstractMultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
-import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 
-/**
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
- */
-@SuppressWarnings("javadoc")
-public class ReaderSpecific {
+class CSVReaderSpecific {
 
-    public interface ConfigAndReader<C extends ReaderSpecificConfig<C>, T> {
+    static final ProductionPathProvider<Class<?>> PRODUCTION_PATH_PROVIDER =
+        StringReadAdapterFactory.INSTANCE.createProductionPathProvider();
 
-        /**
-         * ??? We need to use the AbstractMultiTableReadConfig as a type here because the MultiTableReadConfig does not
-         * allow to set the TableReadConfig generic.
-         */
-        AbstractMultiTableReadConfig<C, DefaultTableReadConfig<C>, T, ?> getMultiTableReadConfig();
+    interface ProductionPathProviderAndTypeHierarchy
+        extends ReaderSpecific.ProductionPathProviderAndTypeHierarchy<Class<?>> {
+        @Override
+        default ProductionPathProvider<Class<?>> getProductionPathProvider() {
+            return PRODUCTION_PATH_PROVIDER;
+        }
 
-        TableReader<C, T, ?> getTableReader();
-    }
-
-    interface ExternalDataTypeSerializer<S, T> {
-
-        S toSerializableType(T externalType);
-
-        T toExternalType(S serializedType);
-    }
-
-    public interface ProductionPathProviderAndTypeHierarchy<T> {
-
-        ProductionPathProvider<T> getProductionPathProvider();
-
-        TypeHierarchy<T, T> getTypeHierarchy();
-
-        default RawSpec<T> toRawSpec(final Map<String, TypedReaderTableSpec<T>> spec) {
-            if (spec.isEmpty()) {
-                final var emptySpec = new TypedReaderTableSpec<T>();
-                return new RawSpec<>(emptySpec, emptySpec);
-            }
-            return new RawSpecFactory<>(getTypeHierarchy()).create(spec.values());
+        @Override
+        default TypeHierarchy<Class<?>, Class<?>> getTypeHierarchy() {
+            return StringReadAdapterFactory.TYPE_HIERARCHY;
         }
     }
 
-    private ReaderSpecific() {
+    interface ConfigAndReader extends ReaderSpecific.ConfigAndReader<CSVTableReaderConfig, Class<?>> {
+
+        @Override
+        default CSVMultiTableReadConfig getMultiTableReadConfig() {
+            return new CSVMultiTableReadConfig();
+        }
+
+        @Override
+        default CSVTableReader getTableReader() {
+            return new CSVTableReader();
+        }
+
+    }
+
+    private CSVReaderSpecific() {
         // Utility class
     }
 }

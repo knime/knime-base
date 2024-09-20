@@ -48,19 +48,10 @@
  */
 package org.knime.base.node.io.filehandling.csv.reader2;
 
-import java.util.function.Supplier;
-
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
 import org.knime.base.node.io.filehandling.csv.reader.api.EscapeUtils;
 import org.knime.base.node.io.filehandling.csv.reader.api.QuoteOption;
-import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Transformation;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Transformation.EnforceTypes;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.AppendPathColumnRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.DecimalSeparatorRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.FilePathColumnNameRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOptionRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.LimitScannedRowsRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.MaxDataRowsScannedRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.QuotedStringsOption;
@@ -75,60 +66,35 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSetting
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.ColumnDelimiterRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.CommentStartRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.CustomRowDelimiterRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FirstColumnContainsRowIdsRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FirstRowContainsColumnNamesRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.QuoteCharacterRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.QuoteEscapeCharacterRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOptionRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.FSLocationsProvider;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.SourceIdProvider;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TableSpecSettingsProvider;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TransformationElementSettingsProvider;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TypeChoicesProvider;
-import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.LatentWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.WidgetModification;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
-import org.knime.filehandling.core.node.table.reader.type.hierarchy.TreeTypeHierarchy;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-@SuppressWarnings("restriction")
-final class CSVTransformationSettings implements WidgetGroup, PersistableSettings {
+@WidgetModification(CSVTransformationSettingsStateProviders.TransformationSettingsWidgetModification.class)
+final class CSVTransformationSettings
+    extends CommonReaderTransformationSettings<CSVTransformationSettings.ConfigIdSettings, Class<?>> {
 
-    static final ProductionPathProvider<Class<?>> PRODUCTION_PATH_PROVIDER =
-        StringReadAdapterFactory.INSTANCE.createProductionPathProvider();
+    CSVTransformationSettings() {
+        super(new ConfigIdSettings());
+    }
 
-    static final TreeTypeHierarchy<Class<?>, Class<?>> TYPE_HIERARCHY = StringReadAdapterFactory.TYPE_HIERARCHY;
-
-    static final class ConfigIdSettings implements WidgetGroup, PersistableSettings {
+    static final class ConfigIdSettings
+        extends CommonReaderTransformationSettings.ConfigIdSettings<CSVTableReaderConfig> {
 
         @ValueProvider(FirstRowContainsColumnNamesRef.class)
         boolean m_firstRowContainsColumnNames = true;
 
-        @ValueProvider(FirstColumnContainsRowIdsRef.class)
+        @ValueProvider(CommonReaderNodeSettings.Settings.FirstColumnContainsRowIdsRef.class)
         boolean m_firstColumnContainsRowIds;
 
         @ValueProvider(CommentStartRef.class)
@@ -179,7 +145,8 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
         @ValueProvider(SkipFirstDataRowsRef.class)
         long m_skipFirstDataRows;
 
-        void applyToConfig(final DefaultTableReadConfig<CSVTableReaderConfig> config) {
+        @Override
+        protected void applyToConfig(final DefaultTableReadConfig<CSVTableReaderConfig> config) {
             config.setColumnHeaderIdx(0);
             config.setLimitRowsForSpec(m_limitScannedRows);
             config.setMaxRowsForSpec(m_maxDataRowsScanned);
@@ -207,245 +174,4 @@ final class CSVTransformationSettings implements WidgetGroup, PersistableSetting
         }
     }
 
-    static final class ColumnSpecSettings implements WidgetGroup, PersistableSettings {
-
-        String m_name;
-
-        Class<?> m_type;
-
-        ColumnSpecSettings(final String name, final Class<?> type) {
-            m_name = name;
-            m_type = type;
-        }
-
-        ColumnSpecSettings() {
-        }
-    }
-
-    static final class TableSpecSettings implements WidgetGroup, PersistableSettings {
-
-        String m_sourceId;
-
-        ColumnSpecSettings[] m_spec;
-
-        TableSpecSettings(final String sourceId, final ColumnSpecSettings[] spec) {
-            m_sourceId = sourceId;
-            m_spec = spec;
-        }
-
-        TableSpecSettings() {
-        }
-    }
-
-    /**
-     * TODO NOSONAR UIEXT-1946 These settings are sent to the frontend where they are not needed. They are merely held
-     * here to be used in the CSVTransformationSettingsPersistor. We should look for an alternative mechanism to provide
-     * these settings to the persistor. This would then also allow us to use non-serializable types like the
-     * TypedReaderTableSpec instead of the TableSpecSettings, saving us the back-and-forth conversion.
-     */
-    static final class PersistorSettings implements WidgetGroup, PersistableSettings {
-
-        static class ConfigIdReference implements Reference<ConfigIdSettings> {
-        }
-
-        @ValueReference(ConfigIdReference.class)
-        ConfigIdSettings m_configId = new ConfigIdSettings();
-
-        @ValueProvider(SourceIdProvider.class)
-        String m_sourceId = "";
-
-        @ValueProvider(FSLocationsProvider.class)
-        FSLocation[] m_fsLocations = new FSLocation[0];
-
-        static class TableSpecSettingsRef implements Reference<TableSpecSettings[]> {
-        }
-
-        @ValueProvider(TableSpecSettingsProvider.class)
-        @ValueReference(TableSpecSettingsRef.class)
-        TableSpecSettings[] m_specs = new TableSpecSettings[0];
-
-        @ValueProvider(AppendPathColumnRef.class)
-        boolean m_appendPathColumn;
-
-        @ValueProvider(FilePathColumnNameRef.class)
-        String m_filePathColumnName = "File Path";
-
-        @ValueProvider(TakeColumnsFromProvider.class)
-        ColumnFilterMode m_takeColumnsFrom = ColumnFilterMode.UNION;
-    }
-
-    PersistorSettings m_persistorSettings = new PersistorSettings();
-
-    static class TakeColumnsFromProvider implements StateProvider<ColumnFilterMode> {
-
-        private Supplier<HowToCombineColumnsOption> m_howToCombineColumnsOptionSupplier;
-
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            initializer.computeBeforeOpenDialog();
-            m_howToCombineColumnsOptionSupplier =
-                initializer.computeFromValueSupplier(HowToCombineColumnsOptionRef.class);
-        }
-
-        @Override
-        public ColumnFilterMode computeState(final DefaultNodeSettingsContext context) {
-            return m_howToCombineColumnsOptionSupplier.get().toColumnFilterMode();
-        }
-    }
-
-    @Widget(title = "Enforce types", description = EnforceTypes.DESCRIPTION, hideFlowVariableButton = true)
-    boolean m_enforceTypes = true;
-
-    static class TransformationElementSettings implements WidgetGroup, PersistableSettings {
-
-        static class ColumnNameRef implements Reference<String> {
-        }
-
-        static final class ColumnNameIsNull implements PredicateProvider {
-            @Override
-            public Predicate init(final PredicateInitializer i) {
-                return i.getString(ColumnNameRef.class).isEqualTo(null);
-            }
-        }
-
-        @ValueReference(ColumnNameRef.class)
-        @JsonInclude(Include.ALWAYS) // Necessary for the ColumnNameIsNull PredicateProvider to work
-        @LatentWidget // Necessary for the ColumnNameIsNull PredicateProvider to work
-        String m_columnName;
-
-        static class OriginalTypeRef implements Reference<String> {
-        }
-
-        @ValueReference(OriginalTypeRef.class)
-        String m_originalType;
-
-        static class OriginalTypeLabelRef implements Reference<String> {
-        }
-
-        @ValueReference(OriginalTypeLabelRef.class)
-        String m_originalTypeLabel;
-
-        @Widget(title = "Include in output", description = "", hideFlowVariableButton = true) // TODO NOSONAR UIEXT-1901 add description
-        @InternalArrayWidget.ElementCheckboxWidget
-        boolean m_includeInOutput;
-
-        static final class ColumnNameResetter implements StateProvider<String> {
-
-            private Supplier<String> m_originalColumnNameSupplier;
-
-            @Override
-            public void init(final StateProviderInitializer initializer) {
-                initializer.computeOnButtonClick(InternalArrayWidget.ElementResetButton.class);
-                m_originalColumnNameSupplier = initializer.getValueSupplier(ColumnNameRef.class);
-            }
-
-            @Override
-            public String computeState(final DefaultNodeSettingsContext context) {
-                return m_originalColumnNameSupplier.get();
-            }
-
-        }
-
-        static final class TypeResetter implements StateProvider<String> {
-
-            private Supplier<String> m_originalTypeSupplier;
-
-            @Override
-            public void init(final StateProviderInitializer initializer) {
-                initializer.computeOnButtonClick(InternalArrayWidget.ElementResetButton.class);
-                m_originalTypeSupplier = initializer.getValueSupplier(OriginalTypeRef.class);
-            }
-
-            @Override
-            public String computeState(final DefaultNodeSettingsContext context) {
-                return m_originalTypeSupplier.get();
-            }
-        }
-
-        static final class TitleProvider implements StateProvider<String> {
-
-            private Supplier<String> m_originalColumnNameSupplier;
-
-            @Override
-            public void init(final StateProviderInitializer initializer) {
-                initializer.computeOnValueChange(PersistorSettings.TableSpecSettingsRef.class);
-                m_originalColumnNameSupplier = initializer.getValueSupplier(ColumnNameRef.class);
-            }
-
-            @Override
-            public String computeState(final DefaultNodeSettingsContext context) {
-                final var originalName = m_originalColumnNameSupplier.get();
-                return originalName == null ? "Any unknown column" : originalName;
-            }
-        }
-
-        static final class SubTitleProvider implements StateProvider<String> {
-
-            private Supplier<String> m_originalTypeLabelSupplier;
-
-            @Override
-            public void init(final StateProviderInitializer initializer) {
-                initializer.computeOnValueChange(PersistorSettings.TableSpecSettingsRef.class);
-                m_originalTypeLabelSupplier = initializer.getValueSupplier(OriginalTypeLabelRef.class);
-            }
-
-            @Override
-            public String computeState(final DefaultNodeSettingsContext context) {
-                return m_originalTypeLabelSupplier.get();
-            }
-        }
-
-        static final class ElementIsEditedAndColumnNameIsNotNull implements PredicateProvider {
-            @Override
-            public Predicate init(final PredicateInitializer i) {
-                return i.getPredicate(InternalArrayWidget.ElementIsEdited.class)
-                    .and(i.getPredicate(ColumnNameIsNull.class).negate());
-            }
-        }
-
-        @Widget(title = "Column name", description = "", hideTitle = true, hideFlowVariableButton = true) // TODO NOSONAR UIEXT-1901 add description
-        @ValueProvider(ColumnNameResetter.class)
-        @Effect(predicate = ElementIsEditedAndColumnNameIsNotNull.class, type = EffectType.SHOW)
-        @JsonInclude(Include.ALWAYS) // Necessary for comparison against m_columnName
-        String m_columnRename;
-
-        @Widget(title = "Column type", description = "", hideTitle = true, hideFlowVariableButton = true) // TODO NOSONAR UIEXT-1901 add description
-        @ChoicesWidget(choicesProvider = TypeChoicesProvider.class)
-        @ValueProvider(TypeResetter.class)
-        @Effect(predicate = InternalArrayWidget.ElementIsEdited.class, type = EffectType.SHOW)
-        String m_type;
-
-        TransformationElementSettings() {
-        }
-
-        TransformationElementSettings(final String columnName, final boolean includeInOutput, final String columnRename,
-            final String type, final String originalType, final String originalTypeLabel) {
-            m_columnName = columnName;
-            m_includeInOutput = includeInOutput;
-            m_columnRename = columnRename;
-            m_type = type;
-            m_originalType = originalType;
-            m_originalTypeLabel = originalTypeLabel;
-        }
-
-        static TransformationElementSettings createUnknownElement() {
-            return new TransformationElementSettings(null, true, null, TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID,
-                TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID, TypeChoicesProvider.DEFAULT_COLUMNTYPE_TEXT);
-        }
-    }
-
-    static final class TransformationElementSettingsReference implements Reference<TransformationElementSettings[]> {
-    }
-
-    @Widget(title = "Transformations", description = Transformation.DESCRIPTION)
-    // TODO NOSONAR UIEXT-1901 this description is currently not shown
-    @ArrayWidget(elementTitle = "Column", showSortButtons = true, hasFixedSize = true)
-    @InternalArrayWidget(withEditAndReset = true, withElementCheckboxes = true,
-        titleProvider = TransformationElementSettings.TitleProvider.class,
-        subTitleProvider = TransformationElementSettings.SubTitleProvider.class)
-    @ValueProvider(TransformationElementSettingsProvider.class)
-    @ValueReference(TransformationElementSettingsReference.class)
-    @Effect(predicate = FileSystemPortConnectionUtil.ConnectedWithoutFileSystemSpec.class, type = EffectType.HIDE)
-    TransformationElementSettings[] m_columnTransformation =
-        new TransformationElementSettings[]{TransformationElementSettings.createUnknownElement()};
 }

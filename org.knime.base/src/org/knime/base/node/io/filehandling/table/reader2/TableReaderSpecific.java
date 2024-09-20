@@ -48,7 +48,6 @@
  */
 package org.knime.base.node.io.filehandling.table.reader2;
 
-
 import org.knime.base.node.io.filehandling.table.reader.KnimeTableMultiTableReadConfig;
 import org.knime.base.node.io.filehandling.table.reader.KnimeTableReader;
 import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific;
@@ -58,8 +57,6 @@ import org.knime.base.node.preproc.manipulator.mapping.DataValueReadAdapterFacto
 import org.knime.core.data.DataType;
 import org.knime.filehandling.core.node.table.reader.DefaultProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
-import org.knime.filehandling.core.node.table.reader.TableReader;
-import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 
 /**
@@ -68,8 +65,8 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarch
 class TableReaderSpecific {
 
     static final ProductionPathProvider<DataType> PRODUCTION_PATH_PROVIDER =
-            new DefaultProductionPathProvider<>(DataValueReadAdapterFactory.INSTANCE.getProducerRegistry(),
-                DataValueReadAdapterFactory.INSTANCE::getDefaultType);
+        new DefaultProductionPathProvider<>(DataValueReadAdapterFactory.INSTANCE.getProducerRegistry(),
+            DataValueReadAdapterFactory.INSTANCE::getDefaultType);
 
     interface ProductionPathProviderAndTypeHierarchy
         extends ReaderSpecific.ProductionPathProviderAndTypeHierarchy<DataType> {
@@ -86,12 +83,12 @@ class TableReaderSpecific {
 
     interface ConfigAndReader extends ReaderSpecific.ConfigAndReader<TableManipulatorConfig, DataType> {
         @Override
-        default MultiTableReadConfig<TableManipulatorConfig, DataType> getMultiTableReadConfig() {
+        default KnimeTableMultiTableReadConfig getMultiTableReadConfig() {
             return new KnimeTableMultiTableReadConfig();
         }
 
         @Override
-        default TableReader<TableManipulatorConfig, DataType, ?> getTableReader() {
+        default KnimeTableReader getTableReader() {
             return new KnimeTableReader();
         }
     }
