@@ -358,8 +358,9 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
             final var included = (RowOutput)outputs[MATCHING_OUTPUT];
             final var excluded = outputs.length > 1 ? (RowOutput)outputs[NON_MATCHING_OUTPUT] : null;
             try (final var in = input.asCursor();
-                 final var incl = included.asWriteCursor();
-                 final var excl = excluded != null ? excluded.asWriteCursor() : null) {
+                 final var incl = included.asWriteCursor(inSpec);
+                 @SuppressWarnings("resource")
+                final var excl = excluded != null ? excluded.asWriteCursor(inSpec) : null) {
                 for (RowRead rowRead; (rowRead = in.forward()) != null;) {
                     exec.checkCanceled();
                     final var index = matchedRead[1];
@@ -368,7 +369,7 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
                     if (includeMatches == rowPredicate.test(index, rowRead)) {
                         incl.forward().setFrom(rowRead);
                         matchedRead[0]++;
-                    } else if (excluded != null) {
+                    } else if (excl != null) {
                         excl.forward().setFrom(rowRead);
                     }
                     exec.setMessage(progress);
@@ -413,8 +414,8 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
              */
             RowRead rowRead;
             try (final var in = input.asCursor();
-                 final var incl = included.asWriteCursor();
-                 final var excl = excluded != null ? excluded.asWriteCursor() : null) {
+                 final var incl = included.asWriteCursor(input.getDataTableSpec());
+                 final var excl = excluded != null ? excluded.asWriteCursor(input.getDataTableSpec()) : null) {
                 for (var nextRange = 0;; nextRange++) {
 
                     // === EXCLUDE ROWS state ===
