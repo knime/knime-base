@@ -474,7 +474,7 @@ public class CommonReaderTransformationSettingsStateProviders {
     }
 
     public static abstract class TransformationSettingsWidgetModification<C extends ConfigIdSettings<?>, S, T>
-        implements WidgetModification.ImperativeWidgetModification {
+        implements WidgetModification.Modifier {
 
         static class ConfigIdSettingsRef implements WidgetModification.Reference {
         }
@@ -494,15 +494,14 @@ public class CommonReaderTransformationSettingsStateProviders {
         @Override
         public void modify(final WidgetGroupModifier group) {
             group.find(ConfigIdSettingsRef.class).addAnnotation(ValueReference.class)
-                .withProperty("value", getConfigIdSettingsValueRef()).build();
-            group.find(SpecsRef.class).addAnnotation(ValueProvider.class).withProperty("value", getSpecsValueProvider())
-                .build();
+                .withValue(getConfigIdSettingsValueRef()).build();
+            group.find(SpecsRef.class).addAnnotation(ValueProvider.class).withValue(getSpecsValueProvider()).build();
             group.find(TypeChoicesWidgetRef.class).addAnnotation(ChoicesWidget.class)
                 .withProperty("choicesProvider", getTypeChoicesProvider()).build();
             group.find(TransformationElementSettingsArrayWidgetRef.class).addAnnotation(ValueProvider.class)
-                .withProperty("value", getTransformationSettingsValueProvider()).build();
-            group.find(FsLocationRef.class).addAnnotation(ValueProvider.class)
-                .withProperty("value", getFsLocationProvider()).build();
+                .withValue(getTransformationSettingsValueProvider()).build();
+            group.find(FsLocationRef.class).addAnnotation(ValueProvider.class).withValue(getFsLocationProvider())
+                .build();
         }
 
         protected abstract Class<? extends Reference<C>> getConfigIdSettingsValueRef();

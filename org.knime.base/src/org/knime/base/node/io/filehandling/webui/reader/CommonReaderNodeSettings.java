@@ -87,11 +87,11 @@ public final class CommonReaderNodeSettings {
             implements WidgetModification.Reference {
         }
 
-        public static abstract class SetFileReaderWidgetExtensions implements WidgetModification.ImperativeWidgetModification {
+        public static abstract class SetFileReaderWidgetExtensions implements WidgetModification.Modifier {
             @Override
             public void modify(final WidgetGroupModifier group) {
-                group.find(FileChooserRef.class).modifyAnnotation(FileReaderWidget.class).withProperty("fileExtensions",
-                    getExtensions()).build();
+                group.find(FileChooserRef.class).modifyAnnotation(FileReaderWidget.class)
+                    .withProperty("fileExtensions", getExtensions()).build();
             }
 
             protected abstract String[] getExtensions();
