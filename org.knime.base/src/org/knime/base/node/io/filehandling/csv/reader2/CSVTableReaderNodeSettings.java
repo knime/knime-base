@@ -60,6 +60,7 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider.Provide
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.ColumnAndDataTypeDetection.LimitMemoryPerColumn;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.ColumnAndDataTypeDetection.LimitScannedRows;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.ColumnAndDataTypeDetection.MaximumNumberOfColumns;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.DataArea.FirstColumnContainsRowIds;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.DataArea.FirstRowContainsColumnNames;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.DataArea.IfRowHasLessColumns;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.File.CustomEncoding;
@@ -82,6 +83,8 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingOption;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.IfRowHasLessColumnsOption.IfRowHasLessColumnsOptionPersistor;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption.RowDelimiterPersistor;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.SetCSVExtensions;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.SetTitleAndDescriptionForUseExistingRowIds;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout.DataArea.LimitNumberOfRows;
@@ -140,7 +143,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
     @Persist(configKey = "table_spec_config", hidden = true, customPersistor = CSVTransformationSettingsPersistor.class)
     CSVTransformationSettings m_tableSpecConfig = new CSVTransformationSettings();
 
-    @WidgetModification(Settings.SetCSVExtensions.class)
+    @WidgetModification({SetCSVExtensions.class, SetTitleAndDescriptionForUseExistingRowIds.class})
     static class Settings extends CommonReaderNodeSettings.Settings {
 
         static final class SetCSVExtensions extends CommonReaderNodeSettings.Settings.SetFileReaderWidgetExtensions {
@@ -148,6 +151,17 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
             @Override
             protected String[] getExtensions() {
                 return new String[]{"csv", "tsv", "txt", "gz"};
+            }
+
+        }
+
+        static final class SetTitleAndDescriptionForUseExistingRowIds implements WidgetModification.Modifier {
+
+            @Override
+            public void modify(final WidgetGroupModifier group) {
+                group.find(UseExistingRowIdWidgetRef.class).modifyAnnotation(Widget.class)
+                    .withProperty("title", FirstColumnContainsRowIds.TITLE)
+                    .withProperty("description", FirstColumnContainsRowIds.DESCRIPTION).build();
             }
 
         }

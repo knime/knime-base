@@ -392,7 +392,7 @@ public class CommonReaderTransformationSettingsStateProviders {
             if (TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID.equals(unknownElement.m_type)) {
                 return Optional.empty();
             }
-            return Optional.of(DataTypeStringSerializer.stringToType(unknownElement.m_type));
+            return Optional.of(fromDataTypeId(unknownElement.m_type));
         }
 
         /**
@@ -426,11 +426,9 @@ public class CommonReaderTransformationSettingsStateProviders {
     public static abstract class TypeChoicesProvider<T> implements StringChoicesStateProvider,
         ProductionPathProviderAndTypeHierarchy<T>, TypedReaderTableSpecsProvider.Dependent<T> {
 
-        // TODO: Non-public
-        public static final String DEFAULT_COLUMNTYPE_ID = "<default-columntype>";
+        static final String DEFAULT_COLUMNTYPE_ID = "<default-columntype>";
 
-        // TODO: Non-public
-        public static final String DEFAULT_COLUMNTYPE_TEXT = "Default columntype";
+        static final String DEFAULT_COLUMNTYPE_TEXT = "Default columntype";
 
         private Supplier<String> m_columnNameSupplier;
 
@@ -447,7 +445,7 @@ public class CommonReaderTransformationSettingsStateProviders {
         public IdAndText[] computeState(final DefaultNodeSettingsContext context) {
             final var columnName = m_columnNameSupplier.get();
 
-            if (columnName == null) {
+            if (columnName == null) { // i.e., any unknown column
                 final var defaultChoice = new IdAndText(DEFAULT_COLUMNTYPE_ID, DEFAULT_COLUMNTYPE_TEXT);
                 final var dataTypeChoices = getProductionPathProvider().getAvailableDataTypes().stream()
                     .sorted((t1, t2) -> t1.toPrettyString().compareTo(t2.toPrettyString()))
@@ -468,9 +466,14 @@ public class CommonReaderTransformationSettingsStateProviders {
                 .toArray(IdAndText[]::new);
         }
 
-        static String getDataTypeId(final DataType type) {
-            return DataTypeStringSerializer.typeToString(type);
-        }
+    }
+
+    static String getDataTypeId(final DataType type) {
+        return DataTypeStringSerializer.typeToString(type);
+    }
+
+    static DataType fromDataTypeId(final String id) {
+        return DataTypeStringSerializer.stringToType(id);
     }
 
     public static abstract class TransformationSettingsWidgetModification<C extends ConfigIdSettings<?>, S, T>

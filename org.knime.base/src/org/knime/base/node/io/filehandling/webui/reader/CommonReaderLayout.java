@@ -106,8 +106,7 @@ public interface CommonReaderLayout {
         interface UseExistingRowId {
             String DESCRIPTION = """
                     Check this box if the RowIDs from the input tables should be used for
-                    the
-                    output tables. If unchecked, a new RowID is generated.
+                    the output tables. If unchecked, a new RowID is generated.
                     The generated RowID follows the schema "Row0", "Row1" and so on.
                                 """;
         }
@@ -163,7 +162,6 @@ public interface CommonReaderLayout {
             String DESCRIPTION_INTERSECTION =
                 "Only columns that appear in all files are considered for the output table.";
         }
-
 
         @After(HowToCombineColumns.class)
         interface AppendFilePathColumn {

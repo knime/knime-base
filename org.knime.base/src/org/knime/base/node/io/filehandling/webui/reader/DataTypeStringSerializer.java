@@ -80,7 +80,6 @@ public interface DataTypeStringSerializer extends ExternalDataTypeSerializer<Str
      * @param type the to-be-serialized {@link DataType}
      * @return the serialized string
      */
-    // TODO move to utility class
     public static String typeToString(final DataType type) {
         final var settings = new NodeSettings("type");
         DataTypeSerializer.SERIALIZER_INSTANCE.save(type, settings);

@@ -48,6 +48,9 @@
  */
 package org.knime.base.node.io.filehandling.webui.reader;
 
+import static org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.fromDataTypeId;
+import static org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.getDataTypeId;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -165,7 +168,7 @@ public abstract class CommonReaderTransformationSettingsPersistor<C extends Read
 
     private static String getForcedType(final UnknownColumnsTransformation t) {
         if (t.forceType()) {
-            return DataTypeStringSerializer.typeToString(t.getForcedType());
+            return getDataTypeId(t.getForcedType());
         }
         return TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID;
     }
@@ -234,7 +237,7 @@ public abstract class CommonReaderTransformationSettingsPersistor<C extends Read
         final TransformationElementSettings unknownTransformation, final int unknownColumnsTransformationPosition) {
         DataType forcedUnknownType = null;
         if (!unknownTransformation.m_type.equals(TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID)) {
-            forcedUnknownType = DataTypeStringSerializer.stringToType(unknownTransformation.m_type);
+            forcedUnknownType = fromDataTypeId(unknownTransformation.m_type);
         }
         return new ImmutableUnknownColumnsTransformation(unknownColumnsTransformationPosition,
             unknownTransformation.m_includeInOutput, forcedUnknownType != null, forcedUnknownType);

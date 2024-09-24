@@ -119,10 +119,14 @@ public final class CommonReaderNodeSettings {
         public static class FirstColumnContainsRowIdsRef extends ReferenceStateProvider<Boolean> {
         }
 
+        public static class UseExistingRowIdWidgetRef implements WidgetModification.Reference {
+        }
+
         @Widget(title = "Use existing RowID", description = UseExistingRowId.DESCRIPTION)
         @ValueReference(FirstColumnContainsRowIdsRef.class)
         @Layout(UseExistingRowId.class)
         @Persist(configKey = "has_row_id")
+        @WidgetModification.WidgetReference(UseExistingRowIdWidgetRef.class)
         boolean m_firstColumnContainsRowIds;
     }
 

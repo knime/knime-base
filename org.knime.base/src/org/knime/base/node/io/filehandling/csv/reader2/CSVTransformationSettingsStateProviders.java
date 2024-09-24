@@ -146,12 +146,13 @@ final class CSVTransformationSettingsStateProviders {
     }
 
     static final class FSLocationsProvider
-        extends CommonReaderTransformationSettingsStateProviders.FSLocationsProvider<Dependencies> {
+        extends CommonReaderTransformationSettingsStateProviders.FSLocationsProvider<Dependencies>
+        implements DependenciesProvider.Dependent {
     }
 
     static final class TypedReaderTableSpecsProvider extends
         CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider<CSVTableReaderConfig, Class<?>, Dependencies>
-        implements ConfigAndReader {
+        implements ConfigAndReader, DependenciesProvider.Dependent {
 
         interface Dependent
             extends CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider.Dependent<Class<?>> {
@@ -166,12 +167,13 @@ final class CSVTransformationSettingsStateProviders {
 
     static final class TableSpecSettingsProvider
         extends CommonReaderTransformationSettingsStateProviders.TableSpecSettingsProvider<Class<?>, Class<?>>
-        implements TypedReaderTableSpecsProvider.Dependent, ClassNoopSerializer {
+        implements TypedReaderTableSpecsProvider.Dependent, ClassNoopSerializer, DependenciesProvider.GetReferences {
     }
 
     static final class TransformationElementSettingsProvider
         extends CommonReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider<Class<?>>
-        implements ProductionPathProviderAndTypeHierarchy, TypedReaderTableSpecsProvider.Dependent {
+        implements ProductionPathProviderAndTypeHierarchy, TypedReaderTableSpecsProvider.Dependent,
+        DependenciesProvider.GetReferences {
     }
 
     static final class TypeChoicesProvider

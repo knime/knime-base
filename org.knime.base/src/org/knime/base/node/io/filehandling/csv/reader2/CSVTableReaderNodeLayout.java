@@ -99,6 +99,7 @@ public class CSVTableReaderNodeLayout {
 
     @Section(title = "File Format")
     @After(CommonReaderLayout.File.class)
+    @Before(CommonReaderLayout.DataArea.class)
     interface FileFormat {
         interface SkipFirstLines {
             String DESCRIPTION =
@@ -195,6 +196,19 @@ public class CSVTableReaderNodeLayout {
 
             String DESCRIPTION_FAIL = "if there are shorter rows in the input file the node execution fails.";
         }
+
+        /**
+         * Not part of the layout but only used to adapt the common
+         * {@link org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout.DataArea.UseExistingRowId
+         * UseExistingRowId}.
+         */
+        interface FirstColumnContainsRowIds {
+
+            String TITLE = "First column contains RowIDs";
+
+            String DESCRIPTION = "Select this box if the first column contains RowIDs (no duplicates allowed).";
+        }
+
     }
 
     @Section(title = "Values")
