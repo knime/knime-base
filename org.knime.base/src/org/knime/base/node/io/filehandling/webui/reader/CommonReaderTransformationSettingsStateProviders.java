@@ -135,28 +135,11 @@ public class CommonReaderTransformationSettingsStateProviders {
              *
              * @return a list of postponed triggers
              */
-            default List<Class<? extends Reference<?>>> getDependencyReferences() {
-                return List.of();
-            }
+            List<Class<? extends Reference<?>>> getDependencyReferences();
         }
 
         public interface Dependent<D extends ReaderSpecificDependencies> {
-            @SuppressWarnings("unchecked")
-            default Class<? extends ReaderSpecificDependenciesProvider<D>> getDependenciesProvider() {
-                // when running into a ClassCastException here, you should extends the Dependent interface
-                return (Class<? extends ReaderSpecificDependenciesProvider<D>>)NoAdditionalDependencies.class;
-            }
-        }
-    }
-
-    @SuppressWarnings("unused")
-    static final class NoAdditionalDependencies<D extends ReaderSpecificDependencies>
-        implements ReaderSpecificDependenciesProvider<ReaderSpecificDependencies> {
-
-        @Override
-        public ReaderSpecificDependencies computeState(final DefaultNodeSettingsContext context) {
-            return new ReaderSpecificDependencies() {
-            };
+            Class<? extends ReaderSpecificDependenciesProvider<D>> getDependenciesProvider();
         }
     }
 

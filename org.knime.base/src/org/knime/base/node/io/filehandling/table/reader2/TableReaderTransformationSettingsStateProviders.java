@@ -48,14 +48,18 @@
  */
 package org.knime.base.node.io.filehandling.table.reader2;
 
+import java.util.List;
+
 import org.knime.base.node.io.filehandling.table.reader2.TableReaderSpecific.ConfigAndReader;
 import org.knime.base.node.io.filehandling.table.reader2.TableReaderSpecific.ProductionPathProviderAndTypeHierarchy;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.ReaderSpecificDependencies;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.ReaderSpecificDependenciesProvider;
 import org.knime.base.node.io.filehandling.webui.reader.DataTypeStringSerializer;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
 import org.knime.core.data.DataType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 
 /**
@@ -63,14 +67,44 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
  */
 final class TableReaderTransformationSettingsStateProviders {
 
+    @SuppressWarnings("unused")
+    static final class NoDependencies
+        implements ReaderSpecificDependenciesProvider<ReaderSpecificDependencies<TableManipulatorConfig>> {
+
+        @Override
+        public ReaderSpecificDependencies<TableManipulatorConfig>
+            computeState(final DefaultNodeSettingsContext context) {
+            return new ReaderSpecificDependencies<>() {
+            };
+        }
+
+        interface GetReferences extends ReaderSpecificDependenciesProvider.GetReferences {
+
+            @Override
+            default List<Class<? extends Reference<?>>> getDependencyReferences() {
+                return List.of();
+            }
+
+        }
+
+        interface Dependent
+            extends ReaderSpecificDependenciesProvider.Dependent<ReaderSpecificDependencies<TableManipulatorConfig>> {
+
+            @Override
+            default Class<NoDependencies> getDependenciesProvider() {
+                return NoDependencies.class;
+            }
+        }
+    }
+
     static final class FSLocationsProvider extends
-        CommonReaderTransformationSettingsStateProviders.FSLocationsProvider<ReaderSpecificDependencies<TableManipulatorConfig>> {
+        CommonReaderTransformationSettingsStateProviders.FSLocationsProvider<ReaderSpecificDependencies<TableManipulatorConfig>>
+        implements NoDependencies.Dependent {
     }
 
     static final class TypedReaderTableSpecsProvider extends
         CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider<TableManipulatorConfig, DataType, ReaderSpecificDependencies<TableManipulatorConfig>>
-
-        implements ConfigAndReader {
+        implements NoDependencies.Dependent, ConfigAndReader {
 
         interface Dependent
             extends CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider.Dependent<DataType> {
@@ -85,12 +119,12 @@ final class TableReaderTransformationSettingsStateProviders {
 
     static final class TableSpecSettingsProvider
         extends CommonReaderTransformationSettingsStateProviders.TableSpecSettingsProvider<String, DataType>
-        implements TypedReaderTableSpecsProvider.Dependent, DataTypeStringSerializer {
+        implements TypedReaderTableSpecsProvider.Dependent, DataTypeStringSerializer, NoDependencies.GetReferences {
     }
 
-    static final class TransformationElementSettingsProvider
-        extends CommonReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider<DataType>
-        implements ProductionPathProviderAndTypeHierarchy, TypedReaderTableSpecsProvider.Dependent {
+    static final class TransformationElementSettingsProvider extends
+        CommonReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider<DataType> implements
+        ProductionPathProviderAndTypeHierarchy, TypedReaderTableSpecsProvider.Dependent, NoDependencies.GetReferences {
     }
 
     static final class TypeChoicesProvider
