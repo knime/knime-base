@@ -48,8 +48,11 @@
  */
 package org.knime.base.node.io.filehandling.webui.reader;
 
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TableSpecSettings;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.RawSpecFactory;
 import org.knime.filehandling.core.node.table.reader.TableReader;
@@ -58,6 +61,7 @@ import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConf
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec.TypedReaderTableSpecBuilder;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 
 /**
@@ -82,6 +86,19 @@ public class ReaderSpecific {
         S toSerializableType(T externalType);
 
         T toExternalType(S serializedType);
+
+    }
+    static <S, T> Map<String, TypedReaderTableSpec<T>> toSpecMap(final ExternalDataTypeSerializer<S,T> serializer, final List<TableSpecSettings<S>> specs) {
+        final var individualSpecs = new LinkedHashMap<String, TypedReaderTableSpec<T>>();
+        for (final var tableSpec : specs) {
+            final TypedReaderTableSpecBuilder<T> specBuilder = TypedReaderTableSpec.builder();
+            for (final var colSpec : tableSpec.m_spec) {
+                specBuilder.addColumn(colSpec.m_name, serializer.toExternalType(colSpec.m_type), true);
+            }
+            final var spec = specBuilder.build();
+            individualSpecs.put(tableSpec.m_sourceId, spec);
+        }
+        return individualSpecs;
     }
 
     public interface ProductionPathProviderAndTypeHierarchy<T> {

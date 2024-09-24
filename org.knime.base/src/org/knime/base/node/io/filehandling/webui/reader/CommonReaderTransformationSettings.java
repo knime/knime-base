@@ -110,13 +110,13 @@ public abstract class CommonReaderTransformationSettings<C extends ConfigIdSetti
         }
     }
 
-    static final class ColumnSpecSettings<T> implements WidgetGroup, PersistableSettings {
+    static final class ColumnSpecSettings<S> implements WidgetGroup, PersistableSettings {
 
         String m_name;
 
-        T m_type;
+        S m_type;
 
-        ColumnSpecSettings(final String name, final T type) {
+        ColumnSpecSettings(final String name, final S type) {
             m_name = name;
             m_type = type;
         }
@@ -125,7 +125,7 @@ public abstract class CommonReaderTransformationSettings<C extends ConfigIdSetti
         }
     }
 
-    static final class TableSpecSettings<T> implements WidgetGroup, PersistableSettings {
+    public static final class TableSpecSettings<T> implements WidgetGroup, PersistableSettings {
 
         String m_sourceId;
 

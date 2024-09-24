@@ -52,6 +52,7 @@ import java.util.List;
 
 import org.knime.base.node.io.filehandling.table.reader2.TableReaderSpecific.ConfigAndReader;
 import org.knime.base.node.io.filehandling.table.reader2.TableReaderSpecific.ProductionPathProviderAndTypeHierarchy;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.ReaderSpecificDependencies;
@@ -122,9 +123,16 @@ final class TableReaderTransformationSettingsStateProviders {
         implements TypedReaderTableSpecsProvider.Dependent, DataTypeStringSerializer, NoDependencies.GetReferences {
     }
 
-    static final class TransformationElementSettingsProvider extends
-        CommonReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider<DataType> implements
-        ProductionPathProviderAndTypeHierarchy, TypedReaderTableSpecsProvider.Dependent, NoDependencies.GetReferences {
+    static final class TransformationElementSettingsProvider
+        extends CommonReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider<String, DataType>
+        implements ProductionPathProviderAndTypeHierarchy, DataTypeStringSerializer,
+        TypedReaderTableSpecsProvider.Dependent, NoDependencies.GetReferences {
+        @Override
+        protected TypeReference<List<CommonReaderTransformationSettings.TableSpecSettings<String>>>
+            getTableSpecSettingsTypeReference() {
+            return new TypeReference<>() {
+            };
+        }
     }
 
     static final class TypeChoicesProvider
@@ -158,9 +166,7 @@ final class TableReaderTransformationSettingsStateProviders {
         }
 
         @Override
-        protected
-            Class<? extends CommonReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider<DataType>>
-            getTransformationSettingsValueProvider() {
+        protected Class<TransformationElementSettingsProvider> getTransformationSettingsValueProvider() {
             return TransformationElementSettingsProvider.class;
         }
 

@@ -59,6 +59,7 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSetting
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.ConfigIdSettings;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.DependenciesProvider.ConfigIdReference;
 import org.knime.base.node.io.filehandling.webui.reader.ClassNoopSerializer;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.ReaderSpecificDependencies;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.ReaderSpecificDependenciesProvider;
@@ -170,10 +171,17 @@ final class CSVTransformationSettingsStateProviders {
         implements TypedReaderTableSpecsProvider.Dependent, ClassNoopSerializer, DependenciesProvider.GetReferences {
     }
 
-    static final class TransformationElementSettingsProvider
-        extends CommonReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider<Class<?>>
-        implements ProductionPathProviderAndTypeHierarchy, TypedReaderTableSpecsProvider.Dependent,
+    static final class TransformationElementSettingsProvider extends
+        CommonReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider<Class<?>, Class<?>>
+        implements ProductionPathProviderAndTypeHierarchy, TypedReaderTableSpecsProvider.Dependent, ClassNoopSerializer,
         DependenciesProvider.GetReferences {
+
+        @Override
+        protected TypeReference<List<CommonReaderTransformationSettings.TableSpecSettings<Class<?>>>>
+            getTableSpecSettingsTypeReference() {
+            return new TypeReference<>() {
+            };
+        }
     }
 
     static final class TypeChoicesProvider

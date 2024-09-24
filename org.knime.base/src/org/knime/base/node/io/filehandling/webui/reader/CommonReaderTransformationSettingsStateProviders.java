@@ -48,14 +48,19 @@
  */
 package org.knime.base.node.io.filehandling.webui.reader;
 
+import static org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.toSpecMap;
+
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -67,6 +72,7 @@ import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ColumnSpecSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TableSpecSettings;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TableSpecSettingsRef;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TransformationElementSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TransformationElementSettings.ColumnNameRef;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TransformationElementSettingsReference;
@@ -245,8 +251,9 @@ public class CommonReaderTransformationSettingsStateProviders {
         }
     }
 
-    abstract static class DependsOnTypedReaderTableSpecProvider<S, T> implements StateProvider<S>,
-        TypedReaderTableSpecsProvider.Dependent<T>, ReaderSpecificDependenciesProvider.GetReferences {
+    abstract static class DependsOnTypedReaderTableSpecProvider<P, S, T>
+        implements StateProvider<P>, TypedReaderTableSpecsProvider.Dependent<T>,
+        ReaderSpecificDependenciesProvider.GetReferences, ExternalDataTypeSerializer<S, T> {
 
         protected Supplier<Map<String, TypedReaderTableSpec<T>>> m_specSupplier;
 
@@ -261,8 +268,7 @@ public class CommonReaderTransformationSettingsStateProviders {
     }
 
     public static abstract class TableSpecSettingsProvider<S, T>
-        extends DependsOnTypedReaderTableSpecProvider<List<TableSpecSettings<S>>, T>
-        implements ExternalDataTypeSerializer<S, T> {
+        extends DependsOnTypedReaderTableSpecProvider<List<TableSpecSettings<S>>, S, T> {
 
         @Override
         public List<TableSpecSettings<S>> computeState(final DefaultNodeSettingsContext context) {
@@ -276,13 +282,15 @@ public class CommonReaderTransformationSettingsStateProviders {
         }
     }
 
-    public static abstract class TransformationElementSettingsProvider<T>
-        extends DependsOnTypedReaderTableSpecProvider<TransformationElementSettings[], T>
+    public static abstract class TransformationElementSettingsProvider<S, T>
+        extends DependsOnTypedReaderTableSpecProvider<TransformationElementSettings[], S, T>
         implements ProductionPathProviderAndTypeHierarchy<T> {
 
         private Supplier<CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption> m_howToCombineColumnsOptionSupplier;
 
         private Supplier<TransformationElementSettings[]> m_existingSettings;
+
+        private Supplier<List<TableSpecSettings<S>>> m_existingSpecs;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
@@ -290,7 +298,14 @@ public class CommonReaderTransformationSettingsStateProviders {
             m_howToCombineColumnsOptionSupplier = initializer
                 .computeFromValueSupplier(CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOptionRef.class);
             m_existingSettings = initializer.getValueSupplier(TransformationElementSettingsReference.class);
+            m_existingSpecs = initializer.getValueSupplier(
+                /** Contains a wildcard instead of S, since this is a common field */
+                TableSpecSettingsRef.class,
+                /** So we need to rectify the type by type reference */
+                getTableSpecSettingsTypeReference());
         }
+
+        protected abstract TypeReference<List<TableSpecSettings<S>>> getTableSpecSettingsTypeReference();
 
         @Override
         public TransformationElementSettings[] computeState(final DefaultNodeSettingsContext context) {
@@ -306,7 +321,12 @@ public class CommonReaderTransformationSettingsStateProviders {
              * List of existing elements before the unknown element
              */
             final List<TransformationElementSettings> elementsBeforeUnknown = new ArrayList<>();
+
+            final var existingColumnTypesByName = getExistingSpecsUnion().stream()
+                .collect(Collectors.toMap(TypedReaderColumnSpec::getName, TypedReaderColumnSpec::getType));
+            final Collection<String> existingElementNamesWithChangedType = new HashSet<>();
             /**
+             *
              * The existing unknown element.
              */
             TransformationElementSettings foundUnknownElement = null;
@@ -331,6 +351,12 @@ public class CommonReaderTransformationSettingsStateProviders {
                     // element does not exist anymore -> it is removed
                     continue;
                 }
+                final var existingType = existingColumnTypesByName.get(newSpec.getName());
+                if (existingType != null && !existingType.equals(newSpec.getType())) {
+                    // element has different type than before
+                    existingElementNamesWithChangedType.add(existingElement.m_columnName);
+                    continue;
+                }
                 final var targetList = foundUnknownElement == null ? elementsBeforeUnknown : elementsAfterUnknown;
                 targetList.add(mergeExistingWithNew(existingElement, newSpec));
             }
@@ -345,17 +371,25 @@ public class CommonReaderTransformationSettingsStateProviders {
                 .map(element -> element.m_columnName).collect(Collectors.toSet());
 
             final var unknownElementsType = getUnknownElementsType(unknownElement);
-            final var newElements =
-                newSpecs.stream().filter(colSpec -> !existingColumnNames.contains(colSpec.getName().get()))
-                    .map(colSpec -> createNewElement(colSpec, unknownElementsType.orElse(null),
-                        unknownElement.m_includeInOutput))
-                    .toList();
+            final Predicate<String> isNewColumn = colName -> existingElementNamesWithChangedType.contains(colName)
+                || !existingColumnNames.contains(colName);
+
+            final var newElements = newSpecs.stream().filter(colSpec -> isNewColumn.test(colSpec.getName().get()))
+                .map(colSpec -> createNewElement(colSpec, unknownElementsType.orElse(null),
+                    unknownElement.m_includeInOutput))
+                .toList();
 
             return Stream.concat( //
                 Stream.concat(elementsBeforeUnknown.stream(), newElements.stream()),
                 Stream.concat(Stream.of(unknownElement), elementsAfterUnknown.stream()))
                 .toArray(TransformationElementSettings[]::new);
 
+        }
+
+        private TypedReaderTableSpec<T> getExistingSpecsUnion() {
+            final var existingSpecs = toSpecMap(this, m_existingSpecs.get());
+            final var existingRawSpecs = toRawSpec(existingSpecs);
+            return existingRawSpecs.getUnion();
         }
 
         private TransformationElementSettings mergeExistingWithNew(final TransformationElementSettings existingElement,
@@ -496,7 +530,7 @@ public class CommonReaderTransformationSettingsStateProviders {
 
         protected abstract Class<? extends TypeChoicesProvider<T>> getTypeChoicesProvider();
 
-        protected abstract Class<? extends TransformationElementSettingsProvider<T>>
+        protected abstract Class<? extends TransformationElementSettingsProvider<S, T>>
             getTransformationSettingsValueProvider();
 
         protected abstract Class<? extends FSLocationsProvider<?>> getFsLocationProvider();

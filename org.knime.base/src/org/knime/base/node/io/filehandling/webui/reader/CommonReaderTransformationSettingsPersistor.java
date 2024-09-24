@@ -50,17 +50,15 @@ package org.knime.base.node.io.filehandling.webui.reader;
 
 import static org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.fromDataTypeId;
 import static org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.getDataTypeId;
+import static org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.toSpecMap;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.PersistorSettings;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TableSpecSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TransformationElementSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TypeChoicesProvider;
 import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.ConfigAndReader;
@@ -87,8 +85,6 @@ import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformati
 import org.knime.filehandling.core.node.table.reader.selector.ImmutableUnknownColumnsTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.selector.UnknownColumnsTransformation;
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec.TypedReaderTableSpecBuilder;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
@@ -177,7 +173,7 @@ public abstract class CommonReaderTransformationSettingsPersistor<C extends Read
     public void save(final R transformationSettings, final NodeSettingsWO settings) {
         final var persistorSettings = transformationSettings.m_persistorSettings;
 
-        final var individualSpecs = toSpecMap(persistorSettings.m_specs);
+        final var individualSpecs = toSpecMap(this, persistorSettings.m_specs);
         final var rawSpec = toRawSpec(individualSpecs);
         final var transformations = determineTransformations(transformationSettings, rawSpec);
         final var tableTransformation = new DefaultTableTransformation<T>(rawSpec, transformations.getFirst(),
@@ -266,18 +262,5 @@ public abstract class CommonReaderTransformationSettingsPersistor<C extends Read
             }
         }
         return null;
-    }
-
-    Map<String, TypedReaderTableSpec<T>> toSpecMap(final List<TableSpecSettings<S>> specs) {
-        final var individualSpecs = new LinkedHashMap<String, TypedReaderTableSpec<T>>();
-        for (final var tableSpec : specs) {
-            final TypedReaderTableSpecBuilder<T> specBuilder = TypedReaderTableSpec.builder();
-            for (final var colSpec : tableSpec.m_spec) {
-                specBuilder.addColumn(colSpec.m_name, toExternalType(colSpec.m_type), true);
-            }
-            final var spec = specBuilder.build();
-            individualSpecs.put(tableSpec.m_sourceId, spec);
-        }
-        return individualSpecs;
     }
 }
