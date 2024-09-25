@@ -91,15 +91,20 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.WidgetModification;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.TypeReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
+import org.knime.filehandling.core.node.table.reader.TableReader;
+import org.knime.filehandling.core.node.table.reader.config.AbstractMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
@@ -493,8 +498,9 @@ public class CommonReaderTransformationSettingsStateProviders {
         return DataTypeStringSerializer.stringToType(id);
     }
 
-    public static abstract class TransformationSettingsWidgetModification<C extends ConfigIdSettings<?>, S, T>
-        implements WidgetModification.Modifier {
+    public static abstract class TransformationSettingsWidgetModification<C2 extends ReaderSpecificConfig<C2>, D extends ReaderSpecificDependencies<C2>, C extends ConfigIdSettings<?>, S, T>
+        implements WidgetModification.Modifier, ReaderSpecific.ConfigAndReader<C2, T>,
+        ReaderSpecific.ExternalDataTypeSerializer<S, T>, ReaderSpecific.ProductionPathProviderAndTypeHierarchy<T> {
 
         static class ConfigIdSettingsRef implements WidgetModification.Reference {
         }
@@ -513,27 +519,153 @@ public class CommonReaderTransformationSettingsStateProviders {
 
         @Override
         public void modify(final WidgetGroupModifier group) {
+
+            final FSLocationsProvider<?> fsLocationProvider = new FSLocationsProvider<D>() {
+
+                @Override
+                public Class<? extends ReaderSpecificDependenciesProvider<D>> getDependenciesProvider() {
+                    return TransformationSettingsWidgetModification.this.getDependenciesProvider();
+                }
+            };
+
+            TypedReaderTableSpecsProvider<C2, T, D> typedReaderTableSpecsProvider =
+                new TypedReaderTableSpecsProvider<>() {
+
+                    @Override
+                    public AbstractMultiTableReadConfig<C2, DefaultTableReadConfig<C2>, T, ?>
+                        getMultiTableReadConfig() {
+                        return TransformationSettingsWidgetModification.this.getMultiTableReadConfig();
+                    }
+
+                    @Override
+                    public TableReader<C2, T, ?> getTableReader() {
+                        return TransformationSettingsWidgetModification.this.getTableReader();
+                    }
+
+                    @Override
+                    public Class<? extends ReaderSpecificDependenciesProvider<D>> getDependenciesProvider() {
+                        return TransformationSettingsWidgetModification.this.getDependenciesProvider();
+                    }
+
+                };
+
+            final TableSpecSettingsProvider<S, T> specsValueProvider = new TableSpecSettingsProvider<>() {
+
+                @Override
+                public Class<? extends TypedReaderTableSpecsProvider<?, T, ?>> getTypedReaderTableSpecsProvider() {
+                    return (Class<? extends TypedReaderTableSpecsProvider<?, T, ?>>)typedReaderTableSpecsProvider
+                        .getClass(); // Not sure how/if this will work
+                }
+
+                @Override
+                public List<Class<? extends Reference<?>>> getDependencyReferences() {
+                    return TransformationSettingsWidgetModification.this.getDependencyReferences();
+                }
+
+                @Override
+                public S toSerializableType(final T externalType) {
+                    return TransformationSettingsWidgetModification.this.toSerializableType(externalType);
+                }
+
+                @Override
+                public T toExternalType(final S serializedType) {
+                    return TransformationSettingsWidgetModification.this.toExternalType(serializedType);
+                }
+
+            };
+
+            final TransformationElementSettingsProvider<S, T> transformationElementSettingsProvider =
+                new TransformationElementSettingsProvider<>() {
+
+                    @Override
+                    public Class<? extends TypedReaderTableSpecsProvider<?, T, ?>> getTypedReaderTableSpecsProvider() {
+                        return (Class<? extends TypedReaderTableSpecsProvider<?, T, ?>>)typedReaderTableSpecsProvider
+                            .getClass(); // Not sure how/if this will work
+                    }
+
+                    @Override
+                    public List<Class<? extends Reference<?>>> getDependencyReferences() {
+                        return TransformationSettingsWidgetModification.this.getDependencyReferences();
+                    }
+
+                    @Override
+                    public S toSerializableType(final T externalType) {
+                        return TransformationSettingsWidgetModification.this.toSerializableType(externalType);
+                    }
+
+                    @Override
+                    public T toExternalType(final S serializedType) {
+                        return TransformationSettingsWidgetModification.this.toExternalType(serializedType);
+                    }
+
+                    @Override
+                    public ProductionPathProvider<T> getProductionPathProvider() {
+                        return TransformationSettingsWidgetModification.this.getProductionPathProvider();
+                    }
+
+                    @Override
+                    public TypeHierarchy<T, T> getTypeHierarchy() {
+                        return TransformationSettingsWidgetModification.this.getTypeHierarchy();
+
+                    }
+
+                    @Override
+                    protected TypeReference<List<TableSpecSettings<S>>> getTableSpecSettingsTypeReference() {
+                        return TransformationSettingsWidgetModification.this.getTableSpecSettingsTypeReference();
+                    }
+
+                };
+
+
+            final TypeChoicesProvider<T> typeChoicesProvider = new TypeChoicesProvider<>() {
+
+                @Override
+                public ProductionPathProvider<T> getProductionPathProvider() {
+                    return TransformationSettingsWidgetModification.this.getProductionPathProvider();
+                }
+
+                @Override
+                public TypeHierarchy<T, T> getTypeHierarchy() {
+                    return TransformationSettingsWidgetModification.this.getTypeHierarchy();
+
+                }
+
+                @Override
+                public Class<? extends TypedReaderTableSpecsProvider<?, T, ?>> getTypedReaderTableSpecsProvider() {
+                    return (Class<? extends TypedReaderTableSpecsProvider<?, T, ?>>)typedReaderTableSpecsProvider
+                        .getClass(); // Not sure how/if this will work
+                }
+
+            };
+
             group.find(ConfigIdSettingsRef.class).addAnnotation(ValueReference.class)
                 .withValue(getConfigIdSettingsValueRef()).build();
-            group.find(SpecsRef.class).addAnnotation(ValueProvider.class).withValue(getSpecsValueProvider()).build();
+            group.find(SpecsRef.class).addAnnotation(ValueProvider.class).withValue(specsValueProvider).build();
             group.find(TypeChoicesWidgetRef.class).addAnnotation(ChoicesWidget.class)
-                .withProperty("choicesProvider", getTypeChoicesProvider()).build();
+                .withProperty("choicesProvider", typeChoicesProvider).build();
             group.find(TransformationElementSettingsArrayWidgetRef.class).addAnnotation(ValueProvider.class)
-                .withValue(getTransformationSettingsValueProvider()).build();
-            group.find(FsLocationRef.class).addAnnotation(ValueProvider.class).withValue(getFsLocationProvider())
+                .withValue(transformationElementSettingsProvider).build();
+            group.find(FsLocationRef.class).addAnnotation(ValueProvider.class).withValue(fsLocationProvider)
                 .build();
         }
 
+        /**
+         * @return
+         */
+        protected abstract TypeReference<List<TableSpecSettings<S>>> getTableSpecSettingsTypeReference();
+
+        /**
+         * @return
+         */
+        protected abstract List<Class<? extends Reference<?>>> getDependencyReferences();
+
+        /**
+         * @return
+         */
+        protected abstract Class<? extends ReaderSpecificDependenciesProvider<D>> getDependenciesProvider();
+
         protected abstract Class<? extends Reference<C>> getConfigIdSettingsValueRef();
 
-        protected abstract Class<? extends TableSpecSettingsProvider<S, T>> getSpecsValueProvider();
-
-        protected abstract Class<? extends TypeChoicesProvider<T>> getTypeChoicesProvider();
-
-        protected abstract Class<? extends TransformationElementSettingsProvider<S, T>>
-            getTransformationSettingsValueProvider();
-
-        protected abstract Class<? extends FSLocationsProvider<?>> getFsLocationProvider();
     }
 
     private CommonReaderTransformationSettingsStateProviders() {

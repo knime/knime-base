@@ -52,8 +52,8 @@ import java.util.List;
 
 import org.knime.base.node.io.filehandling.table.reader2.TableReaderSpecific.ConfigAndReader;
 import org.knime.base.node.io.filehandling.table.reader2.TableReaderSpecific.ProductionPathProviderAndTypeHierarchy;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdSettings;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TableSpecSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.ReaderSpecificDependencies;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.ReaderSpecificDependenciesProvider;
@@ -62,13 +62,13 @@ import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
 import org.knime.core.data.DataType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.TypeReference;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 final class TableReaderTransformationSettingsStateProviders {
 
-    @SuppressWarnings("unused")
     static final class NoDependencies
         implements ReaderSpecificDependenciesProvider<ReaderSpecificDependencies<TableManipulatorConfig>> {
 
@@ -78,70 +78,11 @@ final class TableReaderTransformationSettingsStateProviders {
             return new ReaderSpecificDependencies<>() {
             };
         }
-
-        interface GetReferences extends ReaderSpecificDependenciesProvider.GetReferences {
-
-            @Override
-            default List<Class<? extends Reference<?>>> getDependencyReferences() {
-                return List.of();
-            }
-
-        }
-
-        interface Dependent
-            extends ReaderSpecificDependenciesProvider.Dependent<ReaderSpecificDependencies<TableManipulatorConfig>> {
-
-            @Override
-            default Class<NoDependencies> getDependenciesProvider() {
-                return NoDependencies.class;
-            }
-        }
-    }
-
-    static final class FSLocationsProvider extends
-        CommonReaderTransformationSettingsStateProviders.FSLocationsProvider<ReaderSpecificDependencies<TableManipulatorConfig>>
-        implements NoDependencies.Dependent {
-    }
-
-    static final class TypedReaderTableSpecsProvider extends
-        CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider<TableManipulatorConfig, DataType, ReaderSpecificDependencies<TableManipulatorConfig>>
-        implements NoDependencies.Dependent, ConfigAndReader {
-
-        interface Dependent
-            extends CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider.Dependent<DataType> {
-            @Override
-            default
-                Class<? extends CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider<?, DataType, ?>>
-                getTypedReaderTableSpecsProvider() {
-                return TypedReaderTableSpecsProvider.class;
-            }
-        }
-    }
-
-    static final class TableSpecSettingsProvider
-        extends CommonReaderTransformationSettingsStateProviders.TableSpecSettingsProvider<String, DataType>
-        implements TypedReaderTableSpecsProvider.Dependent, DataTypeStringSerializer, NoDependencies.GetReferences {
-    }
-
-    static final class TransformationElementSettingsProvider
-        extends CommonReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider<String, DataType>
-        implements ProductionPathProviderAndTypeHierarchy, DataTypeStringSerializer,
-        TypedReaderTableSpecsProvider.Dependent, NoDependencies.GetReferences {
-        @Override
-        protected TypeReference<List<CommonReaderTransformationSettings.TableSpecSettings<String>>>
-            getTableSpecSettingsTypeReference() {
-            return new TypeReference<>() {
-            };
-        }
-    }
-
-    static final class TypeChoicesProvider
-        extends CommonReaderTransformationSettingsStateProviders.TypeChoicesProvider<DataType>
-        implements ProductionPathProviderAndTypeHierarchy, TypedReaderTableSpecsProvider.Dependent {
     }
 
     static final class TransformationSettingsWidgetModification extends
-        CommonReaderTransformationSettingsStateProviders.TransformationSettingsWidgetModification<ConfigIdSettings<TableManipulatorConfig>, String, DataType> {
+        CommonReaderTransformationSettingsStateProviders.TransformationSettingsWidgetModification<TableManipulatorConfig, ReaderSpecificDependencies<TableManipulatorConfig>, ConfigIdSettings<TableManipulatorConfig>, String, DataType>
+        implements DataTypeStringSerializer, ConfigAndReader, ProductionPathProviderAndTypeHierarchy {
 
         static final class KnimeTableReaderConfigIdSettingsValueRef
             implements Reference<ConfigIdSettings<TableManipulatorConfig>> {
@@ -153,28 +94,23 @@ final class TableReaderTransformationSettingsStateProviders {
         }
 
         @Override
+        protected TypeReference<List<TableSpecSettings<String>>> getTableSpecSettingsTypeReference() {
+            return new TypeReference<>() {
+            };
+        }
+
+        @Override
         protected
-            Class<? extends CommonReaderTransformationSettingsStateProviders.TableSpecSettingsProvider<String, DataType>>
-            getSpecsValueProvider() {
-            return TableSpecSettingsProvider.class;
+            Class<? extends ReaderSpecificDependenciesProvider<ReaderSpecificDependencies<TableManipulatorConfig>>>
+            getDependenciesProvider() {
+            return NoDependencies.class;
         }
 
         @Override
-        protected Class<? extends CommonReaderTransformationSettingsStateProviders.TypeChoicesProvider<DataType>>
-            getTypeChoicesProvider() {
-            return TypeChoicesProvider.class;
+        protected List<Class<? extends Reference<?>>> getDependencyReferences() {
+            return List.of();
         }
 
-        @Override
-        protected Class<TransformationElementSettingsProvider> getTransformationSettingsValueProvider() {
-            return TransformationElementSettingsProvider.class;
-        }
-
-        @Override
-        protected Class<? extends CommonReaderTransformationSettingsStateProviders.FSLocationsProvider<?>>
-            getFsLocationProvider() {
-            return FSLocationsProvider.class;
-        }
     }
 
     private TableReaderTransformationSettingsStateProviders() {
