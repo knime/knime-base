@@ -57,6 +57,7 @@ import org.knime.core.data.DataValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.property.ValueFormatModel;
 import org.knime.core.data.property.ValueFormatModelFactory;
+import org.knime.core.data.renderer.StringValueRenderer;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.config.ConfigRO;
 import org.knime.core.node.config.ConfigWO;
@@ -92,6 +93,8 @@ public final class StringFormatter implements ValueFormatModel {
 
     private static final char CARRIAGE_RETURN_REPLACEMENT_CHAR = '\u240d'; // SYMBOL FOR CARRIAGE RETURN ␍ (U+240D)
 
+    private static final int TRUNCATED_LENGTH = 10_000;
+
     private final Settings m_settings;
 
     /** Only to be called by {@link #fromSettings(Settings)} */
@@ -103,10 +106,11 @@ public final class StringFormatter implements ValueFormatModel {
     public String getHTML(final DataValue dataValue) {
         if (dataValue instanceof StringValue sv) {
             var str = sv.getStringValue();
-            if (str.isEmpty()) {
+            var truncatedString = StringValueRenderer.truncateOverlyLongStrings(str, TRUNCATED_LENGTH);
+            if (truncatedString.isEmpty()) {
                 return formatEmptyString();
             }
-            return format(str);
+            return format(truncatedString);
         }
         throw notAStringValue(dataValue);
     }
