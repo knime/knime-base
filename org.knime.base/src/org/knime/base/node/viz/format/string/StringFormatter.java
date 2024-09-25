@@ -57,6 +57,7 @@ import org.knime.core.data.DataValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.property.ValueFormatModel;
 import org.knime.core.data.property.ValueFormatModelFactory;
+import org.knime.core.data.renderer.StringValueRenderer;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.config.ConfigRO;
 import org.knime.core.node.config.ConfigWO;
@@ -103,10 +104,11 @@ public final class StringFormatter implements ValueFormatModel {
     public String getHTML(final DataValue dataValue) {
         if (dataValue instanceof StringValue sv) {
             var str = sv.getStringValue();
-            if (str.isEmpty()) {
+            var truncatedString = StringValueRenderer.truncateOverlyLongStrings(str);
+            if (truncatedString.isEmpty()) {
                 return formatEmptyString();
             }
-            return format(str);
+            return format(truncatedString);
         }
         throw notAStringValue(dataValue);
     }
