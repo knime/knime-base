@@ -163,8 +163,7 @@
                 "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
-                  "type" : "string",
-                  "configKeys" : [ "selected_Internals" ]
+                  "type" : "string"
                 }
               },
               "typeFilter" : {
@@ -190,8 +189,7 @@
                         "text" : {
                           "type" : "string"
                         }
-                      },
-                      "subConfigKeys" : [ ]
+                      }
                     }
                   }
                 },
@@ -252,12 +250,7 @@
                   "description" : "Select the column from the bottom input table that should be used to compare with the column selected for the top input.",
                   "default" : "<row-keys>"
                 }
-              },
-              "configKeys" : [ "matchingCriteria" ],
-              "deprecatedConfigKeys" : [ {
-                "new" : [ [ "matchingCriteria" ] ],
-                "deprecated" : [ [ "leftTableJoinPredicate" ], [ "rightTableJoinPredicate" ] ]
-              } ]
+              }
             }
           },
           "maxOpenFiles" : {
@@ -364,8 +357,7 @@
                 "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
-                  "type" : "string",
-                  "configKeys" : [ "selected_Internals" ]
+                  "type" : "string"
                 }
               },
               "typeFilter" : {
@@ -391,8 +383,7 @@
                         "text" : {
                           "type" : "string"
                         }
-                      },
-                      "subConfigKeys" : [ ]
+                      }
                     }
                   }
                 },

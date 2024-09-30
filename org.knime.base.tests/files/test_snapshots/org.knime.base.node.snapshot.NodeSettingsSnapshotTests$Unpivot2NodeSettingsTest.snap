@@ -133,8 +133,7 @@
                 "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
-                  "type" : "string",
-                  "configKeys" : [ "selected_Internals" ]
+                  "type" : "string"
                 }
               },
               "typeFilter" : {
@@ -160,8 +159,7 @@
                         "text" : {
                           "type" : "string"
                         }
-                      },
-                      "subConfigKeys" : [ ]
+                      }
                     }
                   }
                 },
@@ -266,8 +264,7 @@
                 "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
-                  "type" : "string",
-                  "configKeys" : [ "selected_Internals" ]
+                  "type" : "string"
                 }
               },
               "typeFilter" : {
@@ -293,8 +290,7 @@
                         "text" : {
                           "type" : "string"
                         }
-                      },
-                      "subConfigKeys" : [ ]
+                      }
                     }
                   }
                 },

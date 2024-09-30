@@ -64,8 +64,7 @@
                       "configKeys" : [ "compatibleTypes_Internals" ],
                       "type" : "array",
                       "items" : {
-                        "type" : "string",
-                        "configKeys" : [ "compatibleTypes_Internals" ]
+                        "type" : "string"
                       }
                     },
                     "selected" : {

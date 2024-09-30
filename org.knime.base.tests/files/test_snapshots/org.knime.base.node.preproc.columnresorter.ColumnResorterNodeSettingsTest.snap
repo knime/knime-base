@@ -17,8 +17,7 @@
             "configKeys" : [ "ColumnOrder" ],
             "type" : "array",
             "items" : {
-              "type" : "string",
-              "configKeys" : [ "ColumnOrder" ]
+              "type" : "string"
             }
           }
         }
