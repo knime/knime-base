@@ -182,12 +182,15 @@ class DataValidatorNodeModel extends NodeModel {
     }
 
     /**
-     * @param in
-     * @param conflicts
-     * @return
-     * @throws InvalidSettingsException
+     * Creates the according {@link ColumnRearranger}.
+     *
+     * @param in input table
+     * @param conflicts list of tracked validation conflicts
+     * @return the column rearranger
+     * @throws InvalidSettingsException if the settings do not allow to perform validation
      */
-    private ColumnRearranger createRearranger(final DataTableSpec in, final DataValidatorColConflicts conflicts) {
+    private ColumnRearranger createRearranger(final DataTableSpec in, final DataValidatorColConflicts conflicts)
+        throws InvalidSettingsException {
         Map<String, ConfigurationContainer> colToConfigs = m_config.applyConfiguration(in, conflicts);
 
         // sort the entries according to the reference spec - and the best case insensitive matchings.
@@ -203,18 +206,23 @@ class DataValidatorNodeModel extends NodeModel {
         for (Entry<String, ConfigurationContainer> arr : array) {
             namesOfInputSpec[index] = arr.getKey();
             ConfigurationContainer colConfigContainer = arr.getValue();
-            DataValidatorColConfiguration colConfig = colConfigContainer.getConfiguration();
 
-            int colIndex = m_config.getReferenceTableSpec().findColumnIndex(colConfigContainer.getRefColName());
+            final DataTableSpec referenceTableSpec = m_config.getReferenceTableSpec();
+            final int colIndex = referenceTableSpec.findColumnIndex(colConfigContainer.getRefColName());
+            if (colIndex < 0) {
+                throw new InvalidSettingsException("The configured column '%s' is not present in the reference table."
+                        .formatted(colConfigContainer.getRefColName()));
+            }
 
-            boolean shouldBeTraversed =
-                colConfig.applyColConfiguration(m_config.getReferenceTableSpec().getColumnSpec(colIndex),
+            final DataValidatorColConfiguration colConfig = colConfigContainer.getConfiguration();
+            final boolean shouldBeTraversed =
+                colConfig.applyColConfiguration(referenceTableSpec.getColumnSpec(colIndex),
                     in.getColumnSpec(arr.getKey()), conflicts);
 
             if (shouldBeTraversed) {
                 decorators.put(
                     arr.getKey(),
-                    colConfig.createCellValidator(m_config.getReferenceTableSpec().getColumnSpec(colIndex),
+                    colConfig.createCellValidator(referenceTableSpec.getColumnSpec(colIndex),
                         in.getColumnSpec(arr.getKey()), conflicts));
             }
             index++;
@@ -251,12 +259,25 @@ class DataValidatorNodeModel extends NodeModel {
 
         DataTableSpec resultSpec = columnRearranger.createSpec();
         //add all missing columns as columns containing missing values only
-        int i = 0;
-        Set<String> configuredColumns = m_config.getConfiguredColumns();
+        var i = 0;
+        final Set<String> configuredColumns = m_config.getConfiguredColumns();
         for (DataColumnSpec colSpec : m_config.getReferenceTableSpec()) {
             // configured but not existing columns are filled with missing values.
             if (!resultSpec.containsName(colSpec.getName()) && configuredColumns.contains(colSpec.getName())) {
-                columnRearranger.insertAt(i, createMissingValsOnlyCellFactory(colSpec));
+                final var missingFactory = createMissingValsOnlyCellFactory(colSpec);
+                if (i < columnRearranger.getColumnCount()) {
+                    columnRearranger.insertAt(i, missingFactory);
+                } else {
+                    /*
+                     * At this point, we have more columns configured than the input provides, and also
+                     * might have skipped some inbetween (since `i` is incremented unconditionally). Thus, we
+                     * are in a weird state of trying to merge and output possibly disjoint specs together.
+                     *
+                     * This seemed to never have worked prior to AP-21796, and without re-working column handling
+                     * of this old node, simply append missing columns seems like a fair solution.
+                     */
+                    columnRearranger.append(missingFactory);
+                }
             }
             i++;
         }
