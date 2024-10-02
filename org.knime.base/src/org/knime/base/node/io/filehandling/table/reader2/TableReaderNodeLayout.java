@@ -54,12 +54,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
- *
- *         ??? this file is basically a subset of the CSV Layout; however, the naming and description of a few settings
- *         slightly vary
  */
-@SuppressWarnings({"restriction", "java:S1214", "java:S103"})
-public class TableReaderNodeLayout {
+@SuppressWarnings({"restriction", "java:S1214"})
+public interface TableReaderNodeLayout {
 
     @After(CommonReaderLayout.MultipleFileHandling.HowToCombineColumns.class)
     @Before(CommonReaderLayout.MultipleFileHandling.AppendFilePathColumn.class)
@@ -71,5 +68,4 @@ public class TableReaderNodeLayout {
                 The format of the prefix is “File_0_“, “File_1_” and so on.
                     """;
     }
-
 }

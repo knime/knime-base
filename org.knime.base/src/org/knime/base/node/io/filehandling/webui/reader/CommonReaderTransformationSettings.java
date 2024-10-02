@@ -87,7 +87,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  * @param <C> the type of the config settings
  * @param <S> the type of the serializable form for external data types
  */
-@SuppressWarnings({"javadoc", "restriction"})
+@SuppressWarnings("restriction")
 @Layout(CommonReaderLayout.Transformation.class)
 public abstract class CommonReaderTransformationSettings<C extends ConfigIdSettings<?>, S>
     implements PersistableSettings, WidgetGroup {
@@ -160,7 +160,8 @@ public abstract class CommonReaderTransformationSettings<C extends ConfigIdSetti
             // Default constructor required as per {@link PersistablSettings} contract
         }
 
-        @Modification.WidgetReference(TransformationSettingsWidgetModification.ConfigIdSettingsRef.class) // for adding dynamic ref
+        // for adding dynamic ref
+        @Modification.WidgetReference(TransformationSettingsWidgetModification.ConfigIdSettingsRef.class)
         C m_configId;
 
         @ValueProvider(SourceIdProvider.class)
@@ -170,7 +171,8 @@ public abstract class CommonReaderTransformationSettings<C extends ConfigIdSetti
         FSLocation[] m_fsLocations = new FSLocation[0];
 
         @ValueReference(TableSpecSettingsRef.class)
-        @Modification.WidgetReference(TransformationSettingsWidgetModification.SpecsRef.class) // for adding dynamic and provider
+        // for adding dynamic and provider
+        @Modification.WidgetReference(TransformationSettingsWidgetModification.SpecsRef.class)
         List<TableSpecSettings<S>> m_specs = List.of();
 
         @ValueProvider(CommonReaderNodeSettings.AdvancedSettings.AppendPathColumnRef.class)
@@ -187,18 +189,18 @@ public abstract class CommonReaderTransformationSettings<C extends ConfigIdSetti
 
     static class TakeColumnsFromProvider implements StateProvider<ColumnFilterMode> {
 
-        private Supplier<CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption> m_howToCombineColumnsOptionSupplier;
+        private Supplier<CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption> m_howToCombineColumnsSup;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
             initializer.computeBeforeOpenDialog();
-            m_howToCombineColumnsOptionSupplier = initializer
+            m_howToCombineColumnsSup = initializer
                 .computeFromValueSupplier(CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOptionRef.class);
         }
 
         @Override
         public ColumnFilterMode computeState(final DefaultNodeSettingsContext context) {
-            return m_howToCombineColumnsOptionSupplier.get().toColumnFilterMode();
+            return m_howToCombineColumnsSup.get().toColumnFilterMode();
         }
     }
 
@@ -319,7 +321,8 @@ public abstract class CommonReaderTransformationSettings<C extends ConfigIdSetti
         String m_columnRename;
 
         @Widget(title = "Column type", description = "", hideTitle = true, hideFlowVariableButton = true)
-        @Modification.WidgetReference(TransformationSettingsWidgetModification.TypeChoicesWidgetRef.class) // for adding dynamic choices
+        // for adding dynamic choices
+        @Modification.WidgetReference(TransformationSettingsWidgetModification.TypeChoicesWidgetRef.class)
         @ValueProvider(TypeResetter.class)
         @Effect(predicate = InternalArrayWidget.ElementIsEdited.class, type = EffectType.SHOW)
         String m_type;
@@ -353,7 +356,9 @@ public abstract class CommonReaderTransformationSettings<C extends ConfigIdSetti
         titleProvider = TransformationElementSettings.TitleProvider.class,
         subTitleProvider = TransformationElementSettings.SubTitleProvider.class)
     @ValueReference(TransformationElementSettingsRef.class)
-    @Modification.WidgetReference(TransformationSettingsWidgetModification.TransformationElementSettingsArrayWidgetRef.class) // for adding dynamic choices
+    // for adding dynamic choices
+    @Modification.WidgetReference(TransformationSettingsWidgetModification.//
+            TransformationElementSettingsArrayWidgetRef.class)
     @Effect(predicate = FileSystemPortConnectionUtil.ConnectedWithoutFileSystemSpec.class, type = EffectType.HIDE)
     TransformationElementSettings[] m_columnTransformation =
         new TransformationElementSettings[]{TransformationElementSettings.createUnknownElement()};

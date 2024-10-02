@@ -62,7 +62,7 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarch
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-class TableReaderSpecific {
+final class TableReaderSpecific {
 
     static final ProductionPathProvider<DataType> PRODUCTION_PATH_PROVIDER =
         new DefaultProductionPathProvider<>(DataValueReadAdapterFactory.INSTANCE.getProducerRegistry(),

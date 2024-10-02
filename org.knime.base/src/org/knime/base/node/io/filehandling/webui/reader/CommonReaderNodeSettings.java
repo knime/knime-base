@@ -77,7 +77,7 @@ import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-@SuppressWarnings({"javadoc", "restriction"})
+@SuppressWarnings("restriction")
 public final class CommonReaderNodeSettings {
 
     public static class Settings implements WidgetGroup, PersistableSettings {
@@ -86,7 +86,7 @@ public final class CommonReaderNodeSettings {
             implements Modification.Reference {
         }
 
-        public static abstract class SetFileReaderWidgetExtensions implements WidgetGroup.Modifier {
+        public abstract static class SetFileReaderWidgetExtensions implements WidgetGroup.Modifier {
             @Override
             public void modify(final WidgetGroupModifier group) {
                 group.find(FileChooserRef.class).modifyAnnotation(FileReaderWidget.class)
@@ -102,7 +102,7 @@ public final class CommonReaderNodeSettings {
         @Persist(configKey = "file_selection", customPersistor = LegacyReaderFilerChooserPersistor.class)
         @Modification.WidgetReference(FileChooserRef.class)
         @FileReaderWidget()
-        public FileChooser m_source = new FileChooser(); // TODO should not be public
+        public FileChooser m_source = new FileChooser();
 
         @Persist(configKey = "file_selection", hidden = true)
         FileSelectionInternal m_fileSelectionInternal = new FileSelectionInternal();
@@ -198,7 +198,7 @@ public final class CommonReaderNodeSettings {
         @Layout(CommonReaderLayout.MultipleFileHandling.HowToCombineColumns.class)
         @Persist(customPersistor = HowToCombineColumnsOptionPersistor.class)
         public HowToCombineColumnsOption m_howToCombineColumns = HowToCombineColumnsOption.FAIL;
-        // TODO this setting should be shown when reading multiple files; currently blocked by UIEXT-1805
+        // TODO NOSONAR this setting should be shown when reading multiple files; currently blocked by UIEXT-1805
 
         public static class AppendPathColumnRef extends ReferenceStateProvider<Boolean> {
         }
@@ -235,7 +235,8 @@ public final class CommonReaderNodeSettings {
                     description = CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.DESCRIPTION_FAIL) //
                 FAIL, //
                 @Label(value = "Use new schema",
-                    description = CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.DESCRIPTION_USE_NEW_SCHEMA) //
+                    description = CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.//
+                            DESCRIPTION_USE_NEW_SCHEMA) //
                 USE_NEW_SCHEMA, //
                 @Label(value = "Ignore (deprecated)",
                     description = CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.DESCRIPTION_IGNORE,

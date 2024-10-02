@@ -67,8 +67,7 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarch
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-@SuppressWarnings("javadoc")
-public class ReaderSpecific {
+public final class ReaderSpecific {
 
     public interface ConfigAndReader<C extends ReaderSpecificConfig<C>, T> {
 
@@ -76,9 +75,10 @@ public class ReaderSpecific {
          * ??? We need to use the AbstractMultiTableReadConfig as a type here because the MultiTableReadConfig does not
          * allow to set the TableReadConfig generic.
          */
-        AbstractMultiTableReadConfig<C, DefaultTableReadConfig<C>, T, ?> getMultiTableReadConfig();
+        <S extends AbstractMultiTableReadConfig<C, DefaultTableReadConfig<C>, T, S>>
+            AbstractMultiTableReadConfig<C, DefaultTableReadConfig<C>, T, S> getMultiTableReadConfig();
 
-        TableReader<C, T, ?> getTableReader();
+        <V> TableReader<C, T, V> getTableReader();
     }
 
     interface ExternalDataTypeSerializer<S, T> {
@@ -88,7 +88,9 @@ public class ReaderSpecific {
         T toExternalType(S serializedType);
 
     }
-    static <S, T> Map<String, TypedReaderTableSpec<T>> toSpecMap(final ExternalDataTypeSerializer<S,T> serializer, final List<TableSpecSettings<S>> specs) {
+
+    static <S, T> Map<String, TypedReaderTableSpec<T>> toSpecMap(final ExternalDataTypeSerializer<S, T> serializer,
+        final List<TableSpecSettings<S>> specs) {
         final var individualSpecs = new LinkedHashMap<String, TypedReaderTableSpec<T>>();
         for (final var tableSpec : specs) {
             final TypedReaderTableSpecBuilder<T> specBuilder = TypedReaderTableSpec.builder();

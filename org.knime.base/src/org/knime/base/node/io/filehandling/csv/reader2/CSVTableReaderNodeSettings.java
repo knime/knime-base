@@ -201,7 +201,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @Layout(IfRowHasLessColumns.class)
         @Persist(configKey = "support_short_data_rows", customPersistor = IfRowHasLessColumnsOptionPersistor.class)
         IfRowHasLessColumnsOption m_ifRowHasLessColumnsOption = IfRowHasLessColumnsOption.FAIL;
-        // TODO defaults are currently not applied when the node is created anew; will be addressed in UIEXT-1740
+        // TODO NOSONAR defaults are currently not applied when the node is created anew; will be addressed in UIEXT-1740
 
         @Persist(configKey = "skip_empty_data_rows")
         boolean m_skipEmptyDataRows;
@@ -210,7 +210,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @Layout(PrependFileIndexToRowId.class)
         @Persist(configKey = "prepend_file_idx_to_row_id")
         boolean m_prependFileIndexToRowId;
-        // TODO this setting should be shown when reading multiple files; currently blocked by UIEXT-1805
+        // TODO NOSONAR this setting should be shown when reading multiple files; currently blocked by UIEXT-1805
 
         static final class CommentStartRef extends ReferenceStateProvider<String> {
         }

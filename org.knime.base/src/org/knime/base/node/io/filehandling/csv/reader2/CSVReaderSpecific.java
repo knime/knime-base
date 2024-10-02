@@ -56,7 +56,7 @@ import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 
-class CSVReaderSpecific {
+final class CSVReaderSpecific {
 
     static final ProductionPathProvider<Class<?>> PRODUCTION_PATH_PROVIDER =
         StringReadAdapterFactory.INSTANCE.createProductionPathProvider();

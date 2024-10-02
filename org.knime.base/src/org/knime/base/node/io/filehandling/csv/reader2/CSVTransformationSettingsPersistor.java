@@ -62,9 +62,8 @@ import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecC
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-@SuppressWarnings("restriction")
-final class CSVTransformationSettingsPersistor extends
-    CommonReaderTransformationSettingsPersistor<CSVTableReaderConfig, ConfigIdSettings, Class<?>, Class<?>, CSVTransformationSettings>
+final class CSVTransformationSettingsPersistor extends CommonReaderTransformationSettingsPersistor<//
+        CSVTableReaderConfig, ConfigIdSettings, Class<?>, Class<?>, CSVTransformationSettings>
     implements ProductionPathProviderAndTypeHierarchy, ClassNoopSerializer, ConfigAndReader {
 
     @Override

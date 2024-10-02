@@ -146,16 +146,16 @@ final class CSVTransformationSettingsStateProviders {
         }
     }
 
-    static final class TypedReaderTableSpecsProvider extends
-        CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider<CSVTableReaderConfig, Class<?>, Dependencies>
+    static final class TypedReaderTableSpecsProvider
+        extends CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider<//
+                CSVTableReaderConfig, Class<?>, Dependencies>
         implements ConfigAndReader, DependenciesProvider.Dependent {
 
         interface Dependent
             extends CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider.Dependent<Class<?>> {
             @Override
-            default
-                Class<? extends CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider<?, Class<?>, ?>>
-                getTypedReaderTableSpecsProvider() {
+            default Class<? extends CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider<//
+                    ?, Class<?>, ?>> getTypedReaderTableSpecsProvider() {
                 return TypedReaderTableSpecsProvider.class;
             }
         }
@@ -184,8 +184,9 @@ final class CSVTransformationSettingsStateProviders {
         implements ProductionPathProviderAndTypeHierarchy, TypedReaderTableSpecsProvider.Dependent {
     }
 
-    static final class TransformationSettingsWidgetModification extends
-        CommonReaderTransformationSettingsStateProviders.TransformationSettingsWidgetModification<ConfigIdSettings, Class<?>, Class<?>> {
+    static final class TransformationSettingsWidgetModification
+        extends CommonReaderTransformationSettingsStateProviders.TransformationSettingsWidgetModification<//
+                ConfigIdSettings, Class<?>, Class<?>> {
 
         @Override
         protected Class<ConfigIdRef> getConfigIdSettingsValueRef() {

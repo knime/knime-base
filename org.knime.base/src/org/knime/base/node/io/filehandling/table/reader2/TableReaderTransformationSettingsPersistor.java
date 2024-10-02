@@ -63,10 +63,10 @@ import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecC
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-final class TableReaderTransformationSettingsPersistor extends
-    CommonReaderTransformationSettingsPersistor<TableManipulatorConfig, ConfigIdSettings<TableManipulatorConfig>, String, DataType, TableReaderTransformationSettings>
-    implements ProductionPathProviderAndTypeHierarchy,
-    DataTypeStringSerializer, ConfigAndReader {
+final class TableReaderTransformationSettingsPersistor extends CommonReaderTransformationSettingsPersistor<//
+        TableManipulatorConfig, ConfigIdSettings<TableManipulatorConfig>, String, DataType, //
+        TableReaderTransformationSettings>
+    implements ProductionPathProviderAndTypeHierarchy, DataTypeStringSerializer, ConfigAndReader {
 
     @Override
     protected TableReaderTransformationSettings createDefaultTransformationSettings() {

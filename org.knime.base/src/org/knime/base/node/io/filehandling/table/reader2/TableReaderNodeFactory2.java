@@ -74,11 +74,10 @@ import org.xml.sax.SAXException;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
-public final class TableReaderNodeFactory2
-    extends KnimeTableReaderNodeFactory implements NodeDialogFactory {
+public final class TableReaderNodeFactory2 extends KnimeTableReaderNodeFactory implements NodeDialogFactory { // NOSONAR will eventually be merged into a single node
 
     @Override
-    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() { // only to make this visible to testing
+    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() { // NOSONAR only to make this visible to testing
         return super.createPortsConfigBuilder();
     }
 
@@ -87,15 +86,15 @@ public final class TableReaderNodeFactory2
             It retains all meta information such as domain, properties, colors, size.
             """;
 
-    // TODO consider de-duplicating methods below
+    // TODO NOSONAR UIEXT-1740 de-duplicate methods below when migrating node models and no longer extending KnimeTableReaderNodeFactory
 
     @Override
     protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
         return WebUINodeFactory.createNodeDescription("Table Reader (Labs)", "../reader/tableread.png",
             new PortDescription[]{
                 new PortDescription(FS_CONNECT_GRP_ID, FileSystemPortObject.TYPE, "The file system connection.", true)},
-            new PortDescription[]{new PortDescription("File Table", BufferedDataTable.TYPE,
-                "The table contained in the selected file.")},
+            new PortDescription[]{
+                new PortDescription("File Table", BufferedDataTable.TYPE, "The table contained in the selected file.")},
             "Reads table written by the Table Writer node.", FULL_DESCRIPTION, TableReaderNodeSettings.class, null,
             null, NodeType.Source, new String[]{"KNIME", "Table", "Input", "Read"});
     }

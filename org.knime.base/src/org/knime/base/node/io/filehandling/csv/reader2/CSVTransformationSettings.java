@@ -80,6 +80,7 @@ import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConf
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
+@SuppressWarnings("restriction")
 @Modification(CSVTransformationSettingsStateProviders.TransformationSettingsWidgetModification.class)
 final class CSVTransformationSettings
     extends CommonReaderTransformationSettings<CSVTransformationSettings.ConfigIdSettings, Class<?>> {

@@ -95,7 +95,7 @@ public class TableReaderNodeSettings implements DefaultNodeSettings {
         @Layout(PrependTableIndexToRowId.class)
         @Persist(configKey = "prepend_table_index_to_row_id")
         boolean m_prependTableIndexToRowId;
-        // TODO this setting should be shown when reading multiple files; currently blocked by UIEXT-1805
+        // TODO NOSONAR this setting should be shown when reading multiple files; currently blocked by UIEXT-1805
 
     }
 
@@ -112,7 +112,7 @@ public class TableReaderNodeSettings implements DefaultNodeSettings {
         @ValueReference(CommonReaderNodeSettings.LimitNumberOfRowsRef.class)
         @Persist(configKey = "limit_data_rows")
         boolean m_limitNumberOfRows;
-        // TODO merge into a single widget with UIEXT-1742
+        // TODO NOSONAR merge into a single widget with UIEXT-1742
 
         @Widget(title = "Maximum number of rows", description = MaximumNumberOfRows.DESCRIPTION)
         @NumberInputWidget(min = 0)

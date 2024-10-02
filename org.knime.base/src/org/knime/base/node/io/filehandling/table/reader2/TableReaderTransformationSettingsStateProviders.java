@@ -98,16 +98,16 @@ final class TableReaderTransformationSettingsStateProviders {
         }
     }
 
-    static final class TypedReaderTableSpecsProvider extends
-        CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider<TableManipulatorConfig, DataType, ReaderSpecificDependencies<TableManipulatorConfig>>
+    static final class TypedReaderTableSpecsProvider
+        extends CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider<//
+                TableManipulatorConfig, DataType, ReaderSpecificDependencies<TableManipulatorConfig>>
         implements NoDependencies.Dependent, ConfigAndReader {
 
         interface Dependent
             extends CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider.Dependent<DataType> {
             @Override
-            default
-                Class<? extends CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider<?, DataType, ?>>
-                getTypedReaderTableSpecsProvider() {
+            default Class<? extends CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider<//
+                    ?, DataType, ?>> getTypedReaderTableSpecsProvider() {
                 return TypedReaderTableSpecsProvider.class;
             }
         }
@@ -135,8 +135,9 @@ final class TableReaderTransformationSettingsStateProviders {
         implements ProductionPathProviderAndTypeHierarchy, TypedReaderTableSpecsProvider.Dependent {
     }
 
-    static final class TransformationSettingsWidgetModification extends
-        CommonReaderTransformationSettingsStateProviders.TransformationSettingsWidgetModification<ConfigIdSettings<TableManipulatorConfig>, String, DataType> {
+    static final class TransformationSettingsWidgetModification
+        extends CommonReaderTransformationSettingsStateProviders.TransformationSettingsWidgetModification<//
+                ConfigIdSettings<TableManipulatorConfig>, String, DataType> {
 
         static final class KnimeTableReaderConfigIdSettingsValueRef
             implements Reference<ConfigIdSettings<TableManipulatorConfig>> {
@@ -148,9 +149,8 @@ final class TableReaderTransformationSettingsStateProviders {
         }
 
         @Override
-        protected
-            Class<? extends CommonReaderTransformationSettingsStateProviders.TableSpecSettingsProvider<String, DataType>>
-            getSpecsValueProvider() {
+        protected Class<? extends CommonReaderTransformationSettingsStateProviders.TableSpecSettingsProvider<//
+                String, DataType>> getSpecsValueProvider() {
             return TableSpecSettingsProvider.class;
         }
 

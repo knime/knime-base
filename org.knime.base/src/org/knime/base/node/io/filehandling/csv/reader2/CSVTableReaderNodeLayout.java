@@ -58,7 +58,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings({"restriction", "java:S1214", "java:S103"})
-public class CSVTableReaderNodeLayout {
+interface CSVTableReaderNodeLayout {
 
     interface File {
         @After(CommonReaderLayout.File.Source.class)
@@ -297,6 +297,5 @@ public class CSVTableReaderNodeLayout {
                         Prepending the file index prevents parallel reading of individual files.
                         """;
         }
-
     }
 }

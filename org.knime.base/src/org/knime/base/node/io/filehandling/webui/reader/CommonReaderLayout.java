@@ -57,13 +57,13 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.Effe
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-@SuppressWarnings({"restriction", "javadoc"})
+@SuppressWarnings({"restriction", "java:S1214", "java:S103"})
 public interface CommonReaderLayout {
 
     @Section(title = "File")
     interface File {
         interface Source {
-            // TODO will be updated in UIEXT-1764
+            // TODO NOSONAR will be updated in UIEXT-1764
             String DESCRIPTION = """
                     Select a file location which stores the data you want to read. When clicking on the browse button,
                     there are two default file system options to choose from:

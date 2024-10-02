@@ -55,6 +55,7 @@ import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.ExternalD
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfigSerializer.DataTypeSerializer;
 import org.knime.core.data.DataType;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.config.base.JSONConfig;
 import org.knime.core.node.config.base.JSONConfig.WriterConfig;
@@ -80,7 +81,7 @@ public interface DataTypeStringSerializer extends ExternalDataTypeSerializer<Str
      * @param type the to-be-serialized {@link DataType}
      * @return the serialized string
      */
-    public static String typeToString(final DataType type) {
+    static String typeToString(final DataType type) {
         final var settings = new NodeSettings("type");
         DataTypeSerializer.SERIALIZER_INSTANCE.save(type, settings);
         return JSONConfig.toJSONString(settings, WriterConfig.DEFAULT);
@@ -92,14 +93,14 @@ public interface DataTypeStringSerializer extends ExternalDataTypeSerializer<Str
      * @param string the previously serialized string
      * @return the de-serialized {@link DataType}
      */
-    public static DataType stringToType(final String string) {
+    static DataType stringToType(final String string) {
         try {
             final var settings = new NodeSettings("type");
             JSONConfig.readJSON(settings, new StringReader(string));
             return DataTypeSerializer.SERIALIZER_INSTANCE.load(settings);
         } catch (IOException | InvalidSettingsException e) {
-            CommonReaderTransformationSettingsStateProviders.LOGGER
-                .error("Unknown and new columns can't be converted to the configured data type.");
+            NodeLogger.getLogger(DataTypeStringSerializer.class)
+                .error("Unknown and new columns can't be converted to the configured data type.", e);
             return null;
         }
     }

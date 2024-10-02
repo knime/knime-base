@@ -89,9 +89,9 @@ import org.knime.filehandling.core.node.table.reader.selector.UnknownColumnsTran
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-@SuppressWarnings({"javadoc", "restriction"})
-// TODO Javadoc
-public abstract class CommonReaderTransformationSettingsPersistor<C extends ReaderSpecificConfig<C>, I extends ConfigIdSettings<C>, S, T, R extends CommonReaderTransformationSettings<I, S>>
+@SuppressWarnings("restriction")
+public abstract class CommonReaderTransformationSettingsPersistor<C extends ReaderSpecificConfig<C>, //
+        I extends ConfigIdSettings<C>, S, T, R extends CommonReaderTransformationSettings<I, S>>
     extends NodeSettingsPersistorWithConfigKey<R> implements ReaderSpecific.ProductionPathProviderAndTypeHierarchy<T>,
     ExternalDataTypeSerializer<S, T>, ConfigAndReader<C, T> {
 

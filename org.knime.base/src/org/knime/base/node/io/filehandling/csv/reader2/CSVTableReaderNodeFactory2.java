@@ -84,7 +84,7 @@ public class CSVTableReaderNodeFactory2 extends CSVTableReaderNodeFactory // NOS
         """;
 
     @Override
-    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() { // only to make this visible to testing
+    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() { // NOSONAR only to make this visible to testing
         return super.createPortsConfigBuilder();
     }
 

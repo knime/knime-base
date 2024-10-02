@@ -108,8 +108,8 @@ import org.knime.filehandling.core.util.WorkflowContextUtil;
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-@SuppressWarnings({"javadoc", "restriction"})
-public class CommonReaderTransformationSettingsStateProviders {
+@SuppressWarnings("restriction")
+public final class CommonReaderTransformationSettingsStateProviders {
 
     static final NodeLogger LOGGER = NodeLogger.getLogger(CommonReaderTransformationSettingsStateProviders.class);
 
@@ -127,10 +127,10 @@ public class CommonReaderTransformationSettingsStateProviders {
     public interface ReaderSpecificDependenciesProvider<D extends ReaderSpecificDependencies> extends StateProvider<D> {
 
         @Override
-        default public void init(final StateProviderInitializer initializer) {
+        default void init(final StateProviderInitializer initializer) {
         }
 
-        public interface GetReferences {
+        interface GetReferences {
             /**
              * TODO: Rethink this. We originally had to postpone triggers to those state providers which only concern
              * the outside of the array (i.e. not the type choices provider) but we now allow triggering from outside
@@ -143,10 +143,10 @@ public class CommonReaderTransformationSettingsStateProviders {
              *
              * @return a list of postponed triggers
              */
-            List<Class<? extends Reference<?>>> getDependencyReferences();
+            <V> List<Class<? extends Reference<V>>> getDependencyReferences();
         }
 
-        public interface Dependent<D extends ReaderSpecificDependencies> {
+        interface Dependent<D extends ReaderSpecificDependencies> {
             Class<? extends ReaderSpecificDependenciesProvider<D>> getDependenciesProvider();
         }
     }
@@ -220,7 +220,8 @@ public class CommonReaderTransformationSettingsStateProviders {
         }
     }
 
-    public static abstract class TypedReaderTableSpecsProvider<C extends ReaderSpecificConfig<C>, T, D extends ReaderSpecificDependencies<C>>
+    public abstract static class TypedReaderTableSpecsProvider<//
+            C extends ReaderSpecificConfig<C>, T, D extends ReaderSpecificDependencies<C>>
         extends PathsProvider<Map<String, TypedReaderTableSpec<T>>>
         implements ReaderSpecific.ConfigAndReader<C, T>, ReaderSpecificDependenciesProvider.Dependent<D> {
 
@@ -253,7 +254,8 @@ public class CommonReaderTransformationSettingsStateProviders {
         }
 
         public interface Dependent<T> {
-            Class<? extends TypedReaderTableSpecsProvider<?, T, ?>> getTypedReaderTableSpecsProvider();
+            <C extends ReaderSpecificConfig<C>, D extends ReaderSpecificDependencies<C>>
+                Class<? extends TypedReaderTableSpecsProvider<C, T, D>> getTypedReaderTableSpecsProvider();
         }
     }
 
@@ -273,7 +275,7 @@ public class CommonReaderTransformationSettingsStateProviders {
 
     }
 
-    public static abstract class TableSpecSettingsProvider<S, T>
+    public abstract static class TableSpecSettingsProvider<S, T>
         extends DependsOnTypedReaderTableSpecProvider<List<TableSpecSettings<S>>, S, T> {
 
         @Override
@@ -288,11 +290,11 @@ public class CommonReaderTransformationSettingsStateProviders {
         }
     }
 
-    public static abstract class TransformationElementSettingsProvider<S, T>
+    public abstract static class TransformationElementSettingsProvider<S, T>
         extends DependsOnTypedReaderTableSpecProvider<TransformationElementSettings[], S, T>
         implements ProductionPathProviderAndTypeHierarchy<T> {
 
-        private Supplier<CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption> m_howToCombineColumnsOptionSupplier;
+        private Supplier<CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption> m_howToCombineColumnsSup;
 
         private Supplier<TransformationElementSettings[]> m_existingSettings;
 
@@ -301,7 +303,7 @@ public class CommonReaderTransformationSettingsStateProviders {
         @Override
         public void init(final StateProviderInitializer initializer) {
             super.init(initializer);
-            m_howToCombineColumnsOptionSupplier = initializer
+            m_howToCombineColumnsSup = initializer
                 .computeFromValueSupplier(CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOptionRef.class);
             m_existingSettings = initializer.getValueSupplier(TransformationElementSettingsRef.class);
             m_existingSpecs = initializer.getValueSupplier(
@@ -315,7 +317,7 @@ public class CommonReaderTransformationSettingsStateProviders {
 
         @Override
         public TransformationElementSettings[] computeState(final DefaultNodeSettingsContext context) {
-            return toTransformationElements(m_specSupplier.get(), m_howToCombineColumnsOptionSupplier.get(),
+            return toTransformationElements(m_specSupplier.get(), m_howToCombineColumnsSup.get(),
                 m_existingSettings.get(), getExistingSpecsUnion());
         }
 
@@ -447,7 +449,7 @@ public class CommonReaderTransformationSettingsStateProviders {
         }
     }
 
-    public static abstract class TypeChoicesProvider<T> implements StringChoicesStateProvider,
+    public abstract static class TypeChoicesProvider<T> implements StringChoicesStateProvider,
         ProductionPathProviderAndTypeHierarchy<T>, TypedReaderTableSpecsProvider.Dependent<T> {
 
         static final String DEFAULT_COLUMNTYPE_ID = "<default-columntype>";
@@ -500,7 +502,7 @@ public class CommonReaderTransformationSettingsStateProviders {
         return DataTypeStringSerializer.stringToType(id);
     }
 
-    public static abstract class TransformationSettingsWidgetModification<C extends ConfigIdSettings<?>, S, T>
+    public abstract static class TransformationSettingsWidgetModification<C extends ConfigIdSettings<?>, S, T>
         implements WidgetGroup.Modifier {
 
         static class ConfigIdSettingsRef implements Modification.Reference {
