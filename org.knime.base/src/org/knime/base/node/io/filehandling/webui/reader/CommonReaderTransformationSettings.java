@@ -143,6 +143,9 @@ public abstract class CommonReaderTransformationSettings<C extends ConfigIdSetti
     static class TableSpecSettingsRef implements Reference<List<TableSpecSettings<?>>> {
     }
 
+    static class ConfigIdRef implements Reference<ConfigIdSettings<?>> {
+    }
+
     /**
      * TODO NOSONAR UIEXT-1946 These settings are sent to the frontend where they are not needed. They are merely held
      * here to be used in the CSVTransformationSettingsPersistor. We should look for an alternative mechanism to provide
@@ -160,8 +163,7 @@ public abstract class CommonReaderTransformationSettings<C extends ConfigIdSetti
             // Default constructor required as per {@link PersistablSettings} contract
         }
 
-        // for adding dynamic ref
-        @Modification.WidgetReference(TransformationSettingsWidgetModification.ConfigIdSettingsRef.class)
+        @ValueReference(ConfigIdRef.class)
         C m_configId;
 
         @ValueProvider(SourceIdProvider.class)

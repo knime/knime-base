@@ -49,23 +49,14 @@
 package org.knime.base.node.io.filehandling.csv.reader2;
 
 import java.util.List;
-import java.util.function.Supplier;
 
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVReaderSpecific.ConfigAndReader;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVReaderSpecific.ProductionPathProviderAndTypeHierarchy;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.LimitMemoryPerColumnRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.MaximumNumberOfColumnsRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.ConfigIdSettings;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.DependenciesProvider.ConfigIdRef;
 import org.knime.base.node.io.filehandling.webui.reader.ClassNoopSerializer;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.ReaderSpecificDependencies;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.ReaderSpecificDependenciesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
@@ -73,103 +64,35 @@ import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConf
 @SuppressWarnings("restriction")
 final class CSVTransformationSettingsStateProviders {
 
-    /**
-     * This object holds copies of the subset of settings in {@link CSVTableReaderNodeSettings} that can affect the spec
-     * of the output table. I.e., if any of these settings change, the spec has to be re-calculcated.
-     */
-    static final class Dependencies
-
-        implements ReaderSpecificDependencies<CSVTableReaderConfig> {
-        final ConfigIdSettings m_configId;
-
-        // The settings below are NOT a part of the CSV reader's ConfigId even though they probably should be.
-        final boolean m_limitMemoryPerColumn;
-
-        final int m_maximumNumberOfColumns;
-
-        Dependencies(final ConfigIdSettings configId, final boolean limitMemoryPerColumn,
-            final int maximumNumberOfColumns) {
-            m_configId = configId;
-            m_limitMemoryPerColumn = limitMemoryPerColumn;
-            m_maximumNumberOfColumns = maximumNumberOfColumns;
-        }
-
-        @Override
-        public void applyToConfig(final DefaultTableReadConfig<CSVTableReaderConfig> config) {
-            m_configId.applyToConfig(config);
-            final var csvConfig = config.getReaderSpecificConfig();
-            csvConfig.limitCharsPerColumn(m_limitMemoryPerColumn);
-            csvConfig.setMaxColumns(m_maximumNumberOfColumns);
-
-        }
-
-    }
-
-    static final class DependenciesProvider implements ReaderSpecificDependenciesProvider<Dependencies> {
-
-        private Supplier<ConfigIdSettings> m_configIdSupplier;
-
-        private Supplier<Boolean> m_limitMemoryPerColumnSupplier;
-
-        private Supplier<Integer> m_maximumNumberOfColumnsSupplier;
-
-        static final class ConfigIdRef implements Reference<ConfigIdSettings> {
-        }
-
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            m_configIdSupplier = initializer.getValueSupplier(ConfigIdRef.class);
-            m_limitMemoryPerColumnSupplier = initializer.getValueSupplier(LimitMemoryPerColumnRef.class);
-            m_maximumNumberOfColumnsSupplier = initializer.getValueSupplier(MaximumNumberOfColumnsRef.class);
-        }
-
-        @Override
-        public Dependencies computeState(final DefaultNodeSettingsContext context) {
-            return new Dependencies(m_configIdSupplier.get(), m_limitMemoryPerColumnSupplier.get(),
-                m_maximumNumberOfColumnsSupplier.get());
-        }
-
-        interface GetReferences extends ReaderSpecificDependenciesProvider.GetReferences {
-
-            @Override
-            default List<Class<? extends Reference<?>>> getDependencyReferences() {
-                return List.of(ConfigIdRef.class, LimitMemoryPerColumnRef.class, MaximumNumberOfColumnsRef.class);
-            }
-
-        }
-
-        interface Dependent extends ReaderSpecificDependenciesProvider.Dependent<Dependencies> {
-            @Override
-            default Class<? extends ReaderSpecificDependenciesProvider<Dependencies>> getDependenciesProvider() {
-                return DependenciesProvider.class;
-            }
-        }
-    }
-
     static final class TypedReaderTableSpecsProvider
         extends CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider<//
-                CSVTableReaderConfig, Class<?>, Dependencies>
-        implements ConfigAndReader, DependenciesProvider.Dependent {
+                CSVTableReaderConfig, ConfigIdSettings, Class<?>>
+        implements ConfigAndReader {
 
         interface Dependent
             extends CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider.Dependent<Class<?>> {
             @Override
-            default Class<? extends CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider<//
-                    ?, Class<?>, ?>> getTypedReaderTableSpecsProvider() {
+            default Class<TypedReaderTableSpecsProvider> getTypedReaderTableSpecsProvider() {
                 return TypedReaderTableSpecsProvider.class;
             }
+        }
+
+        @Override
+        protected TypeReference<ConfigIdSettings> getConfigIdTypeReference() {
+            return new TypeReference<>() {
+            };
         }
     }
 
     static final class TableSpecSettingsProvider
         extends CommonReaderTransformationSettingsStateProviders.TableSpecSettingsProvider<Class<?>, Class<?>>
-        implements TypedReaderTableSpecsProvider.Dependent, ClassNoopSerializer, DependenciesProvider.GetReferences {
+        implements TypedReaderTableSpecsProvider.Dependent, ClassNoopSerializer {
     }
 
     static final class TransformationElementSettingsProvider extends
         CommonReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider<Class<?>, Class<?>>
-        implements ProductionPathProviderAndTypeHierarchy, TypedReaderTableSpecsProvider.Dependent, ClassNoopSerializer,
-        DependenciesProvider.GetReferences {
+        implements ProductionPathProviderAndTypeHierarchy, TypedReaderTableSpecsProvider.Dependent,
+        ClassNoopSerializer {
 
         @Override
         protected TypeReference<List<CommonReaderTransformationSettings.TableSpecSettings<Class<?>>>>
@@ -184,14 +107,8 @@ final class CSVTransformationSettingsStateProviders {
         implements ProductionPathProviderAndTypeHierarchy, TypedReaderTableSpecsProvider.Dependent {
     }
 
-    static final class TransformationSettingsWidgetModification
-        extends CommonReaderTransformationSettingsStateProviders.TransformationSettingsWidgetModification<//
-                ConfigIdSettings, Class<?>, Class<?>> {
-
-        @Override
-        protected Class<ConfigIdRef> getConfigIdSettingsValueRef() {
-            return ConfigIdRef.class;
-        }
+    static final class TransformationSettingsWidgetModification extends
+        CommonReaderTransformationSettingsStateProviders.TransformationSettingsWidgetModification<Class<?>, Class<?>> {
 
         @Override
         protected Class<TableSpecSettingsProvider> getSpecsValueProvider() {

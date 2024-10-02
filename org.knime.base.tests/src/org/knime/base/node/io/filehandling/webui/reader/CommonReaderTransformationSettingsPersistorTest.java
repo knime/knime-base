@@ -59,7 +59,6 @@ import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformati
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
@@ -152,11 +151,6 @@ public abstract class CommonReaderTransformationSettingsPersistorTest<T extends 
 
             @Override
             public Class getTypedReaderTableSpecsProvider() {
-                return null; // not needed
-            }
-
-            @Override
-            public List<Class<? extends Reference<?>>> getDependencyReferences() {
                 return null; // not needed
             }
 

@@ -62,11 +62,8 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.ArgumentsProvider;
-import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.DecimalSeparatorRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.LimitMemoryPerColumnRef;
@@ -91,7 +88,6 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSetting
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOptionRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.ConfigIdSettings;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.DependenciesProvider.ConfigIdRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TypeChoicesProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.Settings;
@@ -191,7 +187,15 @@ final class CSVTransformationSettingsStateProvidersTest {
         new ConfigIdFieldSpec<>("skipFirstDataRows", //
             (c, v) -> c.m_skipFirstDataRows = v, //
             s -> s.m_limitRows.m_skipFirstDataRows, //
-            SkipFirstDataRowsRef.class) //
+            SkipFirstDataRowsRef.class), //
+        new ConfigIdFieldSpec<>("limitMemoryPerColumn", //
+            (c, v) -> c.m_limitMemoryPerColumn = v, //
+            s -> s.m_advancedSettings.m_limitMemoryPerColumn, //
+            LimitMemoryPerColumnRef.class), //
+        new ConfigIdFieldSpec<>("maximumNumberOfColumns", //
+            (c, v) -> c.m_maximumNumberOfColumns = v, //
+            s -> s.m_advancedSettings.m_maximumNumberOfColumns, //
+            MaximumNumberOfColumnsRef.class) //
     );
 
     @Nested
@@ -319,13 +323,6 @@ final class CSVTransformationSettingsStateProvidersTest {
                 d.dependency.apply(m_settings)));
         }
 
-        @ParameterizedTest
-        @ArgumentsSource(RunSimulationForAdditionalCSVSpecChangesProvider.class)
-        void testTableSpecSettingsProviderCSVSpecific(final Function<UpdateSimulator, UpdateSimulatorResult> simulate)
-            throws IOException {
-            testTableSpecSettingsProvider(simulate);
-        }
-
         @Test
         void testTableSpecsProviderUnescapeDelimiters() throws IOException {
             m_settings.m_settings.m_columnDelimiter = "\\t";
@@ -337,27 +334,6 @@ final class CSVTransformationSettingsStateProvidersTest {
             final var specs = getSpecsValueUpdate(simulatorResult);
 
             assertIntegerAndStringColumn(specs);
-        }
-
-        @ParameterizedTest
-        @ArgumentsSource(RunSimulationForAdditionalCSVSpecChangesProvider.class)
-        void testTransformationElementSettingsProviderCSVSpecific(
-            final Function<UpdateSimulator, UpdateSimulatorResult> simulate) throws IOException {
-            testTableSpecSettingsProvider(simulate);
-        }
-
-        static final class RunSimulationForAdditionalCSVSpecChangesProvider implements ArgumentsProvider {
-
-            @Override
-            public Stream<? extends Arguments> provideArguments(final ExtensionContext context) throws Exception {
-                return getSimulations().map(Arguments::of);
-            }
-
-            static Stream<Function<UpdateSimulator, UpdateSimulatorResult>> getSimulations() {
-                return Stream.of(simulator -> simulator.simulateValueChange(ConfigIdRef.class),
-                    simulator -> simulator.simulateValueChange(LimitMemoryPerColumnRef.class),
-                    simulator -> simulator.simulateValueChange(MaximumNumberOfColumnsRef.class));
-            }
         }
 
     }

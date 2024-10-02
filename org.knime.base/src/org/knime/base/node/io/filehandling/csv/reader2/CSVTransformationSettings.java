@@ -52,8 +52,10 @@ import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
 import org.knime.base.node.io.filehandling.csv.reader.api.EscapeUtils;
 import org.knime.base.node.io.filehandling.csv.reader.api.QuoteOption;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.DecimalSeparatorRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.LimitMemoryPerColumnRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.LimitScannedRowsRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.MaxDataRowsScannedRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.MaximumNumberOfColumnsRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.QuotedStringsOption;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.QuotedStringsOptionRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.ReplaceEmptyQuotedStringsByMissingValuesRef;
@@ -146,6 +148,12 @@ final class CSVTransformationSettings
         @ValueProvider(SkipFirstDataRowsRef.class)
         long m_skipFirstDataRows;
 
+        @ValueProvider(LimitMemoryPerColumnRef.class)
+        boolean m_limitMemoryPerColumn = true;
+
+        @ValueProvider(MaximumNumberOfColumnsRef.class)
+        int m_maximumNumberOfColumns = 8192;
+
         @Override
         protected void applyToConfig(final DefaultTableReadConfig<CSVTableReaderConfig> config) {
             config.setColumnHeaderIdx(0);
@@ -172,6 +180,9 @@ final class CSVTransformationSettings
             csvConfig.setReplaceEmptyWithMissing(m_replaceEmptyQuotedStringsByMissingValues);
             csvConfig.setThousandsSeparator(m_thousandsSeparator);
             csvConfig.useLineBreakRowDelimiter(m_rowDelimiterOption == RowDelimiterOption.LINE_BREAK);
+
+            csvConfig.limitCharsPerColumn(m_limitMemoryPerColumn);
+            csvConfig.setMaxColumns(m_maximumNumberOfColumns);
         }
     }
 

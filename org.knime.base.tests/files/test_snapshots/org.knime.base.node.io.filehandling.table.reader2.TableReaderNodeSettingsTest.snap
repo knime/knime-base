@@ -614,6 +614,9 @@
         "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
         "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileChooserRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ],
         "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TableSpecSettingsRef"
       }, {
@@ -650,6 +653,9 @@
         "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
         "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileChooserRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ],
         "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TableSpecSettingsRef"
       }, {
@@ -668,6 +674,30 @@
         "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
         "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileChooserRef"
       }, {
+        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ],
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TableSpecSettingsRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation" ],
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettingsRef"
+      } ]
+    }, {
+      "trigger" : {
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef",
+        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ]
+      },
+      "dependencies" : [ {
+        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileChooserRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
+      }, {
         "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ],
         "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TableSpecSettingsRef"
       }, {
@@ -682,6 +712,9 @@
       "dependencies" : [ {
         "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
         "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileChooserRef"
+      }, {
+        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
+        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
       }, {
         "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/columnName" ],
         "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettings$ColumnNameRef"

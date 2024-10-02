@@ -74,6 +74,7 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.knime.base.node.io.filehandling.webui.LocalWorkflowContextTest;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.Settings.FileChooserRef;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdRef;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TransformationElementSettings.SubTitleProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TransformationElementSettings.TitleProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TypeChoicesProvider;
@@ -193,7 +194,7 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
     }
 
     @ParameterizedTest
-    @ArgumentsSource(RunSimulationForCommonSpecChangesProvider.class)
+    @ArgumentsSource(OnFileChooserChangeOrAfterDialogOpened.class)
     void testSourceIdAndFsLocationProvider(final Function<UpdateSimulator, UpdateSimulatorResult> simulate) {
         final var simulatorResult = simulate.apply(m_simulator);
         final var sourceId = getSourceIdVaueUpdate(simulatorResult);
@@ -204,7 +205,7 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
     }
 
     @ParameterizedTest
-    @ArgumentsSource(RunSimulationForCommonSpecChangesProvider.class)
+    @ArgumentsSource(OnFileChooserChangeOrAfterDialogOpened.class)
     void testFsLocationProviderWithPresentFile(final Function<UpdateSimulator, UpdateSimulatorResult> simulate)
         throws IOException {
         writeFileWithIntegerAndStringColumn();
@@ -215,8 +216,8 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
     }
 
     @ParameterizedTest
-    @ArgumentsSource(RunSimulationForCommonSpecChangesProvider.class)
-    public void testTableSpecSettingsProvider(final Function<UpdateSimulator, UpdateSimulatorResult> simulate)
+    @ArgumentsSource(OnFileChooserOrConfigIdChangeOrAfterDialogOpened.class)
+    void testTableSpecSettingsProvider(final Function<UpdateSimulator, UpdateSimulatorResult> simulate)
         throws IOException {
         writeFileWithIntegerAndStringColumn();
 
@@ -234,7 +235,7 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
     }
 
     @ParameterizedTest
-    @ArgumentsSource(RunSimulationForCommonSpecChangesProvider.class)
+    @ArgumentsSource(OnFileChooserOrConfigIdChangeOrAfterDialogOpened.class)
     void testTransformationElementSettingsProvider(final Function<UpdateSimulator, UpdateSimulatorResult> simulate)
         throws IOException {
         writeFileWithIntegerAndStringColumn();
@@ -542,16 +543,31 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
      */
     protected abstract List<String> getPathToTransformationSettings();
 
-    static final class RunSimulationForCommonSpecChangesProvider implements ArgumentsProvider {
-
+    // an abstract class that I can use to deduplicat the two classes right above:
+    abstract static class RunSimulationForCommonSpecChangesProvider implements ArgumentsProvider {
         @Override
         public Stream<? extends Arguments> provideArguments(final ExtensionContext context) throws Exception {
             return getSimulations().map(Arguments::of);
         }
 
-        static Stream<Function<UpdateSimulator, UpdateSimulatorResult>> getSimulations() {
+        abstract Stream<Function<UpdateSimulator, UpdateSimulatorResult>> getSimulations();
+    }
+
+    static final class OnFileChooserChangeOrAfterDialogOpened extends RunSimulationForCommonSpecChangesProvider {
+        @Override
+        Stream<Function<UpdateSimulator, UpdateSimulatorResult>> getSimulations() {
             return Stream.of(UpdateSimulator::simulateAfterOpenDialog,
                 simulator -> simulator.simulateValueChange(FileChooserRef.class));
+        }
+    }
+
+    static final class OnFileChooserOrConfigIdChangeOrAfterDialogOpened
+        extends RunSimulationForCommonSpecChangesProvider {
+        @Override
+        Stream<Function<UpdateSimulator, UpdateSimulatorResult>> getSimulations() {
+            return Stream.of(UpdateSimulator::simulateAfterOpenDialog,
+                simulator -> simulator.simulateValueChange(FileChooserRef.class),
+                simulator -> simulator.simulateValueChange(ConfigIdRef.class));
         }
     }
 

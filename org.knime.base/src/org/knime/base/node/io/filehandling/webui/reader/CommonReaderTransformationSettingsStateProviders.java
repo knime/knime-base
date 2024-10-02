@@ -65,11 +65,11 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings;
 import org.knime.base.node.io.filehandling.webui.FileChooserPathAccessor;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.Settings.FileChooserRef;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ColumnSpecSettings;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdRef;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TableSpecSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TableSpecSettingsRef;
@@ -91,14 +91,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileCh
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
@@ -112,44 +109,6 @@ import org.knime.filehandling.core.util.WorkflowContextUtil;
 public final class CommonReaderTransformationSettingsStateProviders {
 
     static final NodeLogger LOGGER = NodeLogger.getLogger(CommonReaderTransformationSettingsStateProviders.class);
-
-    /**
-     * This object holds copies of the subset of settings in {@link CSVTableReaderNodeSettings} that can affect the spec
-     * of the output table. I.e., if any of these settings change, the spec has to be re-calculcated.
-     */
-    public interface ReaderSpecificDependencies<C extends ReaderSpecificConfig<C>> {
-
-        default void applyToConfig(@SuppressWarnings("unused") final DefaultTableReadConfig<C> config) {
-            // do nothing per default
-        }
-    }
-
-    public interface ReaderSpecificDependenciesProvider<D extends ReaderSpecificDependencies> extends StateProvider<D> {
-
-        @Override
-        default void init(final StateProviderInitializer initializer) {
-        }
-
-        interface GetReferences {
-            /**
-             * TODO: Rethink this. We originally had to postpone triggers to those state providers which only concern
-             * the outside of the array (i.e. not the type choices provider) but we now allow triggering from outside
-             * the array.
-             *
-             * But it is not so straightforward as now setting all these dependencies as triggers in the dependency
-             * provider, because we then run into a timing issue: We currently require, that first all element values
-             * are determined and then secondly, the choices of these elements are computed (with a second backend
-             * call).
-             *
-             * @return a list of postponed triggers
-             */
-            <V> List<Class<? extends Reference<V>>> getDependencyReferences();
-        }
-
-        interface Dependent<D extends ReaderSpecificDependencies> {
-            Class<? extends ReaderSpecificDependenciesProvider<D>> getDependenciesProvider();
-        }
-    }
 
     static final class SourceIdProvider implements StateProvider<String> {
 
@@ -221,17 +180,18 @@ public final class CommonReaderTransformationSettingsStateProviders {
     }
 
     public abstract static class TypedReaderTableSpecsProvider<//
-            C extends ReaderSpecificConfig<C>, T, D extends ReaderSpecificDependencies<C>>
-        extends PathsProvider<Map<String, TypedReaderTableSpec<T>>>
-        implements ReaderSpecific.ConfigAndReader<C, T>, ReaderSpecificDependenciesProvider.Dependent<D> {
+            C extends ReaderSpecificConfig<C>, D extends ConfigIdSettings<C>, T>
+        extends PathsProvider<Map<String, TypedReaderTableSpec<T>>> implements ReaderSpecific.ConfigAndReader<C, T> {
 
-        private Supplier<D> m_dependenciesSupplier;
+        private Supplier<D> m_configIdSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
             super.init(initializer);
-            m_dependenciesSupplier = initializer.computeFromProvidedState(getDependenciesProvider());
+            m_configIdSupplier = initializer.getValueSupplier(ConfigIdRef.class, getConfigIdTypeReference());
         }
+
+        protected abstract TypeReference<D> getConfigIdTypeReference();
 
         @Override
         Map<String, TypedReaderTableSpec<T>> computeStateFromPaths(final List<FSPath> paths) {
@@ -239,8 +199,8 @@ public final class CommonReaderTransformationSettingsStateProviders {
             final var exec = new ExecutionMonitor();
             final var specs = new HashMap<String, TypedReaderTableSpec<T>>();
             final var config = getMultiTableReadConfig().getTableReadConfig();
-            final var dependencies = m_dependenciesSupplier.get();
-            dependencies.applyToConfig(config);
+            final var configIdSettings = m_configIdSupplier.get();
+            configIdSettings.applyToConfig(config);
             for (var path : paths) {
                 try {
                     specs.put(path.toFSLocation().getPath(),
@@ -254,14 +214,13 @@ public final class CommonReaderTransformationSettingsStateProviders {
         }
 
         public interface Dependent<T> {
-            <C extends ReaderSpecificConfig<C>, D extends ReaderSpecificDependencies<C>>
-                Class<? extends TypedReaderTableSpecsProvider<C, T, D>> getTypedReaderTableSpecsProvider();
+            <C extends ReaderSpecificConfig<C>, D extends ConfigIdSettings<C>>
+                Class<? extends TypedReaderTableSpecsProvider<C, D, T>> getTypedReaderTableSpecsProvider();
         }
     }
 
     abstract static class DependsOnTypedReaderTableSpecProvider<P, S, T>
-        implements StateProvider<P>, TypedReaderTableSpecsProvider.Dependent<T>,
-        ReaderSpecificDependenciesProvider.GetReferences, ExternalDataTypeSerializer<S, T> {
+        implements StateProvider<P>, TypedReaderTableSpecsProvider.Dependent<T>, ExternalDataTypeSerializer<S, T> {
 
         protected Supplier<Map<String, TypedReaderTableSpec<T>>> m_specSupplier;
 
@@ -269,7 +228,7 @@ public final class CommonReaderTransformationSettingsStateProviders {
         public void init(final StateProviderInitializer initializer) {
             initializer.computeAfterOpenDialog();
             m_specSupplier = initializer.computeFromProvidedState(getTypedReaderTableSpecsProvider());
-            getDependencyReferences().forEach(initializer::computeOnValueChange);
+            initializer.computeOnValueChange(ConfigIdRef.class);
             initializer.computeOnValueChange(FileChooserRef.class);
         }
 
@@ -502,8 +461,7 @@ public final class CommonReaderTransformationSettingsStateProviders {
         return DataTypeStringSerializer.stringToType(id);
     }
 
-    public abstract static class TransformationSettingsWidgetModification<C extends ConfigIdSettings<?>, S, T>
-        implements WidgetGroup.Modifier {
+    public abstract static class TransformationSettingsWidgetModification<S, T> implements WidgetGroup.Modifier {
 
         static class ConfigIdSettingsRef implements Modification.Reference {
         }
@@ -519,16 +477,12 @@ public final class CommonReaderTransformationSettingsStateProviders {
 
         @Override
         public void modify(final WidgetGroupModifier group) {
-            group.find(ConfigIdSettingsRef.class).addAnnotation(ValueReference.class)
-                .withValue(getConfigIdSettingsValueRef()).modify();
             group.find(SpecsRef.class).addAnnotation(ValueProvider.class).withValue(getSpecsValueProvider()).modify();
             group.find(TypeChoicesWidgetRef.class).addAnnotation(ChoicesWidget.class)
                 .withProperty("choicesProvider", getTypeChoicesProvider()).modify();
             group.find(TransformationElementSettingsArrayWidgetRef.class).addAnnotation(ValueProvider.class)
                 .withValue(getTransformationSettingsValueProvider()).modify();
         }
-
-        protected abstract Class<? extends Reference<C>> getConfigIdSettingsValueRef();
 
         protected abstract Class<? extends TableSpecSettingsProvider<S, T>> getSpecsValueProvider();
 
