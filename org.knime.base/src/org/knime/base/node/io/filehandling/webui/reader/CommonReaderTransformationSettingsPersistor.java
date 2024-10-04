@@ -87,7 +87,19 @@ import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.selector.UnknownColumnsTransformation;
 
 /**
+ * An implementation of this class should be used to persist the reader specific implementation of
+ * {@link CommonReaderTransformationSettings}.
+ *
+ * Note that the interfaced that need to be implemented are shared with some state providers within
+ * {@link CommonReaderTransformationSettingsStateProviders}, i.e., use extending interfaces with default implementations
+ * to allow for deduplication.
+ *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @param <C> The reader specific [C]onfiguration
+ * @param <I> The config [I]d settings used within the transformation settings
+ * @param <S> the type used to [S]erialize external data types
+ * @param <T> the type used to represent external data [T]ypes
+ * @param <R> the [R]eader specific implementation of {@link CommonReaderTransformationSettings}
  */
 @SuppressWarnings("restriction")
 public abstract class CommonReaderTransformationSettingsPersistor<C extends ReaderSpecificConfig<C>, //
@@ -95,8 +107,12 @@ public abstract class CommonReaderTransformationSettingsPersistor<C extends Read
     extends NodeSettingsPersistorWithConfigKey<R> implements ReaderSpecific.ProductionPathProviderAndTypeHierarchy<T>,
     ExternalDataTypeSerializer<S, T>, ConfigAndReader<C, T> {
 
+    /**
+     * @return The result of the default constructor of the settings.
+     */
     protected abstract R createDefaultTransformationSettings();
 
+    @SuppressWarnings("javadoc")
     protected abstract TableSpecConfigSerializer<T> createTableSpecConfigSerializer(ConfigIDLoader configIdLoader);
 
     private TableSpecConfigSerializer<T> createTableSpecConfigSerializer() {
@@ -105,6 +121,9 @@ public abstract class CommonReaderTransformationSettingsPersistor<C extends Read
         return createTableSpecConfigSerializer(configIdLoader);
     }
 
+    /**
+     * @return the config key used to store the configuration.
+     */
     protected abstract String getConfigIdSettingsKey();
 
     @Override

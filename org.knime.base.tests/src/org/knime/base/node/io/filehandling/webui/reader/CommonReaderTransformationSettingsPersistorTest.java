@@ -70,30 +70,30 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarch
  * Test utils for implementations of {@link CommonReaderTransformationSettingsPersistor}.
  *
  * @author Paul Bärnreuther
- * @param <T>
+ * @param <R> the reader specific transformation settings type
  */
 @SuppressWarnings({"unchecked", "rawtypes", "restriction"})
-public abstract class CommonReaderTransformationSettingsPersistorTest<T extends CommonReaderTransformationSettings> {
+public abstract class CommonReaderTransformationSettingsPersistorTest<R extends CommonReaderTransformationSettings> {
 
     private final CommonReaderTransformationSettingsPersistor m_persistor;
 
-    private final Class<? extends FieldNodeSettingsPersistor<T>> m_persistorClass;
+    private final Class<? extends FieldNodeSettingsPersistor<R>> m_persistorClass;
 
-    private final Class<T> m_settingsClass;
+    private final Class<R> m_settingsClass;
 
     /**
      * @param persistor
      * @param settingsClass
      */
     protected CommonReaderTransformationSettingsPersistorTest(
-        final CommonReaderTransformationSettingsPersistor persistor, final Class<T> settingsClass) {
+        final CommonReaderTransformationSettingsPersistor persistor, final Class<R> settingsClass) {
         m_persistor = persistor;
-        m_persistorClass = (Class<? extends FieldNodeSettingsPersistor<T>>)persistor.getClass();
+        m_persistorClass = (Class<? extends FieldNodeSettingsPersistor<R>>)persistor.getClass();
         m_settingsClass = settingsClass;
     }
 
-    protected void testSaveLoad(final T settings) throws InvalidSettingsException {
-        final var copy = CommonReaderNodeSettingsTest.saveLoad(m_persistorClass, m_settingsClass, settings);
+    protected void testSaveLoad(final R settings) throws InvalidSettingsException {
+        final R copy = CommonReaderNodeSettingsTest.saveLoad(m_persistorClass, m_settingsClass, settings);
         assertEquals(settings.m_persistorSettings.m_takeColumnsFrom, copy.m_persistorSettings.m_takeColumnsFrom);
         assertEquals(settings.m_columnTransformation.length, copy.m_columnTransformation.length);
         for (int i = 0; i < settings.m_columnTransformation.length; i++) {
@@ -111,25 +111,25 @@ public abstract class CommonReaderTransformationSettingsPersistorTest<T extends 
     /**
      * @return the default settings to use for testing (e.g. new CSVTransformationSettings())
      */
-    protected abstract T constructSettings();
+    protected abstract R constructSettings();
 
     /**
      * @param columnFilterMode
      * @return transformation settings with the specified columnFilterMode
      */
-    protected T createTransformationSettings(final ColumnFilterMode columnFilterMode) {
-        final var transformationSettings = constructSettings();
+    protected R createTransformationSettings(final ColumnFilterMode columnFilterMode) {
+        final R transformationSettings = constructSettings();
         transformationSettings.m_persistorSettings.m_takeColumnsFrom = columnFilterMode;
         return transformationSettings;
     }
 
     /**
-     * @param <S>
-     * @param type
+     * @param <S> the type external data types are made serializable with
+     * @param type of the column spec
      * @return transformation settings with a single column spec with the specified type
      */
-    protected <S> T createTransformationSettingsWithSpecs(final S type) {
-        final var transformationSettings = constructSettings();
+    protected <S> R createTransformationSettingsWithSpecs(final S type) {
+        final R transformationSettings = constructSettings();
 
         final var specs = List.of(new TableSpecSettings<>("foo", List.of(new ColumnSpecSettings<S>("bar", type))));
         transformationSettings.m_persistorSettings.m_specs = specs;

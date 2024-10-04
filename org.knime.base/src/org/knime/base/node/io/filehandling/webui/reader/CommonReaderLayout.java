@@ -60,6 +60,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.Effe
 @SuppressWarnings({"restriction", "java:S1214", "java:S103"})
 public interface CommonReaderLayout {
 
+    /**
+     * The first section in the dialog containing the file selection.
+     */
     @Section(title = "File")
     interface File {
         interface Source {
@@ -77,6 +80,9 @@ public interface CommonReaderLayout {
         }
     }
 
+    /**
+     * For limiting the data.
+     */
     @Section(title = "Data Area")
     @After(File.class)
     interface DataArea {
@@ -112,6 +118,7 @@ public interface CommonReaderLayout {
         }
     }
 
+    @SuppressWarnings("javadoc")
     @Section(title = "Column and Data Type Detection", advanced = true)
     @After(DataArea.class)
     interface ColumnAndDataTypeDetection {
@@ -144,6 +151,9 @@ public interface CommonReaderLayout {
         }
     }
 
+    /**
+     * For configuring multiple files
+     */
     @Section(title = "Multiple File Handling", advanced = true)
     @After(ColumnAndDataTypeDetection.class)
     interface MultipleFileHandling {
@@ -179,6 +189,9 @@ public interface CommonReaderLayout {
         }
     }
 
+    /**
+     * For adjusting inclusion, naming and types of the read columns and any unknown columns.
+     */
     @Section(title = "Table Transformation", description = Transformation.DESCRIPTION, advanced = true)
     @Effect(predicate = UseNewSchema.class, type = EffectType.HIDE)
     @After(MultipleFileHandling.class)

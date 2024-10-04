@@ -61,7 +61,6 @@ import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformati
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-@SuppressWarnings("restriction")
 final class CSVTransformationSettingsStateProviders {
 
     static final class TypedReaderTableSpecsProvider

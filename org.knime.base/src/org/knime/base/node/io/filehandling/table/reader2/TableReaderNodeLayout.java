@@ -56,7 +56,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings({"restriction", "java:S1214"})
-public interface TableReaderNodeLayout {
+interface TableReaderNodeLayout {
 
     @After(CommonReaderLayout.MultipleFileHandling.HowToCombineColumns.class)
     @Before(CommonReaderLayout.MultipleFileHandling.AppendFilePathColumn.class)

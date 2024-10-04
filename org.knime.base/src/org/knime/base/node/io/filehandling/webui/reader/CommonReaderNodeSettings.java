@@ -56,6 +56,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
@@ -75,17 +76,31 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 
 /**
+ * This class contains nested classes that define common settings of reader nodes. They should be implemented by all
+ * reader nodes, while slight modifications are possible via {@link Modification}.
+ *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
 public final class CommonReaderNodeSettings {
 
+    /**
+     * Main settings for reader nodes: The file source(s). Use {@link Settings.SetFileReaderWidgetExtensions} to set
+     * file extensions.
+     */
     public static class Settings implements WidgetGroup, PersistableSettings {
 
+        /**
+         * Access the chosen file(s) by this reference.
+         */
         public static final class FileChooserRef extends ReferenceStateProvider<FileChooser>
             implements Modification.Reference {
         }
 
+        /**
+         * Set the file extensions for the file reader widget using {@link Modification} on the implementation of this
+         * class or the field where it is used.
+         */
         public abstract static class SetFileReaderWidgetExtensions implements WidgetGroup.Modifier {
             @Override
             public void modify(final WidgetGroupModifier group) {
@@ -93,9 +108,13 @@ public final class CommonReaderNodeSettings {
                     .withProperty("fileExtensions", getExtensions()).modify();
             }
 
+            /**
+             * @return the the valid extensions by which the browsable files should be filtered
+             */
             protected abstract String[] getExtensions();
         }
 
+        @SuppressWarnings("javadoc")
         @Widget(title = "Source", description = CommonReaderLayout.File.Source.DESCRIPTION)
         @ValueReference(FileChooserRef.class)
         @Layout(CommonReaderLayout.File.Source.class)
@@ -115,12 +134,20 @@ public final class CommonReaderNodeSettings {
             boolean m_enabledStatus = true;
         }
 
+        /**
+         * Access {@link #m_firstColumnContainsRowIds} by this reference.
+         */
         public static class FirstColumnContainsRowIdsRef extends ReferenceStateProvider<Boolean> {
         }
 
+        /**
+         * This reference is meant to be used to possibly modify title and description of
+         * {@link #m_firstColumnContainsRowIds}.
+         */
         public static class UseExistingRowIdWidgetRef implements Modification.Reference {
         }
 
+        @SuppressWarnings("javadoc")
         @Widget(title = "Use existing RowID", description = UseExistingRowId.DESCRIPTION)
         @ValueReference(FirstColumnContainsRowIdsRef.class)
         @Layout(UseExistingRowId.class)
@@ -129,8 +156,12 @@ public final class CommonReaderNodeSettings {
         public boolean m_firstColumnContainsRowIds;
     }
 
+    /**
+     * Advanced settings for reader nodes. They should be implemented by all reader nodes.
+     */
     public static class AdvancedSettings implements WidgetGroup, PersistableSettings {
-        public enum HowToCombineColumnsOption {
+
+        enum HowToCombineColumnsOption {
                 @Label(value = "Fail if different",
                     description = CommonReaderLayout.MultipleFileHandling.HowToCombineColumns.DESCRIPTION_FAIL)
                 FAIL(ColumnFilterMode.UNION),
@@ -188,7 +219,7 @@ public final class CommonReaderNodeSettings {
             }
         }
 
-        public static class HowToCombineColumnsOptionRef implements Reference<HowToCombineColumnsOption> {
+        static class HowToCombineColumnsOptionRef implements Reference<HowToCombineColumnsOption> {
         }
 
         @Widget(title = "How to combine columns",
@@ -200,7 +231,7 @@ public final class CommonReaderNodeSettings {
         public HowToCombineColumnsOption m_howToCombineColumns = HowToCombineColumnsOption.FAIL;
         // TODO NOSONAR this setting should be shown when reading multiple files; currently blocked by UIEXT-1805
 
-        public static class AppendPathColumnRef extends ReferenceStateProvider<Boolean> {
+        static class AppendPathColumnRef extends ReferenceStateProvider<Boolean> {
         }
 
         static final class AppendPathColumn implements PredicateProvider {
@@ -219,7 +250,7 @@ public final class CommonReaderNodeSettings {
         @Persist(configKey = "append_path_column", hidden = true)
         boolean m_appendPathColumn;
 
-        public static class FilePathColumnNameRef extends ReferenceStateProvider<String> {
+        static class FilePathColumnNameRef extends ReferenceStateProvider<String> {
         }
 
         @Widget(title = "File path column name",
@@ -246,7 +277,6 @@ public final class CommonReaderNodeSettings {
 
         static final class IfSchemaChangesPersistor implements FieldNodeSettingsPersistor<IfSchemaChangesOption> {
 
-            // ??? in the csv reader, this is not hidden / internal
             private static final String CFG_SAVE_TABLE_SPEC_CONFIG =
                 "save_table_spec_config" + SettingsModel.CFGKEY_INTERNAL;
 
@@ -297,6 +327,10 @@ public final class CommonReaderNodeSettings {
         IfSchemaChangesOption m_ifSchemaChangesOption = IfSchemaChangesOption.FAIL;
     }
 
+    /**
+     * To be used on the respective field. The field itself is not abstracted, since it is persisted in a different
+     * location for different readers.
+     */
     public static final class SkipFirstDataRowsPersistor implements FieldNodeSettingsPersistor<Long> {
 
         private static final String CFG_SKIP_DATA_ROWS = "skip_data_rows";
@@ -320,9 +354,17 @@ public final class CommonReaderNodeSettings {
         }
     }
 
+    /**
+     * To be used on the respective field. The field itself is not abstracted, since it is persisted in a different
+     * location for different readers.
+     */
     public interface LimitNumberOfRowsRef extends Reference<Boolean> {
     }
 
+    /**
+     * To be used on the respective field. The field itself is not abstracted, since it is persisted in a different
+     * location for different readers.
+     */
     public static final class LimitNumberOfRowsPredicate implements PredicateProvider {
         @Override
         public Predicate init(final PredicateInitializer i) {

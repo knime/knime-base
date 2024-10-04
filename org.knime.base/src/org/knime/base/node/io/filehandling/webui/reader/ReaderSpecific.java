@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TableSpecSettings;
+import org.knime.core.data.DataType;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.RawSpecFactory;
 import org.knime.filehandling.core.node.table.reader.TableReader;
@@ -65,22 +66,53 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec.T
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 
 /**
+ *
+ * This utility class provides interfaces that are used to define the settings for a table reader. Since one does need
+ * the same interface for multiple classes (e.g. in the {@link CommonReaderTransformationSettingsPersistor} and for
+ * classes in {@link CommonReaderTransformationSettingsStateProviders}, extends these interfaces by ones that overwrite
+ * the methods with default implementations and extend those by the respective classes.
+ *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 public final class ReaderSpecific {
 
+    /**
+     * The reader and respective multi table read config that is to be used for this reader.
+     * <p>
+     * This interface should not be implemented directly but via an intermediate interface with default implementations
+     * to avoid duplication.
+     * </p>
+     *
+     * @param <C> The reader specific [C]onfiguration
+     * @param <T> the type used to represent external data [T]ypes
+     */
     public interface ConfigAndReader<C extends ReaderSpecificConfig<C>, T> {
 
         /**
-         * ??? We need to use the AbstractMultiTableReadConfig as a type here because the MultiTableReadConfig does not
+         * We need to use the AbstractMultiTableReadConfig as a type here because the MultiTableReadConfig does not
          * allow to set the TableReadConfig generic.
+         *
+         * @param <S> the type of the multi table read config
+         * @return an instance of the multi table read config whose reader specific config is the default one
          */
         <S extends AbstractMultiTableReadConfig<C, DefaultTableReadConfig<C>, T, S>>
             AbstractMultiTableReadConfig<C, DefaultTableReadConfig<C>, T, S> getMultiTableReadConfig();
 
+        /**
+         * @param <V> the type of tokens a row read in consists of
+         * @return the reader
+         */
         <V> TableReader<C, T, V> getTableReader();
     }
 
+    /**
+     * <ul>
+     * <li>For <T> being {@link Class}, use the {@link ClassNoopSerializer}.</li>
+     * <li>For <T> being {@link DataType}, use the {@link DataTypeStringSerializer}.</li>
+     *
+     * @param <S> the type used to [S]erialize external data types
+     * @param <T> the type used to represent external data [T]ypes
+     */
     interface ExternalDataTypeSerializer<S, T> {
 
         S toSerializableType(T externalType);
@@ -103,12 +135,30 @@ public final class ReaderSpecific {
         return individualSpecs;
     }
 
+    /**
+     * <p>
+     * This interface should not be implemented directly but via an intermediate interface with default implementations
+     * to avoid duplication.
+     * </p>
+     *
+     * @param <T> the type used to represent external data [T]ypes
+     */
     public interface ProductionPathProviderAndTypeHierarchy<T> {
 
+        /**
+         * @return the reader specific production path provider
+         */
         ProductionPathProvider<T> getProductionPathProvider();
 
+        /**
+         * @return the reader specific type hierarchy
+         */
         TypeHierarchy<T, T> getTypeHierarchy();
 
+        /**
+         * {@noimplement} Same for all readers. This method is part of this interface just for convenience.
+         */
+        @SuppressWarnings("javadoc")
         default RawSpec<T> toRawSpec(final Map<String, TypedReaderTableSpec<T>> spec) {
             if (spec.isEmpty()) {
                 final var emptySpec = new TypedReaderTableSpec<T>();

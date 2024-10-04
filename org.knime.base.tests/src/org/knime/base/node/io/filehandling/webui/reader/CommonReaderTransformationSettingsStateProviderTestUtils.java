@@ -70,7 +70,8 @@ import org.knime.testing.node.dialog.updates.UpdateSimulator;
 import org.knime.testing.node.dialog.updates.UpdateSimulator.UpdateSimulatorResult;
 
 /**
- * Utility class for reader tests to access package-scoped fields.
+ * Utility class for reader tests to access package-scoped fields relevant to testing updates within the transformation
+ * table spec settings.
  *
  * @author Paul Bärnreuther
  */

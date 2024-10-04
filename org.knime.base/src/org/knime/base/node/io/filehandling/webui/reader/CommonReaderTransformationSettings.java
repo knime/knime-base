@@ -78,21 +78,32 @@ import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
+ * Extend these settings to define the transformation settings for a reader node. Use the {@link ConfigIdSettings}
+ * generic to define dependencies of reader specific settings to how the data is read. To enable dialog updates, use
+ * {@link Modification} for a suitable implementation of {@link TransformationSettingsWidgetModification} on the
+ * implementing class.
+ *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
- * @param <C> the type of the config settings
- * @param <S> the type of the serializable form for external data types
+ * @param <I> The config [I]d settings used within the transformation settings
+ * @param <S> the type used to [S]erialize external data types
  */
 @SuppressWarnings("restriction")
 @Layout(CommonReaderLayout.Transformation.class)
-public abstract class CommonReaderTransformationSettings<C extends ConfigIdSettings<?>, S>
+public abstract class CommonReaderTransformationSettings<I extends ConfigIdSettings<?>, S>
     implements PersistableSettings, WidgetGroup {
 
-    protected CommonReaderTransformationSettings(final C configId) {
+    /**
+     * @param configId the initial value of the config id. It can be independent from the respective values in the
+     *            settings and just serves as a starting point.
+     */
+    protected CommonReaderTransformationSettings(final I configId) {
         m_persistorSettings = new PersistorSettings<>(configId);
     }
 
@@ -100,16 +111,27 @@ public abstract class CommonReaderTransformationSettings<C extends ConfigIdSetti
         // Default constructor required as per {@link PersistablSettings} contract
     }
 
+    /**
+     * This class needs to be implemented if there exist reader specific settings that need to be applied to the reader
+     * specific config before reading data.
+     *
+     * @param <C> the reader specific config.
+     */
     public static class ConfigIdSettings<C extends ReaderSpecificConfig<C>>
         implements WidgetGroup, PersistableSettings {
         /**
-         * @param config
+         * @param tableReadConfig to apply settings to
          */
-        protected void applyToConfig(final DefaultTableReadConfig<C> config) {
+        protected void applyToConfig(final DefaultTableReadConfig<C> tableReadConfig) {
             // Do nothing per default
         }
     }
 
+    /**
+     * The serializable equivalent of the {@link TypedReaderColumnSpec}
+     *
+     * @param <S> the serializable type for external data
+     */
     static final class ColumnSpecSettings<S> implements WidgetGroup, PersistableSettings {
 
         String m_name;
@@ -125,13 +147,18 @@ public abstract class CommonReaderTransformationSettings<C extends ConfigIdSetti
         }
     }
 
-    public static final class TableSpecSettings<T> implements WidgetGroup, PersistableSettings {
+    /**
+     * The serializable equivalent of the {@link TypedReaderTableSpec}
+     *
+     * @param <S> the serializable type for external data
+     */
+    public static final class TableSpecSettings<S> implements WidgetGroup, PersistableSettings {
 
         String m_sourceId;
 
-        List<ColumnSpecSettings<T>> m_spec;
+        List<ColumnSpecSettings<S>> m_spec;
 
-        TableSpecSettings(final String sourceId, final List<ColumnSpecSettings<T>> spec) {
+        TableSpecSettings(final String sourceId, final List<ColumnSpecSettings<S>> spec) {
             m_sourceId = sourceId;
             m_spec = spec;
         }
@@ -148,13 +175,14 @@ public abstract class CommonReaderTransformationSettings<C extends ConfigIdSetti
 
     /**
      * TODO NOSONAR UIEXT-1946 These settings are sent to the frontend where they are not needed. They are merely held
-     * here to be used in the CSVTransformationSettingsPersistor. We should look for an alternative mechanism to provide
+     * here to be used in the {@link CommonReaderTransformationSettingsPersistor} and the
+     * {@link CommonReaderTransformationSettingsStateProviders}. We should look for an alternative mechanism to provide
      * these settings to the persistor. This would then also allow us to use non-serializable types like the
      * TypedReaderTableSpec instead of the TableSpecSettings, saving us the back-and-forth conversion.
      */
-    static class PersistorSettings<C extends ConfigIdSettings<?>, S> implements WidgetGroup, PersistableSettings {
+    static class PersistorSettings<I extends ConfigIdSettings<?>, S> implements WidgetGroup, PersistableSettings {
 
-        private PersistorSettings(final C configId) {
+        private PersistorSettings(final I configId) {
             CheckUtils.checkArgumentNotNull(configId);
             m_configId = configId;
         }
@@ -164,7 +192,7 @@ public abstract class CommonReaderTransformationSettings<C extends ConfigIdSetti
         }
 
         @ValueReference(ConfigIdRef.class)
-        C m_configId;
+        I m_configId;
 
         @ValueProvider(SourceIdProvider.class)
         String m_sourceId = "";
@@ -187,7 +215,7 @@ public abstract class CommonReaderTransformationSettings<C extends ConfigIdSetti
         ColumnFilterMode m_takeColumnsFrom = ColumnFilterMode.UNION;
     }
 
-    PersistorSettings<C, S> m_persistorSettings = new PersistorSettings<>();
+    PersistorSettings<I, S> m_persistorSettings = new PersistorSettings<>();
 
     static class TakeColumnsFromProvider implements StateProvider<ColumnFilterMode> {
 
