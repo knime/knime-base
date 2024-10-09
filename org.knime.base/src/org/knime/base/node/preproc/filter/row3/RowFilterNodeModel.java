@@ -191,19 +191,19 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
         }
     }
 
-    private static RowFilterPredicate createFilterPredicate(final boolean isAnd,
+    private static IndexedRowReadPredicate createFilterPredicate(final boolean isAnd,
         final List<FilterCriterion> rowNumberCriteria, final List<FilterCriterion> dataCriteria,
         final DataTableSpec spec, final long tableSize) throws InvalidSettingsException {
         final var rowNumbers = RowNumberPredicate.buildPredicate(isAnd, rowNumberCriteria, tableSize);
         final var data = RowReadPredicate.buildPredicate(isAnd, dataCriteria, spec);
         if (rowNumbers == null) {
-            return (index, read) -> data.test(read);
+            return data::test;
         }
         if (data == null) {
             throw new IllegalStateException("Row number predicate without data predicate, should have used slicing");
         }
-        return isAnd ? (index, read) -> rowNumbers.test(index) && data.test(read) // NOSONAR this is not too hard to read
-            : (index, read) -> rowNumbers.test(index) || data.test(read); // NOSONAR see above
+        return isAnd ? (index, read) -> rowNumbers.test(index) && data.test(index, read) // NOSONAR this is not too hard to read
+            : (index, read) -> rowNumbers.test(index) || data.test(index, read); // NOSONAR see above
     }
 
     /**
@@ -219,26 +219,15 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
         final var dataCriteria = new ArrayList<FilterCriterion>();
         for (final var c : criteria) {
             final var selected = c.m_column.getSelected();
-            if (AbstractRowFilterNodeSettings.isRowNumberSelected(selected)) {
+            // in case of REGEX and WILDCARD operators, we treat the row number column as a data column
+            if (AbstractRowFilterNodeSettings.isRowNumberSelected(selected)
+                    && RowNumberFilter.supportsOperator(c.m_operator)) {
                 rowNumberCriteria.add(c);
             } else {
                 dataCriteria.add(c);
             }
         }
         return Pair.create(rowNumberCriteria, dataCriteria);
-    }
-
-
-
-    @FunctionalInterface
-    interface RowFilterPredicate {
-        /**
-         * Tests the predicate with the supplied row index (0-based) and {@link RowRead row read}.
-         * @param index 0-based index of row
-         * @param read row data
-         * @return {@code true} if the predicate matches the supplied row, {@code false} otherwise
-         */
-        boolean test(final long index, final RowRead read);
     }
 
     /**

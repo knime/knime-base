@@ -55,7 +55,6 @@ import java.util.function.BiPredicate;
 import org.knime.base.node.preproc.filter.row3.RowReadPredicate.BooleanValuePredicate;
 import org.knime.core.data.BooleanValue;
 import org.knime.core.data.BoundedValue;
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.IntValue;
 import org.knime.core.data.LongValue;
@@ -149,13 +148,14 @@ enum FilterOperator {
 
     private interface InputSpecValidator extends BiPredicate<SpecialColumns, DataType> {
 
-        default void validate(final DataColumnSpec colSpec, final DynamicValuesInput predicateValues)
+        default void validate(final String name, final DataType type, final DynamicValuesInput predicateValues)
             throws InvalidSettingsException {
             predicateValues.checkParseError();
-            validateImpl(colSpec, predicateValues);
+            validateImpl(name, type, predicateValues);
         }
 
-        void validateImpl(DataColumnSpec colSpec, DynamicValuesInput predicateValues) throws InvalidSettingsException;
+        void validateImpl(final String columnName, DataType type, DynamicValuesInput predicateValues)
+                throws InvalidSettingsException;
     }
 
     boolean isApplicableFor(final SpecialColumns specialColumn, final DataType dataType) {
@@ -166,9 +166,9 @@ enum FilterOperator {
         return m_isOffered.test(specialColumn, dataType);
     }
 
-    void validate(final DataColumnSpec colSpec, final DynamicValuesInput predicateValues)
+    void validate(final String name, final DataType type, final DynamicValuesInput predicateValues)
         throws InvalidSettingsException {
-        m_validator.validate(colSpec, predicateValues);
+        m_validator.validate(name, type, predicateValues);
     }
 
     String label() {
@@ -183,7 +183,7 @@ enum FilterOperator {
         }
 
         @Override
-        public void validateImpl(final DataColumnSpec colSpec, final DynamicValuesInput predicateValues) {
+        public void validateImpl(final String name, final DataType type, final DynamicValuesInput predicateValues) {
             // no-op
         }
     }
@@ -212,9 +212,9 @@ enum FilterOperator {
         }
 
         @Override
-        public void validateImpl(final DataColumnSpec colSpec, final DynamicValuesInput predicateValues)
+        public void validateImpl(final String name, final DataType type, final DynamicValuesInput predicateValues)
             throws InvalidSettingsException {
-            predicateValues.validate(colSpec);
+            predicateValues.validate(name, type);
         }
     }
 
@@ -228,17 +228,15 @@ enum FilterOperator {
         }
 
         @Override
-        public void validateImpl(final DataColumnSpec colSpec, final DynamicValuesInput predicateValues)
+        public void validateImpl(final String name, final DataType type, final DynamicValuesInput predicateValues)
             throws InvalidSettingsException {
             DataType refCellType = predicateValues.getCellAt(0).orElseThrow().getType();
-            DataType inputType = colSpec.getType();
-            if (!Objects.equals(refCellType.getPreferredValueClass(), inputType.getPreferredValueClass())) {
-                final var inputName = colSpec.getName();
+            if (!Objects.equals(refCellType.getPreferredValueClass(), type.getPreferredValueClass())) {
                 throw Message.builder()
-                    .withSummary("Cannot compare column \"%s\" for (in)equality.".formatted(inputName))
+                    .withSummary("Cannot compare column \"%s\" for (in)equality.".formatted(name))
                     .addTextIssue(
                         "Table column \"%s\" is of type \"%s\", but reference value is of incompatible type \"%s\"."
-                            .formatted(inputName, inputType.toPrettyString(), refCellType.toPrettyString()))
+                            .formatted(name, type.toPrettyString(), refCellType.toPrettyString()))
                     .addResolutions("Review configuration if the selected column is correct",
                         "Convert the input column to \"%s\" using a converter node"
                             .formatted(refCellType.toPrettyString()))
@@ -254,13 +252,13 @@ enum FilterOperator {
         }
 
         @Override
-        public void validateImpl(final DataColumnSpec colSpec, final DynamicValuesInput predicateValues)
+        public void validateImpl(final String name, final DataType type, final DynamicValuesInput predicateValues)
             throws InvalidSettingsException {
-            if (!colSpec.getType().isCompatible(BooleanValue.class)) {
+            if (!type.isCompatible(BooleanValue.class)) {
                 throw Message.builder()
                     .withSummary("Cannot apply boolean operators to "
-                        + "column \"%s\" of type \"%s\" - it is not boolean-compatible.".formatted(colSpec.getName(),
-                            colSpec.getType().toPrettyString()))
+                        + "column \"%s\" of type \"%s\" - it is not boolean-compatible.".formatted(name,
+                            type.toPrettyString()))
                     .addResolutions("Review configuration if the selected column is correct",
                         "Convert the input column to boolean using a converter node, e.g. an expression node")
                     .build().orElseThrow().toInvalidSettingsException();
@@ -284,13 +282,13 @@ enum FilterOperator {
         }
 
         @Override
-        public void validateImpl(final DataColumnSpec colSpec, final DynamicValuesInput predicateValues)
+        public void validateImpl(final String columnName, final DataType type, final DynamicValuesInput predicateValues)
             throws InvalidSettingsException {
-            if (!isCompatible(colSpec.getType())) {
+            if (!isCompatible(type)) {
                 throw Message.builder()
                     .withSummary("Cannot apply string pattern matching to "
                         + "column \"%s\" of type \"%s\" - it is not string-compatible and not numeric."
-                            .formatted(colSpec.getName(), colSpec.getType().toPrettyString()))
+                            .formatted(columnName, type.toPrettyString()))
                     .addResolutions("Review configuration if the selected column is correct",
                         "Convert the input column to string using a converter node")
                     .build().orElseThrow().toInvalidSettingsException();
@@ -305,7 +303,7 @@ enum FilterOperator {
         }
 
         @Override
-        public void validateImpl(final DataColumnSpec colSpec, final DynamicValuesInput predicateValues)
+        public void validateImpl(final String name, final DataType type, final DynamicValuesInput predicateValues)
             throws InvalidSettingsException {
             final var count = (LongValue)predicateValues.getCellAt(0).orElseThrow();
             if (count.getLongValue() < 0) {

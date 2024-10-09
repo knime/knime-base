@@ -63,7 +63,6 @@ import org.knime.core.data.LongValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.data.v2.RowRead;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.util.WildcardToRegexUtil;
@@ -77,7 +76,7 @@ import org.knime.filehandling.core.util.WildcardToRegexUtil;
 @SuppressWarnings("restriction") // webui
 final class RowReadPredicate {
 
-    static Predicate<RowRead> buildPredicate(final boolean isAnd, final Iterable<FilterCriterion> filterCriteria,
+    static IndexedRowReadPredicate buildPredicate(final boolean isAnd, final Iterable<FilterCriterion> filterCriteria,
         final DataTableSpec inSpec) throws InvalidSettingsException {
         final var iter = filterCriteria.iterator();
         if (!iter.hasNext()) {
@@ -91,12 +90,18 @@ final class RowReadPredicate {
         return filterPredicate;
     }
 
-    private static Predicate<RowRead> createFrom(final FilterCriterion criterion, final DataTableSpec spec)
+    private static IndexedRowReadPredicate createFrom(final FilterCriterion criterion, final DataTableSpec spec)
         throws InvalidSettingsException {
 
         // Special case for RowID, which is not a DataValue
         if (criterion.isFilterOnRowKeys()) {
-            return rowKeyPredicate(criterion);
+            final var predicate = rowKeyPredicate(criterion);
+            return predicate::test;
+        }
+
+        // case where row numbers are treated as data, e.g. WILDCARD/REGEX matching
+        if (criterion.isFilterOnRowNumbers()) {
+            return rowNumberPredicate(criterion);
         }
 
         final var column = criterion.m_column.getSelected();
@@ -105,9 +110,9 @@ final class RowReadPredicate {
 
         // Special case for "IS (NOT) MISSING" operators
         if (operator == FilterOperator.IS_MISSING) {
-            return row -> row.isMissing(columnIndex);
+            return (i, row) -> row.isMissing(columnIndex);
         } else if (operator == FilterOperator.IS_NOT_MISSING) {
-            return row -> !row.isMissing(columnIndex);
+            return (i, row) -> !row.isMissing(columnIndex);
         }
 
         final var columnSpec = spec.getColumnSpec(columnIndex);
@@ -120,19 +125,30 @@ final class RowReadPredicate {
 
         final var valuePredicate = getValuePredicate(criterion, inputColumnType, columnIndex);
         // missings never match
-        return rowRead -> !rowRead.isMissing(columnIndex) && valuePredicate.test(rowRead);
+        return (i, row) -> !row.isMissing(columnIndex) && valuePredicate.test(i, row);
     }
 
-    private static Predicate<RowRead> rowKeyPredicate(final FilterCriterion criterion) throws InvalidSettingsException {
+    private static IndexedRowReadPredicate rowKeyPredicate(final FilterCriterion criterion)
+            throws InvalidSettingsException {
         final int index = 0; // take from first widget input value
         final var predicate = new StringPredicate(criterion.m_operator, isCaseSensitiveMatch(criterion, index),
             criterion.m_predicateValues.getCellAt(index).map(c -> (StringCell)c).map(StringCell::getStringValue)
                 .orElseThrow(() -> new InvalidSettingsException("Missing string value for RowID comparison")));
-        return row -> predicate.test(row.getRowKey().getString());
+        return (i, row) -> predicate.test(row.getRowKey().getString());
     }
 
-    private static Predicate<RowRead> getValuePredicate(final FilterCriterion criterion, final DataType inputColumnType,
-        final int columnIndex) throws InvalidSettingsException {
+    private static IndexedRowReadPredicate rowNumberPredicate(final FilterCriterion criterion)
+        throws InvalidSettingsException {
+        final int index = 0; // first widget value
+        final var predicate = new StringPredicate(criterion.m_operator, false,
+            criterion.m_predicateValues.getCellAt(index).map(c -> (StringCell)c).map(StringCell::getStringValue)
+                .orElseThrow(() -> new InvalidSettingsException("Missing reference value for row number comparison")));
+        // translate from index to row number
+        return (idx, row) -> predicate.test(Long.toString(idx + 1));
+    }
+
+    private static IndexedRowReadPredicate getValuePredicate(final FilterCriterion criterion,
+        final DataType inputColumnType, final int columnIndex) throws InvalidSettingsException {
         final var operator = criterion.m_operator;
         // special case Boolean
         if (BooleanValuePredicate.isApplicableFor(operator)) {
@@ -140,7 +156,7 @@ final class RowReadPredicate {
                 "Unsupported data type \"%s\" for boolean operator \"%s\"", inputColumnType.getName(),
                 operator.label());
             final var booleanPredicate = new BooleanValuePredicate(operator);
-            return rowRead -> booleanPredicate.test(rowRead.<BooleanValue> getValue(columnIndex));
+            return (i, row) -> booleanPredicate.test(row.<BooleanValue> getValue(columnIndex));
         }
 
         final var referenceCell = criterion.m_predicateValues.getCellAt(0)
@@ -154,10 +170,10 @@ final class RowReadPredicate {
 
         // everything else
         final var predicate = new DataValuePredicate(operator, referenceCell);
-        return rowRead -> predicate.test(rowRead.getValue(columnIndex));
+        return (i, row) -> predicate.test(row.getValue(columnIndex));
     }
 
-    private static Predicate<RowRead> getStringPredicate(final FilterCriterion criterion,
+    private static IndexedRowReadPredicate getStringPredicate(final FilterCriterion criterion,
         final DataType inputColumnType, final int columnIndex, final DataCell referenceCell)
             throws InvalidSettingsException {
 
@@ -166,7 +182,7 @@ final class RowReadPredicate {
 
         if (inputColumnType.isCompatible(StringValue.class)) {
             // already a String type, no need to convert read values
-            return rowRead -> stringPredicate.test(rowRead.<StringValue> getValue(columnIndex).getStringValue());
+            return (i, row) -> stringPredicate.test(row.<StringValue> getValue(columnIndex).getStringValue());
         }
 
         // convert numbers to String
@@ -175,11 +191,11 @@ final class RowReadPredicate {
                 "Unsupported column type \"%s\" for string-based comparison.".formatted(inputColumnType.getName()));
         }
         if (inputColumnType.isCompatible(IntValue.class)) {
-            return rowRead -> stringPredicate
-                .test(String.valueOf(rowRead.<IntValue> getValue(columnIndex).getIntValue()));
+            return (i, row) -> stringPredicate
+                .test(String.valueOf(row.<IntValue> getValue(columnIndex).getIntValue()));
         }
-        return rowRead -> stringPredicate
-            .test(String.valueOf(rowRead.<LongValue> getValue(columnIndex).getLongValue()));
+        return (i, row) -> stringPredicate
+            .test(String.valueOf(row.<LongValue> getValue(columnIndex).getLongValue()));
     }
 
     private static boolean isCaseSensitiveMatch(final FilterCriterion criterion, final int referenceValueIndex) {

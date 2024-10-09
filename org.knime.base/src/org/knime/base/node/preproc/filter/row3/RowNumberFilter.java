@@ -70,7 +70,7 @@ import com.google.common.collect.RangeSet;
 import com.google.common.collect.TreeRangeSet;
 
 /**
- * Utility to filter on row numbers.
+ * Utility to filter on row numbers by numeric value.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
@@ -95,9 +95,13 @@ final class RowNumberFilter {
         // hidden
     }
 
+    static boolean supportsOperator(final FilterOperator op) {
+        return SUPPORTED_OPERATORS.contains(op);
+    }
+
     private static void validateRowNumberOperatorSupported(final FilterOperator op)
             throws InvalidSettingsException {
-        CheckUtils.checkSetting(SUPPORTED_OPERATORS.contains(op),
+        CheckUtils.checkSetting(supportsOperator(op),
             "Cannot use operator \"%s\" on row numbers.", op.m_label);
     }
 
