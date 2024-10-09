@@ -100,7 +100,7 @@ final class AbstractRowFilterNodeSettingsTest {
     @Test
     void testTypeAndOperatorInputRowNumber() {
         final var rowNumberFilterInput = inputFor(SpecialColumns.ROW_NUMBERS.toColumnSelection(), FilterOperator.EQ);
-        final var expected = DynamicValuesInput.forRowNumber();
+        final var expected = DynamicValuesInput.forRowNumber(LongCell.TYPE);
         assertThat(rowNumberFilterInput).as("The initial value input for RowNumbers is 'RowNumber = \"1\"'")
             .isEqualTo(expected);
     }

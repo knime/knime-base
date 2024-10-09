@@ -204,7 +204,16 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
 
         void validate(final DataTableSpec spec) throws InvalidSettingsException {
             if (isFilterOnRowNumbers()) {
-                RowNumberFilter.getAsFilterSpec(this);
+                if (RowNumberFilter.supportsOperator(m_operator)) {
+                    RowNumberFilter.getAsFilterSpec(this);
+                } else if (m_operator == FilterOperator.REGEX || m_operator == FilterOperator.WILDCARD) {
+                    // REGEX and WILDCARD require StringCell.TYPE
+                    m_operator.validate("Row number", m_operator.getRequiredInputType().orElseThrow(),
+                        m_predicateValues);
+                } else {
+                    throw new InvalidSettingsException(
+                        "Filter operator \"%s\" cannot be applied to row numbers.".formatted(m_operator.label()));
+                }
                 return;
             }
 
@@ -221,7 +230,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
             final var columnName = m_column.getSelected();
             final var colSpec = spec.getColumnSpec(columnName);
             CheckUtils.checkSettingNotNull(colSpec, "Unknown column \"%s\".", columnName);
-            operator.validate(colSpec, m_predicateValues);
+            operator.validate(columnName, colSpec.getType(), m_predicateValues);
         }
 
         boolean isFilterOnRowKeys() {
@@ -295,13 +304,15 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                 final var selected = m_selectedColumn.get().getSelected();
                 final var dts = inputSpec.get();
                 final var columnSpec = dts.getColumnSpec(selected);
+                final var operatorRequiredType = m_currentOperator.get().getRequiredInputType();
                 if (columnSpec == null) {
                     // column went missing or we selected a "special column"
                     if (isRowIDSelected(selected)) {
                         return keepCurrentValueIfPossible(DynamicValuesInput.forRowID());
                     }
                     if (isRowNumberSelected(selected)) {
-                        return keepCurrentValueIfPossible(DynamicValuesInput.forRowNumber());
+                        return keepCurrentValueIfPossible(
+                            DynamicValuesInput.forRowNumber(operatorRequiredType.orElse(LongCell.TYPE)));
                     }
                     // we don't know the column type, but we still have the (user-supplied) comparison value,
                     // which we don't want to clear
@@ -309,7 +320,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                 }
                 // provide an input field for the given type, if we can typemap it, or fall back to the column type
                 // if the operator does not require a specific type
-                final var type = m_currentOperator.get().getRequiredInputType().orElse(columnSpec.getType());
+                final var type = operatorRequiredType.orElse(columnSpec.getType());
                 if (DynamicValuesInput.supportsDataType(type)) {
                     return keepCurrentValueIfPossible(DynamicValuesInput
                         .singleValueWithCaseMatchingForStringWithDefault(type));
