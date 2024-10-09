@@ -679,7 +679,7 @@
             factory-class="org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeFactory2"
             hidden="true"/>
       <node
-            after="org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeFactory2"
+            after="org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderNodeFactory"
             category-path="/io/read"
             deprecated="false"
             factory-class="org.knime.base.node.io.filehandling.csv.sample.ReadDatasetNodeFactory"/>
@@ -744,7 +744,7 @@
             deprecated="true"
             factory-class="org.knime.base.node.preproc.filter.row.RowFilter2PortNodeFactory"/>
       <node
-            after="org.knime.base.node.preproc.filter.row.RowFilterNodeFactory"
+            after="org.knime.base.node.preproc.filter.row3.RowFilterNodeFactory"
             category-path="/manipulation/row/row-filter"
             deprecated="false"
             factory-class="org.knime.base.node.preproc.filter.row3.RowSplitterNodeFactory"/>
@@ -2290,7 +2290,7 @@
             factory-class="org.knime.base.node.io.filehandling.model.reader.ModelReaderNodeFactory">
       </node>
       <node
-            after="org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeFactory2"
+            after="org.knime.base.node.io.filehandling.table.reader.KnimeTableReaderNodeFactory"
             category-path="/io/read"
             deprecated="false"
             factory-class="org.knime.base.node.io.filehandling.pmml.reader.PMMLReaderNodeFactory3">
