@@ -432,7 +432,7 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
                             // not a splitter, nothing left to do
                             return;
                         }
-                        included.close();
+                        incl.close();
                         lastExclRow = Long.MAX_VALUE; // effectively makes `while` condition below `true`
                     }
                     while (matchedRead[1] <= lastExclRow) {
@@ -455,8 +455,8 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
                         lastInclRow = currentRange.upperEndpoint() - 1;
                     } else {
                         // only included rows remain
-                        if (excluded != null) { // NOSONAR
-                            excluded.close();
+                        if (excl != null) { // NOSONAR
+                            excl.close();
                         }
                         lastInclRow = Long.MAX_VALUE; // effectively makes `while` condition below `true`
                     }
