@@ -341,7 +341,9 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
             // backwards-compatibility do not annotate that they may throw InterruptedException.
             // However, by re-annotating here, we can signal to callers that we might throw this.
             // See ExceptionUtils#asRuntimeException.
-            throws CanceledExecutionException, InvalidSettingsException, InterruptedException { // NOSONAR InterruptedException from cursors
+            throws CanceledExecutionException, //
+                   InvalidSettingsException, //
+                   InterruptedException { // NOSONAR InterruptedException from cursors
             final var inSpec = input.getDataTableSpec();
 
             final var predicates = partitionCriteria(settings.m_predicates);
@@ -381,7 +383,9 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
 
         private static void filterRange(final ExecutionContext exec, final RowInput input, // NOSONAR
                 final PortOutput[] outputs, final AbstractRowFilterNodeSettings settings)
-                throws CanceledExecutionException, InterruptedException, InvalidSettingsException {
+                throws CanceledExecutionException, //
+                       InvalidSettingsException, //
+                       InterruptedException { // NOSONAR cursors from RowInput/RowOutput can throw InterruptedException
             final var isSplitter = outputs.length > 1;
 
             final var rowNumberCriteria = partitionCriteria(settings.m_predicates).getFirst();
@@ -432,7 +436,7 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
                             // not a splitter, nothing left to do
                             return;
                         }
-                        incl.close();
+                        incl.close(); // NOSONAR closing resource as soon as possible in streaming execution
                         lastExclRow = Long.MAX_VALUE; // effectively makes `while` condition below `true`
                     }
                     while (matchedRead[1] <= lastExclRow) {
@@ -456,7 +460,7 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
                     } else {
                         // only included rows remain
                         if (excl != null) { // NOSONAR
-                            excl.close();
+                            excl.close(); // NOSONAR closing resource as soon as possible in streaming execution
                         }
                         lastInclRow = Long.MAX_VALUE; // effectively makes `while` condition below `true`
                     }
