@@ -47,10 +47,8 @@
  */
 package org.knime.base.node.mine.regression.predict;
 
-import org.knime.base.node.mine.regression.linear.predict.LinRegPredictorNodeFactory;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeView;
 
 /**
@@ -62,14 +60,6 @@ import org.knime.core.node.NodeView;
 public class RegressionPredictorNodeFactory
     extends NodeFactory<RegressionPredictorNodeModel> {
 
-    static {
-        try {
-            NodeFactory.addLoadedFactory(LinRegPredictorNodeFactory.class);
-        } catch (Throwable e) {
-            NodeLogger.getLogger(RegressionPredictorNodeFactory.class).warn(
-                    "Couldn't add obsolete lin reg predictor node", e);
-        }
-    }
     /**
      * {@inheritDoc}
      */
