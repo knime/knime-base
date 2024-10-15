@@ -67,7 +67,7 @@ import java.util.stream.Stream;
 
 import org.knime.base.node.io.filehandling.webui.FileChooserPathAccessor;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.Settings.FileChooserRef;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.Settings.FileSelectionRef;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ColumnSpecSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdRef;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdSettings;
@@ -87,7 +87,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.Defaul
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.WidgetGroupModifier;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
@@ -118,17 +118,17 @@ public final class CommonReaderTransformationSettingsStateProviders {
 
     static final class SourceIdProvider implements StateProvider<String> {
 
-        private Supplier<FileChooser> m_fileChooserSupplier;
+        private Supplier<FileSelection> m_fileSelectionSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
-            m_fileChooserSupplier = initializer.computeFromValueSupplier(FileChooserRef.class);
+            m_fileSelectionSupplier = initializer.computeFromValueSupplier(FileSelectionRef.class);
             initializer.computeAfterOpenDialog();
         }
 
         @Override
         public String computeState(final DefaultNodeSettingsContext context) {
-            return m_fileChooserSupplier.get().getFSLocation().getPath();
+            return m_fileSelectionSupplier.get().getFSLocation().getPath();
         }
     }
 
@@ -141,27 +141,27 @@ public final class CommonReaderTransformationSettingsStateProviders {
      */
     abstract static class PathsProvider<S> implements StateProvider<S> {
 
-        private Supplier<FileChooser> m_fileChooserSupplier;
+        private Supplier<FileSelection> m_fileSelectionSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
-            m_fileChooserSupplier = initializer.getValueSupplier(FileChooserRef.class);
+            m_fileSelectionSupplier = initializer.getValueSupplier(FileSelectionRef.class);
         }
 
         @Override
         public S computeState(final DefaultNodeSettingsContext context) {
-            final var fileChooser = m_fileChooserSupplier.get();
+            final var fileSelection = m_fileSelectionSupplier.get();
             if (!WorkflowContextUtil.hasWorkflowContext() // no workflow context available
-                || fileChooser.getFSLocation().equals(new FSLocation(FSCategory.LOCAL, ""))) { // no file selected (yet)
+                || fileSelection.getFSLocation().equals(new FSLocation(FSCategory.LOCAL, ""))) { // no file selected (yet)
                 return computeStateFromPaths(Collections.emptyList());
             }
 
             var fsConnection = FileSystemPortConnectionUtil.getFileSystemConnection(context);
-            if (fileChooser.getFSLocation().getFSCategory() == FSCategory.CONNECTED && fsConnection.isEmpty()) {
+            if (fileSelection.getFSLocation().getFSCategory() == FSCategory.CONNECTED && fsConnection.isEmpty()) {
                 return computeStateFromPaths(Collections.emptyList());
             }
 
-            try (final FileChooserPathAccessor accessor = new FileChooserPathAccessor(fileChooser, fsConnection)) {
+            try (final FileChooserPathAccessor accessor = new FileChooserPathAccessor(fileSelection, fsConnection)) {
                 return computeStateFromPaths(accessor.getFSPaths(s -> {
                     switch (s.getType()) {
                         case INFO -> LOGGER.info(s.getMessage());
@@ -183,7 +183,7 @@ public final class CommonReaderTransformationSettingsStateProviders {
         public void init(final StateProviderInitializer initializer) {
             super.init(initializer);
             initializer.computeAfterOpenDialog();
-            initializer.computeOnValueChange(FileChooserRef.class);
+            initializer.computeOnValueChange(FileSelectionRef.class);
         }
 
         @Override
@@ -269,7 +269,7 @@ public final class CommonReaderTransformationSettingsStateProviders {
             initializer.computeAfterOpenDialog();
             m_specSupplier = initializer.computeFromProvidedState(getTypedReaderTableSpecsProvider());
             initializer.computeOnValueChange(ConfigIdRef.class);
-            initializer.computeOnValueChange(FileChooserRef.class);
+            initializer.computeOnValueChange(FileSelectionRef.class);
         }
 
     }

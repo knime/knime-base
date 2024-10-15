@@ -60,8 +60,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modific
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.LegacyReaderFilerChooserPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.LegacyReaderFileSelectionPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
@@ -93,7 +93,7 @@ public final class CommonReaderNodeSettings {
         /**
          * Access the chosen file(s) by this reference.
          */
-        public static final class FileChooserRef extends ReferenceStateProvider<FileChooser>
+        public static final class FileSelectionRef extends ReferenceStateProvider<FileSelection>
             implements Modification.Reference {
         }
 
@@ -104,7 +104,7 @@ public final class CommonReaderNodeSettings {
         public abstract static class SetFileReaderWidgetExtensions implements WidgetGroup.Modifier {
             @Override
             public void modify(final WidgetGroupModifier group) {
-                group.find(FileChooserRef.class).modifyAnnotation(FileReaderWidget.class)
+                group.find(FileSelectionRef.class).modifyAnnotation(FileReaderWidget.class)
                     .withProperty("fileExtensions", getExtensions()).modify();
             }
 
@@ -116,12 +116,12 @@ public final class CommonReaderNodeSettings {
 
         @SuppressWarnings("javadoc")
         @Widget(title = "Source", description = CommonReaderLayout.File.Source.DESCRIPTION)
-        @ValueReference(FileChooserRef.class)
+        @ValueReference(FileSelectionRef.class)
         @Layout(CommonReaderLayout.File.Source.class)
-        @Persist(configKey = "file_selection", customPersistor = LegacyReaderFilerChooserPersistor.class)
-        @Modification.WidgetReference(FileChooserRef.class)
+        @Persist(configKey = "file_selection", customPersistor = LegacyReaderFileSelectionPersistor.class)
+        @Modification.WidgetReference(FileSelectionRef.class)
         @FileReaderWidget()
-        public FileChooser m_source = new FileChooser();
+        public FileSelection m_source = new FileSelection();
 
         @Persist(configKey = "file_selection", hidden = true)
         FileSelectionInternal m_fileSelectionInternal = new FileSelectionInternal();

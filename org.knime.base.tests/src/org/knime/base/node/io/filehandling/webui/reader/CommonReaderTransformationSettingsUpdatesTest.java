@@ -73,7 +73,7 @@ import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.knime.base.node.io.filehandling.webui.LocalWorkflowContextTest;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.Settings.FileChooserRef;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.Settings.FileSelectionRef;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdRef;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TransformationElementSettings.SubTitleProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TransformationElementSettings.TitleProvider;
@@ -557,7 +557,7 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
         @Override
         Stream<Function<UpdateSimulator, UpdateSimulatorResult>> getSimulations() {
             return Stream.of(UpdateSimulator::simulateAfterOpenDialog,
-                simulator -> simulator.simulateValueChange(FileChooserRef.class));
+                simulator -> simulator.simulateValueChange(FileSelectionRef.class));
         }
     }
 
@@ -566,7 +566,7 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
         @Override
         Stream<Function<UpdateSimulator, UpdateSimulatorResult>> getSimulations() {
             return Stream.of(UpdateSimulator::simulateAfterOpenDialog,
-                simulator -> simulator.simulateValueChange(FileChooserRef.class),
+                simulator -> simulator.simulateValueChange(FileSelectionRef.class),
                 simulator -> simulator.simulateValueChange(ConfigIdRef.class));
         }
     }

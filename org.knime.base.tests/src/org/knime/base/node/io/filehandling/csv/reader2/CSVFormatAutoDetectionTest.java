@@ -67,7 +67,7 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSetting
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.CommentStartRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption;
 import org.knime.base.node.io.filehandling.webui.LocalWorkflowContextTest;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.Settings.FileChooserRef;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.Settings.FileSelectionRef;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
@@ -228,7 +228,7 @@ class CSVFormatAutoDetectionTest extends LocalWorkflowContextTest {
                 if (ref.equals(CommentStartRef.class)) {
                     return () -> (T)settings.m_settings.m_commentLineCharacter;
                 }
-                if (ref.equals(FileChooserRef.class)) {
+                if (ref.equals(FileSelectionRef.class)) {
                     return () -> (T)settings.m_settings.m_source;
                 }
                 throw new IllegalStateException(String.format("Unexpected dependency %s", ref.getSimpleName()));

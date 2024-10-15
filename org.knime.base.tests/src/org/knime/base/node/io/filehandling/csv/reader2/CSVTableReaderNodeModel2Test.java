@@ -80,7 +80,7 @@ import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
@@ -106,7 +106,7 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
         final var file = createCsvFile();
 
         final var settings = new CSVTableReaderNodeSettings();
-        settings.m_settings.m_source = new FileChooser(new FSLocation(FSCategory.LOCAL, file.toString()));
+        settings.m_settings.m_source = new FileSelection(new FSLocation(FSCategory.LOCAL, file.toString()));
         setSettings(settings);
 
         m_wfm.executeAllAndWaitUntilDone();
@@ -136,7 +136,7 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
     void testReadMissingFile() throws InvalidSettingsException {
         final var settings = new CSVTableReaderNodeSettings();
         final var missingFile = "foo";
-        settings.m_settings.m_source = new FileChooser(new FSLocation(FSCategory.LOCAL, missingFile));
+        settings.m_settings.m_source = new FileSelection(new FSLocation(FSCategory.LOCAL, missingFile));
         setSettings(settings);
 
         assertTrue(m_csvReader.getNodeContainerState().isConfigured());

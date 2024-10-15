@@ -63,9 +63,8 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.knime.base.node.io.filehandling.webui.FileChooserPathAccessor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 
@@ -120,11 +119,11 @@ public class FileChooserPathAccessorTest extends LocalWorkflowContextTest {
             String.format("The specified file %s does not exist.", missingFile));
     }
 
-    private static FileChooser toLocalFileChooser(final String path) {
-        return new FileChooser(new FSLocation(FSCategory.LOCAL, path));
+    private static FileSelection toLocalFileChooser(final String path) {
+        return new FileSelection(new FSLocation(FSCategory.LOCAL, path));
     }
 
-    private static void testGetPathsHappy(final FileChooser fileChooser, final Path... expectedPaths)
+    private static void testGetPathsHappy(final FileSelection fileChooser, final Path... expectedPaths)
         throws IOException, InvalidSettingsException {
 
         try (FileChooserPathAccessor accessor = new FileChooserPathAccessor(fileChooser, Optional.empty())) {
@@ -136,7 +135,7 @@ public class FileChooserPathAccessorTest extends LocalWorkflowContextTest {
         }
     }
 
-    private static void testGetPathsError(final FileChooser fileChooser, final String expectedErrorMessage)
+    private static void testGetPathsError(final FileSelection fileChooser, final String expectedErrorMessage)
         throws IOException, InvalidSettingsException {
 
         try (FileChooserPathAccessor accessor = new FileChooserPathAccessor(fileChooser, Optional.empty())) {

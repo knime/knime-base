@@ -63,7 +63,7 @@ import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 
@@ -109,7 +109,7 @@ public final class CSVFormatProvider extends CSVFormatAutoDetector implements St
 
     Supplier<String> m_commentStartSupplier;
 
-    Supplier<FileChooser> m_fileChooserSupplier;
+    Supplier<FileSelection> m_fileSelectionSupplier;
 
     @Override
     protected long getNumLinesToSkip() {
@@ -141,8 +141,8 @@ public final class CSVFormatProvider extends CSVFormatAutoDetector implements St
     }
 
     @Override
-    protected FileChooser getFileChooser() {
-        return m_fileChooserSupplier.get();
+    protected FileSelection getFileSelection() {
+        return m_fileSelectionSupplier.get();
     }
 
     @Override
@@ -151,7 +151,8 @@ public final class CSVFormatProvider extends CSVFormatAutoDetector implements St
         initializer.computeOnButtonClick(AutoDetectButtonRef.class);
 
         // Dependencies
-        m_fileChooserSupplier = initializer.getValueSupplier(CommonReaderNodeSettings.Settings.FileChooserRef.class);
+        m_fileSelectionSupplier =
+            initializer.getValueSupplier(CommonReaderNodeSettings.Settings.FileSelectionRef.class);
         m_skipFirstLinesSupplier = initializer.getValueSupplier(SkipFirstLinesRef.class);
         m_charsetSupplier = initializer.getValueSupplier(CharsetRef.class);
         m_bufferSizeSupplier = initializer.getValueSupplier(BufferSizeRef.class);

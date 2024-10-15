@@ -50,7 +50,7 @@ package org.knime.base.node.io.filehandling.webui;
 
 import java.util.Optional;
 
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractFileChooserPathAccessor;
@@ -72,11 +72,12 @@ public final class FileChooserPathAccessor extends AbstractFileChooserPathAccess
      * The settings are not validated in this constructor but instead if
      * {@link ReadPathAccessor#getPaths(java.util.function.Consumer)} is called.
      *
-     * @param fileChooser provided by the user
+     * @param fileSelection provided by the user
      * @param portObjectConnection an optional connection of a connected {@link FileSystemPortObjectSpec}
      */
-    public FileChooserPathAccessor(final FileChooser fileChooser, final Optional<FSConnection> portObjectConnection) { //NOSONAR
-        super(new FileChooserPathAccessorSettings(fileChooser.getFSLocation(),
+    public FileChooserPathAccessor(final FileSelection fileSelection,
+        final Optional<FSConnection> portObjectConnection) { //NOSONAR
+        super(new FileChooserPathAccessorSettings(fileSelection.getFSLocation(),
             new FilterSettings(FilterMode.FILE, false,
                 // FilterOptionsSettings not used at the moment with filter mode FILE.
                 null, false)),
