@@ -49,6 +49,7 @@
 package org.knime.base.node.preproc.filter.row3;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 import java.util.function.Supplier;
 
@@ -164,6 +165,17 @@ final class AbstractRowFilterNodeSettingsTest {
             }
         });
         return provider.computeState(ctx);
+    }
+
+    @SuppressWarnings("static-method")
+    @Test
+    void testRowNumberPatternFilterCriterion() {
+        final var criterion = new AbstractRowFilterNodeSettings.FilterCriterion();
+        criterion.m_column = SpecialColumns.ROW_NUMBERS.toColumnSelection();
+        criterion.m_operator = FilterOperator.WILDCARD;
+        assertThatCode(() -> criterion.validate((DataTableSpec)null))
+            .as("Row number pattern filter criterion should be valid")
+            .doesNotThrowAnyException();
     }
 
 }
