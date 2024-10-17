@@ -49,6 +49,7 @@
 package org.knime.base.node.preproc.filter.row3;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.Assert.fail;
 
 import java.util.Arrays;
@@ -66,9 +67,11 @@ import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
@@ -127,8 +130,7 @@ final class FilterOperatorTest {
                 FilterOperator.GT, //
                 FilterOperator.GTE, //
                 FilterOperator.LT, //
-                FilterOperator.LTE
-            );
+                FilterOperator.LTE);
         assertThat(operatorChoicesFor("Bool1", BooleanCell.TYPE))
             .as("The list of operators for a boolean column is what is expected").containsExactlyInAnyOrder( //
                 FilterOperator.IS_MISSING, //
@@ -233,8 +235,7 @@ final class FilterOperatorTest {
         }
 
         @Override
-        public <T> Supplier<T>
-            computeFromProvidedState(final Class<? extends StateProvider<T>> stateProviderClass) {
+        public <T> Supplier<T> computeFromProvidedState(final Class<? extends StateProvider<T>> stateProviderClass) {
             throw new IllegalStateException("Not expected to be called during test.");
         }
 
@@ -252,5 +253,128 @@ final class FilterOperatorTest {
         public void computeAfterOpenDialog() {
             fail("Not expected to be called during test.");
         }
+    }
+
+    @Test
+    void testIsPatternMatchable() {
+        final var tester = new FilterOperator.IsPatternMatchable();
+        assertThat(tester) //
+            .as("RowID is pattern-matchable") //
+            .returns(true, t -> t.test(SpecialColumns.ROWID, StringCell.TYPE)) //
+            .as("Normal string column is pattern-matchable") //
+            .returns(true, t -> t.test(null, StringCell.TYPE)) //
+            .as("Long column is pattern-matchable") //
+            .returns(true, t -> t.test(null, LongCell.TYPE)).as("Int column is pattern-matchable") //
+            .returns(true, t -> t.test(null, IntCell.TYPE)).as("Boolean column is not pattern-matchable") //
+            .returns(false, t -> t.test(null, BooleanCell.TYPE));
+
+        assertThatCode(
+            () -> tester.validate(SpecialColumns.ROWID.getId(), StringCell.TYPE, DynamicValuesInput.forRowID())) //
+                .as("RowID with default value validates") //
+                .doesNotThrowAnyException();
+        assertThatCode(() -> tester.validate("SomeCol", LongCell.TYPE,
+            DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(LongCell.TYPE))) //
+                .as("Long column with default value validates") //
+                .doesNotThrowAnyException();
+        assertThatCode(() -> tester.validate("SomeCol", IntCell.TYPE,
+            DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(IntCell.TYPE))) //
+                .as("Int column with default value validates") //
+                .doesNotThrowAnyException();
+
+        assertThatCode(() -> tester.validate("SomeCol", DoubleCell.TYPE,
+            DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(DoubleCell.TYPE)))
+                .as("Unsupported type does not validate").isInstanceOf(InvalidSettingsException.class)
+                .hasMessageContaining("Cannot apply string pattern matching to column");
+    }
+
+    @Test
+    void testIsEq() {
+        final var tester = new FilterOperator.IsEq();
+        assertThat(tester) //
+            .as("RowID is eq-able") //
+            .returns(true, t -> t.test(SpecialColumns.ROWID, StringCell.TYPE)) //
+            .as("Normal string column is eq-able") //
+            .returns(true, t -> t.test(null, StringCell.TYPE)) //
+            .as("Long column is eq-able") //
+            .returns(true, t -> t.test(null, LongCell.TYPE)).as("Int column is eq-able") //
+            .returns(true, t -> t.test(null, IntCell.TYPE)).as("Double column is eq-able") //
+            .returns(true, t -> t.test(null, DoubleCell.TYPE))
+            .as("Boolean column is not eq-able, should use dedicated operators for that") //
+            .returns(false, t -> t.test(null, BooleanCell.TYPE));
+
+        assertThatCode(
+            () -> tester.validate(SpecialColumns.ROWID.getId(), StringCell.TYPE, DynamicValuesInput.forRowID())) //
+                .as("RowID with default value validates") //
+                .doesNotThrowAnyException();
+        assertThatCode(() -> tester.validate("SomeCol", LongCell.TYPE,
+            DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(LongCell.TYPE))) //
+                .as("Long column with default value validates") //
+                .doesNotThrowAnyException();
+
+        // assert that comparing a long with a string dynamic values does not validate
+        assertThatCode(() -> tester.validate("SomeCol", LongCell.TYPE,
+            DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(StringCell.TYPE))) //
+                .as("Long column with string values does not validate") //
+                .isInstanceOf(InvalidSettingsException.class) //
+                .hasMessageContaining("Cannot compare column \"SomeCol\" for (in)equality.");
+    }
+
+    @Test
+    void testIsTruthy() {
+        final var tester = new FilterOperator.IsTruthy();
+        assertThat(tester) //
+            .as("RowID is not truthy") //
+            .returns(false, t -> t.test(SpecialColumns.ROWID, StringCell.TYPE)) //
+            .as("Normal string column is not truthy") //
+            .returns(false, t -> t.test(null, StringCell.TYPE)) //
+            .as("Long column is not truthy") //
+            .returns(false, t -> t.test(null, LongCell.TYPE)).as("Int column is not truthy") //
+            .returns(false, t -> t.test(null, IntCell.TYPE)).as("Double column is not truthy") //
+            .returns(false, t -> t.test(null, DoubleCell.TYPE)).as("Boolean column is truthy") //
+            .returns(true, t -> t.test(null, BooleanCell.TYPE));
+
+        assertThatCode(
+            () -> tester.validate(SpecialColumns.ROWID.getId(), StringCell.TYPE, DynamicValuesInput.forRowID())) //
+                .as("RowID with default value does not validate") //
+                .isInstanceOf(InvalidSettingsException.class) //
+                .hasMessageContaining("Cannot apply boolean operators to");
+        assertThatCode(() -> tester.validate("SomeCol", BooleanCell.TYPE,
+            DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(BooleanCell.TYPE))) //
+                .as("Boolean column with default value validates") //
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    void testIsRowNumber() {
+        final var tester = new FilterOperator.IsRowNumber();
+        assertThat(tester) //
+            .as("Row number is row number") //
+            .returns(true, t -> t.test(SpecialColumns.ROW_NUMBERS, IntCell.TYPE)) //
+            .as("RowID is not row number") //
+            .returns(false, t -> t.test(SpecialColumns.ROWID, StringCell.TYPE)) //
+            .as("Normal string column is not row number").returns(false, t -> t.test(null, StringCell.TYPE)); //
+
+        assertThatCode(() -> tester.validate(SpecialColumns.ROW_NUMBERS.getId(), LongCell.TYPE,
+            DynamicValuesInput.forRowNumber(LongCell.TYPE))) //
+                .as("Row number with default value validates") //
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    void testIsOrd() {
+        final var tester = new FilterOperator.IsOrd();
+        // assert that long is ord but string and boolean are not ord
+        assertThat(tester) //
+            .as("Long cell is Ord") //
+            .returns(true, t -> t.test(null, LongCell.TYPE)) //
+            .as("String cell is not Ord)") //
+            .returns(false, t -> t.test(null, StringCell.TYPE)) //
+            .as("Boolean cell is not Ord") //
+            .returns(false, t -> t.test(null, BooleanCell.TYPE));
+
+        assertThatCode(() -> tester.validate("SomeCol", LongCell.TYPE,
+            DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(LongCell.TYPE))) //
+                .as("Long column with default value validates") //
+                .doesNotThrowAnyException();
     }
 }
