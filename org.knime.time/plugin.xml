@@ -29,7 +29,7 @@
             category-path="/applications/timeseries/manipulate"
             deprecated="false"
             factory-class="org.knime.time.node.manipulate.modifytime.ModifyTimeNodeFactory">
-      </node>
+      </node>      
       <node
             category-path="/applications/timeseries/manipulate"
             deprecated="false"

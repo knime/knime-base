@@ -25,3 +25,4 @@ Require-Bundle: org.knime.core;bundle-version="[5.4.0,6.0.0)",
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-ActivationPolicy: lazy
 Automatic-Module-Name: org.knime.time
+Import-Package: com.fasterxml.jackson.annotation;version="[2.13.0,3.0.0]"
