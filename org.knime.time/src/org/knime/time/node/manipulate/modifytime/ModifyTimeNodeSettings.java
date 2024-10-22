@@ -48,46 +48,223 @@
  */
 package org.knime.time.node.manipulate.modifytime;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
+
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataValue;
+import org.knime.core.data.time.localdate.LocalDateValue;
+import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
+import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesStateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  *
  * @author Tobias Kampmann
  */
+@SuppressWarnings("restriction")
 public class ModifyTimeNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Time Setting", description = "")
     @ValueSwitchWidget
-    @Persist(configKey = "modify_select")
+    @Persist(customPersistor = ModifySelectPersistor.class)
+    @ValueReference(ModifySelectRef.class)
     ModifySelect m_modifySelect = ModifySelect.CHANGE;
 
-
-    enum AppendOrReplace {
-            @Label(value = "Append", description = "")
-            APPEND, //
-            @Label(value = "Replace", description = "")
-            REPLACE
-    }
+    @Widget(title = "ist mir egal", description = "ist mir wurscht")
+    @DateTimeWidget(showSeconds = true, showTime = true)
+    @Persist(configKey = "time")
+    @Effect(predicate = ModifySelectIsRemove.class, type = EffectType.HIDE)
+    String m_time = "2024-01-01";
 
     @Widget(title = "Append or Replace", description = "")
     @ValueSwitchWidget
-    @Persist(configKey = "replace_or_append")
+    @Persist(customPersistor = AppendOrReplacePersistor.class)
     AppendOrReplace m_appendOrReplace = AppendOrReplace.APPEND;
 
-    enum ModifySelect {
-        @Label(value = "Change", description = "")
-        CHANGE, //
-        @Label(value = "Append", description = "")
-        APPEND, //
-        @Label(value = "Remove", description = "")
-        REMOVE
-    }
-
-
+    @Persist(configKey = "column-filter", customPersistor = LegacyColumnFilterPersistor.class, optional = true)
+    @Widget(title = "Column filter", description = "Select the columns to include in the output table.")
+    @ChoicesWidget(choicesProvider = ColumnProvider.class)
+    ColumnFilter m_columnFilter = new ColumnFilter();
 
     // TODO1: complete
+
+    /*
+     * ------------------------------------------------------------------------
+     * ENUMS
+     * ------------------------------------------------------------------------
+     */
+    enum ModifySelect {
+            @Label(value = "Change", description = "")
+            CHANGE("Change time"), //
+            @Label(value = "Append", description = "")
+            APPEND("Append time"), //
+            @Label(value = "Remove", description = "")
+            REMOVE("Remove time");
+
+        private String m_oldConfigValue;
+
+        ModifySelect(final String oldConfigValue) {
+            this.m_oldConfigValue = oldConfigValue;
+        }
+
+        static ModifySelect getByOldConfigValue(final String oldValue) throws InvalidSettingsException {
+            return Arrays.stream(values()) //
+                .filter(v -> v.m_oldConfigValue.equals(oldValue)) //
+                .findFirst() //
+                .orElseThrow(() -> new InvalidSettingsException(
+                    String.format("Invalid value '%s'. Possible values: %s", oldValue, getOldConfigValues())));
+        }
+
+        static String[] getOldConfigValues() {
+            return Arrays.stream(values()).map(v -> v.m_oldConfigValue).toArray(String[]::new);
+        }
+    }
+
+    enum FilterMethod {
+            @Label(value = "Manual", description = "")
+            MANUAL, //
+            @Label(value = "Wildcard", description = "")
+            WILDCARD, //
+            @Label(value = "Regex", description = "")
+            REGEX;
+    }
+
+    enum AppendOrReplace {
+            @Label(value = "Append", description = "")
+            APPEND("Append selected columns"), //
+            @Label(value = "Replace", description = "")
+            REPLACE("Replace selected columns");
+
+        private final String m_oldConfigValue;
+
+        AppendOrReplace(final String oldConfigValue) {
+            this.m_oldConfigValue = oldConfigValue;
+        }
+
+        static AppendOrReplace getByOldConfigValue(final String oldValue) throws InvalidSettingsException {
+            return Arrays.stream(values()) //
+                .filter(v -> v.m_oldConfigValue.equals(oldValue)) //
+                .findFirst() //
+                .orElseThrow(() -> new InvalidSettingsException(
+                    String.format("Invalid value '%s'. Possible values: %s", oldValue, getOldConfigValues())));
+        }
+
+        static String[] getOldConfigValues() {
+            return Arrays.stream(values()).map(v -> v.m_oldConfigValue).toArray(String[]::new);
+        }
+    }
+
+    /*
+     * ------------------------------------------------------------------------
+     * PERSISTORS
+     * ------------------------------------------------------------------------
+     */
+    static final class AppendOrReplacePersistor implements FieldNodeSettingsPersistor<AppendOrReplace> {
+
+        private final static String CONFIG_KEY = "replace_or_append";
+
+        @Override
+        public AppendOrReplace load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return AppendOrReplace.getByOldConfigValue(settings.getString(CONFIG_KEY));
+        }
+
+        @Override
+        public void save(final AppendOrReplace obj, final NodeSettingsWO settings) {
+            settings.addString(CONFIG_KEY, obj.m_oldConfigValue);
+        }
+
+        @Override
+        public String[] getConfigKeys() {
+            return new String[]{CONFIG_KEY};
+        }
+    }
+
+    static final class ModifySelectPersistor implements FieldNodeSettingsPersistor<ModifySelect> {
+
+        private final static String CONFIG_KEY = "modify_select";
+
+        @Override
+        public ModifySelect load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return ModifySelect.getByOldConfigValue(settings.getString(CONFIG_KEY));
+        }
+
+        @Override
+        public void save(final ModifySelect obj, final NodeSettingsWO settings) {
+            settings.addString(CONFIG_KEY, obj.m_oldConfigValue);
+        }
+
+        @Override
+        public String[] getConfigKeys() {
+            return new String[]{CONFIG_KEY};
+        }
+    }
+
+    /*
+     * ------------------------------------------------------------------------
+     * PREDICATE PROVIDERS AMD REFERENCES
+     * ------------------------------------------------------------------------
+     */
+    static final class ModifySelectIsRemove implements PredicateProvider {
+
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(ModifySelectRef.class).isOneOf(ModifySelect.REMOVE);
+        }
+    }
+
+    interface ModifySelectRef extends Reference<ModifySelect> {
+    }
+
+    /*
+     * ------------------------------------------------------------------------
+     * OTHER UTILITIES
+     * ------------------------------------------------------------------------
+     */
+    static final class ColumnProvider implements ColumnChoicesStateProvider {
+
+        private Supplier<ModifySelect> m_modifySelect;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            ColumnChoicesStateProvider.super.init(initializer);
+
+            this.m_modifySelect = initializer.computeFromValueSupplier(ModifySelectRef.class);
+        }
+
+        @Override
+        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
+            final Collection<Class<? extends DataValue>> allowedTypes = m_modifySelect.get() == ModifySelect.APPEND //
+                ? List.of(LocalDateValue.class) //
+                : List.of(ZonedDateTimeValue.class, LocalDateTimeValue.class);
+
+            return context.getDataTableSpec(0).map(DataTableSpec::stream) //
+                .orElseGet(Stream::empty) //
+                .filter(columnSpec -> allowedTypes.stream().anyMatch(columnSpec.getType()::isCompatible)) //
+                .toArray(DataColumnSpec[]::new);
+        }
+    }
 }
