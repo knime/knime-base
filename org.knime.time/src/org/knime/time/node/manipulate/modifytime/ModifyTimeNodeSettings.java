@@ -88,7 +88,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
 @SuppressWarnings("restriction")
 public class ModifyTimeNodeSettings implements DefaultNodeSettings {
 
-    @Widget(title = "Time Setting", description = "")
+    @Widget(title = "Time setting", description = "")
     @ValueSwitchWidget
     @Persist(customPersistor = ModifySelectPersistor.class)
     @ValueReference(ModifySelectRef.class)
@@ -101,7 +101,7 @@ public class ModifyTimeNodeSettings implements DefaultNodeSettings {
     String m_time = "2024-01-01";
 
     @Persist(configKey = "column-filter", customPersistor = LegacyColumnFilterPersistor.class, optional = true)
-    @Widget(title = "Column filter", description = "Select the columns to include in the output table.")
+    @Widget(title = "Date & time columns", description = "Select the columns to include in the output table.")
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
@@ -114,6 +114,7 @@ public class ModifyTimeNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Suffix of appended column", description = "",advanced = true)
     @Effect(predicate = OutputColumnsIsAppend.class, type = EffectType.SHOW)
     String m_outputColumnSuffix = "(modified time)";
+
 
 
     // TODO1: complete
@@ -160,10 +161,10 @@ public class ModifyTimeNodeSettings implements DefaultNodeSettings {
     }
 
     enum AppendOrReplace {
-            @Label(value = "Append", description = "")
-            APPEND("Append selected columns"), //
             @Label(value = "Replace", description = "")
-            REPLACE("Replace selected columns");
+            REPLACE("Replace selected columns"), //
+            @Label(value = "Append with Suffix", description = "")
+            APPEND("Append selected columns"); //
 
         private final String m_oldConfigValue;
 
