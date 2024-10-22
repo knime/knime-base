@@ -100,15 +100,21 @@ public class ModifyTimeNodeSettings implements DefaultNodeSettings {
     @Effect(predicate = ModifySelectIsRemove.class, type = EffectType.HIDE)
     String m_time = "2024-01-01";
 
-    @Widget(title = "Append or Replace", description = "")
-    @ValueSwitchWidget
-    @Persist(customPersistor = AppendOrReplacePersistor.class)
-    AppendOrReplace m_appendOrReplace = AppendOrReplace.APPEND;
-
     @Persist(configKey = "column-filter", customPersistor = LegacyColumnFilterPersistor.class, optional = true)
     @Widget(title = "Column filter", description = "Select the columns to include in the output table.")
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
+
+    @Widget(title = "Output columns", description = "")
+    @ValueSwitchWidget
+    @Persist(customPersistor = AppendOrReplacePersistor.class)
+    @ValueReference(AppendOrReplaceRef.class)
+    AppendOrReplace m_appendOrReplace = AppendOrReplace.APPEND;
+
+    @Widget(title = "Suffix of appended column", description = "",advanced = true)
+    @Effect(predicate = OutputColumnsIsAppend.class, type = EffectType.SHOW)
+    String m_outputColumnSuffix = "(modified time)";
+
 
     // TODO1: complete
 
@@ -237,6 +243,17 @@ public class ModifyTimeNodeSettings implements DefaultNodeSettings {
     }
 
     interface ModifySelectRef extends Reference<ModifySelect> {
+    }
+
+    static final class OutputColumnsIsAppend implements PredicateProvider {
+
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(AppendOrReplaceRef.class).isOneOf(AppendOrReplace.APPEND);
+        }
+    }
+
+    interface AppendOrReplaceRef extends Reference<AppendOrReplace> {
     }
 
     /*
