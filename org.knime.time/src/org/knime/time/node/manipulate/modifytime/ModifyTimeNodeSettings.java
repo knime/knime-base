@@ -64,13 +64,16 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.time.TimeParts;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesStateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -88,33 +91,42 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
 @SuppressWarnings("restriction")
 public class ModifyTimeNodeSettings implements DefaultNodeSettings {
 
+    @Before(TimeParts.HoursMinutesAndSeconds.class)
+    interface BeforeTimeParts {
+    }
+
+    @After(TimeParts.MilliMicroAndNanoSeconds.class)
+    interface AfterTimeParts {
+    }
+
     @Widget(title = "Time setting", description = "")
     @ValueSwitchWidget
     @Persist(customPersistor = ModifySelectPersistor.class)
     @ValueReference(ModifySelectRef.class)
+    @Layout(BeforeTimeParts.class)
     ModifySelect m_modifySelect = ModifySelect.CHANGE;
 
-    @Widget(title = "ist mir egal", description = "ist mir wurscht")
-    @DateTimeWidget(showSeconds = true, showTime = true)
-    @Persist(configKey = "time")
     @Effect(predicate = ModifySelectIsRemove.class, type = EffectType.HIDE)
-    String m_time = "2024-01-01";
+    @Persist(optional = true)
+    TimeParts m_timeParts = new TimeParts();
 
     @Persist(configKey = "column-filter", customPersistor = LegacyColumnFilterPersistor.class, optional = true)
     @Widget(title = "Date & time columns", description = "Select the columns to include in the output table.")
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
+    @Layout(AfterTimeParts.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
     @Widget(title = "Output columns", description = "")
     @ValueSwitchWidget
     @Persist(customPersistor = AppendOrReplacePersistor.class)
     @ValueReference(AppendOrReplaceRef.class)
+    @Layout(AfterTimeParts.class)
     AppendOrReplace m_appendOrReplace = AppendOrReplace.APPEND;
 
-    @Widget(title = "Suffix of appended column", description = "",advanced = true)
+    @Widget(title = "Suffix of appended column", description = "")
     @Effect(predicate = OutputColumnsIsAppend.class, type = EffectType.SHOW)
+    @Layout(AfterTimeParts.class)
     String m_outputColumnSuffix = "(modified time)";
-
 
 
     // TODO1: complete

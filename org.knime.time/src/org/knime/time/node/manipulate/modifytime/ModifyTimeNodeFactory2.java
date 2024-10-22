@@ -70,7 +70,7 @@ public final class ModifyTimeNodeFactory2 extends WebUINodeFactory<ModifyTimeNod
     private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
         .name("Time Modifier") //
         .icon("modify_time.png") //
-        .shortDescription("") //
+        .shortDescription("sdfgsdfgsdfg") //
         .fullDescription("") //
         .modelSettingsClass(ModifyTimeNodeSettings.class) //
         .addInputTable("Input table", "Input table.") //
