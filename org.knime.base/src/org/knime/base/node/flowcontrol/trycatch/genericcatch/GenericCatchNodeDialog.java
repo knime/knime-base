@@ -48,9 +48,6 @@
  */
 package org.knime.base.node.flowcontrol.trycatch.genericcatch;
 
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
@@ -73,15 +70,16 @@ final class GenericCatchNodeDialog extends DefaultNodeSettingsPane {
         final SettingsModelBoolean alwaysPopulate = GenericCatchNodeModel.getAlwaysPopulate();
         addDialogComponent(new DialogComponentBoolean(alwaysPopulate, "Always populate error variable"));
         final SettingsModelString defaultVariable = GenericCatchNodeModel.getDefaultVariable(alwaysPopulate);
-        addDialogComponent(new DialogComponentString(defaultVariable, "Default for \"FailingNode\" variable:"));
+        addDialogComponent(new DialogComponentString(defaultVariable,
+            "Default for \"%s\" variable:".formatted(GenericCatchNodeModel.VAR_FAILING_NAME)));
         final SettingsModelString defaultMessage = GenericCatchNodeModel.getDefaultMessage(alwaysPopulate);
-        addDialogComponent(new DialogComponentString(defaultMessage,
-            "Default for \"FailingNodeMessage\" variable:"));
+        addDialogComponent(new DialogComponentString(defaultMessage, "Default for \"%s\" and \"%s\" variables:"
+            .formatted(GenericCatchNodeModel.VAR_FAILING_MESSAGE, GenericCatchNodeModel.VAR_FAILING_DETAILS)));
         final SettingsModelString defaultStackTrace = GenericCatchNodeModel.getDefaultStackTrace(alwaysPopulate);
         addDialogComponent(new DialogComponentString(defaultStackTrace,
-                "Default for \"FailingNodeStackTrace\" variable:"));
+            "Default for \"%s\" variable:".formatted(GenericCatchNodeModel.VAR_FAILING_STACKTRACE)));
         closeCurrentGroup();
-        
+
         createNewGroup("Scope Variables");
         SettingsModelBoolean propagateVariablesModel = GenericCatchNodeModel.createPropagateVariablesModel();
         addDialogComponent(new DialogComponentBoolean(propagateVariablesModel, "Propagate variables"));

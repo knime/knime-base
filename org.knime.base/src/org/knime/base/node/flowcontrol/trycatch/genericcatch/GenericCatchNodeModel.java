@@ -85,6 +85,11 @@ import org.knime.core.node.workflow.VariableType;
 final class GenericCatchNodeModel extends NodeModel
     implements ScopeEndNode<FlowTryCatchContext>, InactiveBranchConsumer {
 
+    static final String VAR_FAILING_NAME = "FailingNode";
+    static final String VAR_FAILING_MESSAGE = "FailingNodeMessage";
+    static final String VAR_FAILING_DETAILS = "FailingNodeDetails";
+    static final String VAR_FAILING_STACKTRACE = "FailingNodeStackTrace";
+
     // new since 2.11
     private final SettingsModelBoolean m_alwaysPopulate = getAlwaysPopulate();
     private final SettingsModelString m_defaultText = getDefaultMessage(m_alwaysPopulate);
@@ -123,9 +128,10 @@ final class GenericCatchNodeModel extends NodeModel
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         if (m_alwaysPopulate.getBooleanValue()) {
-            pushFlowVariableString("FailingNode", m_defaultVariable.getStringValue());
-            pushFlowVariableString("FailingNodeMessage", m_defaultText.getStringValue());
-            pushFlowVariableString("FailingNodeStackTrace", m_defaultStackTrace.getStringValue());
+            pushFlowVariableString(VAR_FAILING_NAME, m_defaultVariable.getStringValue());
+            pushFlowVariableString(VAR_FAILING_MESSAGE, m_defaultText.getStringValue());
+            pushFlowVariableString(VAR_FAILING_DETAILS, m_defaultText.getStringValue());
+            pushFlowVariableString(VAR_FAILING_STACKTRACE, m_defaultStackTrace.getStringValue());
         }
 
         if (!(inSpecs[0] instanceof InactiveBranchPortObjectSpec)) {
@@ -151,13 +157,15 @@ final class GenericCatchNodeModel extends NodeModel
             // which will we removed after this node, closing the scope).
             FlowTryCatchContext ftcc = getFlowContext();
             if ((ftcc != null) && (ftcc.hasErrorCaught())) {
-                pushFlowVariableString("FailingNode", ftcc.getNode());
-                pushFlowVariableString("FailingNodeMessage", ftcc.getReason());
-                pushFlowVariableString("FailingNodeStackTrace", ftcc.getStacktrace());
+                pushFlowVariableString(VAR_FAILING_NAME, ftcc.getNode());
+                pushFlowVariableString(VAR_FAILING_MESSAGE, ftcc.getReason());
+                pushFlowVariableString(VAR_FAILING_DETAILS, ftcc.getDetails());
+                pushFlowVariableString(VAR_FAILING_STACKTRACE, ftcc.getStacktrace());
             } else if (m_alwaysPopulate.getBooleanValue()) {
-                pushFlowVariableString("FailingNode", m_defaultVariable.getStringValue());
-                pushFlowVariableString("FailingNodeMessage", m_defaultText.getStringValue());
-                pushFlowVariableString("FailingNodeStackTrace", m_defaultStackTrace.getStringValue());
+                pushFlowVariableString(VAR_FAILING_NAME, m_defaultVariable.getStringValue());
+                pushFlowVariableString(VAR_FAILING_MESSAGE, m_defaultText.getStringValue());
+                pushFlowVariableString(VAR_FAILING_DETAILS, m_defaultText.getStringValue());
+                pushFlowVariableString(VAR_FAILING_STACKTRACE, m_defaultStackTrace.getStringValue());
             }
             resultPort0 = inData[1];
         }
