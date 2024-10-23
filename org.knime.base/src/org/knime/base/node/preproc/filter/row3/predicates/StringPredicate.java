@@ -44,48 +44,60 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   8 May 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   27 Aug 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.base.node.preproc.filter.row3.predicates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
+
+import org.knime.filehandling.core.util.WildcardToRegexUtil;
 
 /**
- * Settings for the Row Filter node.
+ * String predicate supporting equality comarison or pattern matching.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction") // webui is not public yet
-final class RowFilterNodeSettings extends AbstractRowFilterNodeSettings {
+final class StringPredicate implements Predicate<String> {
 
-    // we need to repeat both constructors, otherwise InstantiationUtil cannot instantiate our concrete settings class
+    private final Predicate<String> m_predicate;
 
-    // for de-/serialization
-    RowFilterNodeSettings() {
-        super();
-    }
-
-    // auto-configuration constructor needs to be "re-declared" in subclass
-    RowFilterNodeSettings(final DefaultNodeSettingsContext ctx) {
-        super(ctx);
+    private StringPredicate(final Predicate<String> predicate) {
+        m_predicate = predicate;
     }
 
     @Override
-    boolean isSecondOutputActive() {
-        return false;
+    public boolean test(final String str) {
+        return m_predicate.test(str);
     }
 
-    @Override
-    FilterMode outputMode() {
-        return m_outputMode;
+    /**
+     * Creates an equality string predicate.
+     *
+     * @param referenceValue value to compare with
+     * @param isCaseSensitive whether the comparison should be case-sensitive or not
+     * @return equality string predicate
+     */
+    static StringPredicate equality(final String referenceValue, final boolean isCaseSensitive) {
+        final Predicate<String> predicate = isCaseSensitive ? referenceValue::equals : referenceValue::equalsIgnoreCase;
+        return new StringPredicate(predicate);
     }
 
-    @Widget(title = "Filter behavior",
-        description = "Determines whether only matching or non-matching rows are output.")
-    @ValueSwitchWidget
-    @Layout(DialogSections.Output.OutputMode.class)
-    FilterMode m_outputMode = FilterMode.MATCHING;
+    /**
+     * Creates a string predicate that supports regex or wildcard patterns.
+     *
+     * @param pattern pattern to match
+     * @param isRegex {@code true} if the pattern represents a regex, {@code false} if it represents a wildcard
+     * @param isCaseSensitive whether the match should be case-sensitive or not
+     * @return pattern string predicate
+     */
+    static StringPredicate pattern(final String pattern, final boolean isRegex,
+        final boolean isCaseSensitive) {
+        final var regexPattern = isRegex ? pattern : WildcardToRegexUtil.wildcardToRegex(pattern);
+        var flags = Pattern.DOTALL | Pattern.MULTILINE;
+        flags |= isCaseSensitive ? 0 : Pattern.CASE_INSENSITIVE;
+        final var regex = Pattern.compile(regexPattern, flags);
+        return new StringPredicate(stringValue -> regex.matcher(stringValue).matches());
+    }
 
 }

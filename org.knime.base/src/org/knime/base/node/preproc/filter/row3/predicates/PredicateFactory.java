@@ -44,49 +44,50 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   14 Oct 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   27 Aug 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.base.node.preproc.filter.row3.predicates;
+
+import java.util.OptionalInt;
 
 import org.knime.core.data.v2.RowRead;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 
 /**
- * Predicate on row read and row index.
+ * Factory for predicates that can be used to filter indexed {@link RowRead rows}.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @FunctionalInterface
-interface IndexedRowReadPredicate {
-    /**
-     * Tests the predicate with the supplied row index (0-based) and {@link RowRead row read}.
-     *
-     * @param index 0-based index of row
-     * @param read row data
-     * @return {@code true} if the predicate matches the supplied row, {@code false} otherwise
-     */
-    boolean test(final long index, final RowRead read);
+public interface PredicateFactory {
 
     /**
-     * Composed predicate of short-circuiting logical AND.
-     *
-     * @param other the rhs AND predicate
-     * @return logically-ANDed predicate
+     * Predicate instance that always returns {@code true} and can be used to disable filtering.
      */
-    default IndexedRowReadPredicate and(final IndexedRowReadPredicate other) {
-        return (index, read) -> test(index, read) && other.test(index, read);
-    }
+    IndexedRowReadPredicate ALWAYS_TRUE = (idx, row) -> true;
 
     /**
-     * Composed predicate of short-circuiting logical OR.
-     *
-     * @param other the rhs OR predicate
-     * @return logically-ORed predicate
+     * Predicate instance that always returns {@code false} and can be used to filter out all rows.
      */
-    default IndexedRowReadPredicate or(final IndexedRowReadPredicate other) {
-        return (index, read) -> test(index, read) || other.test(index, read);
-    }
+    IndexedRowReadPredicate ALWAYS_FALSE = (idx, row) -> false;
 
-    default IndexedRowReadPredicate negate() {
-        return (index, read) -> !test(index, read);
-    }
+    /**
+     * Creates a filter predicate given a column index and a reference value input. In case the predicate does not
+     * operate on a column, an empty optional should be passed.
+     *
+     * <br><b>Note:</b>
+     * Implementations may throw {@link IllegalArgumentException} if the column index is <i>invalid</i>.
+     * Invalid means that it is provided but not used by the predicate factory or if it is not provided but required by
+     * the factory.
+     *
+     * @param columnIndex column index to filter on, or empty optional if not operating on a column
+     * @param inputValues input values to use as reference
+     * @return predicate predicate that can be used to filter rows
+     * @throws InvalidSettingsException in case the input values are missing or invalid
+     * @throws IllegalArgumentException in case the column index argument is invalid
+     */
+    IndexedRowReadPredicate createPredicate(OptionalInt columnIndex, final DynamicValuesInput inputValues) // NOSONAR make usage of column/no-column explicit
+        throws InvalidSettingsException;
+
 }

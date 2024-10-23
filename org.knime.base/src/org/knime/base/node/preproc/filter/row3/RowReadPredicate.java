@@ -48,44 +48,75 @@
  */
 package org.knime.base.node.preproc.filter.row3;
 
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
+import static org.knime.base.node.preproc.filter.row3.predicates.PredicateFactory.ALWAYS_FALSE;
+import static org.knime.base.node.preproc.filter.row3.predicates.PredicateFactory.ALWAYS_TRUE;
+
+import java.util.OptionalInt;
 
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
-import org.knime.core.data.BooleanValue;
-import org.knime.core.data.DataCell;
+import org.knime.base.node.preproc.filter.row3.predicates.IndexedRowReadPredicate;
+import org.knime.base.node.preproc.filter.row3.predicates.PredicateFactories;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.data.DataValue;
-import org.knime.core.data.DataValueComparatorDelegator;
-import org.knime.core.data.IntValue;
-import org.knime.core.data.LongValue;
-import org.knime.core.data.StringValue;
-import org.knime.core.data.def.BooleanCell;
+import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.data.v2.RowRead;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.util.WildcardToRegexUtil;
-
+import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 
 /**
- * Predicate for filtering rows by RowID, data values, or missingness.
+ * Utility to create predicates for filtering rows by RowID, data values, or missingness.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction") // webui
 final class RowReadPredicate {
 
+    private RowReadPredicate() {
+        // hidden
+    }
+
+    /**
+     * Builds a single predicate from filter criteria, combined by AND or OR.
+     *
+     * @param isAnd if {@code true}, combine predicates with AND, otherwise with OR
+     * @param filterCriteria filter criteria to build predicates from
+     * @param spec data table spec to filter on
+     * @return predicate that combines all filter criteria
+     * @throws InvalidSettingsException if a filter criterion is invalid
+     */
     static IndexedRowReadPredicate buildPredicate(final boolean isAnd, final Iterable<FilterCriterion> filterCriteria,
-        final DataTableSpec inSpec) throws InvalidSettingsException {
+        final DataTableSpec spec) throws InvalidSettingsException {
         final var iter = filterCriteria.iterator();
         if (!iter.hasNext()) {
             return null;
         }
-        var filterPredicate = createFrom(iter.next(), inSpec);
+        // collect predicates from filter criteria, short-circuiting whenever we can prove that the predicate will
+        // always be true or false
+        var filterPredicate = createFrom(iter.next(), spec);
         while (iter.hasNext()) {
-            final var predicate = createFrom(iter.next(), inSpec);
-            filterPredicate = isAnd ? filterPredicate.and(predicate) : filterPredicate.or(predicate);
+            final var predicate = createFrom(iter.next(), spec);
+            if (isAnd) {
+                // x AND false -> false
+                // x AND true -> x
+                if (predicate == ALWAYS_FALSE) {
+                    filterPredicate = ALWAYS_FALSE;
+                } else if (predicate == ALWAYS_TRUE) {
+                    // nothing to change
+                } else {
+                    filterPredicate = filterPredicate.and(predicate);
+                }
+            } else {
+                // x OR false -> x
+                // x OR true -> true
+                if (predicate == ALWAYS_FALSE) {
+                    // nothing to change
+                } else if (predicate == ALWAYS_TRUE) {
+                    filterPredicate = ALWAYS_TRUE;
+                } else {
+                    filterPredicate = filterPredicate.or(predicate);
+                }
+            }
         }
         return filterPredicate;
     }
@@ -95,214 +126,104 @@ final class RowReadPredicate {
 
         // Special case for RowID, which is not a DataValue
         if (criterion.isFilterOnRowKeys()) {
-            final var predicate = rowKeyPredicate(criterion);
-            return predicate::test;
+            return rowKeyPredicate(criterion, criterion.m_predicateValues);
         }
 
         // case where row numbers are treated as data, e.g. WILDCARD/REGEX matching
         if (criterion.isFilterOnRowNumbers()) {
-            return rowNumberPredicate(criterion);
+            return rowNumberPredicate(criterion, criterion.m_predicateValues);
         }
 
         final var column = criterion.m_column.getSelected();
         final var columnIndex = spec.findColumnIndex(column);
-        final var operator = criterion.m_operator;
-
-        // Special case for "IS (NOT) MISSING" operators
-        if (operator == FilterOperator.IS_MISSING) {
-            return (i, row) -> row.isMissing(columnIndex);
-        } else if (operator == FilterOperator.IS_NOT_MISSING) {
-            return (i, row) -> !row.isMissing(columnIndex);
+        if (columnIndex < 0) {
+            throw new InvalidSettingsException("Column \"%s\" could not be found in input table".formatted(column));
         }
 
-        final var columnSpec = spec.getColumnSpec(columnIndex);
-
-        final var inputColumnType = columnSpec.getType();
-
-        CheckUtils.check(operator.isApplicableFor(null, inputColumnType), InvalidSettingsException::new,
-            () -> "Operator \"%s\" is not applicable for column data type \"%s\"".formatted(operator.label(),
-                inputColumnType.getName()));
-
-        final var valuePredicate = getValuePredicate(criterion, inputColumnType, columnIndex);
-        // missings never match
-        return (i, row) -> !row.isMissing(columnIndex) && valuePredicate.test(i, row);
+        return translateToPredicate(criterion.m_operator, criterion.m_predicateValues, columnIndex,
+            spec.getColumnSpec(columnIndex).getType());
     }
 
-    private static IndexedRowReadPredicate rowKeyPredicate(final FilterCriterion criterion)
-            throws InvalidSettingsException {
-        final int index = 0; // take from first widget input value
-        final var predicate = new StringPredicate(criterion.m_operator, isCaseSensitiveMatch(criterion, index),
-            criterion.m_predicateValues.getCellAt(index).map(c -> (StringCell)c).map(StringCell::getStringValue)
-                .orElseThrow(() -> new InvalidSettingsException("Missing string value for RowID comparison")));
-        return (i, row) -> predicate.test(row.getRowKey().getString());
+    private static IndexedRowReadPredicate rowKeyPredicate(final FilterCriterion criterion,
+        final DynamicValuesInput predicateValues) throws InvalidSettingsException {
+        return PredicateFactories //
+            .getValuePredicateFactory(criterion.m_operator, StringCell.TYPE) //
+            .orElseThrow(() -> new InvalidSettingsException( //
+                "Unsupported operator \"%s\" for RowID comparison".formatted(criterion.m_operator.label()))) //
+            .createPredicate(OptionalInt.empty(), predicateValues);
     }
 
-    private static IndexedRowReadPredicate rowNumberPredicate(final FilterCriterion criterion)
+    private static IndexedRowReadPredicate rowNumberPredicate(final FilterCriterion criterion,
+        final DynamicValuesInput predicateValues) throws InvalidSettingsException {
+        return PredicateFactories //
+            .getValuePredicateFactory(criterion.m_operator, LongCell.TYPE) //
+            .orElseThrow(() -> new InvalidSettingsException( //
+                "Unsupported operator \"%s\" for row number comparison".formatted(criterion.m_operator.label()))) //
+            .createPredicate(OptionalInt.empty(), predicateValues);
+    }
+
+    /**
+     * Translates the operator and predicate values into a predicate on a {@link RowRead}.
+     *
+     * @param operator filter operator
+     * @param predicateValues values for predicate
+     * @param columnIndex index of column to filter on, or negative for row key
+     * @param dataType data type of column (or {@link StringCell#TYPE} for row key)
+     * @return predicate on a row read
+     *
+     * @throws InvalidSettingsException in case the arguments are inconsistent, e.g. filtering a row key for missingness
+     */
+    static IndexedRowReadPredicate translateToPredicate(final FilterOperator operator,
+        final DynamicValuesInput predicateValues, final int columnIndex, final DataType dataType)
         throws InvalidSettingsException {
-        final int index = 0; // first widget value
-        final var predicate = new StringPredicate(criterion.m_operator, false,
-            criterion.m_predicateValues.getCellAt(index).map(c -> (StringCell)c).map(StringCell::getStringValue)
-                .orElseThrow(() -> new InvalidSettingsException("Missing reference value for row number comparison")));
-        // translate from index to row number
-        return (idx, row) -> predicate.test(Long.toString(idx + 1));
+        // handle missingness tests early
+        if (operator == FilterOperator.IS_MISSING || operator == FilterOperator.IS_NOT_MISSING) {
+            // only missing value filter, no value predicate present
+            final var isMissing = operator == FilterOperator.IS_MISSING;
+            return isMissing ? PredicateFactories.IS_MISSING_FACTORY.apply(columnIndex)
+                : PredicateFactories.IS_NOT_MISSING_FACTORY.apply(columnIndex);
+        }
+
+        // get an actual (non-missing) value predicate
+        return translateToValuePredicate(operator, predicateValues, columnIndex, dataType);
     }
 
-    private static IndexedRowReadPredicate getValuePredicate(final FilterCriterion criterion,
-        final DataType inputColumnType, final int columnIndex) throws InvalidSettingsException {
-        final var operator = criterion.m_operator;
-        // special case Boolean
-        if (BooleanValuePredicate.isApplicableFor(operator)) {
-            CheckUtils.checkSetting(BooleanValuePredicate.isApplicableFor(inputColumnType),
-                "Unsupported data type \"%s\" for boolean operator \"%s\"", inputColumnType.getName(),
-                operator.label());
-            final var booleanPredicate = new BooleanValuePredicate(operator);
-            return (i, row) -> booleanPredicate.test(row.<BooleanValue> getValue(columnIndex));
+    private static IndexedRowReadPredicate translateToValuePredicate(final FilterOperator operator,
+        final DynamicValuesInput predicateValues, final int columnIndex, final DataType dataType)
+        throws InvalidSettingsException {
+
+        final var valuePredicate = PredicateFactories //
+            .getValuePredicateFactory(operator, dataType) //
+            .orElseThrow(() -> new InvalidSettingsException(
+                "Unsupported operator for input column type \"%s\"".formatted(dataType.getName())))
+            .createPredicate(OptionalInt.of(columnIndex), predicateValues);
+
+        /*
+         * Missing value handling:
+         *
+         * Missing values never match the RowRead predicate.
+         * This means the value predicate can (and should since it operates on values, not cells) only be evaluated if
+         * it is not missing. The row key cannot be missing, so we have to always evaluate the predicate against it.
+         *
+         * This results in the following test to determine if the row should pass the filter or not:
+         *
+         *   (isRowKey OR !isMissing) AND valuePredicate
+         *
+         */
+
+        if (valuePredicate == ALWAYS_FALSE) {
+            // the AND can never be true, if the value predicate always returns false
+            return ALWAYS_FALSE;
+        }
+        final var isRowKey = columnIndex < 0;
+        if (valuePredicate == ALWAYS_TRUE) {
+            // since row keys are never missing, we can return always true here
+            // for a non-rowkey column for which the predicate is always true, we still need to check its presence
+            return isRowKey ? ALWAYS_TRUE : (idx, rowRead) -> !rowRead.isMissing(columnIndex);
         }
 
-        final var referenceCell = criterion.m_predicateValues.getCellAt(0)
-            .orElseThrow(() -> new InvalidSettingsException("Missing comparison value"));
-
-        // special case String and pattern matching
-        if (operator == FilterOperator.WILDCARD || operator == FilterOperator.REGEX
-            || inputColumnType.equals(StringCell.TYPE)) {
-            return getStringPredicate(criterion, inputColumnType, columnIndex, referenceCell);
-        }
-
-        // everything else
-        final var predicate = new DataValuePredicate(operator, referenceCell);
-        return (i, row) -> predicate.test(row.getValue(columnIndex));
+        // rowKey cannot be missing, so we can safely evaluate the value predicate
+        return isRowKey ? valuePredicate
+            : ((idx, rowRead) -> !rowRead.isMissing(columnIndex) && valuePredicate.test(idx, rowRead));
     }
-
-    private static IndexedRowReadPredicate getStringPredicate(final FilterCriterion criterion,
-        final DataType inputColumnType, final int columnIndex, final DataCell referenceCell)
-            throws InvalidSettingsException {
-
-        final var stringPredicate = new StringPredicate(criterion.m_operator,
-            isCaseSensitiveMatch(criterion, 0), ((StringCell)referenceCell).getStringValue());
-
-        if (inputColumnType.isCompatible(StringValue.class)) {
-            // already a String type, no need to convert read values
-            return (i, row) -> stringPredicate.test(row.<StringValue> getValue(columnIndex).getStringValue());
-        }
-
-        // convert numbers to String
-        if (!inputColumnType.isCompatible(IntValue.class) && !inputColumnType.isCompatible(LongValue.class)) {
-            throw new InvalidSettingsException(
-                "Unsupported column type \"%s\" for string-based comparison.".formatted(inputColumnType.getName()));
-        }
-        if (inputColumnType.isCompatible(IntValue.class)) {
-            return (i, row) -> stringPredicate
-                .test(String.valueOf(row.<IntValue> getValue(columnIndex).getIntValue()));
-        }
-        return (i, row) -> stringPredicate
-            .test(String.valueOf(row.<LongValue> getValue(columnIndex).getLongValue()));
-    }
-
-    private static boolean isCaseSensitiveMatch(final FilterCriterion criterion, final int referenceValueIndex) {
-        return criterion.m_predicateValues.isStringMatchCaseSensitive(referenceValueIndex);
-    }
-
-    sealed interface FilterPredicate<T> extends Predicate<T>
-        permits BooleanValuePredicate, StringPredicate, DataValuePredicate {
-    }
-
-    static final class BooleanValuePredicate implements FilterPredicate<BooleanValue> {
-
-        final boolean m_matchTrue;
-
-        BooleanValuePredicate(final FilterOperator operator) {
-            CheckUtils.checkArgument(isApplicableFor(operator), "Unsupported operator \"%s\"", operator.label());
-            m_matchTrue = operator == FilterOperator.IS_TRUE;
-        }
-
-        @Override
-        public boolean test(final BooleanValue b) {
-            return m_matchTrue == b.getBooleanValue();
-        }
-
-        static boolean isApplicableFor(final DataType type) {
-            return type.equals(BooleanCell.TYPE);
-        }
-
-        private static boolean isApplicableFor(final FilterOperator operator) {
-            return switch (operator) {
-                case IS_TRUE, IS_FALSE -> true;
-                default -> false;
-            };
-        }
-    }
-
-    static final class StringPredicate implements FilterPredicate<String> {
-
-        final Predicate<String> m_predicate;
-
-        StringPredicate(final FilterOperator operator, final boolean isCaseSensitive, final String value) {
-            CheckUtils.checkArgument(isApplicableFor(operator), "Unsupported operator \"%s\"", operator.label());
-
-            if (operator == FilterOperator.EQ || operator == FilterOperator.NEQ) {
-                final var isNegated = operator == FilterOperator.NEQ;
-                m_predicate = cellValue -> {
-                    final var equal = isCaseSensitive ? cellValue.equals(value) : cellValue.equalsIgnoreCase(value);
-                    return isNegated ^ equal; // XOR, exactly one must be true
-                };
-                return;
-            } else if (operator == FilterOperator.WILDCARD || operator == FilterOperator.REGEX) {
-                final var pattern =
-                    operator == FilterOperator.WILDCARD ? WildcardToRegexUtil.wildcardToRegex(value) : value;
-                var flags = Pattern.DOTALL | Pattern.MULTILINE;
-                flags |= isCaseSensitive ? 0 : Pattern.CASE_INSENSITIVE;
-                var regex = Pattern.compile(pattern, flags);
-                m_predicate = cellValue -> regex.matcher(cellValue).matches();
-                return;
-            }
-            throw new IllegalStateException("Unsupported operator for string condition: " + operator);
-        }
-
-        @Override
-        public boolean test(final String stringValue) {
-            return m_predicate.test(stringValue);
-        }
-
-        private static boolean isApplicableFor(final FilterOperator operator) {
-            return switch (operator) {
-                case EQ, NEQ, WILDCARD, REGEX -> true;
-                default -> false;
-            };
-        }
-
-    }
-
-    static final class DataValuePredicate implements FilterPredicate<DataValue> {
-
-        final Predicate<DataValue> m_predicate;
-
-        DataValuePredicate(final FilterOperator operator, final DataValue referenceValue)
-            throws InvalidSettingsException {
-            CheckUtils.checkArgument(isApplicableFor(operator), "Unsupported operator \"%s\"", operator.label());
-            final var refCell = referenceValue.materializeDataCell();
-            final var comparator = new DataValueComparatorDelegator<>(refCell.getType().getComparator());
-            m_predicate = switch (operator) {
-                case EQ -> v -> v.materializeDataCell().equals(refCell);
-                case NEQ -> v -> !v.materializeDataCell().equals(refCell);
-                case LT -> v -> comparator.compare(v, referenceValue) < 0;
-                case LTE -> v -> comparator.compare(v, referenceValue) <= 0;
-                case GT -> v -> comparator.compare(v, referenceValue) > 0;
-                case GTE -> v -> comparator.compare(v, referenceValue) >= 0;
-                default -> throw new InvalidSettingsException("Unexpected operator for value comparison: " + operator);
-            };
-        }
-
-        @Override
-        public boolean test(final DataValue value) {
-            return m_predicate.test(value);
-        }
-
-        private static boolean isApplicableFor(final FilterOperator operator) {
-            return switch (operator) {
-                case EQ, NEQ, LT, LTE, GT, GTE -> true;
-                default -> false;
-            };
-        }
-    }
-
 }
