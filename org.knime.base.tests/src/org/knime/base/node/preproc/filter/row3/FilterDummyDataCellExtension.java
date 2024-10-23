@@ -44,48 +44,77 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   8 May 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   21 Jan 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.preproc.filter.row3;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.knime.core.data.BoundedValue;
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataType;
+import org.knime.core.data.IntValue;
+import org.knime.core.data.convert.datacell.JavaToDataCellConverterRegistry;
+import org.knime.core.data.convert.datacell.SimpleJavaToDataCellConverterFactory;
 
 /**
- * Settings for the Row Filter node.
+ * Extension that takes care of registering the dummy data cell for the Row Filter tests.
+ * Use it in a test class by annotating the class with {@code @ExtendWith(FilterDummyDataCellExtension.class)}.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction") // webui is not public yet
-final class RowFilterNodeSettings extends AbstractRowFilterNodeSettings {
-
-    // we need to repeat both constructors, otherwise InstantiationUtil cannot instantiate our concrete settings class
-
-    // for de-/serialization
-    RowFilterNodeSettings() {
-        super();
-    }
-
-    // auto-configuration constructor needs to be "re-declared" in subclass
-    RowFilterNodeSettings(final DefaultNodeSettingsContext ctx) {
-        super(ctx);
-    }
+public final class FilterDummyDataCellExtension implements BeforeAllCallback {
 
     @Override
-    boolean isSecondOutputActive() {
-        return false;
+    public void beforeAll(final ExtensionContext context) throws Exception {
+        // other data types are supported by the Row Filter, if the input widget supports it
+        // (which is currently done via type mapping from String -> cell)
+        final var registry = JavaToDataCellConverterRegistry.getInstance();
+        registry.register(
+            new SimpleJavaToDataCellConverterFactory<>(String.class, FilterDummyCell.TYPE, FilterDummyCell::new));
     }
 
-    @Override
-    FilterMode outputMode() {
-        return m_outputMode;
-    }
 
-    @Widget(title = "Filter behavior",
-        description = "Determines whether only matching or non-matching rows are output.")
-    @ValueSwitchWidget
-    @Layout(DialogSections.Output.OutputMode.class)
-    FilterMode m_outputMode = FilterMode.MATCHING;
+    /**
+     * Dummy cell for testing "generic" data cell handling in the Row Filter components.
+     */
+    @SuppressWarnings("serial")
+    public static final class FilterDummyCell extends DataCell implements BoundedValue, IntValue {
+
+        /**
+         * Type annotation.
+         */
+        public static final DataType TYPE = DataType.getType(FilterDummyCell.class);
+
+        /**
+         * Constructor.
+         *
+         * @param serializedValue parsed but not stored value
+         */
+        public FilterDummyCell(final String serializedValue) {
+            Integer.parseInt(serializedValue);
+        }
+
+        @Override
+        public int getIntValue() {
+            throw new UnsupportedOperationException("Not expected to be called during test.");
+        }
+
+        @Override
+        public String toString() {
+            throw new UnsupportedOperationException("Not expected to be called during test.");
+        }
+
+        @Override
+        protected boolean equalsDataCell(final DataCell dc) {
+            throw new UnsupportedOperationException("Not expected to be called during test.");
+        }
+
+        @Override
+        public int hashCode() {
+            throw new UnsupportedOperationException("Not expected to be called during test.");
+        }
+
+    }
 
 }

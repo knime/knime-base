@@ -44,48 +44,41 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   8 May 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   27 Aug 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.base.node.preproc.filter.row3.predicates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import java.util.OptionalInt;
+
+import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
+import org.knime.core.data.v2.RowRead;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 
 /**
- * Settings for the Row Filter node.
+ * Factory for predicates that can be used to filter indexed {@link RowRead rows}.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction") // webui is not public yet
-final class RowFilterNodeSettings extends AbstractRowFilterNodeSettings {
+@FunctionalInterface
+public interface PredicateFactory {
 
-    // we need to repeat both constructors, otherwise InstantiationUtil cannot instantiate our concrete settings class
-
-    // for de-/serialization
-    RowFilterNodeSettings() {
-        super();
-    }
-
-    // auto-configuration constructor needs to be "re-declared" in subclass
-    RowFilterNodeSettings(final DefaultNodeSettingsContext ctx) {
-        super(ctx);
-    }
-
-    @Override
-    boolean isSecondOutputActive() {
-        return false;
-    }
-
-    @Override
-    FilterMode outputMode() {
-        return m_outputMode;
-    }
-
-    @Widget(title = "Filter behavior",
-        description = "Determines whether only matching or non-matching rows are output.")
-    @ValueSwitchWidget
-    @Layout(DialogSections.Output.OutputMode.class)
-    FilterMode m_outputMode = FilterMode.MATCHING;
+    /**
+     * Creates a filter predicate given a column index and a reference value input. In case the predicate does not
+     * operate on a column, an empty optional should be passed.
+     *
+     * <br><b>Note:</b>
+     * Implementations may throw {@link IllegalArgumentException} if the column index is <i>invalid</i>.
+     * Invalid means that it is provided but not used by the predicate factory or if it is not provided but required by
+     * the factory.
+     *
+     * @param columnIndex column index to filter on, or empty optional if not operating on a column
+     * @param inputValues input values to use as reference
+     * @return predicate predicate that can be used to filter rows
+     * @throws InvalidSettingsException in case the input values are missing or invalid
+     * @throws IllegalArgumentException in case the column index argument is invalid
+     */
+    IndexedRowReadPredicate createPredicate(OptionalInt columnIndex, final DynamicValuesInput inputValues) // NOSONAR make usage of column/no-column explicit
+        throws InvalidSettingsException;
 
 }

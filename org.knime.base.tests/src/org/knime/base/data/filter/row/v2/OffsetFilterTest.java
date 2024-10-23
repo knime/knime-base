@@ -44,48 +44,51 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   8 May 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   7 Jan 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.base.data.filter.row.v2;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Map;
+
+import org.junit.jupiter.api.Test;
+import org.knime.base.data.filter.row.v2.OffsetFilter.Operator;
 
 /**
- * Settings for the Row Filter node.
+ * Tests for the {@link OffsetFilter} predicate conversion.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction") // webui is not public yet
-final class RowFilterNodeSettings extends AbstractRowFilterNodeSettings {
+class OffsetFilterTest {
 
-    // we need to repeat both constructors, otherwise InstantiationUtil cannot instantiate our concrete settings class
+    /**
+     * Tests that all offset filter predicates act as expected.
+     */
+    @Test
+    void testAsPredicate() {
 
-    // for de-/serialization
-    RowFilterNodeSettings() {
-        super();
+        final var indices = new long[] {0, 1, 42, Long.MIN_VALUE, Long.MAX_VALUE};
+
+        final var testIndex = 42;
+
+        final var expectedResults = Map.of(
+            Operator.EQ, new boolean[] {false, false, true, false, false},
+            Operator.NEQ, new boolean[] {true, true, false, true, true},
+            Operator.LT, new boolean[] {true, true, false, true, false},
+            Operator.LTE, new boolean[] {true, true, true, true, false},
+            Operator.GT, new boolean[] {false, false, false, false, true},
+            Operator.GTE, new boolean[] {false, false, true, false, true}
+        );
+
+        for (final var op : Operator.values()) {
+            final var predicate = new OffsetFilter(op, testIndex).asPredicate().negate().negate();
+            final var expected = expectedResults.get(op);
+            for (int i = 0; i < indices.length; i++) {
+                assertThat(predicate.test(indices[i], null)) //
+                    .as("Operator %s should match %s for index %d", op, expected[i], indices[i]) //
+                    .isEqualTo(expected[i]);
+            }
+        }
     }
-
-    // auto-configuration constructor needs to be "re-declared" in subclass
-    RowFilterNodeSettings(final DefaultNodeSettingsContext ctx) {
-        super(ctx);
-    }
-
-    @Override
-    boolean isSecondOutputActive() {
-        return false;
-    }
-
-    @Override
-    FilterMode outputMode() {
-        return m_outputMode;
-    }
-
-    @Widget(title = "Filter behavior",
-        description = "Determines whether only matching or non-matching rows are output.")
-    @ValueSwitchWidget
-    @Layout(DialogSections.Output.OutputMode.class)
-    FilterMode m_outputMode = FilterMode.MATCHING;
-
 }

@@ -44,48 +44,51 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   8 May 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   22 Jan 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.base.node.preproc.filter.row3.predicates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+
+import java.util.OptionalInt;
+
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.knime.core.data.def.BooleanCell;
+import org.knime.core.data.def.StringCell;
 
 /**
- * Settings for the Row Filter node.
+ * Tests for the boolean predicate factory.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction") // webui is not public yet
-final class RowFilterNodeSettings extends AbstractRowFilterNodeSettings {
+final class BooleanPredicateFactoryTest {
 
-    // we need to repeat both constructors, otherwise InstantiationUtil cannot instantiate our concrete settings class
-
-    // for de-/serialization
-    RowFilterNodeSettings() {
-        super();
+    @SuppressWarnings("static-method")
+    @ParameterizedTest
+    @ValueSource(strings = {"true", "false"})
+    void testBoolean(final boolean matchTrue) {
+        final var factory = BooleanPredicateFactory.create(BooleanCell.TYPE, matchTrue).orElseThrow();
+        final var idx = OptionalInt.of(EqualityPredicateFactoryTest.SPEC.findColumnIndex("Bool1"));
+        assertThatCode(() -> factory.createPredicate(idx, null)) //
+            .as("Booleans can be matched TRUE or FALSE") //
+            .doesNotThrowAnyException();
     }
 
-    // auto-configuration constructor needs to be "re-declared" in subclass
-    RowFilterNodeSettings(final DefaultNodeSettingsContext ctx) {
-        super(ctx);
+    @SuppressWarnings("static-method")
+    @ParameterizedTest
+    @ValueSource(strings = {"true", "false"})
+    void testBooleanException(final boolean matchTrue) {
+        final var factory = BooleanPredicateFactory.create(BooleanCell.TYPE, matchTrue).orElseThrow();
+        final var idx = OptionalInt.empty();
+        assertThatCode(() -> factory.createPredicate(idx, null)) //
+            .as("Boolean predicate needs a column index") //
+            .isInstanceOf(IllegalStateException.class) //
+            .hasMessageContaining("Boolean predicate operates on column but did not get a column index");
+
+        assertThat(BooleanPredicateFactory.create(StringCell.TYPE, matchTrue))
+            .as("Boolean predicate operates only on BooleanCells") //
+            .isEmpty();
     }
-
-    @Override
-    boolean isSecondOutputActive() {
-        return false;
-    }
-
-    @Override
-    FilterMode outputMode() {
-        return m_outputMode;
-    }
-
-    @Widget(title = "Filter behavior",
-        description = "Determines whether only matching or non-matching rows are output.")
-    @ValueSwitchWidget
-    @Layout(DialogSections.Output.OutputMode.class)
-    FilterMode m_outputMode = FilterMode.MATCHING;
-
 }

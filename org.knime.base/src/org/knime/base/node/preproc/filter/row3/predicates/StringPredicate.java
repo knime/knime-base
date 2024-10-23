@@ -44,63 +44,60 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   24 May 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   27 Aug 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.base.node.preproc.filter.row3.predicates;
 
-import java.util.function.LongPredicate;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
-import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
-import org.knime.core.node.InvalidSettingsException;
+import org.knime.filehandling.core.util.WildcardToRegexUtil;
 
 /**
- * Predicate for filtering rows by row number.
+ * String predicate supporting equality comarison or pattern matching.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-interface RowNumberPredicate extends LongPredicate {
+final class StringPredicate implements Predicate<String> {
 
-    static RowNumberPredicate buildPredicate(final boolean isAnd, final Iterable<FilterCriterion> rowNumberCriteria,
-            final long optionalTableSize) throws InvalidSettingsException {
-        final var iter = rowNumberCriteria.iterator();
-        if (!iter.hasNext()) {
-            return null;
-        }
-        var filterPredicate = createFrom(iter.next(), optionalTableSize);
-        while (iter.hasNext()) {
-            final var predicate = createFrom(iter.next(), optionalTableSize);
-            filterPredicate = isAnd ? filterPredicate.and(predicate) : filterPredicate.or(predicate);
-        }
-        return filterPredicate;
+    private final Predicate<String> m_predicate;
+
+    private StringPredicate(final Predicate<String> predicate) {
+        m_predicate = predicate;
     }
 
-    private static RowNumberPredicate createFrom(final FilterCriterion criterion, final long optionalTableSize)
-            throws InvalidSettingsException {
-        final var filterSpec = RowNumberFilter.getAsFilterSpec(criterion);
-        final var offsetFilter = filterSpec.toOffsetFilter(optionalTableSize);
-        return offsetFilter.toPredicate();
+    @Override
+    public boolean test(final String str) {
+        return m_predicate.test(str);
     }
 
     /**
-     * Short-circuiting AND.
-     * @param other other predicate
-     * @return combined predicate
-     * @see LongPredicate#and(LongPredicate)
+     * Creates an equality string predicate.
+     *
+     * @param referenceValue value to compare with
+     * @param isCaseSensitive whether the comparison should be case-sensitive or not
+     * @return equality string predicate
      */
-    @Override
-    default RowNumberPredicate and(final LongPredicate other) {
-        return value -> test(value) && other.test(value);
+    static StringPredicate equality(final String referenceValue, final boolean isCaseSensitive) {
+        final Predicate<String> predicate = isCaseSensitive ? referenceValue::equals : referenceValue::equalsIgnoreCase;
+        return new StringPredicate(predicate);
     }
-
 
     /**
-     * Short-circuiting OR.
-     * @param other other predicate
-     * @return combined predicate
-     * @see LongPredicate#or(LongPredicate)
+     * Creates a string predicate that supports regex or wildcard patterns.
+     *
+     * @param pattern pattern to match
+     * @param isRegex {@code true} if the pattern represents a regex, {@code false} if it represents a wildcard
+     * @param isCaseSensitive whether the match should be case-sensitive or not
+     * @return pattern string predicate
      */
-    @Override
-    default RowNumberPredicate or(final LongPredicate other) {
-        return value -> test(value) || other.test(value);
+    static StringPredicate pattern(final String pattern, final boolean isRegex,
+        final boolean isCaseSensitive) {
+        final var regexPattern = isRegex ? pattern : WildcardToRegexUtil.wildcardToRegex(pattern);
+        var flags = Pattern.DOTALL | Pattern.MULTILINE;
+        flags |= isCaseSensitive ? 0 : Pattern.CASE_INSENSITIVE;
+        final var regex = Pattern.compile(regexPattern, flags);
+        return new StringPredicate(stringValue -> regex.matcher(stringValue).matches());
     }
+
 }

@@ -44,48 +44,20 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   8 May 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   16 Dec 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3;
-
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-
 /**
- * Settings for the Row Filter node.
+ * <p>
+ * This package contains all predicate implementations for the Row Filter and Row Splitter nodes. The primary entrypoint
+ * is the {@link org.knime.base.node.preproc.filter.row3.predicates.PredicateFactories} utility. All predicate factories
+ * implement the common interface {@link org.knime.base.node.preproc.filter.row3.predicates.PredicateFactory} that
+ * creates predicates of the {@link org.knime.base.data.filter.row.v2.IndexedRowReadPredicate} interface required by the
+ * {@link org.knime.base.data.filter.row.v2.RowFilter row filter implementation}.
+ * </p>
  *
- * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * Predicate implementations should make sure that they are as specialized as possible to allow for an efficient
+ * evaluation, e.g. by creating specialized predicate functions based on the given data type in the factory and not only
+ * in the {@link org.knime.base.data.filter.row.v2.IndexedRowReadPredicate#test(long, org.knime.core.data.v2.RowRead)
+ * predicate test} method.
  */
-@SuppressWarnings("restriction") // webui is not public yet
-final class RowFilterNodeSettings extends AbstractRowFilterNodeSettings {
-
-    // we need to repeat both constructors, otherwise InstantiationUtil cannot instantiate our concrete settings class
-
-    // for de-/serialization
-    RowFilterNodeSettings() {
-        super();
-    }
-
-    // auto-configuration constructor needs to be "re-declared" in subclass
-    RowFilterNodeSettings(final DefaultNodeSettingsContext ctx) {
-        super(ctx);
-    }
-
-    @Override
-    boolean isSecondOutputActive() {
-        return false;
-    }
-
-    @Override
-    FilterMode outputMode() {
-        return m_outputMode;
-    }
-
-    @Widget(title = "Filter behavior",
-        description = "Determines whether only matching or non-matching rows are output.")
-    @ValueSwitchWidget
-    @Layout(DialogSections.Output.OutputMode.class)
-    FilterMode m_outputMode = FilterMode.MATCHING;
-
-}
+package org.knime.base.node.preproc.filter.row3.predicates;

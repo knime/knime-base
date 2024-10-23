@@ -44,48 +44,64 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   8 May 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   14 Oct 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.base.data.filter.row.v2;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.data.v2.RowRead;
 
 /**
- * Settings for the Row Filter node.
+ * Predicate on row read and row index.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction") // webui is not public yet
-final class RowFilterNodeSettings extends AbstractRowFilterNodeSettings {
+@FunctionalInterface
+public interface IndexedRowReadPredicate {
 
-    // we need to repeat both constructors, otherwise InstantiationUtil cannot instantiate our concrete settings class
+    /**
+     * Predicate that always evaluates to {@code true}.
+     */
+    IndexedRowReadPredicate TRUE = (index, read) -> true;
 
-    // for de-/serialization
-    RowFilterNodeSettings() {
-        super();
+    /**
+     * Predicate that always evaluates to {@code false}.
+     */
+    IndexedRowReadPredicate FALSE = (index, read) -> false;
+
+    /**
+     * Tests the predicate with the supplied row index (0-based) and {@link RowRead row read}.
+     *
+     * @param index 0-based index of row
+     * @param read row data
+     * @return {@code true} if the predicate matches the supplied row, {@code false} otherwise
+     */
+    boolean test(final long index, final RowRead read);
+
+    /**
+     * Composed predicate of short-circuiting logical AND.
+     *
+     * @param other the rhs AND predicate
+     * @return logically-ANDed predicate
+     */
+    default IndexedRowReadPredicate and(final IndexedRowReadPredicate other) {
+        return (index, read) -> test(index, read) && other.test(index, read);
     }
 
-    // auto-configuration constructor needs to be "re-declared" in subclass
-    RowFilterNodeSettings(final DefaultNodeSettingsContext ctx) {
-        super(ctx);
+    /**
+     * Composed predicate of short-circuiting logical OR.
+     *
+     * @param other the rhs OR predicate
+     * @return logically-ORed predicate
+     */
+    default IndexedRowReadPredicate or(final IndexedRowReadPredicate other) {
+        return (index, read) -> test(index, read) || other.test(index, read);
     }
 
-    @Override
-    boolean isSecondOutputActive() {
-        return false;
+    /**
+     * Negates the predicate.
+     * @return negated predicate
+     */
+    default IndexedRowReadPredicate negate() {
+        return (index, read) -> !test(index, read);
     }
-
-    @Override
-    FilterMode outputMode() {
-        return m_outputMode;
-    }
-
-    @Widget(title = "Filter behavior",
-        description = "Determines whether only matching or non-matching rows are output.")
-    @ValueSwitchWidget
-    @Layout(DialogSections.Output.OutputMode.class)
-    FilterMode m_outputMode = FilterMode.MATCHING;
-
 }
