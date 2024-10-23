@@ -90,7 +90,7 @@ final class RowSplitterNodeSettings extends AbstractRowFilterNodeSettings {
         description = "Determines whether matching rows are output at the first port and non-matching rows are "
             + "output at the second port, or vice-versa.")
     @RadioButtonsWidget
-    @Layout(DialogSections.Output.class)
+    @Layout(DialogSections.Output.OutputMode.class)
     SplitterMode m_outputMode = SplitterMode.MATCHING;
 
     // variants are named exactly as in `FilterMode` to make it easier to switch from Filter to Splitter when using
