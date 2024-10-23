@@ -54,9 +54,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.knime.base.data.filter.row.v2.FilterPartition;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterMode;
-import org.knime.base.node.preproc.filter.row3.RowNumberFilter.FilterPartition;
-import org.knime.base.node.preproc.filter.row3.RowNumberFilter.RowNumberFilterSpec;
+import org.knime.core.node.InvalidSettingsException;
 
 import com.google.common.collect.ImmutableRangeSet;
 import com.google.common.collect.Range;
@@ -78,7 +78,7 @@ final class RowNumberFilterTest {
     }
 
     @Test
-    void testSliceFromRangesEqNeq() {
+    void testSliceFromRangesEqNeq() throws InvalidSettingsException {
         // only first
         checkSymmetrical(FilterOperator.EQ, FilterOperator.NEQ, 1, 1_000,
             asSet(Range.closedOpen(0L, 1L)),
@@ -122,7 +122,7 @@ final class RowNumberFilterTest {
     }
 
     @Test
-    void testSliceFromRangesLtGte() {
+    void testSliceFromRangesLtGte() throws InvalidSettingsException {
         checkSymmetrical(FilterOperator.LT, FilterOperator.GTE, 1, 1_000,
             asSet(),
             asSet(Range.closedOpen(0L, 1_000L)));
@@ -160,7 +160,7 @@ final class RowNumberFilterTest {
     }
 
     @Test
-    void testSliceFromRangesLteGt() {
+    void testSliceFromRangesLteGt() throws InvalidSettingsException {
         checkSymmetrical(FilterOperator.LTE, FilterOperator.GT, 1, 1_000,
             asSet(Range.closedOpen(0L, 1L)),
             asSet(Range.closedOpen(1L, 1_000L)));
@@ -198,7 +198,7 @@ final class RowNumberFilterTest {
     }
 
     @Test
-    void testSliceFromRangesFirstNRows() {
+    void testSliceFromRangesFirstNRows() throws InvalidSettingsException {
         final var zero = computePartition(FilterOperator.FIRST_N_ROWS, 0, 1_000);
         assertThat(zero.matching()).isEqualTo(asSet());
         assertThat(zero.nonMatching()).isEqualTo(asSet(Range.closedOpen(0L, 1_000L)));
@@ -247,7 +247,7 @@ final class RowNumberFilterTest {
     }
 
     @Test
-    void testSliceFromRangesLastNRows() {
+    void testSliceFromRangesLastNRows() throws InvalidSettingsException {
         final var zero = computePartition(FilterOperator.LAST_N_ROWS, 0, 1_000);
         assertThat(zero.matching()).isEqualTo(asSet());
         assertThat(zero.nonMatching()).isEqualTo(asSet(Range.closedOpen(0L, 1_000L)));
@@ -300,13 +300,13 @@ final class RowNumberFilterTest {
     }
 
     private static FilterPartition computePartition(final FilterOperator operator, final long rowNumber,
-        final long optSize) {
-        return RowNumberFilter.computeRowPartition(true, List.of(new RowNumberFilterSpec(operator, rowNumber)),
+        final long optSize) throws InvalidSettingsException {
+        return RowNumberFilterSpec.computeRowPartition(true, List.of(new RowNumberFilterSpec(operator, rowNumber)),
             FilterMode.MATCHING, optSize);
     }
 
     private static void checkSymmetrical(final FilterOperator op1, final FilterOperator op2, final long value,
-            final long optSize, final RangeSet<Long> included, final RangeSet<Long> excluded) {
+            final long optSize, final RangeSet<Long> included, final RangeSet<Long> excluded) throws InvalidSettingsException {
         final var partition1 = computePartition(op1, value, optSize);
         final var partition2 = computePartition(op2, value, optSize);
         assertThat(partition1.matching()).isEqualTo(included);

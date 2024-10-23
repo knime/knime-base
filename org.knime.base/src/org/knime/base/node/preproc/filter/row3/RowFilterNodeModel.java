@@ -51,18 +51,13 @@ package org.knime.base.node.preproc.filter.row3;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.LongSupplier;
-import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
 
+import org.knime.base.data.filter.row.v2.RowFilter;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.ColumnDomains;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.DataContainerSettings;
-import org.knime.core.data.v2.RowRead;
 import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.PortObject;
@@ -76,7 +71,6 @@ import org.knime.core.node.streamable.RowInput;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.util.Pair;
-import org.knime.core.util.valueformat.NumberFormatter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
@@ -92,11 +86,7 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
 
     private static final int INPUT = 0;
 
-    private static final int MATCHING_OUTPUT = 0;
-
-    private static final int NON_MATCHING_OUTPUT = 1;
-
-    static final long UNKNOWN_SIZE = -1;
+    private static final long UNKNOWN_SIZE = -1;
 
     RowFilterNodeModel(final WebUINodeConfiguration config, final Class<S> settingsClass) {
         super(config, settingsClass);
@@ -133,13 +123,14 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
         final var tableSize = in.size();
         if (dataCriteria.isEmpty()) {
             // slicing-only is possible since we never look at any column
-            final var includedExcludedPartition =
-                    RowNumberFilter.computeRowPartition(isAnd, RowNumberFilter.getAsFilterSpecs(rowNumberCriteria),
-                        settings.outputMode(), tableSize);
-            return RowNumberFilter.sliceTable(exec, in, includedExcludedPartition, isSplitter);
+            final var includedExcludedPartition = RowNumberFilterSpec.computeRowPartition(isAnd,
+                RowNumberFilterSpec.toFilterSpec(rowNumberCriteria), settings.outputMode(), tableSize);
+            return RowFilter.slice(exec, in, includedExcludedPartition, isSplitter);
         }
         final var inSpec = in.getSpec();
-        final var predicate = createFilterPredicate(isAnd, rowNumberCriteria, dataCriteria, inSpec, tableSize);
+        // TODO (performance): use ALWAYS_TRUE and ALWAYS_FALSE predicates to return input table or empty table
+        final var predicate = AbstractRowFilterNodeSettings.createFilterPredicate(isAnd, rowNumberCriteria,
+            dataCriteria, inSpec, tableSize);
 
         // inherit domain from spec?
         final var initializedDomain = settings.m_domains == ColumnDomains.RETAIN;
@@ -158,49 +149,11 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
                 final var nonMatches = isSplitter ? exec.createRowContainer(inSpec, dcSettings) : null;
                 final var nonMatchesCursor = nonMatches != null ? nonMatches.createCursor() : null //
         ) {
-            // top-level progress reports number of processed rows as a fraction of the input table size
-            final var readRows = new AtomicLong();
-            final var msg = progressFractionBuilder(readRows::get, tableSize);
-            exec.setProgress(0, () -> msg.apply(new StringBuilder("Processed row ")).toString());
-
-            // sub-progress for reporting the number of matching rows
-            final var matchingRows = new AtomicLong();
-            final var outputProgress = exec.createSubProgress(0.0);
-            final var numFormat = NumberFormatter.builder().setGroupSeparator(",").build();
-            outputProgress.setMessage(() -> numFormat.format(matchingRows.get()) + " rows matching");
-
-            final var includeMatches = settings.outputMatches();
-            while (input.canForward()) {
-                exec.checkCanceled();
-                final var read = input.forward();
-                final var index = readRows.getAndIncrement();
-                if (includeMatches == predicate.test(index, read)) {
-                    matchesCursor.commit(read);
-                    matchingRows.incrementAndGet();
-                } else if (nonMatchesCursor != null) {
-                    nonMatchesCursor.commit(read);
-                }
-                exec.setProgress(1.0 * readRows.get() / tableSize);
-            }
-
+            RowFilter.filterOnPredicate(exec, input, tableSize, matchesCursor, nonMatchesCursor, predicate,
+                settings.outputMatches());
             return nonMatches != null ? new BufferedDataTable[]{matches.finish(), nonMatches.finish()}
                 : new BufferedDataTable[]{matches.finish()};
         }
-    }
-
-    private static IndexedRowReadPredicate createFilterPredicate(final boolean isAnd,
-        final List<FilterCriterion> rowNumberCriteria, final List<FilterCriterion> dataCriteria,
-        final DataTableSpec spec, final long tableSize) throws InvalidSettingsException {
-        final var rowNumbers = RowNumberPredicate.buildPredicate(isAnd, rowNumberCriteria, tableSize);
-        final var data = RowReadPredicate.buildPredicate(isAnd, dataCriteria, spec);
-        if (rowNumbers == null) {
-            return data::test;
-        }
-        if (data == null) {
-            throw new IllegalStateException("Row number predicate without data predicate, should have used slicing");
-        }
-        return isAnd ? (index, read) -> rowNumbers.test(index) && data.test(index, read) // NOSONAR this is not too hard to read
-            : (index, read) -> rowNumbers.test(index) || data.test(index, read); // NOSONAR see above
     }
 
     /**
@@ -218,42 +171,13 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
             final var selected = c.m_column.getSelected();
             // in case of REGEX and WILDCARD operators, we treat the row number column as a data column
             if (AbstractRowFilterNodeSettings.isRowNumberSelected(selected)
-                    && RowNumberFilter.supportsOperator(c.m_operator)) {
+                    && RowNumberFilterSpec.supportsOperator(c.m_operator)) {
                 rowNumberCriteria.add(c);
             } else {
                 dataCriteria.add(c);
             }
         }
         return Pair.create(rowNumberCriteria, dataCriteria);
-    }
-
-    /**
-     * Creates a function that adds a nicely formatted, padded fraction of the form {@code " 173/2,065"} to a given
-     * {@link StringBuilder} that reflects the current value of the given supplier {@code currentValue}. The padding
-     * with space characters tries to minimize jumping in the UI.
-     *
-     * @param currentValue supplier for the current numerator
-     * @param total fixed denominator
-     * @return function that modified the given {@link StringBuilder} and returns it for convenience
-     */
-    // TODO The following code is copied from `AbstractTableSorter` and should be moved to a better place
-    private static UnaryOperator<StringBuilder> progressFractionBuilder(final LongSupplier currentValue,
-        final long total) {
-        try {
-            // only computed once
-            final var numFormat = NumberFormatter.builder().setGroupSeparator(",").build();
-            final var totalStr = numFormat.format(total);
-            final var paddingStr = totalStr.replaceAll("\\d", "\u2007").replace(',', ' '); // NOSONAR
-
-            return sb -> {
-                // computed every time a progress message is requested
-                final var currentStr = numFormat.format(currentValue.getAsLong());
-                final var padding = paddingStr.substring(0, Math.max(totalStr.length() - currentStr.length(), 0));
-                return sb.append(padding).append(currentStr).append("/").append(totalStr);
-            };
-        } catch (InvalidSettingsException ex) {
-            throw new IllegalStateException(ex);
-        }
     }
 
     /* ========================================== STREAMING Implementation ========================================== */
@@ -291,6 +215,10 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
         return new RowFilterOperator();
     }
 
+    private static final int MATCHING_OUTPUT = 0;
+
+    private static final int NON_MATCHING_OUTPUT = 1;
+
     /**
      * Streamable operator implementation for Row Filter.
      *
@@ -309,10 +237,23 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
                 final var dataPredicates = rowNumberAndDataPredicates.getSecond();
                 if (!rowNumberPredicates.isEmpty() && dataPredicates.isEmpty()) {
                     // we can only filter based on row numbers
-                    filterRange(exec, input, outputs, settings);
+                    final var filterSpecs = RowNumberFilterSpec.toFilterSpec(rowNumberPredicates);
+                    final var rowPartition = RowNumberFilterSpec.computeRowPartition(settings.m_matchCriteria.isAnd(),
+                        filterSpecs, settings.outputMode(), UNKNOWN_SIZE);
+                    final var included = (RowOutput)outputs[MATCHING_OUTPUT];
+                    final var excluded = outputs.length > 1 ? (RowOutput)outputs[NON_MATCHING_OUTPUT] : null;
+                    RowFilter.filterRange(exec, input, included, excluded, rowPartition);
                 } else {
                     // we have to filter on richer predicates
-                    filterOnPredicate(exec, input, outputs, settings);
+                    final var predicates = partitionCriteria(settings.m_predicates);
+                    // TODO(performance): use TRUE and FALSE static predicates to return whole or empty table
+                    final var rowPredicate =
+                        AbstractRowFilterNodeSettings.createFilterPredicate(settings.m_matchCriteria.isAnd(),
+                            predicates.getFirst(), predicates.getSecond(), input.getDataTableSpec(), UNKNOWN_SIZE);
+                    final var includeMatches = settings.outputMatches();
+                    final var included = (RowOutput)outputs[MATCHING_OUTPUT];
+                    final var excluded = outputs.length > 1 ? (RowOutput)outputs[NON_MATCHING_OUTPUT] : null;
+                    RowFilter.filterOnPredicate(exec, input, included, excluded, rowPredicate, includeMatches);
                 }
             } catch (final InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -324,147 +265,5 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
             }
         }
 
-        private static void filterOnPredicate(final ExecutionContext exec, final RowInput input,
-            final PortOutput[] outputs, final AbstractRowFilterNodeSettings settings)
-            // The method uses InterruptibleRowCursor and InterruptibleRowWriteCursor, which for
-            // backwards-compatibility do not annotate that they may throw InterruptedException.
-            // However, by re-annotating here, we can signal to callers that we might throw this.
-            // See ExceptionUtils#asRuntimeException.
-            throws CanceledExecutionException, //
-                   InvalidSettingsException, //
-                   InterruptedException { // NOSONAR InterruptedException from cursors
-            final var inSpec = input.getDataTableSpec();
-
-            final var predicates = partitionCriteria(settings.m_predicates);
-            final var rowPredicate = createFilterPredicate(settings.m_matchCriteria.isAnd(),
-                predicates.getFirst(), predicates.getSecond(), inSpec, UNKNOWN_SIZE);
-
-            final var includeMatches = settings.outputMatches();
-
-            // the only stats to report are read and included rows, we don't know the size of the input
-            final var numFormat = NumberFormatter.builder().setGroupSeparator(",").build();
-            final var matchedRead = new long[2];
-            final Supplier<String> progress = () -> "%s/%s rows included" //
-                .formatted(numFormat.format(matchedRead[0]), numFormat.format(matchedRead[1]));
-
-            final var included = (RowOutput)outputs[MATCHING_OUTPUT];
-            final var excluded = outputs.length > 1 ? (RowOutput)outputs[NON_MATCHING_OUTPUT] : null;
-            try (final var in = input.asCursor();
-                    // the cursors might block and throw InterruptedException
-                    final var incl = included.asWriteCursor(inSpec);
-                    @SuppressWarnings("resource")
-                    final var excl = excluded != null ? excluded.asWriteCursor(inSpec) : null) {
-                for (RowRead rowRead; (rowRead = in.forward()) != null;) {
-                    exec.checkCanceled();
-                    final var index = matchedRead[1];
-                    matchedRead[1]++;
-
-                    if (includeMatches == rowPredicate.test(index, rowRead)) {
-                        incl.commit(rowRead);
-                        matchedRead[0]++;
-                    } else if (excl != null) {
-                        excl.commit(rowRead);
-                    }
-                    exec.setMessage(progress);
-                }
-            }
-        }
-
-        private static void filterRange(final ExecutionContext exec, final RowInput input, // NOSONAR
-                final PortOutput[] outputs, final AbstractRowFilterNodeSettings settings)
-                throws CanceledExecutionException, //
-                       InvalidSettingsException, //
-                       InterruptedException { // NOSONAR cursors from RowInput/RowOutput can throw InterruptedException
-            final var isSplitter = outputs.length > 1;
-
-            final var rowNumberCriteria = partitionCriteria(settings.m_predicates).getFirst();
-            final var filterSpecs = RowNumberFilter.getAsFilterSpecs(rowNumberCriteria);
-
-            final var rowPartition = RowNumberFilter.computeRowPartition(settings.m_matchCriteria.isAnd(),
-                filterSpecs, settings.outputMode(), UNKNOWN_SIZE);
-            final var includeRanges = rowPartition.matching().asRanges().stream().toList();
-            final var numIncludeRanges = includeRanges.size();
-
-            // the only stats to report are read and included rows, we don't know the size of the input
-            final var numFormat = NumberFormatter.builder().setGroupSeparator(",").build();
-            final var matchedRead = new long[2];
-            final Supplier<String> progress = () -> "%s/%s rows included" //
-                .formatted(numFormat.format(matchedRead[0]), numFormat.format(matchedRead[1]));
-
-            final var included = (RowOutput)outputs[MATCHING_OUTPUT];
-            final var excluded = isSplitter ? (RowOutput)outputs[NON_MATCHING_OUTPUT] : null;
-
-            /*
-             * The following loop acts as a state machine, alternating between "include" and "exclude" states:
-             *
-             *                       ┌─────────┐ input ends or range ends and not a splitter
-             *                       │ INCLUDE ├─────────────────────────────────────────┐
-             *                    ┌──┤  ROWS   ◄──┐                                      │
-             *             include│  └─────────┘  │include                            ┌──▼──┐
-             *               range│               │range                              │ END │
-             *                ends│  ┌─────────┐  │starts                             └──▲──┘
-             *                    └──► EXCLUDE ├──┘                                      │
-             *              ─────────►  ROWS   ├─────────────────────────────────────────┘
-             *               start   └─────────┘              input ends
-             */
-            RowRead rowRead;
-            try (final var in = input.asCursor();
-                    // the cursors might block and throw InterruptedException
-                    final var incl = included.asWriteCursor(input.getDataTableSpec());
-                    final var excl = excluded != null ? excluded.asWriteCursor(input.getDataTableSpec()) : null) {
-                for (var nextRange = 0;; nextRange++) {
-
-                    // === EXCLUDE ROWS state ===
-                    final long lastExclRow;
-                    if (nextRange < numIncludeRanges) {
-                        // there's another include range ahead, everything before is excluded
-                        lastExclRow = includeRanges.get(nextRange).lowerEndpoint() - 1;
-                    } else {
-                        // only excluded rows remain
-                        if (excluded == null) { // NOSONAR
-                            // not a splitter, nothing left to do
-                            return;
-                        }
-                        incl.close(); // NOSONAR closing resource as soon as possible in streaming execution
-                        lastExclRow = Long.MAX_VALUE; // effectively makes `while` condition below `true`
-                    }
-                    while (matchedRead[1] <= lastExclRow) {
-                        exec.checkCanceled();
-                        if ((rowRead = in.forward()) == null) { // NOSONAR
-                            return;
-                        }
-                        if (excl != null) { // NOSONAR
-                            excl.commit(rowRead);
-                        }
-                        matchedRead[1]++;
-                        exec.setMessage(progress);
-                    }
-
-                    // === INCLUDE ROWS state ===
-                    final var currentRange = includeRanges.get(nextRange);
-                    final long lastInclRow;
-                    if (currentRange.hasUpperBound()) {
-                        // current include range ends somewhere
-                        lastInclRow = currentRange.upperEndpoint() - 1;
-                    } else {
-                        // only included rows remain
-                        if (excl != null) { // NOSONAR
-                            excl.close(); // NOSONAR closing resource as soon as possible in streaming execution
-                        }
-                        lastInclRow = Long.MAX_VALUE; // effectively makes `while` condition below `true`
-                    }
-                    while (matchedRead[1] <= lastInclRow) {
-                        exec.checkCanceled();
-                        if ((rowRead = in.forward()) == null) { // NOSONAR
-                            return;
-                        }
-                        incl.commit(rowRead);
-                        matchedRead[1]++;
-                        matchedRead[0]++;
-                        exec.setMessage(progress);
-                    }
-                }
-            }
-        }
     }
 }

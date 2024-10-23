@@ -44,48 +44,63 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   8 May 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   16 Dec 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.base.data.filter.row.v2;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.data.v2.RowRead;
+import org.knime.core.node.util.CheckUtils;
 
 /**
- * Settings for the Row Filter node.
+ * A filter using a row offset (aka. row index) from the start of the table.
  *
- * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * @param operator filter operator taking an offset value
+ * @param offset offset value
  */
-@SuppressWarnings("restriction") // webui is not public yet
-final class RowFilterNodeSettings extends AbstractRowFilterNodeSettings {
+public record OffsetFilter(Operator operator, long offset) {
 
-    // we need to repeat both constructors, otherwise InstantiationUtil cannot instantiate our concrete settings class
-
-    // for de-/serialization
-    RowFilterNodeSettings() {
-        super();
+    /**
+     * Supported operators for row number offset filter.
+     */
+    public enum Operator {
+            /** "Row number equals". */
+            EQ,
+            /** "Row number does not equal". */
+            NEQ,
+            /** "Row number is less than". */
+            LT,
+            /** "Row number is less than or equal to". */
+            LTE,
+            /** "Row number is greater than". */
+            GT,
+            /** "Row number is greater than or equal to". */
+            GTE
     }
 
-    // auto-configuration constructor needs to be "re-declared" in subclass
-    RowFilterNodeSettings(final DefaultNodeSettingsContext ctx) {
-        super(ctx);
+    /**
+     * Creates a new offset filter.
+     *
+     * @param operator operator to use
+     * @param offset non-negative offset from start of table
+     */
+    public OffsetFilter {
+        CheckUtils.checkArgument(offset >= 0, "Offset must not be negative: %d", offset);
     }
 
-    @Override
-    boolean isSecondOutputActive() {
-        return false;
+    /**
+     * Converts the offset filter definition into a predicate that can be evaluated on an {@link RowRead indexed row
+     * read}.
+     *
+     * @return predicate to evaluate on indexed row read
+     */
+    public IndexedRowReadPredicate asPredicate() {
+        return switch (operator) {
+            case EQ -> (rowIndex, read) -> rowIndex == offset;
+            case NEQ -> (rowIndex, read) -> rowIndex != offset;
+            case LT -> (rowIndex, read) -> rowIndex < offset;
+            case LTE -> (rowIndex, read) -> rowIndex <= offset;
+            case GT -> (rowIndex, read) -> rowIndex > offset;
+            case GTE -> (rowIndex, read) -> rowIndex >= offset;
+        };
     }
-
-    @Override
-    FilterMode outputMode() {
-        return m_outputMode;
-    }
-
-    @Widget(title = "Filter behavior",
-        description = "Determines whether only matching or non-matching rows are output.")
-    @ValueSwitchWidget
-    @Layout(DialogSections.Output.OutputMode.class)
-    FilterMode m_outputMode = FilterMode.MATCHING;
-
 }
