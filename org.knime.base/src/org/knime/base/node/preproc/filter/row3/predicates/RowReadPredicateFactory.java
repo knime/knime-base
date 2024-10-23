@@ -44,48 +44,65 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   8 May 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   16 Sept 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.base.node.preproc.filter.row3.predicates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import java.util.function.Function;
+import java.util.function.Predicate;
+
+import org.knime.core.data.IntValue;
+import org.knime.core.data.v2.RowRead;
 
 /**
- * Settings for the Row Filter node.
+ * Factory for creating predicates operating on {@link RowRead}s.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction") // webui is not public yet
-final class RowFilterNodeSettings extends AbstractRowFilterNodeSettings {
+interface RowReadPredicateFactory<T> {
 
-    // we need to repeat both constructors, otherwise InstantiationUtil cannot instantiate our concrete settings class
-
-    // for de-/serialization
-    RowFilterNodeSettings() {
-        super();
+    enum RangeOperator {
+            LT, LTE, GT, GTE;
     }
 
-    // auto-configuration constructor needs to be "re-declared" in subclass
-    RowFilterNodeSettings(final DefaultNodeSettingsContext ctx) {
-        super(ctx);
+    Predicate<RowRead> createPredicate(Function<RowRead, T> valueAccessor, T referenceValue);
+
+    final class IntIntEquality implements RowReadPredicateFactory<IntValue> {
+
+        private final boolean m_matchEqual;
+
+        IntIntEquality(final boolean matchEqual) {
+            m_matchEqual = matchEqual;
+        }
+
+        @Override
+        public Predicate<RowRead> createPredicate(final Function<RowRead, IntValue> valueAccessor,
+            final IntValue referenceValue) {
+            return m_matchEqual
+                ? (rowRead -> valueAccessor.apply(rowRead).getIntValue() == referenceValue.getIntValue())
+                : (rowRead -> valueAccessor.apply(rowRead).getIntValue() != referenceValue.getIntValue());
+        }
+
     }
 
-    @Override
-    boolean isSecondOutputActive() {
-        return false;
+    final class IntIntComparator implements RowReadPredicateFactory<IntValue> {
+
+        private final RangeOperator m_rangeOperator;
+
+        IntIntComparator(final RangeOperator rangeOperator) {
+            m_rangeOperator = rangeOperator;
+        }
+
+        @Override
+        public Predicate<RowRead> createPredicate(final Function<RowRead, IntValue> acc,
+            final IntValue ref) {
+            return switch (m_rangeOperator) {
+                case LT -> read -> acc.apply(read).getIntValue() < ref.getIntValue();
+                case LTE -> read -> acc.apply(read).getIntValue() <= ref.getIntValue();
+                case GT -> read -> acc.apply(read).getIntValue() > ref.getIntValue();
+                case GTE -> read -> acc.apply(read).getIntValue() >= ref.getIntValue();
+            };
+        }
+
     }
-
-    @Override
-    FilterMode outputMode() {
-        return m_outputMode;
-    }
-
-    @Widget(title = "Filter behavior",
-        description = "Determines whether only matching or non-matching rows are output.")
-    @ValueSwitchWidget
-    @Layout(DialogSections.Output.OutputMode.class)
-    FilterMode m_outputMode = FilterMode.MATCHING;
-
 }

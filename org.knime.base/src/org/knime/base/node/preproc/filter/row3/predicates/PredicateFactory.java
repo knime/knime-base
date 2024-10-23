@@ -44,48 +44,41 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   8 May 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   27 Aug 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.base.node.preproc.filter.row3.predicates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.data.v2.RowRead;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 
 /**
- * Settings for the Row Filter node.
+ * Factory for predicates that can be used to filter {@link RowRead rows}.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction") // webui is not public yet
-final class RowFilterNodeSettings extends AbstractRowFilterNodeSettings {
+@FunctionalInterface
+public interface PredicateFactory {
 
-    // we need to repeat both constructors, otherwise InstantiationUtil cannot instantiate our concrete settings class
+    /**
+     * Predicate instance that always returns {@code true} and can be used to disable filtering.
+     */
+    IndexedRowReadPredicate ALWAYS_TRUE = (idx, row) -> true;
 
-    // for de-/serialization
-    RowFilterNodeSettings() {
-        super();
-    }
+    /**
+     * Predicate instance that always returns {@code false} and can be used to filter out all rows.
+     */
+    IndexedRowReadPredicate ALWAYS_FALSE = (idx, row) -> false;
 
-    // auto-configuration constructor needs to be "re-declared" in subclass
-    RowFilterNodeSettings(final DefaultNodeSettingsContext ctx) {
-        super(ctx);
-    }
-
-    @Override
-    boolean isSecondOutputActive() {
-        return false;
-    }
-
-    @Override
-    FilterMode outputMode() {
-        return m_outputMode;
-    }
-
-    @Widget(title = "Filter behavior",
-        description = "Determines whether only matching or non-matching rows are output.")
-    @ValueSwitchWidget
-    @Layout(DialogSections.Output.OutputMode.class)
-    FilterMode m_outputMode = FilterMode.MATCHING;
+    /**
+     * Creates a filter predicate given a column index and a reference value input.
+     *
+     * @param columnIndex column index to filter on
+     * @param inputValues input values to use as reference
+     * @return predicate predicate that can be used to filter rows
+     * @throws InvalidSettingsException in case the input values are missing or invalid
+     */
+    IndexedRowReadPredicate createPredicate(int columnIndex, final DynamicValuesInput inputValues)
+        throws InvalidSettingsException;
 
 }

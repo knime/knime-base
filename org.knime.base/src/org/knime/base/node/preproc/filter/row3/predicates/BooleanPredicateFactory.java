@@ -44,49 +44,36 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   14 Oct 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   27 Aug 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.base.node.preproc.filter.row3.predicates;
 
-import org.knime.core.data.v2.RowRead;
+import java.util.Optional;
 
-/**
- * Predicate on row read and row index.
- *
- * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
- */
-@FunctionalInterface
-interface IndexedRowReadPredicate {
-    /**
-     * Tests the predicate with the supplied row index (0-based) and {@link RowRead row read}.
-     *
-     * @param index 0-based index of row
-     * @param read row data
-     * @return {@code true} if the predicate matches the supplied row, {@code false} otherwise
-     */
-    boolean test(final long index, final RowRead read);
+import org.knime.core.data.DataType;
+import org.knime.core.data.def.BooleanCell;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 
-    /**
-     * Composed predicate of short-circuiting logical AND.
-     *
-     * @param other the rhs AND predicate
-     * @return logically-ANDed predicate
-     */
-    default IndexedRowReadPredicate and(final IndexedRowReadPredicate other) {
-        return (index, read) -> test(index, read) && other.test(index, read);
+final class BooleanPredicateFactory extends AbstractPredicateFactory {
+
+    private final boolean m_matchTrue;
+
+    private BooleanPredicateFactory(final boolean matchTrue) {
+        m_matchTrue = matchTrue;
     }
 
-    /**
-     * Composed predicate of short-circuiting logical OR.
-     *
-     * @param other the rhs OR predicate
-     * @return logically-ORed predicate
-     */
-    default IndexedRowReadPredicate or(final IndexedRowReadPredicate other) {
-        return (index, read) -> test(index, read) || other.test(index, read);
+    public static Optional<PredicateFactory> create(final DataType columnDataType, final boolean matchTrue) {
+        if (columnDataType.equals(BooleanCell.TYPE)) {
+            return Optional.of(new BooleanPredicateFactory(matchTrue));
+        }
+        return Optional.empty();
     }
 
-    default IndexedRowReadPredicate negate() {
-        return (index, read) -> !test(index, read);
+    @Override
+    public IndexedRowReadPredicate createPredicate(final int columnIndex, final DynamicValuesInput ignored)
+            throws InvalidSettingsException {
+        return (i, rowRead) -> rowRead.<BooleanCell>getValue(columnIndex).getBooleanValue() == m_matchTrue;
     }
+
 }

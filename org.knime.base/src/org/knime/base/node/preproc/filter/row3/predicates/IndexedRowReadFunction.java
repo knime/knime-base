@@ -44,48 +44,40 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   8 May 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   23 Oct 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.base.node.preproc.filter.row3.predicates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import java.util.function.Function;
+
+import org.knime.core.data.v2.RowRead;
 
 /**
- * Settings for the Row Filter node.
+ * Function operating on indexed row reads.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * @param <T> function return type
  */
-@SuppressWarnings("restriction") // webui is not public yet
-final class RowFilterNodeSettings extends AbstractRowFilterNodeSettings {
+@FunctionalInterface
+public interface IndexedRowReadFunction<T> {
 
-    // we need to repeat both constructors, otherwise InstantiationUtil cannot instantiate our concrete settings class
+    /**
+     * Applies the function on the given (0-based) index and row read.
+     * @param index 0-based index
+     * @param row row read
+     * @return function application result
+     */
+    T apply(long index, RowRead row);
 
-    // for de-/serialization
-    RowFilterNodeSettings() {
-        super();
+    static IndexedRowReadFunction<RowRead> read() {
+        return (index, row) -> row;
     }
 
-    // auto-configuration constructor needs to be "re-declared" in subclass
-    RowFilterNodeSettings(final DefaultNodeSettingsContext ctx) {
-        super(ctx);
+    static <T> IndexedRowReadFunction<T> wrap(final Function<RowRead, T> fn) {
+        return (index, row) -> fn.apply(row);
     }
 
-    @Override
-    boolean isSecondOutputActive() {
-        return false;
+    default Function<RowRead, T> curry(final long index) {
+        return row -> apply(index, row);
     }
-
-    @Override
-    FilterMode outputMode() {
-        return m_outputMode;
-    }
-
-    @Widget(title = "Filter behavior",
-        description = "Determines whether only matching or non-matching rows are output.")
-    @ValueSwitchWidget
-    @Layout(DialogSections.Output.OutputMode.class)
-    FilterMode m_outputMode = FilterMode.MATCHING;
-
 }

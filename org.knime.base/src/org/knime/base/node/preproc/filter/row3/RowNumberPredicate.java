@@ -60,6 +60,8 @@ import org.knime.core.node.InvalidSettingsException;
  */
 interface RowNumberPredicate extends LongPredicate {
 
+    // TODO (performance): introduce and propagate ALWAYS_TRUE and ALWAYS_FALSE predicates
+
     static RowNumberPredicate buildPredicate(final boolean isAnd, final Iterable<FilterCriterion> rowNumberCriteria,
             final long optionalTableSize) throws InvalidSettingsException {
         final var iter = rowNumberCriteria.iterator();

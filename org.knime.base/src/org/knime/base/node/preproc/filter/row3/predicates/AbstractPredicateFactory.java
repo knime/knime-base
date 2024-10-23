@@ -44,48 +44,48 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   8 May 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   27 Aug 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.base.node.preproc.filter.row3.predicates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.data.DataCell;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
+import org.knime.core.node.message.Message;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 
 /**
- * Settings for the Row Filter node.
+ * Base class that should be used for predicate factories. It provides a helper method to get the input value and a nice
+ * error message in case it is missing.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction") // webui is not public yet
-final class RowFilterNodeSettings extends AbstractRowFilterNodeSettings {
+abstract class AbstractPredicateFactory implements PredicateFactory {
 
-    // we need to repeat both constructors, otherwise InstantiationUtil cannot instantiate our concrete settings class
+    protected static final NodeLogger LOGGER = NodeLogger.getLogger(AbstractPredicateFactory.class);
 
-    // for de-/serialization
-    RowFilterNodeSettings() {
-        super();
+    /**
+     * Gets the input value at the specified index, throwing an exception if the value is missing.
+     *
+     * @param inputValues input values to access
+     * @param inputValueIndex index of the input value
+     * @return input value
+     * @throws InvalidSettingsException if the input value is missing
+     */
+    protected DataCell getCellAtOrThrow(final DynamicValuesInput inputValues, final int inputValueIndex)
+        throws InvalidSettingsException {
+        return inputValues.getCellAt(inputValueIndex)
+            .orElseThrow(AbstractPredicateFactory::createMissingReferenceValueException);
     }
 
-    // auto-configuration constructor needs to be "re-declared" in subclass
-    RowFilterNodeSettings(final DefaultNodeSettingsContext ctx) {
-        super(ctx);
+    /**
+     * Creates a nice exception message with potential resolution.
+     *
+     * @return exception to throw
+     */
+    private static InvalidSettingsException createMissingReferenceValueException() {
+        return Message.builder().withSummary("Reference value is missing")
+            .addResolutions("Reconfigure the node to provide a reference value.").build().orElseThrow()
+            .toInvalidSettingsException();
     }
-
-    @Override
-    boolean isSecondOutputActive() {
-        return false;
-    }
-
-    @Override
-    FilterMode outputMode() {
-        return m_outputMode;
-    }
-
-    @Widget(title = "Filter behavior",
-        description = "Determines whether only matching or non-matching rows are output.")
-    @ValueSwitchWidget
-    @Layout(DialogSections.Output.OutputMode.class)
-    FilterMode m_outputMode = FilterMode.MATCHING;
-
 }

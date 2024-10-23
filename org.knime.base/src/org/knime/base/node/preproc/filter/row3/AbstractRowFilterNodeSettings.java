@@ -208,8 +208,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                     RowNumberFilter.getAsFilterSpec(this);
                 } else if (m_operator == FilterOperator.REGEX || m_operator == FilterOperator.WILDCARD) {
                     // REGEX and WILDCARD require StringCell.TYPE
-                    m_operator.validate("Row number", m_operator.getRequiredInputType().orElseThrow(),
-                        m_predicateValues);
+                    m_operator.validate(null, -1, m_predicateValues);
                 } else {
                     throw new InvalidSettingsException(
                         "Filter operator \"%s\" cannot be applied to row numbers.".formatted(m_operator.label()));
@@ -218,19 +217,16 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
             }
 
             final var operator = m_operator;
-            if (isFilterOnRowKeys()) {
-                CheckUtils.checkSetting(
-                    !(operator == FilterOperator.IS_MISSING || operator == FilterOperator.IS_NOT_MISSING),
-                    "Cannot filter RowID for presence.");
-                CheckUtils.checkSetting(operator.isApplicableFor(SpecialColumns.ROWID, StringCell.TYPE),
-                    "Filter operator \"%s\" cannot be applied to RowID.", operator.label());
-                return;
-            }
 
             final var columnName = m_column.getSelected();
-            final var colSpec = spec.getColumnSpec(columnName);
-            CheckUtils.checkSettingNotNull(colSpec, "Unknown column \"%s\".", columnName);
-            operator.validate(columnName, colSpec.getType(), m_predicateValues);
+
+            final var isRowKey = isFilterOnRowKeys();
+            final var columnIndex = isRowKey ? -1 : spec.findColumnIndex(columnName);
+            final var colSpec = isRowKey ? null : spec.getColumnSpec(columnName);
+            if (!isRowKey) {
+                CheckUtils.checkSettingNotNull(colSpec, "Unknown column \"%s\".", columnName);
+            }
+            operator.validate(colSpec, columnIndex, m_predicateValues);
         }
 
         boolean isFilterOnRowKeys() {
@@ -296,7 +292,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                     // show any existing value
                     return m_currentValue.get();
                 }
-                if (!m_currentOperator.get().m_isBinary) {
+                if (!m_currentOperator.get().isBinary()) {
                     // we don't need an input field
                     return DynamicValuesInput.emptySingle();
                 }
@@ -359,8 +355,8 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
     FilterCriterion[] m_predicates;
 
     @Widget(title = "Column domains", description = """
-            <p>Specify whether to take domains of all input columns as output domains as-is or compute them on the output
-            rows.</p>
+            <p>Specify whether to take domains of all input columns as output domains as-is or compute them on the
+            output rows.</p>
 
             <p>
             Depending on the use case, one or the other setting may be preferable:
@@ -388,7 +384,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                     "><em>Edit Nominal Domain</em></a> nodes.</p>
             """)
     @ValueSwitchWidget()
-    @Layout(DialogSections.Output.class)
+    @Layout(DialogSections.Output.Domain.class)
     ColumnDomains m_domains = ColumnDomains.RETAIN;
 
     enum ColumnDomains {
@@ -495,7 +491,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
             }
             // filter on top-level type
             return Arrays.stream(FilterOperator.values()) //
-                .filter(op -> op.isOfferedFor(specialColumn, dataType.get())) //
+                .filter(op -> !op.isHidden(specialColumn, dataType.get())) //
                 .toList();
         }
 
@@ -580,6 +576,8 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
         @Section(title = "Output")
         @After(Filter.class)
         interface Output {
+            interface OutputMode {}
+            interface Domain {}
         }
     }
 
