@@ -70,7 +70,7 @@ import com.google.common.collect.RangeSet;
 import com.google.common.collect.TreeRangeSet;
 
 /**
- * Utility to filter on row numbers by numeric value.
+ * Utility to filter on row numbers by numeric value using efficient table slicing when possible.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */

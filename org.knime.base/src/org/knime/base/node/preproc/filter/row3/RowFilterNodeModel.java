@@ -139,7 +139,9 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
             return RowNumberFilter.sliceTable(exec, in, includedExcludedPartition, isSplitter);
         }
         final var inSpec = in.getSpec();
-        final var predicate = createFilterPredicate(isAnd, rowNumberCriteria, dataCriteria, inSpec, tableSize);
+        // TODO (performance): use ALWAYS_TRUE and ALWAYS_FALSE predicates to return input table or empty table
+        final var predicate = AbstractRowFilterNodeSettings.createFilterPredicate(isAnd, rowNumberCriteria,
+            dataCriteria, inSpec, tableSize);
 
         // inherit domain from spec?
         final var initializedDomain = settings.m_domains == ColumnDomains.RETAIN;
@@ -186,21 +188,6 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
             return nonMatches != null ? new BufferedDataTable[]{matches.finish(), nonMatches.finish()}
                 : new BufferedDataTable[]{matches.finish()};
         }
-    }
-
-    private static IndexedRowReadPredicate createFilterPredicate(final boolean isAnd,
-        final List<FilterCriterion> rowNumberCriteria, final List<FilterCriterion> dataCriteria,
-        final DataTableSpec spec, final long tableSize) throws InvalidSettingsException {
-        final var rowNumbers = RowNumberPredicate.buildPredicate(isAnd, rowNumberCriteria, tableSize);
-        final var data = RowReadPredicate.buildPredicate(isAnd, dataCriteria, spec);
-        if (rowNumbers == null) {
-            return data::test;
-        }
-        if (data == null) {
-            throw new IllegalStateException("Row number predicate without data predicate, should have used slicing");
-        }
-        return isAnd ? (index, read) -> rowNumbers.test(index) && data.test(index, read) // NOSONAR this is not too hard to read
-            : (index, read) -> rowNumbers.test(index) || data.test(index, read); // NOSONAR see above
     }
 
     /**
@@ -336,8 +323,9 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
             final var inSpec = input.getDataTableSpec();
 
             final var predicates = partitionCriteria(settings.m_predicates);
-            final var rowPredicate = createFilterPredicate(settings.m_matchCriteria.isAnd(),
-                predicates.getFirst(), predicates.getSecond(), inSpec, UNKNOWN_SIZE);
+            // TODO (performance): use ALWAYS_TRUE and ALWAYS_FALSE predicates to return whole table or empty table
+            final var rowPredicate = AbstractRowFilterNodeSettings.createFilterPredicate(
+                settings.m_matchCriteria.isAnd(), predicates.getFirst(), predicates.getSecond(), inSpec, UNKNOWN_SIZE);
 
             final var includeMatches = settings.outputMatches();
 

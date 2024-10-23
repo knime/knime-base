@@ -44,49 +44,60 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   14 Oct 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   27 Aug 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.base.node.preproc.filter.row3.predicates;
 
-import org.knime.core.data.v2.RowRead;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
+
+import org.knime.filehandling.core.util.WildcardToRegexUtil;
 
 /**
- * Predicate on row read and row index.
+ * String predicate supporting equality comarison or pattern matching.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@FunctionalInterface
-interface IndexedRowReadPredicate {
-    /**
-     * Tests the predicate with the supplied row index (0-based) and {@link RowRead row read}.
-     *
-     * @param index 0-based index of row
-     * @param read row data
-     * @return {@code true} if the predicate matches the supplied row, {@code false} otherwise
-     */
-    boolean test(final long index, final RowRead read);
+final class StringPredicate implements Predicate<String> {
 
-    /**
-     * Composed predicate of short-circuiting logical AND.
-     *
-     * @param other the rhs AND predicate
-     * @return logically-ANDed predicate
-     */
-    default IndexedRowReadPredicate and(final IndexedRowReadPredicate other) {
-        return (index, read) -> test(index, read) && other.test(index, read);
+    private final Predicate<String> m_predicate;
+
+    private StringPredicate(final Predicate<String> predicate) {
+        m_predicate = predicate;
+    }
+
+    @Override
+    public boolean test(final String str) {
+        return m_predicate.test(str);
     }
 
     /**
-     * Composed predicate of short-circuiting logical OR.
+     * Creates an equality string predicate.
      *
-     * @param other the rhs OR predicate
-     * @return logically-ORed predicate
+     * @param referenceValue value to compare with
+     * @param isCaseSensitive whether the comparison should be case-sensitive or not
+     * @return equality string predicate
      */
-    default IndexedRowReadPredicate or(final IndexedRowReadPredicate other) {
-        return (index, read) -> test(index, read) || other.test(index, read);
+    static StringPredicate equality(final String referenceValue, final boolean isCaseSensitive) {
+        final Predicate<String> predicate = isCaseSensitive ? referenceValue::equals : referenceValue::equalsIgnoreCase;
+        return new StringPredicate(predicate);
     }
 
-    default IndexedRowReadPredicate negate() {
-        return (index, read) -> !test(index, read);
+    /**
+     * Creates a string predicate that supports regex or wildcard patterns.
+     *
+     * @param pattern pattern to match
+     * @param isRegex {@code true} if the pattern represents a regex, {@code false} if it represents a wildcard
+     * @param isCaseSensitive whether the match should be case-sensitive or not
+     * @return pattern string predicate
+     */
+    static StringPredicate pattern(final String pattern, final boolean isRegex,
+        final boolean isCaseSensitive) {
+        final var regexPattern = isRegex ? pattern : WildcardToRegexUtil.wildcardToRegex(pattern);
+        var flags = Pattern.DOTALL | Pattern.MULTILINE;
+        flags |= isCaseSensitive ? 0 : Pattern.CASE_INSENSITIVE;
+        final var regex = Pattern.compile(regexPattern, flags);
+        return new StringPredicate(stringValue -> regex.matcher(stringValue).matches());
     }
+
 }

@@ -51,17 +51,19 @@ package org.knime.base.node.preproc.filter.row3;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion.SelectedColumnRef;
+import org.knime.base.node.preproc.filter.row3.predicates.IndexedRowReadPredicate;
+import org.knime.base.node.preproc.filter.row3.predicates.PredicateFactories;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
@@ -235,34 +237,53 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
         }
 
         void validate(final DataTableSpec spec) throws InvalidSettingsException {
-            if (isFilterOnRowNumbers()) {
-                if (RowNumberFilter.supportsOperator(m_operator)) {
-                    RowNumberFilter.getAsFilterSpec(this);
-                } else if (m_operator == FilterOperator.REGEX || m_operator == FilterOperator.WILDCARD) {
-                    // REGEX and WILDCARD require StringCell.TYPE
-                    m_operator.validate("Row number", m_operator.getRequiredInputType().orElseThrow(),
-                        m_predicateValues);
-                } else {
-                    throw new InvalidSettingsException(
-                        "Filter operator \"%s\" cannot be applied to row numbers.".formatted(m_operator.label()));
-                }
+            // check table slicing (filter on numeric row number values)
+            if (isFilterOnRowNumbers() && RowNumberFilter.supportsOperator(m_operator)) {
+                RowNumberFilter.getAsFilterSpec(this);
                 return;
             }
 
-            final var operator = m_operator;
+            // validate using filter on row read (i.e. values)
+            toPredicate(spec);
+        }
+
+        IndexedRowReadPredicate toPredicate(final DataTableSpec spec) throws InvalidSettingsException {
+            // Special case for RowID, which is not a DataValue
             if (isFilterOnRowKeys()) {
-                CheckUtils.checkSetting(
-                    !(operator == FilterOperator.IS_MISSING || operator == FilterOperator.IS_NOT_MISSING),
-                    "Cannot filter RowID for presence.");
-                CheckUtils.checkSetting(operator.isApplicableFor(SpecialColumns.ROWID, StringCell.TYPE),
-                    "Filter operator \"%s\" cannot be applied to RowID.", operator.label());
-                return;
+                return rowKeyPredicate(m_predicateValues);
             }
 
-            final var columnName = m_column.getSelected();
-            final var colSpec = spec.getColumnSpec(columnName);
-            CheckUtils.checkSettingNotNull(colSpec, "Unknown column \"%s\".", columnName);
-            operator.validate(columnName, colSpec.getType(), m_predicateValues);
+            // case where row numbers are treated as data, e.g. WILDCARD/REGEX matching
+            if (isFilterOnRowNumbers()) {
+                return rowNumberPredicate(m_predicateValues);
+            }
+
+            final var column = m_column.getSelected();
+            final var columnIndex = spec.findColumnIndex(column);
+            if (columnIndex < 0) {
+                throw new InvalidSettingsException("Column \"%s\" could not be found in input table".formatted(column));
+            }
+
+            return m_operator.translateToPredicate(m_predicateValues, columnIndex,
+                spec.getColumnSpec(columnIndex).getType());
+        }
+
+        private IndexedRowReadPredicate rowKeyPredicate(final DynamicValuesInput predicateValues)
+            throws InvalidSettingsException {
+            return PredicateFactories //
+                .getRowKeyPredicateFactory(m_operator) //
+                .orElseThrow(() -> new InvalidSettingsException( //
+                    "Unsupported operator \"%s\" for RowID comparison".formatted(m_operator.label()))) //
+                .createPredicate(OptionalInt.empty(), predicateValues);
+        }
+
+        private IndexedRowReadPredicate rowNumberPredicate(final DynamicValuesInput predicateValues)
+            throws InvalidSettingsException {
+            return PredicateFactories //
+                .getRowNumberPredicateFactory(m_operator) //
+                .orElseThrow(() -> new InvalidSettingsException( //
+                    "Unsupported operator \"%s\" for row number comparison".formatted(m_operator.label()))) //
+                .createPredicate(OptionalInt.empty(), predicateValues);
         }
 
         boolean isFilterOnRowKeys() {
@@ -328,7 +349,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                     // show any existing value
                     return m_currentValue.get();
                 }
-                if (!m_currentOperator.get().m_isBinary) {
+                if (!m_currentOperator.get().isBinary()) {
                     // we don't need an input field
                     return DynamicValuesInput.emptySingle();
                 }
@@ -352,10 +373,11 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                 }
                 // provide an input field for the given type, if we can typemap it, or fall back to the column type
                 // if the operator does not require a specific type
-                final var type = operatorRequiredType.orElse(columnSpec.getType());
+                final var columnType = columnSpec.getType();
+                final var type = operatorRequiredType.orElse(columnType);
                 if (DynamicValuesInput.supportsDataType(type)) {
-                    return keepCurrentValueIfPossible(DynamicValuesInput
-                        .singleValueWithCaseMatchingForStringWithDefault(type));
+                    final var defaultValue = DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(type);
+                    return keepCurrentValueIfPossible(defaultValue);
                 }
                 // cannot provide an input field
                 return DynamicValuesInput.emptySingle();
@@ -417,21 +439,22 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                     "><em>Edit Nominal Domain</em></a> nodes.
             """)
     @ValueSwitchWidget()
-    @Layout(DialogSections.Output.class)
+    @Layout(DialogSections.Output.Domain.class)
     ColumnDomains m_domains = ColumnDomains.RETAIN;
 
     enum ColumnDomains {
-        @Label(value = "Retain", description = """
-            Retain input domains on output columns, i.e. the upper and lower bounds or possible values in the table spec
-            are not changed, even if one of the bounds or one value is fully filtered out from the output table.
-            If the input does not contain domain information, so will the output.
-                """)
-        RETAIN,
-        @Label(value = "Compute", description = """
-            Compute column domains on output columns, i.e. upper and lower bounds and possible values are computed only
-            on the rows output by the node.
-                """)
-        COMPUTE;
+            @Label(value = "Retain",
+                description = """
+                        Retain input domains on output columns, i.e. the upper and lower bounds or possible values in the table spec
+                        are not changed, even if one of the bounds or one value is fully filtered out from the output table.
+                        If the input does not contain domain information, so will the output.
+                            """)
+            RETAIN, @Label(value = "Compute",
+                description = """
+                        Compute column domains on output columns, i.e. upper and lower bounds and possible values are computed only
+                        on the rows output by the node.
+                            """)
+            COMPUTE;
     }
 
     /**
@@ -525,7 +548,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
             }
             // filter on top-level type
             return Arrays.stream(FilterOperator.values()) //
-                .filter(op -> op.isOfferedFor(specialColumn, dataType.get())) //
+                .filter(op -> !op.isHidden(specialColumn, dataType.get())) //
                 .toList();
         }
 
@@ -610,7 +633,96 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
         @Section(title = "Output")
         @After(Filter.class)
         interface Output {
+            interface OutputMode {
+            }
+
+            interface Domain {
+            }
         }
+    }
+
+    static IndexedRowReadPredicate createFilterPredicate(final boolean isAnd,
+        final List<FilterCriterion> rowNumberCriteria, final List<FilterCriterion> dataCriteria,
+        final DataTableSpec spec, final long tableSize) throws InvalidSettingsException {
+        // TODO (performance): use domain bounds to derive whether predicates are always true or always false
+        // TODO (performance): propagate ALWAYS_TRUE and ALWAYS_FALSE predicates
+        final var rowNumbers = buildPredicate(isAnd, rowNumberCriteria, tableSize);
+        final var data = buildPredicate(isAnd, dataCriteria, spec);
+        if (rowNumbers == null) {
+            return data::test;
+        }
+        if (data == null) {
+            throw new IllegalStateException("Row number predicate without data predicate, should have used slicing");
+        }
+        return isAnd ? (index, read) -> rowNumbers.test(index) && data.test(index, read) // NOSONAR this is not too hard to read
+            : (index, read) -> rowNumbers.test(index) || data.test(index, read); // NOSONAR see above
+    }
+
+    /**
+     * Builds a single predicate from filter criteria, combined by AND or OR.
+     *
+     * @param isAnd if {@code true}, combine predicates with AND, otherwise with OR
+     * @param filterCriteria filter criteria to build predicates from
+     * @param spec data table spec to filter on
+     * @return predicate that combines all filter criteria
+     * @throws InvalidSettingsException if a filter criterion is invalid
+     */
+    private static IndexedRowReadPredicate buildPredicate(final boolean isAnd,
+        final Iterable<FilterCriterion> filterCriteria, final DataTableSpec spec) throws InvalidSettingsException {
+        final var iter = filterCriteria.iterator();
+        if (!iter.hasNext()) {
+            return null;
+        }
+        // collect predicates from filter criteria, short-circuiting whenever we can prove that the predicate will
+        // always be true or false
+        var filterPredicate = iter.next().toPredicate(spec);
+        while (iter.hasNext()) {
+            final var predicate = iter.next().toPredicate(spec);
+            if (isAnd) {
+                // x AND false -> false
+                // x AND true -> x
+                if (predicate == IndexedRowReadPredicate.FALSE) {
+                    filterPredicate = IndexedRowReadPredicate.FALSE;
+                } else if (predicate == IndexedRowReadPredicate.TRUE) {
+                    // nothing to change
+                } else {
+                    filterPredicate = filterPredicate.and(predicate);
+                }
+            } else {
+                // x OR false -> x
+                // x OR true -> true
+                if (predicate == IndexedRowReadPredicate.FALSE) {
+                    // nothing to change
+                } else if (predicate == IndexedRowReadPredicate.TRUE) {
+                    filterPredicate = IndexedRowReadPredicate.TRUE;
+                } else {
+                    filterPredicate = filterPredicate.or(predicate);
+                }
+            }
+        }
+        return filterPredicate;
+    }
+
+    static RowNumberPredicate buildPredicate(final boolean isAnd, final Iterable<FilterCriterion> rowNumberCriteria,
+        // TODO (performance): introduce and propagate ALWAYS_TRUE and ALWAYS_FALSE predicates
+        final long optionalTableSize) throws InvalidSettingsException {
+        final var iter = rowNumberCriteria.iterator();
+        if (!iter.hasNext()) {
+            return null;
+        }
+        var filterPredicate = createFrom(iter.next(), optionalTableSize);
+        while (iter.hasNext()) {
+            final var predicate = createFrom(iter.next(), optionalTableSize);
+            filterPredicate = isAnd ? filterPredicate.and(predicate) : filterPredicate.or(predicate);
+        }
+        return filterPredicate;
+    }
+
+    private static RowNumberPredicate createFrom(final FilterCriterion criterion, final long optionalTableSize)
+        throws InvalidSettingsException {
+        final var filterSpec = RowNumberFilter.getAsFilterSpec(criterion);
+        final var offsetFilter = filterSpec.toOffsetFilter(optionalTableSize);
+        return offsetFilter.toPredicate();
     }
 
 }

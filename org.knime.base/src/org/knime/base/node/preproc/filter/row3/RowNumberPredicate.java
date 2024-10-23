@@ -50,36 +50,12 @@ package org.knime.base.node.preproc.filter.row3;
 
 import java.util.function.LongPredicate;
 
-import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
-import org.knime.core.node.InvalidSettingsException;
-
 /**
- * Predicate for filtering rows by row number.
+ * Predicate for filtering rows by row number value.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 interface RowNumberPredicate extends LongPredicate {
-
-    static RowNumberPredicate buildPredicate(final boolean isAnd, final Iterable<FilterCriterion> rowNumberCriteria,
-            final long optionalTableSize) throws InvalidSettingsException {
-        final var iter = rowNumberCriteria.iterator();
-        if (!iter.hasNext()) {
-            return null;
-        }
-        var filterPredicate = createFrom(iter.next(), optionalTableSize);
-        while (iter.hasNext()) {
-            final var predicate = createFrom(iter.next(), optionalTableSize);
-            filterPredicate = isAnd ? filterPredicate.and(predicate) : filterPredicate.or(predicate);
-        }
-        return filterPredicate;
-    }
-
-    private static RowNumberPredicate createFrom(final FilterCriterion criterion, final long optionalTableSize)
-            throws InvalidSettingsException {
-        final var filterSpec = RowNumberFilter.getAsFilterSpec(criterion);
-        final var offsetFilter = filterSpec.toOffsetFilter(optionalTableSize);
-        return offsetFilter.toPredicate();
-    }
 
     /**
      * Short-circuiting AND.

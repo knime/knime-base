@@ -44,48 +44,39 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   8 May 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   27 Aug 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.base.node.preproc.filter.row3.predicates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import java.util.Optional;
+import java.util.OptionalInt;
 
-/**
- * Settings for the Row Filter node.
- *
- * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
- */
-@SuppressWarnings("restriction") // webui is not public yet
-final class RowFilterNodeSettings extends AbstractRowFilterNodeSettings {
+import org.knime.core.data.DataType;
+import org.knime.core.data.def.BooleanCell;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 
-    // we need to repeat both constructors, otherwise InstantiationUtil cannot instantiate our concrete settings class
+final class BooleanPredicateFactory extends AbstractPredicateFactory {
 
-    // for de-/serialization
-    RowFilterNodeSettings() {
-        super();
+    private final boolean m_matchTrue;
+
+    private BooleanPredicateFactory(final boolean matchTrue) {
+        m_matchTrue = matchTrue;
     }
 
-    // auto-configuration constructor needs to be "re-declared" in subclass
-    RowFilterNodeSettings(final DefaultNodeSettingsContext ctx) {
-        super(ctx);
+    public static Optional<PredicateFactory> create(final DataType columnDataType, final boolean matchTrue) {
+        if (columnDataType.equals(BooleanCell.TYPE)) {
+            return Optional.of(new BooleanPredicateFactory(matchTrue));
+        }
+        return Optional.empty();
     }
 
     @Override
-    boolean isSecondOutputActive() {
-        return false;
+    public IndexedRowReadPredicate createPredicate(final OptionalInt colIdx, final DynamicValuesInput ignored)
+        throws InvalidSettingsException {
+        final var columnIndex = colIdx.orElseThrow(
+            () -> new IllegalStateException("Boolean predicate operates on column but did not get a column index"));
+        return (i, rowRead) -> rowRead.<BooleanCell> getValue(columnIndex).getBooleanValue() == m_matchTrue;
     }
-
-    @Override
-    FilterMode outputMode() {
-        return m_outputMode;
-    }
-
-    @Widget(title = "Filter behavior",
-        description = "Determines whether only matching or non-matching rows are output.")
-    @ValueSwitchWidget
-    @Layout(DialogSections.Output.OutputMode.class)
-    FilterMode m_outputMode = FilterMode.MATCHING;
 
 }
