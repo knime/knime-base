@@ -49,6 +49,8 @@
 package org.knime.time.node.manipulate.modifytime;
 
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -81,6 +83,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.time.util.DateTimeUtils;
 
 /**
  *
@@ -98,10 +101,20 @@ public class ModifyTimeNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Time parts", description = "")
     @TimeWidget
     @Effect(predicate = ModifySelectIsRemove.class, type = EffectType.HIDE)
-    @Persist(optional = true)
+    @Persist(customPersistor = TimePartsPersistor.class)
     LocalTime m_timeParts = LocalTime.now();
 
-    @Persist(configKey = "column-filter", customPersistor = LegacyColumnFilterPersistor.class, optional = true)
+    @Widget(title = "Time Zone", description = "")
+    @Persist(configKey = "use_time_zone")
+    boolean m_useTimeZone = false;
+
+    @Widget(title = "timezone", description = "")
+    @Persist(customPersistor = TimeZonePersistor.class)
+    ZoneId m_timeZone = ZoneId.of("America/Indiana/Marengo");
+
+    static final String COLUMN_SELECT_CONFIG_KEY = "col_select";
+
+    @Persist(configKey = "col_select", customPersistor = LegacyColumnFilterPersistor.class, optional = true)
     @Widget(title = "Date & time columns", description = "Select the columns to include in the output table.")
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
@@ -117,7 +130,27 @@ public class ModifyTimeNodeSettings implements DefaultNodeSettings {
     @Persist(configKey = "suffix")
     String m_outputColumnSuffix = "(modified time)";
 
-    // TODO1: complete
+    /**
+     * @param settings
+     */
+    public void saveSettings(final NodeSettingsWO settings) {
+        DefaultNodeSettings.saveSettings(this.getClass(), this, settings);
+    }
+
+    /**
+     * @param settings
+     * @throws InvalidSettingsException
+     */
+    public void loadSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+        var newSettings = DefaultNodeSettings.loadSettings(settings, this.getClass());
+        this.m_modifySelect = newSettings.m_modifySelect;
+        this.m_timeParts = newSettings.m_timeParts;
+        this.m_useTimeZone = newSettings.m_useTimeZone;
+        this.m_timeZone = newSettings.m_timeZone;
+        this.m_columnFilter = newSettings.m_columnFilter;
+        this.m_appendOrReplace = newSettings.m_appendOrReplace;
+        this.m_outputColumnSuffix = newSettings.m_outputColumnSuffix;
+    }
 
     /*
      * ------------------------------------------------------------------------
@@ -222,6 +255,55 @@ public class ModifyTimeNodeSettings implements DefaultNodeSettings {
         @Override
         public void save(final ModifySelect obj, final NodeSettingsWO settings) {
             settings.addString(CONFIG_KEY, obj.m_oldConfigValue);
+        }
+
+        @Override
+        public String[] getConfigKeys() {
+            return new String[]{CONFIG_KEY};
+        }
+    }
+
+    static final class TimePartsPersistor implements FieldNodeSettingsPersistor<LocalTime> {
+
+        private final static String CONFIG_KEY = "time";
+
+        @Override
+        public LocalTime load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            System.out.println("TimeToLoad: " + settings.getString(CONFIG_KEY));
+            var savedSettings = settings.getString(CONFIG_KEY);
+
+            var parsedTime = DateTimeUtils.asLocalTime(savedSettings);
+            return parsedTime.orElseThrow(() -> new InvalidSettingsException("Invalid time: " + savedSettings));
+
+        }
+
+        @Override
+        public void save(final LocalTime obj, final NodeSettingsWO settings) {
+
+            System.out.println("TimeToSaveFromObj: " + obj);
+            var timeToSave = obj.format(DateTimeFormatter.ISO_LOCAL_TIME);
+            System.out.println("TimeToSave: " + timeToSave);
+            settings.addString(CONFIG_KEY, timeToSave);
+        }
+
+        @Override
+        public String[] getConfigKeys() {
+            return new String[]{CONFIG_KEY};
+        }
+    }
+
+    static final class TimeZonePersistor implements FieldNodeSettingsPersistor<ZoneId> {
+
+        private final static String CONFIG_KEY = "time_zone";
+
+        @Override
+        public ZoneId load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return ZoneId.of(settings.getString(CONFIG_KEY));
+        }
+
+        @Override
+        public void save(final ZoneId obj, final NodeSettingsWO settings) {
+            settings.addString(CONFIG_KEY, obj.getId());
         }
 
         @Override
