@@ -145,6 +145,9 @@
           "settings" : {
             "type" : "object",
             "properties" : {
+              "authenticationManagedByPortText" : {
+                "type" : "object"
+              },
               "fileSelectionInternal" : {
                 "type" : "object",
                 "properties" : {
@@ -383,6 +386,13 @@
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
+        "scope" : "#/properties/model/properties/settings/properties/authenticationManagedByPortText",
+        "options" : {
+          "format" : "textMessage",
+          "messageProvider" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileSystemManagedByPortMessage"
+        }
+      }, {
+        "type" : "Control",
         "scope" : "#/properties/model/properties/settings/properties/source",
         "options" : {
           "format" : "fileChooser",
@@ -589,6 +599,13 @@
       "values" : [ {
         "indices" : [ ],
         "value" : "UNION"
+      } ]
+    }, {
+      "scopes" : null,
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileSystemManagedByPortMessage",
+      "values" : [ {
+        "indices" : [ ],
+        "value" : null
       } ]
     } ],
     "globalUpdates" : [ {

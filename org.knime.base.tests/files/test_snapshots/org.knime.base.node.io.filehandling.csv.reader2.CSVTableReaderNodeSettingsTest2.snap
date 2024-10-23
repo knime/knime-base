@@ -17,8 +17,8 @@
           "settingsModelID" : "SMID_ReaderFileChooser",
           "enabledStatus" : true
         },
-        "firstRowContainsColumnNames" : true,
         "firstColumnContainsRowIds" : false,
+        "firstRowContainsColumnNames" : true,
         "ifRowHasLessColumnsOption" : "FAIL",
         "skipEmptyDataRows" : false,
         "prependFileIndexToRowId" : false,
@@ -34,6 +34,7 @@
         "howToCombineColumns" : "FAIL",
         "appendPathColumn" : false,
         "filePathColumnName" : "Path",
+        "ifSchemaChangesOption" : "IGNORE",
         "limitScannedRows" : true,
         "maxDataRowsScanned" : 10000,
         "limitMemoryPerColumn" : true,
@@ -44,8 +45,7 @@
         "minChunkSizeInBytes" : 67108864,
         "maxNumChunksPerFile" : 8,
         "thousandsSeparator" : "\u0000",
-        "decimalSeparator" : ".",
-        "ifSchemaChangesOption" : "IGNORE"
+        "decimalSeparator" : "."
       },
       "limitRows" : {
         "skipFirstLines" : 0,
@@ -253,6 +253,7 @@
               "howToCombineColumns" : "FAIL",
               "appendPathColumn" : false,
               "filePathColumnName" : "File Path",
+              "ifSchemaChangesOption" : "FAIL",
               "limitScannedRows" : true,
               "maxDataRowsScanned" : 10000,
               "limitMemoryPerColumn" : true,
@@ -263,8 +264,7 @@
               "minChunkSizeInBytes" : 67108864,
               "maxNumChunksPerFile" : 8,
               "thousandsSeparator" : "",
-              "decimalSeparator" : ".",
-              "ifSchemaChangesOption" : "FAIL"
+              "decimalSeparator" : "."
             },
             "configKeys" : [ "advanced_settings" ]
           },
@@ -375,6 +375,9 @@
           "settings" : {
             "type" : "object",
             "properties" : {
+              "authenticationManagedByPortText" : {
+                "type" : "object"
+              },
               "autoDetectButton" : {
                 "type" : "object",
                 "title" : "Autodetect format",
@@ -547,8 +550,8 @@
                 "settingsModelID" : "SMID_ReaderFileChooser",
                 "enabledStatus" : true
               },
-              "firstRowContainsColumnNames" : true,
               "firstColumnContainsRowIds" : false,
+              "firstRowContainsColumnNames" : true,
               "ifRowHasLessColumnsOption" : "FAIL",
               "skipEmptyDataRows" : false,
               "prependFileIndexToRowId" : false,
@@ -566,16 +569,6 @@
             "type" : "object",
             "properties" : {
               "columnTransformation" : {
-                "title" : "Transformations",
-                "description" : "Use this option to modify the structure of the table. You can deselect each column to filter it out of the\noutput table, use the arrows to reorder the columns, or change the column name or column type of each\ncolumn. Note that the positions of columns are reset in the dialog if a new file or folder is selected.\nWhether and where to add unknown columns during execution is specified via the special row &lt;any unknown\nnew column&gt;. It is also possible to select the type new columns should be converted to. Note that the\nnode will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is\nof type Double.\n",
-                "default" : [ {
-                  "columnName" : null,
-                  "originalType" : "<default-columntype>",
-                  "originalTypeLabel" : "Default columntype",
-                  "includeInOutput" : true,
-                  "columnRename" : null,
-                  "type" : "<default-columntype>"
-                } ],
                 "type" : "array",
                 "items" : {
                   "type" : "object",
@@ -603,7 +596,17 @@
                       "title" : "Column type"
                     }
                   }
-                }
+                },
+                "title" : "Transformations",
+                "description" : "Use this option to modify the structure of the table. You can deselect each column to filter it out of the\noutput table, use the arrows to reorder the columns, or change the column name or column type of each\ncolumn. Note that the positions of columns are reset in the dialog if a new file or folder is selected.\nWhether and where to add unknown columns during execution is specified via the special row &lt;any unknown\nnew column&gt;. It is also possible to select the type new columns should be converted to. Note that the\nnode will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is\nof type Double.\n",
+                "default" : [ {
+                  "columnName" : null,
+                  "originalType" : "<default-columntype>",
+                  "originalTypeLabel" : "Default columntype",
+                  "includeInOutput" : true,
+                  "columnRename" : null,
+                  "type" : "<default-columntype>"
+                } ]
               },
               "enforceTypes" : {
                 "type" : "boolean",
@@ -748,18 +751,17 @@
                     "default" : "File Path"
                   },
                   "fsLocations" : {
-                    "default" : [ ],
                     "type" : "array",
                     "items" : {
                       "type" : "object"
-                    }
+                    },
+                    "default" : [ ]
                   },
                   "sourceId" : {
                     "type" : "string",
                     "default" : ""
                   },
                   "specs" : {
-                    "default" : [ ],
                     "type" : "array",
                     "items" : {
                       "type" : "object",
@@ -782,7 +784,8 @@
                           }
                         }
                       }
-                    }
+                    },
+                    "default" : [ ]
                   },
                   "takeColumnsFrom" : {
                     "oneOf" : [ {
@@ -879,6 +882,13 @@
       "label" : "File",
       "type" : "Section",
       "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/settings/properties/authenticationManagedByPortText",
+        "options" : {
+          "format" : "textMessage",
+          "messageProvider" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileSystemManagedByPortMessage"
+        }
+      }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/settings/properties/source",
         "options" : {
@@ -1431,6 +1441,13 @@
       "values" : [ {
         "indices" : [ ],
         "value" : "UNION"
+      } ]
+    }, {
+      "scopes" : null,
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileSystemManagedByPortMessage",
+      "values" : [ {
+        "indices" : [ ],
+        "value" : null
       } ]
     } ],
     "globalUpdates" : [ {
