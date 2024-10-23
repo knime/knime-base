@@ -86,9 +86,27 @@ public final class FileSystemPortConnectionUtil {
             .flatMap(FileSystemPortObjectSpec::getFileSystemConnection);
     }
 
+    /**
+     * Utility method for checking whether the first file system port of the specs of a given
+     * {@link DefaultNodeSettingsContext} provides a file system.
+     *
+     * @param context the context from which to obtain the file system connection
+     * @return whether the file system input port provides a file system
+     */
+    public static boolean hasEmptyFileSystemPort(final DefaultNodeSettingsContext context) {
+        return hasFileSystemPort(context) && getFileSystemConnection(context).isEmpty();
+    }
+
     private static Optional<FileSystemPortObjectSpec> getFirstFileSystemPort(final PortObjectSpec[] specs) {
         return Arrays.asList(specs).stream().filter(FileSystemPortObjectSpec.class::isInstance)
             .map(FileSystemPortObjectSpec.class::cast).findFirst();
+    }
+
+    private static boolean hasFileSystemPort(final DefaultNodeSettingsContext context) {
+        final var inPortTypes = context.getInPortTypes();
+        return IntStream.range(0, inPortTypes.length)
+            .anyMatch(i -> FileSystemPortObjectSpec.class.equals(inPortTypes[i].getPortObjectSpecClass()));
+
     }
 
     /**
@@ -108,14 +126,7 @@ public final class FileSystemPortConnectionUtil {
         }
 
         static boolean applies(final DefaultNodeSettingsContext context) {
-            return hasFileSystemPort(context) && getFileSystemConnection(context).isEmpty();
-        }
-
-        private static boolean hasFileSystemPort(final DefaultNodeSettingsContext context) {
-            final var inPortTypes = context.getInPortTypes();
-            return IntStream.range(0, inPortTypes.length)
-                .anyMatch(i -> FileSystemPortObjectSpec.class.equals(inPortTypes[i].getPortObjectSpecClass()));
-
+            return hasEmptyFileSystemPort(context);
         }
     }
 

@@ -48,12 +48,14 @@
  */
 package org.knime.base.node.io.filehandling.webui.reader;
 
+import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout.DataArea.UseExistingRowId;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
@@ -65,6 +67,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.Lega
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage.MessageType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage.SimpleTextMessageProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
@@ -113,6 +118,35 @@ public final class CommonReaderNodeSettings {
              */
             protected abstract String[] getExtensions();
         }
+
+        static final class FileSystemManagedByPortMessage implements SimpleTextMessageProvider {
+
+            @Override
+            public boolean showMessage(final DefaultNodeSettingsContext context) {
+                return FileSystemPortConnectionUtil.hasEmptyFileSystemPort(context);
+            }
+
+            @Override
+            public String title() {
+                return "File System managed by means of File System Connection input port is not available";
+            }
+
+            @Override
+            public String description() {
+                return "Pass a file system (by executing the node providing the input) or remove the File System"
+                    + " Connection input port to enable the selection of the source file.";
+            }
+
+            @Override
+            public MessageType type() {
+                return MessageType.INFO;
+            }
+
+        }
+
+        @TextMessage(value = FileSystemManagedByPortMessage.class)
+        @Layout(CommonReaderLayout.File.Source.class)
+        Void m_authenticationManagedByPortText;
 
         @SuppressWarnings("javadoc")
         @Widget(title = "Source", description = CommonReaderLayout.File.Source.DESCRIPTION)
