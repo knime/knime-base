@@ -71,8 +71,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.Colum
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesStateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TimeWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
@@ -89,7 +89,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
 @SuppressWarnings("restriction")
 public class ModifyTimeNodeSettings implements DefaultNodeSettings {
 
-
     @Widget(title = "Time setting", description = "")
     @ValueSwitchWidget
     @Persist(customPersistor = ModifySelectPersistor.class)
@@ -97,7 +96,7 @@ public class ModifyTimeNodeSettings implements DefaultNodeSettings {
     ModifySelect m_modifySelect = ModifySelect.CHANGE;
 
     @Widget(title = "Time parts", description = "")
-    @DateTimeWidget(showDate=false, showSeconds = true, showTime = true)
+    @TimeWidget
     @Effect(predicate = ModifySelectIsRemove.class, type = EffectType.HIDE)
     @Persist(optional = true)
     LocalTime m_timeParts = LocalTime.now();
@@ -113,9 +112,9 @@ public class ModifyTimeNodeSettings implements DefaultNodeSettings {
     @ValueReference(AppendOrReplaceRef.class)
     AppendOrReplace m_appendOrReplace = AppendOrReplace.APPEND;
 
-    @Widget(title = "Suffix of appended column", description = "")
+    @Widget(title = "Suffix of appended column", description = "", advanced = true)
     @Effect(predicate = OutputColumnsIsAppend.class, type = EffectType.SHOW)
-    @Persist(configKey="suffix")
+    @Persist(configKey = "suffix")
     String m_outputColumnSuffix = "(modified time)";
 
     // TODO1: complete
