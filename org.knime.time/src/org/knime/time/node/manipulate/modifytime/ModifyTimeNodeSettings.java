@@ -105,13 +105,9 @@ public class ModifyTimeNodeSettings implements DefaultNodeSettings {
     @Persist(customPersistor = TimePartsPersistor.class)
     LocalTime m_timeParts = LocalTime.now();
 
-    @Widget(title = "Time Zone", description = "")
-    @Persist(configKey = "use_time_zone")
-    boolean m_useTimeZone = false;
-
     @Widget(title = "timezone", description = "")
     @Persist(customPersistor = TimeZonePersistor.class)
-    @ChoicesWidget(choicesProvider = ZoneIdProvider.class)
+    @ChoicesWidget(choicesProvider = ZoneIdProvider.class, optional = true)
     ZoneId m_timeZone = ZoneId.of("America/Indiana/Marengo");
 
     static final String COLUMN_SELECT_CONFIG_KEY = "col_select";
@@ -147,7 +143,6 @@ public class ModifyTimeNodeSettings implements DefaultNodeSettings {
         var newSettings = DefaultNodeSettings.loadSettings(settings, this.getClass());
         this.m_modifySelect = newSettings.m_modifySelect;
         this.m_timeParts = newSettings.m_timeParts;
-        this.m_useTimeZone = newSettings.m_useTimeZone;
         this.m_timeZone = newSettings.m_timeZone;
         this.m_columnFilter = newSettings.m_columnFilter;
         this.m_appendOrReplace = newSettings.m_appendOrReplace;

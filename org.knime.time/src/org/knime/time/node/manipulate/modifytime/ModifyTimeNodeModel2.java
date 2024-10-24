@@ -123,7 +123,7 @@ final class ModifyTimeNodeModel2 extends SimpleStreamableFunctionNodeModel {
                 dataType = LocalDateTimeCellFactory.TYPE;
                 break;
             default:
-                if (m_settings.m_useTimeZone) {
+                if (true) {
                     dataType = ZonedDateTimeCellFactory.TYPE;
                 } else {
                     dataType = LocalDateTimeCellFactory.TYPE;
@@ -214,7 +214,7 @@ final class ModifyTimeNodeModel2 extends SimpleStreamableFunctionNodeModel {
             }
             final LocalDateValue localDateCell = (LocalDateValue)cell;
             final LocalTime localTime = m_settings.m_timeParts;
-            if (m_settings.m_useTimeZone) {
+            if (true) {
                 return ZonedDateTimeCellFactory
                     .create(ZonedDateTime.of(LocalDateTime.of(localDateCell.getLocalDate(), localTime), m_zone));
             } else {
