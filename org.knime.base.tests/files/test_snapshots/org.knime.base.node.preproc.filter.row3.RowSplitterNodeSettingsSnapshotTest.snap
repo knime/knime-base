@@ -50,9 +50,6 @@
             "default" : "MATCHING"
           },
           "predicates" : {
-            "title" : "Filter criteria",
-            "description" : "The list of criteria that should be filtered on.",
-            "default" : [ ],
             "type" : "array",
             "items" : {
               "type" : "object",
@@ -61,7 +58,6 @@
                   "type" : "object",
                   "properties" : {
                     "compatibleTypes" : {
-                      "configKeys" : [ "compatibleTypes_Internals" ],
                       "type" : "array",
                       "items" : {
                         "type" : "string"
@@ -161,7 +157,10 @@
                   }
                 }
               }
-            }
+            },
+            "title" : "Filter criteria",
+            "description" : "The list of criteria that should be filtered on.",
+            "default" : [ ]
           }
         }
       }
@@ -246,99 +245,143 @@
           "radioLayout" : "vertical"
         }
       } ]
-    } ],
-    "initialUpdates" : [ {
-      "scopes" : null,
-      "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$DefaultFitlerCriterionProvider",
-      "values" : [ {
-        "indices" : [ ],
-        "value" : {
-          "column" : {
-            "selected" : "BoolCol",
-            "compatibleTypes" : [ "org.knime.core.data.BooleanValue", "org.knime.core.data.DataValue", "org.knime.core.data.IntValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.NominalValue" ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "matchCriteria" : { },
+          "predicates" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "column" : {
+                  "type" : "object",
+                  "properties" : {
+                    "selected" : { },
+                    "compatibleTypes" : {
+                      "configPaths" : [ ]
+                    }
+                  }
+                },
+                "operator" : { },
+                "predicateValues" : {
+                  "type" : "object",
+                  "properties" : {
+                    "values" : {
+                      "type" : "array",
+                      "items" : {
+                        "type" : "object",
+                        "properties" : { }
+                      }
+                    },
+                    "inputKind" : { }
+                  }
+                }
+              }
+            }
           },
-          "operator" : "IS_TRUE",
-          "predicateValues" : {
-            "values" : [ {
-              "value" : false,
-              "cellClassName" : "org.knime.core.data.def.BooleanCell",
-              "valueDataType" : "{\"name\":\"dataTypeConfig\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-              "useStringCaseMatchingSettings" : false
-            } ],
-            "inputKind" : "SINGLE"
-          }
+          "domains" : { },
+          "outputMode" : { }
         }
-      } ]
-    }, {
-      "scopes" : null,
-      "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$ColumnsWithTypeMapping",
-      "values" : [ {
-        "indices" : [ ],
-        "value" : [ {
-          "id" : "DoubleCol",
-          "text" : "DoubleCol",
-          "type" : {
-            "id" : "org.knime.core.data.DoubleValue",
-            "text" : "Number (double)"
-          },
-          "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
-        }, {
-          "id" : "StringCol",
-          "text" : "StringCol",
-          "type" : {
-            "id" : "org.knime.core.data.StringValue",
-            "text" : "String"
-          },
-          "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
-        }, {
-          "id" : "IntCol",
-          "text" : "IntCol",
-          "type" : {
-            "id" : "org.knime.core.data.IntValue",
-            "text" : "Number (integer)"
-          },
-          "compatibleTypes" : [ "org.knime.core.data.IntValue", "org.knime.core.data.DataValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
-        }, {
-          "id" : "BoolCol",
-          "text" : "BoolCol",
-          "type" : {
-            "id" : "org.knime.core.data.BooleanValue",
-            "text" : "Boolean value"
-          },
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$DefaultFitlerCriterionProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "column" : {
+          "selected" : "BoolCol",
           "compatibleTypes" : [ "org.knime.core.data.BooleanValue", "org.knime.core.data.DataValue", "org.knime.core.data.IntValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.NominalValue" ]
-        } ]
-      } ]
-    } ],
-    "globalUpdates" : [ {
-      "trigger" : {
-        "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$OperatorRef",
-        "scopes" : [ "#/properties/model/properties/predicates", "#/properties/operator" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/predicates", "#/properties/predicateValues" ],
-        "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$DynamicValuesInputRef"
+        },
+        "operator" : "IS_TRUE",
+        "predicateValues" : {
+          "values" : [ {
+            "value" : false,
+            "cellClassName" : "org.knime.core.data.def.BooleanCell",
+            "valueDataType" : "{\"name\":\"dataTypeConfig\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+            "useStringCaseMatchingSettings" : false
+          } ],
+          "inputKind" : "SINGLE"
+        }
+      }
+    } ]
+  }, {
+    "scopes" : null,
+    "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$ColumnsWithTypeMapping",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "DoubleCol",
+        "text" : "DoubleCol",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (double)"
+        },
+        "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
       }, {
-        "scopes" : [ "#/properties/model/properties/predicates", "#/properties/operator" ],
-        "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$OperatorRef"
+        "id" : "StringCol",
+        "text" : "StringCol",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        },
+        "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
       }, {
-        "scopes" : [ "#/properties/model/properties/predicates", "#/properties/column" ],
-        "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$SelectedColumnRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$SelectedColumnRef",
-        "scopes" : [ "#/properties/model/properties/predicates", "#/properties/column" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/predicates", "#/properties/predicateValues" ],
-        "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$DynamicValuesInputRef"
+        "id" : "IntCol",
+        "text" : "IntCol",
+        "type" : {
+          "id" : "org.knime.core.data.IntValue",
+          "text" : "Number (integer)"
+        },
+        "compatibleTypes" : [ "org.knime.core.data.IntValue", "org.knime.core.data.DataValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
       }, {
-        "scopes" : [ "#/properties/model/properties/predicates", "#/properties/operator" ],
-        "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$OperatorRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/predicates", "#/properties/column" ],
-        "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$SelectedColumnRef"
+        "id" : "BoolCol",
+        "text" : "BoolCol",
+        "type" : {
+          "id" : "org.knime.core.data.BooleanValue",
+          "text" : "Boolean value"
+        },
+        "compatibleTypes" : [ "org.knime.core.data.BooleanValue", "org.knime.core.data.DataValue", "org.knime.core.data.IntValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.NominalValue" ]
       } ]
     } ]
-  }
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$OperatorRef",
+      "scopes" : [ "#/properties/model/properties/predicates", "#/properties/operator" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/predicates", "#/properties/predicateValues" ],
+      "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$DynamicValuesInputRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/predicates", "#/properties/operator" ],
+      "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$OperatorRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/predicates", "#/properties/column" ],
+      "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$SelectedColumnRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$SelectedColumnRef",
+      "scopes" : [ "#/properties/model/properties/predicates", "#/properties/column" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/predicates", "#/properties/predicateValues" ],
+      "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$DynamicValuesInputRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/predicates", "#/properties/operator" ],
+      "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$OperatorRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/predicates", "#/properties/column" ],
+      "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$SelectedColumnRef"
+    } ]
+  } ]
 }

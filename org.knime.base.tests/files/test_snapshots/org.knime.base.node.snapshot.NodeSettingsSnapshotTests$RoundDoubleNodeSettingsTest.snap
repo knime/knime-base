@@ -105,7 +105,6 @@
               },
               "selected" : {
                 "default" : [ ],
-                "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -123,7 +122,6 @@
                   },
                   "typeDisplays" : {
                     "default" : [ ],
-                    "subConfigKeys" : [ ],
                     "type" : "array",
                     "items" : {
                       "type" : "object",
@@ -163,9 +161,7 @@
                 "selectedTypes" : [ ],
                 "typeDisplays" : [ ]
               }
-            },
-            "configKeys" : [ "StringColNames.filter-type", "StringColNames.included_names", "StringColNames.excluded_names", "StringColNames.enforce_option", "StringColNames.name_pattern.pattern", "StringColNames.name_pattern.type", "StringColNames.name_pattern.caseSensitive", "StringColNames.name_pattern.excludeMatching" ],
-            "subConfigKeys" : [ ]
+            }
           },
           "numberMode" : {
             "oneOf" : [ {
@@ -180,8 +176,7 @@
             } ],
             "title" : "Rounding mode",
             "description" : "Select the rounding mode to apply.\n<ul>\n<li><b>Decimals</b>: Rounds numeric values up to the specified number of decimal places.\n</li>\n<li><b>Significant digits</b>: Only keeps the specified number of significant digits.</li>\n<li><b>Integer</b>: Converts numeric values to integer. Note that automatically converting <em>Number (double)</em> or\n<em>Number (long)</em> input columns to <em>Number (integer)</em> output columns might yield\nmissing values due to integer overflows.\n</li>\n</ul>",
-            "default" : "DECIMALS",
-            "configKeys" : [ "NumberMode" ]
+            "default" : "DECIMALS"
           },
           "outputColumn" : {
             "oneOf" : [ {
@@ -193,8 +188,7 @@
             } ],
             "title" : "Output columns",
             "description" : "Configure output column behavior.\n<ul>\n<li><b>Replace</b>: Replaces the input columns</li>\n<li><b>Append with suffix</b>: Appends additional output columns</li>\n</ul>",
-            "default" : "APPEND",
-            "configKeys" : [ "AppendColumns" ]
+            "default" : "APPEND"
           },
           "outputMode" : {
             "oneOf" : [ {
@@ -215,8 +209,7 @@
             } ],
             "title" : "Output mode (legacy)",
             "description" : "Determines the formatting of the output columns.\n\n<ul>\n<li><b>Auto</b>: Sets output column types automatically based on input column types.\n</li>\n<li><b>Double</b>: Sets all output column types to real numbers.\n</li>\n<li><b>Standard string</b>: Returns the string representation of a number using scientific notation if an exponent is needed.\n</li>\n<li><b>Plain string</b>: Returns a string representation of a number without an exponent field.\n</li>\n<li><b>Engineering string</b>: Returns a string representation of a number, using engineering notation if an exponent is needed.\n</li>\n</ul>",
-            "default" : "AUTO",
-            "configKeys" : [ "OutputType" ]
+            "default" : "AUTO"
           },
           "precision" : {
             "type" : "integer",
@@ -225,8 +218,7 @@
             "description" : "When rounding to <b>Decimals</b>, this sets the number of decimal places to keep.<br/>\nWhen rounding to <b>Significant digits</b>, this sets the number of significant digits to keep.\n",
             "default" : 3,
             "minimum" : 0.0,
-            "maximum" : 350.0,
-            "configKeys" : [ "PrecisionNumer" ]
+            "maximum" : 350.0
           },
           "roundingMethod" : {
             "type" : "object",
@@ -271,15 +263,13 @@
             "default" : {
               "standard" : "HALF_AWAY_FROM_ZERO",
               "advanced" : "AWAY_FROM_ZERO"
-            },
-            "configKeys" : [ "RoundingMode" ]
+            }
           },
           "suffix" : {
             "type" : "string",
             "title" : "Output column suffix",
             "description" : "Set the suffix to append to the new column names.",
-            "default" : " (Rounded)",
-            "configKeys" : [ "ColumnSuffix" ]
+            "default" : " (Rounded)"
           }
         }
       }
@@ -379,5 +369,81 @@
         "isAdvanced" : true
       }
     } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnsToFormat" : {
+            "configPaths" : [ [ "StringColNames", "filter-type" ], [ "StringColNames", "included_names" ], [ "StringColNames", "excluded_names" ], [ "StringColNames", "enforce_option" ], [ "StringColNames", "name_pattern", "pattern" ], [ "StringColNames", "name_pattern", "type" ], [ "StringColNames", "name_pattern", "caseSensitive" ], [ "StringColNames", "name_pattern", "excludeMatching" ] ],
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : { },
+                  "typeDisplays" : {
+                    "type" : "array",
+                    "configPaths" : [ ],
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : { },
+                        "text" : { }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "numberMode" : {
+            "configKey" : "NumberMode"
+          },
+          "precision" : {
+            "configKey" : "PrecisionNumer"
+          },
+          "roundingMethod" : {
+            "configKey" : "RoundingMode",
+            "type" : "object",
+            "properties" : {
+              "standard" : { },
+              "advanced" : { }
+            }
+          },
+          "outputColumn" : {
+            "configKey" : "AppendColumns"
+          },
+          "suffix" : {
+            "configKey" : "ColumnSuffix"
+          },
+          "outputMode" : {
+            "configKey" : "OutputType"
+          }
+        }
+      }
+    }
   }
 }

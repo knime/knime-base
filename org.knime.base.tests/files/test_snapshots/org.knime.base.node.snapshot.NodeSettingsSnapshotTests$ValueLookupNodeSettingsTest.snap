@@ -51,8 +51,7 @@
             } ],
             "title" : "If no match found",
             "description" : "Defines the content of the lookup column if no match is found in the dictionary table.\n    If \"Retain\" is selected, the cell is left as is.\n    If \"Insert missing\" is selected, a missing value is used as content for the cell in the lookup column.\n",
-            "default" : "RETAIN",
-            "configKeys" : [ "columnNoMatchReplacement" ]
+            "default" : "RETAIN"
           },
           "createFoundCol" : {
             "type" : "boolean",
@@ -134,7 +133,6 @@
               },
               "selected" : {
                 "default" : [ ],
-                "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -152,7 +150,6 @@
                   },
                   "typeDisplays" : {
                     "default" : [ ],
-                    "subConfigKeys" : [ ],
                     "type" : "array",
                     "items" : {
                       "type" : "object",
@@ -198,8 +195,7 @@
             "type" : "boolean",
             "title" : "Enable hiliting",
             "description" : "Enable hiliting between the dictionary table and the output table.",
-            "default" : false,
-            "configKeys" : [ "enableHiliting" ]
+            "default" : false
           },
           "lookupCol" : {
             "type" : "string",
@@ -219,14 +215,12 @@
             } ],
             "title" : "Lookup column output",
             "description" : "Defines the content of the column that is selected as lookup column (data table).\nIf \"Retain\" the content of the lookup column is left unchanged.\nIf \"Replace\" is selected, the cell contents are replaced with values from the dictionary table.\nIf a match is found, the selected column's value is inserted, otherwise the original value can be kept\nor a missing value can be inserted. The name of the column does not change.\nIf \"Delete\" is selected, the lookup column is removed entirely from the output table.\n",
-            "default" : "RETAIN",
-            "configKeys" : [ "lookupColumnOutput" ]
+            "default" : "RETAIN"
           },
           "lookupReplacementCol" : {
             "type" : "string",
             "title" : "Replacement column",
-            "description" : "The column from the dictionary table that provides\nthe new values for the lookup column in the data table.\n",
-            "configKeys" : [ "lookupReplacementCol" ]
+            "description" : "The column from the dictionary table that provides\nthe new values for the lookup column in the data table.\n"
           },
           "matchBehaviour" : {
             "oneOf" : [ {
@@ -495,5 +489,70 @@
         }
       } ]
     } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "lookupCol" : { },
+          "dictKeyCol" : { },
+          "searchDirection" : { },
+          "matchBehaviour" : { },
+          "stringMatchBehaviour" : { },
+          "caseSensitive" : { },
+          "lookupColumnOutput" : {
+            "configPaths" : [ [ "lookupColumnOutput" ] ]
+          },
+          "lookupReplacementCol" : { },
+          "columnNoMatchReplacement" : { },
+          "dictValueCols" : {
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : { },
+                  "typeDisplays" : {
+                    "type" : "array",
+                    "configPaths" : [ ],
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : { },
+                        "text" : { }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "createFoundCol" : { },
+          "enableHiliting" : { }
+        }
+      }
+    }
   }
 }

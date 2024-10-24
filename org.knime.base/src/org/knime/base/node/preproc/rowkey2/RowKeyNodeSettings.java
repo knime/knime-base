@@ -48,18 +48,19 @@
  */
 package org.knime.base.node.preproc.rowkey2;
 
+import java.util.List;
+
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation.Builder;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.EnumFieldPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultPersistorWithDeprecations;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
@@ -231,69 +232,33 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
             APPEND_COUNTER
     }
 
-    private static final class NewRowKeyColumnPersistor extends NodeSettingsPersistorWithConfigKey<String> {
+    private static final class NewRowKeyColumnPersistor extends NodeSettingsPersistorWithConfigKey<String>
+        implements DefaultPersistorWithDeprecations<String> {
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
-        public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            if (settings.containsKey(LEGACY_NEW_ROW_KEY_COLUMN_CONFIG_KEY)) {
-                return settings.getString(LEGACY_NEW_ROW_KEY_COLUMN_CONFIG_KEY);
-            }
-            return settings.getString(getConfigKey());
+        public List<ConfigsDeprecation<String>> getConfigsDeprecations() {
+            return List.of(ConfigsDeprecation.builder(NewRowKeyColumnPersistor::loadLegazy) //
+                .withNewConfigPath(getConfigKey()) //
+                .withDeprecatedConfigPath(LEGACY_NEW_ROW_KEY_COLUMN_CONFIG_KEY).build());
         }
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void save(final String obj, final NodeSettingsWO settings) {
-            settings.addString(getConfigKey(), obj);
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public ConfigsDeprecation[] getConfigsDeprecations() {
-            Builder configBuilder = new Builder() //
-                .forNewConfigPath(getConfigKey()) //
-                .forDeprecatedConfigPath(LEGACY_NEW_ROW_KEY_COLUMN_CONFIG_KEY);
-            return new ConfigsDeprecation[]{configBuilder.build()};
+        private static String loadLegazy(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return settings.getString(LEGACY_NEW_ROW_KEY_COLUMN_CONFIG_KEY);
         }
     }
 
-    private static final class ReplacementModePersistor implements FieldNodeSettingsPersistor<ReplacementMode> {
-
-        private static final String CONFIG_KEY = "replaceRowKeyMode";
+    private static final class ReplacementModePersistor extends NodeSettingsPersistorWithConfigKey<ReplacementMode>
+        implements DefaultPersistorWithDeprecations<ReplacementMode> {
 
         private static final String DEPRECATED_MODE_KEY = "newRowKeyColumnName";
 
-        private final EnumFieldPersistor<ReplacementMode> m_persistor =
-            new EnumFieldPersistor<>(CONFIG_KEY, ReplacementMode.class);
-
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{CONFIG_KEY};
+        public List<ConfigsDeprecation<ReplacementMode>> getConfigsDeprecations() {
+            return List.of(ConfigsDeprecation.builder(ReplacementModePersistor::loadLegazy)
+                .withNewConfigPath(getConfigKey()).withDeprecatedConfigPath(DEPRECATED_MODE_KEY).build());
         }
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public ConfigsDeprecation[] getConfigsDeprecations() {
-            Builder configBuilder = new Builder().forNewConfigPath(CONFIG_KEY);
-            configBuilder.forDeprecatedConfigPath(DEPRECATED_MODE_KEY);
-            return new ConfigsDeprecation[]{configBuilder.build()};
-        }
-
-        @Override
-        public ReplacementMode load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            if (settings.containsKey(CONFIG_KEY)) {
-                return m_persistor.load(settings);
-            }
-
+        private static ReplacementMode loadLegazy(final NodeSettingsRO settings) throws InvalidSettingsException {
             if (settings.getString(LEGACY_NEW_ROW_KEY_COLUMN_CONFIG_KEY) == null) {
                 return ReplacementMode.GENERATE_NEW;
             } else {
@@ -301,10 +266,6 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
             }
         }
 
-        @Override
-        public void save(final ReplacementMode obj, final NodeSettingsWO settings) {
-            m_persistor.save(obj, settings);
-        }
     }
 
     private static final class HandleMissingValuesModePersistor

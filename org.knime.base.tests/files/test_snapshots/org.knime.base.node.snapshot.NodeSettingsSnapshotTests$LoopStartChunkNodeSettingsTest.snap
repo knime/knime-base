@@ -80,5 +80,18 @@
         }
       }
     } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "mode" : { },
+          "nrRowsPerChunk" : { },
+          "nrOfChunks" : { }
+        }
+      }
+    }
   }
 }

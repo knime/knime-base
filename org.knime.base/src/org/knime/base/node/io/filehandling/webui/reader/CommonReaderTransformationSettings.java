@@ -234,8 +234,7 @@ public abstract class CommonReaderTransformationSettings<I extends ConfigIdSetti
         }
     }
 
-    @Widget(title = "Enforce types", description = CommonReaderLayout.Transformation.EnforceTypes.DESCRIPTION,
-        hideFlowVariableButton = true)
+    @Widget(title = "Enforce types", description = CommonReaderLayout.Transformation.EnforceTypes.DESCRIPTION)
     boolean m_enforceTypes = true;
 
     static class TransformationElementSettings implements WidgetGroup, PersistableSettings {
@@ -267,7 +266,7 @@ public abstract class CommonReaderTransformationSettings<I extends ConfigIdSetti
         @ValueReference(OriginalTypeLabelRef.class)
         String m_originalTypeLabel;
 
-        @Widget(title = "Include in output", description = "", hideFlowVariableButton = true) // TODO NOSONAR UIEXT-1901 add description
+        @Widget(title = "Include in output", description = "") // TODO NOSONAR UIEXT-1901 add description
         @InternalArrayWidget.ElementCheckboxWidget
         boolean m_includeInOutput;
 
@@ -344,13 +343,13 @@ public abstract class CommonReaderTransformationSettings<I extends ConfigIdSetti
             }
         }
 
-        @Widget(title = "Column name", description = "", hideTitle = true, hideFlowVariableButton = true)
+        @Widget(title = "Column name", description = "", hideTitle = true)
         @ValueProvider(ColumnNameResetter.class)
         @Effect(predicate = ElementIsEditedAndColumnNameIsNotNull.class, type = EffectType.SHOW)
         @JsonInclude(Include.ALWAYS) // Necessary for comparison against m_columnName
         String m_columnRename;
 
-        @Widget(title = "Column type", description = "", hideTitle = true, hideFlowVariableButton = true)
+        @Widget(title = "Column type", description = "", hideTitle = true)
         // for adding dynamic choices
         @Modification.WidgetReference(TransformationSettingsWidgetModification.TypeChoicesWidgetRef.class)
         @ValueProvider(TypeResetter.class)

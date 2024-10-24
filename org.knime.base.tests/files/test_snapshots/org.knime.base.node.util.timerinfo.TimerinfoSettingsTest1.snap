@@ -17,15 +17,13 @@
             "type" : "boolean",
             "title" : "Include component input and output nodes",
             "description" : "Includes the component input and output nodes in the output table.\n",
-            "default" : true,
-            "configKeys" : [ "includeComponentIO" ]
+            "default" : true
           },
           "includeNodeComments" : {
             "type" : "boolean",
             "title" : "Include node comments",
             "description" : "Include node comments for each node in the output table",
-            "default" : true,
-            "configKeys" : [ "includeNodeComments" ]
+            "default" : true
           },
           "maxDepth" : {
             "type" : "integer",
@@ -34,8 +32,7 @@
             "description" : "Controls depth of reporting of nodes in (nested) metanodes and components.\n",
             "default" : 2,
             "minimum" : 0.0,
-            "maximum" : 2147483647,
-            "configKeys" : [ "MaxDepth" ]
+            "maximum" : 2147483647
           },
           "recursionPolicy" : {
             "oneOf" : [ {
@@ -50,8 +47,7 @@
             } ],
             "title" : "Recursion",
             "description" : "Chooses a recursion option for metanodes and components <br/>\n<ul>\n    <li><b>No recursion</b> : Only lists the nodes on the top level of the workflow.</li>\n    <li><b>Only metanodes</b> : Recurses only the metanodes up to the specified depth.</li>\n    <li><b>Components and metanodes</b> : Recurses components and metanodes up to the specified depth.</li>\n</ul>\n",
-            "default" : "NO_RECURSION",
-            "configKeys" : [ "recursionPolicy" ]
+            "default" : "NO_RECURSION"
           }
         }
       }
@@ -104,5 +100,21 @@
         "format" : "checkbox"
       }
     } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "recursionPolicy" : { },
+          "maxDepth" : {
+            "configKey" : "MaxDepth"
+          },
+          "includeComponentIO" : { },
+          "includeNodeComments" : { }
+        }
+      }
+    }
   }
 }

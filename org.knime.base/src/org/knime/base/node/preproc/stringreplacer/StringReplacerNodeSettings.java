@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.preproc.stringreplacer;
 
+import java.util.List;
+
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.StringValue;
@@ -58,8 +60,8 @@ import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultFieldNodeSettingsPersistorFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultPersistorWithDeprecations;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
@@ -88,13 +90,16 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
 
     interface DialogSections {
         @Section(title = "Column Selection")
-        interface ColumnSelection {}
+        interface ColumnSelection {
+        }
 
         @Section(title = "Find & Replace")
-        interface FindAndReplace {}
+        interface FindAndReplace {
+        }
 
         @Section(title = "Output")
-        interface Output {}
+        interface Output {
+        }
     }
 
     // Settings
@@ -182,19 +187,11 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
 
     // Persistors
 
-    static final class PatternTypePersistor implements FieldNodeSettingsPersistor<PatternType> {
+    @SuppressWarnings("deprecation") // we're dealing with deprecated settings here
+    static final class PatternTypePersistor extends NodeSettingsPersistorWithConfigKey<PatternType>
+        implements DefaultPersistorWithDeprecations<PatternType> {
 
-        final NodeSettingsPersistor<PatternType> m_defaultPersistor = DefaultFieldNodeSettingsPersistorFactory
-            .createDefaultPersistor(PatternType.class, StringReplacerSettings.CFG_PATTERN_TYPE);
-
-        @SuppressWarnings("deprecation") // we're dealing with deprecated settings here
-        @Override
-        public PatternType load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            // since 5.4
-            if (settings.containsKey(StringReplacerSettings.CFG_PATTERN_TYPE)) {
-                return m_defaultPersistor.load(settings);
-            }
-            // backwards-compatibility for 5.1 <= version < 5.4:
+        private static PatternType loadLegazy(final NodeSettingsRO settings) throws InvalidSettingsException {
             if (settings.getBoolean(StringReplacerSettings.CFG_FIND_PATTERN, true)) {
                 final var isRegex = settings.getBoolean(StringReplacerSettings.CFG_PATTERN_IS_REGEX);
                 return isRegex ? PatternType.REGEX : PatternType.WILDCARD;
@@ -204,24 +201,16 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public void save(final PatternType patternType, final NodeSettingsWO settings) {
-            m_defaultPersistor.save(patternType, settings);
-        }
+        public List<ConfigsDeprecation<PatternType>> getConfigsDeprecations() {
 
-        @Override
-        public String[] getConfigKeys() {
-            return new String[]{StringReplacerSettings.CFG_PATTERN_TYPE};
-        }
-
-        @SuppressWarnings("deprecation") // we're dealing with deprecated settings here
-        @Override
-        public ConfigsDeprecation[] getConfigsDeprecations() {
-            final var deprecation = new ConfigsDeprecation.Builder()//
-                .forDeprecatedConfigPath(StringReplacerSettings.CFG_FIND_PATTERN)//
-                .forDeprecatedConfigPath(StringReplacerSettings.CFG_PATTERN_IS_REGEX)//
-                .forNewConfigPath(StringReplacerSettings.CFG_PATTERN_TYPE)//
-                .build();//
-            return new ConfigsDeprecation[]{deprecation};
+            return List.of(
+                // backwards-compatibility for 5.1 <= version < 5.4:
+                ConfigsDeprecation.builder(PatternTypePersistor::loadLegazy)//
+                    .withMatcher(settings -> !settings.containsKey(getConfigKey()))
+                    .withDeprecatedConfigPath(StringReplacerSettings.CFG_FIND_PATTERN)//
+                    .withDeprecatedConfigPath(StringReplacerSettings.CFG_PATTERN_IS_REGEX)//
+                    .withNewConfigPath(getConfigKey())//
+                    .build());//
         }
     }
 

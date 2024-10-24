@@ -141,5 +141,21 @@
         "showMode" : true
       }
     } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnMode" : { },
+          "columnName" : { },
+          "columnNumber" : { },
+          "rowNumber" : { },
+          "countFromEnd" : { },
+          "flowVariableName" : { }
+        }
+      }
+    }
   }
 }

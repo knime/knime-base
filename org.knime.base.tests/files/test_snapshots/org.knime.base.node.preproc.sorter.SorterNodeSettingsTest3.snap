@@ -23,32 +23,15 @@
             "type" : "boolean",
             "title" : "Sort in memory",
             "description" : "If selected the table is sorted in memory which requires more memory, but is faster. In case the input table is large and memory is scarce it is recommended not to check this option.",
-            "default" : false,
-            "configKeys" : [ "sortinmemory" ]
+            "default" : false
           },
           "sortMissingCellsToEndOfList" : {
             "type" : "boolean",
             "title" : "Sort missing values to end of table",
             "description" : "If selected missing values are always placed at the end of the sorted output. This is independent of the sort order, i.e. if sorted ascendingly they are considered to be larger than a non-missing value and if sorted descendingly they are smaller than any non-missing value.",
-            "default" : false,
-            "configKeys" : [ "missingToEnd" ]
+            "default" : false
           },
           "sortingCriteria" : {
-            "title" : "Sorting",
-            "description" : "A list of sorting critera.",
-            "default" : [ {
-              "column" : {
-                "selected" : "test1",
-                "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
-              },
-              "sortingOrder" : "ASCENDING",
-              "stringComparison" : "NATURAL"
-            } ],
-            "configKeys" : [ "sortingCriteria" ],
-            "deprecatedConfigKeys" : [ {
-              "new" : [ [ "sortingCriteria" ] ],
-              "deprecated" : [ [ "incllist" ], [ "alphaNumStringComp" ], [ "sortOrder" ] ]
-            } ],
             "type" : "array",
             "items" : {
               "type" : "object",
@@ -57,7 +40,6 @@
                   "type" : "object",
                   "properties" : {
                     "compatibleTypes" : {
-                      "configKeys" : [ "compatibleTypes_Internals" ],
                       "type" : "array",
                       "items" : {
                         "type" : "string"
@@ -99,7 +81,17 @@
                   "default" : "NATURAL"
                 }
               }
-            }
+            },
+            "title" : "Sorting",
+            "description" : "A list of sorting critera.",
+            "default" : [ {
+              "column" : {
+                "selected" : "test1",
+                "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+              },
+              "sortingOrder" : "ASCENDING",
+              "stringComparison" : "NATURAL"
+            } ]
           }
         }
       }
@@ -194,5 +186,44 @@
         }
       } ]
     } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "sortingCriteria" : {
+            "type" : "array",
+            "deprecatedConfigKeys" : [ {
+              "new" : [ [ "sortingCriteria" ] ],
+              "deprecated" : [ [ "incllist" ], [ "alphaNumStringComp" ], [ "sortOrder" ] ]
+            } ],
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "column" : {
+                  "type" : "object",
+                  "properties" : {
+                    "selected" : { },
+                    "compatibleTypes" : {
+                      "configPaths" : [ ]
+                    }
+                  }
+                },
+                "sortingOrder" : { },
+                "stringComparison" : { }
+              }
+            }
+          },
+          "sortMissingCellsToEndOfList" : {
+            "configKey" : "missingToEnd"
+          },
+          "sortInMemory" : {
+            "configKey" : "sortinmemory"
+          }
+        }
+      }
+    }
   }
 }

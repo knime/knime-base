@@ -117,5 +117,20 @@
         "format" : "checkbox"
       }
     } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnSpecificationMode" : { },
+          "columnName" : { },
+          "columnNumber" : { },
+          "rowNumber" : { },
+          "countFromEnd" : { }
+        }
+      }
+    }
   }
 }

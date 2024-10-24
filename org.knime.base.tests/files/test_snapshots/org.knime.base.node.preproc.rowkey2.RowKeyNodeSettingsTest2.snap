@@ -22,22 +22,19 @@
             "type" : "boolean",
             "title" : "Append column with RowID values",
             "description" : "If selected, a new column with the values of the current RowID is appended to the table.",
-            "default" : false,
-            "configKeys" : [ "appendRowKeyCol" ]
+            "default" : false
           },
           "appendedColumnName" : {
             "type" : "string",
             "title" : "Column Name",
             "description" : "The name of the column to append to the table.",
-            "default" : "Old RowID",
-            "configKeys" : [ "newColumnName4RowKeyValues" ]
+            "default" : "Old RowID"
           },
           "enableHilite" : {
             "type" : "boolean",
             "title" : "Enable hiliting",
             "description" : "If selected, a map is maintained joining the old with the new RowID. Depending on the number of rows,\nenabling this feature might consume a lot of memory.",
-            "default" : false,
-            "configKeys" : [ "enableHilite" ]
+            "default" : false
           },
           "handleDuplicatesMode" : {
             "oneOf" : [ {
@@ -49,8 +46,7 @@
             } ],
             "title" : "If ID column contains duplicates",
             "description" : "Fail if encountering duplicate values, or make them unique.\n<ul>\n<li><b>Fail</b>: If selected, the node fails if a duplicate value is encountered in the selected column.</li>\n<li><b>Append counter</b>: If selected, uniqueness is ensured by appending an incrementing number to duplicates.</li>\n</ul>",
-            "default" : "FAIL",
-            "configKeys" : [ "ensureUniqueness" ]
+            "default" : "FAIL"
           },
           "handleMissingsMode" : {
             "oneOf" : [ {
@@ -62,25 +58,18 @@
             } ],
             "title" : "If ID column contains missing values",
             "description" : "Fail if encountering missing values, or replace them.\n<ul>\n<li><b>Fail</b>: If selected, the node fails if a missing value is encountered in the selected column.</li>\n<li><b>Replace by \"?\"</b>: If selected, missing values are replaced with \"?\". We recommend also enabling the\"Append counter\" option to handle any duplicate missing values.</li>\n</ul>",
-            "default" : "FAIL",
-            "configKeys" : [ "replaceMissingValues" ]
+            "default" : "FAIL"
           },
           "newRowKeyColumnV2" : {
             "type" : "string",
             "title" : "ID column",
-            "description" : "The column to replace the current RowID.",
-            "configKeys" : [ "newRowKeyColumnV2" ],
-            "deprecatedConfigKeys" : [ {
-              "new" : [ [ "newRowKeyColumnV2" ] ],
-              "deprecated" : [ [ "newRowKeyColumnName" ] ]
-            } ]
+            "description" : "The column to replace the current RowID."
           },
           "removeRowKeyColumn" : {
             "type" : "boolean",
             "title" : "Remove selected ID column",
             "description" : "If selected, the column replacing the current RowID is removed from the table.",
-            "default" : false,
-            "configKeys" : [ "removeRowKeyCol" ]
+            "default" : false
           },
           "replaceRowKey" : {
             "type" : "boolean",
@@ -98,12 +87,7 @@
             } ],
             "title" : "Replacement mode",
             "description" : "Replace the RowID by a newly generated one or the values of a column.\n<ul>\n<li><b>Generate new</b>: If selected, a new RowID is generated with the format: Row0, Row1, Row2, ...</li>\n<li><b>Use column</b>: If selected, the RowID is replaced by the selected column.</li>\n</ul>",
-            "default" : "GENERATE_NEW",
-            "configKeys" : [ "replaceRowKeyMode" ],
-            "deprecatedConfigKeys" : [ {
-              "new" : [ [ "replaceRowKeyMode" ] ],
-              "deprecated" : [ [ "newRowKeyColumnName" ] ]
-            } ]
+            "default" : "GENERATE_NEW"
           }
         }
       }
@@ -285,5 +269,46 @@
         }
       } ]
     } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "replaceRowKey" : { },
+          "replaceRowKeyMode" : {
+            "deprecatedConfigKeys" : [ {
+              "new" : [ [ "replaceRowKeyMode" ] ],
+              "deprecated" : [ [ "newRowKeyColumnName" ] ]
+            } ]
+          },
+          "newRowKeyColumnV2" : {
+            "deprecatedConfigKeys" : [ {
+              "new" : [ [ "newRowKeyColumnV2" ] ],
+              "deprecated" : [ [ "newRowKeyColumnName" ] ]
+            } ]
+          },
+          "removeRowKeyColumn" : {
+            "configKey" : "removeRowKeyCol"
+          },
+          "handleMissingsMode" : {
+            "configPaths" : [ [ "replaceMissingValues" ] ]
+          },
+          "handleDuplicatesMode" : {
+            "configPaths" : [ [ "ensureUniqueness" ] ]
+          },
+          "enableHilite" : {
+            "configKey" : "enableHilite"
+          },
+          "appendRowKey" : {
+            "configKey" : "appendRowKeyCol"
+          },
+          "appendedColumnName" : {
+            "configKey" : "newColumnName4RowKeyValues"
+          }
+        }
+      }
+    }
   }
 }

@@ -99,7 +99,6 @@
               },
               "selected" : {
                 "default" : [ ],
-                "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -117,7 +116,6 @@
                   },
                   "typeDisplays" : {
                     "default" : [ ],
-                    "subConfigKeys" : [ ],
                     "type" : "array",
                     "items" : {
                       "type" : "object",
@@ -157,25 +155,21 @@
                 "selectedTypes" : [ ],
                 "typeDisplays" : [ ]
               }
-            },
-            "configKeys" : [ "data-column-filter.filter-type", "data-column-filter.included_names", "data-column-filter.excluded_names", "data-column-filter.enforce_option", "data-column-filter.name_pattern.pattern", "data-column-filter.name_pattern.type", "data-column-filter.name_pattern.caseSensitive", "data-column-filter.name_pattern.excludeMatching" ],
-            "subConfigKeys" : [ ]
+            }
           },
           "max" : {
             "type" : "number",
             "format" : "double",
             "title" : "Maximum",
             "description" : "Specifies the new maximum for the normalized columns. Only active for min-max normalization.",
-            "default" : 1.0,
-            "configKeys" : [ "new-max" ]
+            "default" : 1.0
           },
           "min" : {
             "type" : "number",
             "format" : "double",
             "title" : "Minimum",
             "description" : "Specifies the new minimum for the normalized columns. Only active for min-max normalization.",
-            "default" : 0.0,
-            "configKeys" : [ "new-min" ]
+            "default" : 0.0
           },
           "mode" : {
             "oneOf" : [ {
@@ -190,8 +184,7 @@
             } ],
             "title" : "Normalization method",
             "description" : "The normalization method to use.\n<ul>\n<li><b>Min-max</b>: Linear transformation of all values such that the minimum and maximum in each column correspond\nto the values set below.\n</li>\n<li><b>Z-score</b>: Linear transformation such that the values in each column are Gaussian-(0,1)-distributed, i.e.\nmean is 0.0 and standard deviation is 1.0.\n</li>\n<li><b>Decimal scaling</b>: The maximum value in a column (both positive and negative) is divided j-times by 10 until its\nabsolute value is smaller or equal to 1. All values in the column are then divided by 10 to the\npower of j.\n</li>\n</ul>",
-            "default" : "MINMAX",
-            "configKeys" : [ "mode" ]
+            "default" : "MINMAX"
           }
         }
       }
@@ -261,5 +254,67 @@
         }
       }
     } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "dataColumnFilterConfig" : {
+            "configPaths" : [ [ "data-column-filter", "filter-type" ], [ "data-column-filter", "included_names" ], [ "data-column-filter", "excluded_names" ], [ "data-column-filter", "enforce_option" ], [ "data-column-filter", "name_pattern", "pattern" ], [ "data-column-filter", "name_pattern", "type" ], [ "data-column-filter", "name_pattern", "caseSensitive" ], [ "data-column-filter", "name_pattern", "excludeMatching" ] ],
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : { },
+                  "typeDisplays" : {
+                    "type" : "array",
+                    "configPaths" : [ ],
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : { },
+                        "text" : { }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "mode" : {
+            "configKey" : "mode"
+          },
+          "min" : {
+            "configKey" : "new-min"
+          },
+          "max" : {
+            "configKey" : "new-max"
+          }
+        }
+      }
+    }
   }
 }

@@ -51,15 +51,13 @@
             "type" : "boolean",
             "title" : "Enable hiliting",
             "description" : "Select if hiliting is enabled between input and output data.",
-            "default" : false,
-            "configKeys" : [ "enable-hiliting" ]
+            "default" : false
           },
           "missingValues" : {
             "type" : "boolean",
             "title" : "Skip rows containing missing cells",
             "description" : "Skip all rows containing missing cells in the selected value column(s).",
-            "default" : false,
-            "configKeys" : [ "missing-values" ]
+            "default" : false
           },
           "retainedColumns" : {
             "type" : "object",
@@ -130,7 +128,6 @@
               },
               "selected" : {
                 "default" : [ ],
-                "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -148,7 +145,6 @@
                   },
                   "typeDisplays" : {
                     "default" : [ ],
-                    "subConfigKeys" : [ ],
                     "type" : "array",
                     "items" : {
                       "type" : "object",
@@ -188,9 +184,7 @@
                 "selectedTypes" : [ ],
                 "typeDisplays" : [ ]
               }
-            },
-            "configKeys" : [ "retained_columns.filter-type", "retained_columns.included_names", "retained_columns.excluded_names", "retained_columns.enforce_option", "retained_columns.name_pattern.pattern", "retained_columns.name_pattern.type", "retained_columns.name_pattern.caseSensitive", "retained_columns.name_pattern.excludeMatching" ],
-            "subConfigKeys" : [ ]
+            }
           },
           "valueColumns" : {
             "type" : "object",
@@ -261,7 +255,6 @@
               },
               "selected" : {
                 "default" : [ ],
-                "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -279,7 +272,6 @@
                   },
                   "typeDisplays" : {
                     "default" : [ ],
-                    "subConfigKeys" : [ ],
                     "type" : "array",
                     "items" : {
                       "type" : "object",
@@ -319,9 +311,7 @@
                 "selectedTypes" : [ ],
                 "typeDisplays" : [ ]
               }
-            },
-            "configKeys" : [ "value_columns.filter-type", "value_columns.included_names", "value_columns.excluded_names", "value_columns.enforce_option", "value_columns.name_pattern.pattern", "value_columns.name_pattern.type", "value_columns.name_pattern.caseSensitive", "value_columns.name_pattern.excludeMatching" ],
-            "subConfigKeys" : [ ]
+            }
           }
         }
       }
@@ -412,5 +402,107 @@
         }
       } ]
     } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "valueColumns" : {
+            "configPaths" : [ [ "value_columns", "filter-type" ], [ "value_columns", "included_names" ], [ "value_columns", "excluded_names" ], [ "value_columns", "enforce_option" ], [ "value_columns", "name_pattern", "pattern" ], [ "value_columns", "name_pattern", "type" ], [ "value_columns", "name_pattern", "caseSensitive" ], [ "value_columns", "name_pattern", "excludeMatching" ] ],
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : { },
+                  "typeDisplays" : {
+                    "type" : "array",
+                    "configPaths" : [ ],
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : { },
+                        "text" : { }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "missingValues" : {
+            "configKey" : "missing-values"
+          },
+          "retainedColumns" : {
+            "configPaths" : [ [ "retained_columns", "filter-type" ], [ "retained_columns", "included_names" ], [ "retained_columns", "excluded_names" ], [ "retained_columns", "enforce_option" ], [ "retained_columns", "name_pattern", "pattern" ], [ "retained_columns", "name_pattern", "type" ], [ "retained_columns", "name_pattern", "caseSensitive" ], [ "retained_columns", "name_pattern", "excludeMatching" ] ],
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : { },
+                  "typeDisplays" : {
+                    "type" : "array",
+                    "configPaths" : [ ],
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : { },
+                        "text" : { }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "enableHilite" : {
+            "configKey" : "enable-hiliting"
+          }
+        }
+      }
+    }
   }
 }

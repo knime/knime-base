@@ -48,6 +48,7 @@
  */
 package org.knime.base.node.preproc.sorter;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.knime.base.node.preproc.sorter.SorterNodeSettings.SortingCriterionSettings.SortingOrder;
@@ -58,15 +59,13 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.StringValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultFieldNodeSettingsPersistorFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultPersistorWithDeprecations;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
@@ -176,7 +175,8 @@ final class SorterNodeSettings implements DefaultNodeSettings {
     }
 
     static final class LoadDeprecatedSortingCriterionArraySettings
-        extends NodeSettingsPersistorWithConfigKey<SortingCriterionSettings[]> {
+        extends NodeSettingsPersistorWithConfigKey<SortingCriterionSettings[]>
+        implements DefaultPersistorWithDeprecations<SortingCriterionSettings[]> {
 
         /**
          * The key for the IncludeList in the NodeSettings.
@@ -196,25 +196,6 @@ final class SorterNodeSettings implements DefaultNodeSettings {
         private static final String LEGACY_ALPHANUMCOMP_KEY = "alphaNumStringComp";
 
         private static final String LEGACY_ROW_ID = DynamicSorterPanel.ROWKEY.getName();
-
-        private NodeSettingsPersistor<SortingCriterionSettings[]> m_defaultPersistor;
-
-        @Override
-        public void setConfigKey(final String configKey) {
-            super.setConfigKey(configKey);
-            m_defaultPersistor = DefaultFieldNodeSettingsPersistorFactory
-                .createDefaultPersistor(SortingCriterionSettings[].class, configKey);
-
-        }
-
-        @Override
-        public SortingCriterionSettings[] load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            if (settings.containsKey(LEGACY_INCLUDELIST_KEY)) {
-                return loadFromLegacySettings(settings);
-            }
-            return m_defaultPersistor.load(settings);
-
-        }
 
         private static SortingCriterionSettings[] loadFromLegacySettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
@@ -243,17 +224,15 @@ final class SorterNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public void save(final SortingCriterionSettings[] criteria, final NodeSettingsWO settings) {
-            m_defaultPersistor.save(criteria, settings);
-        }
-
-        @Override
-        public ConfigsDeprecation[] getConfigsDeprecations() {
-            return new ConfigsDeprecation[]{new ConfigsDeprecation.Builder() //
-                .forDeprecatedConfigPath(LEGACY_INCLUDELIST_KEY)//
-                .forDeprecatedConfigPath(LEGACY_ALPHANUMCOMP_KEY) //
-                .forDeprecatedConfigPath(LEGACY_SORTORDER_KEY) //
-                .forNewConfigPath(getConfigKey()).build()};
+        public List<ConfigsDeprecation<SortingCriterionSettings[]>> getConfigsDeprecations() {
+            return List
+                .of(ConfigsDeprecation.builder(LoadDeprecatedSortingCriterionArraySettings::loadFromLegacySettings) //
+                    // we cannot use the default matcher here, since LEGACY_ALPHANUMCOMP_KEY was added with 4.7
+                    .withMatcher(settings -> settings.containsKey(LEGACY_INCLUDELIST_KEY)) //)
+                    .withDeprecatedConfigPath(LEGACY_INCLUDELIST_KEY)//
+                    .withDeprecatedConfigPath(LEGACY_ALPHANUMCOMP_KEY) //
+                    .withDeprecatedConfigPath(LEGACY_SORTORDER_KEY) //
+                    .withNewConfigPath(getConfigKey()).build());
         }
     }
 

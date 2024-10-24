@@ -43,39 +43,34 @@
             } ],
             "title" : "Default boolean",
             "description" : "The default flow variable value for boolean columns in case of an empty input table\nor a missing value in the first row of the input table.\n",
-            "default" : "FALSE",
-            "configKeys" : [ "default_value_boolean" ]
+            "default" : "FALSE"
           },
           "defaultValueDouble" : {
             "type" : "number",
             "format" : "double",
             "title" : "Default double",
             "description" : "The default flow variable value for double columns in case of an empty input table\nor a missing value in the first row of the input table.\n",
-            "default" : 0.0,
-            "configKeys" : [ "default_value_double" ]
+            "default" : 0.0
           },
           "defaultValueInteger" : {
             "type" : "integer",
             "format" : "int32",
             "title" : "Default integer",
             "description" : "The default flow variable value for integer columns in case of an empty input table\nor a missing value in the first row of the input table.\n",
-            "default" : 0,
-            "configKeys" : [ "default_value_integer" ]
+            "default" : 0
           },
           "defaultValueLong" : {
             "type" : "integer",
             "format" : "int64",
             "title" : "Default long",
             "description" : "The default flow variable value for long columns in case of an empty input table\nor a missing value in the first row of the input table.\n",
-            "default" : 0,
-            "configKeys" : [ "default_value_long" ]
+            "default" : 0
           },
           "defaultValueString" : {
             "type" : "string",
             "title" : "Default string",
             "description" : "The default flow variable value for string columns in case of an empty input table\nor a missing value in the first row of the input table.\n",
-            "default" : "missing",
-            "configKeys" : [ "default_value_string" ]
+            "default" : "missing"
           },
           "onMissing" : {
             "oneOf" : [ {
@@ -90,8 +85,7 @@
             } ],
             "title" : "If value in cell is missing",
             "description" : "Behavior in case of missing values in the first row or an input table with no rows.\n<ul>\n    <li>\n        <b>Fail:</b> Ensures that the node will fail during execution if the input table is empty\n        or contains missing values in the columns to convert.\n    </li>\n    <li>\n        <b>Use defaults:</b> Replaces missing values with the configured defaults.\n        If a column has a type for which no flow variable type exists, the default value for missing strings\n        will be output. If the column holds lists or sets of string,\n        boolean, double, integer, or long, an empty list of the according type will be output.\n        If the column holds lists or sets of another type, an empty string list will be output.\n    </li>\n    <li>\n        <b>Ignore:</b> Missing cells will not be converted and therefore be omitted from the output.\n    </li>\n</ul>\n",
-            "default" : "OMIT",
-            "configKeys" : [ "missing_value_policy" ]
+            "default" : "OMIT"
           },
           "valueColumns" : {
             "type" : "object",
@@ -162,7 +156,6 @@
               },
               "selected" : {
                 "default" : [ ],
-                "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -180,7 +173,6 @@
                   },
                   "typeDisplays" : {
                     "default" : [ ],
-                    "subConfigKeys" : [ ],
                     "type" : "array",
                     "items" : {
                       "type" : "object",
@@ -220,9 +212,7 @@
                 "selectedTypes" : [ ],
                 "typeDisplays" : [ ]
               }
-            },
-            "configKeys" : [ "column_selection.filter-type", "column_selection.included_names", "column_selection.excluded_names", "column_selection.enforce_option", "column_selection.name_pattern.pattern", "column_selection.name_pattern.type", "column_selection.name_pattern.caseSensitive", "column_selection.name_pattern.excludeMatching" ],
-            "subConfigKeys" : [ ]
+            }
           }
         }
       }
@@ -344,5 +334,76 @@
         }
       } ]
     } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "valueColumns" : {
+            "configPaths" : [ [ "column_selection", "filter-type" ], [ "column_selection", "included_names" ], [ "column_selection", "excluded_names" ], [ "column_selection", "enforce_option" ], [ "column_selection", "name_pattern", "pattern" ], [ "column_selection", "name_pattern", "type" ], [ "column_selection", "name_pattern", "caseSensitive" ], [ "column_selection", "name_pattern", "excludeMatching" ] ],
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : { },
+                  "typeDisplays" : {
+                    "type" : "array",
+                    "configPaths" : [ ],
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : { },
+                        "text" : { }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "onMissing" : {
+            "configKey" : "missing_value_policy"
+          },
+          "defaultValueString" : {
+            "configKey" : "default_value_string"
+          },
+          "defaultValueBoolean" : {
+            "configPaths" : [ [ "default_value_boolean" ] ]
+          },
+          "defaultValueInteger" : {
+            "configKey" : "default_value_integer"
+          },
+          "defaultValueLong" : {
+            "configKey" : "default_value_long"
+          },
+          "defaultValueDouble" : {
+            "configKey" : "default_value_double"
+          }
+        }
+      }
+    }
   }
 }

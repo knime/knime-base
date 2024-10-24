@@ -17,8 +17,8 @@
           "settingsModelID" : "SMID_ReaderFileChooser",
           "enabledStatus" : true
         },
-        "firstRowContainsColumnNames" : true,
         "firstColumnContainsRowIds" : false,
+        "firstRowContainsColumnNames" : true,
         "ifRowHasLessColumnsOption" : "FAIL",
         "skipEmptyDataRows" : false,
         "prependFileIndexToRowId" : false,
@@ -34,6 +34,7 @@
         "howToCombineColumns" : "FAIL",
         "appendPathColumn" : false,
         "filePathColumnName" : "Path",
+        "ifSchemaChangesOption" : "IGNORE",
         "limitScannedRows" : true,
         "maxDataRowsScanned" : 10000,
         "limitMemoryPerColumn" : true,
@@ -44,8 +45,7 @@
         "minChunkSizeInBytes" : 67108864,
         "maxNumChunksPerFile" : 8,
         "thousandsSeparator" : "\u0000",
-        "decimalSeparator" : ".",
-        "ifSchemaChangesOption" : "IGNORE"
+        "decimalSeparator" : "."
       },
       "limitRows" : {
         "skipFirstLines" : 0,
@@ -122,23 +122,20 @@
                 "type" : "boolean",
                 "title" : "Append file path column",
                 "description" : "Select this box if you want to add a column containing the path of the file from which the row is read.\nThe node will fail if adding the column with the provided name causes a name collision with any of the\ncolumns in the read table.\n",
-                "default" : false,
-                "configKeys" : [ "append_path_column_Internals" ]
+                "default" : false
               },
               "decimalSeparator" : {
                 "type" : "string",
                 "title" : "Decimal separator",
                 "description" : "Specifies the decimal separator character for parsing numbers. The decimal separator is only used for\nthe parsing of double values. Note that the decimal separator must differ from the thousands separator.\nYou must always provide a decimal separator.\n",
                 "default" : ".",
-                "minLength" : 1,
-                "configKeys" : [ "decimal_separator" ]
+                "minLength" : 1
               },
               "filePathColumnName" : {
                 "type" : "string",
                 "title" : "File path column name",
                 "description" : "The name of the column containing the file path.",
-                "default" : "File Path",
-                "configKeys" : [ "path_column_name_Internals" ]
+                "default" : "File Path"
               },
               "howToCombineColumns" : {
                 "oneOf" : [ {
@@ -153,8 +150,7 @@
                 } ],
                 "title" : "How to combine columns",
                 "description" : "Specifies how to deal with reading multiple files in which not all column names are identical.\n<ul>\n<li><b>Fail if different</b>: The node will fail if multiple files are read and not all files have the same column names.</li>\n<li><b>Union</b>: Any column that is part of any input file is considered. If a file is missing a column, it is filled\nup with missing values.\n</li>\n<li><b>Intersection</b>: Only columns that appear in all files are considered for the output table.</li>\n</ul>",
-                "default" : "FAIL",
-                "configKeys" : [ "fail_on_differing_specs", "spec_merge_mode" ]
+                "default" : "FAIL"
               },
               "ifSchemaChangesOption" : {
                 "oneOf" : [ {
@@ -169,35 +165,30 @@
                 } ],
                 "title" : "If schema changes",
                 "description" : "Specifies the node behavior if the content of the configured file/folder changes between executions,\ni.e., columns are added/removed to/from the file(s) or their types change. The following options are\navailable:\n\n<ul>\n<li><b>Fail</b>: If set, the node fails if the column names in the file have changed. Changes in column types will not be\ndetected.\n</li>\n<li><b>Use new schema</b>: If set, the node will compute a new table specification for the current schema of the file at the time\nwhen the node is executed. Note that the node will not output a table specification before execution and\nthat it will not apply transformations, therefore the transformation tab is disabled.\n</li>\n<li><b>Ignore (deprecated)</b>: If set, the node tries to ignore the changes and outputs a table with the old table specification. This\noption is deprecated and should never be selected for new workflows, as it may lead to invalid data in\nthe resulting table. Use one of the other options instead.\n</li>\n</ul>",
-                "default" : "FAIL",
-                "configKeys" : [ "save_table_spec_config_Internals", "check_table_spec" ]
+                "default" : "FAIL"
               },
               "limitMemoryPerColumn" : {
                 "type" : "boolean",
                 "title" : "Limit memory per column",
                 "description" : "If selected the memory per column is restricted to 1MB in order to prevent memory exhaustion. Uncheck\nthis option to disable these memory restrictions.\n",
-                "default" : true,
-                "configKeys" : [ "limit_memory_per_column" ]
+                "default" : true
               },
               "limitScannedRows" : {
                 "type" : "boolean",
                 "title" : "Limit scanned rows",
                 "description" : "If enabled, only the specified number of input <i>rows</i> are used to analyze the file (i.e to\ndetermine the column types). This option is recommended for long files where the first <i>n</i> rows are\nrepresentative for the whole file. The \"Skip first data rows\" option has no effect on the scanning. Note\nalso, that this option and the \"Limit number of rows\" option are independent from each other, i.e., if\nthe value in \"Limit number of rows\" is smaller than the value specified here, we will still read as many\nrows as specified here.\n",
-                "default" : true,
-                "configKeys" : [ "limit_data_rows_scanned" ]
+                "default" : true
               },
               "maxDataRowsScanned" : {
                 "type" : "integer",
                 "format" : "int64",
                 "default" : 10000,
-                "minimum" : 0.0,
-                "configKeys" : [ "max_data_rows_scanned" ]
+                "minimum" : 0.0
               },
               "maxNumChunksPerFile" : {
                 "type" : "integer",
                 "format" : "int32",
-                "default" : 8,
-                "configKeys" : [ "max_num_chunks_per_file" ]
+                "default" : 8
               },
               "maximumNumberOfColumns" : {
                 "type" : "integer",
@@ -205,21 +196,18 @@
                 "title" : "Maximum number of columns",
                 "description" : "Sets the number of allowed columns (default 8192 columns) to prevent memory exhaustion. The node will\nfail if the number of columns exceeds the set limit.\n",
                 "default" : 8192,
-                "minimum" : 0.0,
-                "configKeys" : [ "maximum_number_of_columns" ]
+                "minimum" : 0.0
               },
               "minChunkSizeInBytes" : {
                 "type" : "integer",
                 "format" : "int64",
-                "default" : 67108864,
-                "configKeys" : [ "min_chunk_size_in_bytes" ]
+                "default" : 67108864
               },
               "quotedStringsContainNoRowDelimiters" : {
                 "type" : "boolean",
                 "title" : "Quoted strings contain no row delimiters",
                 "description" : "Check this box if there are no quotes that contain row delimiters inside the files. Row delimiters\nshould not be inside of quotes for parallel reading of individual files.\n",
-                "default" : false,
-                "configKeys" : [ "no_row_delimiters_in_quotes" ]
+                "default" : false
               },
               "quotedStringsOption" : {
                 "oneOf" : [ {
@@ -231,28 +219,26 @@
                 } ],
                 "title" : "Quoted strings",
                 "description" : "Specifies the behavior in case there are quoted strings in the input table.\n<ul>\n<li><b>Remove quotes and trim whitespace</b>: Quotes will be removed from the value followed by trimming any leading/trailing whitespaces.</li>\n<li><b>Keep quotes</b>: Quotes of a value will be kept. Note: No trimming will be done inside the quotes.</li>\n</ul>",
-                "default" : "REMOVE_QUOTES_AND_TRIM",
-                "configKeys" : [ "quote_option" ]
+                "default" : "REMOVE_QUOTES_AND_TRIM"
               },
               "replaceEmptyQuotedStringsByMissingValues" : {
                 "type" : "boolean",
                 "title" : "Replace empty quoted string by missing values",
                 "description" : "Select this box if you want <b>quoted</b> empty strings to be replaced by missing value cells.",
-                "default" : true,
-                "configKeys" : [ "replace_empty_quotes_with_missing" ]
+                "default" : true
               },
               "thousandsSeparator" : {
                 "type" : "string",
                 "title" : "Thousands separator",
                 "description" : "Specifies the thousands separator character for parsing numbers. The thousands separator is used for\ninteger, long and double parsing. Note that the thousands separator must differ from the decimal\nseparator. It is possible to leave the thousands separator unspecified.\n",
-                "default" : "",
-                "configKeys" : [ "thousands_separator" ]
+                "default" : ""
               }
             },
             "default" : {
               "howToCombineColumns" : "FAIL",
               "appendPathColumn" : false,
               "filePathColumnName" : "File Path",
+              "ifSchemaChangesOption" : "FAIL",
               "limitScannedRows" : true,
               "maxDataRowsScanned" : 10000,
               "limitMemoryPerColumn" : true,
@@ -263,10 +249,8 @@
               "minChunkSizeInBytes" : 67108864,
               "maxNumChunksPerFile" : 8,
               "thousandsSeparator" : "",
-              "decimalSeparator" : ".",
-              "ifSchemaChangesOption" : "FAIL"
-            },
-            "configKeys" : [ "advanced_settings" ]
+              "decimalSeparator" : "."
+            }
           },
           "encoding" : {
             "type" : "object",
@@ -314,8 +298,7 @@
                 "default" : {
                   "fileEncoding" : "DEFAULT",
                   "customEncoding" : ""
-                },
-                "configKeys" : [ "charset" ]
+                }
               }
             },
             "default" : {
@@ -323,8 +306,7 @@
                 "fileEncoding" : "DEFAULT",
                 "customEncoding" : ""
               }
-            },
-            "configKeys" : [ "encoding" ]
+            }
           },
           "limitRows" : {
             "type" : "object",
@@ -333,8 +315,7 @@
                 "type" : "boolean",
                 "title" : "Limit number of rows",
                 "description" : "If enabled, only the specified number of data rows are read. The column header row (if selected) is not\ntaken into account. Limiting rows prevents parallel reading of individual files.\n",
-                "default" : false,
-                "configKeys" : [ "limit_data_rows" ]
+                "default" : false
               },
               "maximumNumberOfRows" : {
                 "type" : "integer",
@@ -342,8 +323,7 @@
                 "title" : "Maximum number of rows",
                 "description" : "Defines the maximum number of rows that are read.",
                 "default" : 50,
-                "minimum" : 0.0,
-                "configKeys" : [ "max_rows" ]
+                "minimum" : 0.0
               },
               "skipFirstDataRows" : {
                 "type" : "integer",
@@ -351,8 +331,7 @@
                 "title" : "Skip first data rows",
                 "description" : "Use this option to skip the specified number of valid data rows. This has no effect on which row will be\nchosen as a column header. Skipping rows prevents parallel reading of individual files.\n",
                 "default" : 0,
-                "minimum" : 0.0,
-                "configKeys" : [ "skip_data_rows", "number_of_rows_to_skip" ]
+                "minimum" : 0.0
               },
               "skipFirstLines" : {
                 "type" : "integer",
@@ -360,8 +339,7 @@
                 "title" : "Skip first lines of file",
                 "description" : "Use this option to skip lines that do not fit in the table structure (e.g. multi-line comments).\n<br/>\nThe specified number of lines are skipped in the input file before the parsing starts. Skipping lines\nprevents parallel reading of individual files.\n",
                 "default" : 0,
-                "minimum" : 0.0,
-                "configKeys" : [ "skip_lines", "number_of_lines_to_skip" ]
+                "minimum" : 0.0
               }
             },
             "default" : {
@@ -369,8 +347,7 @@
               "skipFirstDataRows" : 0,
               "limitNumberOfRows" : false,
               "maximumNumberOfRows" : 50
-            },
-            "configKeys" : [ "limit_rows" ]
+            }
           },
           "settings" : {
             "type" : "object",
@@ -385,16 +362,14 @@
                 "title" : "Column delimiter",
                 "description" : "Defines the character string delimiting columns. Use '\\t' for tab characters. Can get detected\nautomatically.\n",
                 "default" : ",",
-                "minLength" : 1,
-                "configKeys" : [ "column_delimiter" ]
+                "minLength" : 1
               },
               "commentLineCharacter" : {
                 "type" : "string",
                 "title" : "Comment line character",
                 "description" : "Defines the character indicating line comments.",
                 "default" : "#",
-                "maxLength" : 1,
-                "configKeys" : [ "comment_char" ]
+                "maxLength" : 1
               },
               "customRowDelimiter" : {
                 "type" : "string",
@@ -402,42 +377,36 @@
                 "description" : "Defines the character to be used as custom row delimiter.",
                 "default" : "\n",
                 "minLength" : 1,
-                "pattern" : ".|[\\t\\r\\n]|\\r\\n",
-                "configKeys" : [ "row_delimiter" ]
+                "pattern" : ".|[\\t\\r\\n]|\\r\\n"
               },
               "fileSelectionInternal" : {
                 "type" : "object",
                 "properties" : {
                   "enabledStatus" : {
                     "type" : "boolean",
-                    "default" : true,
-                    "configKeys" : [ "EnabledStatus" ]
+                    "default" : true
                   },
                   "settingsModelID" : {
                     "type" : "string",
-                    "default" : "SMID_ReaderFileChooser",
-                    "configKeys" : [ "SettingsModelID" ]
+                    "default" : "SMID_ReaderFileChooser"
                   }
                 },
                 "default" : {
                   "settingsModelID" : "SMID_ReaderFileChooser",
                   "enabledStatus" : true
-                },
-                "configKeys" : [ "file_selection_Internals" ]
+                }
               },
               "firstColumnContainsRowIds" : {
                 "type" : "boolean",
                 "title" : "First column contains RowIDs",
                 "description" : "Select this box if the first column contains RowIDs (no duplicates allowed).",
-                "default" : false,
-                "configKeys" : [ "has_row_id" ]
+                "default" : false
               },
               "firstRowContainsColumnNames" : {
                 "type" : "boolean",
                 "title" : "First row contains column names",
                 "description" : "Select this box if the first row contains column name headers.",
-                "default" : true,
-                "configKeys" : [ "has_column_header" ]
+                "default" : true
               },
               "ifRowHasLessColumnsOption" : {
                 "oneOf" : [ {
@@ -449,8 +418,7 @@
                 } ],
                 "title" : "If row has fewer columns",
                 "description" : "Specifies the behavior in case some rows are shorter than others. \n<ul>\n<li><b>Fail</b>: if there are shorter rows in the input file the node execution fails.</li>\n<li><b>Insert missing</b>: the shorter rows are completed with missing values.</li>\n</ul>",
-                "default" : "FAIL",
-                "configKeys" : [ "support_short_data_rows" ]
+                "default" : "FAIL"
               },
               "numberOfCharactersForAutodetection" : {
                 "type" : "integer",
@@ -458,31 +426,27 @@
                 "title" : "Number of characters for autodetection",
                 "description" : "Specifies on how many characters of the selected file should be used for autodetection. The\nautodetection by default is based on the first 1024 * 1024 characters.\n",
                 "default" : 1048576,
-                "minimum" : 1.0,
-                "configKeys" : [ "autodetect_buffer_size" ]
+                "minimum" : 1.0
               },
               "prependFileIndexToRowId" : {
                 "type" : "boolean",
                 "title" : "Prepend file index to RowID",
                 "description" : "Select this box if you want to prepend a prefix that depends on the index of the source file to the\nRowIDs. The prefix for the first file is \"File_0_\", for the second \"File_1_\" and so on. This option is\nuseful if the RowIDs within a single file are unique but the same RowIDs appear in multiple files.\nPrepending the file index prevents parallel reading of individual files.\n",
-                "default" : false,
-                "configKeys" : [ "prepend_file_idx_to_row_id" ]
+                "default" : false
               },
               "quoteCharacter" : {
                 "type" : "string",
                 "title" : "Quote character",
                 "description" : "The character indicating quotes. Can get detected automatically.",
                 "default" : "\"",
-                "maxLength" : 1,
-                "configKeys" : [ "quote_char" ]
+                "maxLength" : 1
               },
               "quoteEscapeCharacter" : {
                 "type" : "string",
                 "title" : "Quote escape character",
                 "description" : "The character used for escaping quotes inside an already quoted value. Can get detected\nautomatically.\n",
                 "default" : "\"",
-                "maxLength" : 1,
-                "configKeys" : [ "quote_escape_char" ]
+                "maxLength" : 1
               },
               "rowDelimiterOption" : {
                 "oneOf" : [ {
@@ -494,13 +458,11 @@
                 } ],
                 "title" : "Row delimiter",
                 "description" : "Defines the character string delimiting rows. Can get detected automatically.\n<ul>\n<li><b>Line break</b>: Uses the line break character as row delimiter. This option is platform-agnostic.</li>\n<li><b>Custom</b>: Uses the provided string as row delimiter.</li>\n</ul>",
-                "default" : "LINE_BREAK",
-                "configKeys" : [ "use_line_break_row_delimiter" ]
+                "default" : "LINE_BREAK"
               },
               "skipEmptyDataRows" : {
                 "type" : "boolean",
-                "default" : false,
-                "configKeys" : [ "skip_empty_data_rows" ]
+                "default" : false
               },
               "source" : {
                 "type" : "object",
@@ -528,8 +490,7 @@
                       "fsToString" : "(LOCAL, )"
                     }
                   }
-                },
-                "configKeys" : [ "file_selection" ]
+                }
               }
             },
             "default" : {
@@ -547,8 +508,8 @@
                 "settingsModelID" : "SMID_ReaderFileChooser",
                 "enabledStatus" : true
               },
-              "firstRowContainsColumnNames" : true,
               "firstColumnContainsRowIds" : false,
+              "firstRowContainsColumnNames" : true,
               "ifRowHasLessColumnsOption" : "FAIL",
               "skipEmptyDataRows" : false,
               "prependFileIndexToRowId" : false,
@@ -559,23 +520,12 @@
               "rowDelimiterOption" : "LINE_BREAK",
               "customRowDelimiter" : "\n",
               "numberOfCharactersForAutodetection" : 1048576
-            },
-            "configKeys" : [ "settings" ]
+            }
           },
           "tableSpecConfig" : {
             "type" : "object",
             "properties" : {
               "columnTransformation" : {
-                "title" : "Transformations",
-                "description" : "Use this option to modify the structure of the table. You can deselect each column to filter it out of the\noutput table, use the arrows to reorder the columns, or change the column name or column type of each\ncolumn. Note that the positions of columns are reset in the dialog if a new file or folder is selected.\nWhether and where to add unknown columns during execution is specified via the special row &lt;any unknown\nnew column&gt;. It is also possible to select the type new columns should be converted to. Note that the\nnode will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is\nof type Double.\n",
-                "default" : [ {
-                  "columnName" : null,
-                  "originalType" : "<default-columntype>",
-                  "originalTypeLabel" : "Default columntype",
-                  "includeInOutput" : true,
-                  "columnRename" : null,
-                  "type" : "<default-columntype>"
-                } ],
                 "type" : "array",
                 "items" : {
                   "type" : "object",
@@ -603,7 +553,17 @@
                       "title" : "Column type"
                     }
                   }
-                }
+                },
+                "title" : "Transformations",
+                "description" : "Use this option to modify the structure of the table. You can deselect each column to filter it out of the\noutput table, use the arrows to reorder the columns, or change the column name or column type of each\ncolumn. Note that the positions of columns are reset in the dialog if a new file or folder is selected.\nWhether and where to add unknown columns during execution is specified via the special row &lt;any unknown\nnew column&gt;. It is also possible to select the type new columns should be converted to. Note that the\nnode will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is\nof type Double.\n",
+                "default" : [ {
+                  "columnName" : null,
+                  "originalType" : "<default-columntype>",
+                  "originalTypeLabel" : "Default columntype",
+                  "includeInOutput" : true,
+                  "columnRename" : null,
+                  "type" : "<default-columntype>"
+                } ]
               },
               "enforceTypes" : {
                 "type" : "boolean",
@@ -748,18 +708,17 @@
                     "default" : "File Path"
                   },
                   "fsLocations" : {
-                    "default" : [ ],
                     "type" : "array",
                     "items" : {
                       "type" : "object"
-                    }
+                    },
+                    "default" : [ ]
                   },
                   "sourceId" : {
                     "type" : "string",
                     "default" : ""
                   },
                   "specs" : {
-                    "default" : [ ],
                     "type" : "array",
                     "items" : {
                       "type" : "object",
@@ -782,7 +741,8 @@
                           }
                         }
                       }
-                    }
+                    },
+                    "default" : [ ]
                   },
                   "takeColumnsFrom" : {
                     "oneOf" : [ {
@@ -867,8 +827,7 @@
                 "columnRename" : null,
                 "type" : "<default-columntype>"
               } ]
-            },
-            "configKeys" : [ "table_spec_config_Internals" ]
+            }
           }
         }
       }
@@ -1197,8 +1156,7 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/tableSpecConfig/properties/enforceTypes",
         "options" : {
-          "format" : "checkbox",
-          "hideFlowVariableButton" : true
+          "format" : "checkbox"
         }
       }, {
         "type" : "Control",
@@ -1207,9 +1165,6 @@
           "detail" : [ {
             "type" : "Control",
             "scope" : "#/properties/columnRename",
-            "options" : {
-              "hideFlowVariableButton" : true
-            },
             "label" : "",
             "rule" : {
               "effect" : "SHOW",
@@ -1234,7 +1189,6 @@
             "type" : "Control",
             "scope" : "#/properties/type",
             "options" : {
-              "hideFlowVariableButton" : true,
               "choicesProvider" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders$TypeChoicesProvider",
               "format" : "dropDown",
               "showNoneColumn" : false,
@@ -1270,500 +1224,732 @@
           }
         }
       } ]
-    } ],
-    "initialUpdates" : [ {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/appendPathColumn" ],
-      "id" : null,
-      "values" : [ {
-        "indices" : [ ],
-        "value" : false
-      } ]
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/columnDelimiter" ],
-      "id" : null,
-      "values" : [ {
-        "indices" : [ ],
-        "value" : ","
-      } ]
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/commentLineCharacter" ],
-      "id" : null,
-      "values" : [ {
-        "indices" : [ ],
-        "value" : "#"
-      } ]
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/customEncoding" ],
-      "id" : null,
-      "values" : [ {
-        "indices" : [ ],
-        "value" : ""
-      } ]
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/customRowDelimiter" ],
-      "id" : null,
-      "values" : [ {
-        "indices" : [ ],
-        "value" : "\\n"
-      } ]
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/decimalSeparator" ],
-      "id" : null,
-      "values" : [ {
-        "indices" : [ ],
-        "value" : "."
-      } ]
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/fileEncoding" ],
-      "id" : null,
-      "values" : [ {
-        "indices" : [ ],
-        "value" : "UTF_8"
-      } ]
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/firstColumnContainsRowIds" ],
-      "id" : null,
-      "values" : [ {
-        "indices" : [ ],
-        "value" : false
-      } ]
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/firstRowContainsColumnNames" ],
-      "id" : null,
-      "values" : [ {
-        "indices" : [ ],
-        "value" : true
-      } ]
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/limitMemoryPerColumn" ],
-      "id" : null,
-      "values" : [ {
-        "indices" : [ ],
-        "value" : true
-      } ]
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/limitScannedRows" ],
-      "id" : null,
-      "values" : [ {
-        "indices" : [ ],
-        "value" : true
-      } ]
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/maxDataRowsScanned" ],
-      "id" : null,
-      "values" : [ {
-        "indices" : [ ],
-        "value" : 10000
-      } ]
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/maximumNumberOfColumns" ],
-      "id" : null,
-      "values" : [ {
-        "indices" : [ ],
-        "value" : 8192
-      } ]
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/quoteCharacter" ],
-      "id" : null,
-      "values" : [ {
-        "indices" : [ ],
-        "value" : "\""
-      } ]
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/quoteEscapeCharacter" ],
-      "id" : null,
-      "values" : [ {
-        "indices" : [ ],
-        "value" : "\""
-      } ]
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/quotedStringsOption" ],
-      "id" : null,
-      "values" : [ {
-        "indices" : [ ],
-        "value" : "REMOVE_QUOTES_AND_TRIM"
-      } ]
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/replaceEmptyQuotedStringsByMissingValues" ],
-      "id" : null,
-      "values" : [ {
-        "indices" : [ ],
-        "value" : true
-      } ]
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/rowDelimiterOption" ],
-      "id" : null,
-      "values" : [ {
-        "indices" : [ ],
-        "value" : "LINE_BREAK"
-      } ]
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/skipFirstDataRows" ],
-      "id" : null,
-      "values" : [ {
-        "indices" : [ ],
-        "value" : 0
-      } ]
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/skipFirstLines" ],
-      "id" : null,
-      "values" : [ {
-        "indices" : [ ],
-        "value" : 0
-      } ]
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/thousandsSeparator" ],
-      "id" : null,
-      "values" : [ {
-        "indices" : [ ],
-        "value" : "\u0000"
-      } ]
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/filePathColumnName" ],
-      "id" : null,
-      "values" : [ {
-        "indices" : [ ],
-        "value" : "Path"
-      } ]
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/takeColumnsFrom" ],
-      "id" : null,
-      "values" : [ {
-        "indices" : [ ],
-        "value" : "UNION"
-      } ]
-    } ],
-    "globalUpdates" : [ {
-      "trigger" : {
-        "id" : "ElementResetButton"
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/columnName" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettings$ColumnNameRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/originalType" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettings$OriginalTypeRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "after-open-dialog",
-        "triggerInitially" : true
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileSelectionRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TableSpecSettingsRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettingsRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef",
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$LimitMemoryPerColumnRef",
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/limitMemoryPerColumn" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/limitMemoryPerColumn" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$LimitMemoryPerColumnRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$LimitScannedRowsRef",
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/limitScannedRows" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/limitScannedRows" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$LimitScannedRowsRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaxDataRowsScannedRef",
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maxDataRowsScanned" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maxDataRowsScanned" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaxDataRowsScannedRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaximumNumberOfColumnsRef",
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maximumNumberOfColumns" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maximumNumberOfColumns" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaximumNumberOfColumnsRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$QuotedStringsOptionRef",
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/quotedStringsOption" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/quotedStringsOption" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$QuotedStringsOptionRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$ReplaceEmptyQuotedStringsByMissingValuesRef",
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/replaceEmptyQuotedStringsByMissingValues" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/replaceEmptyQuotedStringsByMissingValues" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$ReplaceEmptyQuotedStringsByMissingValuesRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$ThousandsSeparatorRef",
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/thousandsSeparator" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/thousandsSeparator" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$ThousandsSeparatorRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$CustomEncodingRef",
-        "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/customEncoding" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/customEncoding" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$CustomEncodingRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$FileEncodingRef",
-        "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/fileEncoding" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/fileEncoding" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$FileEncodingRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef",
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef",
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$AutoDetectButtonRef"
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/encoding/properties/charset" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$CharsetRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileSelectionRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef",
-        "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef",
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef",
-        "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstRowContainsColumnNamesRef",
-        "scopes" : [ "#/properties/model/properties/settings/properties/firstRowContainsColumnNames" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/firstRowContainsColumnNames" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstRowContainsColumnNamesRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$QuoteCharacterRef",
-        "scopes" : [ "#/properties/model/properties/settings/properties/quoteCharacter" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/quoteCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$QuoteCharacterRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$QuoteEscapeCharacterRef",
-        "scopes" : [ "#/properties/model/properties/settings/properties/quoteEscapeCharacter" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/quoteEscapeCharacter" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$QuoteEscapeCharacterRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$RowDelimiterOptionRef",
-        "scopes" : [ "#/properties/model/properties/settings/properties/rowDelimiterOption" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/rowDelimiterOption" ],
-        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$RowDelimiterOptionRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$AppendPathColumnRef",
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/appendPathColumn" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/appendPathColumn" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$AppendPathColumnRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$FilePathColumnNameRef",
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/filePathColumnName" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/filePathColumnName" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$FilePathColumnNameRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef",
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileSelectionRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TableSpecSettingsRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettingsRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileSelectionRef",
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileSelectionRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TableSpecSettingsRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettingsRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef",
-        "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef",
-        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileSelectionRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TableSpecSettingsRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettingsRef"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TableSpecSettingsRef",
-        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileSelectionRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/columnName" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettings$ColumnNameRef"
-      }, {
-        "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/originalTypeLabel" ],
-        "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettings$OriginalTypeLabelRef"
-      } ]
     } ]
-  }
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "settings" : {
+            "configKey" : "settings",
+            "type" : "object",
+            "properties" : {
+              "source" : {
+                "configKey" : "file_selection",
+                "type" : "object",
+                "properties" : {
+                  "path" : { }
+                }
+              },
+              "fileSelectionInternal" : {
+                "configPaths" : [ ],
+                "type" : "object",
+                "properties" : {
+                  "settingsModelID" : {
+                    "configKey" : "SettingsModelID"
+                  },
+                  "enabledStatus" : {
+                    "configKey" : "EnabledStatus"
+                  }
+                }
+              },
+              "firstColumnContainsRowIds" : {
+                "configKey" : "has_row_id"
+              },
+              "firstRowContainsColumnNames" : {
+                "configKey" : "has_column_header"
+              },
+              "ifRowHasLessColumnsOption" : {
+                "configKey" : "support_short_data_rows"
+              },
+              "skipEmptyDataRows" : {
+                "configKey" : "skip_empty_data_rows"
+              },
+              "prependFileIndexToRowId" : {
+                "configKey" : "prepend_file_idx_to_row_id"
+              },
+              "commentLineCharacter" : {
+                "configKey" : "comment_char"
+              },
+              "columnDelimiter" : {
+                "configKey" : "column_delimiter"
+              },
+              "quoteCharacter" : {
+                "configKey" : "quote_char"
+              },
+              "quoteEscapeCharacter" : {
+                "configKey" : "quote_escape_char"
+              },
+              "rowDelimiterOption" : {
+                "configKey" : "use_line_break_row_delimiter"
+              },
+              "customRowDelimiter" : {
+                "configKey" : "row_delimiter"
+              },
+              "numberOfCharactersForAutodetection" : {
+                "configKey" : "autodetect_buffer_size"
+              },
+              "autoDetectButton" : { }
+            }
+          },
+          "advancedSettings" : {
+            "configKey" : "advanced_settings",
+            "type" : "object",
+            "properties" : {
+              "howToCombineColumns" : {
+                "configPaths" : [ [ "fail_on_differing_specs" ], [ "spec_merge_mode" ] ]
+              },
+              "appendPathColumn" : {
+                "configPaths" : [ ]
+              },
+              "filePathColumnName" : {
+                "configPaths" : [ ]
+              },
+              "ifSchemaChangesOption" : {
+                "configPaths" : [ [ "check_table_spec" ] ]
+              },
+              "limitScannedRows" : {
+                "configKey" : "limit_data_rows_scanned"
+              },
+              "maxDataRowsScanned" : {
+                "configKey" : "max_data_rows_scanned"
+              },
+              "limitMemoryPerColumn" : {
+                "configKey" : "limit_memory_per_column"
+              },
+              "maximumNumberOfColumns" : {
+                "configKey" : "maximum_number_of_columns"
+              },
+              "quotedStringsOption" : {
+                "configKey" : "quote_option"
+              },
+              "replaceEmptyQuotedStringsByMissingValues" : {
+                "configKey" : "replace_empty_quotes_with_missing"
+              },
+              "quotedStringsContainNoRowDelimiters" : {
+                "configKey" : "no_row_delimiters_in_quotes"
+              },
+              "minChunkSizeInBytes" : {
+                "configKey" : "min_chunk_size_in_bytes"
+              },
+              "maxNumChunksPerFile" : {
+                "configKey" : "max_num_chunks_per_file"
+              },
+              "thousandsSeparator" : {
+                "configKey" : "thousands_separator"
+              },
+              "decimalSeparator" : {
+                "configKey" : "decimal_separator"
+              }
+            }
+          },
+          "limitRows" : {
+            "configKey" : "limit_rows",
+            "type" : "object",
+            "properties" : {
+              "skipFirstLines" : {
+                "configPaths" : [ [ "skip_lines" ], [ "number_of_lines_to_skip" ] ]
+              },
+              "skipFirstDataRows" : {
+                "configPaths" : [ [ "skip_data_rows" ], [ "number_of_rows_to_skip" ] ]
+              },
+              "limitNumberOfRows" : {
+                "configKey" : "limit_data_rows"
+              },
+              "maximumNumberOfRows" : {
+                "configKey" : "max_rows"
+              }
+            }
+          },
+          "encoding" : {
+            "configKey" : "encoding",
+            "type" : "object",
+            "properties" : {
+              "charset" : {
+                "configKey" : "charset",
+                "type" : "object",
+                "properties" : {
+                  "fileEncoding" : { },
+                  "customEncoding" : { }
+                }
+              }
+            }
+          },
+          "tableSpecConfig" : {
+            "configPaths" : [ ],
+            "type" : "object",
+            "properties" : {
+              "persistorSettings" : {
+                "type" : "object",
+                "properties" : {
+                  "configId" : {
+                    "type" : "object",
+                    "properties" : {
+                      "firstRowContainsColumnNames" : { },
+                      "firstColumnContainsRowIds" : { },
+                      "commentLineCharacter" : { },
+                      "columnDelimiter" : { },
+                      "quoteCharacter" : { },
+                      "quoteEscapeCharacter" : { },
+                      "rowDelimiterOption" : { },
+                      "customRowDelimiter" : { },
+                      "quotedStringsOption" : { },
+                      "replaceEmptyQuotedStringsByMissingValues" : { },
+                      "limitScannedRows" : { },
+                      "maxDataRowsScanned" : { },
+                      "thousandsSeparator" : { },
+                      "decimalSeparator" : { },
+                      "fileEncoding" : { },
+                      "customEncoding" : { },
+                      "skipFirstLines" : { },
+                      "skipFirstDataRows" : { },
+                      "limitMemoryPerColumn" : { },
+                      "maximumNumberOfColumns" : { }
+                    }
+                  },
+                  "sourceId" : { },
+                  "fsLocations" : { },
+                  "specs" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "sourceId" : { },
+                        "spec" : {
+                          "type" : "array",
+                          "items" : {
+                            "type" : "object",
+                            "properties" : {
+                              "name" : { },
+                              "type" : { }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "appendPathColumn" : { },
+                  "filePathColumnName" : { },
+                  "takeColumnsFrom" : { }
+                }
+              },
+              "enforceTypes" : { },
+              "columnTransformation" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "object",
+                  "properties" : {
+                    "columnName" : {
+                      "configPaths" : [ ]
+                    },
+                    "originalType" : { },
+                    "originalTypeLabel" : { },
+                    "includeInOutput" : { },
+                    "columnRename" : { },
+                    "type" : { }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/appendPathColumn" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ ],
+      "value" : false
+    } ]
+  }, {
+    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/columnDelimiter" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ ],
+      "value" : ","
+    } ]
+  }, {
+    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/commentLineCharacter" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "#"
+    } ]
+  }, {
+    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/customEncoding" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ ],
+      "value" : ""
+    } ]
+  }, {
+    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/customRowDelimiter" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "\\n"
+    } ]
+  }, {
+    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/decimalSeparator" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "."
+    } ]
+  }, {
+    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/fileEncoding" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "UTF_8"
+    } ]
+  }, {
+    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/firstColumnContainsRowIds" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ ],
+      "value" : false
+    } ]
+  }, {
+    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/firstRowContainsColumnNames" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ ],
+      "value" : true
+    } ]
+  }, {
+    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/limitMemoryPerColumn" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ ],
+      "value" : true
+    } ]
+  }, {
+    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/limitScannedRows" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ ],
+      "value" : true
+    } ]
+  }, {
+    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/maxDataRowsScanned" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ ],
+      "value" : 10000
+    } ]
+  }, {
+    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/maximumNumberOfColumns" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ ],
+      "value" : 8192
+    } ]
+  }, {
+    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/quoteCharacter" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "\""
+    } ]
+  }, {
+    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/quoteEscapeCharacter" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "\""
+    } ]
+  }, {
+    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/quotedStringsOption" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "REMOVE_QUOTES_AND_TRIM"
+    } ]
+  }, {
+    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/replaceEmptyQuotedStringsByMissingValues" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ ],
+      "value" : true
+    } ]
+  }, {
+    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/rowDelimiterOption" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "LINE_BREAK"
+    } ]
+  }, {
+    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/skipFirstDataRows" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ ],
+      "value" : 0
+    } ]
+  }, {
+    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/skipFirstLines" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ ],
+      "value" : 0
+    } ]
+  }, {
+    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/thousandsSeparator" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "\u0000"
+    } ]
+  }, {
+    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/filePathColumnName" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "Path"
+    } ]
+  }, {
+    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/takeColumnsFrom" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "UNION"
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "ElementResetButton"
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/columnName" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettings$ColumnNameRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/originalType" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettings$OriginalTypeRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "after-open-dialog",
+      "triggerInitially" : true
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileSelectionRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TableSpecSettingsRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettingsRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef",
+      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$LimitMemoryPerColumnRef",
+      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/limitMemoryPerColumn" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/limitMemoryPerColumn" ],
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$LimitMemoryPerColumnRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$LimitScannedRowsRef",
+      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/limitScannedRows" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/limitScannedRows" ],
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$LimitScannedRowsRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaxDataRowsScannedRef",
+      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maxDataRowsScanned" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maxDataRowsScanned" ],
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaxDataRowsScannedRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaximumNumberOfColumnsRef",
+      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maximumNumberOfColumns" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maximumNumberOfColumns" ],
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaximumNumberOfColumnsRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$QuotedStringsOptionRef",
+      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/quotedStringsOption" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/quotedStringsOption" ],
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$QuotedStringsOptionRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$ReplaceEmptyQuotedStringsByMissingValuesRef",
+      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/replaceEmptyQuotedStringsByMissingValues" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/replaceEmptyQuotedStringsByMissingValues" ],
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$ReplaceEmptyQuotedStringsByMissingValuesRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$ThousandsSeparatorRef",
+      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/thousandsSeparator" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/thousandsSeparator" ],
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$ThousandsSeparatorRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$CustomEncodingRef",
+      "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/customEncoding" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/customEncoding" ],
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$CustomEncodingRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$FileEncodingRef",
+      "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/fileEncoding" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/fileEncoding" ],
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$FileEncodingRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef",
+      "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef",
+      "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$AutoDetectButtonRef"
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/encoding/properties/charset" ],
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$CharsetRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileSelectionRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef",
+      "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef",
+      "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef",
+      "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstRowContainsColumnNamesRef",
+      "scopes" : [ "#/properties/model/properties/settings/properties/firstRowContainsColumnNames" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/settings/properties/firstRowContainsColumnNames" ],
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstRowContainsColumnNamesRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$QuoteCharacterRef",
+      "scopes" : [ "#/properties/model/properties/settings/properties/quoteCharacter" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/settings/properties/quoteCharacter" ],
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$QuoteCharacterRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$QuoteEscapeCharacterRef",
+      "scopes" : [ "#/properties/model/properties/settings/properties/quoteEscapeCharacter" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/settings/properties/quoteEscapeCharacter" ],
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$QuoteEscapeCharacterRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$RowDelimiterOptionRef",
+      "scopes" : [ "#/properties/model/properties/settings/properties/rowDelimiterOption" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/settings/properties/rowDelimiterOption" ],
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$RowDelimiterOptionRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$AppendPathColumnRef",
+      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/appendPathColumn" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/appendPathColumn" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$AppendPathColumnRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$FilePathColumnNameRef",
+      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/filePathColumnName" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/filePathColumnName" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$FilePathColumnNameRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef",
+      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileSelectionRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TableSpecSettingsRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettingsRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileSelectionRef",
+      "scopes" : [ "#/properties/model/properties/settings/properties/source" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileSelectionRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TableSpecSettingsRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettingsRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef",
+      "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef",
+      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileSelectionRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TableSpecSettingsRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettingsRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TableSpecSettingsRef",
+      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileSelectionRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/columnName" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettings$ColumnNameRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/originalTypeLabel" ],
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettings$OriginalTypeLabelRef"
+    } ]
+  } ]
 }

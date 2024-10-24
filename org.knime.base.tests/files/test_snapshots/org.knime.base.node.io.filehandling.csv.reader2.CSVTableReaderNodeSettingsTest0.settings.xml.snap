@@ -1,17 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
     <config key="settings">
-        <entry key="has_column_header" type="xboolean" value="true"/>
-        <entry key="support_short_data_rows" type="xboolean" value="false"/>
-        <entry key="skip_empty_data_rows" type="xboolean" value="false"/>
-        <entry key="prepend_file_idx_to_row_id" type="xboolean" value="false"/>
-        <entry key="comment_char" type="xstring" value="#"/>
-        <entry key="column_delimiter" type="xstring" value=","/>
-        <entry key="quote_char" type="xstring" value="&quot;"/>
-        <entry key="quote_escape_char" type="xstring" value="&quot;"/>
-        <entry key="use_line_break_row_delimiter" type="xboolean" value="true"/>
-        <entry key="row_delimiter" type="xstring" value="%%00010"/>
-        <entry key="autodetect_buffer_size" type="xint" value="1048576"/>
         <config key="file_selection">
             <config key="path">
                 <entry key="location_present" type="xboolean" value="true"/>
@@ -56,8 +45,25 @@
             <entry key="EnabledStatus" type="xboolean" value="true"/>
         </config>
         <entry key="has_row_id" type="xboolean" value="false"/>
+        <entry key="has_column_header" type="xboolean" value="true"/>
+        <entry key="support_short_data_rows" type="xboolean" value="false"/>
+        <entry key="skip_empty_data_rows" type="xboolean" value="false"/>
+        <entry key="prepend_file_idx_to_row_id" type="xboolean" value="false"/>
+        <entry key="comment_char" type="xstring" value="#"/>
+        <entry key="column_delimiter" type="xstring" value=","/>
+        <entry key="quote_char" type="xstring" value="&quot;"/>
+        <entry key="quote_escape_char" type="xstring" value="&quot;"/>
+        <entry key="use_line_break_row_delimiter" type="xboolean" value="true"/>
+        <entry key="row_delimiter" type="xstring" value="%%00010"/>
+        <entry key="autodetect_buffer_size" type="xint" value="1048576"/>
     </config>
     <config key="advanced_settings">
+        <entry key="fail_on_differing_specs" type="xboolean" value="true"/>
+        <entry key="spec_merge_mode" type="xstring" value="UNION"/>
+        <entry key="append_path_column_Internals" type="xboolean" value="false"/>
+        <entry key="path_column_name_Internals" type="xstring" value="File Path"/>
+        <entry key="save_table_spec_config_Internals" type="xboolean" value="true"/>
+        <entry key="check_table_spec" type="xboolean" value="true"/>
         <entry key="limit_data_rows_scanned" type="xboolean" value="true"/>
         <entry key="max_data_rows_scanned" type="xlong" value="10000"/>
         <entry key="limit_memory_per_column" type="xboolean" value="true"/>
@@ -69,12 +75,6 @@
         <entry key="max_num_chunks_per_file" type="xint" value="8"/>
         <entry key="thousands_separator" type="xstring" value=""/>
         <entry key="decimal_separator" type="xstring" value="."/>
-        <entry key="fail_on_differing_specs" type="xboolean" value="true"/>
-        <entry key="spec_merge_mode" type="xstring" value="UNION"/>
-        <entry key="append_path_column_Internals" type="xboolean" value="false"/>
-        <entry key="path_column_name_Internals" type="xstring" value="File Path"/>
-        <entry key="save_table_spec_config_Internals" type="xboolean" value="true"/>
-        <entry key="check_table_spec" type="xboolean" value="true"/>
     </config>
     <config key="limit_rows">
         <entry key="skip_lines" type="xboolean" value="false"/>

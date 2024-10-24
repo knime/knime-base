@@ -21,15 +21,13 @@
             } ],
             "title" : "Include or exclude columns from the reference table",
             "description" : "Includes or excludes columns that appear in the reference table from the first table.",
-            "default" : "INCLUDE",
-            "configKeys" : [ "inexclude" ]
+            "default" : "INCLUDE"
           },
           "typeCompatibility" : {
             "type" : "boolean",
             "title" : "Ensure type compatibility",
             "description" : "Ensures that the matching columns don't only have the same name but also the same type. Columns are only included or excluded if the column type of the first table is a super-type of the column type from the second table. If this option is not selected, only the column names need to match.",
-            "default" : false,
-            "configKeys" : [ "type_compatibility" ]
+            "default" : false
           }
         }
       }
@@ -49,5 +47,21 @@
         "format" : "checkbox"
       }
     } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnReferenceMode" : {
+            "configPaths" : [ [ "inexclude" ] ]
+          },
+          "typeCompatibility" : {
+            "configKey" : "type_compatibility"
+          }
+        }
+      }
+    }
   }
 }

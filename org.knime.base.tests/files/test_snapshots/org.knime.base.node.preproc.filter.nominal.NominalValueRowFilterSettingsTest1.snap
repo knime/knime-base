@@ -20,12 +20,7 @@
             } ],
             "title" : "Missing value handling",
             "description" : "Defines how missing values are handled.\n<ul>\n<li><b>Exclude</b>: Missing values are excluded from the primary output table.</li>\n<li><b>Include</b>: Missing values are included in the primary output table.</li>\n</ul>",
-            "default" : "EXCLUDE",
-            "configKeys" : [ "missingValueHandling" ],
-            "deprecatedConfigKeys" : [ {
-              "new" : [ [ "missingValueHandling" ] ],
-              "deprecated" : [ [ "filter config", "include_missing" ] ]
-            } ]
+            "default" : "EXCLUDE"
           },
           "nominalValueSelection" : {
             "type" : "object",
@@ -92,7 +87,6 @@
                 }
               },
               "selected" : {
-                "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -113,20 +107,13 @@
                 "manuallyDeselected" : [ ],
                 "includeUnknownColumns" : false
               }
-            },
-            "configKeys" : [ "filter config.filter-type", "filter config.included_names", "filter config.excluded_names", "filter config.enforce_option", "filter config.name_pattern.pattern", "filter config.name_pattern.type", "filter config.name_pattern.caseSensitive", "filter config.name_pattern.excludeMatching" ],
-            "subConfigKeys" : [ ],
-            "deprecatedConfigKeys" : [ {
-              "new" : [ [ "filter config", "filter-type" ], [ "filter config", "included_names" ], [ "filter config", "excluded_names" ], [ "filter config", "enforce_option" ], [ "filter config", "name_pattern", "pattern" ], [ "filter config", "name_pattern", "type" ], [ "filter config", "name_pattern", "caseSensitive" ], [ "filter config", "name_pattern", "excludeMatching" ] ],
-              "deprecated" : [ [ "selected attributes" ] ]
-            } ]
+            }
           },
           "selectedColumn" : {
             "type" : "string",
             "title" : "Filter column",
             "description" : "Select the column containing the nominal values to be filtered.",
-            "default" : "Test",
-            "configKeys" : [ "selected_column" ]
+            "default" : "Test"
           }
         }
       }
@@ -169,28 +156,80 @@
       "options" : {
         "format" : "valueSwitch"
       }
-    } ],
-    "globalUpdates" : [ {
-      "trigger" : {
-        "id" : "after-open-dialog",
-        "triggerInitially" : true
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/selectedColumn" ],
-        "id" : "org.knime.base.node.preproc.filter.nominal.NominalValueRowFilterSettings$SelectedColumnDependency"
-      } ]
-    }, {
-      "trigger" : {
-        "id" : "org.knime.base.node.preproc.filter.nominal.NominalValueRowFilterSettings$SelectedColumnDependency",
-        "scopes" : [ "#/properties/model/properties/selectedColumn" ]
-      },
-      "dependencies" : [ {
-        "scopes" : [ "#/properties/model/properties/nominalValueSelection" ],
-        "id" : "org.knime.base.node.preproc.filter.nominal.NominalValueRowFilterSettings$NominalValueSelectionDependency"
-      }, {
-        "scopes" : [ "#/properties/model/properties/selectedColumn" ],
-        "id" : "org.knime.base.node.preproc.filter.nominal.NominalValueRowFilterSettings$SelectedColumnDependency"
-      } ]
     } ]
-  }
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "selectedColumn" : {
+            "configKey" : "selected_column"
+          },
+          "nominalValueSelection" : {
+            "configKey" : "filter config",
+            "deprecatedConfigKeys" : [ {
+              "new" : [ [ "filter config", "filter-type" ], [ "filter config", "included_names" ], [ "filter config", "excluded_names" ], [ "filter config", "enforce_option" ], [ "filter config", "name_pattern", "pattern" ], [ "filter config", "name_pattern", "type" ], [ "filter config", "name_pattern", "caseSensitive" ], [ "filter config", "name_pattern", "excludeMatching" ] ],
+              "deprecated" : [ [ "selected attributes" ] ]
+            } ],
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              }
+            }
+          },
+          "missingValueHandling" : {
+            "deprecatedConfigKeys" : [ {
+              "new" : [ [ "missingValueHandling" ] ],
+              "deprecated" : [ ]
+            }, {
+              "new" : [ [ "missingValueHandling" ] ],
+              "deprecated" : [ [ "filter config", "include_missing" ] ]
+            } ]
+          }
+        }
+      }
+    }
+  },
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog",
+      "triggerInitially" : true
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/selectedColumn" ],
+      "id" : "org.knime.base.node.preproc.filter.nominal.NominalValueRowFilterSettings$SelectedColumnDependency"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.preproc.filter.nominal.NominalValueRowFilterSettings$SelectedColumnDependency",
+      "scopes" : [ "#/properties/model/properties/selectedColumn" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/nominalValueSelection" ],
+      "id" : "org.knime.base.node.preproc.filter.nominal.NominalValueRowFilterSettings$NominalValueSelectionDependency"
+    }, {
+      "scopes" : [ "#/properties/model/properties/selectedColumn" ],
+      "id" : "org.knime.base.node.preproc.filter.nominal.NominalValueRowFilterSettings$SelectedColumnDependency"
+    } ]
+  } ]
 }

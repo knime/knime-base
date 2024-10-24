@@ -36,22 +36,19 @@
             "type" : "string",
             "title" : "Decimal separator",
             "description" : "Choose a decimal separator, which is used to mark the boundary between the integral and the  fractional parts of the decimal string.",
-            "default" : ".",
-            "configKeys" : [ "decimal_separator" ]
+            "default" : "."
           },
           "failOnError" : {
             "type" : "boolean",
             "title" : "Fail on error",
             "description" : "When checked, the node will fail if an error occurs.",
-            "default" : false,
-            "configKeys" : [ "fail_on_error" ]
+            "default" : false
           },
           "genericParse" : {
             "type" : "boolean",
             "title" : "Accept type suffix, e.g. 'd', 'D', 'f', 'F'",
             "description" : "When checked, the type suffix will be accepted, otherwise it fails to parse input like <tt>1d</tt>. These suffixes are typically used in java-style programs to represent floating point numbers ('f' for float and 'd' for double). Default is not checked.",
-            "default" : false,
-            "configKeys" : [ "generic_parse" ]
+            "default" : false
           },
           "inclCols" : {
             "type" : "object",
@@ -122,7 +119,6 @@
               },
               "selected" : {
                 "default" : [ ],
-                "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -140,7 +136,6 @@
                   },
                   "typeDisplays" : {
                     "default" : [ ],
-                    "subConfigKeys" : [ ],
                     "type" : "array",
                     "items" : {
                       "type" : "object",
@@ -180,9 +175,7 @@
                 "selectedTypes" : [ ],
                 "typeDisplays" : [ ]
               }
-            },
-            "configKeys" : [ "include.filter-type", "include.included_names", "include.excluded_names", "include.enforce_option", "include.name_pattern.pattern", "include.name_pattern.type", "include.name_pattern.caseSensitive", "include.name_pattern.excludeMatching" ],
-            "subConfigKeys" : [ ]
+            }
           },
           "parseType" : {
             "oneOf" : [ {
@@ -197,15 +190,13 @@
             } ],
             "title" : "Type",
             "description" : "Choose the DataType that your string should be converted to.",
-            "default" : "DOUBLE",
-            "configKeys" : [ "parse_type" ]
+            "default" : "DOUBLE"
           },
           "thousandsSep" : {
             "type" : "string",
             "title" : "Thousands separator",
             "description" : "Choose a thousands separator used in the decimal string to group together three digits.",
-            "default" : "",
-            "configKeys" : [ "thousands_separator" ]
+            "default" : ""
           }
         }
       }
@@ -256,5 +247,73 @@
         }
       } ]
     } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "decimalSep" : {
+            "configKey" : "decimal_separator"
+          },
+          "thousandsSep" : {
+            "configKey" : "thousands_separator"
+          },
+          "parseType" : {
+            "configPaths" : [ [ "parse_type" ] ]
+          },
+          "genericParse" : {
+            "configKey" : "generic_parse"
+          },
+          "failOnError" : {
+            "configKey" : "fail_on_error"
+          },
+          "inclCols" : {
+            "configPaths" : [ [ "include", "filter-type" ], [ "include", "included_names" ], [ "include", "excluded_names" ], [ "include", "enforce_option" ], [ "include", "name_pattern", "pattern" ], [ "include", "name_pattern", "type" ], [ "include", "name_pattern", "caseSensitive" ], [ "include", "name_pattern", "excludeMatching" ] ],
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : { },
+                  "typeDisplays" : {
+                    "type" : "array",
+                    "configPaths" : [ ],
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : { },
+                        "text" : { }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }

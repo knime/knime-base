@@ -48,6 +48,7 @@
  */
 package org.knime.base.node.preproc.joiner3;
 
+import java.util.List;
 import java.util.stream.IntStream;
 
 import org.knime.core.data.DataTableSpec;
@@ -65,7 +66,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultFieldNodeSettingsPersistorFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultPersistorWithDeprecations;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
@@ -212,7 +213,8 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
 
     }
 
-    static class MatchingCriteriaPersistor extends NodeSettingsPersistorWithConfigKey<MatchingCriterion[]> {
+    static class MatchingCriteriaPersistor extends NodeSettingsPersistorWithConfigKey<MatchingCriterion[]>
+        implements DefaultPersistorWithDeprecations<MatchingCriterion[]> {
 
         static final String LEGACY_LEFT_TABLE_JOIN_PREDICATE_KEY = "leftTableJoinPredicate";
 
@@ -223,34 +225,22 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
         private NodeSettingsPersistor<MatchingCriterion[]> m_defaultPersistor;
 
         @Override
-        public void setConfigKey(final String configKey) {
-            super.setConfigKey(configKey);
-            m_defaultPersistor =
-                DefaultFieldNodeSettingsPersistorFactory.createDefaultPersistor(MatchingCriterion[].class, configKey);
+        public List<ConfigsDeprecation<MatchingCriterion[]>> getConfigsDeprecations() {
+            return List.of(ConfigsDeprecation.builder(MatchingCriteriaPersistor::loadFromLegacyLeftTableJoinPredicate) //
+                .withNewConfigPath(getConfigKey()) //
+                .withDeprecatedConfigPath(LEGACY_LEFT_TABLE_JOIN_PREDICATE_KEY) //
+                .withDeprecatedConfigPath(LEGACY_RIGHT_TABLE_JOIN_PREDICATE_KEY) //
+                .build());
+
         }
 
-        @Override
-        public ConfigsDeprecation[] getConfigsDeprecations() {
-            return new ConfigsDeprecation[]{//
-                new ConfigsDeprecation.Builder() //
-                    .forNewConfigPath(getConfigKeys()) //
-                    .forDeprecatedConfigPath(LEGACY_LEFT_TABLE_JOIN_PREDICATE_KEY) //
-                    .forDeprecatedConfigPath(LEGACY_RIGHT_TABLE_JOIN_PREDICATE_KEY) //
-                    .build() //
-            };
-        }
-
-        @Override
-        public MatchingCriterion[] load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            if (settings.containsKey(LEGACY_LEFT_TABLE_JOIN_PREDICATE_KEY)) {
-                final var leftColumns = settings.getStringArray(LEGACY_LEFT_TABLE_JOIN_PREDICATE_KEY);
-                final var rightColumns = settings.getStringArray(LEGACY_RIGHT_TABLE_JOIN_PREDICATE_KEY);
-                final var targetLength = Math.max(leftColumns.length, rightColumns.length);
-                return IntStream.range(0, targetLength)
-                    .mapToObj(i -> getNthMatchingCriterion(i, leftColumns, rightColumns))
-                    .toArray(MatchingCriterion[]::new);
-            }
-            return m_defaultPersistor.load(settings);
+        private static MatchingCriterion[] loadFromLegacyLeftTableJoinPredicate(final NodeSettingsRO settings)
+            throws InvalidSettingsException {
+            final var leftColumns = settings.getStringArray(LEGACY_LEFT_TABLE_JOIN_PREDICATE_KEY);
+            final var rightColumns = settings.getStringArray(LEGACY_RIGHT_TABLE_JOIN_PREDICATE_KEY);
+            final var targetLength = Math.max(leftColumns.length, rightColumns.length);
+            return IntStream.range(0, targetLength).mapToObj(i -> getNthMatchingCriterion(i, leftColumns, rightColumns))
+                .toArray(MatchingCriterion[]::new);
         }
 
         private static MatchingCriterion getNthMatchingCriterion(final int i, final String[] leftColumns,
