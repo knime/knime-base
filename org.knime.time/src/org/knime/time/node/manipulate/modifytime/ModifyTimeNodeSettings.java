@@ -74,6 +74,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.Legac
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TimeWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -110,6 +111,7 @@ public class ModifyTimeNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "timezone", description = "")
     @Persist(customPersistor = TimeZonePersistor.class)
+    @ChoicesWidget(choicesProvider = ZoneIdProvider.class)
     ZoneId m_timeZone = ZoneId.of("America/Indiana/Marengo");
 
     static final String COLUMN_SELECT_CONFIG_KEY = "col_select";
@@ -365,6 +367,19 @@ public class ModifyTimeNodeSettings implements DefaultNodeSettings {
                 .orElseGet(Stream::empty) //
                 .filter(columnSpec -> allowedTypes.stream().anyMatch(columnSpec.getType()::isCompatible)) //
                 .toArray(DataColumnSpec[]::new);
+        }
+    }
+
+    static final class ZoneIdProvider implements StringChoicesStateProvider {
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            StringChoicesStateProvider.super.init(initializer);
+        }
+
+        @Override
+        public String[] choices(final DefaultNodeSettingsContext context) {
+            return ZoneId.getAvailableZoneIds().stream().toArray(String[]::new);
         }
     }
 }
