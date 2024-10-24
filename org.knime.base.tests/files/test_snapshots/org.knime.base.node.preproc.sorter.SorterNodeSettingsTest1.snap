@@ -196,7 +196,7 @@
           "sortingCriteria" : {
             "type" : "array",
             "deprecatedConfigKeys" : [ {
-              "new" : [ [ "sortingCriteria" ] ],
+              "new" : [ [ ] ],
               "deprecated" : [ [ "incllist" ], [ "alphaNumStringComp" ], [ "sortOrder" ] ]
             } ],
             "items" : {

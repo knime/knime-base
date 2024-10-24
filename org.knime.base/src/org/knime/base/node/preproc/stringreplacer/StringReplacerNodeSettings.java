@@ -60,9 +60,9 @@ import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultPersistorWithDeprecations;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
@@ -206,10 +206,12 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
             return List.of(
                 // backwards-compatibility for 5.1 <= version < 5.4:
                 ConfigsDeprecation.builder(PatternTypePersistor::loadLegazy)//
-                    .withMatcher(settings -> !settings.containsKey(getConfigKey()))
+                    .withMatcher(settings ->
+                    !settings.containsKey(getConfigKey())
+                    )
+
                     .withDeprecatedConfigPath(StringReplacerSettings.CFG_FIND_PATTERN)//
                     .withDeprecatedConfigPath(StringReplacerSettings.CFG_PATTERN_IS_REGEX)//
-                    .withNewConfigPath(getConfigKey())//
                     .build());//
         }
     }

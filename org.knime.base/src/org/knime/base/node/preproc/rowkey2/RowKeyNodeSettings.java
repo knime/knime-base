@@ -59,7 +59,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultPersistorWithDeprecations;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
@@ -232,13 +231,11 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
             APPEND_COUNTER
     }
 
-    private static final class NewRowKeyColumnPersistor extends NodeSettingsPersistorWithConfigKey<String>
-        implements DefaultPersistorWithDeprecations<String> {
+    private static final class NewRowKeyColumnPersistor implements DefaultPersistorWithDeprecations<String> {
 
         @Override
         public List<ConfigsDeprecation<String>> getConfigsDeprecations() {
             return List.of(ConfigsDeprecation.builder(NewRowKeyColumnPersistor::loadLegazy) //
-                .withNewConfigPath(getConfigKey()) //
                 .withDeprecatedConfigPath(LEGACY_NEW_ROW_KEY_COLUMN_CONFIG_KEY).build());
         }
 
@@ -247,15 +244,12 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    private static final class ReplacementModePersistor extends NodeSettingsPersistorWithConfigKey<ReplacementMode>
-        implements DefaultPersistorWithDeprecations<ReplacementMode> {
-
-        private static final String DEPRECATED_MODE_KEY = "newRowKeyColumnName";
+    private static final class ReplacementModePersistor implements DefaultPersistorWithDeprecations<ReplacementMode> {
 
         @Override
         public List<ConfigsDeprecation<ReplacementMode>> getConfigsDeprecations() {
             return List.of(ConfigsDeprecation.builder(ReplacementModePersistor::loadLegazy)
-                .withNewConfigPath(getConfigKey()).withDeprecatedConfigPath(DEPRECATED_MODE_KEY).build());
+                .withDeprecatedConfigPath(LEGACY_NEW_ROW_KEY_COLUMN_CONFIG_KEY).build());
         }
 
         private static ReplacementMode loadLegazy(final NodeSettingsRO settings) throws InvalidSettingsException {

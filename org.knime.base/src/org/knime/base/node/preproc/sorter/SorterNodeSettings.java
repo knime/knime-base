@@ -64,7 +64,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultPersistorWithDeprecations;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
@@ -175,7 +174,6 @@ final class SorterNodeSettings implements DefaultNodeSettings {
     }
 
     static final class LoadDeprecatedSortingCriterionArraySettings
-        extends NodeSettingsPersistorWithConfigKey<SortingCriterionSettings[]>
         implements DefaultPersistorWithDeprecations<SortingCriterionSettings[]> {
 
         /**
@@ -232,7 +230,7 @@ final class SorterNodeSettings implements DefaultNodeSettings {
                     .withDeprecatedConfigPath(LEGACY_INCLUDELIST_KEY)//
                     .withDeprecatedConfigPath(LEGACY_ALPHANUMCOMP_KEY) //
                     .withDeprecatedConfigPath(LEGACY_SORTORDER_KEY) //
-                    .withNewConfigPath(getConfigKey()).build());
+                    .build());
         }
     }
 

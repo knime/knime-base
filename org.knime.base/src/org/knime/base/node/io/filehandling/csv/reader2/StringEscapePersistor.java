@@ -52,7 +52,7 @@ import org.knime.base.node.io.filehandling.csv.reader.api.EscapeUtils;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
 
 @SuppressWarnings("restriction")
 final class StringEscapePersistor extends NodeSettingsPersistorWithConfigKey<String> {

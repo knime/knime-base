@@ -62,8 +62,8 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultPersistorWithDeprecations;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyNameFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.NameFilter;
@@ -186,13 +186,8 @@ public class NominalValueRowFilterSettings implements DefaultNodeSettings {
 
         @Override
         public List<ConfigsDeprecation<NameFilter>> getConfigsDeprecations() {
-            final var deprecationBuilder =
-                ConfigsDeprecation.builder(LegacyNameFilterOrSelectedAttrPersistor::loadFromSelectedAttr)
-                    .withDeprecatedConfigPath(CFG_SELECTED_ATTR);
-            for (var configPath : m_legacyNameFilterPersistor.getConfigPaths()) {
-                deprecationBuilder.withNewConfigPath(configPath);
-            }
-            return List.of(deprecationBuilder.build());
+            return List.of(ConfigsDeprecation.builder(LegacyNameFilterOrSelectedAttrPersistor::loadFromSelectedAttr)
+                .withDeprecatedConfigPath(CFG_SELECTED_ATTR).build());
         }
 
         @Override
@@ -253,10 +248,9 @@ public class NominalValueRowFilterSettings implements DefaultNodeSettings {
                 ConfigsDeprecation.builder(settings -> MissingValueHandling.EXCLUDE) //
                     .withMatcher(settings -> !settings.containsKey(getConfigKey())
                         && !settings.containsKey(NominalValueRowSplitterNodeDialog.CFG_CONFIGROOTNAME))
-                    .withNewConfigPath(getConfigKey()).build(), //
+                    .build(), //
 
                 ConfigsDeprecation.builder(MissingValueHandlingPersistor::loadFromNominalValueRowSplitterIncludeMissing)//
-                    .withNewConfigPath(getConfigKey())//
                     .withDeprecatedConfigPath(NominalValueRowSplitterNodeDialog.CFG_CONFIGROOTNAME, KEY_INCLUDE_MISSING)//
                     .build());
         }

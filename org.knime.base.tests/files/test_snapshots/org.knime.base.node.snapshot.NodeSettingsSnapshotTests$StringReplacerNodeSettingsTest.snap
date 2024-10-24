@@ -190,7 +190,7 @@
           },
           "patternType" : {
             "deprecatedConfigKeys" : [ {
-              "new" : [ [ "patternType" ] ],
+              "new" : [ [ ] ],
               "deprecated" : [ [ "findPattern" ], [ "patternIsRegex" ] ]
             } ]
           },

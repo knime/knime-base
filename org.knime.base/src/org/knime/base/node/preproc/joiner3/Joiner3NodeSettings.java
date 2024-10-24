@@ -64,7 +64,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultPersistorWithDeprecations;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
@@ -213,8 +212,7 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
 
     }
 
-    static class MatchingCriteriaPersistor extends NodeSettingsPersistorWithConfigKey<MatchingCriterion[]>
-        implements DefaultPersistorWithDeprecations<MatchingCriterion[]> {
+    static class MatchingCriteriaPersistor implements DefaultPersistorWithDeprecations<MatchingCriterion[]> {
 
         static final String LEGACY_LEFT_TABLE_JOIN_PREDICATE_KEY = "leftTableJoinPredicate";
 
@@ -227,7 +225,6 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
         @Override
         public List<ConfigsDeprecation<MatchingCriterion[]>> getConfigsDeprecations() {
             return List.of(ConfigsDeprecation.builder(MatchingCriteriaPersistor::loadFromLegacyLeftTableJoinPredicate) //
-                .withNewConfigPath(getConfigKey()) //
                 .withDeprecatedConfigPath(LEGACY_LEFT_TABLE_JOIN_PREDICATE_KEY) //
                 .withDeprecatedConfigPath(LEGACY_RIGHT_TABLE_JOIN_PREDICATE_KEY) //
                 .build());
