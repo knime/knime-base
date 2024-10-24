@@ -38,8 +38,7 @@
             } ],
             "title" : "Sorting option",
             "description" : "Enhance performance by selecting 'Keep input data order' if your data is\nalready sorted by the group columns. Be cautious: if the input is not properly sorted, the node\nwill fail. If you want to make sure that this node executes, do not choose this option.\n",
-            "default" : "NO",
-            "configKeys" : [ "SortedInput" ]
+            "default" : "NO"
           },
           "columnFilter" : {
             "type" : "object",
@@ -110,7 +109,6 @@
               },
               "selected" : {
                 "default" : [ ],
-                "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -128,7 +126,6 @@
                   },
                   "typeDisplays" : {
                     "default" : [ ],
-                    "subConfigKeys" : [ ],
                     "type" : "array",
                     "items" : {
                       "type" : "object",
@@ -168,9 +165,7 @@
                 "selectedTypes" : [ ],
                 "typeDisplays" : [ ]
               }
-            },
-            "configKeys" : [ "GroupColNames.filter-type", "GroupColNames.included_names", "GroupColNames.excluded_names", "GroupColNames.enforce_option", "GroupColNames.name_pattern.pattern", "GroupColNames.name_pattern.type", "GroupColNames.name_pattern.caseSensitive", "GroupColNames.name_pattern.excludeMatching" ],
-            "subConfigKeys" : [ ]
+            }
           }
         }
       }
@@ -213,5 +208,61 @@
         "radioLayout" : "vertical"
       }
     } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnFilter" : {
+            "configPaths" : [ [ "GroupColNames", "filter-type" ], [ "GroupColNames", "included_names" ], [ "GroupColNames", "excluded_names" ], [ "GroupColNames", "enforce_option" ], [ "GroupColNames", "name_pattern", "pattern" ], [ "GroupColNames", "name_pattern", "type" ], [ "GroupColNames", "name_pattern", "caseSensitive" ], [ "GroupColNames", "name_pattern", "excludeMatching" ] ],
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : { },
+                  "typeDisplays" : {
+                    "type" : "array",
+                    "configPaths" : [ ],
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : { },
+                        "text" : { }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "alreadySorted" : {
+            "configPaths" : [ [ "SortedInput" ] ]
+          }
+        }
+      }
+    }
   }
 }

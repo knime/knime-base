@@ -16,15 +16,13 @@
             "type" : "boolean",
             "title" : "Detect types of resulting columns",
             "description" : "Whether type analysis should be applied to the output table. For each column, the most specific of the four column types <i>double</i> (64-bit floating-point number), <i>long</i> (64-bit integral number), <i>int</i> (32-bit integral number) and <i>String</i> is determined and the column is converted to this type.",
-            "default" : false,
-            "configKeys" : [ "detectTypes" ]
+            "default" : false
           },
           "discardBefore" : {
             "type" : "boolean",
             "title" : "Discard rows before header row",
             "description" : "Whether rows before the row containing the new column header should be discarded. Otherwise they are treated as additional output rows.",
-            "default" : false,
-            "configKeys" : [ "discardBefore" ]
+            "default" : false
           },
           "headerRowIndex" : {
             "type" : "integer",
@@ -32,8 +30,7 @@
             "title" : "Number of rows before the header",
             "description" : "Number of rows in the input table that precede the row that should be used as new column header",
             "default" : 0,
-            "minimum" : 0.0,
-            "configKeys" : [ "headerRowIndex" ]
+            "minimum" : 0.0
           }
         }
       }
@@ -56,5 +53,18 @@
         "format" : "checkbox"
       }
     } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "headerRowIndex" : { },
+          "discardBefore" : { },
+          "detectTypes" : { }
+        }
+      }
+    }
   }
 }

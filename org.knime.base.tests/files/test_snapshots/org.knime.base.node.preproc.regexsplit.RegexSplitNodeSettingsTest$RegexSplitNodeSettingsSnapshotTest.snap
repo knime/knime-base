@@ -42,74 +42,63 @@
             } ],
             "title" : "Case sensitive",
             "description" : "Specifies whether matching will distinguish between upper and lower case letters. <br />\nBy default, case-insensitive matching assumes that only characters in the US-ASCII charset are being\nmatched. Unicode-aware case-insensitive matching can be enabled by enabling\n<i>Unicode-aware case folding</i>. <br />\nMatching case-insensitive may impose a slight performance penalty.\n",
-            "default" : "CASESENSITIVE",
-            "configKeys" : [ "isCaseInsensitive" ]
+            "default" : "CASESENSITIVE"
           },
           "column" : {
             "type" : "string",
             "title" : "String column",
             "description" : "Choose the column containing the strings to split",
-            "default" : "test",
-            "configKeys" : [ "column" ]
+            "default" : "test"
           },
           "decrementGroupIndexByOne" : {
             "type" : "boolean",
             "title" : "Start group index counting from zero",
             "description" : "If enabled, the indices of non-named capturing groups start at zero instead of one.\nThis setting is not meant to be manually enabled, but exists solely for the purpose of\nbackwards-compatibility. Earlier versions of this node have this enabled to reflect how the node used to\nbehave.",
-            "default" : false,
-            "configKeys" : [ "decrementGroupIndexByOne" ]
+            "default" : false
           },
           "isCanonEQ" : {
             "type" : "boolean",
             "title" : "Enable canonical equivalence",
             "description" : "When enabled, two characters will be considered to match if, and only if, their full canonical\ndecompositions match. The expression \"a\\u030A\", for example, will match the string \"\\u00E5\" when this is\nenabled. By default, matching does not take canonical equivalence into account.",
-            "default" : false,
-            "configKeys" : [ "isCanonEQ" ]
+            "default" : false
           },
           "isComments" : {
             "type" : "boolean",
-            "default" : false,
-            "configKeys" : [ "isComments" ]
+            "default" : false
           },
           "isDotAll" : {
             "type" : "boolean",
             "title" : "Enable dotall mode (Dot . also matches newline characters)",
             "description" : "In dotall mode, the expression . matches any character, including a line terminator. By default this\nexpression does not match line terminators.",
-            "default" : false,
-            "configKeys" : [ "isDotAll" ]
+            "default" : false
           },
           "isLiteral" : {
             "type" : "boolean",
-            "default" : false,
-            "configKeys" : [ "isLiteral" ]
+            "default" : false
           },
           "isMultiLine" : {
             "type" : "boolean",
             "title" : "Enable multiline mode (^ and $ match at the beginning / end of a line)",
             "description" : "In multiline mode the expressions ^ and $ match just after or just before, respectively, a line\nterminator or the end of the input sequence. By default these expressions only match at the beginning\nand the end of the entire input sequence.",
-            "default" : false,
-            "configKeys" : [ "isMultiLine" ]
+            "default" : false
           },
           "isUnicodeCase" : {
             "type" : "boolean",
             "title" : "Enable Unicode-aware case folding",
             "description" : "When this is enabled then case-insensitive matching, when enabled, is done in a manner consistent with the\nUnicode Standard. By default, case-insensitive matching assumes that only characters in the US-ASCII charset\nare being matched. <br />\nEnabling this may impose a performance penalty.",
-            "default" : false,
-            "configKeys" : [ "isUniCodeCase" ]
+            "default" : false
           },
           "isUnicodeCharacterClass" : {
             "type" : "boolean",
             "title" : "Enable Unicode character classes",
             "description" : "When enabled, the (US-ASCII only) <i>Predefined character classes</i> and <i>POSIX character classes</i> are\nin conformance with the Unicode Standard. <br />\nEnabling this may impose a performance penalty.",
-            "default" : false,
-            "configKeys" : [ "isUnicodeCharacterClass" ]
+            "default" : false
           },
           "isUnixLines" : {
             "type" : "boolean",
             "title" : "Enable Unix lines mode",
             "description" : "In this mode, only the '\\n' line terminator is recognized in the behavior of ., ^, and $.",
-            "default" : false,
-            "configKeys" : [ "isUnixLines" ]
+            "default" : false
           },
           "noMatchBehaviour" : {
             "oneOf" : [ {
@@ -124,8 +113,7 @@
             } ],
             "title" : "If pattern does not match",
             "description" : "Define what to do if a pattern can't be matched to the input string:\n<ul>\n    <li><i>Insert missing value</i> puts missing cell(s) in place of the output column(s).\n        The node will emit a warning when an input string doesn't match.</li>\n    <li><i>Insert empty string</i> puts empty string(s) in place of the output column(s).\n        The node will emit a warning when an input string doesn't match.</li>\n    <li><i>Fail</i> causes the node to fail if one of the inputs can not be matched against the pattern.\n    </li>\n</ul>\n",
-            "default" : "INSERT_MISSING",
-            "configKeys" : [ "noMatchBehaviour" ]
+            "default" : "INSERT_MISSING"
           },
           "output" : {
             "type" : "object",
@@ -135,8 +123,7 @@
                 "title" : "Output column name",
                 "description" : "Choose a name for the output column",
                 "default" : "Split",
-                "minLength" : 1,
-                "configKeys" : [ "columnName" ]
+                "minLength" : 1
               },
               "columnPrefix" : {
                 "type" : "string",
@@ -169,8 +156,7 @@
                 } ],
                 "title" : "Group labels in output",
                 "description" : "Define the naming of the output groups:\n<ul>\n    <li><i>Capture group names or indices</i>: Use the names of the capture groups. For unnamed capture\n        groups, their index is used as their label.</li>\n    <li><i>Split input column name</i>: Apply the provided pattern to the name of the input column and\n        use the captures as labels.</li>\n</ul>\n\nThe impact of this setting depends on the selected <i>Output mode</i>:\n<ul>\n    <li><i>Columns</i>: The labels will be used as the suffix of the column names.</li>\n    <li><i>Rows</i>: The labels will be used as the suffix of the row IDs.</li>\n    <li><i>List</i> and <i>Set</i>: The labels will be used as element names in the collection cell\n        specification.</li>\n</ul>\n",
-                "default" : "CAPTURE_GROUP_NAMES",
-                "configKeys" : [ "groupLabels" ]
+                "default" : "CAPTURE_GROUP_NAMES"
               },
               "mode" : {
                 "oneOf" : [ {
@@ -188,15 +174,13 @@
                 } ],
                 "title" : "Output matched groups as",
                 "description" : "Define how to output the results:\n<ul>\n    <li><i>Columns</i>: Each capture group in the defined pattern creates a new column in the output table.\n    The column names correspond to the names of the named capture groups.</li>\n    <li><i>Rows</i>: Each input row is duplicated by the number of capture groups, and every capture is\n    added to one of those copies.</li>\n    <li><i>List</i>: The captures are appended to the input as a list of strings.</li>\n    <li><i>Set (remove duplicates)</i>: The captures are appended to the input as a set of strings. Note\n    that duplicates are removed and the order of captures is not preserved.</li>\n</ul>\n",
-                "default" : "COLUMNS",
-                "configKeys" : [ "mode" ]
+                "default" : "COLUMNS"
               },
               "removeInputColumn" : {
                 "type" : "boolean",
                 "title" : "Remove input column",
                 "description" : "Remove the input column from the output table.",
-                "default" : false,
-                "configKeys" : [ "removeInputColumn" ]
+                "default" : false
               },
               "singleOutputColumnMode" : {
                 "oneOf" : [ {
@@ -208,8 +192,7 @@
                 } ],
                 "title" : "Output column",
                 "description" : "Choose whether to append the output column or replace the input column.",
-                "default" : "APPEND",
-                "configKeys" : [ "singleOutputColumnMode" ]
+                "default" : "APPEND"
               }
             },
             "default" : {
@@ -220,23 +203,20 @@
               "columnName" : "Split",
               "groupLabels" : "CAPTURE_GROUP_NAMES",
               "removeInputColumn" : false
-            },
-            "configKeys" : [ "output" ]
+            }
           },
           "pattern" : {
             "type" : "string",
             "title" : "Pattern",
             "description" : "Define a pattern according to which the input string will be split. The capture groups that are defined in\nthis pattern will correspond to the output values. A group can be defined in one of two ways:\n<ul>\n    <li>For a named group, define <tt>(?&lt;groupName&gt;pattern)</tt>,\n    where <tt>groupName</tt> is the name of the group and <tt>pattern</tt> can be replaced by any regular\n    expression that should be matched. Note that group names need to start with a letter and may\n    contain only letters and digits, no spaces.</li>\n    <li>For an unnamed capture group, simply use parenthesis around your pattern:\n    <tt>(pattern)</tt>, where again <tt>pattern</tt> can be replaced by any\n    pattern. Unnamed capture groups are simply identified by their position in the pattern string, and they\n    are enumerated starting at 1.</li>\n</ul>\nIf you want to use non-capturing groups, construct them with\n<tt>(?:pattern)</tt>\n",
             "default" : "(.*)",
-            "minLength" : 1,
-            "configKeys" : [ "pattern" ]
+            "minLength" : 1
           },
           "requireWholeMatch" : {
             "type" : "boolean",
             "title" : "Require whole string to match",
             "description" : "If enabled, the provided pattern must match the whole string in order to return any results. Otherwise, the\nfirst match in the input string is used.\n",
-            "default" : true,
-            "configKeys" : [ "requireWholeMatch" ]
+            "default" : true
           }
         }
       }
@@ -478,5 +458,63 @@
         }
       } ]
     } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "column" : {
+            "configKey" : "column"
+          },
+          "pattern" : {
+            "configKey" : "pattern"
+          },
+          "caseMatching" : {
+            "configPaths" : [ [ "isCaseInsensitive" ] ]
+          },
+          "requireWholeMatch" : { },
+          "noMatchBehaviour" : { },
+          "isUnixLines" : {
+            "configKey" : "isUnixLines"
+          },
+          "isMultiLine" : {
+            "configKey" : "isMultiLine"
+          },
+          "isDotAll" : {
+            "configKey" : "isDotAll"
+          },
+          "isUnicodeCase" : {
+            "configKey" : "isUniCodeCase"
+          },
+          "isCanonEQ" : {
+            "configKey" : "isCanonEQ"
+          },
+          "isUnicodeCharacterClass" : {
+            "configKey" : "isUnicodeCharacterClass"
+          },
+          "decrementGroupIndexByOne" : { },
+          "output" : {
+            "type" : "object",
+            "properties" : {
+              "mode" : { },
+              "columnPrefixMode" : { },
+              "columnPrefix" : { },
+              "singleOutputColumnMode" : { },
+              "columnName" : { },
+              "groupLabels" : { },
+              "removeInputColumn" : { }
+            }
+          },
+          "isLiteral" : {
+            "configKey" : "isLiteral"
+          },
+          "isComments" : {
+            "configKey" : "isComments"
+          }
+        }
+      }
+    }
   }
 }

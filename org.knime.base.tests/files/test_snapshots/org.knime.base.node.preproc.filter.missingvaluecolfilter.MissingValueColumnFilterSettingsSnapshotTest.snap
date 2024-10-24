@@ -99,7 +99,6 @@
               },
               "selected" : {
                 "default" : [ ],
-                "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -117,7 +116,6 @@
                   },
                   "typeDisplays" : {
                     "default" : [ ],
-                    "subConfigKeys" : [ ],
                     "type" : "array",
                     "items" : {
                       "type" : "object",
@@ -157,9 +155,7 @@
                 "selectedTypes" : [ ],
                 "typeDisplays" : [ ]
               }
-            },
-            "configKeys" : [ "column-filter.filter-type", "column-filter.included_names", "column-filter.excluded_names", "column-filter.enforce_option", "column-filter.name_pattern.pattern", "column-filter.name_pattern.type", "column-filter.name_pattern.caseSensitive", "column-filter.name_pattern.excludeMatching" ],
-            "subConfigKeys" : [ ]
+            }
           },
           "number" : {
             "type" : "integer",
@@ -167,8 +163,7 @@
             "title" : "Threshold number (equal or more than)",
             "description" : "Selected columns with at least this number of missing values are filtered out.",
             "default" : 1,
-            "minimum" : 0.0,
-            "configKeys" : [ "number" ]
+            "minimum" : 0.0
           },
           "percentage" : {
             "type" : "number",
@@ -177,8 +172,7 @@
             "description" : "Selected columns with at least this percentage of missing values are filtered out.",
             "default" : 100.0,
             "minimum" : 0.0,
-            "maximum" : 100.0,
-            "configKeys" : [ "missing_value_percentage" ]
+            "maximum" : 100.0
           },
           "removeColumnsBy" : {
             "oneOf" : [ {
@@ -196,8 +190,7 @@
             } ],
             "title" : "Remove columns",
             "description" : "Specify the threshold for the removal of selected columns.\n<ul>\n<li><b>With at least one missing value</b>: Remove the column if it contains at least one missing value.</li>\n<li><b>With only missing values</b>: Remove the column if it contains only missing values.</li>\n<li><b>By percentage of missing values</b>: Remove the column if it contains at least the configured percentage of missing values.</li>\n<li><b>By number of missing values</b>: Remove the column if it contains at least the configured number of missing values.</li>\n</ul>",
-            "default" : "ONLY",
-            "configKeys" : [ "removeColumnsBy" ]
+            "default" : "ONLY"
           }
         }
       }
@@ -269,5 +262,63 @@
         }
       }
     } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnFilter" : {
+            "configPaths" : [ [ "column-filter", "filter-type" ], [ "column-filter", "included_names" ], [ "column-filter", "excluded_names" ], [ "column-filter", "enforce_option" ], [ "column-filter", "name_pattern", "pattern" ], [ "column-filter", "name_pattern", "type" ], [ "column-filter", "name_pattern", "caseSensitive" ], [ "column-filter", "name_pattern", "excludeMatching" ] ],
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : { },
+                  "typeDisplays" : {
+                    "type" : "array",
+                    "configPaths" : [ ],
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : { },
+                        "text" : { }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "removeColumnsBy" : { },
+          "percentage" : {
+            "configKey" : "missing_value_percentage"
+          },
+          "number" : { }
+        }
+      }
+    }
   }
 }

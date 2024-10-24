@@ -71,8 +71,7 @@
             "type" : "boolean",
             "title" : "Update domains of all columns",
             "description" : "Advanced setting to enable recomputation of the domains of all columns in the output table such that the domains' bounds exactly match the bounds of the data in the output table.",
-            "default" : false,
-            "configKeys" : [ "updateDomains" ]
+            "default" : false
           }
         }
       }
@@ -144,5 +143,22 @@
         }
       } ]
     } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "findSplittingRowMode" : { },
+          "lookupColumn" : { },
+          "matchingCriteria" : { },
+          "searchPattern" : { },
+          "includeMatchingRowInTopTable" : { },
+          "includeMatchingRowInBottomTable" : { },
+          "updateDomains" : { }
+        }
+      }
+    }
   }
 }

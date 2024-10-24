@@ -42,8 +42,7 @@
             } ],
             "title" : "Rounding type",
             "description" : "The type of rounding applied to the selected double cells. (Round: standard rounding, Floor: next smaller integer, Ceil: next bigger integer",
-            "default" : "ROUND",
-            "configKeys" : [ "typeofround" ]
+            "default" : "ROUND"
           },
           "inclCols" : {
             "type" : "object",
@@ -114,7 +113,6 @@
               },
               "selected" : {
                 "default" : [ ],
-                "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -132,7 +130,6 @@
                   },
                   "typeDisplays" : {
                     "default" : [ ],
-                    "subConfigKeys" : [ ],
                     "type" : "array",
                     "items" : {
                       "type" : "object",
@@ -172,16 +169,13 @@
                 "selectedTypes" : [ ],
                 "typeDisplays" : [ ]
               }
-            },
-            "configKeys" : [ "include.filter-type", "include.included_names", "include.excluded_names", "include.enforce_option", "include.name_pattern.pattern", "include.name_pattern.type", "include.name_pattern.caseSensitive", "include.name_pattern.excludeMatching" ],
-            "subConfigKeys" : [ ]
+            }
           },
           "prodLong" : {
             "type" : "boolean",
             "title" : "Create long values",
             "description" : "Use this option to generate 64bit long values instead of 32bit integer values. This is useful if double values in the input are too big to fit into an integer.",
-            "default" : false,
-            "configKeys" : [ "long" ]
+            "default" : false
           }
         }
       }
@@ -223,5 +217,64 @@
         }
       } ]
     } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "inclCols" : {
+            "configPaths" : [ [ "include", "filter-type" ], [ "include", "included_names" ], [ "include", "excluded_names" ], [ "include", "enforce_option" ], [ "include", "name_pattern", "pattern" ], [ "include", "name_pattern", "type" ], [ "include", "name_pattern", "caseSensitive" ], [ "include", "name_pattern", "excludeMatching" ] ],
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : { },
+                  "typeDisplays" : {
+                    "type" : "array",
+                    "configPaths" : [ ],
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : { },
+                        "text" : { }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "calctype" : {
+            "configPaths" : [ [ "typeofround" ] ]
+          },
+          "prodLong" : {
+            "configKey" : "long"
+          }
+        }
+      }
+    }
   }
 }

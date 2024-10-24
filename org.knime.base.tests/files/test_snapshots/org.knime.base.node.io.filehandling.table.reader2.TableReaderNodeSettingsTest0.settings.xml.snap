@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
     <config key="settings">
-        <entry key="prepend_table_index_to_row_id" type="xboolean" value="false"/>
         <config key="file_selection">
             <config key="path">
                 <entry key="location_present" type="xboolean" value="true"/>
@@ -46,18 +45,19 @@
             <entry key="EnabledStatus" type="xboolean" value="true"/>
         </config>
         <entry key="has_row_id" type="xboolean" value="false"/>
+        <entry key="prepend_table_index_to_row_id" type="xboolean" value="false"/>
     </config>
     <config key="advanced_settings">
-        <entry key="skip_data_rows" type="xboolean" value="false"/>
-        <entry key="number_of_rows_to_skip" type="xlong" value="0"/>
-        <entry key="limit_data_rows" type="xboolean" value="false"/>
-        <entry key="max_rows" type="xlong" value="50"/>
         <entry key="fail_on_differing_specs" type="xboolean" value="true"/>
         <entry key="spec_merge_mode" type="xstring" value="UNION"/>
         <entry key="append_path_column_Internals" type="xboolean" value="false"/>
         <entry key="path_column_name_Internals" type="xstring" value="File Path"/>
         <entry key="save_table_spec_config_Internals" type="xboolean" value="true"/>
         <entry key="check_table_spec" type="xboolean" value="true"/>
+        <entry key="skip_data_rows" type="xboolean" value="false"/>
+        <entry key="number_of_rows_to_skip" type="xlong" value="0"/>
+        <entry key="limit_data_rows" type="xboolean" value="false"/>
+        <entry key="max_rows" type="xlong" value="50"/>
     </config>
     <config key="table_spec_config_Internals">
         <entry key="version" type="xstring" value="V4_4"/>

@@ -50,8 +50,7 @@
             } ],
             "title" : "Case sensitive",
             "description" : "Specifies whether matching will distinguish between upper and lower case letters.",
-            "default" : "CASESENSITIVE",
-            "configKeys" : [ "caseSensitive" ]
+            "default" : "CASESENSITIVE"
           },
           "columnSuffix" : {
             "type" : "string",
@@ -183,7 +182,6 @@
               },
               "selected" : {
                 "default" : [ ],
-                "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -201,7 +199,6 @@
                   },
                   "typeDisplays" : {
                     "default" : [ ],
-                    "subConfigKeys" : [ ],
                     "type" : "array",
                     "items" : {
                       "type" : "object",
@@ -377,5 +374,68 @@
         }
       } ]
     } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "targetColumns" : {
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : { },
+                  "typeDisplays" : {
+                    "type" : "array",
+                    "configPaths" : [ ],
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : { },
+                        "text" : { }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "patternType" : { },
+          "enableEscaping" : { },
+          "caseMatching" : {
+            "configPaths" : [ [ "caseSensitive" ] ]
+          },
+          "patternColumn" : { },
+          "replacementColumn" : { },
+          "replacementStrategy" : { },
+          "multipleMatchHandling" : { },
+          "appendColumns" : { },
+          "columnSuffix" : { }
+        }
+      }
+    }
   }
 }

@@ -14,20 +14,17 @@
             "type" : "boolean",
             "title" : "Fail if no assignment in dictionary table",
             "description" : "If selected, the node fails if there is no matching entry of a column name in the dictionary table. Otherwise it will keep the original column name.",
-            "default" : false,
-            "configKeys" : [ "failIfNoMatch" ]
+            "default" : false
           },
           "lookupColumn" : {
             "type" : "string",
             "title" : "Lookup column",
-            "description" : "The column in the 2nd input table containing the \"old\" names of the columns.",
-            "configKeys" : [ "lookupColumn" ]
+            "description" : "The column in the 2nd input table containing the \"old\" names of the columns."
           },
           "valueColumn" : {
             "type" : "string",
             "title" : "Names column",
-            "description" : "The column in the 2nd input table containing the \"new\" names of the columns.",
-            "configKeys" : [ "valueColumn" ]
+            "description" : "The column in the 2nd input table containing the \"new\" names of the columns."
           }
         }
       }
@@ -69,5 +66,24 @@
         "format" : "checkbox"
       }
     } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "lookupColumn" : {
+            "configKey" : "lookupColumn"
+          },
+          "valueColumn" : {
+            "configKey" : "valueColumn"
+          },
+          "failIfNoMatch" : {
+            "configKey" : "failIfNoMatch"
+          }
+        }
+      }
+    }
   }
 }

@@ -104,7 +104,6 @@
               },
               "selected" : {
                 "default" : [ ],
-                "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -122,7 +121,6 @@
                   },
                   "typeDisplays" : {
                     "default" : [ ],
-                    "subConfigKeys" : [ ],
                     "type" : "array",
                     "items" : {
                       "type" : "object",
@@ -162,9 +160,7 @@
                 "selectedTypes" : [ ],
                 "typeDisplays" : [ ]
               }
-            },
-            "configKeys" : [ "column-filter.filter-type", "column-filter.included_names", "column-filter.excluded_names", "column-filter.enforce_option", "column-filter.name_pattern.pattern", "column-filter.name_pattern.type", "column-filter.name_pattern.caseSensitive", "column-filter.name_pattern.excludeMatching" ],
-            "subConfigKeys" : [ ]
+            }
           },
           "delimiter" : {
             "type" : "string",
@@ -181,29 +177,25 @@
               "title" : "Replace delimiters"
             } ],
             "title" : "Handle delimiter inputs",
-            "default" : "QUOTE",
-            "configKeys" : [ "delimiterInputs" ]
+            "default" : "QUOTE"
           },
           "failIfMissingColumns" : {
             "type" : "boolean",
             "title" : "Fail if there are missing columns",
             "description" : "If true the node will fail when there are missing columns selected",
-            "default" : false,
-            "configKeys" : [ "failIfMissingColumns" ]
+            "default" : false
           },
           "outputColumnName" : {
             "type" : "string",
             "title" : "Output column name",
             "description" : "The name of the new column.",
-            "default" : "Combined String",
-            "configKeys" : [ "new_column_name" ]
+            "default" : "Combined String"
           },
           "quoteCharacter" : {
             "type" : "string",
             "title" : "Quote character",
             "description" : "The character entered here will be used to quote the cell content in case that it contains the delimiter string (for instance if the cell content is <i>some;value</i>, the delimiter string is ';' (a single semicolon), and the quote character is '\"' (single quote char) the quoted string will be <i>\"some;value\"</i> (including quotes)). You can force quotation by checking \"Quote Always\". Alternatively, the user can also replace the delimiter  string in the cell content string (see below).",
-            "default" : "\"",
-            "configKeys" : [ "quote_char" ]
+            "default" : "\""
           },
           "quoteInputs" : {
             "oneOf" : [ {
@@ -214,22 +206,19 @@
               "title" : "Only necessary"
             } ],
             "title" : "Quote inputs",
-            "default" : "ONLY_NECESSARY",
-            "configKeys" : [ "is_quoting_always" ]
+            "default" : "ONLY_NECESSARY"
           },
           "removeInputColumns" : {
             "type" : "boolean",
             "title" : "Remove input columns",
             "description" : "If selected, removes the columns in the &quot;Include&quot; list from the output.",
-            "default" : false,
-            "configKeys" : [ "remove_included_columns" ]
+            "default" : false
           },
           "replacementDelimiter" : {
             "type" : "string",
             "title" : "Replacement",
             "description" : "If the string representation of the cell content contains the delimiter string, it will be replaced by the string entered here (if you entered '-' here, the output of the above example would be <i>some-value</i>).",
-            "default" : "",
-            "configKeys" : [ "replace_delimiter" ]
+            "default" : ""
           }
         }
       }
@@ -350,5 +339,76 @@
         }
       } ]
     } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnFilter" : {
+            "configPaths" : [ [ "column-filter", "filter-type" ], [ "column-filter", "included_names" ], [ "column-filter", "excluded_names" ], [ "column-filter", "enforce_option" ], [ "column-filter", "name_pattern", "pattern" ], [ "column-filter", "name_pattern", "type" ], [ "column-filter", "name_pattern", "caseSensitive" ], [ "column-filter", "name_pattern", "excludeMatching" ] ],
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : { },
+                  "typeDisplays" : {
+                    "type" : "array",
+                    "configPaths" : [ ],
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : { },
+                        "text" : { }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "failIfMissingColumns" : { },
+          "delimiter" : { },
+          "delimiterInputs" : { },
+          "quoteCharacter" : {
+            "configKey" : "quote_char"
+          },
+          "quoteInputs" : {
+            "configKey" : "is_quoting_always"
+          },
+          "replacementDelimiter" : {
+            "configKey" : "replace_delimiter"
+          },
+          "outputColumnName" : {
+            "configKey" : "new_column_name"
+          },
+          "removeInputColumns" : {
+            "configKey" : "remove_included_columns"
+          }
+        }
+      }
+    }
   }
 }

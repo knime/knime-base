@@ -88,8 +88,7 @@
             } ],
             "title" : "Compare values in join columns by",
             "description" : "Defines how to compare the values in the join columns:\n<ul>\n<li><b>Value and type</b>: Two rows match only if their values in the join columns selected have the same value and type, e.g. Number (integer) values will never match Number (long) values because they have two different types.</li>\n<li><b>String representation</b>: Use this option if you want the values to be converted to string before comparing them. In this way you compare only the value in the selected join columns.</li>\n<li><b>Make integer types compatible</b>: Use this option to ignore type differences between Number (integer) and Number (long) types.</li>\n</ul>",
-            "default" : "STRICT",
-            "configKeys" : [ "dataCellComparisonMode" ]
+            "default" : "STRICT"
           },
           "duplicateHandling" : {
             "oneOf" : [ {
@@ -196,7 +195,6 @@
               },
               "selected" : {
                 "default" : [ ],
-                "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -214,7 +212,6 @@
                   },
                   "typeDisplays" : {
                     "default" : [ ],
-                    "subConfigKeys" : [ ],
                     "type" : "array",
                     "items" : {
                       "type" : "object",
@@ -254,22 +251,9 @@
                 "selectedTypes" : [ ],
                 "typeDisplays" : [ ]
               }
-            },
-            "configKeys" : [ "leftColumnSelectionConfig.filter-type", "leftColumnSelectionConfig.included_names", "leftColumnSelectionConfig.excluded_names", "leftColumnSelectionConfig.enforce_option", "leftColumnSelectionConfig.name_pattern.pattern", "leftColumnSelectionConfig.name_pattern.type", "leftColumnSelectionConfig.name_pattern.caseSensitive", "leftColumnSelectionConfig.name_pattern.excludeMatching" ],
-            "subConfigKeys" : [ ]
+            }
           },
           "matchingCriteria" : {
-            "title" : "Join columns",
-            "description" : "Defines the columns from the top input ('left' table) and the bottom input ('right' table) that should be used for joining.\nFor two rows to be joined, the row from the left input table must have the same value in column A as the row from the right\n input table in column B. RowIDs can be compared to RowIDs or regular columns, in which case the RowID will be interpreted\n as a string value.\n",
-            "default" : [ {
-              "leftTableColumn" : "<row-keys>",
-              "rightTableColumn" : "<row-keys>"
-            } ],
-            "configKeys" : [ "matchingCriteria" ],
-            "deprecatedConfigKeys" : [ {
-              "new" : [ [ "matchingCriteria" ] ],
-              "deprecated" : [ [ "leftTableJoinPredicate" ], [ "rightTableJoinPredicate" ] ]
-            } ],
             "type" : "array",
             "items" : {
               "type" : "object",
@@ -287,7 +271,13 @@
                   "default" : "<row-keys>"
                 }
               }
-            }
+            },
+            "title" : "Join columns",
+            "description" : "Defines the columns from the top input ('left' table) and the bottom input ('right' table) that should be used for joining.\nFor two rows to be joined, the row from the left input table must have the same value in column A as the row from the right\n input table in column B. RowIDs can be compared to RowIDs or regular columns, in which case the RowID will be interpreted\n as a string value.\n",
+            "default" : [ {
+              "leftTableColumn" : "<row-keys>",
+              "rightTableColumn" : "<row-keys>"
+            } ]
           },
           "maxOpenFiles" : {
             "type" : "integer",
@@ -390,7 +380,6 @@
               },
               "selected" : {
                 "default" : [ ],
-                "configKeys" : [ "selected_Internals" ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -408,7 +397,6 @@
                   },
                   "typeDisplays" : {
                     "default" : [ ],
-                    "subConfigKeys" : [ ],
                     "type" : "array",
                     "items" : {
                       "type" : "object",
@@ -448,9 +436,7 @@
                 "selectedTypes" : [ ],
                 "typeDisplays" : [ ]
               }
-            },
-            "configKeys" : [ "rightColumnSelectionConfig.filter-type", "rightColumnSelectionConfig.included_names", "rightColumnSelectionConfig.excluded_names", "rightColumnSelectionConfig.enforce_option", "rightColumnSelectionConfig.name_pattern.pattern", "rightColumnSelectionConfig.name_pattern.type", "rightColumnSelectionConfig.name_pattern.caseSensitive", "rightColumnSelectionConfig.name_pattern.excludeMatching" ],
-            "subConfigKeys" : [ ]
+            }
           },
           "rowKeyFactory" : {
             "oneOf" : [ {
@@ -657,33 +643,157 @@
           "format" : "checkbox"
         }
       } ]
-    } ],
-    "initialUpdates" : [ {
-      "scopes" : null,
-      "id" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$LeftTableChoices",
-      "values" : [ {
-        "indices" : [ ],
-        "value" : [ {
-          "id" : "test1",
-          "text" : "test1"
-        }, {
-          "id" : "test2",
-          "text" : "test2"
-        } ]
-      } ]
-    }, {
-      "scopes" : null,
-      "id" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$RightTableChoices",
-      "values" : [ {
-        "indices" : [ ],
-        "value" : [ {
-          "id" : "test1",
-          "text" : "test1"
-        }, {
-          "id" : "test2",
-          "text" : "test2"
-        } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "compositionMode" : { },
+          "matchingCriteria" : {
+            "type" : "array",
+            "deprecatedConfigKeys" : [ {
+              "new" : [ [ "matchingCriteria" ] ],
+              "deprecated" : [ [ "leftTableJoinPredicate" ], [ "rightTableJoinPredicate" ] ]
+            } ],
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "leftTableColumn" : { },
+                "rightTableColumn" : { }
+              }
+            }
+          },
+          "dataCellComparisonMode" : { },
+          "includeMatchesInOutput" : { },
+          "includeLeftUnmatchedInOutput" : { },
+          "includeRightUnmatchedInOutput" : { },
+          "leftColumnSelectionConfig" : {
+            "configPaths" : [ [ "leftColumnSelectionConfig", "filter-type" ], [ "leftColumnSelectionConfig", "included_names" ], [ "leftColumnSelectionConfig", "excluded_names" ], [ "leftColumnSelectionConfig", "enforce_option" ], [ "leftColumnSelectionConfig", "name_pattern", "pattern" ], [ "leftColumnSelectionConfig", "name_pattern", "type" ], [ "leftColumnSelectionConfig", "name_pattern", "caseSensitive" ], [ "leftColumnSelectionConfig", "name_pattern", "excludeMatching" ] ],
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : { },
+                  "typeDisplays" : {
+                    "type" : "array",
+                    "configPaths" : [ ],
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : { },
+                        "text" : { }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "rightColumnSelectionConfig" : {
+            "configPaths" : [ [ "rightColumnSelectionConfig", "filter-type" ], [ "rightColumnSelectionConfig", "included_names" ], [ "rightColumnSelectionConfig", "excluded_names" ], [ "rightColumnSelectionConfig", "enforce_option" ], [ "rightColumnSelectionConfig", "name_pattern", "pattern" ], [ "rightColumnSelectionConfig", "name_pattern", "type" ], [ "rightColumnSelectionConfig", "name_pattern", "caseSensitive" ], [ "rightColumnSelectionConfig", "name_pattern", "excludeMatching" ] ],
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : { },
+                  "typeDisplays" : {
+                    "type" : "array",
+                    "configPaths" : [ ],
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : { },
+                        "text" : { }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "mergeJoinColumns" : { },
+          "duplicateHandling" : { },
+          "suffix" : { },
+          "outputUnmatchedRowsToSeparatePorts" : { },
+          "rowKeyFactory" : { },
+          "rowKeySeparator" : { },
+          "outputRowOrder" : { },
+          "maxOpenFiles" : { },
+          "enableHiliting" : { }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$LeftTableChoices",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test1",
+        "text" : "test1"
+      }, {
+        "id" : "test2",
+        "text" : "test2"
       } ]
     } ]
-  }
+  }, {
+    "scopes" : null,
+    "id" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$RightTableChoices",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test1",
+        "text" : "test1"
+      }, {
+        "id" : "test2",
+        "text" : "test2"
+      } ]
+    } ]
+  } ]
 }

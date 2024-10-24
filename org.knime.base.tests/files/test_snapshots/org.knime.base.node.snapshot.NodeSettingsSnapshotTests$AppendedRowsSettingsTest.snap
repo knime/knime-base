@@ -26,15 +26,13 @@
             } ],
             "title" : "How to combine input columns",
             "description" : "Choose the output column selection process:<ul>\n<li><b>Union</b>: Use all columns from all input tables. Fill rows with missing values if they miss cells\n    for some columns.</li>\n<li><b>Intersection</b>: Use only the columns that appear in every input table. Any other column is ignored\n    and won't appear in the output table.</li>\n</ul>\n",
-            "default" : "UNION",
-            "configKeys" : [ "intersection_of_columns" ]
+            "default" : "UNION"
           },
           "enableHiliting" : {
             "type" : "boolean",
             "title" : "Enable hiliting",
             "description" : "Enable hiliting between both inputs and the concatenated output table.",
-            "default" : false,
-            "configKeys" : [ "enable_hiliting" ]
+            "default" : false
           },
           "rowIdStrategy" : {
             "type" : "object",
@@ -70,16 +68,14 @@
                 "type" : "string",
                 "title" : "Suffix",
                 "description" : "The suffix to be appended to RowIDs.",
-                "default" : "_dup",
-                "configKeys" : [ "suffix" ]
+                "default" : "_dup"
               }
             },
             "default" : {
               "strategy" : "CREATE_NEW",
               "rowIdResolution" : "APPEND",
               "suffix" : "_dup"
-            },
-            "configKeys" : [ "create_new_rowids", "append_suffix", "fail_on_duplicates" ]
+            }
           }
         }
       }
@@ -147,5 +143,24 @@
         "isAdvanced" : true
       }
     } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnSetOperation" : {
+            "configPaths" : [ [ "intersection_of_columns" ] ]
+          },
+          "rowIdStrategy" : {
+            "configPaths" : [ [ "create_new_rowids" ], [ "append_suffix" ], [ "fail_on_duplicates" ] ]
+          },
+          "enableHiliting" : {
+            "configKey" : "enable_hiliting"
+          }
+        }
+      }
+    }
   }
 }

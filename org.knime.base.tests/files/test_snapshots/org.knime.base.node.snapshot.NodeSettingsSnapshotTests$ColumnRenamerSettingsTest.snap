@@ -14,12 +14,6 @@
         "type" : "object",
         "properties" : {
           "renamings" : {
-            "title" : "Renamings",
-            "description" : "Allows to define new names for columns.",
-            "default" : [ {
-              "oldName" : "test2",
-              "newName" : "test2"
-            } ],
             "type" : "array",
             "items" : {
               "type" : "object",
@@ -36,7 +30,13 @@
                   "description" : "The column to rename."
                 }
               }
-            }
+            },
+            "title" : "Renamings",
+            "description" : "Allows to define new names for columns.",
+            "default" : [ {
+              "oldName" : "test2",
+              "newName" : "test2"
+            } ]
           }
         }
       }
@@ -77,5 +77,25 @@
         "addButtonText" : "Add column"
       }
     } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "renamings" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "oldName" : { },
+                "newName" : { }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }

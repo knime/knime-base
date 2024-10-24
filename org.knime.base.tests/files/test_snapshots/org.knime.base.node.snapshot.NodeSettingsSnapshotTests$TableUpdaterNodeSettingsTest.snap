@@ -72,5 +72,18 @@
         "format" : "checkbox"
       }
     } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "unmatchedColumnsHandling" : { },
+          "unmatchedRowsHandling" : { },
+          "performUpdateWithMissingValues" : { }
+        }
+      }
+    }
   }
 }

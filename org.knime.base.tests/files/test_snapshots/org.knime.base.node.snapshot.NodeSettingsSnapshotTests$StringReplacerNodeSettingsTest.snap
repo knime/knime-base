@@ -25,41 +25,35 @@
             } ],
             "title" : "Case sensitive",
             "description" : "Specifies whether matching will distinguish between upper and lower case letters.",
-            "default" : "CASESENSITIVE",
-            "configKeys" : [ "caseSensitive" ]
+            "default" : "CASESENSITIVE"
           },
           "colName" : {
             "type" : "string",
             "title" : "Target column",
-            "description" : "Select the column in which the strings should be replaced.",
-            "configKeys" : [ "colName" ]
+            "description" : "Select the column in which the strings should be replaced."
           },
           "createNewCol" : {
             "type" : "boolean",
             "title" : "Append new column",
             "description" : "If enabled, the strings will not be replaced in-place but a new column is appended that contains the\noriginal string with the replacement applied.\n",
-            "default" : false,
-            "configKeys" : [ "createNewCol" ]
+            "default" : false
           },
           "enableEscaping" : {
             "type" : "boolean",
             "title" : "Use backslash as escape character",
             "description" : "If checked, the backslash character can be used to escape special characters. For instance, <tt>\\?</tt>\nwill match the literal character <tt>?</tt> instead of an arbitrary character. In order to match a\nbackslash you need to escape the backslash, too (<tt>\\</tt>).\n",
-            "default" : false,
-            "configKeys" : [ "enableEscaping" ]
+            "default" : false
           },
           "newColName" : {
             "type" : "string",
             "title" : "New column name",
             "description" : "The name of the created column with replaced strings",
-            "default" : "ReplacedColumn",
-            "configKeys" : [ "newColName" ]
+            "default" : "ReplacedColumn"
           },
           "pattern" : {
             "type" : "string",
             "title" : "Pattern",
-            "description" : "A literal string, wildcard pattern or regular expression, depending on the pattern type selected above.\n",
-            "configKeys" : [ "pattern" ]
+            "description" : "A literal string, wildcard pattern or regular expression, depending on the pattern type selected above.\n"
           },
           "patternType" : {
             "oneOf" : [ {
@@ -74,18 +68,12 @@
             } ],
             "title" : "Pattern type",
             "description" : "Select the type of pattern which you want to use.\n<ul>\n    <li><i>Literal</i> matches the pattern as is.</li>\n    <li>\n        <i>Wildcard</i> matches <tt>*</tt> to zero or more arbitrary characters and matches\n        <tt>?</tt> to any single character.\n    </li>\n    <li>\n        <i>Regular expression</i>\n        matches using the full functionality of Java regular expressions, including back references\n        in the replacement text. See the\n        <a href=\"http://docs.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html\">Java API\n        </a> for details.\n    </li>\n</ul>\n",
-            "default" : "LITERAL",
-            "configKeys" : [ "patternType" ],
-            "deprecatedConfigKeys" : [ {
-              "new" : [ [ "patternType" ] ],
-              "deprecated" : [ [ "findPattern" ], [ "patternIsRegex" ] ]
-            } ]
+            "default" : "LITERAL"
           },
           "replacement" : {
             "type" : "string",
             "title" : "Replacement text",
-            "description" : "The text that replaces the previous value in the cell if the pattern matched it. If you are using a\nregular expression, you may also use backreferences (e.g. <tt>$1</tt> to refer to the first capture group,\nnamed capture groups can also be used with <tt>(?&lt;group&gt;)</tt> and <tt>${group}</tt> to refer to\nthem).\n",
-            "configKeys" : [ "replacement" ]
+            "description" : "The text that replaces the previous value in the cell if the pattern matched it. If you are using a\nregular expression, you may also use backreferences (e.g. <tt>$1</tt> to refer to the first capture group,\nnamed capture groups can also be used with <tt>(?&lt;group&gt;)</tt> and <tt>${group}</tt> to refer to\nthem).\n"
           },
           "replacementStrategy" : {
             "oneOf" : [ {
@@ -97,8 +85,7 @@
             } ],
             "title" : "Replacement strategy",
             "description" : "Select what to replace in case a string matches a pattern.\n<ul>\n    <li>\n        <i>Whole string</i> replaces the entire string with the replacement string, requiring an\n        exact  match of the whole string.\n    </li>\n    <li>\n        <i>All occurrences</i> replaces all occurrences of the pattern with the replacement string.\n        Note that when e.g. matching on the RegEx-pattern <tt>.*</tt>, an empty string at the end\n        of the input is also matched and replaced. To avoid that, use e.g. the pattern <tt>^.*</tt>\n        to indicate that the match has to start at the beginning of the string.\n    </li>\n</ul>\n",
-            "default" : "WHOLE_STRING",
-            "configKeys" : [ "replaceAllOccurences" ]
+            "default" : "WHOLE_STRING"
           }
         }
       }
@@ -191,5 +178,45 @@
         }
       } ]
     } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "colName" : {
+            "configKey" : "colName"
+          },
+          "patternType" : {
+            "deprecatedConfigKeys" : [ {
+              "new" : [ [ "patternType" ] ],
+              "deprecated" : [ [ "findPattern" ], [ "patternIsRegex" ] ]
+            } ]
+          },
+          "enableEscaping" : {
+            "configKey" : "enableEscaping"
+          },
+          "caseMatching" : {
+            "configPaths" : [ [ "caseSensitive" ] ]
+          },
+          "pattern" : {
+            "configKey" : "pattern"
+          },
+          "replacement" : {
+            "configKey" : "replacement"
+          },
+          "replacementStrategy" : {
+            "configPaths" : [ [ "replaceAllOccurences" ] ]
+          },
+          "createNewCol" : {
+            "configKey" : "createNewCol"
+          },
+          "newColName" : {
+            "configKey" : "newColName"
+          }
+        }
+      }
+    }
   }
 }

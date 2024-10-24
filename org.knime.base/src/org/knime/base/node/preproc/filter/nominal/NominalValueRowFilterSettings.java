@@ -53,7 +53,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
@@ -64,7 +63,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.EnumFieldPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultPersistorWithDeprecations;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyNameFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.NameFilter;
@@ -163,9 +162,6 @@ public class NominalValueRowFilterSettings implements DefaultNodeSettings {
 
         private LegacyNameFilterPersistor m_legacyNameFilterPersistor;
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public void setConfigKey(final String configKey) {
             super.setConfigKey(configKey);
@@ -175,11 +171,12 @@ public class NominalValueRowFilterSettings implements DefaultNodeSettings {
 
         @Override
         public NameFilter load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            if (settings.containsKey(CFG_SELECTED_ATTR)) {
-                String[] selected = settings.getStringArray(CFG_SELECTED_ATTR);
-                return new NameFilter(selected);
-            }
             return m_legacyNameFilterPersistor.load(settings);
+        }
+
+        private static NameFilter loadFromSelectedAttr(final NodeSettingsRO settings) throws InvalidSettingsException {
+            String[] selected = settings.getStringArray(CFG_SELECTED_ATTR);
+            return new NameFilter(selected);
         }
 
         @Override
@@ -188,19 +185,14 @@ public class NominalValueRowFilterSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public String[][] getSubConfigKeys() {
-            return m_legacyNameFilterPersistor.getSubConfigKeys();
-        }
-
-        @Override
-        public ConfigsDeprecation[] getConfigsDeprecations() {
-            final var deprecationBuilder = new ConfigsDeprecation.Builder().forDeprecatedConfigPath(CFG_SELECTED_ATTR);
-            for (var subConfigKeys : LegacyNameFilterPersistor.subConfigKeys()) {
-                final var newConfigPath = Stream
-                    .concat(Stream.of(getConfigKey()), Arrays.asList(subConfigKeys).stream()).toArray(String[]::new);
-                deprecationBuilder.forNewConfigPath(newConfigPath);
+        public List<ConfigsDeprecation<NameFilter>> getConfigsDeprecations() {
+            final var deprecationBuilder =
+                ConfigsDeprecation.builder(LegacyNameFilterOrSelectedAttrPersistor::loadFromSelectedAttr)
+                    .withDeprecatedConfigPath(CFG_SELECTED_ATTR);
+            for (var configPath : m_legacyNameFilterPersistor.getConfigPaths()) {
+                deprecationBuilder.withNewConfigPath(configPath);
             }
-            return new ConfigsDeprecation[]{deprecationBuilder.build()};
+            return List.of(deprecationBuilder.build());
         }
 
         @Override
@@ -245,50 +237,35 @@ public class NominalValueRowFilterSettings implements DefaultNodeSettings {
             INCLUDE, //
     }
 
-    static final class MissingValueHandlingPersistor extends NodeSettingsPersistorWithConfigKey<MissingValueHandling> {
+    static final class MissingValueHandlingPersistor extends NodeSettingsPersistorWithConfigKey<MissingValueHandling>
+        implements DefaultPersistorWithDeprecations<MissingValueHandling> {
 
         private static final String KEY_INCLUDE_MISSING = "include_missing";
 
-        private EnumFieldPersistor<MissingValueHandling> m_persistor;
-
         @Override
-        public void setConfigKey(final String configKey) {
-            super.setConfigKey(configKey);
-            m_persistor = new EnumFieldPersistor<>(configKey, MissingValueHandling.class);
+        public List<ConfigsDeprecation<MissingValueHandling>> getConfigsDeprecations() {
+
+            return List.of(
+                /**
+                 * For backwards compatibility with initial version consisting of selected_column and selected_attr. The
+                 * default is "EXCLUDE" based on the default in {@link NominalValueFilterConfiguration}.
+                 */
+                ConfigsDeprecation.builder(settings -> MissingValueHandling.EXCLUDE) //
+                    .withMatcher(settings -> !settings.containsKey(getConfigKey())
+                        && !settings.containsKey(NominalValueRowSplitterNodeDialog.CFG_CONFIGROOTNAME))
+                    .withNewConfigPath(getConfigKey()).build(), //
+
+                ConfigsDeprecation.builder(MissingValueHandlingPersistor::loadFromNominalValueRowSplitterIncludeMissing)//
+                    .withNewConfigPath(getConfigKey())//
+                    .withDeprecatedConfigPath(NominalValueRowSplitterNodeDialog.CFG_CONFIGROOTNAME, KEY_INCLUDE_MISSING)//
+                    .build());
         }
 
-        @Override
-        public MissingValueHandling load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            // key for setting in current version of the node
-            if (settings.containsKey(getConfigKey())) {
-                return m_persistor.load(settings);
-            }
-
-            // key for setting in previous version of the node
-            if (settings.containsKey(NominalValueRowSplitterNodeDialog.CFG_CONFIGROOTNAME)) {
-                final var nameFilterConfig =
-                    settings.getNodeSettings(NominalValueRowSplitterNodeDialog.CFG_CONFIGROOTNAME);
-                return nameFilterConfig.getBoolean(KEY_INCLUDE_MISSING) ? MissingValueHandling.INCLUDE
-                    : MissingValueHandling.EXCLUDE;
-
-            }
-            /**
-             * For backwards compatibility with initial version consisting of selected_column and selected_attr. The
-             * default is "EXCLUDE" based on the default in {@link NominalValueFilterConfiguration}.
-             */
-            return MissingValueHandling.EXCLUDE;
-        }
-
-        @Override
-        public void save(final MissingValueHandling obj, final NodeSettingsWO settings) {
-            m_persistor.save(obj, settings);
-        }
-
-        @Override
-        public ConfigsDeprecation[] getConfigsDeprecations() {
-            return new ConfigsDeprecation[]{new ConfigsDeprecation.Builder().forNewConfigPath(getConfigKey())
-                .forDeprecatedConfigPath(NominalValueRowSplitterNodeDialog.CFG_CONFIGROOTNAME, KEY_INCLUDE_MISSING)
-                .build()};
+        private static MissingValueHandling loadFromNominalValueRowSplitterIncludeMissing(final NodeSettingsRO settings)
+            throws InvalidSettingsException {
+            final var nameFilterConfig = settings.getNodeSettings(NominalValueRowSplitterNodeDialog.CFG_CONFIGROOTNAME);
+            return nameFilterConfig.getBoolean(KEY_INCLUDE_MISSING) ? MissingValueHandling.INCLUDE
+                : MissingValueHandling.EXCLUDE;
         }
     }
 

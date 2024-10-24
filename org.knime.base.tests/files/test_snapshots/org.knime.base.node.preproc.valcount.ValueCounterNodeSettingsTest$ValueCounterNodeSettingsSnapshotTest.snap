@@ -63,5 +63,17 @@
         "isAdvanced" : true
       }
     } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnName" : { },
+          "hiliting" : { }
+        }
+      }
+    }
   }
 }
