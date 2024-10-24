@@ -47,10 +47,10 @@
  */
 package org.knime.base.node.preproc.stringreplacer;
 
-import org.knime.base.node.preproc.stringreplacer.StringReplacerNodeSettings.PatternTypePersistor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.EnumFieldPersistor;
 
 /**
  * This class holds the settings for the string replacer node.
@@ -61,6 +61,7 @@ public class StringReplacerSettings {
 
     /**
      * Whether to match a pattern (true) or a literal string (false)
+     *
      * @deprecated since 5.4, use {@link #CFG_PATTERN_TYPE} instead
      */
     @Deprecated(since = "5.4")
@@ -69,6 +70,7 @@ public class StringReplacerSettings {
     /**
      * Whether the provided pattern is a regular expression (true) or a wildcard pattern (false). Only relevant if
      * {@link StringReplacerSettings#CFG_FIND_PATTERN} is true.
+     *
      * @deprecated since 5.4, use {@link #CFG_PATTERN_TYPE} instead
      */
     @Deprecated(since = "5.4")
@@ -258,7 +260,7 @@ public class StringReplacerSettings {
         m_enableEscaping = settings.getBoolean(CFG_ENABLE_ESCAPING, false);
 
         /** @since 5.4 */
-        m_patternType = new PatternTypePersistor().load(settings);
+        m_patternType = loadPatternType(settings);
     }
 
     /**
@@ -278,9 +280,20 @@ public class StringReplacerSettings {
 
         /** @since 5.4 */
         try {
-            m_patternType = new PatternTypePersistor().load(settings);
+            m_patternType = loadPatternType(settings);
         } catch (InvalidSettingsException e) {
             m_patternType = PatternType.DEFAULT;
+        }
+    }
+
+    private static PatternType loadPatternType(final NodeSettingsRO settings) throws InvalidSettingsException {
+        if (settings.containsKey(CFG_PATTERN_TYPE)) {
+            return new EnumFieldPersistor<>(CFG_PATTERN_TYPE, PatternType.class).load(settings);
+        } else if (settings.getBoolean(StringReplacerSettings.CFG_FIND_PATTERN, true)) {
+            final var isRegex = settings.getBoolean(StringReplacerSettings.CFG_PATTERN_IS_REGEX);
+            return isRegex ? PatternType.REGEX : PatternType.WILDCARD;
+        } else {
+            return PatternType.LITERAL;
         }
     }
 

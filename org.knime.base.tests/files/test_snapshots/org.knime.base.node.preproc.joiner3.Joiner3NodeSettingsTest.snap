@@ -655,7 +655,7 @@
           "matchingCriteria" : {
             "type" : "array",
             "deprecatedConfigKeys" : [ {
-              "new" : [ [ "matchingCriteria" ] ],
+              "new" : [ [ ] ],
               "deprecated" : [ [ "leftTableJoinPredicate" ], [ "rightTableJoinPredicate" ] ]
             } ],
             "items" : {

@@ -53,14 +53,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation.Builder;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultFieldNodeSettingsPersistorFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultPersistorWithDeprecations;
 import org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings.DateTimeField;
 import org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings.ExtractField;
 
@@ -69,34 +64,52 @@ import org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings.Extrac
  * @author Christian Albrecht, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public class DateTimeFieldsPersistor extends NodeSettingsPersistorWithConfigKey<ExtractField[]> {
+public class DateTimeFieldsPersistor implements DefaultPersistorWithDeprecations<ExtractField[]> {
 
     // used legacy keys (and subsecond values)
     static final String YEAR = "Year";
+
     static final String YEAR_WEEK_BASED = "Year (week-based)";
+
     static final String QUARTER = "Quarter";
+
     static final String MONTH_NUMBER = "Month (number)";
+
     static final String MONTH_NAME = "Month (name)";
+
     static final String WEEK = "Week";
+
     static final String DAY_OF_YEAR = "Day of year";
+
     static final String DAY_OF_MONTH = "Day of month";
+
     static final String DAY_OF_WEEK_NUMBER = "Day of week (number)";
+
     static final String DAY_OF_WEEK_NAME = "Day of week (name)";
+
     static final String HOUR = "Hour";
+
     static final String MINUTE = "Minute";
+
     static final String SECOND = "Second";
+
     static final String SUBSECOND = "Subsecond in";
+
     static final String SUBSECOND_UNITS = "subsecond_units";
+
     static final String MILLISECOND = "milliseconds";
+
     static final String MICROSECOND = "microseconds";
+
     static final String NANOSECOND = "nanoseconds";
+
     static final String TIME_ZONE_NAME = "Time zone name";
+
     static final String TIME_ZONE_OFFSET = "Time zone offset";
 
-    private static String[] topLevelKeys = new String[] {
-        YEAR, YEAR_WEEK_BASED, QUARTER, MONTH_NUMBER, MONTH_NAME, WEEK, DAY_OF_YEAR, DAY_OF_MONTH, DAY_OF_WEEK_NUMBER,
-        DAY_OF_WEEK_NAME, HOUR, MINUTE, SECOND, SUBSECOND, TIME_ZONE_NAME, TIME_ZONE_OFFSET
-    };
+    private static String[] topLevelKeys =
+        new String[]{YEAR, YEAR_WEEK_BASED, QUARTER, MONTH_NUMBER, MONTH_NAME, WEEK, DAY_OF_YEAR, DAY_OF_MONTH,
+            DAY_OF_WEEK_NUMBER, DAY_OF_WEEK_NAME, HOUR, MINUTE, SECOND, SUBSECOND, TIME_ZONE_NAME, TIME_ZONE_OFFSET};
 
     private static Map<String, DateTimeField> fieldMap = new HashMap<>();
     static {
@@ -118,27 +131,6 @@ public class DateTimeFieldsPersistor extends NodeSettingsPersistorWithConfigKey<
         fieldMap.put(NANOSECOND, DateTimeField.NANOSECOND);
         fieldMap.put(TIME_ZONE_NAME, DateTimeField.TIME_ZONE_NAME);
         fieldMap.put(TIME_ZONE_OFFSET, DateTimeField.TIME_ZONE_OFFSET);
-    }
-
-    private NodeSettingsPersistor<ExtractField[]> m_persistor;
-
-    @Override
-    public void setConfigKey(final String configKey) {
-        super.setConfigKey(configKey);
-        m_persistor =
-            DefaultFieldNodeSettingsPersistorFactory.createDefaultPersistor(ExtractField[].class, getConfigKey());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ExtractField[] load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        if (oldSettingsUsed(settings)) {
-            return constructExtractFieldsFromLegacy(settings);
-        } else {
-            return m_persistor.load(settings);
-        }
     }
 
     private static boolean oldSettingsUsed(final NodeSettingsRO settings) {
@@ -174,22 +166,14 @@ public class DateTimeFieldsPersistor extends NodeSettingsPersistorWithConfigKey<
     }
 
     @Override
-    public ConfigsDeprecation[] getConfigsDeprecations() {
-        Builder configBuilder =
-            new ConfigsDeprecation.Builder().forNewConfigPath(getConfigKey());
+    public List<ConfigsDeprecation<ExtractField[]>> getConfigsDeprecations() {
+        final var builder = ConfigsDeprecation.builder(DateTimeFieldsPersistor::constructExtractFieldsFromLegacy)
+            .withMatcher(DateTimeFieldsPersistor::oldSettingsUsed);
         for (String settingKey : topLevelKeys) {
-            configBuilder.forDeprecatedConfigPath(settingKey);
+            builder.withDeprecatedConfigPath(settingKey);
         }
-        configBuilder.forDeprecatedConfigPath(SUBSECOND_UNITS);
-        return new ConfigsDeprecation[]{configBuilder.build()};
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void save(final ExtractField[] obj, final NodeSettingsWO settings) {
-        m_persistor.save(obj, settings);
+        builder.withDeprecatedConfigPath(SUBSECOND_UNITS);
+        return List.of(builder.build());
     }
 
 }

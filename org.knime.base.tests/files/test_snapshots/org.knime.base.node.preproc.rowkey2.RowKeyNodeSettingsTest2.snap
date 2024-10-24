@@ -279,13 +279,13 @@
           "replaceRowKey" : { },
           "replaceRowKeyMode" : {
             "deprecatedConfigKeys" : [ {
-              "new" : [ [ "replaceRowKeyMode" ] ],
+              "new" : [ [ ] ],
               "deprecated" : [ [ "newRowKeyColumnName" ] ]
             } ]
           },
           "newRowKeyColumnV2" : {
             "deprecatedConfigKeys" : [ {
-              "new" : [ [ "newRowKeyColumnV2" ] ],
+              "new" : [ [ ] ],
               "deprecated" : [ [ "newRowKeyColumnName" ] ]
             } ]
           },
