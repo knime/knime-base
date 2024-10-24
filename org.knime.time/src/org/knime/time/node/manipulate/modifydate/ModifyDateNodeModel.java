@@ -138,7 +138,7 @@ final class ModifyDateNodeModel extends SimpleStreamableFunctionNodeModel {
     public static SettingsModelString createSuffixModel(final SettingsModelString replaceOrAppendModel) {
         final SettingsModelString suffixModel = new SettingsModelString("suffix", "(modified date)");
         replaceOrAppendModel.addChangeListener(
-            e -> suffixModel.setEnabled(replaceOrAppendModel.getStringValue().equals(OPTION_APPEND)));
+            e -> suffixModel.setEnabled(replaceOrAppendModel.getStringValue().equals(OPTION_REPLACE)));
         suffixModel.setEnabled(false);
         return suffixModel;
     }
@@ -184,7 +184,7 @@ final class ModifyDateNodeModel extends SimpleStreamableFunctionNodeModel {
 
     /** @return the string select model, used in both dialog and model. */
     static SettingsModelString createModifySelectModel() {
-        return new SettingsModelString("modify_select", MODIFY_OPTION_APPEND);
+        return new SettingsModelString("modify_select", MODIFY_OPTION_CHANGE);
     }
 
     /** {@inheritDoc} */
