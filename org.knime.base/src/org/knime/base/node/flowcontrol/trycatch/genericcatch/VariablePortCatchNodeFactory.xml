@@ -14,9 +14,11 @@
         </intro>
         <option name="Always populate error variables">If selected, the variables will also be generated when the node is not failing
         with the default values as selected.</option>
-        <option name="Default for FailingNode variable:">Default value for the FailingNode variable, if no node is failing.</option>
-        <option name="Default for FailingNodeMessage variable:">Default value for the FailingNodeMessage variable, if no node is failing.</option>
-        <option name="Default for FailingNodeStackTrace variable:">Default value for the FailingNodeStackTrace variable, if no node is failing.</option>
+        <option name="Default for 'FailingNode' variable">Default value for the 'FailingNode' variable, if no node is failing.</option>
+        <option name="Default for 'FailingNodeMessage' variable">Default value for the 'FailingNodeMessage' variable, if no node is failing.</option>
+        <option name="Default for 'FailingNodeDetails' variable">Default value for the 'FailingNodeDetails' variable, if no node is failing. 
+            Since this option was added in 5.4, existing nodes will be initialized with the default for the 'FailingNodeMessage' value.</option>
+        <option name="Default for 'FailingNodeStackTrace' variable">Default value for the 'FailingNodeStackTrace' variable, if no node is failing.</option>
 		<option name="Propagate Variables">If selected, variables defined (or modified) within the 
 			<i>Try-Catch</i> block are propagated downstream of this <i>Catch Errors</i> node.
 			In most cases users will want to check this box (which is also the default). Previous 

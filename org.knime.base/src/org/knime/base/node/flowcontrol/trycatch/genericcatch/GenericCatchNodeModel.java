@@ -90,10 +90,17 @@ final class GenericCatchNodeModel extends NodeModel
     static final String VAR_FAILING_DETAILS = "FailingNodeDetails";
     static final String VAR_FAILING_STACKTRACE = "FailingNodeStackTrace";
 
+    private static final String CFG_FAILING_NAME = "CFG_DEFAULT_TEXT_VARIABLE";
+    private static final String CFG_FAILING_MESSAGE = "CFG_DEFAULT_TEXT_MESSAGE";
+    private static final String CFG_FAILING_DETAILS = "CFG_DEFAULT_TEXT_DETAILS";
+    private static final String CFG_FAILING_STACKTRACE = "CFG_DEFAULT_STACK_TRACE";
+
     // new since 2.11
     private final SettingsModelBoolean m_alwaysPopulate = getAlwaysPopulate();
-    private final SettingsModelString m_defaultText = getDefaultMessage(m_alwaysPopulate);
+
     private final SettingsModelString m_defaultVariable = getDefaultVariable(m_alwaysPopulate);
+    private final SettingsModelString m_defaultMessage = getDefaultMessage(m_alwaysPopulate);
+    private final SettingsModelString m_defaultDetails = getDefaultDetails(m_alwaysPopulate);
     private final SettingsModelString m_defaultStackTrace = getDefaultStackTrace(m_alwaysPopulate);
 
     // added in 4.4
@@ -129,8 +136,8 @@ final class GenericCatchNodeModel extends NodeModel
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         if (m_alwaysPopulate.getBooleanValue()) {
             pushFlowVariableString(VAR_FAILING_NAME, m_defaultVariable.getStringValue());
-            pushFlowVariableString(VAR_FAILING_MESSAGE, m_defaultText.getStringValue());
-            pushFlowVariableString(VAR_FAILING_DETAILS, m_defaultText.getStringValue());
+            pushFlowVariableString(VAR_FAILING_MESSAGE, m_defaultMessage.getStringValue());
+            pushFlowVariableString(VAR_FAILING_DETAILS, m_defaultDetails.getStringValue());
             pushFlowVariableString(VAR_FAILING_STACKTRACE, m_defaultStackTrace.getStringValue());
         }
 
@@ -163,8 +170,8 @@ final class GenericCatchNodeModel extends NodeModel
                 pushFlowVariableString(VAR_FAILING_STACKTRACE, ftcc.getStacktrace());
             } else if (m_alwaysPopulate.getBooleanValue()) {
                 pushFlowVariableString(VAR_FAILING_NAME, m_defaultVariable.getStringValue());
-                pushFlowVariableString(VAR_FAILING_MESSAGE, m_defaultText.getStringValue());
-                pushFlowVariableString(VAR_FAILING_DETAILS, m_defaultText.getStringValue());
+                pushFlowVariableString(VAR_FAILING_MESSAGE, m_defaultMessage.getStringValue());
+                pushFlowVariableString(VAR_FAILING_DETAILS, m_defaultDetails.getStringValue());
                 pushFlowVariableString(VAR_FAILING_STACKTRACE, m_defaultStackTrace.getStringValue());
             }
             resultPort0 = inData[1];
@@ -194,10 +201,12 @@ final class GenericCatchNodeModel extends NodeModel
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_alwaysPopulate.saveSettingsTo(settings);
-        m_defaultText.saveSettingsTo(settings);
-        m_defaultVariable.saveSettingsTo(settings);
-        m_defaultStackTrace.saveSettingsTo(settings);
         m_propagateVariables.saveSettingsTo(settings);
+
+        m_defaultVariable.saveSettingsTo(settings);
+        m_defaultMessage.saveSettingsTo(settings);
+        m_defaultDetails.saveSettingsTo(settings);
+        m_defaultStackTrace.saveSettingsTo(settings);
     }
 
     /**
@@ -205,15 +214,19 @@ final class GenericCatchNodeModel extends NodeModel
      */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        if (settings.containsKey(m_defaultText.getKey())) {
+        if (settings.containsKey(m_defaultMessage.getKey())) {
             m_alwaysPopulate.validateSettings(settings);
-            m_defaultText.validateSettings(settings);
+            m_defaultMessage.validateSettings(settings);
             m_defaultVariable.validateSettings(settings);
             m_defaultStackTrace.validateSettings(settings);
         }
         // added in 4.4 (but if present it needs to be "valid")
         if (settings.containsKey(m_propagateVariables.getConfigName())) {
             m_propagateVariables.validateSettings(settings);
+        }
+        // added in 5.4 (but if present it needs to be "valid")
+        if (settings.containsKey(CFG_FAILING_DETAILS)) {
+            m_defaultDetails.validateSettings(settings);
         }
     }
 
@@ -222,10 +235,11 @@ final class GenericCatchNodeModel extends NodeModel
      */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        if (settings.containsKey(m_defaultText.getKey())) {
+        if (settings.containsKey(m_defaultMessage.getKey())) {
             m_alwaysPopulate.loadSettingsFrom(settings);
-            m_defaultText.loadSettingsFrom(settings);
+
             m_defaultVariable.loadSettingsFrom(settings);
+            m_defaultMessage.loadSettingsFrom(settings);
             m_defaultStackTrace.loadSettingsFrom(settings);
         }
         // setting was added in 4.4 (AP-16447)
@@ -235,29 +249,30 @@ final class GenericCatchNodeModel extends NodeModel
             // was 'false' in prior versions
             m_propagateVariables.setBooleanValue(false);
         }
+        // setting was added in 5.4 (AP-23343)
+        if (settings.containsKey(CFG_FAILING_DETAILS)) {
+            m_defaultDetails.loadSettingsFrom(settings);
+        } else {
+            // set to error message default for prior versions
+            m_defaultDetails.setStringValue(m_defaultMessage.getStringValue());
+        }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void reset() {
+        // nothing to do
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
             throws IOException, CanceledExecutionException {
+        // nothing to do
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
             throws IOException, CanceledExecutionException {
+        // nothing to do
     }
 
     /**
@@ -269,19 +284,28 @@ final class GenericCatchNodeModel extends NodeModel
 
     /**
      * @param alwaysPopulateModel For enable/disable-ment
-     * @return the SM for the default text message if the node is failing.
+     * @return the SM for the default variable if the is failing
      */
-    static SettingsModelString getDefaultMessage(final SettingsModelBoolean alwaysPopulateModel) {
-        return registerEnablementListener(new SettingsModelString("CFG_DEFAULT_TEXT_MESSAGE", "none"),
+    static SettingsModelString getDefaultVariable(final SettingsModelBoolean alwaysPopulateModel) {
+        return registerEnablementListener(new SettingsModelString(CFG_FAILING_NAME, "none"),
             alwaysPopulateModel);
     }
 
     /**
      * @param alwaysPopulateModel For enable/disable-ment
-     * @return the SM for the default variable if the is failing
+     * @return the SM for the default text message if the node is failing.
      */
-    static SettingsModelString getDefaultVariable(final SettingsModelBoolean alwaysPopulateModel) {
-        return registerEnablementListener(new SettingsModelString("CFG_DEFAULT_TEXT_VARIABLE", "none"),
+    static SettingsModelString getDefaultMessage(final SettingsModelBoolean alwaysPopulateModel) {
+        return registerEnablementListener(new SettingsModelString(CFG_FAILING_MESSAGE, "none"),
+            alwaysPopulateModel);
+    }
+
+    /**
+     * @param alwaysPopulateModel For enable/disable-ment
+     * @return the SM for the default text details if the node is failing.
+     */
+    static SettingsModelString getDefaultDetails(final SettingsModelBoolean alwaysPopulateModel) {
+        return registerEnablementListener(new SettingsModelString(CFG_FAILING_DETAILS, "none"),
             alwaysPopulateModel);
     }
 
@@ -290,7 +314,7 @@ final class GenericCatchNodeModel extends NodeModel
      * @return the SM for the default variable if the is failing
      */
     static SettingsModelString getDefaultStackTrace(final SettingsModelBoolean alwaysPopulateModel) {
-        return registerEnablementListener(new SettingsModelString("CFG_DEFAULT_STACK_TRACE", "none"),
+        return registerEnablementListener(new SettingsModelString(CFG_FAILING_STACKTRACE, "none"),
             alwaysPopulateModel);
     }
 
@@ -305,6 +329,4 @@ final class GenericCatchNodeModel extends NodeModel
     static SettingsModelBoolean createPropagateVariablesModel() {
         return new SettingsModelBoolean("CFG_PROPAGATE_VARIABLES", true);
     }
-
-
 }

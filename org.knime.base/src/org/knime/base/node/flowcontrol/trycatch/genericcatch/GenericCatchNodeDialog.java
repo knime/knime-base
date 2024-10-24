@@ -69,12 +69,19 @@ final class GenericCatchNodeDialog extends DefaultNodeSettingsPane {
         createNewGroup("Error Variables");
         final SettingsModelBoolean alwaysPopulate = GenericCatchNodeModel.getAlwaysPopulate();
         addDialogComponent(new DialogComponentBoolean(alwaysPopulate, "Always populate error variable"));
+        // The variable name input.
         final SettingsModelString defaultVariable = GenericCatchNodeModel.getDefaultVariable(alwaysPopulate);
         addDialogComponent(new DialogComponentString(defaultVariable,
             "Default for \"%s\" variable:".formatted(GenericCatchNodeModel.VAR_FAILING_NAME)));
+        // The error message input.
         final SettingsModelString defaultMessage = GenericCatchNodeModel.getDefaultMessage(alwaysPopulate);
-        addDialogComponent(new DialogComponentString(defaultMessage, "Default for \"%s\" and \"%s\" variables:"
-            .formatted(GenericCatchNodeModel.VAR_FAILING_MESSAGE, GenericCatchNodeModel.VAR_FAILING_DETAILS)));
+        addDialogComponent(new DialogComponentString(defaultMessage,
+            "Default for \"%s\" variable:".formatted(GenericCatchNodeModel.VAR_FAILING_MESSAGE)));
+        // The error details input.
+        final SettingsModelString defaultDetails = GenericCatchNodeModel.getDefaultMessage(alwaysPopulate);
+        addDialogComponent(new DialogComponentString(defaultDetails,
+            "Default for \"%s\" variable:".formatted(GenericCatchNodeModel.VAR_FAILING_DETAILS)));
+        // The stacktrace input.
         final SettingsModelString defaultStackTrace = GenericCatchNodeModel.getDefaultStackTrace(alwaysPopulate);
         addDialogComponent(new DialogComponentString(defaultStackTrace,
             "Default for \"%s\" variable:".formatted(GenericCatchNodeModel.VAR_FAILING_STACKTRACE)));
