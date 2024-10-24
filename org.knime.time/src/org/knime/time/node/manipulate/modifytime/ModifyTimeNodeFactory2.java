@@ -57,21 +57,26 @@ import org.knime.core.webui.node.impl.WebUINodeFactory;
  * @author Simon Schmid, KNIME.com, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public final class ModifyTimeNodeFactory2 extends WebUINodeFactory<ModifyTimeNodeModel2> {
+public final class ModifyTimeNodeFactory2 extends WebUINodeFactory<ModifyTimeNodeModel> {
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public ModifyTimeNodeModel2 createNodeModel() {
-        return new ModifyTimeNodeModel2();
+    public ModifyTimeNodeModel createNodeModel() {
+        return new ModifyTimeNodeModel();
     }
 
     private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
         .name("Time Modifier") //
         .icon("modify_time.png") //
-        .shortDescription("sdfgsdfgsdfg") //
-        .fullDescription("") //
+        .shortDescription("Modifies time information of a date&amp;time cell.") //
+        .fullDescription("Modifies date&amp;time columns in three different ways. "
+            + "The node can append a time to local date columns (output type is local or zoned date time column) "
+            + "<b>or</b> change the time in local or zoned date&amp;time columns <b>or</b> "
+            + "remove the time from local or zoned date&amp;time columns (output type is local date). "
+            + "<br/> This node is not used to add (\"plus\") or subtract (\"minus\") time. "
+            + "Use the <i>Date&amp;Time Shift</i> node for that.") //
         .modelSettingsClass(ModifyTimeNodeSettings.class) //
         .addInputTable("Input table", "Input table.") //
         .addOutputTable("Output table", "Output table with modified time.") //

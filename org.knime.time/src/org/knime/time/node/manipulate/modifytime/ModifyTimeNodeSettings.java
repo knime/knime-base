@@ -93,37 +93,42 @@ import org.knime.time.util.DateTimeUtils;
 @SuppressWarnings("restriction")
 public class ModifyTimeNodeSettings implements DefaultNodeSettings {
 
-    @Widget(title = "Time setting", description = "")
+    @Widget(title = "Time setting", description = "Defines the action to be performed on the selected columns. "
+        + "The time can be changed, appended, or removed, with different columns being eligible for each action. "
+        + "For example, only local date columns can have time appended, while local date-time columns can only "
+        + "be modified or have their time component removed.")
     @ValueSwitchWidget
     @Persist(customPersistor = ModifySelectPersistor.class)
     @ValueReference(ModifySelectRef.class)
     ModifySelect m_modifySelect = ModifySelect.CHANGE;
 
-    @Widget(title = "Time parts", description = "")
+    @Widget(title = "Time", description = "A time value in form of HH:mm:ss or HH:mm:ss.SSS. "
+        + "For example <i>12:10:30.123</i> means <i>12 hours, 10 minutes, 30 seconds, 123 milliseconds</i> .")
     @TimeWidget
     @Effect(predicate = ModifySelectIsRemove.class, type = EffectType.HIDE)
     @Persist(customPersistor = TimePartsPersistor.class)
     LocalTime m_timeParts = LocalTime.now();
 
-    @Widget(title = "timezone", description = "")
+    @Widget(title = "Time zone", description = "If checked, the user can choose a time zone to append also.")
     @Persist(customPersistor = TimeZonePersistor.class)
     @ChoicesWidget(choicesProvider = ZoneIdProvider.class, optional = true)
+    @Effect(predicate = ModifySelectIsAppend.class, type = EffectType.SHOW)
     ZoneId m_timeZone = ZoneId.of("America/Indiana/Marengo");
 
-    static final String COLUMN_SELECT_CONFIG_KEY = "col_select";
-
+    @Widget(title = "Date & time columns", description = "Only the included columns will be modified.")
     @Persist(configKey = "col_select", customPersistor = LegacyColumnFilterPersistor.class, optional = true)
-    @Widget(title = "Date & time columns", description = "Select the columns to include in the output table.")
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
-    @Widget(title = "Output columns", description = "")
+    @Widget(title = "Output columns", description = "Depending on the selection, the selected columns will be replaced "
+        + "or appended to the input table.")
     @ValueSwitchWidget
     @Persist(customPersistor = AppendOrReplacePersistor.class)
     @ValueReference(AppendOrReplaceRef.class)
     AppendOrReplace m_appendOrReplace = AppendOrReplace.APPEND;
 
-    @Widget(title = "Suffix of appended column", description = "", advanced = true)
+    @Widget(title = "Suffix of appended column", description = "The suffix that is appended to the column name. "
+        + "The suffix will be added to the original column name separated by a space.")
     @Effect(predicate = OutputColumnsIsAppend.class, type = EffectType.SHOW)
     @Persist(configKey = "suffix")
     String m_outputColumnSuffix = "(modified time)";
@@ -155,11 +160,15 @@ public class ModifyTimeNodeSettings implements DefaultNodeSettings {
      * ------------------------------------------------------------------------
      */
     enum ModifySelect {
-            @Label(value = "Change", description = "")
+            @Label(value = "Change", //
+                    description = "Changes the time of local or zoned date&amp;time columns. The time zone "
+                        + "will not be changed. The <i>Modify Time Zone</i> node can be used to change it.")
             CHANGE("Change time"), //
-            @Label(value = "Append", description = "")
+            @Label(value = "Append", description = "Appends a time to local date columns. "
+                + "Optionally a time zone can be appended too.")
             APPEND("Append time"), //
-            @Label(value = "Remove", description = "")
+            @Label(value = "Remove", description = "Removes the time from local or zoned date&amp;time columns. "
+                + "Time zones will be removed, too.")
             REMOVE("Remove time");
 
         private String m_oldConfigValue;
@@ -191,9 +200,11 @@ public class ModifyTimeNodeSettings implements DefaultNodeSettings {
     }
 
     enum AppendOrReplace {
-            @Label(value = "Replace", description = "")
+            @Label(value = "Replace", description = "The selected columns will be replaced by the new columns.")
             REPLACE("Replace selected columns"), //
-            @Label(value = "Append with Suffix", description = "")
+            @Label(value = "Append with Suffix", //
+                description = "The selected columns will be appended to the input table. "
+                    + "The suffix of the appended columns can be provided in the text field to the right.")
             APPEND("Append selected columns"); //
 
         private final String m_oldConfigValue;
@@ -314,6 +325,9 @@ public class ModifyTimeNodeSettings implements DefaultNodeSettings {
      * PREDICATE PROVIDERS AMD REFERENCES
      * ------------------------------------------------------------------------
      */
+    interface ModifySelectRef extends Reference<ModifySelect> {
+    }
+
     static final class ModifySelectIsRemove implements PredicateProvider {
 
         @Override
@@ -322,7 +336,12 @@ public class ModifyTimeNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    interface ModifySelectRef extends Reference<ModifySelect> {
+    static final class ModifySelectIsAppend implements PredicateProvider {
+
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(ModifySelectRef.class).isOneOf(ModifySelect.APPEND);
+        }
     }
 
     static final class OutputColumnsIsAppend implements PredicateProvider {
