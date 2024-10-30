@@ -95,6 +95,10 @@ public final class ZonedDateTimeValueFactory
             return getZonedDateTime().toString();
         }
 
+        @Override
+        public String getStringValue() {
+            return getZonedDateTime().toString();
+        }
     }
 
     private static final class DefaultZonedDateTimeWriteValue implements ZonedDateTimeWriteValue {

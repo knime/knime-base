@@ -233,7 +233,7 @@ public final class DateTimeValueInterfaces {
      * @noreference This interface is not intended to be referenced by clients.
      * @noimplement This interface is not intended to be implemented by clients.
      */
-    public interface ZonedDateTimeReadValue extends ReadValue, ZonedDateTimeValue {
+    public interface ZonedDateTimeReadValue extends ReadValue, ZonedDateTimeValue, BoundedValue, StringValue {
     }
 
 }
