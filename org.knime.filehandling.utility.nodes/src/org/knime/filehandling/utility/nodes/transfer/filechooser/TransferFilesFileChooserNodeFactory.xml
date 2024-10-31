@@ -185,5 +185,7 @@
 	<keywords>
 		<keyword>download</keyword>
 		<keyword>upload</keyword>
+		<keyword>copy</keyword>
+		<keyword>move</keyword>
 	</keywords>
 </knimeNode>
