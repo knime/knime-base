@@ -128,13 +128,13 @@ public final class CommonReaderNodeSettings {
 
             @Override
             public String title() {
-                return "File System managed by means of File System Connection input port is not available";
+                return "File system managed by File System Input Port";
             }
 
             @Override
             public String description() {
-                return "Pass a file system (by executing the node providing the input) or remove the File System"
-                    + " Connection input port to enable the selection of the source file.";
+                return "No file system is currently connected. To proceed, either connect a file system to the input"
+                    + " port or remove the port.";
             }
 
             @Override
