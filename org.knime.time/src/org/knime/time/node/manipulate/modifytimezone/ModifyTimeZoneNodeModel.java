@@ -48,6 +48,7 @@
  */
 package org.knime.time.node.manipulate.modifytimezone;
 
+import java.time.DateTimeException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -167,11 +168,12 @@ final class ModifyTimeZoneNodeModel extends SimpleStreamableFunctionNodeModel {
     protected ColumnRearranger createColumnRearranger(final DataTableSpec inSpec) throws InvalidSettingsException {
         CheckUtils.checkSetting(m_hasValidatedConfiguration, "Node must be configured!");
         final String modification = CheckUtils.checkSettingNotNull(m_modifyAction.getStringValue(), "must not be null");
-        CheckUtils.checkSetting(modification.equals(MODIFY_OPTION_SET)
-            || modification.equals(MODIFY_OPTION_SHIFT)
+        CheckUtils.checkSetting(modification.equals(MODIFY_OPTION_SET) //
+            || modification.equals(MODIFY_OPTION_SHIFT) //
             || modification.equals(MODIFY_OPTION_REMOVE),
             "Unknow modification operation '%s'. Most likely the parameter '%s' was controlled by "
-            + "an invalid flow variable.", CFG_KEY_MODIFY_SELECT, m_modifyAction.getStringValue());
+                + "an invalid flow variable.",
+            CFG_KEY_MODIFY_SELECT, m_modifyAction.getStringValue());
         final ColumnRearranger rearranger = new ColumnRearranger(inSpec);
         final String[] includeList = m_colSelect.applyTo(inSpec).getIncludes();
         final int[] includeIndeces =
@@ -305,8 +307,19 @@ final class ModifyTimeZoneNodeModel extends SimpleStreamableFunctionNodeModel {
             if (cell.isMissing()) {
                 return cell;
             }
-            return ZonedDateTimeCellFactory
-                .create(((ZonedDateTimeValue)cell).getZonedDateTime().toInstant().atZone(m_zone));
+
+            // This should always be possible and potential errors do not need to be handled here.
+            var currentCellDateTimeInstant = ((ZonedDateTimeValue)cell).getZonedDateTime().toInstant();
+
+            try {
+                // This will throw an exception if the date goes out of range
+                var newZonedDateTimeContent = currentCellDateTimeInstant.atZone(m_zone);
+                return ZonedDateTimeCellFactory.create(newZonedDateTimeContent);
+            } catch (DateTimeException e) {
+                setWarningMessage("Could not shift time zone, one or more date values went out of range. "
+                    + "Result is set to Missing. Cell content: " + cell.toString());
+                return DataType.getMissingCell();
+            }
         }
     }
 
