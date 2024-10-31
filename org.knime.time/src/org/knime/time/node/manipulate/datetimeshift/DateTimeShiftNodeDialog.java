@@ -472,9 +472,6 @@ final class DateTimeShiftNodeDialog extends NodeDialogPane {
         return "";
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         if (!checkPeriodOrDurationSettings().equals("") || !checkNumericalSettings().equals("")) {
@@ -492,9 +489,6 @@ final class DateTimeShiftNodeDialog extends NodeDialogPane {
         m_dialogCompNumericalGranularity.saveSettingsTo(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
         throws NotConfigurableException {

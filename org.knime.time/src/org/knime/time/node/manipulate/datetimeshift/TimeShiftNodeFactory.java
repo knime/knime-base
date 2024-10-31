@@ -44,45 +44,48 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 24, 2017 (simon): created
+ *   Oct 31, 2024 (tobias): created
  */
 package org.knime.time.node.manipulate.datetimeshift;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
- * The node factory of the node which shifts date&time columns.
+ * The node factory of the node which shifts times.
  *
- * @author Simon Schmid, KNIME.com, Konstanz, Germany
+ * @author Tobias Kampmann, TNG Technology Consulting GmbH
  */
-public final class DateTimeShiftNodeFactory extends NodeFactory<DateTimeShiftNodeModel> {
+@SuppressWarnings("restriction")
+public final class TimeShiftNodeFactory extends WebUINodeFactory<TimeShiftNodeModel> {
 
     @Override
-    public DateTimeShiftNodeModel createNodeModel() {
-        return new DateTimeShiftNodeModel();
+    public TimeShiftNodeModel createNodeModel() {
+        return new TimeShiftNodeModel(CONFIGURATION);
     }
 
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
+    private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
+        .name("Time Shifter") //
+        .icon("time-shift.png") //
+        .shortDescription("Shifts a time according to a duration or granularity.") //
+        .fullDescription("The node shifts a time with a defined duration or granularity. "
+            + "The user can select the Time columns to shift and the shift value. "
+            + "The shift value can be achieved by using either a duration column or a numerical column, "
+            + "however, it is also possible to enter a constant shift value (either duration or "
+            + "numerical combined with a granularity). If the shift value is positive, it is added to "
+            + "the selected time. A negative value will be subtracted. A numerical value is interpreted "
+            + "based on the selected granularity (hour, minute, second, " + "millisecond, microsecond, nanosecond).") //
+        .modelSettingsClass(TimeShiftNodeSettings.class) //
+        .addInputTable("Input table", "Input table.") //
+        .addOutputTable("Output table", "Output table with modified time.") //
+        .keywords("modify", "fields", "hour", "minute", "second", "milli")//
+        .build();
 
-    @Override
-    public NodeView<DateTimeShiftNodeModel> createNodeView(final int viewIndex,
-        final DateTimeShiftNodeModel nodeModel) {
-        return null;
-    }
-
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new DateTimeShiftNodeDialog();
+    /**
+     * Creates a new factory.
+     */
+    public TimeShiftNodeFactory() {
+        super(CONFIGURATION);
     }
 
 }

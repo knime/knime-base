@@ -155,8 +155,9 @@ final class DateTimeShiftNodeModel extends SimpleStreamableFunctionNodeModel {
      */
     public static SettingsModelString createPeriodColSelectModel(final SettingsModelString periodSelectionModel) {
         final SettingsModelString model = new SettingsModelString("period_col_select", "");
-        periodSelectionModel.addChangeListener(l -> model.setEnabled(
-            periodSelectionModel.getStringValue().equals(DurationMode.Column.name()) && periodSelectionModel.isEnabled()));
+        periodSelectionModel.addChangeListener(
+            l -> model.setEnabled(periodSelectionModel.getStringValue().equals(DurationMode.Column.name())
+                && periodSelectionModel.isEnabled()));
         return model;
     }
 
@@ -166,8 +167,9 @@ final class DateTimeShiftNodeModel extends SimpleStreamableFunctionNodeModel {
      */
     public static SettingsModelString createPeriodValueModel(final SettingsModelString periodSelectionModel) {
         final SettingsModelString model = new SettingsModelString("period_value", "");
-        periodSelectionModel.addChangeListener(l -> model.setEnabled(
-            periodSelectionModel.getStringValue().equals(DurationMode.Value.name()) && periodSelectionModel.isEnabled()));
+        periodSelectionModel.addChangeListener(
+            l -> model.setEnabled(periodSelectionModel.getStringValue().equals(DurationMode.Value.name())
+                && periodSelectionModel.isEnabled()));
         model.setEnabled(false);
         return model;
     }
@@ -214,7 +216,6 @@ final class DateTimeShiftNodeModel extends SimpleStreamableFunctionNodeModel {
         return model;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         if (m_periodColSelect.isEnabled() && m_periodColSelect.getStringValue().equals("")) {
@@ -255,9 +256,6 @@ final class DateTimeShiftNodeModel extends SimpleStreamableFunctionNodeModel {
         return new DataTableSpec[]{out};
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected ColumnRearranger createColumnRearranger(final DataTableSpec spec) throws InvalidSettingsException {
         ColumnRearranger rearranger = new ColumnRearranger(spec);
@@ -326,9 +324,6 @@ final class DateTimeShiftNodeModel extends SimpleStreamableFunctionNodeModel {
         return rearranger;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_colSelect.saveSettingsTo(settings);
@@ -343,9 +338,6 @@ final class DateTimeShiftNodeModel extends SimpleStreamableFunctionNodeModel {
         m_numericalGranularity.saveSettingsTo(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_colSelect.validateSettings(settings);
@@ -360,9 +352,6 @@ final class DateTimeShiftNodeModel extends SimpleStreamableFunctionNodeModel {
         m_numericalGranularity.validateSettings(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_colSelect.loadSettingsFrom(settings);
@@ -402,9 +391,6 @@ final class DateTimeShiftNodeModel extends SimpleStreamableFunctionNodeModel {
             m_messageBuilder = createMessageBuilder();
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public DataCell getCell(final DataRow row, final long rowIndex) {
             final DataCell cell = row.getCell(m_colIndex);
@@ -461,9 +447,6 @@ final class DateTimeShiftNodeModel extends SimpleStreamableFunctionNodeModel {
             throw new IllegalStateException("The data cell type " + cell.getClass() + " is not supported.");
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public void afterProcessing() {
             final var issueCount = m_messageBuilder.getIssueCount();
@@ -499,9 +482,6 @@ final class DateTimeShiftNodeModel extends SimpleStreamableFunctionNodeModel {
             m_messageBuilder = createMessageBuilder();
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public DataCell getCell(final DataRow row, final long rowIndex) {
             final DataCell cell = row.getCell(m_colIndex);
@@ -558,9 +538,6 @@ final class DateTimeShiftNodeModel extends SimpleStreamableFunctionNodeModel {
             throw new IllegalStateException("The data cell type " + cell.getClass() + " is not supported.");
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public void afterProcessing() {
             final var issueCount = m_messageBuilder.getIssueCount();

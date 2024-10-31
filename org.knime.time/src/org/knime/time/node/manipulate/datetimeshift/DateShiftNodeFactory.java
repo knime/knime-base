@@ -44,45 +44,50 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 24, 2017 (simon): created
+ *   Oct 31, 2024 (tobias): created
  */
 package org.knime.time.node.manipulate.datetimeshift;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
- * The node factory of the node which shifts date&time columns.
+ * The node factory of the node which shifts dates.
  *
- * @author Simon Schmid, KNIME.com, Konstanz, Germany
+ * @author Tobias Kampmann, TNG Technology Consulting GmbH
  */
-public final class DateTimeShiftNodeFactory extends NodeFactory<DateTimeShiftNodeModel> {
+@SuppressWarnings("restriction")
+public final class DateShiftNodeFactory extends WebUINodeFactory<DateShiftNodeModel> {
 
     @Override
-    public DateTimeShiftNodeModel createNodeModel() {
-        return new DateTimeShiftNodeModel();
+    public DateShiftNodeModel createNodeModel() {
+        return new DateShiftNodeModel(CONFIGURATION);
     }
 
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
+    private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
+        .name("Date Shifter") //
+        .icon("date-shift.png") //
+        .shortDescription("Shifts a date according to a period or granularity.") //
+        .fullDescription("""
+                The node shifts a date with a defined period or granularity. /
+                The user can select the date columns to shift and the shift value. /
+                The shift value can be achieved by using either a period column or a numerical column, /
+                however, it is also possible to enter a constant shift value (either of period type or /
+                numerical combined with a granularity). If the shift value is positive, it is added to /
+                the selected date. A negative value will be subtracted. A numerical value is interpreted /
+                based on the selected granularity (year, month, week, day)."
+                """) //
+        .modelSettingsClass(DateShiftNodeSettings.class) //
+        .addInputTable("Input table", "Input table.") //
+        .addOutputTable("Output table", "Output table with modified time.") //
+        .keywords("modify", "fields", "day", "month", "week", "year")//
+        .build();
 
-    @Override
-    public NodeView<DateTimeShiftNodeModel> createNodeView(final int viewIndex,
-        final DateTimeShiftNodeModel nodeModel) {
-        return null;
-    }
-
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new DateTimeShiftNodeDialog();
+    /**
+     * Constructor for the node factory.
+     */
+    public DateShiftNodeFactory() {
+        super(CONFIGURATION);
     }
 
 }

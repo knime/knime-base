@@ -6,7 +6,7 @@
 	<fullDescription>
 		<intro>
 			Modifies date&amp;time columns in three different ways. The
-			node can add a time zone to local date&amp;time columns or changing
+			node can add a time zone to local date&amp;time columns or change
 			the time zone in zoned date&amp;time
 			columns (without adjusting the time!)
 			<b>or</b>

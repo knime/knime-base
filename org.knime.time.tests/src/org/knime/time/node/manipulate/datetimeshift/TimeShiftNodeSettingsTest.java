@@ -44,45 +44,62 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 24, 2017 (simon): created
+ *   25 Jan 2024 (albrecht): created
  */
 package org.knime.time.node.manipulate.datetimeshift;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import java.util.Locale;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.time.localdatetime.LocalDateTimeCell;
+import org.knime.core.data.time.localtime.LocalTimeCell;
+import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCell;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * The node factory of the node which shifts date&time columns.
  *
- * @author Simon Schmid, KNIME.com, Konstanz, Germany
+ * @author Tobias Kampmann, TNG Technology Consulting GmbH
  */
-public final class DateTimeShiftNodeFactory extends NodeFactory<DateTimeShiftNodeModel> {
+@SuppressWarnings("restriction")
+public class TimeShiftNodeSettingsTest extends DefaultNodeSettingsSnapshotTest { // NOSONAR
 
-    @Override
-    public DateTimeShiftNodeModel createNodeModel() {
-        return new DateTimeShiftNodeModel();
+    private Locale m_defaultLocale;
+
+    static final PortObjectSpec[] TEST_TABLE_SPECS = new PortObjectSpec[]{new DataTableSpec( //
+        new String[]{ //
+            "localTimeTest", //
+            "localDateTimeTest", //
+            "zonedDateTimeTest"},
+        new DataType[]{ //
+            DataType.getType(LocalTimeCell.class), //
+            DataType.getType(LocalDateTimeCell.class), //
+            DataType.getType(ZonedDateTimeCell.class)} //
+            )};
+
+    protected TimeShiftNodeSettingsTest() {
+        super(getConfig());
     }
 
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
+    @BeforeEach
+    void setDefaultLocale() {
+        m_defaultLocale = Locale.getDefault();
+        Locale.setDefault(Locale.GERMANY);
     }
 
-    @Override
-    public NodeView<DateTimeShiftNodeModel> createNodeView(final int viewIndex,
-        final DateTimeShiftNodeModel nodeModel) {
-        return null;
+    @AfterEach
+    void resetDefaultLocale() {
+        Locale.setDefault(m_defaultLocale);
     }
 
-    @Override
-    protected boolean hasDialog() {
-        return true;
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .withInputPortObjectSpecs(TEST_TABLE_SPECS) //
+            .testJsonFormsForModel(TimeShiftNodeSettings.class) //
+            .build();
     }
-
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new DateTimeShiftNodeDialog();
-    }
-
 }

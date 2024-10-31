@@ -59,9 +59,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 
+
 /**
+ * convenience enum to handle often occurring ValueSwitch to choose between
+ * replacing a column or appending a new one to the table.
  *
- * @author Tobias Kampmann
+ * Only use once! The predicates will only work for the last one used.
  */
 @SuppressWarnings("restriction")
 public enum ReplaceOrAppend {

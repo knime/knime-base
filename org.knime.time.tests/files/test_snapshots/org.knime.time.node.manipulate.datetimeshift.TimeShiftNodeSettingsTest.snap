@@ -1,0 +1,475 @@
+{
+  "data" : {
+    "model" : {
+      "columnFilter" : {
+        "selected" : [ "localTimeTest", "localDateTimeTest", "zonedDateTimeTest" ],
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "localTimeTest", "localDateTimeTest", "zonedDateTimeTest" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : false
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "shiftMode" : "SHIFT_VALUE",
+      "shiftDurationValue" : "PT0H1M0.000S",
+      "durationColumn" : "",
+      "granularity" : "HOURS",
+      "replaceOrAppend" : "REPLACE",
+      "outputColumnSuffix" : "(shifted)"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnFilter" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "default" : [ ],
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "typeDisplays" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : {
+                          "type" : "string"
+                        },
+                        "text" : {
+                          "type" : "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Time columns",
+            "description" : "Only the included columns will be shifted.",
+            "default" : {
+              "selected" : [ "localTimeTest", "localDateTimeTest", "zonedDateTimeTest" ],
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ "localTimeTest", "localDateTimeTest", "zonedDateTimeTest" ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "durationColumn" : {
+            "type" : "string",
+            "title" : "Column",
+            "description" : "Select to choose the shift value from a duration column.\n",
+            "default" : ""
+          },
+          "granularity" : {
+            "oneOf" : [ {
+              "const" : "HOURS",
+              "title" : "Hours"
+            }, {
+              "const" : "MINUTES",
+              "title" : "Minutes"
+            }, {
+              "const" : "SECONDS",
+              "title" : "Seconds"
+            }, {
+              "const" : "MILLISECONDS",
+              "title" : "Milliseconds"
+            }, {
+              "const" : "MICROSECONDS",
+              "title" : "Microseconds"
+            }, {
+              "const" : "NANOSECONDS",
+              "title" : "Nanoseconds"
+            } ],
+            "title" : "Granularity",
+            "description" : "The granularity (i.e. hours, seconds, etc) of the shift.",
+            "default" : "HOURS"
+          },
+          "numericalColumn" : {
+            "type" : "string",
+            "title" : "Column",
+            "description" : "Select to choose the shift value from a numerical column. The shift value will be scaled by the selected granularity.\n"
+          },
+          "outputColumnSuffix" : {
+            "type" : "string",
+            "title" : "Suffix of appended column",
+            "description" : "The suffix that is appended to the column name. The suffix will be added to the original column name.\n",
+            "default" : "(shifted)"
+          },
+          "replaceOrAppend" : {
+            "oneOf" : [ {
+              "const" : "REPLACE",
+              "title" : "Replace"
+            }, {
+              "const" : "APPEND",
+              "title" : "Append with suffix"
+            } ],
+            "title" : "Output columns",
+            "description" : "Depending on the selection, the selected columns will be replaced or appended to the input table.\n\n<ul>\n<li><b>Replace</b>: The selected columns will be replaced by the new columns.</li>\n<li><b>Append with suffix</b>: The selected columns will be appended to the input table, with a new name that is the previous name plus the provided suffix.</li>\n</ul>",
+            "default" : "REPLACE"
+          },
+          "shiftDurationValue" : {
+            "type" : "object",
+            "title" : "Shift Value",
+            "description" : "Select to insert a format string to use as constant shift value. The inserted string can be either in:\n<ul>\n  <li>\n    the ISO-8601 representation (see <a href=     \"https://docs.oracle.com/javase/8/docs/api/java/time/Duration.html#parse-java.lang.CharSequence-\">     time-based duration format</a> for details)\n  </li>\n  <li>\n    the short letter representation (e.g. '4H 5m 6s'). In this case, the letters H, m, and s     respectively indicate hours, minutes, and seconds.\n  </li>\n  <li>\n    the long word representation (e.g. '4 hours 5 minutes 6 seconds).\n  </li>\n</ul>\n",
+            "default" : "PT0H1M0.000S"
+          },
+          "shiftMode" : {
+            "oneOf" : [ {
+              "const" : "SHIFT_VALUE",
+              "title" : "Shift Value"
+            }, {
+              "const" : "DURATION_COLUMN",
+              "title" : "Duration column"
+            }, {
+              "const" : "NUMERICAL_COLUMN",
+              "title" : "Numerical column"
+            } ],
+            "title" : "Shift mode",
+            "description" : "Select the shift mode to use.\n\n<ul>\n<li><b>Shift Value</b>: A time-based shift value.</li>\n<li><b>Duration column</b>: Select to choose the shift value from a duration column.</li>\n<li><b>Numerical column</b>: Select a numerical column to scale a configurable time unit.</li>\n</ul>",
+            "default" : "SHIFT_VALUE"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/columnFilter",
+      "options" : {
+        "format" : "columnFilter",
+        "choicesProvider" : "org.knime.time.node.manipulate.datetimeshift.TimeShiftNodeSettings$ColumnProvider",
+        "showNoneColumn" : false,
+        "showRowKeys" : false,
+        "showSearch" : true,
+        "showMode" : true
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/shiftMode",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/shiftDurationValue",
+      "options" : {
+        "format" : "interval",
+        "intervalType" : "TIME"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/shiftMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "SHIFT_VALUE"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/durationColumn",
+      "options" : {
+        "choicesProvider" : "org.knime.time.node.manipulate.datetimeshift.TimeShiftNodeSettings$DurationColumns",
+        "format" : "dropDown",
+        "showNoneColumn" : false,
+        "showRowKeys" : false,
+        "showSearch" : true,
+        "showMode" : true
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/shiftMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "DURATION_COLUMN"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/numericalColumn",
+      "options" : {
+        "choicesProvider" : "org.knime.time.node.manipulate.datetimeshift.DateTimeShiftSettingsUtils$NumberColumnProvider",
+        "format" : "dropDown",
+        "showNoneColumn" : false,
+        "showRowKeys" : false,
+        "showSearch" : true,
+        "showMode" : true
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/shiftMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "NUMERICAL_COLUMN"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/granularity",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/shiftMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "NUMERICAL_COLUMN"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/replaceOrAppend",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/outputColumnSuffix",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/replaceOrAppend",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "APPEND"
+            } ]
+          }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnFilter" : {
+            "configPaths" : [ [ "columnFilter", "filter-type" ], [ "columnFilter", "included_names" ], [ "columnFilter", "excluded_names" ], [ "columnFilter", "enforce_option" ], [ "columnFilter", "name_pattern", "pattern" ], [ "columnFilter", "name_pattern", "type" ], [ "columnFilter", "name_pattern", "caseSensitive" ], [ "columnFilter", "name_pattern", "excludeMatching" ] ],
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : { },
+                  "typeDisplays" : {
+                    "type" : "array",
+                    "configPaths" : [ ],
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : { },
+                        "text" : { }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "shiftMode" : { },
+          "shiftDurationValue" : { },
+          "durationColumn" : { },
+          "numericalColumn" : { },
+          "granularity" : { },
+          "replaceOrAppend" : {
+            "configPaths" : [ [ "replace_or_append" ] ]
+          },
+          "outputColumnSuffix" : { }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.time.node.manipulate.datetimeshift.DateTimeShiftSettingsUtils$NumberColumnProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ ]
+    } ]
+  }, {
+    "scopes" : null,
+    "id" : "org.knime.time.node.manipulate.datetimeshift.TimeShiftNodeSettings$ColumnProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "localTimeTest",
+        "text" : "localTimeTest",
+        "type" : {
+          "id" : "org.knime.core.data.time.localtime.LocalTimeValue",
+          "text" : "Local Time"
+        },
+        "compatibleTypes" : [ "org.knime.core.data.time.localtime.LocalTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
+      }, {
+        "id" : "localDateTimeTest",
+        "text" : "localDateTimeTest",
+        "type" : {
+          "id" : "org.knime.core.data.time.localdatetime.LocalDateTimeValue",
+          "text" : "Local Date Time"
+        },
+        "compatibleTypes" : [ "org.knime.core.data.time.localdatetime.LocalDateTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
+      }, {
+        "id" : "zonedDateTimeTest",
+        "text" : "zonedDateTimeTest",
+        "type" : {
+          "id" : "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue",
+          "text" : "Zoned Date Time"
+        },
+        "compatibleTypes" : [ "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
+      } ]
+    } ]
+  }, {
+    "scopes" : null,
+    "id" : "org.knime.time.node.manipulate.datetimeshift.TimeShiftNodeSettings$DurationColumns",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "org.knime.time.node.manipulate.datetimeshift.TimeShiftNodeSettings$ShiftModeRef",
+      "scopes" : [ "#/properties/model/properties/shiftMode" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/shiftMode" ],
+      "id" : "org.knime.time.node.manipulate.datetimeshift.TimeShiftNodeSettings$ShiftModeRef"
+    } ]
+  } ]
+}
