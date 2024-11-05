@@ -44,7 +44,7 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   14 Oct 2024 (knime356): created
+ *   14 Oct 2024 (Alexander Jauch-Walser): created
  */
 package org.knime.base.node.preproc.filter.row3;
 

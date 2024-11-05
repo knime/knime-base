@@ -44,7 +44,7 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   28 Oct 2024 (knime356): created
+ *   28 Oct 2024 (Alexander Jauch-Walser): created
  */
 package org.knime.base.node.preproc.filter.row3;
 
@@ -111,8 +111,8 @@ public class RowFilterByRowIndexNodeFunc extends AbstractRowFilterNodeFunc{
     @Override
     void extendApi(final Builder builder) {
         builder.withDescription("Matches rows whose value of the specified column are missing.")//
-        .withDescription("Creates a new table by filtering the range of rows by index,"
-                        +"through an specified operator. The first row has index 0.")//
+        .withDescription("Creates a new table by filtering the range of rows by index."
+                        +"The first row has index 0.")//
         .withStringArgument(OPERATOR, String.format("The operator which will be used to filter the row Indexes on:\n"
             + "%s: Returns the row with index which equals the specified number.\n"
             + "%s: Returns the rows with indexes not matching the specified number.\n"
@@ -120,7 +120,7 @@ public class RowFilterByRowIndexNodeFunc extends AbstractRowFilterNodeFunc{
             + "%s: Returns the rows with indexes which are smaller than or equal to specified number\n"
             + "%s: Returns the rows with indexes which are strictly larger than specified number\n"
             + "%s: Returns the rows with indexes which are larger than or equal than specified number\n"
-            + "%s: Returns the first n rows from the start of the table. Indexes start at 0.\n"
+            + "%s: Returns the first n rows from the start of the table.\n"
             + "%s: Returns the last n rows from the end of the table.",
             EQUALS, NEQUALS, LESSTHAN, LESSTHANEQUALS, GREATERTHAN, GREATERTHANEQUALS, FIRSTN, LASTN))
         .withOptionalLongArgument(INDEX, "The index which filters rows of the table in combination with an operator.");
