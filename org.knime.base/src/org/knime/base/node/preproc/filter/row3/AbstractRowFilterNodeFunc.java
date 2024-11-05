@@ -44,7 +44,7 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   14 Oct 2024 (knime356): created
+ *   14 Oct 2024 (Alexander Jauch-Walser): created
  */
 package org.knime.base.node.preproc.filter.row3;
 
@@ -99,7 +99,9 @@ abstract class AbstractRowFilterNodeFunc implements NodeFunc {
         return builder.build();
     }
 
-    // Each NodeFunc will produce a row filter with a specific configured criterion
+    /**
+     * Each NodeFunc will produce a row filter with a specific configured criterion
+     */
     abstract FilterCriterion getSpecificCriterion(final NodeSettingsRO arguments) throws InvalidSettingsException;
 
     @Override
@@ -107,7 +109,9 @@ abstract class AbstractRowFilterNodeFunc implements NodeFunc {
         return RowFilterNodeFactory.class.getName();
     }
 
-    // Used if the NodeFunc needs more text than the getAPI() method provides
+    /**
+     * Derived NodeFuncs can set a function description add additional parameters to the API builder here
+     */
     abstract void extendApi(final NodeFuncApi.Builder builder);
 
     abstract String getName();

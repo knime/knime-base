@@ -44,7 +44,7 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   30 Oct 2024 (knime356): created
+ *   30 Oct 2024 (Alexander Jauch-Walser): created
  */
 package org.knime.base.node.preproc.filter.row3;
 
@@ -82,7 +82,7 @@ public class AttributePatternRowFilterNodeFunc extends AbstractRowFilterNodeFunc
 
     @Override
     void extendApi(final Builder builder) {
-        builder.withDescription("Creates a new table that contains only rows that matches the given regex for a given column.")
+        builder.withDescription("Creates a new table that contains only rows that match the given regex for a given column.")
         .withStringArgument(REGEX, "Regular expression that is used to match the RowIDs of the input table.");
     }
 
