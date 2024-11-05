@@ -128,6 +128,7 @@ final class CacheNodeModel extends WebUINodeModel<CacheNodeSettings> {
         }
     }
 
+    // TODO (TP): This is identical to colBackendFull --> Remove
     private static BufferedDataTable colBackendCellByCellCopy(final BufferedDataTable data, final ExecutionContext exec,
         final DataContainerSettings dcSettings) throws CanceledExecutionException, IOException {
         try (RowContainer con = exec.createRowContainer(data.getDataTableSpec(), dcSettings);
@@ -147,6 +148,7 @@ final class CacheNodeModel extends WebUINodeModel<CacheNodeSettings> {
         }
     }
 
+    // TODO (TP): The special case could be handled in RowWrite.commit()? --> Remove?
     private static BufferedDataTable rowBackendFullRowCopy(final BufferedDataTable data,
         final ExecutionContext exec, final DataContainerSettings dcSettings) throws CanceledExecutionException {
         // it writes only the cells that are "visible" in the input table
