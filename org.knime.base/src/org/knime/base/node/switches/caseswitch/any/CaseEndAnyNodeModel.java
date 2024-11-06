@@ -121,6 +121,8 @@ final class CaseEndAnyNodeModel extends NodeModel implements InactiveBranchConsu
     /** NodeSettings default: enable hiliting. */
     static final boolean DEF_HILITING = false;
 
+    private static final String HILITE_MAPPING_KEY = "hilite_mapping";
+
     private boolean m_appendSuffix = DEF_APPEND_SUFFIX;
 
     private String m_suffix = DEF_SUFFIX;
@@ -380,7 +382,9 @@ final class CaseEndAnyNodeModel extends NodeModel implements InactiveBranchConsu
             try (final var stream =
                 new GZIPInputStream(new FileInputStream(new File(nodeInternDir, "hilite_mapping.xml.gz")))) {
                 final var config = NodeSettings.loadFromXML(stream);
-                m_hiliteTranslator.setMapper(DefaultHiLiteMapper.load(config));
+                if (HILITE_MAPPING_KEY.equals(config.getKey())) {
+                    m_hiliteTranslator.setMapper(DefaultHiLiteMapper.load(config));
+                }
             } catch (final InvalidSettingsException ex) {
                 throw new IOException(ex.getMessage(), ex);
             }
@@ -403,8 +407,11 @@ final class CaseEndAnyNodeModel extends NodeModel implements InactiveBranchConsu
         if (m_enableHiliting && isInBufferedDataTableMode()) {
             try (final var stream =
                 new GZIPOutputStream(new FileOutputStream(new File(nodeInternDir, "hilite_mapping.xml.gz")))) {
-                final var config = new NodeSettings("hilite_mapping");
-                ((DefaultHiLiteMapper)m_hiliteTranslator.getMapper()).save(config);
+                final var mapper = (DefaultHiLiteMapper)m_hiliteTranslator.getMapper();
+                final var config = new NodeSettings(mapper == null ? ("no_" + HILITE_MAPPING_KEY) : HILITE_MAPPING_KEY);
+                if (mapper != null) {
+                    mapper.save(config);
+                }
                 config.saveToXML(stream);
             }
         }
