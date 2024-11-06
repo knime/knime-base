@@ -4,40 +4,37 @@
 	<name>Reference Row Splitter</name>
 	
 	<shortDescription>
-		The Reference Row Splitter allows rows to be split from the first 
-		table using the second table as reference.
+		Allows rows to be split from the first table using the second table as reference.
 	</shortDescription>
 	
 	<fullDescription>
 		<intro>
-			This node allows rows to be split from the first table using
-			the second table as reference. Rows which are available in<br />
-			both, the input table and the reference table will be written <br />
-			into the table of the first output port. All others in the second one.
+			This node allows you to partition the input table’s rows based on whether a row’s value exists within a set of reference values.
+            A row's value is defined by selecting a column to use for comparison.
+            The reference set of values is formed from all values in a selected column of the second input table.
+            If a row’s value is in the reference set, it is appended to the first output table; otherwise, it is appended to the second output table.
 		</intro>
 		
         <option name="Data table column">
-            The column from the table to be filtered that should be used for
-            comparison.
+            The column from the table to be filtered that should be used for comparison.
         </option>
         <option name="Reference table column">
-            The column from the filter table that should be used for
-            comparison.
+            The column from the filter table that should be used for comparison.
         </option>
 	</fullDescription>
 	
 	<ports>
-        <inPort index="0" name="Table to be filtered">
-            Table to be split.
+        <inPort index="0" name="Table to be split">
+            The main table containing rows to be partitioned based on the specified column values.
         </inPort>
         <inPort index="1" name="Reference table">
-            Table rows used as reference filter.
+            A table that provides the reference set of values used for partitioning, drawn from a selected column.
         </inPort>
-        <outPort index="0" name="Splitted table comprising reference rows.">
-            Table with included rows.
+        <outPort index="0" name="Table with included rows">
+            Contains rows from the input table where the value in the specified column is found within the reference set of values from the reference table.
         </outPort>
-        <outPort index="1" name="Splitted table comprising all other rows.">
-            Table with excluded rows.
+        <outPort index="1" name="Table with excluded rows">
+            Contains rows from the input table where the value in the specified column is not found in the reference set from the reference table.
         </outPort>
 	</ports>	
 </knimeNode>
