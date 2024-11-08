@@ -54,8 +54,8 @@ import java.util.Collection;
 import java.util.List;
 
 import org.knime.base.node.io.filehandling.table.reader2.TableReaderTransformationSettingsStateProviders.TypeChoicesProvider;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettings;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.Settings;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.SettingsWithRowId;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviderTestUtils.CommonReaderTransformationSettingsUpdatesTestDataTypeBased;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -78,12 +78,12 @@ final class TableReaderTransformationSettingsStateProvidersTest
     extends CommonReaderTransformationSettingsUpdatesTestDataTypeBased<TableReaderNodeSettings> {
 
     @Override
-    protected Settings getSettings(final TableReaderNodeSettings settings) {
+    protected SettingsWithRowId getSettings(final TableReaderNodeSettings settings) {
         return settings.m_settings;
     }
 
     @Override
-    protected AdvancedSettings getAdvancedSettings(final TableReaderNodeSettings settings) {
+    protected AdvancedSettingsWithMultipleFileHandling getAdvancedSettings(final TableReaderNodeSettings settings) {
         return settings.m_advancedSettings;
     }
 

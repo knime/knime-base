@@ -54,10 +54,10 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOptionPersistor;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettings.IfSchemaChangesOption;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettings.IfSchemaChangesPersistor;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling.HowToCombineColumnsOption;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling.HowToCombineColumnsOptionPersistor;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling.IfSchemaChangesOption;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling.IfSchemaChangesPersistor;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.SkipFirstDataRowsPersistor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;

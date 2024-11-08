@@ -205,27 +205,35 @@ public abstract class CommonReaderTransformationSettings<I extends ConfigIdSetti
         @Modification.WidgetReference(TransformationSettingsWidgetModification.SpecsRef.class)
         List<TableSpecSettings<S>> m_specs = List.of();
 
-        @ValueProvider(CommonReaderNodeSettings.AdvancedSettings.AppendPathColumnRef.class)
+        @ValueProvider(CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling.AppendPathColumnRef.class)
+        // for removing the setting when multi file support is disabled
+        @Modification.WidgetReference(TransformationSettingsWidgetModification.AppendPathColumnRef.class)
         boolean m_appendPathColumn;
 
-        @ValueProvider(CommonReaderNodeSettings.AdvancedSettings.FilePathColumnNameRef.class)
+        @ValueProvider(CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling.FilePathColumnNameRef.class)
+        // for removing the setting when multi file support is disabled
+        @Modification.WidgetReference(TransformationSettingsWidgetModification.PathColumnNameRef.class)
         String m_filePathColumnName = "File Path";
 
         @ValueProvider(TakeColumnsFromProvider.class)
+        // for removing the setting when multi file support is disabled
+        @Modification.WidgetReference(TransformationSettingsWidgetModification.ColumnFilterModeRef.class)
         ColumnFilterMode m_takeColumnsFrom = ColumnFilterMode.UNION;
+
     }
 
     PersistorSettings<I, S> m_persistorSettings = new PersistorSettings<>();
 
     static class TakeColumnsFromProvider implements StateProvider<ColumnFilterMode> {
 
-        private Supplier<CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption> m_howToCombineColumnsSup;
+        private Supplier<CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling.HowToCombineColumnsOption>
+        m_howToCombineColumnsSup;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
             initializer.computeBeforeOpenDialog();
-            m_howToCombineColumnsSup = initializer
-                .computeFromValueSupplier(CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOptionRef.class);
+            m_howToCombineColumnsSup = initializer.computeFromValueSupplier(
+                CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling.HowToCombineColumnsOptionRef.class);
         }
 
         @Override

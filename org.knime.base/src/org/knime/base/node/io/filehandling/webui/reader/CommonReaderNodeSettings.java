@@ -51,6 +51,7 @@ package org.knime.base.node.io.filehandling.webui.reader;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout.DataArea.UseExistingRowId;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.SettingsWithRowId;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -90,10 +91,10 @@ import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 public final class CommonReaderNodeSettings {
 
     /**
-     * Main settings for reader nodes: The file source(s). Use {@link Settings.SetFileReaderWidgetExtensions} to set
+     * Main settings for reader nodes: The file source(s). Use {@link SettingsWithRowId.SetFileReaderWidgetExtensions} to set
      * file extensions.
      */
-    public static class Settings implements WidgetGroup, PersistableSettings {
+    public static class BaseSettings implements WidgetGroup, PersistableSettings {
 
         /**
          * Access the chosen file(s) by this reference.
@@ -158,15 +159,22 @@ public final class CommonReaderNodeSettings {
         public FileSelection m_source = new FileSelection();
 
         @Persist(configKey = "file_selection", hidden = true)
-        FileSelectionInternal m_fileSelectionInternal = new FileSelectionInternal();
+        protected FileSelectionInternal m_fileSelectionInternal = new FileSelectionInternal();
 
-        static class FileSelectionInternal implements WidgetGroup, PersistableSettings {
+        protected static class FileSelectionInternal implements WidgetGroup, PersistableSettings {
             @Persist(configKey = "SettingsModelID")
-            String m_settingsModelID = "SMID_ReaderFileChooser";
+            public String m_settingsModelID = "SMID_ReaderFileChooser";
 
             @Persist(configKey = "EnabledStatus")
-            boolean m_enabledStatus = true;
+            public boolean m_enabledStatus = true;
         }
+    }
+
+    /**
+     * Settings for reader nodes which allow to specify the first column to be used as RowIds
+     * @see BaseSettings
+     */
+    public static class SettingsWithRowId extends BaseSettings {
 
         /**
          * Access {@link #m_firstColumnContainsRowIds} by this reference.
@@ -193,7 +201,82 @@ public final class CommonReaderNodeSettings {
     /**
      * Advanced settings for reader nodes. They should be implemented by all reader nodes.
      */
-    public static class AdvancedSettings implements WidgetGroup, PersistableSettings {
+    public static class BaseAdvancedSettings implements WidgetGroup, PersistableSettings {
+
+        public enum IfSchemaChangesOption {
+                @Label(value = "Fail",
+                    description = CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.DESCRIPTION_FAIL) //
+                FAIL, //
+                @Label(value = "Use new schema",
+                    description = CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.//
+                            DESCRIPTION_USE_NEW_SCHEMA) //
+                USE_NEW_SCHEMA, //
+                @Label(value = "Ignore (deprecated)",
+                    description = CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.DESCRIPTION_IGNORE,
+                    disabled = true)
+                IGNORE; //
+        }
+
+        static final class IfSchemaChangesPersistor implements FieldNodeSettingsPersistor<IfSchemaChangesOption> {
+
+            private static final String CFG_SAVE_TABLE_SPEC_CONFIG =
+                "save_table_spec_config" + SettingsModel.CFGKEY_INTERNAL;
+
+            private static final String CFG_CHECK_TABLE_SPEC = "check_table_spec";
+
+            @Override
+            public IfSchemaChangesOption load(final NodeSettingsRO settings) throws InvalidSettingsException {
+                final var saveTableSpecConfig = settings.getBoolean(CFG_SAVE_TABLE_SPEC_CONFIG, true);
+                if (saveTableSpecConfig) {
+                    if (settings.getBoolean(CFG_CHECK_TABLE_SPEC, false)) {
+                        return IfSchemaChangesOption.FAIL;
+                    } else {
+                        return IfSchemaChangesOption.IGNORE;
+                    }
+                }
+                return IfSchemaChangesOption.USE_NEW_SCHEMA;
+            }
+
+            @Override
+            public void save(final IfSchemaChangesOption ifSchemaChangesOption, final NodeSettingsWO settings) {
+                settings.addBoolean(CFG_SAVE_TABLE_SPEC_CONFIG,
+                    ifSchemaChangesOption != IfSchemaChangesOption.USE_NEW_SCHEMA);
+                settings.addBoolean(CFG_CHECK_TABLE_SPEC, ifSchemaChangesOption == IfSchemaChangesOption.FAIL);
+            }
+
+            @Override
+            public String[] getConfigKeys() {
+                return new String[]{CFG_SAVE_TABLE_SPEC_CONFIG, CFG_CHECK_TABLE_SPEC};
+            }
+        }
+
+        static final class IfSchemaChangesOptionRef implements Reference<IfSchemaChangesOption> {
+        }
+
+        static final class UseNewSchema implements PredicateProvider {
+            @Override
+            public Predicate init(final PredicateInitializer i) {
+                return i.getEnum(IfSchemaChangesOptionRef.class).isOneOf(IfSchemaChangesOption.USE_NEW_SCHEMA);
+            }
+        }
+
+        @Widget(title = "If schema changes",
+            description = CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.DESCRIPTION)
+        @RadioButtonsWidget
+        @Layout(CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.class)
+        @Persist(customPersistor = IfSchemaChangesPersistor.class)
+        @ValueReference(IfSchemaChangesOptionRef.class)
+        public IfSchemaChangesOption m_ifSchemaChangesOption = IfSchemaChangesOption.FAIL;
+
+    }
+
+    /**
+     * Advanced settings for reader nodes which support handing multiple files.
+     *
+     * @see CommonReaderTransformationSettingsStateProviders.TransformationSettingsWidgetModification#hasMultipleFileHandling()
+     * @see CommonReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider#hasMultipleFileHandling()
+     */
+    public static class AdvancedSettingsWithMultipleFileHandling extends BaseAdvancedSettings {
 
         enum HowToCombineColumnsOption {
                 @Label(value = "Fail if different",
@@ -282,7 +365,7 @@ public final class CommonReaderNodeSettings {
         @ValueReference(AppendPathColumnRef.class)
         @Layout(CommonReaderLayout.MultipleFileHandling.AppendFilePathColumn.class)
         @Persist(configKey = "append_path_column", hidden = true)
-        boolean m_appendPathColumn;
+        public boolean m_appendPathColumn;
 
         static class FilePathColumnNameRef extends ReferenceStateProvider<String> {
         }
@@ -293,72 +376,8 @@ public final class CommonReaderNodeSettings {
         @Layout(CommonReaderLayout.MultipleFileHandling.FilePathColumnName.class)
         @Effect(predicate = AppendPathColumn.class, type = EffectType.SHOW)
         @Persist(configKey = "path_column_name", hidden = true)
-        String m_filePathColumnName = "File Path";
+        public String m_filePathColumnName = "File Path";
 
-        enum IfSchemaChangesOption {
-                @Label(value = "Fail",
-                    description = CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.DESCRIPTION_FAIL) //
-                FAIL, //
-                @Label(value = "Use new schema",
-                    description = CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.//
-                            DESCRIPTION_USE_NEW_SCHEMA) //
-                USE_NEW_SCHEMA, //
-                @Label(value = "Ignore (deprecated)",
-                    description = CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.DESCRIPTION_IGNORE,
-                    disabled = true)
-                IGNORE; //
-        }
-
-        static final class IfSchemaChangesPersistor implements FieldNodeSettingsPersistor<IfSchemaChangesOption> {
-
-            private static final String CFG_SAVE_TABLE_SPEC_CONFIG =
-                "save_table_spec_config" + SettingsModel.CFGKEY_INTERNAL;
-
-            private static final String CFG_CHECK_TABLE_SPEC = "check_table_spec";
-
-            @Override
-            public IfSchemaChangesOption load(final NodeSettingsRO settings) throws InvalidSettingsException {
-                final var saveTableSpecConfig = settings.getBoolean(CFG_SAVE_TABLE_SPEC_CONFIG, true);
-                if (saveTableSpecConfig) {
-                    if (settings.getBoolean(CFG_CHECK_TABLE_SPEC, false)) {
-                        return IfSchemaChangesOption.FAIL;
-                    } else {
-                        return IfSchemaChangesOption.IGNORE;
-                    }
-                }
-                return IfSchemaChangesOption.USE_NEW_SCHEMA;
-            }
-
-            @Override
-            public void save(final IfSchemaChangesOption ifSchemaChangesOption, final NodeSettingsWO settings) {
-                settings.addBoolean(CFG_SAVE_TABLE_SPEC_CONFIG,
-                    ifSchemaChangesOption != IfSchemaChangesOption.USE_NEW_SCHEMA);
-                settings.addBoolean(CFG_CHECK_TABLE_SPEC, ifSchemaChangesOption == IfSchemaChangesOption.FAIL);
-            }
-
-            @Override
-            public String[] getConfigKeys() {
-                return new String[]{CFG_SAVE_TABLE_SPEC_CONFIG, CFG_CHECK_TABLE_SPEC};
-            }
-        }
-
-        static final class IfSchemaChangesOptionRef implements Reference<IfSchemaChangesOption> {
-        }
-
-        static final class UseNewSchema implements PredicateProvider {
-            @Override
-            public Predicate init(final PredicateInitializer i) {
-                return i.getEnum(IfSchemaChangesOptionRef.class).isOneOf(IfSchemaChangesOption.USE_NEW_SCHEMA);
-            }
-        }
-
-        @Widget(title = "If schema changes",
-            description = CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.DESCRIPTION)
-        @RadioButtonsWidget
-        @Layout(CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.class)
-        @Persist(customPersistor = IfSchemaChangesPersistor.class)
-        @ValueReference(IfSchemaChangesOptionRef.class)
-        IfSchemaChangesOption m_ifSchemaChangesOption = IfSchemaChangesOption.FAIL;
     }
 
     /**

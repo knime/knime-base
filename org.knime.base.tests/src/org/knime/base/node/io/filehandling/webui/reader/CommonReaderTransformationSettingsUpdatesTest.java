@@ -72,8 +72,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.knime.base.node.io.filehandling.webui.LocalWorkflowContextTest;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.Settings.FileSelectionRef;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling.HowToCombineColumnsOption;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.BaseSettings.FileSelectionRef;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdRef;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TransformationElementSettings.SubTitleProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TransformationElementSettings.TitleProvider;
@@ -134,9 +134,9 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
      * @param settings
      * @return the common reader settings within the settings
      */
-    protected abstract CommonReaderNodeSettings.Settings getSettings(R settings);
+    protected abstract CommonReaderNodeSettings.SettingsWithRowId getSettings(R settings);
 
-    private CommonReaderNodeSettings.Settings getSettings() {
+    private CommonReaderNodeSettings.SettingsWithRowId getSettings() {
         return getSettings(m_settings);
     }
 
@@ -144,9 +144,9 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
      * @param settings
      * @return the advanced settings within the settings
      */
-    protected abstract CommonReaderNodeSettings.AdvancedSettings getAdvancedSettings(R settings);
+    protected abstract CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling getAdvancedSettings(R settings);
 
-    private CommonReaderNodeSettings.AdvancedSettings getAdvancedSettings() {
+    private CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling getAdvancedSettings() {
         return getAdvancedSettings(m_settings);
     }
 

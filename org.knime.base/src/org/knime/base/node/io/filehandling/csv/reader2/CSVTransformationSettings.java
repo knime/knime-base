@@ -97,7 +97,7 @@ final class CSVTransformationSettings
         @ValueProvider(FirstRowContainsColumnNamesRef.class)
         boolean m_firstRowContainsColumnNames = true;
 
-        @ValueProvider(CommonReaderNodeSettings.Settings.FirstColumnContainsRowIdsRef.class)
+        @ValueProvider(CommonReaderNodeSettings.SettingsWithRowId.FirstColumnContainsRowIdsRef.class)
         boolean m_firstColumnContainsRowIds;
 
         @ValueProvider(CommentStartRef.class)

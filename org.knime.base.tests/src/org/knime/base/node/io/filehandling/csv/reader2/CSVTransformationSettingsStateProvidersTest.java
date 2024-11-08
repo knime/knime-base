@@ -89,9 +89,9 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSetting
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOptionRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.ConfigIdSettings;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TypeChoicesProvider;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettings;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.Settings;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.Settings.FirstColumnContainsRowIdsRef;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.SettingsWithRowId;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.SettingsWithRowId.FirstColumnContainsRowIdsRef;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviderTestUtils.CommonReaderTransformationSettingsUpdatesTestClassBased;
 import org.knime.core.data.DataType;
@@ -261,12 +261,12 @@ final class CSVTransformationSettingsStateProvidersTest {
         extends CommonReaderTransformationSettingsUpdatesTestClassBased<CSVTableReaderNodeSettings> {
 
         @Override
-        protected Settings getSettings(final CSVTableReaderNodeSettings settings) {
+        protected SettingsWithRowId getSettings(final CSVTableReaderNodeSettings settings) {
             return settings.m_settings;
         }
 
         @Override
-        protected AdvancedSettings getAdvancedSettings(final CSVTableReaderNodeSettings settings) {
+        protected AdvancedSettingsWithMultipleFileHandling getAdvancedSettings(final CSVTableReaderNodeSettings settings) {
             return settings.m_advancedSettings;
         }
 

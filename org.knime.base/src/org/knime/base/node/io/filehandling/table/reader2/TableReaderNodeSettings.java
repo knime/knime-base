@@ -80,10 +80,10 @@ public class TableReaderNodeSettings implements DefaultNodeSettings {
     TableReaderTransformationSettings m_tableSpecConfig = new TableReaderTransformationSettings();
 
     @Modification(SetTableReaderExtensions.class)
-    static class Settings extends CommonReaderNodeSettings.Settings {
+    static class Settings extends CommonReaderNodeSettings.SettingsWithRowId {
 
         static final class SetTableReaderExtensions
-            extends CommonReaderNodeSettings.Settings.SetFileReaderWidgetExtensions {
+            extends CommonReaderNodeSettings.BaseSettings.SetFileReaderWidgetExtensions {
 
             @Override
             protected String[] getExtensions() {
@@ -99,7 +99,7 @@ public class TableReaderNodeSettings implements DefaultNodeSettings {
 
     }
 
-    static class AdvancedSettings extends CommonReaderNodeSettings.AdvancedSettings {
+    static class AdvancedSettings extends CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling {
 
         @Widget(title = "Skip first data rows", description = SkipFirstDataRows.DESCRIPTION)
         @NumberInputWidget(min = 0)

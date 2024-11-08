@@ -100,6 +100,11 @@ final class TableReaderTransformationSettingsStateProviders {
             return new TypeReference<>() {
             };
         }
+
+        @Override
+        protected boolean hasMultipleFileHandling() {
+            return true;
+        }
     }
 
     static final class TypeChoicesProvider
@@ -125,6 +130,11 @@ final class TableReaderTransformationSettingsStateProviders {
         @Override
         protected Class<TransformationElementSettingsProvider> getTransformationSettingsValueProvider() {
             return TransformationElementSettingsProvider.class;
+        }
+
+        @Override
+        protected boolean hasMultipleFileHandling() {
+            return true;
         }
 
     }

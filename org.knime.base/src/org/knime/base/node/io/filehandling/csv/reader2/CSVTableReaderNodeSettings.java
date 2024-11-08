@@ -143,9 +143,10 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
     CSVTransformationSettings m_tableSpecConfig = new CSVTransformationSettings();
 
     @Modification({SetCSVExtensions.class, SetTitleAndDescriptionForUseExistingRowIds.class})
-    static class Settings extends CommonReaderNodeSettings.Settings {
+    static class Settings extends CommonReaderNodeSettings.SettingsWithRowId {
 
-        static final class SetCSVExtensions extends CommonReaderNodeSettings.Settings.SetFileReaderWidgetExtensions {
+        static final class SetCSVExtensions
+            extends CommonReaderNodeSettings.BaseSettings.SetFileReaderWidgetExtensions {
 
             @Override
             protected String[] getExtensions() {
@@ -380,7 +381,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    static class AdvancedSettings extends CommonReaderNodeSettings.AdvancedSettings {
+    static class AdvancedSettings extends CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling {
 
         static class LimitScannedRowsRef extends ReferenceStateProvider<Boolean> {
         }

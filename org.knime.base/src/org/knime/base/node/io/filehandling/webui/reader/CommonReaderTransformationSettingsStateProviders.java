@@ -67,7 +67,10 @@ import java.util.stream.Stream;
 
 import org.knime.base.node.io.filehandling.webui.FileChooserPathAccessor;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.Settings.FileSelectionRef;
+import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling.HowToCombineColumnsOption;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling.HowToCombineColumnsOptionRef;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.BaseSettings.FileSelectionRef;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ColumnSpecSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdRef;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdSettings;
@@ -98,6 +101,7 @@ import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
+import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
@@ -152,7 +156,8 @@ public final class CommonReaderTransformationSettingsStateProviders {
         public S computeState(final DefaultNodeSettingsContext context) {
             final var fileSelection = m_fileSelectionSupplier.get();
             if (!WorkflowContextUtil.hasWorkflowContext() // no workflow context available
-                || fileSelection.getFSLocation().equals(new FSLocation(FSCategory.LOCAL, ""))) { // no file selected (yet)
+                   // no file selected (yet)
+                || fileSelection.getFSLocation().equals(new FSLocation(FSCategory.LOCAL, ""))) {
                 return computeStateFromPaths(Collections.emptyList());
             }
 
@@ -161,7 +166,7 @@ public final class CommonReaderTransformationSettingsStateProviders {
                 return computeStateFromPaths(Collections.emptyList());
             }
 
-            try (final FileChooserPathAccessor accessor = new FileChooserPathAccessor(fileSelection, fsConnection)) {
+            try (final var accessor = new FileChooserPathAccessor(fileSelection, fsConnection)) {
                 return computeStateFromPaths(accessor.getFSPaths(s -> {
                     switch (s.getType()) {
                         case INFO -> LOGGER.info(s.getMessage());
@@ -306,7 +311,8 @@ public final class CommonReaderTransformationSettingsStateProviders {
         extends DependsOnTypedReaderTableSpecProvider<TransformationElementSettings[], S, T>
         implements ProductionPathProviderAndTypeHierarchy<T> {
 
-        private Supplier<CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption> m_howToCombineColumnsSup;
+        private Supplier<HowToCombineColumnsOption>
+        m_howToCombineColumnsSup;
 
         private Supplier<TransformationElementSettings[]> m_existingSettings;
 
@@ -315,8 +321,11 @@ public final class CommonReaderTransformationSettingsStateProviders {
         @Override
         public void init(final StateProviderInitializer initializer) {
             super.init(initializer);
-            m_howToCombineColumnsSup = initializer
-                .computeFromValueSupplier(CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOptionRef.class);
+            if (hasMultipleFileHandling()) {
+                m_howToCombineColumnsSup = initializer.computeFromValueSupplier(HowToCombineColumnsOptionRef.class);
+            } else {
+                m_howToCombineColumnsSup = () -> HowToCombineColumnsOption.FAIL;
+            }
             m_existingSettings = initializer.getValueSupplier(TransformationElementSettingsRef.class);
             m_existingSpecs = initializer.getValueSupplier(
                 /** Contains a wildcard instead of S, since this is a common field */
@@ -333,6 +342,13 @@ public final class CommonReaderTransformationSettingsStateProviders {
          */
         protected abstract TypeReference<List<TableSpecSettings<S>>> getTableSpecSettingsTypeReference();
 
+
+        /**
+         * @return true if the node supports handling multiple files
+         * @see CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling
+         */
+        protected abstract boolean hasMultipleFileHandling();
+
         @Override
         public TransformationElementSettings[] computeState(final DefaultNodeSettingsContext context) {
             return toTransformationElements(m_specSupplier.get(), m_howToCombineColumnsSup.get(),
@@ -340,7 +356,7 @@ public final class CommonReaderTransformationSettingsStateProviders {
         }
 
         TransformationElementSettings[] toTransformationElements(final Map<String, TypedReaderTableSpec<T>> specs,
-            final CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption howToCombineColumnsOption,
+            final HowToCombineColumnsOption howToCombineColumnsOption,
             final TransformationElementSettings[] existingSettings, final TypedReaderTableSpec<T> existingSpecsUnion) {
 
             /**
@@ -555,6 +571,17 @@ public final class CommonReaderTransformationSettingsStateProviders {
         static final class TransformationElementSettingsArrayWidgetRef implements Modification.Reference {
         }
 
+        static final class AppendPathColumnRef extends ReferenceStateProvider<Boolean>
+            implements Modification.Reference {
+        }
+
+        static final class PathColumnNameRef extends ReferenceStateProvider<String> implements Modification.Reference {
+        }
+
+        static final class ColumnFilterModeRef extends ReferenceStateProvider<ColumnFilterMode>
+            implements Modification.Reference {
+        }
+
         @Override
         public void modify(final WidgetGroupModifier group) {
             group.find(SpecsRef.class).addAnnotation(ValueProvider.class).withValue(getSpecsValueProvider()).modify();
@@ -562,6 +589,12 @@ public final class CommonReaderTransformationSettingsStateProviders {
                 .withProperty("choicesProvider", getTypeChoicesProvider()).modify();
             group.find(TransformationElementSettingsArrayWidgetRef.class).addAnnotation(ValueProvider.class)
                 .withValue(getTransformationSettingsValueProvider()).modify();
+            if (!hasMultipleFileHandling()) {
+                // remove value providers to fall back to defaults
+                group.find(AppendPathColumnRef.class).removeAnnotation(ValueProvider.class);
+                group.find(PathColumnNameRef.class).removeAnnotation(ValueProvider.class);
+                group.find(ColumnFilterModeRef.class).removeAnnotation(ValueProvider.class);
+            }
         }
 
         /**
@@ -579,6 +612,12 @@ public final class CommonReaderTransformationSettingsStateProviders {
          * @return the choices provider for the types of array layout elements.
          */
         protected abstract Class<? extends TypeChoicesProvider<T>> getTypeChoicesProvider();
+
+        /**
+         * @return true if the node supports handling multiple files
+         * @see CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling
+         */
+        protected abstract boolean hasMultipleFileHandling();
     }
 
     private CommonReaderTransformationSettingsStateProviders() {

@@ -152,7 +152,7 @@ public final class CSVFormatProvider extends CSVFormatAutoDetector implements St
 
         // Dependencies
         m_fileSelectionSupplier =
-            initializer.getValueSupplier(CommonReaderNodeSettings.Settings.FileSelectionRef.class);
+            initializer.getValueSupplier(CommonReaderNodeSettings.BaseSettings.FileSelectionRef.class);
         m_skipFirstLinesSupplier = initializer.getValueSupplier(SkipFirstLinesRef.class);
         m_charsetSupplier = initializer.getValueSupplier(CharsetRef.class);
         m_bufferSizeSupplier = initializer.getValueSupplier(BufferSizeRef.class);

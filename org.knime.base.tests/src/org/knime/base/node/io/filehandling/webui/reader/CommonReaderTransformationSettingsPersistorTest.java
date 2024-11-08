@@ -52,7 +52,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettings.HowToCombineColumnsOption;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling.HowToCombineColumnsOption;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ColumnSpecSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TableSpecSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TransformationElementSettings;
@@ -168,6 +168,12 @@ public abstract class CommonReaderTransformationSettingsPersistorTest<R extends 
             protected TypeReference getTableSpecSettingsTypeReference() {
                 return null;
             }
+
+            @Override
+            protected boolean hasMultipleFileHandling() {
+                return true;
+            }
+
         }.toTransformationElements(specMap, HowToCombineColumnsOption.UNION, new TransformationElementSettings[0],
             new TypedReaderTableSpec<>());
         return transformationSettings;
