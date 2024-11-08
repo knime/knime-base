@@ -78,7 +78,7 @@ final class GenericCatchNodeDialog extends DefaultNodeSettingsPane {
         addDialogComponent(new DialogComponentString(defaultMessage,
             "Default for \"%s\" variable:".formatted(GenericCatchNodeModel.VAR_FAILING_MESSAGE)));
         // The error details input.
-        final SettingsModelString defaultDetails = GenericCatchNodeModel.getDefaultMessage(alwaysPopulate);
+        final SettingsModelString defaultDetails = GenericCatchNodeModel.getDefaultDetails(alwaysPopulate);
         addDialogComponent(new DialogComponentString(defaultDetails,
             "Default for \"%s\" variable:".formatted(GenericCatchNodeModel.VAR_FAILING_DETAILS)));
         // The stacktrace input.
