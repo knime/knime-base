@@ -45,13 +45,15 @@
 package org.knime.base.node.preproc.joiner3;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import org.apache.xmlbeans.XmlException;
 import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
@@ -70,7 +72,7 @@ import org.xml.sax.SAXException;
  *
  */
 @SuppressWarnings("restriction")
-public class Joiner3NodeFactory extends NodeFactory<Joiner3NodeModel> implements NodeDialogFactory {
+public class Joiner3NodeFactory extends ConfigurableNodeFactory<Joiner3NodeModel> implements NodeDialogFactory {
 
     static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
         .name("Joiner") //
@@ -85,6 +87,10 @@ public class Joiner3NodeFactory extends NodeFactory<Joiner3NodeModel> implements
         .modelSettingsClass(Joiner3NodeSettings.class) //
         .addInputPort("Left table", BufferedDataTable.TYPE, "Left input table") //
         .addInputPort("Right table", BufferedDataTable.TYPE, "Right input table") //
+        .addInputPort("Matching Criteria", BufferedDataTable.TYPE,
+            "A table defining the matching criteria. "
+                + "When connected, the array of matching criteria is parsed from columns within this table.",
+            true) //
         .addOutputPort("Join result", BufferedDataTable.TYPE,
             "Either all results or the result of the inner join (if the unmatched rows are output "
                 + "in separate ports)") //
@@ -100,13 +106,16 @@ public class Joiner3NodeFactory extends NodeFactory<Joiner3NodeModel> implements
             "KNIME E-Learning Course: Join: inner join, right outer join, left outer join, full outer join")
         .keywords("Combine tables").build();
 
+    /**
+     * @since 5.4
+     */
     @Override
-    public Joiner3NodeModel createNodeModel() {
-        return new Joiner3NodeModel(CONFIG);
+    public Joiner3NodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
+        return new Joiner3NodeModel(creationConfig.getPortConfig().orElseThrow());
     }
 
     @Override
-    protected NodeDialogPane createNodeDialogPane() {
+    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
         return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
 
@@ -136,6 +145,19 @@ public class Joiner3NodeFactory extends NodeFactory<Joiner3NodeModel> implements
     @Override
     public NodeDialog createNodeDialog() {
         return new DefaultNodeDialog(SettingsType.MODEL, Joiner3NodeSettings.class);
+    }
+
+    @Override
+    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
+        final var b = new PortsConfigurationBuilder();
+        b.addFixedInputPortGroup("Left table", BufferedDataTable.TYPE);
+        b.addFixedInputPortGroup("Right table", BufferedDataTable.TYPE);
+        b.addOptionalInputPortGroup("Matching Criteria", BufferedDataTable.TYPE);
+        b.addFixedOutputPortGroup("Join Results", BufferedDataTable.TYPE);
+        b.addFixedOutputPortGroup("Left unmatched rows", BufferedDataTable.TYPE);
+        b.addFixedOutputPortGroup("Right unmatched rows", BufferedDataTable.TYPE);
+
+        return Optional.of(b);
     }
 
 }

@@ -57,6 +57,7 @@ import org.knime.core.node.func.NodeFuncApi;
 import org.knime.core.node.func.SimpleNodeFunc;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.array.Array;
 
 /**
  *
@@ -81,7 +82,7 @@ public final class JoinerNodeFunc implements SimpleNodeFunc {
         final NodeSettingsWO settings) throws InvalidSettingsException {
         final var joinerNodeSettings = new Joiner3NodeSettings();
         final var joinColumn = arguments.getString(JOIN_COLUMN);
-        final var matchingCriteria = new MatchingCriterion[]{new MatchingCriterion(joinColumn, joinColumn)};
+        final var matchingCriteria = new Array<>(new MatchingCriterion(joinColumn, joinColumn));
 
         joinerNodeSettings.m_matchingCriteria = matchingCriteria;
         joinerNodeSettings.m_mergeJoinColumns = true;

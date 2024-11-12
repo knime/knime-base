@@ -78,6 +78,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.inactive.InactiveBranchPortObject;
@@ -86,7 +87,6 @@ import org.knime.core.node.property.hilite.DefaultHiLiteMapper;
 import org.knime.core.node.property.hilite.HiLiteHandler;
 import org.knime.core.node.property.hilite.HiLiteTranslator;
 import org.knime.core.util.UniqueNameGenerator;
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 
 /**
@@ -100,15 +100,20 @@ class Joiner3NodeModel extends WebUINodeModel<Joiner3NodeSettings> {
 
     private final Hiliter m_hiliter = new Hiliter();
 
-    Joiner3NodeModel(final WebUINodeConfiguration config) {
-        super(config, Joiner3NodeSettings.class);
+    Joiner3NodeModel(final PortsConfiguration config) {
+        super(config.getInputPorts(), config.getOutputPorts(), Joiner3NodeSettings.class);
     }
+
+    DataTableSpec m_matchingCriteriaSpec;
 
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs, final Joiner3NodeSettings settings)
         throws InvalidSettingsException {
+        setMatchingCriteriaSpec(inSpecs);
 
-        var joinSpecification = new JoinSpecificationCreator(settings).joinSpecificationForSpecs(inSpecs);
+        var joinSpecificationCreator = new JoinSpecificationCreator(settings, m_matchingCriteriaSpec);
+        joinSpecificationCreator.validateSettings();
+        var joinSpecification = joinSpecificationCreator.joinSpecificationForSpecs(inSpecs);
 
         if (settings.m_duplicateHandling == DuplicateHandling.DO_NOT_EXECUTE) {
             Optional<String> duplicateColumn =
@@ -140,6 +145,14 @@ class Joiner3NodeModel extends WebUINodeModel<Joiner3NodeSettings> {
 
     }
 
+    private void setMatchingCriteriaSpec(final PortObjectSpec[] inSpecs) {
+        if (inSpecs.length == 3) {
+            m_matchingCriteriaSpec = (DataTableSpec)inSpecs[2];
+        } else {
+            m_matchingCriteriaSpec = null;
+        }
+    }
+
     @Override
     protected PortObject[] execute(final PortObject[] inPortObjects, final ExecutionContext exec,
         final Joiner3NodeSettings settings) throws Exception {
@@ -147,7 +160,13 @@ class Joiner3NodeModel extends WebUINodeModel<Joiner3NodeSettings> {
         BufferedDataTable left = (BufferedDataTable)inPortObjects[0];
         BufferedDataTable right = (BufferedDataTable)inPortObjects[1];
 
-        var joinSpecification = joinSpecificationForTables(new JoinSpecificationCreator(settings), left, right);
+        BufferedDataTable matchingCriteria = null;
+        if (inPortObjects.length == 3) {
+            matchingCriteria = (BufferedDataTable)inPortObjects[2];
+        }
+
+        var joinSpecification =
+            joinSpecificationForTables(new JoinSpecificationCreator(settings, matchingCriteria), left, right);
 
         JoinImplementation implementation = JoinAlgorithm.AUTO.getFactory().create(joinSpecification, exec);
         implementation.setMaxOpenFiles(settings.m_maxOpenFiles);
@@ -236,7 +255,7 @@ class Joiner3NodeModel extends WebUINodeModel<Joiner3NodeSettings> {
 
     @Override
     protected void validateSettings(final Joiner3NodeSettings settings) throws InvalidSettingsException {
-        new JoinSpecificationCreator(settings).validateSettings();
+        new JoinSpecificationCreator(settings, m_matchingCriteriaSpec).validateSettings();
     }
 
     @Override

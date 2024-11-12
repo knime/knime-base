@@ -54,6 +54,7 @@ import java.util.function.UnaryOperator;
 
 import org.knime.base.node.preproc.joiner3.Joiner3NodeSettings.CompositionMode;
 import org.knime.base.node.preproc.joiner3.Joiner3NodeSettings.DuplicateHandling;
+import org.knime.base.node.preproc.joiner3.Joiner3NodeSettings.MatchingCriterion;
 import org.knime.base.node.preproc.joiner3.Joiner3NodeSettings.RowKeyFactory;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
@@ -66,6 +67,7 @@ import org.knime.core.data.join.JoinTableSettings;
 import org.knime.core.data.join.JoinTableSettings.JoinColumn;
 import org.knime.core.data.join.JoinTableSettings.SpecialJoinColumn;
 import org.knime.core.data.join.KeepRowKeysFactory;
+import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.util.Pair;
@@ -83,13 +85,30 @@ final class JoinSpecificationCreator {
 
     Joiner3NodeSettings m_joinerNodeSettings;
 
-    JoinSpecificationCreator(final Joiner3NodeSettings joinerNodeSettings) {
+    BufferedDataTable m_matchingCriteria;
+
+    DataTableSpec m_matchingCriteriaSpec;
+
+    JoinSpecificationCreator(final Joiner3NodeSettings joinerNodeSettings, final BufferedDataTable matchingCriteria) {
         m_joinerNodeSettings = joinerNodeSettings;
+        m_matchingCriteria = matchingCriteria;
+        if (matchingCriteria != null) {
+            m_matchingCriteriaSpec = matchingCriteria.getSpec();
+        }
+    }
+
+    JoinSpecificationCreator(final Joiner3NodeSettings joinerNodeSettings, final DataTableSpec matchingCriteriaSpec) {
+        m_joinerNodeSettings = joinerNodeSettings;
+        m_matchingCriteriaSpec = matchingCriteriaSpec;
     }
 
     void validateSettings() throws InvalidSettingsException {
-        if (getLeftJoinColumns().length == 0) {
-            throw new InvalidSettingsException("Please define at least one joining column pair.");
+        if (m_matchingCriteriaSpec == null) {
+            if (m_joinerNodeSettings.m_matchingCriteria.getValues(null, null).isEmpty()) {
+                throw new InvalidSettingsException("Please define at least one joining column pair.");
+            }
+        } else {
+            m_joinerNodeSettings.m_matchingCriteria.validate(MatchingCriterion.class, m_matchingCriteriaSpec);
         }
 
         if (m_joinerNodeSettings.m_duplicateHandling == DuplicateHandling.APPEND_SUFFIX
@@ -109,16 +128,15 @@ final class JoinSpecificationCreator {
         DataTableSpec left = (DataTableSpec)portSpecs[0];
         String[] leftIncludes =
             m_joinerNodeSettings.m_leftColumnSelectionConfig.getSelected(left.getColumnNames(), left);
-        var leftSettings =
-            new JoinTableSettings(isIncludeLeftUnmatched(), getLeftJoinColumns(), leftIncludes, InputTable.LEFT, left);
+        var leftSettings = new JoinTableSettings(isIncludeLeftUnmatched(), getLeftJoinColumns(m_matchingCriteria),
+            leftIncludes, InputTable.LEFT, left);
 
         // right (bottom port) input table
         DataTableSpec right = (DataTableSpec)portSpecs[1];
         String[] rightIncludes =
-            m_joinerNodeSettings.m_rightColumnSelectionConfig.getSelected(right.getColumnNames(),
-                right);
-        var rightSettings = new JoinTableSettings(isIncludeRightUnmatched(), getRightJoinColumns(), rightIncludes,
-            InputTable.RIGHT, right);
+            m_joinerNodeSettings.m_rightColumnSelectionConfig.getSelected(right.getColumnNames(), right);
+        var rightSettings = new JoinTableSettings(isIncludeRightUnmatched(), getRightJoinColumns(m_matchingCriteria),
+            rightIncludes, InputTable.RIGHT, right);
 
         UnaryOperator<String> columnNameDisambiguator;
         // replace with custom
@@ -135,8 +153,7 @@ final class JoinSpecificationCreator {
             .outputRowOrder(getOutputRowOrder())//
             .retainMatched(isIncludeMatches())//
             .mergeJoinColumns(m_joinerNodeSettings.m_mergeJoinColumns)//
-            .columnNameDisambiguator(columnNameDisambiguator)
-            .dataCellComparisonMode(getDataCellComparisonMode())//
+            .columnNameDisambiguator(columnNameDisambiguator).dataCellComparisonMode(getDataCellComparisonMode())//
             .rowKeyFactory(rowKeyFactory.getFirst(), rowKeyFactory.getSecond())//
             .build();
 
@@ -152,14 +169,16 @@ final class JoinSpecificationCreator {
         return spec;
     }
 
-    private JoinColumn[] getLeftJoinColumns() {
-        return Arrays.stream(m_joinerNodeSettings.m_matchingCriteria).map(criterion -> criterion.m_leftTableColumn)
-            .map(JoinSpecificationCreator::toJoinColumn).toArray(JoinColumn[]::new);
+    private JoinColumn[] getLeftJoinColumns(final BufferedDataTable matchingCriteria) {
+        return m_joinerNodeSettings.m_matchingCriteria.getValues(MatchingCriterion.class, matchingCriteria).stream()
+            .map(criterion -> criterion.m_leftTableColumn).map(JoinSpecificationCreator::toJoinColumn)
+            .toArray(JoinColumn[]::new);
     }
 
-    private JoinColumn[] getRightJoinColumns() {
-        return Arrays.stream(m_joinerNodeSettings.m_matchingCriteria).map(criterion -> criterion.m_rightTableColumn)
-            .map(JoinSpecificationCreator::toJoinColumn).toArray(JoinColumn[]::new);
+    private JoinColumn[] getRightJoinColumns(final BufferedDataTable matchingCriteria) {
+        return m_joinerNodeSettings.m_matchingCriteria.getValues(MatchingCriterion.class, matchingCriteria).stream()
+            .map(criterion -> criterion.m_rightTableColumn).map(JoinSpecificationCreator::toJoinColumn)
+            .toArray(JoinColumn[]::new);
     }
 
     private static JoinColumn toJoinColumn(final String columnName) {
@@ -186,7 +205,7 @@ final class JoinSpecificationCreator {
 
     /**
      * @return Pair of the row key factory and a flag whether in the context of this node the factory is guaranteed to
-     * create unique keys. Note that KEEP_ROWID is only applicable if Row ID equality is enforced.
+     *         create unique keys. Note that KEEP_ROWID is only applicable if Row ID equality is enforced.
      * @see KeepRowKeysFactory#applicable(JoinSpecification, boolean)
      */
     private Pair<BiFunction<DataRow, DataRow, RowKey>, Boolean> getRowKeyFactory() {
@@ -219,8 +238,8 @@ final class JoinSpecificationCreator {
 
         private final boolean m_includeRightUnmatchedRows;
 
-        JoinMode(final String uiDisplayText, final boolean includeMatchingRows,
-            final boolean includeLeftUnmatchedRows, final boolean includeRightUnmatchedRows) {
+        JoinMode(final String uiDisplayText, final boolean includeMatchingRows, final boolean includeLeftUnmatchedRows,
+            final boolean includeRightUnmatchedRows) {
             m_uiDisplayText = uiDisplayText;
             m_includeMatchingRows = includeMatchingRows;
             m_includeLeftUnmatchedRows = includeLeftUnmatchedRows;
