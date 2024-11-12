@@ -62,11 +62,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.CheckboxesWithVennD
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultPersistorWithDeprecations;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.array.Array;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.array.PortIndex;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
@@ -180,7 +180,7 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
     @Widget(title = "Match", description = "Defines the logic for the matching criteria:")
     CompositionMode m_compositionMode = CompositionMode.MATCH_ALL;
 
-    static class MatchingCriterion implements PersistableSettings, WidgetGroup {
+    static class MatchingCriterion implements DefaultNodeSettings {
 
         MatchingCriterion() {
             this(SpecialColumns.ROWID.getId(), SpecialColumns.ROWID.getId());
@@ -274,7 +274,8 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
     @Layout(MatchingCriteriaSection.class)
     @ArrayWidget(addButtonText = "Add matching criterion")
     @Persist(customPersistor = MatchingCriteriaPersistor.class)
-    MatchingCriterion[] m_matchingCriteria = new MatchingCriterion[]{new MatchingCriterion()};
+    @PortIndex(2)
+    Array<MatchingCriterion> m_matchingCriteria = new Array<>(new MatchingCriterion());
 
     enum DataCellComparisonMode {
             @Label(value = "Value and type",
