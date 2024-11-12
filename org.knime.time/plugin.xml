@@ -121,6 +121,12 @@
             factory-class="org.knime.time.node.create.createdatetime.CreateDateTimeNodeFactory">
       </node>
       <node
+            category-path="/applications/timeseries/manipulate"
+            deprecated="false"
+            factory-class="org.knime.time.node.create.createdatetime.CreateDateTimeNodeFactory2"
+            hidden="true">
+      </node>
+      <node
             after="org.knime.time.node.convert.durationperiodtostring.DurationPeriodToStringNodeFactory"
             category-path="/applications/timeseries/transform"
             deprecated="false"
