@@ -48,12 +48,12 @@
         <entry key="prepend_table_index_to_row_id" type="xboolean" value="false"/>
     </config>
     <config key="advanced_settings">
+        <entry key="save_table_spec_config_Internals" type="xboolean" value="true"/>
+        <entry key="check_table_spec" type="xboolean" value="true"/>
         <entry key="fail_on_differing_specs" type="xboolean" value="true"/>
         <entry key="spec_merge_mode" type="xstring" value="UNION"/>
         <entry key="append_path_column_Internals" type="xboolean" value="false"/>
         <entry key="path_column_name_Internals" type="xstring" value="Path"/>
-        <entry key="save_table_spec_config_Internals" type="xboolean" value="true"/>
-        <entry key="check_table_spec" type="xboolean" value="true"/>
         <entry key="skip_data_rows" type="xboolean" value="false"/>
         <entry key="number_of_rows_to_skip" type="xlong" value="0"/>
         <entry key="limit_data_rows" type="xboolean" value="false"/>
