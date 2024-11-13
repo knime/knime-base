@@ -837,7 +837,7 @@
         "scope" : "#/properties/model/properties/settings/properties/authenticationManagedByPortText",
         "options" : {
           "format" : "textMessage",
-          "messageProvider" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileSystemManagedByPortMessage"
+          "messageProvider" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$BaseSettings$FileSystemManagedByPortMessage"
         }
       }, {
         "type" : "Control",
@@ -1624,7 +1624,7 @@
     } ]
   }, {
     "scopes" : null,
-    "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileSystemManagedByPortMessage",
+    "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$BaseSettings$FileSystemManagedByPortMessage",
     "values" : [ {
       "indices" : [ ],
       "value" : null
@@ -1648,10 +1648,10 @@
     },
     "dependencies" : [ {
       "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef"
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettingsWithMultipleFileHandling$HowToCombineColumnsOptionRef"
     }, {
       "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileSelectionRef"
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$BaseSettings$FileSelectionRef"
     }, {
       "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
       "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
@@ -1788,7 +1788,7 @@
       "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
     }, {
       "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileSelectionRef"
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$BaseSettings$FileSelectionRef"
     } ]
   }, {
     "trigger" : {
@@ -1855,33 +1855,33 @@
     } ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$AppendPathColumnRef",
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettingsWithMultipleFileHandling$AppendPathColumnRef",
       "scopes" : [ "#/properties/model/properties/advancedSettings/properties/appendPathColumn" ]
     },
     "dependencies" : [ {
       "scopes" : [ "#/properties/model/properties/advancedSettings/properties/appendPathColumn" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$AppendPathColumnRef"
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettingsWithMultipleFileHandling$AppendPathColumnRef"
     } ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$FilePathColumnNameRef",
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettingsWithMultipleFileHandling$FilePathColumnNameRef",
       "scopes" : [ "#/properties/model/properties/advancedSettings/properties/filePathColumnName" ]
     },
     "dependencies" : [ {
       "scopes" : [ "#/properties/model/properties/advancedSettings/properties/filePathColumnName" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$FilePathColumnNameRef"
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettingsWithMultipleFileHandling$FilePathColumnNameRef"
     } ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef",
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettingsWithMultipleFileHandling$HowToCombineColumnsOptionRef",
       "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ]
     },
     "dependencies" : [ {
       "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef"
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettingsWithMultipleFileHandling$HowToCombineColumnsOptionRef"
     }, {
       "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileSelectionRef"
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$BaseSettings$FileSelectionRef"
     }, {
       "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
       "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
@@ -1894,15 +1894,15 @@
     } ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileSelectionRef",
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$BaseSettings$FileSelectionRef",
       "scopes" : [ "#/properties/model/properties/settings/properties/source" ]
     },
     "dependencies" : [ {
       "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef"
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettingsWithMultipleFileHandling$HowToCombineColumnsOptionRef"
     }, {
       "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileSelectionRef"
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$BaseSettings$FileSelectionRef"
     }, {
       "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
       "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
@@ -1915,12 +1915,12 @@
     } ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef",
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$SettingsWithRowId$FirstColumnContainsRowIdsRef",
       "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ]
     },
     "dependencies" : [ {
       "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FirstColumnContainsRowIdsRef"
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$SettingsWithRowId$FirstColumnContainsRowIdsRef"
     } ]
   }, {
     "trigger" : {
@@ -1929,10 +1929,10 @@
     },
     "dependencies" : [ {
       "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettings$HowToCombineColumnsOptionRef"
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettingsWithMultipleFileHandling$HowToCombineColumnsOptionRef"
     }, {
       "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileSelectionRef"
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$BaseSettings$FileSelectionRef"
     }, {
       "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
       "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
@@ -1950,7 +1950,7 @@
     },
     "dependencies" : [ {
       "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$Settings$FileSelectionRef"
+      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$BaseSettings$FileSelectionRef"
     }, {
       "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
       "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
