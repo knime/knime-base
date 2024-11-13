@@ -153,7 +153,21 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
 
         }
 
-        @Widget(title = "Filter column", description = "The column on which to apply the filter.")
+        @Widget(title = "Filter column", description =
+                """
+                <p>The column on which to apply the filter.</p>
+
+                <p>The special column "RowID" represents the RowID of the input and is treated as a String column that
+                is never missing. The special column "Row number" targets the 1-based row number of the input, is
+                treated as a Long column and is never missing. Both special columns are always available, regardless of
+                the input table spec or data.</p>
+
+                <p>Columns containing data types that are non-native, i.e. contain cells of heterogeneous data types, or
+                do not offer a conversion from and to a string representation are not supported and are filtered out
+                from the available options.</p>
+
+                <p>Collection columns are also not supported by the node.</p>
+                """)
         @ChoicesWidget(showRowKeysColumn = true, showRowNumbersColumn = true,
             choicesProvider = ColumnsWithTypeMapping.class)
         @Layout(Condition.ColumnOperator.Column.class)
@@ -165,7 +179,21 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
 
         // We explicitly do not "reset" the current operator to one applicable for the current column data type,
         // in order to allow the user to switch between columns without resetting their operator selection.
-        @Widget(title = "Operator", description = "The operator defining the filter criterion.")
+        @Widget(title = "Operator", description =
+                """
+                <p>The operator defines whether a particular value passes the filter criterion or not.
+                A value matches the filter criterion, if the operator applied to it returns "true". If the operator
+                returns "false" or a missing value, the value does not match the filter criterion.
+                Not all operators offered by this node may be applicable to a particular column data type.
+                Only the applicable operators are shown for the selected column.</p>
+
+                <p><b>Missing value handling:</b> All operators except "Is missing" or "Is not missing" return a missing
+                cell if they encounter a missing cell as input.
+                Therefore, a missing cell is matched if and only if the filter operator is "Is missing" or
+                "Is not missing".
+                Consequently, the filter behavior follows the semantics of SQL missing value filtering, e.g. when using
+                the <i>DB Row Filter</i> node or SQL <tt>WHERE</tt> clause in the <i>DB Query</i> node.</p>
+                """)
         @Layout(Condition.ColumnOperator.Operator.class)
         @ValueReference(OperatorRef.class)
         @ChoicesWidget(choicesProvider = TypeBasedOperatorChoices.class)

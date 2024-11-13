@@ -76,13 +76,29 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValu
 @SuppressWarnings("restriction") // new ui
 enum FilterOperator {
 
-        @Label(value = "Equals", description = "Value in column must be <b>equal</b> to specified value")
+        @Label(value = "Equals", description =
+                """
+                Value in column must be <b>equal</b> to the specified reference value.
+                Equality is define by the particular data type(s) involved and may be on the value's string
+                representation.
+                """)
         EQ("Equals", null, new IsEq(), null, true),
-        @Label(value = "Does not equal", description = "Value in column must be <b>not equal</b> to specified value")
+        @Label(value = "Does not equal", description =
+                """
+                Value in column must be <b>not equal</b> to specified reference value.
+                """)
         NEQ("Does not equal", null, new IsEq(), null, true),
 
-        @Label(value = "Less than", //
-               description = "Value in column must be <b>strictly smaller</b> than specified value") //
+        @Label(value = "Less than", description =
+               """
+               <p>Value in column must be <b>strictly smaller</b> than specified value.</p>
+
+               <p>This operator is applicable for all data types that offer a more meaningful ordering than just
+               lexicographic ordering. In particular, this includes by default numeric types and Date &amp; Time types.
+               String and Boolean types are not supported.
+               The same requirements apply to the other ordering-based operators: "Less than", "Less than or equal",
+               "Greather than", and "Greater than or equal".</p>
+               """) //
         LT("Less than", null, new IsOrd(), new BoundedNumeric(), true), //
         @Label(value = "Less than or equal", //
                description = "Value in column must be <b>smaller than or equal</b> to specified value") //
@@ -94,17 +110,35 @@ enum FilterOperator {
             description = "Value in column must be <b>larger than or equal</b> than specified value") //
         GTE("Greater than or equal", null, new IsOrd(), new BoundedNumeric(), true), //
 
-        @Label(value = "First <i>n</i> rows",
-            description = "Matches the specified number of rows at the start of the input")
+        @Label(value = "First <i>n</i> rows", description =
+                """
+                Matches the specified number of rows counted from the start of the input.
+                """)
         FIRST_N_ROWS("First n rows", null, new IsRowNumber(), null, true), //
-        @Label(value = "Last <i>n</i> rows",
-            description = "Matches the specified number of rows at the end of the input")
+        @Label(value = "Last <i>n</i> rows", description =
+                """
+                Matches the specified number of rows counted from the end of the input.
+                """)
         LAST_N_ROWS("Last n rows", null, new IsRowNumber(), null, true), //
 
-        @Label(value = "Matches regex", description = "Value in column must match the specified regular expression")
+        @Label(value = "Matches regex", description =
+                """
+                <p>Value in column must match the specified regular expression.</p>
+
+                <p>This operator is applicable to all data types that are string-compatible,
+                i.e. offer a meaningful string representation of themselves, or integral numbers.
+                In particular, this includes Date &amp; Time types.
+                The same requirements apply to the "Matches wildcard" operator.</p>
+
+                <p><b>Regex matching behavior:</b> By default, the regex pattern must match the whole cell value,
+                not just parts of it, since
+                the regex pattern is configured with the <tt>DOTALL</tt> and <tt>MULTILINE</tt> flags
+                <i>enabled</i>. To disable the <tt>DOTALL</tt> flag, prefix the pattern with <tt>(?-s)</tt>, to disable
+                <tt>MULTILINE</tt> use prefix <tt>(?-m)</tt>. To disable both, use <tt>(?-sm)</tt>.</p>
+                """)
         REGEX("Matches regex", StringCell.TYPE, new IsPatternMatchable(), null, true),
         @Label(value = "Matches wildcard", description = "Value in column must match the specified pattern, "
-                + "which may contain wildcards <tt>*</tt> and <tt>?</tt>")
+                + "which may contain wildcards <tt>*</tt> and <tt>?</tt>.")
         WILDCARD("Matches wildcard", StringCell.TYPE, new IsPatternMatchable(), null, true),
 
         @Label(value = "Is true", description = "Boolean value in column must be <tt>true</tt>")
