@@ -130,7 +130,7 @@ class ModifyTimeNodeSettings implements DefaultNodeSettings {
     @ValueSwitchWidget
     @Persist(configKey = "replace_or_append", customPersistor = AppendOrReplacePersistor.class)
     @ValueReference(AppendOrReplaceRef.class)
-    AppendOrReplace m_appendOrReplace = AppendOrReplace.APPEND;
+    AppendOrReplace m_appendOrReplace = AppendOrReplace.REPLACE;
 
     @Widget(title = "Suffix of appended column",
         description = "The suffix that is appended to the column name. "
@@ -178,7 +178,7 @@ class ModifyTimeNodeSettings implements DefaultNodeSettings {
     enum AppendOrReplace {
             @Label(value = "Replace", description = "The selected columns will be replaced by the new columns.")
             REPLACE("Replace selected columns"), //
-            @Label(value = "Append with Suffix", //
+            @Label(value = "Append with suffix", //
                 description = "The selected columns will be appended to the input table. "
                     + "The suffix of the appended columns can be provided in the text field to the right.")
             APPEND("Append selected columns"); //

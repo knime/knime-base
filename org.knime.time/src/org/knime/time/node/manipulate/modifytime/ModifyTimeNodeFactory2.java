@@ -48,16 +48,17 @@
  */
 package org.knime.time.node.manipulate.modifytime;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
  * The node factory of the node which modifies time.
  *
- * @author Simon Schmid, KNIME.com, Konstanz, Germany
+ * @author Tobias Kampmann, TNG Technology Consulting GmbH
+ * @author David Hickey, TNG Technology Consulting GmbH
  */
-public final class ModifyTimeNodeFactory extends NodeFactory<ModifyTimeNodeModel> {
+@SuppressWarnings("restriction")
+public final class ModifyTimeNodeFactory2 extends WebUINodeFactory<ModifyTimeNodeModel> {
 
     /**
      * {@inheritDoc}
@@ -67,36 +68,27 @@ public final class ModifyTimeNodeFactory extends NodeFactory<ModifyTimeNodeModel
         return new ModifyTimeNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
+    private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
+        .name("Time Modifier") //
+        .icon("modify_time.png") //
+        .shortDescription("Modifies time information of a date&amp;time cell.") //
+        .fullDescription("Modifies date&amp;time columns in three different ways. "
+            + "The node can append a time to local date columns (output type is local or zoned date time column) "
+            + "<b>or</b> change the time in local or zoned date&amp;time columns <b>or</b> "
+            + "remove the time from local or zoned date&amp;time columns (output type is local date). "
+            + "<br/> This node is not used to add (\"plus\") or subtract (\"minus\") time. "
+            + "Use the <i>Date&amp;Time Shift</i> node for that.") //
+        .modelSettingsClass(ModifyTimeNodeSettings.class) //
+        .addInputTable("Input table", "Input table.") //
+        .addOutputTable("Output table", "Output table with modified time.") //
+        .keywords("modify", "date-time", "fields", "hour", "minute", "second", "milli")//
+        .build();
 
     /**
-     * {@inheritDoc}
+     *
      */
-    @Override
-    public NodeView<ModifyTimeNodeModel> createNodeView(final int viewIndex, final ModifyTimeNodeModel nodeModel) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new ModifyTimeNodeDialog();
+    public ModifyTimeNodeFactory2() {
+        super(CONFIGURATION);
     }
 
 }

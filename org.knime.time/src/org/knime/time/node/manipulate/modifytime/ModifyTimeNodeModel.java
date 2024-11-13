@@ -143,7 +143,7 @@ final class ModifyTimeNodeModel extends SimpleStreamableFunctionNodeModel {
 
     /** @return the string select model, used in both dialog and model. */
     static SettingsModelString createModifySelectModel() {
-        return new SettingsModelString("modify_select", MODIFY_OPTION_APPEND);
+        return new SettingsModelString("modify_select", MODIFY_OPTION_CHANGE);
     }
 
     /** @return the date time model, used in both dialog and model. */
