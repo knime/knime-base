@@ -52,11 +52,7 @@ import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
@@ -64,12 +60,13 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesStateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.CompatibleColumnChoicesStateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.CompatibleDataValueClassesSupplier;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -79,18 +76,20 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.time.util.AppendOrReplace;
+import org.knime.time.util.ReplaceOrAppend;
+
 /**
  * Settings for the Time Modifier WebUI node.
  *
  * @author David Hickey, TNG Technology Consulting GmbH
+ * @author Tobias Kampmann TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
 public class ModifyTimeZoneNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Modify type", description = "Defines the action to be performed on the selected columns.")
     @ValueSwitchWidget
-    @Persist(customPersistor = BehaviourTypePersistor.class)
+    @Persist(configKey = "modify_select", customPersistor = BehaviourTypePersistor.class)
     @ValueReference(BehaviourTypeRef.class)
     BehaviourType m_behaviourType = BehaviourType.SET;
 
@@ -100,7 +99,7 @@ public class ModifyTimeZoneNodeSettings implements DefaultNodeSettings {
     ZoneId m_timeZone = ZoneId.of("Europe/Berlin");
 
     @Widget(title = "Date & time columns", description = "Only the included columns will be modified.")
-    @Persist(configKey = "col_select", customPersistor = LegacyColumnFilterPersistor.class, optional = true)
+    @Persist(configKey = "col_select", customPersistor = LegacyColumnFilterPersistor.class)
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
@@ -108,14 +107,14 @@ public class ModifyTimeZoneNodeSettings implements DefaultNodeSettings {
         description = "Depending on the selection, the selected columns will be replaced "
             + "or appended to the input table.")
     @ValueSwitchWidget
-    @Persist(customPersistor = AppendOrReplace.Persistor.class)
-    @ValueReference(AppendOrReplace.ValueRef.class)
-    AppendOrReplace m_appendOrReplace = AppendOrReplace.APPEND;
+    @Persist(customPersistor = ReplaceOrAppend.Persistor.class)
+    @ValueReference(ReplaceOrAppend.ValueRef.class)
+    ReplaceOrAppend m_appendOrReplace = ReplaceOrAppend.APPEND;
 
     @Widget(title = "Suffix of appended column",
         description = "The suffix that is appended to the column name. "
             + "The suffix will be added to the original column name separated by a space.")
-    @Effect(predicate = AppendOrReplace.IsAppend.class, type = EffectType.SHOW)
+    @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
     @Persist(configKey = "suffix")
     String m_outputColumnSuffix = "(modified time zone)";
 
@@ -124,21 +123,24 @@ public class ModifyTimeZoneNodeSettings implements DefaultNodeSettings {
      * ENUMS
      * ------------------------------------------------------------------------
      */
-    enum BehaviourType {
+    enum BehaviourType implements CompatibleDataValueClassesSupplier {
             @Label(value = "Set", //
                 description = "Changes the timezone of a date-time column, leaving the nominal time unchanged.")
-            SET("Set time zone"), //
+            SET("Set time zone", List.of(LocalDateTimeValue.class, ZonedDateTimeValue.class)), //
             @Label(value = "Shift",
                 description = "Changes the timezone of a date-time column, changing the nominal time "
                     + "so it refers to the same instant. The date and time may change.")
-            SHIFT("Shift time zone"), //
+            SHIFT("Shift time zone", List.of(ZonedDateTimeValue.class)), //
             @Label(value = "Remove", description = "Removes timezone information from date-time columns.")
-            REMOVE("Remove time zone");
+            REMOVE("Remove time zone", List.of(ZonedDateTimeValue.class));
 
         private String m_oldConfigValue;
 
-        BehaviourType(final String oldConfigValue) {
+        private List<Class<? extends DataValue>> m_compatibleDataValues;
+
+        BehaviourType(final String oldConfigValue, final List<Class<? extends DataValue>> compatibleDataValues) {
             this.m_oldConfigValue = oldConfigValue;
+            this.m_compatibleDataValues = compatibleDataValues;
         }
 
         static BehaviourType getByOldConfigValue(final String oldValue) throws InvalidSettingsException {
@@ -152,6 +154,14 @@ public class ModifyTimeZoneNodeSettings implements DefaultNodeSettings {
         static String[] getOldConfigValues() {
             return Arrays.stream(values()).map(v -> v.m_oldConfigValue).toArray(String[]::new);
         }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public Collection<Class<? extends DataValue>> getCompatibleDataValueClasses() {
+            return m_compatibleDataValues;
+        }
     }
 
     /*
@@ -160,24 +170,18 @@ public class ModifyTimeZoneNodeSettings implements DefaultNodeSettings {
      * ------------------------------------------------------------------------
      */
 
-    static final class BehaviourTypePersistor implements FieldNodeSettingsPersistor<BehaviourType> {
-
-        private static final String CONFIG_KEY = "modify_select";
+    static final class BehaviourTypePersistor extends NodeSettingsPersistorWithConfigKey<BehaviourType> {
 
         @Override
         public BehaviourType load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return BehaviourType.getByOldConfigValue(settings.getString(CONFIG_KEY));
+            return BehaviourType.getByOldConfigValue(settings.getString(getConfigKey()));
         }
 
         @Override
         public void save(final BehaviourType obj, final NodeSettingsWO settings) {
-            settings.addString(CONFIG_KEY, obj.m_oldConfigValue);
+            settings.addString(getConfigKey(), obj.m_oldConfigValue);
         }
 
-        @Override
-        public String[] getConfigKeys() {
-            return new String[]{CONFIG_KEY};
-        }
     }
 
     /*
@@ -196,42 +200,16 @@ public class ModifyTimeZoneNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    static final class BehaviourTypeIsAppend implements PredicateProvider {
-
-        @Override
-        public Predicate init(final PredicateInitializer i) {
-            return i.getEnum(BehaviourTypeRef.class).isOneOf(BehaviourType.SHIFT);
-        }
-    }
-
-
-
     /*
      * ------------------------------------------------------------------------
-     * OTHER UTILITIES
+     * STATE PROVIDERS
      * ------------------------------------------------------------------------
      */
-    static final class ColumnProvider implements ColumnChoicesStateProvider {
-
-        private Supplier<BehaviourType> m_modifySelect;
+    static final class ColumnProvider extends CompatibleColumnChoicesStateProvider<BehaviourType> {
 
         @Override
-        public void init(final StateProviderInitializer initializer) {
-            ColumnChoicesStateProvider.super.init(initializer);
-
-            this.m_modifySelect = initializer.computeFromValueSupplier(BehaviourTypeRef.class);
-        }
-
-        @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
-            final Collection<Class<? extends DataValue>> allowedTypes = m_modifySelect.get() == BehaviourType.SET //
-                ? List.of(LocalDateTimeValue.class, ZonedDateTimeValue.class) //
-                : List.of(ZonedDateTimeValue.class);
-
-            return context.getDataTableSpec(0).map(DataTableSpec::stream) //
-                .orElseGet(Stream::empty) //
-                .filter(columnSpec -> allowedTypes.stream().anyMatch(columnSpec.getType()::isCompatible)) //
-                .toArray(DataColumnSpec[]::new);
+        protected Class<? extends Reference<BehaviourType>> getReferenceClass() {
+            return BehaviourTypeRef.class;
         }
     }
 

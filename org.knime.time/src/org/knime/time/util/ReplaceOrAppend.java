@@ -64,22 +64,22 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
  * @author Tobias Kampmann
  */
 @SuppressWarnings("restriction")
-public enum AppendOrReplace {
+public enum ReplaceOrAppend {
 
         @Label(value = "Replace", description = "The selected columns will be replaced by the new columns.")
         REPLACE("Replace selected columns"), //
-        @Label(value = "Append with Suffix", //
+        @Label(value = "Append with suffix", //
             description = "The selected columns will be appended to the input table, "
                 + "with a new name that is the previous name plus the provided suffix.")
         APPEND("Append selected columns"); //
 
     private final String m_oldConfigValue;
 
-    AppendOrReplace(final String oldConfigValue) {
+    ReplaceOrAppend(final String oldConfigValue) {
         this.m_oldConfigValue = oldConfigValue;
     }
 
-    static AppendOrReplace getByOldConfigValue(final String oldValue) throws InvalidSettingsException {
+    static ReplaceOrAppend getByOldConfigValue(final String oldValue) throws InvalidSettingsException {
         return Arrays.stream(values()) //
             .filter(v -> v.m_oldConfigValue.equals(oldValue)) //
             .findFirst() //
@@ -92,10 +92,10 @@ public enum AppendOrReplace {
     }
 
     /**
-     * Defining the Reference for the AppendOrReplace enum.
-     * Dont use AppendOrReplace more than once. The predicates will only work for the last one.
+     * Defining the Reference for the ReplaceOrAppend enum.
+     * Dont use ReplaceOrAppend more than once. The predicates will only work for the last one.
      */
-    public interface ValueRef extends Reference<AppendOrReplace> {
+    public interface ValueRef extends Reference<ReplaceOrAppend> {
     }
 
     /**
@@ -105,7 +105,7 @@ public enum AppendOrReplace {
 
         @Override
         public Predicate init(final PredicateInitializer i) {
-            return i.getEnum(ValueRef.class).isOneOf(AppendOrReplace.APPEND);
+            return i.getEnum(ValueRef.class).isOneOf(ReplaceOrAppend.APPEND);
         }
     }
 
@@ -116,24 +116,24 @@ public enum AppendOrReplace {
 
         @Override
         public Predicate init(final PredicateInitializer i) {
-            return i.getEnum(ValueRef.class).isOneOf(AppendOrReplace.REPLACE);
+            return i.getEnum(ValueRef.class).isOneOf(ReplaceOrAppend.REPLACE);
         }
     }
 
     /**
      *  used to persist the value of the enum in the node settings
      */
-    public static final class Persistor implements FieldNodeSettingsPersistor<AppendOrReplace> {
+    public static final class Persistor implements FieldNodeSettingsPersistor<ReplaceOrAppend> {
 
         private static final String CONFIG_KEY = "replace_or_append";
 
         @Override
-        public AppendOrReplace load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return AppendOrReplace.getByOldConfigValue(settings.getString(CONFIG_KEY));
+        public ReplaceOrAppend load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return ReplaceOrAppend.getByOldConfigValue(settings.getString(CONFIG_KEY));
         }
 
         @Override
-        public void save(final AppendOrReplace obj, final NodeSettingsWO settings) {
+        public void save(final ReplaceOrAppend obj, final NodeSettingsWO settings) {
             settings.addString(CONFIG_KEY, obj.m_oldConfigValue);
         }
 

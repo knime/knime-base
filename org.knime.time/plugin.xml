@@ -44,6 +44,12 @@
       <node
             category-path="/applications/timeseries/manipulate"
             deprecated="false"
+            hidden="true"
+            factory-class="org.knime.time.node.manipulate.modifytimezone.ModifyTimeZoneNodeFactory2">
+      </node>
+            <node
+            category-path="/applications/timeseries/manipulate"
+            deprecated="false"
             factory-class="org.knime.time.node.manipulate.modifytimezone.ModifyTimeZoneNodeFactory">
       </node>
       <node

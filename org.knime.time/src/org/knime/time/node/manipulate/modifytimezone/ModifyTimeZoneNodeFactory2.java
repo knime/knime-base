@@ -44,58 +44,43 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 28, 2016 (simon): created
+ *   Oct 29, 2024 (david): created
  */
 package org.knime.time.node.manipulate.modifytimezone;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
- * The node factory of the node which modifies a time zone.
+ * The node dialog of the node which modifies timezone.
  *
- * @author Simon Schmid, KNIME.com, Konstanz, Germany
+ * @author David Hickey, TNG Technology Consulting
  */
-public final class ModifyTimeZoneNodeFactory extends NodeFactory<ModifyTimeZoneNodeModel> {
-    /**
-     * {@inheritDoc}
-     */
+@SuppressWarnings("restriction")
+public final class ModifyTimeZoneNodeFactory2 extends WebUINodeFactory<ModifyTimeZoneNodeModel> {
+
     @Override
     public ModifyTimeZoneNodeModel createNodeModel() {
         return new ModifyTimeZoneNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
+    private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
+        .name("Time Zone Modifier") //
+        .icon("modify_time_zone.png") //
+        .shortDescription("Modifies a time zone.") //
+        .fullDescription( //
+            "Modifies date&amp;time columns in three different ways. The node can add a time zone to local "
+                + "date&amp;time columns or changing the time zone in zoned date&amp;time columns "
+                + "(without adjusting the time!) <b>or</b> shift the time zone in zoned date&amp;time "
+                + "columns by adjusting the time (and potentially date) according to the new time zone "
+                + "offset <b>or</b> remove the time zone from zoned date&amp;time columns. <br />") //
+        .modelSettingsClass(ModifyTimeZoneNodeSettings.class) //
+        .addInputTable("Input table", "Input table.") //
+        .addOutputTable("Output table", "Output table with modified timezone.") //
+        .keywords("modify", "date-time", "date")//
+        .build();
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<ModifyTimeZoneNodeModel> createNodeView(final int viewIndex,
-        final ModifyTimeZoneNodeModel nodeModel) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new ModifyTimeZoneNodeDialog();
+    public ModifyTimeZoneNodeFactory2() {
+        super(CONFIGURATION);
     }
 }

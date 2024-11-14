@@ -62,6 +62,7 @@ import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.data.MissingCell;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory;
@@ -72,6 +73,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.message.MessageBuilder;
 import org.knime.core.node.streamable.simple.SimpleStreamableFunctionNodeModel;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
@@ -288,22 +290,25 @@ final class ModifyTimeZoneNodeModel extends SimpleStreamableFunctionNodeModel {
     }
 
     private final class ShiftTimeZoneCellFactory extends SingleCellFactory {
-        private final int m_colIndex;
+        private final int m_targetColumnIndex;
 
         private final ZoneId m_zone;
 
+        private final MessageBuilder m_messageBuilder;
+
         ShiftTimeZoneCellFactory(final DataColumnSpec inSpec, final int colIndex, final ZoneId zone) {
             super(inSpec);
-            m_colIndex = colIndex;
+            m_targetColumnIndex = colIndex;
             m_zone = zone;
+            m_messageBuilder = createMessageBuilder();
         }
 
         /**
          * {@inheritDoc}
          */
         @Override
-        public DataCell getCell(final DataRow row) {
-            final DataCell cell = row.getCell(m_colIndex);
+        public DataCell getCell(final DataRow row,final long rowIndex) {
+            final DataCell cell = row.getCell(m_targetColumnIndex);
             if (cell.isMissing()) {
                 return cell;
             }
@@ -315,10 +320,24 @@ final class ModifyTimeZoneNodeModel extends SimpleStreamableFunctionNodeModel {
                 // This will throw an exception if the date goes out of range
                 var newZonedDateTimeContent = currentCellDateTimeInstant.atZone(m_zone);
                 return ZonedDateTimeCellFactory.create(newZonedDateTimeContent);
-            } catch (DateTimeException e) {
-                setWarningMessage("Could not shift time zone, one or more date values went out of range. "
-                    + "Result is set to Missing. Cell content: " + cell.toString());
-                return DataType.getMissingCell();
+            } catch (DateTimeException e) { // NOSONAR setWarningMessage is logging
+
+                final var missingReason = "Could not shift time zone: "+e.getMessage();
+                m_messageBuilder.addRowIssue(0, m_targetColumnIndex,rowIndex , missingReason);
+                return new MissingCell(missingReason);
+
+            }
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void afterProcessing() {
+            final var issueCount = m_messageBuilder.getIssueCount();
+            if (issueCount > 0) {
+                m_messageBuilder.withSummary("Problems occurred in " + issueCount + " rows.").build()
+                    .ifPresent(ModifyTimeZoneNodeModel.this::setWarning);
             }
         }
     }
