@@ -48,6 +48,7 @@
 package org.knime.base.node.preproc.autobinner3;
 
 import java.math.RoundingMode;
+import java.util.Optional;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
@@ -257,6 +258,10 @@ public final class AutoBinnerLearnSettings {
 
     private DataColumnSpecFilterConfiguration m_filterConfiguration = AutoBinnerLearnNodeModel.createDCSFilterConfiguration();
 
+    private Double m_fixedLowerBound;
+
+    private Double m_fixedUpperBound;
+
 
     /**
      * @return the method
@@ -426,6 +431,43 @@ public final class AutoBinnerLearnSettings {
      */
     public void setRoundingMode(final RoundingMode roundingMode) {
         m_roundingMode = roundingMode;
+    }
+
+    /**
+     * @since 5.4
+     * @return the fixed lower bound
+     */
+    public Optional<Double> getFixedLowerBound() {
+        return Optional.ofNullable(m_fixedLowerBound);
+    }
+
+    /**
+    * Sets a fixed lower bound of the first bin instead of using the domain minimum.
+    *
+    * @since 5.4
+    * @param fixedLowerBound the fixed lower bound of the first bin
+    */
+    public void setFixedLowerBound(final Double fixedLowerBound) {
+        m_fixedLowerBound = fixedLowerBound;
+    }
+
+    /**
+    *
+    * @since 5.4
+    * @return the fixed upper bound
+    */
+    public Optional<Double> getFixedUpperBound() {
+        return Optional.ofNullable(m_fixedUpperBound);
+    }
+
+    /**
+    * Sets a fixed upper bound of the last bin instead of using the domain maximum.
+    *
+    * @since 5.4
+    * @param fixedUpperBound the fixed upper bound of the last bin
+    */
+    public void setFixedUpperBound(final Double fixedUpperBound) {
+        m_fixedUpperBound = fixedUpperBound;
     }
 
     /**
