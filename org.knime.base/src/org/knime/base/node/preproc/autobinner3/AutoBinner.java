@@ -147,8 +147,10 @@ public class AutoBinner {
                     DataColumnSpec targetCol = inSpec.getColumnSpec(target);
 
                     // bounds of the domain
-                    double min = ((DoubleValue)targetCol.getDomain().getLowerBound()).getDoubleValue();
-                    double max = ((DoubleValue)targetCol.getDomain().getUpperBound()).getDoubleValue();
+                    double min = m_settings.getFixedLowerBound()
+                        .orElse(((DoubleValue)targetCol.getDomain().getLowerBound()).getDoubleValue());
+                    double max = m_settings.getFixedUpperBound()
+                        .orElse(((DoubleValue)targetCol.getDomain().getUpperBound()).getDoubleValue());
 
                     // the edges of the bins
                     int binCount = m_settings.getBinCount();
@@ -251,8 +253,9 @@ public class AutoBinner {
         Collections.sort(values);
         int countPerBin = (int)(Math.round(values.size() / (double)binCount));
         double[] edges = new double[binCount + 1];
-        edges[0] = m_settings.getIntegerBounds() ? Math.floor(values.get(0)) : values.get(0);
-        edges[edges.length - 1] = roundedValue(values.get(values.size() - 1));
+        edges[0] = m_settings.getFixedLowerBound()
+            .orElse(m_settings.getIntegerBounds() ? Math.floor(values.get(0)) : values.get(0));
+        edges[edges.length - 1] = m_settings.getFixedUpperBound().orElse(roundedValue(values.get(values.size() - 1)));
         int startIndex = 0;
         int index = countPerBin - 1;
         for (int i = 1; i < edges.length - 1; i++) {
