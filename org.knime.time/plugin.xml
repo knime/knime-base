@@ -163,6 +163,13 @@
             factory-class="org.knime.time.node.convert.durationtonumber.DurationToNumberNodeFactory">
       </node>
       <node
+            after="org.knime.time.node.convert.durationperiodtostring.DurationPeriodToStringNodeFactory"
+            category-path="/applications/timeseries/transform"
+            deprecated="false"
+            hidden="true"
+            factory-class="org.knime.time.node.convert.durationtonumber.DurationToNumberNodeFactory2">
+      </node>
+      <node
             after="org.knime.time.node.convert.stringtodatetime.StringToDateTimeNodeFactory"
             category-path="/applications/timeseries/transform"
             deprecated="false"
