@@ -1,0 +1,334 @@
+{
+  "data" : {
+    "model" : {
+      "filter" : {
+        "selected" : [ "durationTest" ],
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "durationTest" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : false
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "appendOrReplaceColumn" : "REPLACE",
+      "suffix" : " (Number)",
+      "roundingBehaviour" : "INTEGER",
+      "unit" : "SECONDS"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "appendOrReplaceColumn" : {
+            "oneOf" : [ {
+              "const" : "REPLACE",
+              "title" : "Replace"
+            }, {
+              "const" : "APPEND",
+              "title" : "Append with suffix"
+            } ],
+            "title" : "Output columns",
+            "description" : "Depending on this setting, the output columns will either replace the modified columns, or be appended to the table with a suffix.\n\n<ul>\n<li><b>Replace</b>: The selected columns will be replaced by the new columns.</li>\n<li><b>Append with suffix</b>: The selected columns will be appended to the input table, with a new name that is the previous name plus the provided suffix.</li>\n</ul>",
+            "default" : "REPLACE"
+          },
+          "filter" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "default" : [ ],
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "typeDisplays" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : {
+                          "type" : "string"
+                        },
+                        "text" : {
+                          "type" : "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Duration columns",
+            "description" : "The columns to convert to a number.",
+            "default" : {
+              "selected" : [ "durationTest" ],
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ "durationTest" ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "roundingBehaviour" : {
+            "oneOf" : [ {
+              "const" : "INTEGER",
+              "title" : "No decimals"
+            }, {
+              "const" : "DOUBLE",
+              "title" : "Decimals"
+            } ],
+            "title" : "Rounding behaviour",
+            "description" : "The behaviour for rounding the number.\n<ul>\n<li><b>No decimals</b>: The output will be the truncated calculation, i.e. the duration <i>1 hour 30 minutes 30 seconds</i> will be converted to <i>1 hour</i> or <i>90 minutes</i> or <i>5430 seconds</i> etc., depending upon the value of the unit of the number. </li>\n<li><b>Decimals</b>: The output will be the exact calculation, i.e. the duration <i>1 hour 30 minutes 30 seconds</i> will be converted to <i>1.508 hours</i> or <i>90.5 minutes</i> or <i>5430 seconds</i> etc., depending upon the value of the unit of the number. </li>\n</ul>",
+            "default" : "INTEGER"
+          },
+          "suffix" : {
+            "type" : "string",
+            "title" : "Output column suffix",
+            "description" : "The suffix to append to the column names of the new columns.",
+            "default" : " (Number)"
+          },
+          "unit" : {
+            "oneOf" : [ {
+              "const" : "HOURS",
+              "title" : "Hours"
+            }, {
+              "const" : "MINUTES",
+              "title" : "Minutes"
+            }, {
+              "const" : "SECONDS",
+              "title" : "Seconds"
+            }, {
+              "const" : "MILLISECONDS",
+              "title" : "Milliseconds"
+            }, {
+              "const" : "MICROSECONDS",
+              "title" : "Microseconds"
+            }, {
+              "const" : "NANOSECONDS",
+              "title" : "Nanoseconds"
+            } ],
+            "title" : "Unit of the number",
+            "description" : "The unit of the number to output.",
+            "default" : "SECONDS"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/filter",
+      "options" : {
+        "format" : "columnFilter",
+        "choicesProvider" : "org.knime.time.node.convert.durationtonumber.DurationToNumberNodeSettings$ColumnProvider",
+        "showNoneColumn" : false,
+        "showRowKeys" : false,
+        "showSearch" : true,
+        "showMode" : true
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/appendOrReplaceColumn",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/suffix",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/appendOrReplaceColumn",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "APPEND"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/roundingBehaviour",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/unit"
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "filter" : {
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : { },
+                  "typeDisplays" : {
+                    "type" : "array",
+                    "configPaths" : [ ],
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : { },
+                        "text" : { }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "appendOrReplaceColumn" : { },
+          "suffix" : { },
+          "roundingBehaviour" : { },
+          "unit" : { }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.time.node.convert.durationtonumber.DurationToNumberNodeSettings$ColumnProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "durationTest",
+        "text" : "durationTest",
+        "type" : {
+          "id" : "org.knime.core.data.time.duration.DurationValue",
+          "text" : "Duration"
+        },
+        "compatibleTypes" : [ "org.knime.core.data.time.duration.DurationValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
+      } ]
+    } ]
+  } ]
+}
