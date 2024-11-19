@@ -150,7 +150,7 @@
                 }
               }
             },
-            "title" : "Date & time columns",
+            "title" : "Date&time columns",
             "description" : "Only the included columns will be modified.",
             "default" : {
               "selected" : [ ],
@@ -189,13 +189,13 @@
               "const" : "REMOVE",
               "title" : "Remove"
             } ],
-            "title" : "Time setting",
+            "title" : "Modification",
             "description" : "Defines the action to be performed on the selected columns. The time can be changed, appended, or removed, with different columns being eligible for each action. For example, only local date columns can have time appended, while local date-time columns can only be modified or have their time component removed.\n<ul>\n<li><b>Change</b>: Changes the time of local or zoned date&amp;time columns. The time zone will not be changed. The <i>Modify Time Zone</i> node can be used to change it.</li>\n<li><b>Append</b>: Appends a time to local date columns. Optionally a time zone can be appended too.</li>\n<li><b>Remove</b>: Removes the time from local or zoned date&amp;time columns. Time zones will be removed, too.</li>\n</ul>",
             "default" : "CHANGE"
           },
           "outputColumnSuffix" : {
             "type" : "string",
-            "title" : "Suffix of appended column",
+            "title" : "Output column suffix",
             "description" : "The suffix that is appended to the column name. The suffix will be added to the original column name separated by a space.",
             "default" : "(modified time)"
           },
