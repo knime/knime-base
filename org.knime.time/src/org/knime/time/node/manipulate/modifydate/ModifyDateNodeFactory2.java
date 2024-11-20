@@ -68,12 +68,16 @@ public final class ModifyDateNodeFactory2 extends WebUINodeFactory<ModifyDateNod
         .name("Date Modifier") //
         .icon("modify_date.png") //
         .shortDescription("Modifies date information of a date&amp;time cell.") //
-        .fullDescription("Modifies date&amp;time columns in three different ways. The "
-            + "node can append a date to local time columns (output type is local or "
-            + "zoned date time column)<b>or</b>" + "change the date in local or zoned date&amp;time columns <b>or</b> "
-            + "remove the date from local or zoned date&amp;time columns (output type is local time).<br /> "
-            + "This node is not used to add (\"plus\") or subtract (\"minus\") date. Use "
-            + "the <i>Date&amp;Time Shift</i> node for that.") //
+        .fullDescription("""
+            Modifies date&amp;time columns in three different ways:
+            <ul>
+                <li>Append a date to local time columns (output type is a local or zoned date-time column).</li>
+                <li>Change the date in local or zoned date and time columns.</li>
+                <li>Remove the date from local or zoned date and time columns (output type is a local time column).</li>
+            </ul>
+            <b>Note:</b> This node is not intended for adding ("plus") or subtracting ("minus") dates.
+            Use the <i>Date&amp;Time Shift</i> node for such operations.
+            """) //
         .modelSettingsClass(ModifyDateNodeSettings.class) //
         .addInputTable("Input table", "Input table.") //
         .addOutputTable("Output table", "Output table with modified date.") //

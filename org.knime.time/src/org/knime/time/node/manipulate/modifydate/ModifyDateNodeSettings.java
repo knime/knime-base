@@ -92,7 +92,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @SuppressWarnings("restriction")
 public class ModifyDateNodeSettings implements DefaultNodeSettings {
 
-    @Widget(title = "Modify type",
+    @Widget(title = "Modification",
         description = "Defines the action to be performed on the selected columns. "
             + "The date can be changed, appended, or removed, with different columns being eligible for each action. "
             + "For example, only local time columns can have date appended, while local date-time columns can only "
@@ -114,7 +114,7 @@ public class ModifyDateNodeSettings implements DefaultNodeSettings {
     @JsonInclude(Include.ALWAYS)
     ZoneId m_timeZone;
 
-    @Widget(title = "Date & time columns", description = "Only the included columns will be modified.")
+    @Widget(title = "Date&time columns", description = "Only the included columns will be modified.")
     @Persist(configKey = "col_select", customPersistor = LegacyColumnFilterPersistor.class)
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
@@ -127,7 +127,7 @@ public class ModifyDateNodeSettings implements DefaultNodeSettings {
     @ValueReference(ReplaceOrAppend.ValueRef.class)
     ReplaceOrAppend m_appendOrReplace = ReplaceOrAppend.REPLACE;
 
-    @Widget(title = "Suffix of appended column",
+    @Widget(title = "Output column suffix",
         description = "The suffix that is appended to the column name. "
             + "The suffix will be added to the original column name separated by a space.")
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)

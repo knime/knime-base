@@ -55,7 +55,7 @@
               "const" : "REMOVE",
               "title" : "Remove"
             } ],
-            "title" : "Modify type",
+            "title" : "Modification",
             "description" : "Defines the action to be performed on the selected columns. The date can be changed, appended, or removed, with different columns being eligible for each action. For example, only local time columns can have date appended, while local date-time columns can only be modified or have their date component removed.\n<ul>\n<li><b>Change</b>: Changes the date of a date-time column, leaving the timezone unchanged.</li>\n<li><b>Append</b>: Appends a date to a time column, resulting in a date-time column. A time zone can optionally be set.</li>\n<li><b>Remove</b>: Removes the date and timezone information from date-time columns, leaving only the time.</li>\n</ul>",
             "default" : "CHANGE"
           },
@@ -165,7 +165,7 @@
                 }
               }
             },
-            "title" : "Date & time columns",
+            "title" : "Date&time columns",
             "description" : "Only the included columns will be modified.",
             "default" : {
               "selected" : [ ],
@@ -195,7 +195,7 @@
           },
           "outputColumnSuffix" : {
             "type" : "string",
-            "title" : "Suffix of appended column",
+            "title" : "Output column suffix",
             "description" : "The suffix that is appended to the column name. The suffix will be added to the original column name separated by a space.",
             "default" : "(modified date)"
           },

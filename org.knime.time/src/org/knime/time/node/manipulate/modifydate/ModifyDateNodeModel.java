@@ -187,11 +187,10 @@ final class ModifyDateNodeModel extends SimpleStreamableFunctionNodeModel {
         return new SettingsModelString("modify_select", MODIFY_OPTION_CHANGE);
     }
 
-    /** {@inheritDoc} */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         if (!m_hasValidatedConfiguration) {
-            throw new InvalidSettingsException("The node was not configured yet. Open the dialog.");
+            throw new InvalidSettingsException("The node was not configured yet.");
         }
         DataTableSpec in = inSpecs[0];
         ColumnRearranger r = createColumnRearranger(in);
@@ -259,9 +258,6 @@ final class ModifyDateNodeModel extends SimpleStreamableFunctionNodeModel {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_colSelect.saveConfiguration(settings);
@@ -272,9 +268,6 @@ final class ModifyDateNodeModel extends SimpleStreamableFunctionNodeModel {
         m_modifyAction.saveSettingsTo(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_isReplaceOrAppend.validateSettings(settings);
@@ -284,9 +277,6 @@ final class ModifyDateNodeModel extends SimpleStreamableFunctionNodeModel {
         m_modifyAction.validateSettings(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_isReplaceOrAppend.loadSettingsFrom(settings);
@@ -311,9 +301,6 @@ final class ModifyDateNodeModel extends SimpleStreamableFunctionNodeModel {
             m_zone = zone;
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public DataCell getCell(final DataRow row) {
             final DataCell cell = row.getCell(m_colIndex);
@@ -339,9 +326,6 @@ final class ModifyDateNodeModel extends SimpleStreamableFunctionNodeModel {
             m_colIndex = colIndex;
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public DataCell getCell(final DataRow row) {
             final DataCell cell = row.getCell(m_colIndex);
@@ -367,9 +351,6 @@ final class ModifyDateNodeModel extends SimpleStreamableFunctionNodeModel {
             m_colIndex = colIndex;
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public DataCell getCell(final DataRow row) {
             final DataCell cell = row.getCell(m_colIndex);
