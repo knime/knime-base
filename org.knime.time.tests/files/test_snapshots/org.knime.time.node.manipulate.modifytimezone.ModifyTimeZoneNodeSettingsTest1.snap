@@ -54,7 +54,7 @@
               "const" : "REMOVE",
               "title" : "Remove"
             } ],
-            "title" : "Modify type",
+            "title" : "Modification",
             "description" : "Defines the action to be performed on the selected columns.\n<ul>\n<li><b>Set</b>: Changes the timezone of a date-time column, leaving the nominal time unchanged.</li>\n<li><b>Shift</b>: Changes the timezone of a date-time column, changing the nominal time so it refers to the same instant. The date and time may change.</li>\n<li><b>Remove</b>: Removes timezone information from date-time columns.</li>\n</ul>",
             "default" : "SET"
           },
@@ -164,7 +164,7 @@
                 }
               }
             },
-            "title" : "Date & time columns",
+            "title" : "Date&time columns",
             "description" : "Only the included columns will be modified.",
             "default" : {
               "selected" : [ ],
@@ -187,7 +187,7 @@
           },
           "outputColumnSuffix" : {
             "type" : "string",
-            "title" : "Suffix of appended column",
+            "title" : "Output column suffix",
             "description" : "The suffix that is appended to the column name. The suffix will be added to the original column name separated by a space.",
             "default" : "(modified time zone)"
           },

@@ -87,7 +87,7 @@ import org.knime.time.util.ReplaceOrAppend;
 @SuppressWarnings("restriction")
 public class ModifyTimeZoneNodeSettings implements DefaultNodeSettings {
 
-    @Widget(title = "Modify type", description = "Defines the action to be performed on the selected columns.")
+    @Widget(title = "Modification", description = "Defines the action to be performed on the selected columns.")
     @ValueSwitchWidget
     @Persist(configKey = "modify_select", customPersistor = BehaviourTypePersistor.class)
     @ValueReference(BehaviourTypeRef.class)
@@ -98,7 +98,7 @@ public class ModifyTimeZoneNodeSettings implements DefaultNodeSettings {
     @Effect(predicate = BehaviourTypeIsRemove.class, type = EffectType.HIDE)
     ZoneId m_timeZone = ZoneId.of("Europe/Berlin");
 
-    @Widget(title = "Date & time columns", description = "Only the included columns will be modified.")
+    @Widget(title = "Date&time columns", description = "Only the included columns will be modified.")
     @Persist(configKey = "col_select", customPersistor = LegacyColumnFilterPersistor.class)
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
@@ -111,7 +111,7 @@ public class ModifyTimeZoneNodeSettings implements DefaultNodeSettings {
     @ValueReference(ReplaceOrAppend.ValueRef.class)
     ReplaceOrAppend m_appendOrReplace = ReplaceOrAppend.APPEND;
 
-    @Widget(title = "Suffix of appended column",
+    @Widget(title = "Output column suffix",
         description = "The suffix that is appended to the column name. "
             + "The suffix will be added to the original column name separated by a space.")
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)

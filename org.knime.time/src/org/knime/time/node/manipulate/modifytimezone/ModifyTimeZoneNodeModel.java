@@ -165,10 +165,9 @@ final class ModifyTimeZoneNodeModel extends SimpleStreamableFunctionNodeModel {
         return new SettingsModelString(CFG_KEY_MODIFY_SELECT, MODIFY_OPTION_SET);
     }
 
-    /** {@inheritDoc} */
     @Override
     protected ColumnRearranger createColumnRearranger(final DataTableSpec inSpec) throws InvalidSettingsException {
-        CheckUtils.checkSetting(m_hasValidatedConfiguration, "Node must be configured!");
+        CheckUtils.checkSetting(m_hasValidatedConfiguration, "The node was not configured yet.");
         final String modification = CheckUtils.checkSettingNotNull(m_modifyAction.getStringValue(), "must not be null");
         CheckUtils.checkSetting(modification.equals(MODIFY_OPTION_SET) //
             || modification.equals(MODIFY_OPTION_SHIFT) //
@@ -221,9 +220,6 @@ final class ModifyTimeZoneNodeModel extends SimpleStreamableFunctionNodeModel {
         return rearranger;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_colSelect.saveConfiguration(settings);
@@ -233,9 +229,6 @@ final class ModifyTimeZoneNodeModel extends SimpleStreamableFunctionNodeModel {
         m_modifyAction.saveSettingsTo(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         createDCFilterConfiguration(ZONED_AND_LOCAL_FILTER).loadConfigurationInModelChild(settings);
@@ -245,9 +238,6 @@ final class ModifyTimeZoneNodeModel extends SimpleStreamableFunctionNodeModel {
         m_modifyAction.validateSettings(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_isReplaceOrAppend.loadSettingsFrom(settings);
@@ -271,9 +261,6 @@ final class ModifyTimeZoneNodeModel extends SimpleStreamableFunctionNodeModel {
             m_zone = zone;
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public DataCell getCell(final DataRow row) {
             final DataCell cell = row.getCell(m_colIndex);
@@ -303,11 +290,8 @@ final class ModifyTimeZoneNodeModel extends SimpleStreamableFunctionNodeModel {
             m_messageBuilder = createMessageBuilder();
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
-        public DataCell getCell(final DataRow row,final long rowIndex) {
+        public DataCell getCell(final DataRow row, final long rowIndex) {
             final DataCell cell = row.getCell(m_targetColumnIndex);
             if (cell.isMissing()) {
                 return cell;
@@ -322,16 +306,13 @@ final class ModifyTimeZoneNodeModel extends SimpleStreamableFunctionNodeModel {
                 return ZonedDateTimeCellFactory.create(newZonedDateTimeContent);
             } catch (DateTimeException e) { // NOSONAR setWarningMessage is logging
 
-                final var missingReason = "Could not shift time zone: "+e.getMessage();
-                m_messageBuilder.addRowIssue(0, m_targetColumnIndex,rowIndex , missingReason);
+                final var missingReason = "Could not shift time zone: " + e.getMessage();
+                m_messageBuilder.addRowIssue(0, m_targetColumnIndex, rowIndex, missingReason);
                 return new MissingCell(missingReason);
 
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public void afterProcessing() {
             final var issueCount = m_messageBuilder.getIssueCount();
@@ -350,9 +331,6 @@ final class ModifyTimeZoneNodeModel extends SimpleStreamableFunctionNodeModel {
             m_colIndex = colIndex;
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public DataCell getCell(final DataRow row) {
             final DataCell cell = row.getCell(m_colIndex);

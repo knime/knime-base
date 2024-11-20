@@ -68,12 +68,23 @@ public final class ModifyTimeZoneNodeFactory2 extends WebUINodeFactory<ModifyTim
         .name("Time Zone Modifier") //
         .icon("modify_time_zone.png") //
         .shortDescription("Modifies a time zone.") //
-        .fullDescription( //
-            "Modifies date&amp;time columns in three different ways. The node can add a time zone to local "
-                + "date&amp;time columns or changing the time zone in zoned date&amp;time columns "
-                + "(without adjusting the time!) <b>or</b> shift the time zone in zoned date&amp;time "
-                + "columns by adjusting the time (and potentially date) according to the new time zone "
-                + "offset <b>or</b> remove the time zone from zoned date&amp;time columns. <br />") //
+        .fullDescription("""
+                Modifies date&amp;time columns in three different ways:
+                <ul>
+                    <li>
+                        Add a time zone to local date&amp;time columns or change the time zone in zoned \
+                        date&amp;time columns <i>(without adjusting the time!)</i>.
+                    </li>
+                    <li>
+                        Shift the time zone in zoned date time columns by \
+                        adjusting the time (and potentially date) according to the \
+                        new time zone offset.
+                    </li>
+                    <li>
+                        Remove the time zone from zoned date&amp;time columns.
+                    </li>
+                </ul>
+                """) //
         .modelSettingsClass(ModifyTimeZoneNodeSettings.class) //
         .addInputTable("Input table", "Input table.") //
         .addOutputTable("Output table", "Output table with modified timezone.") //
