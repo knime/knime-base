@@ -68,12 +68,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyNameFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.NameFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DomainValuesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.CompatibleColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
@@ -88,9 +88,22 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
 @SuppressWarnings("restriction")
 public class NominalValueRowFilterSettings implements DefaultNodeSettings {
 
-    private static final class NominalColumnChoicesProider extends CompatibleColumnChoicesProvider {
-        public NominalColumnChoicesProider() {
-            super(NominalValue.class);
+    static final class NominalColumnWithDomainChoicesProider implements ColumnChoicesProvider {
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
+            final var spec = context.getDataTableSpec(0);
+            if (spec.isEmpty()) {
+                return new DataColumnSpec[0];
+            } else {
+                return spec.get().stream() //
+                    .filter(s -> s.getType().isCompatible(NominalValue.class))//
+                    .filter(s -> s.getDomain().getValues() != null) //
+                    .toArray(DataColumnSpec[]::new);
+            }
         }
     }
 
@@ -99,7 +112,7 @@ public class NominalValueRowFilterSettings implements DefaultNodeSettings {
 
     @Widget(title = "Filter column", description = "Select the column containing the nominal values to be filtered.")
     @ValueReference(SelectedColumnDependency.class)
-    @ChoicesWidget(choices = NominalColumnChoicesProider.class)
+    @ChoicesWidget(choices = NominalColumnWithDomainChoicesProider.class)
     @Persist(configKey = NominalValueRowSplitterNodeDialog.CFG_SELECTED_COL)
     public String m_selectedColumn;
 
