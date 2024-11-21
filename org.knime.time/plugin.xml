@@ -63,6 +63,12 @@
             deprecated="false"
             factory-class="org.knime.time.node.manipulate.datetimeshift.DateTimeShiftNodeFactory">
       </node>
+       <node
+             category-path="/applications/timeseries/manipulate"
+             deprecated="false"
+             hidden="true"
+             factory-class="org.knime.time.node.manipulate.datetimeround.DateTimeRoundNodeFactory">
+       </node>
       <node
             after="org.knime.time.node.convert.timestamptodatetime.TimestampToDateTimeNodeFactory"
             category-path="/applications/timeseries/transform"

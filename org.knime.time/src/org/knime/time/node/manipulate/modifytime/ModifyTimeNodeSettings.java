@@ -125,13 +125,13 @@ class ModifyTimeNodeSettings implements DefaultNodeSettings {
             + "or appended to the input table.")
     @ValueSwitchWidget
     @Persist(customPersistor = ReplaceOrAppend.Persistor.class)
-    @ValueReference(ReplaceOrAppendRef.class)
+    @ValueReference(ReplaceOrAppend.ValueRef.class)
     ReplaceOrAppend m_appendOrReplace = ReplaceOrAppend.REPLACE;
 
     @Widget(title = "Output column suffix",
         description = "The suffix that is appended to the column name. "
             + "The suffix will be added to the original column name separated by a space.")
-    @Effect(predicate = ReplaceOrAppendIsAppend.class, type = EffectType.SHOW)
+    @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
     @Persist(configKey = "suffix")
     String m_outputColumnSuffix = "(modified time)";
 
@@ -232,18 +232,6 @@ class ModifyTimeNodeSettings implements DefaultNodeSettings {
             return i.getEnum(BehaviourTypeRef.class).isOneOf(BehaviourType.APPEND);
         }
     }
-
-    interface ReplaceOrAppendRef extends Reference<ReplaceOrAppend> {
-    }
-
-    static final class ReplaceOrAppendIsAppend implements PredicateProvider {
-
-        @Override
-        public Predicate init(final PredicateInitializer i) {
-            return i.getEnum(ReplaceOrAppendRef.class).isOneOf(ReplaceOrAppend.APPEND);
-        }
-    }
-
 
     /*
      * ------------------------------------------------------------------------
