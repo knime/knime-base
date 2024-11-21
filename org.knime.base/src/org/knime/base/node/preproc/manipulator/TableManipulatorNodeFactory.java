@@ -62,6 +62,7 @@ import org.knime.core.node.port.PortType;
  * Factory implementation of the table manipulation node.
  *
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
+ * @noreference This class is not intended to be referenced by clients.
  */
 public class TableManipulatorNodeFactory extends ConfigurableNodeFactory<TableManipulatorNodeModel> {
 

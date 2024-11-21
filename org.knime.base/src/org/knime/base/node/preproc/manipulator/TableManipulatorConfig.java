@@ -55,6 +55,7 @@ import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig
  * Table manipulator {@link ReaderSpecificConfig} implementation.
  *
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
+ * @noreference This class is not intended to be referenced by clients.
  */
 public final class TableManipulatorConfig implements ReaderSpecificConfig<TableManipulatorConfig> {
 

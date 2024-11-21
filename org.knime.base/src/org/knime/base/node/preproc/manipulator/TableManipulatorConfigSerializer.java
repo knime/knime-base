@@ -73,6 +73,7 @@ import org.knime.filehandling.core.util.SettingsUtils;
  * {@link ConfigSerializer} for CSV reader nodes.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference This enum is not intended to be referenced by clients.
  */
 public enum TableManipulatorConfigSerializer implements ConfigSerializer<TableManipulatorMultiTableReadConfig>,
     ConfigIDFactory<TableManipulatorMultiTableReadConfig> {

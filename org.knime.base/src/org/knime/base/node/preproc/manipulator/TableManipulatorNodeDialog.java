@@ -103,7 +103,7 @@ import org.knime.filehandling.core.util.GBCBuilder;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  */
-public class TableManipulatorNodeDialog extends DataAwareNodeDialogPane {
+final class TableManipulatorNodeDialog extends DataAwareNodeDialogPane {
     /**A dummy table that has no columns and no rows.*/
     private static final Table DUMMY_TABLE = new EmptyTable(new DataTableSpec("DUMMY"));
 
