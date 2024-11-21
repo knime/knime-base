@@ -50,6 +50,12 @@ package org.knime;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.function.Supplier;
 
@@ -119,9 +125,20 @@ public final class InputTableNode {
     public static final String COLUMN_LOCAL_DATE = "localDate";
 
     /**
+     * The value of the column containing local date values in the test table. See {@link #createDefaultTestTable()}.
+     */
+    private static final LocalDate TEST_DATE = LocalDate.of(2024, 12, 1);
+
+    /**
      * The name of the column containing local time values in the test table. See {@link #createDefaultTestTable()}.
      */
     public static final String COLUMN_LOCAL_TIME = "localTime";
+
+    /**
+     * The value of the column containing local date time values in the test table. See
+     * {@link #createDefaultTestTable()}.
+     */
+    private static final LocalTime TEST_TIME = LocalTime.of(12, 11, 10);
 
     /**
      * The name of the column containing local date time values in the test table. See
@@ -130,10 +147,22 @@ public final class InputTableNode {
     public static final String COLUMN_LOCAL_DATE_TIME = "localDateTime";
 
     /**
+     * The value of the column containing local date time values in the test table. See
+     * {@link #createDefaultTestTable()}.
+     */
+    private static final LocalDateTime TEST_DATE_TIME = LocalDateTime.of(TEST_DATE, TEST_TIME);
+
+    /**
      * The name of the column containing zoned date time values in the test table. See
      * {@link #createDefaultTestTable()}.
      */
     public static final String COLUMN_ZONED_DATE_TIME = "zoneDateTime";
+
+    /**
+     * The value of the column containing zoned date time values in the test table. See
+     * {@link #createDefaultTestTable()}.
+     */
+    private static final ZonedDateTime TEST_ZONED_DATE_TIME = TEST_DATE_TIME.atZone(ZoneId.of("Australia/Lord_Howe"));
 
     /**
      * Adds a table to the input port of the provided node.
@@ -192,10 +221,15 @@ public final class InputTableNode {
             new NamedCell(COLUMN_DURATION, new DurationCellFactory().createCell("PT1H")),
             new NamedCell(COLUMN_PERIOD, new PeriodCellFactory().createCell("P1D")),
             new NamedCell(COLUMN_LONG, new LongCell(0)), new NamedCell(COLUMN_STRING, new StringCell("i")),
-            new NamedCell(COLUMN_LOCAL_DATE, new LocalDateCellFactory().createCell("2024-01-01")),
-            new NamedCell(COLUMN_LOCAL_TIME, new LocalTimeCellFactory().createCell("12:00:00")),
-            new NamedCell(COLUMN_LOCAL_DATE_TIME, new LocalDateTimeCellFactory().createCell("2024-01-01T12:00:00")),
-            new NamedCell(COLUMN_ZONED_DATE_TIME, new ZonedDateTimeCellFactory().createCell("2024-01-01T12:00:00Z"))};
+            new NamedCell(COLUMN_LOCAL_DATE,
+                new LocalDateCellFactory().createCell(TEST_DATE.format(DateTimeFormatter.ISO_LOCAL_DATE))),
+            new NamedCell(COLUMN_LOCAL_TIME,
+                new LocalTimeCellFactory().createCell(TEST_TIME.format(DateTimeFormatter.ISO_LOCAL_TIME))),
+            new NamedCell(COLUMN_LOCAL_DATE_TIME,
+                new LocalDateTimeCellFactory()
+                    .createCell(TEST_DATE_TIME.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))),
+            new NamedCell(COLUMN_ZONED_DATE_TIME, new ZonedDateTimeCellFactory()
+                .createCell(TEST_ZONED_DATE_TIME.format(DateTimeFormatter.ISO_ZONED_DATE_TIME)))};
 
         return createTestTableSupplier(cells);
     }
