@@ -13,12 +13,12 @@
 			This node rotates the selected columns from the input table to rows and duplicates
 			at the same time the remaining input columns by appending them to each corresponding output row. Example:
 			<pre>
-			Input:
-				Value1 Value2 Value3 Extra1 Extra2 Extra3
-			Output:
-				Value1 Extra1 Extra2 Extra3
-				Value2 Extra1 Extra2 Extra3
-				Value3 Extra1 Extra2 Extra3
+Input:
+	Value1 Value2 Value3 Extra1 Extra2 Extra3
+Output:
+	Value1 Extra1 Extra2 Extra3
+	Value2 Extra1 Extra2 Extra3
+	Value3 Extra1 Extra2 Extra3
 			</pre>
 		</intro>
 
