@@ -83,7 +83,7 @@ class NominalValueRowFilterSettingsTest extends DefaultNodeSettingsSnapshotTest 
         }
         column.setDomain(new DataColumnDomainCreator(cells).createDomain());
         final var columnWithoutDomain = new DataColumnSpecCreator("ColumnWithoutDomain", StringCell.TYPE);
-        dataTable.addColumns(column.createSpec(), columnWithoutDomain.createSpec());
+        dataTable.addColumns(columnWithoutDomain.createSpec(), column.createSpec());
 
         return SnapshotTestConfiguration.builder() //
             .addInputTableSpec(dataTable.createSpec()) //

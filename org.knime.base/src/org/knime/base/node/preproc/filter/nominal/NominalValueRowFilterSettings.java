@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
@@ -96,15 +97,9 @@ public class NominalValueRowFilterSettings implements DefaultNodeSettings {
         @Override
         public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
             final var spec = context.getDataTableSpec(0);
-            if (spec.isEmpty()) {
-                return new DataColumnSpec[0];
-            } else {
-                return spec.get().stream() //
-                    .filter(s -> s.getType().isCompatible(NominalValue.class))//
-                    .filter(s -> s.getDomain().getValues() != null) //
-                    .toArray(DataColumnSpec[]::new);
-            }
+            return getNominalColumnsWithDomain(spec.orElse(null)).toArray(DataColumnSpec[]::new);
         }
+
     }
 
     static final class SelectedColumnDependency implements Reference<String> {
@@ -232,7 +227,7 @@ public class NominalValueRowFilterSettings implements DefaultNodeSettings {
     @ValueProvider(SelectedDomainValuesStateProvider.class)
     @Persist(configKey = NominalValueRowSplitterNodeDialog.CFG_CONFIGROOTNAME,
         customPersistor = LegacyNameFilterOrSelectedAttrPersistor.class)
-    public NameFilter m_nominalValueSelection;
+    public NameFilter m_nominalValueSelection = new NameFilter();
 
     enum MissingValueHandling {
             @Label(value = "Exclude", description = "Missing values are excluded from the primary output table.")
@@ -282,10 +277,9 @@ public class NominalValueRowFilterSettings implements DefaultNodeSettings {
 
         @Override
         public ConfigsDeprecation[] getConfigsDeprecations() {
-            return new ConfigsDeprecation[]{
-                new ConfigsDeprecation.Builder().forNewConfigPath(getConfigKey())
-                    .forDeprecatedConfigPath(NominalValueRowSplitterNodeDialog.CFG_CONFIGROOTNAME, KEY_INCLUDE_MISSING)
-                    .build()};
+            return new ConfigsDeprecation[]{new ConfigsDeprecation.Builder().forNewConfigPath(getConfigKey())
+                .forDeprecatedConfigPath(NominalValueRowSplitterNodeDialog.CFG_CONFIGROOTNAME, KEY_INCLUDE_MISSING)
+                .build()};
         }
     }
 
@@ -300,15 +294,23 @@ public class NominalValueRowFilterSettings implements DefaultNodeSettings {
 
     public NominalValueRowFilterSettings(final DefaultNodeSettingsContext context) {
         this(context.getDataTableSpecs()[0]);
-        m_nominalValueSelection = new NameFilter(context);
     }
 
     public NominalValueRowFilterSettings(final DataTableSpec spec) {
         m_selectedColumn = getFirstCompatibleColumn(spec).orElse(null);
     }
 
-    private static Optional<String> getFirstCompatibleColumn(final DataTableSpec dataTableSpec) {
-        return Optional.ofNullable(dataTableSpec).flatMap(spec -> spec.stream()
-            .filter(col -> col.getType().isCompatible(NominalValue.class)).findFirst().map(DataColumnSpec::getName));
+    private static Optional<String> getFirstCompatibleColumn(final DataTableSpec spec) {
+        return getNominalColumnsWithDomain(spec).findFirst().map(DataColumnSpec::getName);
+    }
+
+    private static Stream<DataColumnSpec> getNominalColumnsWithDomain(final DataTableSpec spec) {
+        if (spec == null) {
+            return Stream.of();
+        } else {
+            return spec.stream() //
+                .filter(s -> s.getType().isCompatible(NominalValue.class))//
+                .filter(s -> s.getDomain().getValues() != null);
+        }
     }
 }
