@@ -1,6 +1,19 @@
 {
   "data" : {
     "model" : {
+      "nominalValueSelection" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : false
+        }
+      },
       "missingValueHandling" : "EXCLUDE"
     }
   },
