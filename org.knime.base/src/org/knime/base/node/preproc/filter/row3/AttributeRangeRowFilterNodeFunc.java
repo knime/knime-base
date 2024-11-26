@@ -44,56 +44,83 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   30 Oct 2024 (Alexander Jauch-Walser): created
+ *   Nov 26, 2024 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.preproc.filter.row3;
 
+import java.util.ArrayList;
+
+import org.knime.base.node.io.filereader.DataCellFactory;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.def.StringCell;
+import org.knime.core.data.DataType;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.func.NodeFuncApi.Builder;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 
 /**
+ * Filters by applying a range filter to a numerical column.
  *
- * Filters rows based on a regex on a specified column
- *
- * @author Alexander Jauch-Walser, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public class AttributePatternRowFilterNodeFunc extends AbstractRowFilterNodeFunc {
+public final class AttributeRangeRowFilterNodeFunc extends AbstractRowFilterNodeFunc {
 
-    private static final String REGEX = "regex";
+    private static final String UPPER_BOUND = "upper_bound";
+
+    private static final String LOWER_BOUND = "lower_bound";
 
     @Override
     FilterCriterion[] getFilterCriteria(final NodeSettingsRO arguments, final DataTableSpec tableSpec)
         throws InvalidSettingsException {
-        var column = arguments.getString(COLUMN);
-        var regex = arguments.getString(REGEX);
+        var lowerBound = arguments.getString(LOWER_BOUND, null);
+        var upperBound = arguments.getString(UPPER_BOUND, null);
+        var columnSpec = tableSpec.getColumnSpec(arguments.getString(COLUMN));
+        var criteria = new ArrayList<FilterCriterion>();
+        if (lowerBound != null) {
+            criteria.add(createCriterion(columnSpec, FilterOperator.GTE, lowerBound));
+        }
+        if (upperBound != null) {
+            criteria.add(createCriterion(columnSpec, FilterOperator.LTE, upperBound));
+        }
+        return criteria.toArray(FilterCriterion[]::new);
+    }
 
-        var criterion = new FilterCriterion();
-        criterion.m_column.m_selected = column;
-        criterion.m_operator = FilterOperator.REGEX;
+    private static FilterCriterion createCriterion(final DataColumnSpec columnSpec, final FilterOperator operator,
+        final String value) {
+        var criterion = new FilterCriterion(columnSpec);
+        criterion.m_operator = operator;
+        var type = columnSpec.getType();
+        criterion.m_predicateValues = DynamicValuesInput.singleValueWithInitialValue(type, createCell(type, value));
+        return criterion;
+    }
 
-        var stringCell = new StringCell.StringCellFactory().createCell(regex);
-        criterion.m_predicateValues = DynamicValuesInput.singleValueWithInitialValue(StringCell.TYPE, stringCell);
-
-        return new FilterCriterion[]{criterion};
+    private static DataCell createCell(final DataType type, final String value) {
+        if (value == null) {
+            return null;
+        }
+        var dataCellFactory = new DataCellFactory();
+        return dataCellFactory.createDataCellOfType(type, value);
     }
 
     @Override
     void extendApi(final Builder builder) {
-        builder
+        builder.withStringArgument(COLUMN, "The column on which the criterion will be applied to.")
             .withDescription(
-                "Creates a new table that contains only rows that match the given regex for a given column.")
-            .withStringArgument(COLUMN, "The column on which to filter.")
-            .withStringArgument(REGEX, "Regular expression that is used to match the RowIDs of the input table.");
+                """
+                        Filters rows by comparing the value of the specified column against the specified range.
+                        Typically used for numerical columns but can be used with any column type for which a comparison is sensible.
+                        """)//
+            .withOptionalStringArgument(LOWER_BOUND, "Lower bound to include.")//
+            .withOptionalStringArgument(UPPER_BOUND, "Upper bound to include.");
+
     }
 
     @Override
     String getName() {
-        return "filter_rows_by_regex";
+        return "filter_rows_by_attribute_range";
     }
 
 }

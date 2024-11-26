@@ -2766,7 +2766,10 @@
               impl="org.knime.base.node.preproc.filter.row3.AttributePatternRowFilterNodeFunc">
         </nodeFunc>
         <nodeFunc
-              impl="org.knime.base.node.preproc.filter.row3.RowFilterByRowIndexNodeFunc">
+              impl="org.knime.base.node.preproc.filter.row3.RowFilterByRowNumberNodeFunc">
+        </nodeFunc>
+        <nodeFunc
+              impl="org.knime.base.node.preproc.filter.row3.AttributeRangeRowFilterNodeFunc">
         </nodeFunc>
      </extension>
 </plugin>

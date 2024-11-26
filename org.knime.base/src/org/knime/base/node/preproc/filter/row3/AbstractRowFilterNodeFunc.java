@@ -50,6 +50,7 @@ package org.knime.base.node.preproc.filter.row3;
 
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterMode;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -74,12 +75,12 @@ abstract class AbstractRowFilterNodeFunc implements NodeFunc {
     public void saveSettings(final NodeSettingsRO arguments, final PortObjectSpec[] inputSpecs, final NodeSettingsWO settings)
         throws InvalidSettingsException {
         boolean include = arguments.getBoolean(INCLUDE);
-
-        var criterion = getSpecificCriterion(arguments);
+        var tableSpec = (DataTableSpec)inputSpecs[0];
+        var criteria = getFilterCriteria(arguments, tableSpec);
 
         // NodeFunc will always create a row filter with exactly one filter criterion
         var rowFilterSettings = new RowFilterNodeSettings();
-        rowFilterSettings.m_predicates = new FilterCriterion[] {criterion};
+        rowFilterSettings.m_predicates = criteria;
         rowFilterSettings.m_outputMode = include ? FilterMode.MATCHING : FilterMode.NON_MATCHING;
 
         DefaultNodeSettings.saveSettings(RowFilterNodeSettings.class, rowFilterSettings, settings);
@@ -92,17 +93,16 @@ abstract class AbstractRowFilterNodeFunc implements NodeFunc {
             .withOutputTable("filtered_table", "The filtered table.")//
             .withBooleanArgument(INCLUDE,
                 "Whether rows matching the filter for a specific column should be "
-                + "included in the output table or not.")//
-            .withStringArgument(COLUMN,
-                "The column on which the criterion will be applied to.");
+                + "included in the output table or not.");
         extendApi(builder);
         return builder.build();
     }
 
     /**
      * Each NodeFunc will produce a row filter with a specific configured criterion
+     * @param tableSpec
      */
-    abstract FilterCriterion getSpecificCriterion(final NodeSettingsRO arguments) throws InvalidSettingsException;
+    abstract FilterCriterion[] getFilterCriteria(final NodeSettingsRO arguments, DataTableSpec tableSpec) throws InvalidSettingsException;
 
     @Override
     public String getNodeFactoryClassName() {
