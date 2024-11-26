@@ -76,6 +76,13 @@
             factory-class="org.knime.time.node.convert.stringtodurationperiod.StringToDurationPeriodNodeFactory">
       </node>
       <node
+            after="org.knime.time.node.convert.durationperiodtostring.DurationPeriodToStringNodeFactory"
+            category-path="/applications/timeseries/transform"
+            deprecated="false"
+            hidden="true"
+            factory-class="org.knime.time.node.convert.stringtodurationperiod.StringToDurationPeriodNodeFactory2">
+      </node>
+      <node
             after="org.knime.time.node.manipulate.datetimeshift.DateTimeShiftNodeFactory"
             category-path="/applications/timeseries/manipulate"
             deprecated="false"
