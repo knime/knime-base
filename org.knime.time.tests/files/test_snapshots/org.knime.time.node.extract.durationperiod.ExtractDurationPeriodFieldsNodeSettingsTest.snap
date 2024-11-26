@@ -1,0 +1,213 @@
+{
+  "data" : {
+    "model" : {
+      "extractFields" : [ ]
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "extractFields" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "field" : {
+                  "oneOf" : [ {
+                    "const" : "YEARS",
+                    "title" : "Years"
+                  }, {
+                    "const" : "MONTHS",
+                    "title" : "Months"
+                  }, {
+                    "const" : "DAYS",
+                    "title" : "Days"
+                  }, {
+                    "const" : "HOURS",
+                    "title" : "Hours"
+                  }, {
+                    "const" : "MINUTES",
+                    "title" : "Minutes"
+                  }, {
+                    "const" : "SECONDS",
+                    "title" : "Seconds"
+                  }, {
+                    "const" : "MILLIS_ALL",
+                    "title" : "Millis"
+                  }, {
+                    "const" : "MILLIS_PART",
+                    "title" : "Millis"
+                  }, {
+                    "const" : "MICROS_ALL",
+                    "title" : "Micros"
+                  }, {
+                    "const" : "MICROS_PART",
+                    "title" : "Micros"
+                  }, {
+                    "const" : "NANOS_ALL",
+                    "title" : "Nanos"
+                  }, {
+                    "const" : "NANOS_PART",
+                    "title" : "Nanos"
+                  } ],
+                  "title" : "Field",
+                  "description" : "The type of field to extract.\n<ul>\n<li><b>Years</b>: The years component of a period.</li>\n<li><b>Months</b>: The months component of a period.</li>\n<li><b>Days</b>: The days component of a period.</li>\n<li><b>Hours</b>: The hours component of a duration.</li>\n<li><b>Minutes</b>: The minutes component of a duration.</li>\n<li><b>Seconds</b>: The seconds component of a duration.</li>\n<li><b>Millis</b>: Milliseconds of a duration, including all of the subseconds. In other words, a duration of 10.123456789 seconds would have 123 milliseconds.\n</li>\n<li><b>Millis</b>: The milliseconds component of a duration. In other words, a duration of 10.123456789 seconds would have 123 milliseconds.\n</li>\n<li><b>Micros</b>: Microseconds of a duration, including all of the subseconds. In other words, a duration of 10.123456789 seconds would have 123456 microseconds.\n</li>\n<li><b>Micros</b>: The microseconds component of a duration. In other words, a duration of 10.123456789 seconds would have 456 microseconds.\n</li>\n<li><b>Nanos</b>: Nanoseconds of a duration, including all of the subseconds. In other words, a duration of 10.123456789 seconds would have 123456789 nanoseconds.\n</li>\n<li><b>Nanos</b>: The nanoseconds component of a duration. In other words, a duration of 10.123456789 seconds would have 789 nanoseconds.\n</li>\n</ul>"
+                },
+                "outputcolumnName" : {
+                  "type" : "string",
+                  "title" : "Column name",
+                  "description" : "The name of the column populated with the values of the selected field. Cannot be empty!\n"
+                }
+              }
+            },
+            "title" : "Extracted fields",
+            "description" : "Define fields to extract and set column names.",
+            "default" : [ ]
+          },
+          "selectedColumn" : {
+            "type" : "string",
+            "title" : "Duration column",
+            "description" : "A Duration or Period column from which to extract the fields.\n"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/selectedColumn",
+      "options" : {
+        "possibleValues" : [ {
+          "id" : "periodTest",
+          "text" : "periodTest",
+          "type" : {
+            "id" : "org.knime.core.data.time.period.PeriodValue",
+            "text" : "Period"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.time.period.PeriodValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
+        }, {
+          "id" : "durationTest",
+          "text" : "durationTest",
+          "type" : {
+            "id" : "org.knime.core.data.time.duration.DurationValue",
+            "text" : "Duration"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.time.duration.DurationValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
+        } ],
+        "format" : "dropDown",
+        "showNoneColumn" : false,
+        "showRowKeys" : false,
+        "showSearch" : true,
+        "showMode" : true
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/extractFields",
+      "options" : {
+        "detail" : [ {
+          "type" : "HorizontalLayout",
+          "elements" : [ {
+            "type" : "Control",
+            "scope" : "#/properties/field",
+            "options" : {
+              "choicesProvider" : "org.knime.time.node.extract.durationperiod.ExtractFieldSettings$FilteredPossibleFieldsChoices",
+              "format" : "dropDown",
+              "showNoneColumn" : false,
+              "showRowKeys" : false,
+              "showSearch" : true,
+              "showMode" : true
+            }
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/outputcolumnName",
+            "options" : {
+              "hideOnNull" : false,
+              "placeholderProvider" : "org.knime.time.node.extract.durationperiod.ExtractFieldSettings$OutputColumnNamePlaceholderProvider"
+            }
+          } ]
+        } ],
+        "addButtonText" : "Add field",
+        "showSortButtons" : true,
+        "elementDefaultValueProvider" : "org.knime.time.node.extract.durationperiod.ExtractFieldSettings$DefaultExtractFieldWidgetProvider"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "selectedColumn" : {
+            "configKey" : "col_select"
+          },
+          "extractFields" : {
+            "type" : "array",
+            "deprecatedConfigKeys" : [ {
+              "new" : [ [ "extracted_fields" ] ],
+              "deprecated" : [ [ "Year" ], [ "Months" ], [ "Days" ], [ "Hours" ], [ "Minutes" ], [ "Seconds" ], [ "Millis" ], [ "Micros" ], [ "Nanos" ], [ "subsecond" ] ]
+            } ],
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "field" : { },
+                "outputcolumnName" : { }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.time.node.extract.durationperiod.ExtractFieldSettings$DefaultExtractFieldWidgetProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : { }
+    } ]
+  }, {
+    "scopes" : null,
+    "id" : "org.knime.time.node.extract.durationperiod.ExtractFieldSettings$FilteredPossibleFieldsChoices",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ ]
+    } ]
+  }, {
+    "scopes" : null,
+    "id" : "org.knime.time.node.extract.durationperiod.ExtractFieldSettings$OutputColumnNamePlaceholderProvider",
+    "values" : [ ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog",
+      "triggerInitially" : true
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/selectedColumn" ],
+      "id" : "org.knime.time.node.extract.durationperiod.ExtractDurationPeriodFieldsNodeSettings$SelectedInputColumnHelpers$ValueRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.time.node.extract.durationperiod.ExtractDurationPeriodFieldsNodeSettings$SelectedInputColumnHelpers$ValueRef",
+      "scopes" : [ "#/properties/model/properties/selectedColumn" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/selectedColumn" ],
+      "id" : "org.knime.time.node.extract.durationperiod.ExtractDurationPeriodFieldsNodeSettings$SelectedInputColumnHelpers$ValueRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.time.node.extract.durationperiod.ExtractFieldSettings$OutputColumnNamePlaceholderProvider$ExtractableFieldsReference",
+      "scopes" : [ "#/properties/model/properties/extractFields", "#/properties/field" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/extractFields", "#/properties/field" ],
+      "id" : "org.knime.time.node.extract.durationperiod.ExtractFieldSettings$OutputColumnNamePlaceholderProvider$ExtractableFieldsReference"
+    } ]
+  } ]
+}

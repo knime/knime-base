@@ -100,6 +100,12 @@
             deprecated="false"
             factory-class="org.knime.time.node.extract.durationperiod.ExtractDurationPeriodFieldsNodeFactory">
       </node>
+            <node
+            category-path="/applications/timeseries/transform"
+            deprecated="false"
+            hidden="true"
+            factory-class="org.knime.time.node.extract.durationperiod.ExtractDurationPeriodFieldsNodeFactory2">
+      </node>
       <node
             category-path="/applications/timeseries/manipulate"
             deprecated="false"
