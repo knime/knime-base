@@ -94,7 +94,8 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(ExtractDateTimeFieldsSettings.class);
 
-    ExtractDateTimeFieldsSettings() {}
+    ExtractDateTimeFieldsSettings() {
+    }
 
     ExtractDateTimeFieldsSettings(final DefaultNodeSettingsContext context) {
         m_selectedColumn = context.getDataTableSpec(0).map(ExtractDateTimeFieldsSettings::autoGuessColumn).orElse(null);
@@ -109,9 +110,12 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
     }
 
     @Section(title = "Column selection")
-    interface ColumnSection {}
+    interface ColumnSection {
+    }
 
-    static final class SelectedColumnRef implements Reference<String> {}
+    static final class SelectedColumnRef implements Reference<String> {
+    }
+
     static final class AutoGuessColumnValueProvider implements StateProvider<String> {
 
         private Supplier<String> m_valueSupplier;
@@ -131,15 +135,15 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
         @Override
         public String computeState(final DefaultNodeSettingsContext context) {
             if (m_valueSupplier.get() == null || m_valueSupplier.get().isEmpty()) {
-                return context.getDataTableSpec(0).map(ExtractDateTimeFieldsSettings::autoGuessColumn)
-                        .orElse(null);
+                return context.getDataTableSpec(0).map(ExtractDateTimeFieldsSettings::autoGuessColumn).orElse(null);
             }
             return m_valueSupplier.get();
         }
     }
 
-    @Widget(title = "Date&Time column", description = "A Local Date, Local Time, Local Date Time or " +
-            "Zoned Date Time column whose fields to extract.")
+    @Widget(title = "Date&Time column",
+        description = "A Local Date, Local Time, Local Date Time or "
+            + "Zoned Date Time column whose fields to extract.")
     @Persist(configKey = "col_select")
     @ChoicesWidget(choices = DateTimeColumnChoices.class)
     @Layout(ColumnSection.class)
@@ -149,7 +153,8 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
 
     @Section(title = "Date and time fields")
     @After(ColumnSection.class)
-    interface DateTimeFieldsSection {}
+    interface DateTimeFieldsSection {
+    }
 
     static final class DefaultExtractFieldProvider implements StateProvider<ExtractField> {
 
@@ -179,9 +184,11 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
 
     @Section(title = "Localization (month and day names, etc.)")
     @After(DateTimeFieldsSection.class)
-    interface LocaleSection {}
+    interface LocaleSection {
+    }
 
-    @Widget(title = "Locale", description = "The locale that governs the localization of output strings "
+    @Widget(title = "Locale",
+        description = "The locale that governs the localization of output strings "
             + "(month, day of week, time zone offset) and takes care of local calendrical characteristics "
             + "(week and day of week numbering).")
     @ChoicesWidget(choices = LocaleChoices.class)
@@ -202,7 +209,8 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
 
     static final class ExtractField implements DefaultNodeSettings {
 
-        public ExtractField() { /* default constructor for serialization */ }
+        public ExtractField() {
+            /* default constructor for serialization */ }
 
         public ExtractField(final DateTimeField field, final String columnName) {
             m_field = field;
@@ -210,7 +218,8 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
         }
 
         @HorizontalLayout
-        interface ExtractFieldLayout {}
+        interface ExtractFieldLayout {
+        }
 
         @Widget(title = "Field", description = "The type of field to extract.")
         @ChoicesWidget(choicesProvider = FilteredPossibleFieldsChoices.class)
@@ -218,98 +227,100 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
         @ValueReference(DateTimeFieldReference.class)
         public DateTimeField m_field;
 
-        @Widget(title= "Column name",
-                description = "The name of the column populated with the values of the selected field.")
+        @Widget(title = "Column name",
+            description = "The name of the column populated with the values of the selected field.")
         @Layout(ExtractFieldLayout.class)
         @TextInputWidget(placeholderProvider = ColumnNameProvider.class)
         public String m_columnName;
     }
 
-
     enum DateTimeField {
 
-        @Label(value = "Year", description = "The year number will be extracted and appended as an integer column.")
-        YEAR,
+            @Label(value = "Year", description = "The year number will be extracted and appended as an integer column.")
+            YEAR,
 
-        @Label(value = "Year (Week-based)",
-            description = "The year based on the week will be "
-                + "extracted and appended as an integer column. Depending on the selected locale, week 1 of a "
-                + " year may already start in the previous year, or week 52 of a year may last until the next "
-                + " year (e.g., 30th Dec 2010 belongs to week 1 of year 2011 (locale en-US), so the extracted "
-                + " <i>Year (week-based)</i> would be 2011 while the extracted <i>Year</i> would be 2010).")
-        YEAR_WEEK_BASED,
+            @Label(value = "Year (Week-based)",
+                description = "The year based on the week will be "
+                    + "extracted and appended as an integer column. Depending on the selected locale, week 1 of a "
+                    + " year may already start in the previous year, or week 52 of a year may last until the next "
+                    + " year (e.g., 30th Dec 2010 belongs to week 1 of year 2011 (locale en-US), so the extracted "
+                    + " <i>Year (week-based)</i> would be 2011 while the extracted <i>Year</i> would be 2010).")
+            YEAR_WEEK_BASED,
 
-        @Label(value = "Quarter",
-            description = "If checked, the quarter of year will be extracted as a number in range  [1-4] and appended "
-                + "as an integer column.")
-        QUARTER,
+            @Label(value = "Quarter", description = "If checked, the quarter of year will be extracted as a number "
+                + "in range  [1-4] and appended as an integer column.")
+            QUARTER,
 
-        @Label(value = "Month (Number)",
-            description = "If checked, the month of year will be extracted as a number in range [1-12] and appended "
-                + "as an integer column.")
-        MONTH_NUMBER,
+            @Label(value = "Month (Number)",
+                description = "If checked, the month of year will be extracted as a number "
+                    + "in range [1-12] and appended as an integer column.")
+            MONTH_NUMBER,
 
-        @Label(value = "Month (Name)",
-            description = "If checked, the month of year will be extracted as a localized name and appended "
-                + "as a string column.")
-        MONTH_NAME,
+            @Label(value = "Month (Name)",
+                description = "If checked, the month of year will be extracted as a localized name and appended "
+                    + "as a string column.")
+            MONTH_NAME,
 
-        @Label(value = "Week",
-            description = "If checked, the week of year will be extracted as a number in range [1-52] and appended as "
-                + "an integer column. A partial week at the beginning of a year is handled according to the "
-                + "chosen locale.")
-        WEEK,
+            @Label(value = "Week",
+                description = "If checked, the week of year will be extracted as a number "
+                    + "in range [1-52] and appended as an integer column. A partial week at "
+                    + "the beginning of a year is handled according to the chosen locale.")
+            WEEK,
 
-        @Label(value = "Day of Year",
-            description = "If checked, the day of year will be extracted as a number in range [1-366] and appended "
-                + "as an integer column.")
-        DAY_OF_YEAR,
+            @Label(value = "Day of Year",
+                description = "If checked, the day of year will be extracted as a number in range [1-366] and appended "
+                    + "as an integer column.")
+            DAY_OF_YEAR,
 
-        @Label(value = "Day of Month",
-            description = "If checked, the day of month will be extracted as a number in range [1-31] and appended "
-                + "as an integer column.")
-        DAY_OF_MONTH,
+            @Label(value = "Day of Month",
+                description = "If checked, the day of month will be extracted as a number in range [1-31] and appended "
+                    + "as an integer column.")
+            DAY_OF_MONTH,
 
-        @Label(value = "Day of Week (Number)",
-            description = "If checked, the day of week will be extracted as a number in range [1-7] and appended as "
-                + "an integer column. The numbering is based on the chosen locale.")
-        DAY_OF_WEEK_NUMBER,
+            @Label(value = "Day of Week (Number)",
+                description = "If checked, the day of week will be extracted as a number "
+                    + "in range [1-7] and appended as an integer column. The numbering is based on the chosen locale.")
+            DAY_OF_WEEK_NUMBER,
 
-        @Label(value = "Day of Week (Name)", description = "If checked, the day of week will be extracted as a "
-            + "localized name and appended as a string column.")
-        DAY_OF_WEEK_NAME,
+            @Label(value = "Day of Week (Name)", description = "If checked, the day of week will be extracted as a "
+                + "localized name and appended as a string column.")
+            DAY_OF_WEEK_NAME,
 
-        @Label(value = "Hour", description = "If checked, the hour of day will be extracted as a number in range "
-            + "[0-23] and appended as an integer column.")
-        HOUR,
+            @Label(value = "Hour", description = "If checked, the hour of day will be extracted as a number in range "
+                + "[0-23] and appended as an integer column.")
+            HOUR,
 
-        @Label(value = "Minute", description = "If checked, the minute of hour will be extracted as a number in "
-            + "range [0-59] and appended as an integer column.")
-        MINUTE,
+            @Label(value = "Minute", description = "If checked, the minute of hour will be extracted as a number in "
+                + "range [0-59] and appended as an integer column.")
+            MINUTE,
 
-        @Label(value = "Second", description = "If checked, the second of minute will be extracted as a number in "
-            + "range [0-59] and appended as an integer column.")
-        SECOND,
+            @Label(value = "Second", description = "If checked, the second of minute will be extracted as a number in "
+                + "range [0-59] and appended as an integer column.")
+            SECOND,
 
-        @Label(value = "Millisecond", description = "If checked, the millisecond fraction of second will be extracted "
-            + "as number in range [0-999] and appended as an integer column.")
-        MILLISECOND,
+            @Label(value = "Millisecond",
+                description = "If checked, the millisecond fraction of second will be extracted "
+                    + "as number in range [0-999] and appended as an integer column.")
+            MILLISECOND,
 
-        @Label(value = "Microsecond", description = "If checked, the microsecond fraction of second will be extracted "
-            + "as number in range [0-999,999] and appended as an integer column.")
-        MICROSECOND,
+            @Label(value = "Microsecond",
+                description = "If checked, the microsecond fraction of second will be extracted "
+                    + "as number in range [0-999,999] and appended as an integer column.")
+            MICROSECOND,
 
-        @Label(value = "Nanosecond", description = "If checked, the nanosecond fraction of second will be extracted "
-            + "as number in range [0-999,999,999] and appended as an integer column.")
-        NANOSECOND,
+            @Label(value = "Nanosecond",
+                description = "If checked, the nanosecond fraction of second will be extracted "
+                    + "as number in range [0-999,999,999] and appended as an integer column.")
+            NANOSECOND,
 
-        @Label(value = "Time Zone Name", description = "If checked, the unique time zone name will be extracted as a "
-            + "non-localized name and appended as a string column.")
-        TIME_ZONE_NAME,
+            @Label(value = "Time Zone Name",
+                description = "If checked, the unique time zone name will be extracted as a "
+                    + "non-localized name and appended as a string column.")
+            TIME_ZONE_NAME,
 
-        @Label(value = "Time Zone Offset", description = "If checked, the time zone offset will be extracted as a "
-            + "localized, formatted number and appended as a string column.")
-        TIME_ZONE_OFFSET;
+            @Label(value = "Time Zone Offset", description = "If checked, the time zone offset will be extracted as a "
+                + "localized, formatted number and appended as a string column.")
+            TIME_ZONE_OFFSET;
 
         String getLabelValue() {
             try {
@@ -335,32 +346,16 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
         }
     }
 
-    private static DateTimeField[] dateFields = new DateTimeField[] {
-        DateTimeField.YEAR,
-        DateTimeField.YEAR_WEEK_BASED,
-        DateTimeField.QUARTER,
-        DateTimeField.MONTH_NUMBER,
-        DateTimeField.MONTH_NAME,
-        DateTimeField.WEEK,
-        DateTimeField.DAY_OF_YEAR,
-        DateTimeField.DAY_OF_MONTH,
-        DateTimeField.DAY_OF_WEEK_NUMBER,
-        DateTimeField.DAY_OF_WEEK_NAME
-    };
+    private static DateTimeField[] dateFields =
+        new DateTimeField[]{DateTimeField.YEAR, DateTimeField.YEAR_WEEK_BASED, DateTimeField.QUARTER,
+            DateTimeField.MONTH_NUMBER, DateTimeField.MONTH_NAME, DateTimeField.WEEK, DateTimeField.DAY_OF_YEAR,
+            DateTimeField.DAY_OF_MONTH, DateTimeField.DAY_OF_WEEK_NUMBER, DateTimeField.DAY_OF_WEEK_NAME};
 
-    private static DateTimeField[] timeFields = new DateTimeField[] {
-        DateTimeField.HOUR,
-        DateTimeField.MINUTE,
-        DateTimeField.SECOND,
-        DateTimeField.MILLISECOND,
-        DateTimeField.MICROSECOND,
-        DateTimeField.NANOSECOND
-    };
+    private static DateTimeField[] timeFields = new DateTimeField[]{DateTimeField.HOUR, DateTimeField.MINUTE,
+        DateTimeField.SECOND, DateTimeField.MILLISECOND, DateTimeField.MICROSECOND, DateTimeField.NANOSECOND};
 
-    private static DateTimeField[] timeZoneFields = new DateTimeField[] {
-        DateTimeField.TIME_ZONE_NAME,
-        DateTimeField.TIME_ZONE_OFFSET
-    };
+    private static DateTimeField[] timeZoneFields =
+        new DateTimeField[]{DateTimeField.TIME_ZONE_NAME, DateTimeField.TIME_ZONE_OFFSET};
 
     static final class FilteredPossibleFieldsChoices implements StringChoicesStateProvider {
 
@@ -373,8 +368,7 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public IdAndText[] computeState(final DefaultNodeSettingsContext context)
-            throws WidgetHandlerException {
+        public IdAndText[] computeState(final DefaultNodeSettingsContext context) throws WidgetHandlerException {
             List<IdAndText> filteredChoices = new ArrayList<>();
             var spec = context.getDataTableSpec(0);
             var selectedColumn = m_selectedColumnSupplier.get();
@@ -399,7 +393,8 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
 
     static final class ColumnNameProvider implements StateProvider<String> {
 
-        static final class DateTimeFieldReference implements Reference<DateTimeField> {}
+        static final class DateTimeFieldReference implements Reference<DateTimeField> {
+        }
 
         private Supplier<DateTimeField> m_valueSupplier;
 
@@ -408,6 +403,7 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
          */
         @Override
         public void init(final StateProviderInitializer initializer) {
+            initializer.computeBeforeOpenDialog();
             m_valueSupplier = initializer.computeFromValueSupplier(DateTimeFieldReference.class);
         }
 
@@ -422,14 +418,11 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
 
     }
 
-
     static boolean isDateTimeCompatible(final DataColumnSpec colSpec) {
         if (colSpec != null) {
             var type = colSpec.getType();
-            if (type.isCompatible(LocalDateValue.class) ||
-                type.isCompatible(LocalTimeValue.class) ||
-                type.isCompatible(LocalDateTimeValue.class) ||
-                type.isCompatible(ZonedDateTimeValue.class)) {
+            if (type.isCompatible(LocalDateValue.class) || type.isCompatible(LocalTimeValue.class)
+                || type.isCompatible(LocalDateTimeValue.class) || type.isCompatible(ZonedDateTimeValue.class)) {
                 return true;
             }
         }
@@ -439,9 +432,8 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
     static boolean isDateType(final DataColumnSpec colSpec) {
         if (colSpec != null) {
             var type = colSpec.getType();
-            if (type.isCompatible(LocalDateValue.class) ||
-                type.isCompatible(LocalDateTimeValue.class) ||
-                type.isCompatible(ZonedDateTimeValue.class)) {
+            if (type.isCompatible(LocalDateValue.class) || type.isCompatible(LocalDateTimeValue.class)
+                || type.isCompatible(ZonedDateTimeValue.class)) {
                 return true;
             }
         }
@@ -451,9 +443,8 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
     static boolean isTimeType(final DataColumnSpec colSpec) {
         if (colSpec != null) {
             var type = colSpec.getType();
-            if (type.isCompatible(LocalTimeValue.class) ||
-                type.isCompatible(LocalDateTimeValue.class) ||
-                type.isCompatible(ZonedDateTimeValue.class)) {
+            if (type.isCompatible(LocalTimeValue.class) || type.isCompatible(LocalDateTimeValue.class)
+                || type.isCompatible(ZonedDateTimeValue.class)) {
                 return true;
             }
         }
@@ -474,9 +465,9 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
 
         @Override
         public IdAndText[] choicesWithIdAndText(final DefaultNodeSettingsContext context) {
-            return Arrays.stream(LocaleProvider.JAVA_11.getLocales()).map(
-                    locale -> new IdAndText(locale.toLanguageTag(), locale.getDisplayName())
-                ).toArray(IdAndText[]::new);
+            return Arrays.stream(LocaleProvider.JAVA_11.getLocales())
+                .map(locale -> new IdAndText(locale.toLanguageTag(), locale.getDisplayName()))
+                .toArray(IdAndText[]::new);
         }
     }
 

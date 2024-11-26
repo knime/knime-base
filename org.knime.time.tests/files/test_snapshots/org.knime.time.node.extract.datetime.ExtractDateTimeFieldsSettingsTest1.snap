@@ -250,6 +250,52 @@
   },
   "initialUpdates" : [ {
     "scopes" : null,
+    "id" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$ColumnNameProvider",
+    "values" : [ {
+      "indices" : [ 0 ],
+      "value" : "Year"
+    }, {
+      "indices" : [ 1 ],
+      "value" : "Year (Week-based)"
+    }, {
+      "indices" : [ 10 ],
+      "value" : "Second"
+    }, {
+      "indices" : [ 11 ],
+      "value" : "Microsecond"
+    }, {
+      "indices" : [ 12 ],
+      "value" : "Time Zone Name"
+    }, {
+      "indices" : [ 13 ],
+      "value" : "Time Zone Offset"
+    }, {
+      "indices" : [ 2 ],
+      "value" : "Quarter"
+    }, {
+      "indices" : [ 3 ],
+      "value" : "Month (Number)"
+    }, {
+      "indices" : [ 4 ],
+      "value" : "Week"
+    }, {
+      "indices" : [ 5 ],
+      "value" : "Day of Month"
+    }, {
+      "indices" : [ 6 ],
+      "value" : "Day of Week (Number)"
+    }, {
+      "indices" : [ 7 ],
+      "value" : "Day of Week (Name)"
+    }, {
+      "indices" : [ 8 ],
+      "value" : "Hour"
+    }, {
+      "indices" : [ 9 ],
+      "value" : "Minute"
+    } ]
+  }, {
+    "scopes" : null,
     "id" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$DefaultExtractFieldProvider",
     "values" : [ {
       "indices" : [ ],

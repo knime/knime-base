@@ -208,6 +208,10 @@
   },
   "initialUpdates" : [ {
     "scopes" : null,
+    "id" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$ColumnNameProvider",
+    "values" : [ ]
+  }, {
+    "scopes" : null,
     "id" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$DefaultExtractFieldProvider",
     "values" : [ {
       "indices" : [ ],
