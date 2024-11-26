@@ -49,32 +49,35 @@
 package org.knime.base.node.preproc.filter.row3;
 
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.func.NodeFuncApi.Builder;
 
 /**
  *
- *  Filters rows with missing values from a specified column
+ * Filters rows with missing values from a specified column
  *
  * @author Alexander Jauch-Walser, KNIME GmbH, Konstanz, Germany
  */
-public final class  MissingValueRowFilterNodeFunc extends AbstractRowFilterNodeFunc {
+public final class MissingValueRowFilterNodeFunc extends AbstractRowFilterNodeFunc {
 
     @Override
-    FilterCriterion getSpecificCriterion(final NodeSettingsRO arguments) throws InvalidSettingsException{
+    FilterCriterion[] getFilterCriteria(final NodeSettingsRO arguments, final DataTableSpec tableSpec)
+        throws InvalidSettingsException {
         var column = arguments.getString(COLUMN);
 
         var criterion = new FilterCriterion();
         criterion.m_column.m_selected = column;
         criterion.m_operator = FilterOperator.IS_MISSING;
 
-        return criterion;
+        return new FilterCriterion[]{criterion};
     }
 
     @Override
     void extendApi(final Builder builder) {
-        builder.withDescription("Matches rows whose value of the specified column are missing.");
+        builder.withStringArgument(COLUMN, "The column on which to filter. The column can be of any type.")
+            .withDescription("Matches rows whose value of the specified column are missing.");
     }
 
     @Override

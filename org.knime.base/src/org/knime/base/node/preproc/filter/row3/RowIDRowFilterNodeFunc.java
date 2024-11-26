@@ -49,12 +49,14 @@
 package org.knime.base.node.preproc.filter.row3;
 
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.func.NodeFuncApi.Builder;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
+
 /**
  *
  * Filters Rows based on a regex on the RowID column
@@ -66,7 +68,8 @@ public class RowIDRowFilterNodeFunc extends AbstractRowFilterNodeFunc {
     private static final String REGEX = "regex";
 
     @Override
-    FilterCriterion getSpecificCriterion(final NodeSettingsRO arguments) throws InvalidSettingsException{
+    FilterCriterion[] getFilterCriteria(final NodeSettingsRO arguments, final DataTableSpec tableSpec)
+        throws InvalidSettingsException {
         var regex = arguments.getString(REGEX);
 
         var criterion = new FilterCriterion();
@@ -76,13 +79,14 @@ public class RowIDRowFilterNodeFunc extends AbstractRowFilterNodeFunc {
         var stringCell = new StringCell.StringCellFactory().createCell(regex);
         criterion.m_predicateValues = DynamicValuesInput.singleValueWithInitialValue(StringCell.TYPE, stringCell);
 
-        return criterion;
+        return new FilterCriterion[]{criterion};
     }
 
     @Override
     void extendApi(final Builder builder) {
-        builder.withDescription("Creates a new table that only contains rows whose RowID matches the given regex pattern.")
-        .withStringArgument(REGEX, "Regular expression that is used to match the RowIDs of the input table.");
+        builder
+            .withDescription("Creates a new table that only contains rows whose RowID matches the given regex pattern.")
+            .withStringArgument(REGEX, "Regular expression that is used to match the RowIDs of the input table.");
     }
 
     @Override

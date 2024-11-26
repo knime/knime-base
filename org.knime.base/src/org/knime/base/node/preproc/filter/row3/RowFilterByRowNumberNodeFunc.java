@@ -49,6 +49,7 @@
 package org.knime.base.node.preproc.filter.row3;
 
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -63,27 +64,34 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValu
  * @author Alexander Jauch-Walser, KNIME GmbH, Konstanz, Germany
  */
 
-public class RowFilterByRowIndexNodeFunc extends AbstractRowFilterNodeFunc{
+public class RowFilterByRowNumberNodeFunc extends AbstractRowFilterNodeFunc {
 
     private static final String OPERATOR = "operator";
-    private static final String INDEX = "index";
+
+    private static final String ROW_NUMBER = "row_number";
 
     private static final String EQUALS = "equals";
+
     private static final String NEQUALS = "notEquals";
+
     private static final String LESSTHAN = "lessThan";
+
     private static final String LESSTHANEQUALS = "lessThanEquals";
+
     private static final String GREATERTHAN = "greaterThan";
+
     private static final String GREATERTHANEQUALS = "greaterThanEquals";
+
     private static final String FIRSTN = "firstN";
+
     private static final String LASTN = "lastN";
 
-
     @Override
-    FilterCriterion getSpecificCriterion(final NodeSettingsRO arguments)
+    FilterCriterion[] getFilterCriteria(final NodeSettingsRO arguments, final DataTableSpec tableSpec)
         throws InvalidSettingsException {
 
         var operatorName = arguments.getString(OPERATOR);
-        var index = arguments.getLong(INDEX);
+        var index = arguments.getLong(ROW_NUMBER);
 
         var criterion = new FilterCriterion();
         criterion.m_column.m_selected = SpecialColumns.ROW_NUMBERS.getId();
@@ -91,45 +99,57 @@ public class RowFilterByRowIndexNodeFunc extends AbstractRowFilterNodeFunc{
         var longCell = new LongCell.LongCellFactory().createCell(Long.toString(index));
         criterion.m_predicateValues = DynamicValuesInput.singleValueWithInitialValue(LongCell.TYPE, longCell);
 
-        return criterion;
+        return new FilterCriterion[]{criterion};
     }
 
     private FilterOperator getOperator(final String operatorName) {
-        switch(operatorName) {
-            case EQUALS: return FilterOperator.EQ;
-            case NEQUALS: return FilterOperator.NEQ;
-            case LESSTHAN: return FilterOperator.LT;
-            case LESSTHANEQUALS: return FilterOperator.LTE;
-            case GREATERTHAN: return FilterOperator.GT;
-            case GREATERTHANEQUALS: return FilterOperator.GTE;
-            case FIRSTN: return FilterOperator.FIRST_N_ROWS;
-            case LASTN: return FilterOperator.LAST_N_ROWS;
-            default: return null;
+        switch (operatorName) {
+            case EQUALS:
+                return FilterOperator.EQ;
+            case NEQUALS:
+                return FilterOperator.NEQ;
+            case LESSTHAN:
+                return FilterOperator.LT;
+            case LESSTHANEQUALS:
+                return FilterOperator.LTE;
+            case GREATERTHAN:
+                return FilterOperator.GT;
+            case GREATERTHANEQUALS:
+                return FilterOperator.GTE;
+            case FIRSTN:
+                return FilterOperator.FIRST_N_ROWS;
+            case LASTN:
+                return FilterOperator.LAST_N_ROWS;
+            default:
+                return null;
         }
     }
 
     @Override
     void extendApi(final Builder builder) {
-        builder.withDescription("Matches rows whose value of the specified column are missing.")//
-        .withDescription("Creates a new table by filtering the range of rows by index."
-                        +"The first row has index 0.")//
-        .withStringArgument(OPERATOR, String.format("The operator which will be used to filter the row Indexes on:\n"
-            + "%s: Returns the row with index which equals the specified number.\n"
-            + "%s: Returns the rows with indexes not matching the specified number.\n"
-            + "%s: Returns the rows with indexes which are strictly smaller than specified number\n"
-            + "%s: Returns the rows with indexes which are smaller than or equal to specified number\n"
-            + "%s: Returns the rows with indexes which are strictly larger than specified number\n"
-            + "%s: Returns the rows with indexes which are larger than or equal than specified number\n"
-            + "%s: Returns the first n rows from the start of the table.\n"
-            + "%s: Returns the last n rows from the end of the table.",
-            EQUALS, NEQUALS, LESSTHAN, LESSTHANEQUALS, GREATERTHAN, GREATERTHANEQUALS, FIRSTN, LASTN))
-        .withOptionalLongArgument(INDEX, "The index which filters rows of the table in combination with an operator.");
+        builder
+            .withDescription(
+                "Creates a new table by filtering the range of rows by row number. The first row has row number 1.")//
+            .withStringArgument(OPERATOR,
+                String.format(
+                    "The operator which will be used to filter the row numbers on:\n"
+                        + "%s: Returns the row number which equals the specified number.\n"
+                        + "%s: Returns the rows with row number not matching the specified number.\n"
+                        + "%s: Returns the rows with row number which are strictly smaller than specified number\n"
+                        + "%s: Returns the rows with row number which are smaller than or equal to specified number\n"
+                        + "%s: Returns the rows with row number which are strictly larger than specified number\n"
+                        + "%s: Returns the rows with row number which are larger than or equal than specified number\n"
+                        + "%s: Returns the first n rows from the start of the table.\n"
+                        + "%s: Returns the last n rows from the end of the table.",
+                    EQUALS, NEQUALS, LESSTHAN, LESSTHANEQUALS, GREATERTHAN, GREATERTHANEQUALS, FIRSTN, LASTN))
+            .withOptionalLongArgument(ROW_NUMBER,
+                "The row number which filters rows of the table in combination with an operator.");
 
     }
 
     @Override
     String getName() {
-        return "filter_row_by_index";
+        return "filter_row_by_row_number";
     }
 
 }
