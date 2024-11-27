@@ -102,28 +102,20 @@ public class RowFilterByRowNumberNodeFunc extends AbstractRowFilterNodeFunc {
         return new FilterCriterion[]{criterion};
     }
 
-    private FilterOperator getOperator(final String operatorName) {
-        switch (operatorName) {
-            case EQUALS:
-                return FilterOperator.EQ;
-            case NEQUALS:
-                return FilterOperator.NEQ;
-            case LESSTHAN:
-                return FilterOperator.LT;
-            case LESSTHANEQUALS:
-                return FilterOperator.LTE;
-            case GREATERTHAN:
-                return FilterOperator.GT;
-            case GREATERTHANEQUALS:
-                return FilterOperator.GTE;
-            case FIRSTN:
-                return FilterOperator.FIRST_N_ROWS;
-            case LASTN:
-                return FilterOperator.LAST_N_ROWS;
-            default:
-                return null;
-        }
+    private static FilterOperator getOperator(final String operatorName) {
+        return switch (operatorName) {
+            case EQUALS -> FilterOperator.EQ;
+            case NEQUALS -> FilterOperator.NEQ;
+            case LESSTHAN -> FilterOperator.LT;
+            case LESSTHANEQUALS -> FilterOperator.LTE;
+            case GREATERTHAN -> FilterOperator.GT;
+            case GREATERTHANEQUALS -> FilterOperator.GTE;
+            case FIRSTN -> FilterOperator.FIRST_N_ROWS;
+            case LASTN -> FilterOperator.LAST_N_ROWS;
+            default -> null;
+        };
     }
+
 
     @Override
     void extendApi(final Builder builder) {
