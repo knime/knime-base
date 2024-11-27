@@ -69,6 +69,7 @@ import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
@@ -252,6 +253,11 @@ final class FilterOperatorTest {
         @Override
         public void computeAfterOpenDialog() {
             fail("Not expected to be called during test.");
+        }
+
+        @Override
+        public DefaultNodeSettingsContext getContext() {
+            throw new IllegalStateException("Not expected to be called during test.");
         }
     }
 

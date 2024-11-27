@@ -120,9 +120,9 @@ public final class CommonReaderTransformationSettingsStateProviders {
 
     static final NodeLogger LOGGER = NodeLogger.getLogger(CommonReaderTransformationSettingsStateProviders.class);
 
-    static final class SourceIdProvider implements StateProvider<String> {
+    public static class SourceIdProvider implements StateProvider<String> {
 
-        private Supplier<FileSelection> m_fileSelectionSupplier;
+        protected Supplier<FileSelection> m_fileSelectionSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
@@ -145,7 +145,7 @@ public final class CommonReaderTransformationSettingsStateProviders {
      */
     abstract static class PathsProvider<S> implements StateProvider<S> {
 
-        private Supplier<FileSelection> m_fileSelectionSupplier;
+        protected Supplier<FileSelection> m_fileSelectionSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
@@ -183,7 +183,7 @@ public final class CommonReaderTransformationSettingsStateProviders {
         abstract S computeStateFromPaths(List<FSPath> paths);
     }
 
-    static final class FSLocationsProvider extends PathsProvider<FSLocation[]> {
+    public static class FSLocationsProvider extends PathsProvider<FSLocation[]> {
         @Override
         public void init(final StateProviderInitializer initializer) {
             super.init(initializer);
@@ -226,7 +226,7 @@ public final class CommonReaderTransformationSettingsStateProviders {
         protected abstract TypeReference<I> getConfigIdTypeReference();
 
         @Override
-        Map<String, TypedReaderTableSpec<T>> computeStateFromPaths(final List<FSPath> paths) {
+        protected Map<String, TypedReaderTableSpec<T>> computeStateFromPaths(final List<FSPath> paths) {
             final var tableReader = getTableReader();
             final var exec = new ExecutionMonitor();
             final var specs = new HashMap<String, TypedReaderTableSpec<T>>();
@@ -271,12 +271,15 @@ public final class CommonReaderTransformationSettingsStateProviders {
 
         @Override
         public void init(final StateProviderInitializer initializer) {
-            initializer.computeAfterOpenDialog();
-            m_specSupplier = initializer.computeFromProvidedState(getTypedReaderTableSpecsProvider());
+            initFileChanges(initializer);
             initializer.computeOnValueChange(ConfigIdRef.class);
-            initializer.computeOnValueChange(FileSelectionRef.class);
+            m_specSupplier = initializer.computeFromProvidedState(getTypedReaderTableSpecsProvider());
         }
 
+        protected void initFileChanges(final StateProviderInitializer initializer) {
+            initializer.computeAfterOpenDialog();
+            initializer.computeOnValueChange(FileSelectionRef.class);
+        }
     }
 
     /**
@@ -572,6 +575,14 @@ public final class CommonReaderTransformationSettingsStateProviders {
         }
 
         static final class AppendPathColumnRef extends ReferenceStateProvider<Boolean>
+            implements Modification.Reference {
+        }
+
+        protected static final class SourceIdRef extends ReferenceStateProvider<String>
+            implements Modification.Reference {
+        }
+
+        protected static final class FSLocationsRef extends ReferenceStateProvider<FSLocation[]>
             implements Modification.Reference {
         }
 

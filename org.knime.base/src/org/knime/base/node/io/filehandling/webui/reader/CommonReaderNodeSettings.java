@@ -51,7 +51,6 @@ package org.knime.base.node.io.filehandling.webui.reader;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout.DataArea.UseExistingRowId;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.SettingsWithRowId;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;

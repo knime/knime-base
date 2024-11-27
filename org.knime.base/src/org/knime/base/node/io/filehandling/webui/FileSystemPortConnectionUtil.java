@@ -88,13 +88,24 @@ public final class FileSystemPortConnectionUtil {
 
     /**
      * Utility method for checking whether the first file system port of the specs of a given
-     * {@link DefaultNodeSettingsContext} provides a file system.
+     * {@link DefaultNodeSettingsContext} provides a file system but there exists no connection yet.
      *
      * @param context the context from which to obtain the file system connection
-     * @return whether the file system input port provides a file system
+     * @return whether the file system input port provides a file system but no connection
      */
     public static boolean hasEmptyFileSystemPort(final DefaultNodeSettingsContext context) {
         return hasFileSystemPort(context) && getFileSystemConnection(context).isEmpty();
+    }
+
+    /**
+     * Utility method for checking whether the first file system port of the specs of a given
+     * {@link DefaultNodeSettingsContext} provides a file system and a {@link FSConnection}.
+     *
+     * @param context the context from which to obtain the file system connection
+     * @return whether the file system input port provides a file system and a connection
+     */
+    public static boolean hasFileSystemPortWithConnection(final DefaultNodeSettingsContext context) {
+        return hasFileSystemPort(context) && getFileSystemConnection(context).isPresent();
     }
 
     private static Optional<FileSystemPortObjectSpec> getFirstFileSystemPort(final PortObjectSpec[] specs) {
@@ -102,7 +113,15 @@ public final class FileSystemPortConnectionUtil {
             .map(FileSystemPortObjectSpec.class::cast).findFirst();
     }
 
-    private static boolean hasFileSystemPort(final DefaultNodeSettingsContext context) {
+    /**
+     * Utility method for checking whether the first file system port of the specs of a given
+     * {@link DefaultNodeSettingsContext} provides a file system regardless of the state of the
+     * connection.
+     *
+     * @param context the context from which to obtain the file system connection
+     * @return whether the file system input port provides a file system
+     */
+    public static boolean hasFileSystemPort(final DefaultNodeSettingsContext context) {
         final var inPortTypes = context.getInPortTypes();
         return IntStream.range(0, inPortTypes.length)
             .anyMatch(i -> FileSystemPortObjectSpec.class.equals(inPortTypes[i].getPortObjectSpecClass()));

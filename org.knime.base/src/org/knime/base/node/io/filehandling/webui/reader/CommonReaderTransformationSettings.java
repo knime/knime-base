@@ -195,9 +195,13 @@ public abstract class CommonReaderTransformationSettings<I extends ConfigIdSetti
         I m_configId;
 
         @ValueProvider(SourceIdProvider.class)
+        // for replacing it with an own provider if the file is accessed indirectly
+        @Modification.WidgetReference(TransformationSettingsWidgetModification.SourceIdRef.class)
         String m_sourceId = "";
 
         @ValueProvider(FSLocationsProvider.class)
+        // for replacing it with an own provider if the file is accessed indirectly
+        @Modification.WidgetReference(TransformationSettingsWidgetModification.FSLocationsRef.class)
         FSLocation[] m_fsLocations = new FSLocation[0];
 
         @ValueReference(TableSpecSettingsRef.class)
