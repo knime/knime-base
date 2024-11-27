@@ -155,18 +155,21 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
 
         @Widget(title = "Filter column", description =
                 """
-                <p>The column on which to apply the filter.</p>
+                The column on which to apply the filter.
+                <br />
 
-                <p>The special column "RowID" represents the RowID of the input and is treated as a String column that
+                The special column "RowID" represents the RowID of the input and is treated as a String column that
                 is never missing. The special column "Row number" targets the 1-based row number of the input, is
                 treated as a Long column and is never missing. Both special columns are always available, regardless of
-                the input table spec or data.</p>
+                the input table spec or data.
+                <br /><br />
 
-                <p>Columns containing data types that are non-native, i.e. contain cells of heterogeneous data types, or
+                Columns containing data types that are non-native, i.e. contain cells of heterogeneous data types, or
                 do not offer a conversion from and to a string representation are not supported and are filtered out
-                from the available options.</p>
+                from the available options.
+                <br />
 
-                <p>Collection columns are also not supported by the node.</p>
+                Collection columns are also not supported by the node.
                 """)
         @ChoicesWidget(showRowKeysColumn = true, showRowNumbersColumn = true,
             choicesProvider = ColumnsWithTypeMapping.class)
@@ -181,18 +184,19 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
         // in order to allow the user to switch between columns without resetting their operator selection.
         @Widget(title = "Operator", description =
                 """
-                <p>The operator defines whether a particular value passes the filter criterion or not.
+                The operator defines whether a particular value passes the filter criterion or not.
                 A value matches the filter criterion, if the operator applied to it returns "true". If the operator
                 returns "false" or a missing value, the value does not match the filter criterion.
                 Not all operators offered by this node may be applicable to a particular column data type.
-                Only the applicable operators are shown for the selected column.</p>
+                Only the applicable operators are shown for the selected column.
+                <br /><br />
 
-                <p><b>Missing value handling:</b> All operators except "Is missing" or "Is not missing" return a missing
+                <b>Missing value handling:</b> All operators except "Is missing" or "Is not missing" return a missing
                 cell if they encounter a missing cell as input.
                 Therefore, a missing cell is matched if and only if the filter operator is "Is missing" or
                 "Is not missing".
                 Consequently, the filter behavior follows the semantics of SQL missing value filtering, e.g. when using
-                the <i>DB Row Filter</i> node or SQL <tt>WHERE</tt> clause in the <i>DB Query</i> node.</p>
+                the <i>DB Row Filter</i> node or SQL <tt>WHERE</tt> clause in the <i>DB Query</i> node.
                 """)
         @Layout(Condition.ColumnOperator.Operator.class)
         @ValueReference(OperatorRef.class)
@@ -271,7 +275,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
 
         @Widget(title = "Filter value", description = """
                 The value for the filter criterion.
-                <br/>
+                <br/><br />
 
                 <i>Note:</i> Currently, comparison values for non-numeric and non-string data types, e.g.
                 date&amp;time-based types, must be entered as its string representation like in the <a href="
@@ -387,10 +391,10 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
     FilterCriterion[] m_predicates;
 
     @Widget(title = "Column domains", description = """
-            <p>Specify whether to take domains of all input columns as output domains as-is or compute them on the output
-            rows.</p>
+            Specify whether to take domains of all input columns as output domains as-is or compute them on the output
+            rows.
+            <br />
 
-            <p>
             Depending on the use case, one or the other setting may be preferable:
             <ul>
                 <li><em>Retaining</em> input columns can be useful, if the axis limits of a view should be derived from
@@ -399,21 +403,18 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                 <li><em>Computing</em> domains can be useful when a selection widget consumes the output and should only
                 display actually present options to users.</li>
             </ul>
-            </p>
 
-            <p>
             If column domains are irrelevant for a particular use case, the &quot;Retain&quot; option should be used
             since it does not incur computation costs.
-            </p>
+            <br />
 
-            <p>
             For more control over individual column domains, you can use the <a href="
             """ + ExternalLinks.HUB_DOMAIN_CALCULATOR + """
                     "><em>Domain Calculator</em></a>, <a href="
             """ + ExternalLinks.HUB_EDIT_NUMERIC_DOMAIN + """
                     "><em>Edit Numeric Domain</em></a>, or <a href="
             """ + ExternalLinks.HUB_EDIT_NOMINAL_DOMAIN + """
-                    "><em>Edit Nominal Domain</em></a> nodes.</p>
+                    "><em>Edit Nominal Domain</em></a> nodes.
             """)
     @ValueSwitchWidget()
     @Layout(DialogSections.Output.class)

@@ -91,13 +91,14 @@ enum FilterOperator {
 
         @Label(value = "Less than", description =
                """
-               <p>Value in column must be <b>strictly smaller</b> than specified value.</p>
+               Value in column must be <b>strictly smaller</b> than specified value.
+               <br />
 
-               <p>This operator is applicable for all data types that offer a more meaningful ordering than just
+               This operator is applicable for all data types that offer a more meaningful ordering than just
                lexicographic ordering. In particular, this includes by default numeric types and Date &amp; Time types.
                String and Boolean types are not supported.
                The same requirements apply to the other ordering-based operators: "Less than", "Less than or equal",
-               "Greather than", and "Greater than or equal".</p>
+               "Greather than", and "Greater than or equal".
                """) //
         LT("Less than", null, new IsOrd(), new BoundedNumeric(), true), //
         @Label(value = "Less than or equal", //
@@ -123,18 +124,20 @@ enum FilterOperator {
 
         @Label(value = "Matches regex", description =
                 """
-                <p>Value in column must match the specified regular expression.</p>
+                Value in column must match the specified regular expression.
+                <br />
 
-                <p>This operator is applicable to all data types that are string-compatible,
+                This operator is applicable to all data types that are string-compatible,
                 i.e. offer a meaningful string representation of themselves, or integral numbers.
                 In particular, this includes Date &amp; Time types.
-                The same requirements apply to the "Matches wildcard" operator.</p>
+                The same requirements apply to the "Matches wildcard" operator.
+                <br /><br />
 
-                <p><b>Regex matching behavior:</b> By default, the regex pattern must match the whole cell value,
+                <b>Regex matching behavior:</b> By default, the regex pattern must match the whole cell value,
                 not just parts of it, since
                 the regex pattern is configured with the <tt>DOTALL</tt> and <tt>MULTILINE</tt> flags
                 <i>enabled</i>. To disable the <tt>DOTALL</tt> flag, prefix the pattern with <tt>(?-s)</tt>, to disable
-                <tt>MULTILINE</tt> use prefix <tt>(?-m)</tt>. To disable both, use <tt>(?-sm)</tt>.</p>
+                <tt>MULTILINE</tt> use prefix <tt>(?-m)</tt>. To disable both, use <tt>(?-sm)</tt>.
                 """)
         REGEX("Matches regex", StringCell.TYPE, new IsPatternMatchable(), null, true),
         @Label(value = "Matches wildcard", description = "Value in column must match the specified pattern, "
