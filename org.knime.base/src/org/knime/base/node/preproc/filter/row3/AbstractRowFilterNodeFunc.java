@@ -69,11 +69,12 @@ abstract class AbstractRowFilterNodeFunc implements NodeFunc {
 
     // Whether to include or exclude the rows
     static final String INCLUDE = "include";
+
     static final String COLUMN = "column";
 
     @Override
-    public void saveSettings(final NodeSettingsRO arguments, final PortObjectSpec[] inputSpecs, final NodeSettingsWO settings)
-        throws InvalidSettingsException {
+    public void saveSettings(final NodeSettingsRO arguments, final PortObjectSpec[] inputSpecs,
+        final NodeSettingsWO settings) throws InvalidSettingsException {
         boolean include = arguments.getBoolean(INCLUDE);
         var tableSpec = (DataTableSpec)inputSpecs[0];
         var criteria = getFilterCriteria(arguments, tableSpec);
@@ -91,8 +92,7 @@ abstract class AbstractRowFilterNodeFunc implements NodeFunc {
         var builder = NodeFuncApi.builder(getName());
         builder.withInputTable("table", "The table to filter.")//
             .withOutputTable("filtered_table", "The filtered table.")//
-            .withBooleanArgument(INCLUDE,
-                "Whether rows matching the filter for a specific column should be "
+            .withBooleanArgument(INCLUDE, "Whether rows matching the filter for a specific column should be "
                 + "included in the output table or not.");
         extendApi(builder);
         return builder.build();
@@ -100,9 +100,11 @@ abstract class AbstractRowFilterNodeFunc implements NodeFunc {
 
     /**
      * Each NodeFunc will produce a row filter with a specific configured criterion
+     *
      * @param tableSpec
      */
-    abstract FilterCriterion[] getFilterCriteria(final NodeSettingsRO arguments, DataTableSpec tableSpec) throws InvalidSettingsException;
+    abstract FilterCriterion[] getFilterCriteria(final NodeSettingsRO arguments, DataTableSpec tableSpec)
+        throws InvalidSettingsException;
 
     @Override
     public String getNodeFactoryClassName() {

@@ -107,12 +107,11 @@ public final class AttributeRangeRowFilterNodeFunc extends AbstractRowFilterNode
 
     @Override
     void extendApi(final Builder builder) {
-        builder.withStringArgument(COLUMN, "The column on which the criterion will be applied to.")
-            .withDescription(
-                """
-                        Filters rows by comparing the value of the specified column against the specified range.
-                        Typically used for numerical columns but can be used with any column type for which a comparison is sensible.
-                        """)//
+        builder.withStringArgument(COLUMN, "The column on which the criterion will be applied to.").withDescription("""
+                Filters rows by comparing the value of the specified column against the specified range.
+                Typically used for numerical columns but can be used with any column type
+                for which a comparison is sensible.
+                """)//
             .withOptionalStringArgument(LOWER_BOUND, "Lower bound to include.")//
             .withOptionalStringArgument(UPPER_BOUND, "Upper bound to include.");
 
