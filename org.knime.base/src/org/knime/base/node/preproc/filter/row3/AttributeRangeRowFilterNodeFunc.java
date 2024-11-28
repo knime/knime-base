@@ -56,6 +56,7 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.data.DoubleValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.func.NodeFuncApi.Builder;
@@ -78,6 +79,17 @@ public final class AttributeRangeRowFilterNodeFunc extends AbstractRowFilterNode
         var lowerBound = arguments.getString(LOWER_BOUND, null);
         var upperBound = arguments.getString(UPPER_BOUND, null);
         var columnSpec = tableSpec.getColumnSpec(arguments.getString(COLUMN));
+
+        // TODO: this should be fixed on the framework side and not in here
+        if (columnSpec.getType().isCompatible(DoubleValue.class)) {
+            if (lowerBound.equals("null")) {
+                lowerBound = null;
+            }
+            if (upperBound.equals("null")) {
+                upperBound = null;
+            }
+        }
+
         var criteria = new ArrayList<FilterCriterion>();
         if (lowerBound != null) {
             criteria.add(createCriterion(columnSpec, FilterOperator.GTE, lowerBound));
@@ -107,9 +119,11 @@ public final class AttributeRangeRowFilterNodeFunc extends AbstractRowFilterNode
 
     @Override
     void extendApi(final Builder builder) {
-        builder.withStringArgument(COLUMN, "The column on which the criterion will be applied to.").withDescription("""
-                Filters rows by comparing the value of the specified column against the specified range.
-                Typically used for numerical columns but can be used with any column type
+        builder.withStringArgument(COLUMN, "The column which the criterion will be applied to.").withDescription("""
+                Filters rows by comparing the value of the specified column against the specified range,
+                if both upper and lower bound are given, or just against the given bound.
+                Upper and lower bound are optional so that filtering e.g. only with a lower bound
+                is possible. Typically used for numerical columns but can be used with any column type
                 for which a comparison is sensible.
                 """)//
             .withOptionalStringArgument(LOWER_BOUND, "Lower bound to include.")//
