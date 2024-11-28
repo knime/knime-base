@@ -17,8 +17,14 @@
       <node
             after="org.knime.time.node.convert.datetimetostring.DateTimeToStringNodeFactory"
             category-path="/applications/timeseries/transform"
-            deprecated="false"
+            deprecated="true"
             factory-class="org.knime.time.node.convert.stringtodatetime.StringToDateTimeNodeFactory">
+      </node>
+      <node
+            after="org.knime.time.node.convert.stringtodatetime.StringToDateTimeNodeFactory"
+            category-path="/applications/timeseries/transform"
+            deprecated="false"
+            factory-class="org.knime.time.node.convert.stringtodatetime.StringToDateTimeNodeFactory2">
       </node>
       <node
             category-path="/applications/timeseries/transform"

@@ -69,8 +69,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandl
 @SuppressWarnings("restriction")
 public final class LocaleStateProvider implements StringChoicesStateProvider {
 
-    private static final List<Locale> LOCALES_TO_SHOW_FIRST = List.of( //
-        Locale.getDefault(), //
+
+    private static final List<Locale> LOCALES_TO_SHOW_FIRST = List.of(Locale.getDefault());
+
+    private static final List<Locale> LOCALES_TO_SHOW_SECOND = List.of( //
         Locale.US, //
         Locale.UK, //
         Locale.GERMANY //
@@ -87,9 +89,12 @@ public final class LocaleStateProvider implements StringChoicesStateProvider {
             .sorted(LocaleStateProvider::compareByEnglishTextRepresentation) //
             .collect(Collectors.toCollection(ArrayList::new)); // modifiable list
 
-        // Move the locales in LOCALES_TO_SHOW_FIRST to the front
-        sortedLocales.removeAll(LOCALES_TO_SHOW_FIRST);
-        sortedLocales.addAll(0, LOCALES_TO_SHOW_FIRST);
+
+        // Move special locales the front
+        for (List<Locale> locales : List.of(LOCALES_TO_SHOW_SECOND, LOCALES_TO_SHOW_FIRST)) {
+            sortedLocales.removeAll(locales);
+            sortedLocales.addAll(0, locales);
+        }
 
         return sortedLocales.stream() //
             .map(LocaleStateProvider::localeToIdAndText) //

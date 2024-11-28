@@ -2,7 +2,7 @@
   "data" : {
     "model" : {
       "columnFilter" : {
-        "selected" : [ ],
+        "selected" : [ "test" ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -10,7 +10,7 @@
           "isInverted" : false
         },
         "manualFilter" : {
-          "manuallySelected" : [ ],
+          "manuallySelected" : [ "test" ],
           "manuallyDeselected" : [ ],
           "includeUnknownColumns" : false
         },
@@ -19,10 +19,12 @@
           "typeDisplays" : [ ]
         }
       },
+      "selectedType" : "LOCAL_DATE",
+      "locale" : "de-DE",
+      "format" : "yyyy-MM-dd",
       "appendOrReplace" : "REPLACE",
-      "outputColumnSuffix" : " (String)",
-      "locale" : "en-US",
-      "format" : "yyyy-MM-dd HH:mm:ss"
+      "outputColumnSuffix" : " (Date&Time)",
+      "onError" : "SET_MISSING"
     }
   },
   "schema" : {
@@ -40,7 +42,7 @@
               "title" : "Append with suffix"
             } ],
             "title" : "Output columns",
-            "description" : "Depending on the selection, the selected columns will be replaced or appended to the input table.\n\n<ul>\n<li><b>Replace</b>: The selected columns will be replaced by the new columns.</li>\n<li><b>Append with suffix</b>: The selected columns will be appended to the input table with a new name that is the previous name plus the provided suffix.\n</li>\n</ul>",
+            "description" : "Depending on the selection, the selected columns will be replaced or appended to the input table.\n<ul>\n<li><b>Replace</b>: The selected columns will be replaced by the new columns.</li>\n<li><b>Append with suffix</b>: The selected columns will be appended to the input table with a new name that is the previous name plus the provided suffix.\n</li>\n</ul>",
             "default" : "REPLACE"
           },
           "columnFilter" : {
@@ -149,10 +151,10 @@
                 }
               }
             },
-            "title" : "Date&time columns",
+            "title" : "DateTime columns",
             "description" : "Only the included columns will be converted.",
             "default" : {
-              "selected" : [ "localTimeTest", "localDateTest", "localDateTimeTest", "zonedDateTimeTest" ],
+              "selected" : [ "test" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",
@@ -160,7 +162,7 @@
                 "isInverted" : false
               },
               "manualFilter" : {
-                "manuallySelected" : [ "localTimeTest", "localDateTest", "localDateTimeTest", "zonedDateTimeTest" ],
+                "manuallySelected" : [ "test" ],
                 "manuallyDeselected" : [ ],
                 "includeUnknownColumns" : false
               },
@@ -173,20 +175,50 @@
           "format" : {
             "type" : "string",
             "title" : "DateTime format",
-            "description" : "A format string (defined by <a href=\"\nhttps://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html\n\">DateTimeFormatter</a>).\n<br />\n<b>Examples:</b>\n<ul>\n    <li>\"yyyy.MM.dd HH:mm:ss.SSS\" produces dates such as \"2001.07.04 12:08:56.000\"\n    </li>\n    <li>\"yyyy-MM-dd'T'HH:mm:ss.SSSZ\" produces dates such as \"2001-07-04T12:08:56.235-0700\"\n    </li>\n    <li>\"yyyy-MM-dd'T'HH:mm:ss.SSSXXX'['VV']'\" produces dates such as\n    \"2001-07-04T12:08:56.235+02:00[Europe/Berlin]\"\n    </li>\n</ul>\n<b>Supported placeholders in the pattern are:</b>\n<ul>\n    <li>G: era</li>\n    <li>u: year</li>\n    <li>y: year of era</li>\n    <li>D: day of year</li>\n    <li>M: month in year (context sensitive)</li>\n    <li>L: month in year (standalone form)</li>\n    <li>d: day of month</li>\n    <li>Q: quarter of year</li>\n    <li>q: quarter of year</li>\n    <li>Y: week based year</li>\n    <li>w: week of week based year</li>\n    <li>W: week of month</li>\n    <li>E: day of week</li>\n    <li>e: localized day of week</li>\n    <li>c: localized day of week</li>\n    <li>F: week of month</li>\n    <li>a: am/pm of day</li>\n    <li>h: clock hour of am/pm (1-12)</li>\n    <li>K: hour of am/pm (0-11)</li>\n    <li>k: clock hour of am/pm (1-24)</li>\n    <li>H: hour of day (0-23)</li>\n    <li>m: minute of hour</li>\n    <li>s: second of minute</li>\n    <li>S: fraction of second</li>\n    <li>A: milli of day</li>\n    <li>n: nano of second</li>\n    <li>N: nano of second</li>\n    <li>V: time zone ID</li>\n    <li>z: time zone name</li>\n    <li>O: localized zone offset</li>\n    <li>X zone offset ('Z' for zero)</li>\n    <li>x: zone offset</li>\n    <li>Z: zone offset</li>\n    <li>p: pad next</li>\n    <li>' : escape for text</li>\n    <li>'': single quote</li>\n    <li>[: optional section start</li>\n    <li>]: optional section end</li>\n</ul>\n",
-            "default" : "yyyy-MM-dd HH:mm:ss"
+            "description" : "A format string (defined by <a href=\"\nhttps://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html\n\">DateTimeFormatter</a>).\n<br />\n<b>Examples:</b>\n<ul>\n    <li>\"yyyy.MM.dd HH:mm:ss.SSS\" produces dates such as \"2001.07.04 12:08:56.000\"\n    </li>\n    <li>\"yyyy-MM-dd'T'HH:mm:ss.SSSZ\" produces dates such as \"2001-07-04T12:08:56.235-0700\"\n    </li>\n    <li>\"yyyy-MM-dd'T'HH:mm:ss.SSSXXX'['VV']'\" produces dates such as\n    \"2001-07-04T12:08:56.235+02:00[Europe/Berlin]\"\n    </li>\n</ul>\n<b>Supported placeholders in the pattern are:</b>\n<ul>\n    <li>G: era</li>\n    <li>u: year</li>\n    <li>y: year of era</li>\n    <li>D: day of year</li>\n    <li>M: month in year (context sensitive)</li>\n    <li>L: month in year (standalone form)</li>\n    <li>d: day of month</li>\n    <li>Q: quarter of year</li>\n    <li>q: quarter of year</li>\n    <li>Y: week based year</li>\n    <li>w: week of week based year</li>\n    <li>W: week of month</li>\n    <li>E: day of week</li>\n    <li>e: localized day of week</li>\n    <li>c: localized day of week</li>\n    <li>F: week of month</li>\n    <li>a: am/pm of day</li>\n    <li>h: clock hour of am/pm (1-12)</li>\n    <li>K: hour of am/pm (0-11)</li>\n    <li>k: clock hour of am/pm (1-24)</li>\n    <li>H: hour of day (0-23)</li>\n    <li>m: minute of hour</li>\n    <li>s: second of minute</li>\n    <li>S: fraction of second</li>\n    <li>A: milli of day</li>\n    <li>n: nano of second</li>\n    <li>N: nano of second</li>\n    <li>V: time zone ID</li>\n    <li>z: time zone name</li>\n    <li>O: localized zone offset</li>\n    <li>X zone offset ('Z' for zero)</li>\n    <li>x: zone offset</li>\n    <li>Z: zone offset</li>\n    <li>p: pad next</li>\n    <li>' : escape for text</li>\n    <li>'': single quote</li>\n    <li>[: optional section start</li>\n    <li>]: optional section end</li>\n</ul>\n",
+            "default" : "yyyy-MM-dd"
           },
           "locale" : {
             "type" : "string",
             "title" : "Locale",
-            "description" : "The locale to use for formatting the date and time. Names of months and days of the week will be translated according to the selected locale.\n",
+            "description" : "A <i>locale</i> can be chosen, which determines the language and geographic region for terms such as months or weekdays.",
             "default" : "de-DE"
+          },
+          "onError" : {
+            "oneOf" : [ {
+              "const" : "SET_MISSING",
+              "title" : "Set to missing"
+            }, {
+              "const" : "FAIL",
+              "title" : "Fail"
+            } ],
+            "title" : "If extraction fails",
+            "description" : "If set to 'Fail', the node will abort the execution and fail on errors. If unchecked, missing values will be generated instead.\n<ul>\n<li><b>Set to missing</b>: Set the cell to missing if the string column cannot be converted to the specified type.\n</li>\n<li><b>Fail</b>: Fail with an error if the string column cannot be converted to the specified type.\n</li>\n</ul>",
+            "default" : "SET_MISSING"
           },
           "outputColumnSuffix" : {
             "type" : "string",
             "title" : "Output column suffix",
             "description" : "The selected columns will be appended to the input table.",
-            "default" : " (String)"
+            "default" : " (Date&Time)"
+          },
+          "selectedType" : {
+            "oneOf" : [ {
+              "const" : "LOCAL_DATE",
+              "title" : "Date"
+            }, {
+              "const" : "LOCAL_TIME",
+              "title" : "Time"
+            }, {
+              "const" : "LOCAL_DATE_TIME",
+              "title" : "DateTime"
+            }, {
+              "const" : "ZONED_DATE_TIME",
+              "title" : "DateTimeZone"
+            } ],
+            "title" : "Type",
+            "description" : "The type of the output column.\n<ul>\n<li><b>Date</b>: The output column will be of type LocalDate.</li>\n<li><b>Time</b>: The output column will be of type LocalTime.</li>\n<li><b>DateTime</b>: The output column will be of type LocalDateTime.</li>\n<li><b>DateTimeZone</b>: The output column will be of type ZonedDateTime.</li>\n</ul>",
+            "default" : "LOCAL_DATE"
           }
         }
       }
@@ -199,37 +231,13 @@
       "options" : {
         "format" : "columnFilter",
         "possibleValues" : [ {
-          "id" : "localTimeTest",
-          "text" : "localTimeTest",
+          "id" : "test",
+          "text" : "test",
           "type" : {
-            "id" : "org.knime.core.data.time.localtime.LocalTimeValue",
-            "text" : "Local Time"
+            "id" : "org.knime.core.data.StringValue",
+            "text" : "String"
           },
-          "compatibleTypes" : [ "org.knime.core.data.time.localtime.LocalTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
-        }, {
-          "id" : "localDateTest",
-          "text" : "localDateTest",
-          "type" : {
-            "id" : "org.knime.core.data.time.localdate.LocalDateValue",
-            "text" : "Local Date"
-          },
-          "compatibleTypes" : [ "org.knime.core.data.time.localdate.LocalDateValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
-        }, {
-          "id" : "localDateTimeTest",
-          "text" : "localDateTimeTest",
-          "type" : {
-            "id" : "org.knime.core.data.time.localdatetime.LocalDateTimeValue",
-            "text" : "Local Date Time"
-          },
-          "compatibleTypes" : [ "org.knime.core.data.time.localdatetime.LocalDateTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
-        }, {
-          "id" : "zonedDateTimeTest",
-          "text" : "zonedDateTimeTest",
-          "type" : {
-            "id" : "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue",
-            "text" : "Zoned Date Time"
-          },
-          "compatibleTypes" : [ "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
+          "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
         } ],
         "showNoneColumn" : false,
         "showRowKeys" : false,
@@ -237,43 +245,63 @@
         "showMode" : true
       }
     }, {
-      "type" : "Control",
-      "scope" : "#/properties/model/properties/appendOrReplace",
-      "options" : {
-        "format" : "valueSwitch"
-      }
+      "label" : "Type&Format",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/selectedType",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/locale",
+        "options" : {
+          "choicesProvider" : "org.knime.time.util.LocaleStateProvider",
+          "format" : "dropDown",
+          "showNoneColumn" : false,
+          "showRowKeys" : false,
+          "showSearch" : true,
+          "showMode" : true
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/format",
+        "options" : {
+          "format" : "dateTimeFormat",
+          "formatProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider"
+        }
+      } ]
     }, {
-      "type" : "Control",
-      "scope" : "#/properties/model/properties/outputColumnSuffix",
-      "rule" : {
-        "effect" : "SHOW",
-        "condition" : {
-          "scope" : "#/properties/model/properties/appendOrReplace",
-          "schema" : {
-            "oneOf" : [ {
-              "const" : "APPEND"
-            } ]
+      "label" : "Output",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/appendOrReplace",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/outputColumnSuffix",
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/appendOrReplace",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "APPEND"
+              } ]
+            }
           }
         }
-      }
-    }, {
-      "type" : "Control",
-      "scope" : "#/properties/model/properties/locale",
-      "options" : {
-        "choicesProvider" : "org.knime.time.util.LocaleStateProvider",
-        "format" : "dropDown",
-        "showNoneColumn" : false,
-        "showRowKeys" : false,
-        "showSearch" : true,
-        "showMode" : true
-      }
-    }, {
-      "type" : "Control",
-      "scope" : "#/properties/model/properties/format",
-      "options" : {
-        "format" : "dateTimeFormat",
-        "formatProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider"
-      }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/onError",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      } ]
     } ]
   },
   "persist" : {
@@ -324,10 +352,12 @@
               }
             }
           },
+          "selectedType" : { },
+          "locale" : { },
+          "format" : { },
           "appendOrReplace" : { },
           "outputColumnSuffix" : { },
-          "locale" : { },
-          "format" : { }
+          "onError" : { }
         }
       }
     }

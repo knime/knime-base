@@ -44,45 +44,56 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 19, 2016 (simon): created
+ *   Nov 28, 2024 (tobias): created
  */
 package org.knime.time.node.convert.stringtodatetime;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
- * The node factory of the node which converts strings to the new date&time types.
+ * The node factory of the node which converts a date&time column to a string column.
  *
- * @author Simon Schmid, KNIME.com, Konstanz, Germany
+ * @author Tobias Kampmann, TNG Technology Consulting GmbH
  */
-public final class StringToDateTimeNodeFactory extends NodeFactory<StringToDateTimeNodeModel> {
+@SuppressWarnings("restriction")
+public final class StringToDateTimeNodeFactory2 extends WebUINodeFactory<StringToDateTimeNodeModel2> {
 
     @Override
-    public StringToDateTimeNodeModel createNodeModel() {
-        return new StringToDateTimeNodeModel();
+    public StringToDateTimeNodeModel2 createNodeModel() {
+        return new StringToDateTimeNodeModel2(CONFIGURATION);
     }
 
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
+    private static final String DATE_TIME_FORMATTER_URL =
+        "https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html";
 
-    @Override
-    public NodeView<StringToDateTimeNodeModel> createNodeView(final int viewIndex,
-        final StringToDateTimeNodeModel nodeModel) {
-        return null;
-    }
+    static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
+        .name("String to Date&Time") //
+        .icon("stringtotime.png") //
+        .shortDescription("Parses date and/or time strings into Date&amp;Time cells.") //
+        .fullDescription("""
+                 <p>
+                    Parses the strings in the selected columns and converts them into
+                    Date&amp;Time cells. The expected format can be selected from a number
+                    of commonly used formats or specified manually. See %s for more details.
+                </p>
+                <p>
+                    Since dates may contain localized terms such as month or weekday
+                    names, you can additionally specify a locale.
+                </p>
+                """.formatted(DATE_TIME_FORMATTER_URL)) //
+        .modelSettingsClass(StringToDateTimeNodeSettings.class) //
+        .addInputTable("Input table", "Input table.") //
+        .addOutputTable("Output table", "Output table containing the parsed columns.") //
+        .keywords("covert", "date-time", "string", "local", "parse", "hour", "minute", "second", "millisecond", "year",
+            "month", "day", "week")//
+        .build();
 
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new StringToDateTimeNodeDialog();
+    /**
+     *
+     */
+    public StringToDateTimeNodeFactory2() {
+        super(CONFIGURATION);
     }
 
 }

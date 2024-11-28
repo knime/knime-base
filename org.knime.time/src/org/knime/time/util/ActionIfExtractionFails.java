@@ -44,45 +44,50 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 19, 2016 (simon): created
+ *   Nov 28, 2024 (tobias): created
  */
-package org.knime.time.node.convert.stringtodatetime;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+package org.knime.time.util;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 
 /**
- * The node factory of the node which converts strings to the new date&time types.
+ * Type for an option to choose between failing with an error or setting the cell to missing
  *
- * @author Simon Schmid, KNIME.com, Konstanz, Germany
+ * @author David Hickey, TNG
  */
-public final class StringToDateTimeNodeFactory extends NodeFactory<StringToDateTimeNodeModel> {
+@SuppressWarnings("restriction")
+public enum ActionIfExtractionFails {
+        @Label(value = "Set to missing", description = """
+                Set the cell to missing if the string column cannot be converted to the specified \
+                type.
+                """)
+        SET_MISSING, //
+        @Label(value = "Fail", description = """
+                Fail with an error if the string column cannot be converted to the specified \
+                type.
+                """)
+        FAIL;
 
-    @Override
-    public StringToDateTimeNodeModel createNodeModel() {
-        return new StringToDateTimeNodeModel();
+    /**
+     * Persistor for the {@link ActionIfExtractionFails} enum.
+     */
+    public static final class Persistor extends NodeSettingsPersistorWithConfigKey<ActionIfExtractionFails> {
+
+        @Override
+        public ActionIfExtractionFails load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return settings.getBoolean(getConfigKey()) //
+                ? FAIL //
+                : SET_MISSING;
+        }
+
+        @Override
+        public void save(final ActionIfExtractionFails obj, final NodeSettingsWO settings) {
+            settings.addBoolean(getConfigKey(), obj == FAIL);
+        }
     }
-
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    @Override
-    public NodeView<StringToDateTimeNodeModel> createNodeView(final int viewIndex,
-        final StringToDateTimeNodeModel nodeModel) {
-        return null;
-    }
-
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new StringToDateTimeNodeDialog();
-    }
-
 }
