@@ -44,45 +44,51 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 21, 2016 (simon): created
+ *   Nov 28, 2024 (tobias): created
  */
 package org.knime.time.node.convert.datetimetostring;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
- * The node factory of the node which converts the new date&time types to strings.
+ * The node factory of the node which converts date and time columns to strings.
  *
- * @author Simon Schmid, KNIME.com, Konstanz, Germany
+ * @author Tobias Kampmann, TNG Technology Consulting GmbH
  */
-public final class DateTimeToStringNodeFactory extends NodeFactory<DateTimeToStringNodeModel> {
+@SuppressWarnings("restriction")
+public final class DateTimeToStringNodeFactory2 extends WebUINodeFactory<DateTimeToStringNodeModel2> {
 
     @Override
-    public DateTimeToStringNodeModel createNodeModel() {
-        return new DateTimeToStringNodeModel();
+    public DateTimeToStringNodeModel2 createNodeModel() {
+        return new DateTimeToStringNodeModel2(CONFIGURATION);
     }
 
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
+    static final String DATE_TIME_FORMATTER_URL =
+        "https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html";
 
-    @Override
-    public NodeView<DateTimeToStringNodeModel> createNodeView(final int viewIndex,
-        final DateTimeToStringNodeModel nodeModel) {
-        return null;
-    }
+    static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
+        .name("Date&Time to String") //
+        .icon("timetostring.png") //
+        .shortDescription("Converts Date&amp;Time cells into cells holding strings.") //
+        .fullDescription("""
+                Converts the time values in Date&amp;Time columns into strings
+                using a user-provided format pattern as defined by
+                <a href="%s">DateTimeFormatter</a>
+                .
+                """.formatted(DATE_TIME_FORMATTER_URL)) //
+        .modelSettingsClass(DateTimeToStringNodeSettings.class) //
+        .addInputTable("Input table", "Input table.") //
+        .addOutputTable("Output table", "Output table containing columns converted to a string.") //
+        .keywords("covert", "date-time", "string", "local", "format", "hour", "minute", "second", "millisecond", //
+            "year", "month", "week", "day")//
+        .build();
 
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new DateTimeToStringNodeDialog();
+    /**
+     *
+     */
+    public DateTimeToStringNodeFactory2() {
+        super(CONFIGURATION);
     }
 
 }
