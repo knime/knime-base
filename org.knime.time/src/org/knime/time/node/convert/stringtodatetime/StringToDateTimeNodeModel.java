@@ -93,9 +93,9 @@ import org.knime.core.node.message.Message;
 import org.knime.core.node.message.MessageBuilder;
 import org.knime.core.node.streamable.simple.SimpleStreamableFunctionWithInternalsNodeModel;
 import org.knime.core.node.streamable.simple.SimpleStreamableOperatorInternals;
-import org.knime.core.node.util.StringHistory;
 import org.knime.core.node.util.filter.InputFilter;
 import org.knime.core.util.UniqueNameGenerator;
+import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
 import org.knime.time.util.DateTimeType;
 
 /**
@@ -107,10 +107,6 @@ final class StringToDateTimeNodeModel
     extends SimpleStreamableFunctionWithInternalsNodeModel<SimpleStreamableOperatorInternals> {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(StringToDateTimeNodeModel.class);
-
-    static final String FORMAT_HISTORY_KEY = "string_to_date_formats";
-
-    private static final int FORMAT_HISTORY_SIZE = 256;
 
     static final String OPTION_APPEND = "Append selected columns";
 
@@ -247,7 +243,8 @@ final class StringToDateTimeNodeModel
         formats.add("yyyyMMddZ");
 
         // check also the StringHistory....
-        formats.addAll(Arrays.asList(StringHistory.getInstance(FORMAT_HISTORY_KEY, FORMAT_HISTORY_SIZE).getHistory()));
+        formats.addAll(DateTimeFormatStringHistoryManager.getRecentFormats());
+
         return formats;
     }
 
@@ -430,10 +427,12 @@ final class StringToDateTimeNodeModel
         m_cancelOnFail.loadSettingsFrom(settings);
         m_selectedType = settings.getString("typeEnum");
         final String dateformat = m_format.getStringValue();
-        // if it is not a predefined one -> store it
+
+        // store it in the string history
         if (!createPredefinedFormats().contains(dateformat)) {
-            StringHistory.getInstance(FORMAT_HISTORY_KEY, FORMAT_HISTORY_SIZE).add(dateformat);
+            DateTimeFormatStringHistoryManager.addFormatToStringHistoryIfNotPresent(dateformat);
         }
+
         m_hasValidatedConfiguration = true;
 
         try {
@@ -488,7 +487,7 @@ final class StringToDateTimeNodeModel
             m_spec = inSpec;
             final var locale = Locale.forLanguageTag(m_locale.getStringValue());
             m_formatter = DateTimeFormatter.ofPattern(m_format.getStringValue(), locale)
-                        .withChronology(Chronology.ofLocale(locale));
+                .withChronology(Chronology.ofLocale(locale));
             m_enumType = DateTimeType.valueOf(m_selectedType);
         }
 
@@ -523,7 +522,8 @@ final class StringToDateTimeNodeModel
                 }
             } catch (DateTimeParseException e) {
                 m_failCounter++;
-                var msg = String.format("Could not parse date in cell [%s, column \"%s\", row number %d]: "
+                var msg = String.format(
+                    "Could not parse date in cell [%s, column \"%s\", row number %d]: "
                         + "Pattern \"%s\" does not match \"%s\".", //
                     StringUtils.abbreviate(row.getKey().getString(), 15), m_spec.getName(), rowIndex + 1, //
                     StringUtils.abbreviate(m_format.getStringValue(), 32), StringUtils.abbreviate(input, 32));
