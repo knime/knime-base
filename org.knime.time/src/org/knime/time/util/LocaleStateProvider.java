@@ -44,45 +44,63 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 21, 2016 (simon): created
+ *   Nov 28, 2024 (Tobias Kampmann): created
  */
-package org.knime.time.node.convert.datetimetostring;
+package org.knime.time.util;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
+
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 
 /**
- * The node factory of the node which converts the new date&time types to strings.
+ * A state provider that provides a list of all available locales as choices. The list is sorted by the English display
+ * name of the locales, except for a few commonly-used locales (including the system default) that are moved to the top
+ * of the list.
  *
- * @author Simon Schmid, KNIME.com, Konstanz, Germany
+ * @author Tobias Kampmann
  */
-public final class DateTimeToStringNodeFactory extends NodeFactory<DateTimeToStringNodeModel> {
+@SuppressWarnings("restriction")
+public final class LocaleStateProvider implements StringChoicesStateProvider {
+
+    private static final List<Locale> LOCALES_TO_SHOW_FIRST = List.of( //
+        Locale.getDefault(), //
+        Locale.US, //
+        Locale.UK, //
+        Locale.GERMANY //
+    );
 
     @Override
-    public DateTimeToStringNodeModel createNodeModel() {
-        return new DateTimeToStringNodeModel();
+    public void init(final StateProviderInitializer initializer) {
+        initializer.computeBeforeOpenDialog();
     }
 
     @Override
-    protected int getNrNodeViews() {
-        return 0;
+    public IdAndText[] computeState(final DefaultNodeSettingsContext context) throws WidgetHandlerException {
+        List<Locale> sortedLocales = Arrays.stream(Locale.getAvailableLocales()) //
+            .sorted(LocaleStateProvider::compareByEnglishTextRepresentation) //
+            .collect(Collectors.toCollection(ArrayList::new)); // modifiable list
+
+        // Move the locales in LOCALES_TO_SHOW_FIRST to the front
+        sortedLocales.removeAll(LOCALES_TO_SHOW_FIRST);
+        sortedLocales.addAll(0, LOCALES_TO_SHOW_FIRST);
+
+        return sortedLocales.stream() //
+            .map(LocaleStateProvider::localeToIdAndText) //
+            .toArray(IdAndText[]::new);
     }
 
-    @Override
-    public NodeView<DateTimeToStringNodeModel> createNodeView(final int viewIndex,
-        final DateTimeToStringNodeModel nodeModel) {
-        return null;
+    private static int compareByEnglishTextRepresentation(final Locale l1, final Locale l2) {
+        return l1.getDisplayName(Locale.ENGLISH).compareTo(l2.getDisplayName(Locale.ENGLISH));
     }
 
-    @Override
-    protected boolean hasDialog() {
-        return true;
+    private static IdAndText localeToIdAndText(final Locale locale) {
+        return new IdAndText(locale.toLanguageTag(), locale.getDisplayName(Locale.ENGLISH));
     }
-
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new DateTimeToStringNodeDialog();
-    }
-
 }
