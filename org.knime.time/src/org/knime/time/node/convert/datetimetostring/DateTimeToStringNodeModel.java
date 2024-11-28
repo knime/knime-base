@@ -50,15 +50,16 @@ package org.knime.time.node.convert.datetimetostring;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.DateTimeException;
 import java.time.chrono.Chronology;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.UnsupportedTemporalTypeException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -102,6 +103,8 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.message.Message;
+import org.knime.core.node.message.MessageBuilder;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.streamable.InputPortRole;
 import org.knime.core.node.streamable.OutputPortRole;
@@ -253,20 +256,21 @@ final class DateTimeToStringNodeModel extends NodeModel {
     private ColumnRearranger createColumnRearranger(final DataTableSpec inSpec) {
         final ColumnRearranger rearranger = new ColumnRearranger(inSpec);
         final String[] includeList = m_colSelect.applyTo(inSpec).getIncludes();
-        final int[] includeIndeces =
-            Arrays.stream(m_colSelect.applyTo(inSpec).getIncludes()).mapToInt(s -> inSpec.findColumnIndex(s)).toArray();
-        int i = 0;
+
         for (String includedCol : includeList) {
             if (m_isReplaceOrAppend.getStringValue().equals(OPTION_REPLACE)) {
                 final DataColumnSpecCreator dataColumnSpecCreator =
                     new DataColumnSpecCreator(includedCol, StringCell.TYPE);
-                final TimeToStringCellFactory cellFac =
-                    new TimeToStringCellFactory(dataColumnSpecCreator.createSpec(), includeIndeces[i++]);
+
+                final TimeToStringCellFactory cellFac = new TimeToStringCellFactory(dataColumnSpecCreator.createSpec(),
+                    inSpec.findColumnIndex(includedCol), createMessageBuilder(), this::setWarning);
+
                 rearranger.replace(cellFac, includedCol);
             } else {
                 final DataColumnSpec dataColSpec =
                     new UniqueNameGenerator(inSpec).newColumn(includedCol + m_suffix.getStringValue(), StringCell.TYPE);
-                final TimeToStringCellFactory cellFac = new TimeToStringCellFactory(dataColSpec, includeIndeces[i++]);
+                final TimeToStringCellFactory cellFac = new TimeToStringCellFactory(dataColSpec, inSpec.findColumnIndex(includedCol),
+                    createMessageBuilder(), this::setWarning);
                 rearranger.append(cellFac);
             }
         }
@@ -291,6 +295,7 @@ final class DateTimeToStringNodeModel extends NodeModel {
     @Override
     public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
         final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+
         return new StreamableOperator() {
 
             @Override
@@ -300,8 +305,8 @@ final class DateTimeToStringNodeModel extends NodeModel {
                 final RowOutput out = (RowOutput)outputs[0];
                 final DataTableSpec inSpec = in.getDataTableSpec();
                 final String[] includeList = m_colSelect.applyTo(inSpec).getIncludes();
-                final int[] includeIndeces = Arrays.stream(m_colSelect.applyTo(inSpec).getIncludes())
-                    .mapToInt(s -> inSpec.findColumnIndex(s)).toArray();
+                final int[] includeIndeces =
+                    Arrays.stream(includeList).mapToInt(s -> inSpec.findColumnIndex(s)).toArray();
                 final boolean isReplace = m_isReplaceOrAppend.getStringValue().equals(OPTION_REPLACE);
 
                 DataRow row;
@@ -313,13 +318,14 @@ final class DateTimeToStringNodeModel extends NodeModel {
                             final DataColumnSpecCreator dataColumnSpecCreator =
                                 new DataColumnSpecCreator(includeList[i], StringCell.TYPE);
                             final TimeToStringCellFactory cellFac =
-                                new TimeToStringCellFactory(dataColumnSpecCreator.createSpec(), includeIndeces[i]);
+                                new TimeToStringCellFactory(dataColumnSpecCreator.createSpec(), includeIndeces[i],
+                                    createMessageBuilder(), DateTimeToStringNodeModel.this::setWarning);
                             datacells[i] = cellFac.getCell(row);
                         } else {
                             final DataColumnSpec dataColSpec = new UniqueNameGenerator(inSpec)
                                 .newColumn(includeList[i] + m_suffix.getStringValue(), StringCell.TYPE);
-                            final TimeToStringCellFactory cellFac =
-                                new TimeToStringCellFactory(dataColSpec, includeIndeces[i]);
+                            final TimeToStringCellFactory cellFac = new TimeToStringCellFactory(dataColSpec,
+                                includeIndeces[i], createMessageBuilder(), DateTimeToStringNodeModel.this::setWarning);
                             datacells[i] = cellFac.getCell(row);
                         }
                     }
@@ -421,7 +427,8 @@ final class DateTimeToStringNodeModel extends NodeModel {
             // check for backwards compatibility (AP-8915)
             LocaleUtils.toLocale(localeString);
         } catch (IllegalArgumentException e) {
-            LOGGER.debug("Could not read settings value '" + localeString + "' as locale", e);
+            LOGGER.debug("Could not read settings value '" + localeString + "' \n" + "                    as locale",
+                e);
             try {
                 final String iso3Country = Locale.forLanguageTag(localeString).getISO3Country();
                 final String iso3Language = Locale.forLanguageTag(localeString).getISO3Language();
@@ -446,20 +453,30 @@ final class DateTimeToStringNodeModel extends NodeModel {
 
         private final int m_colIndex;
 
+        private final MessageBuilder m_messageBuilder;
+
+        private final Consumer<Message> m_setWarning;
+
         /**
          * @param inSpec spec of the column after computation
          * @param colIndex index of the column to work on
+         * @param messageBuilder
+         * @param setWarningConsumer
          */
-        public TimeToStringCellFactory(final DataColumnSpec inSpec, final int colIndex) {
+        public TimeToStringCellFactory(final DataColumnSpec inSpec, final int colIndex,
+            final MessageBuilder messageBuilder, final Consumer<Message> setWarningConsumer) {
             super(inSpec);
             m_colIndex = colIndex;
+
+            this.m_messageBuilder = messageBuilder;
+            this.m_setWarning = setWarningConsumer;
         }
 
         /**
          * {@inheritDoc}
          */
         @Override
-        public DataCell getCell(final DataRow row) {
+        public DataCell getCell(final DataRow row, final long rowIndex) {
             final DataCell cell = row.getCell(m_colIndex);
             if (cell.isMissing()) {
                 return cell;
@@ -482,10 +499,20 @@ final class DateTimeToStringNodeModel extends NodeModel {
                     final String result = ((ZonedDateTimeCell)cell).getZonedDateTime().format(formatter);
                     return StringCellFactory.create(result);
                 }
-            } catch (UnsupportedTemporalTypeException e) {
+            } catch (DateTimeException e) {
+                m_messageBuilder.addRowIssue(0, m_colIndex, rowIndex, e.getMessage());
                 return new MissingCell(e.getMessage());
             }
             throw new IllegalStateException("The data cell type " + cell.getClass() + " is not supported.");
+        }
+
+        @Override
+        public void afterProcessing() {
+            final var issueCount = m_messageBuilder.getIssueCount();
+            if (issueCount > 0) {
+                m_messageBuilder.withSummary("Problems occurred in " + issueCount + " rows.").build()
+                    .ifPresent(this.m_setWarning);
+            }
         }
     }
 }

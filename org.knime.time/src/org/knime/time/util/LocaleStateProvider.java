@@ -44,45 +44,36 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 21, 2016 (simon): created
+ *   Nov 28, 2024 (Tobias Kampmann): created
  */
-package org.knime.time.node.convert.datetimetostring;
+package org.knime.time.util;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import java.util.Arrays;
+import java.util.Locale;
+
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 
 /**
- * The node factory of the node which converts the new date&time types to strings.
  *
- * @author Simon Schmid, KNIME.com, Konstanz, Germany
+ * @author Tobias Kampmann
  */
-public final class DateTimeToStringNodeFactory extends NodeFactory<DateTimeToStringNodeModel> {
+@SuppressWarnings("restriction")
+public final class LocaleStateProvider implements StringChoicesStateProvider {
 
     @Override
-    public DateTimeToStringNodeModel createNodeModel() {
-        return new DateTimeToStringNodeModel();
+    public void init(final StateProviderInitializer initializer) {
+        initializer.computeBeforeOpenDialog();
     }
 
     @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
+    public IdAndText[] computeState(final DefaultNodeSettingsContext context) throws WidgetHandlerException {
 
-    @Override
-    public NodeView<DateTimeToStringNodeModel> createNodeView(final int viewIndex,
-        final DateTimeToStringNodeModel nodeModel) {
-        return null;
+        Locale[] locales = Locale.getAvailableLocales();
+        return Arrays.stream(locales)
+            .map(locale -> new IdAndText(locale.toLanguageTag(), locale.getDisplayName(Locale.ENGLISH)))
+            .sorted((l1, l2) -> l1.text().compareTo(l2.text())).toArray(IdAndText[]::new);
     }
-
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new DateTimeToStringNodeDialog();
-    }
-
 }
