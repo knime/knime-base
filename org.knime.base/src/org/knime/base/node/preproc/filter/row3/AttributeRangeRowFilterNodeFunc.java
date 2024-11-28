@@ -82,10 +82,10 @@ public final class AttributeRangeRowFilterNodeFunc extends AbstractRowFilterNode
 
         // TODO: this should be fixed on the framework side and not in here
         if (columnSpec.getType().isCompatible(DoubleValue.class)) {
-            if (lowerBound.equals("null")) {
+            if (isNotPresent(lowerBound)) {
                 lowerBound = null;
             }
-            if (upperBound.equals("null")) {
+            if (isNotPresent(upperBound)) {
                 upperBound = null;
             }
         }
@@ -98,6 +98,10 @@ public final class AttributeRangeRowFilterNodeFunc extends AbstractRowFilterNode
             criteria.add(createCriterion(columnSpec, FilterOperator.LTE, upperBound));
         }
         return criteria.toArray(FilterCriterion[]::new);
+    }
+
+    private static boolean isNotPresent(final String bound) {
+        return bound == null || bound.equals("null") || bound.length() == 0;
     }
 
     private static FilterCriterion createCriterion(final DataColumnSpec columnSpec, final FilterOperator operator,
