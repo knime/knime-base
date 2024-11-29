@@ -46,24 +46,26 @@
  * History
  *   25 Jan 2024 (albrecht): created
  */
-package org.knime.time.node.manipulate.modifytime;
+package org.knime.time.node.format.datetimeformatmanager;
 
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Locale;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.data.time.localdate.LocalDateCell;
 import org.knime.core.data.time.localdatetime.LocalDateTimeCell;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettings;
+import org.knime.core.data.time.localtime.LocalTimeCell;
+import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCell;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 import org.mockito.MockedStatic;
@@ -74,63 +76,69 @@ import org.mockito.Mockito;
  * @author Tobias Kampmann, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public class ModifyTimeSettingsTest extends DefaultNodeSettingsSnapshotTest { // NOSONAR
+class DateTimeFormatManagerNodeSettingsTest extends DefaultNodeSettingsSnapshotTest { // NOSONAR
 
     private Locale m_defaultLocale;
 
-    static final PortObjectSpec[] TEST_TABLE_SPECS = new PortObjectSpec[]{
-        new DataTableSpec(new String[]{"test"}, new DataType[]{DataType.getType(LocalDateTimeCell.class)})};
+    static final PortObjectSpec[] TEST_TABLE_SPECS = new PortObjectSpec[]{new DataTableSpec( //
+        new String[]{ //
+            "localTimeTest", //"
+            "localDateTest", //
+            "localDateTimeTest", //
+            "zonedDateTimeTest"},
+        new DataType[]{ //
+            DataType.getType(LocalTimeCell.class), //
+            DataType.getType(LocalDateCell.class), //
+            DataType.getType(LocalDateTimeCell.class), //
+            DataType.getType(ZonedDateTimeCell.class)} //
+            )};
 
-    protected ModifyTimeSettingsTest() {
+    protected DateTimeFormatManagerNodeSettingsTest() {
         super(getConfig());
     }
 
-    private static final LocalTime MOCKED_NOW = LocalTime.of(14, 00);
-
     private static final ZoneId MOCKED_ZONE_ID = ZoneId.of("Europe/Berlin");
 
-    private MockedStatic<LocalTime> m_mockedStaticLocalTime;
+    private static final ZonedDateTime MOCKED_NOW =
+        LocalDateTime.of(LocalDate.of(1, 1, 1), LocalTime.of(14, 00)).atZone(MOCKED_ZONE_ID);
+
+    private static final List<String> MOCKED_RECENT_FORMATS = List.of("yyyy", "HH:ss");;
+
+    private MockedStatic<ZonedDateTime> m_mockedStaticLocalZonedDateTime;
 
     private MockedStatic<ZoneId> m_mockedStaticZoneId;
+
+    private MockedStatic<DateTimeFormatStringHistoryManager> m_mockedStaticDateTimeFormatStringHistoryManager;
 
     @BeforeEach
     void setDefaults() {
         m_defaultLocale = Locale.getDefault();
         Locale.setDefault(Locale.GERMANY);
-        m_mockedStaticLocalTime = Mockito.mockStatic(LocalTime.class, Mockito.CALLS_REAL_METHODS);
-        m_mockedStaticLocalTime.when(LocalTime::now).thenReturn(MOCKED_NOW);
+        m_mockedStaticLocalZonedDateTime = Mockito.mockStatic(ZonedDateTime.class, Mockito.CALLS_REAL_METHODS);
+        m_mockedStaticLocalZonedDateTime.when(ZonedDateTime::now).thenReturn(MOCKED_NOW);
+
         m_mockedStaticZoneId = Mockito.mockStatic(ZoneId.class, Mockito.CALLS_REAL_METHODS);
         m_mockedStaticZoneId.when(ZoneId::systemDefault).thenReturn(MOCKED_ZONE_ID);
+
+        m_mockedStaticDateTimeFormatStringHistoryManager =
+            Mockito.mockStatic(DateTimeFormatStringHistoryManager.class, Mockito.CALLS_REAL_METHODS);
+        m_mockedStaticDateTimeFormatStringHistoryManager
+            .when(() -> DateTimeFormatStringHistoryManager.getRecentFormats()).thenReturn(MOCKED_RECENT_FORMATS);
     }
 
     @AfterEach
     void resetDefaults() {
         Locale.setDefault(m_defaultLocale);
-        m_mockedStaticLocalTime.close();
+        m_mockedStaticLocalZonedDateTime.close();
         m_mockedStaticZoneId.close();
+        m_mockedStaticDateTimeFormatStringHistoryManager.close();
     }
 
     private static SnapshotTestConfiguration getConfig() {
         return SnapshotTestConfiguration.builder() //
             .withInputPortObjectSpecs(TEST_TABLE_SPECS) //
-            .testJsonFormsForModel(ModifyTimeNodeSettings.class) //
-            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
-            .testNodeSettingsStructure(() -> readSettings()) //
+            .testJsonFormsForModel(DateTimeFormatManagerNodeSettings.class) //
             .build();
-    }
-
-    private static ModifyTimeNodeSettings readSettings() {
-        try {
-            var path = getSnapshotPath(ModifyTimeNodeSettings.class).getParent().resolve("node_settings")
-                .resolve("ModifyTimeNodeSettings.xml");
-            try (var fis = new FileInputStream(path.toFile())) {
-                var nodeSettings = NodeSettings.loadFromXML(fis);
-                return DefaultNodeSettings.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
-                    ModifyTimeNodeSettings.class);
-            }
-        } catch (IOException | InvalidSettingsException e) {
-            throw new IllegalStateException(e);
-        }
     }
 
 }

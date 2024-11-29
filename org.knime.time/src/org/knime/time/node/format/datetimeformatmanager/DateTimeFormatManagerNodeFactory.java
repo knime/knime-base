@@ -44,44 +44,48 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   6 Mar 2024 (jasper): created
+ *   Nov 28, 2024 (tobias): created
  */
-package org.knime.base.node.viz.format;
+package org.knime.time.node.format.datetimeformatmanager;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
- * Used by Format manager nodes to determine a preferred alignment.
+ * The node factory of the node which converts a date&time column to a string column.
  *
- * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
+ * @author Tobias Kampmann, TNG Technology Consulting GmbH
  */
-public enum AlignmentSuggestionOption {
+@SuppressWarnings("restriction")
+public final class DateTimeFormatManagerNodeFactory extends WebUINodeFactory<DateTimeFormatManagerNodeModel> {
 
-        /**
-         * Align the text to the left.
-         */
-        @Label(value = "Left", description = "Align the text to the left.")
-        LEFT("left"),
-
-        /**
-         * Center the text.
-         */
-        @Label(value = "Center", description = "Center the text.")
-        CENTER("center"),
-
-        /**
-         * Align the text to the right.
-         */
-        @Label(value = "Right", description = "Align the text to the right.")
-        RIGHT("right");
-
-    private final String m_style;
-
-    AlignmentSuggestionOption(final String style) {
-        m_style = "text-align: " + style + ";";
+    @Override
+    public DateTimeFormatManagerNodeModel createNodeModel() {
+        return new DateTimeFormatManagerNodeModel(CONFIGURATION);
     }
 
-    public String getCSSAttribute() {
-        return m_style;
+    private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
+        .name("Date&Time Format Manager") //
+        .icon("date-time-format-manager.png") //
+        .shortDescription("Attach formatter to Date&amp;Time cells.") //
+        .fullDescription("""
+                This node attaches formatting information to date&amp;time in a table. \
+                This does not change the data, only the way the strings in the \
+                selected columns are displayed in views, e.g., the Table View. \
+                """) //
+        .modelSettingsClass(DateTimeFormatManagerNodeSettings.class) //
+        .nodeType(NodeType.Visualizer)//
+        .addInputTable("Input table", "Input table.") //
+        .addOutputTable("Output table", "Output table with columns containing the attached formatter.") //
+        .keywords("date-time", "locale", "hour", "minute", "second", "millisecond", "date", "year", "month", "day",
+            "time", "formatter", "day light saving")//
+        .build();
+
+    /**
+     *
+     */
+    public DateTimeFormatManagerNodeFactory() {
+        super(CONFIGURATION);
     }
+
 }

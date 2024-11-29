@@ -44,66 +44,80 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 28, 2024 (Tobias Kampmann): created
+ *   Jan 8, 2025 (david): created
  */
-package org.knime.time.util;
+package org.knime.time.node.format;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
 import java.util.stream.Collectors;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
+import org.knime.base.node.viz.format.AlignmentSuggestionOption;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.config.base.ConfigBaseRO;
+import org.knime.core.node.config.base.ConfigBaseWO;
 
 /**
- * A state provider that provides a list of all available locales as choices. The list is sorted by the English display
- * name of the locales, except for a few commonly-used locales (including the system default) that are moved to the top
- * of the list.
+ * A utility class for transforming strings to HTML with alignment. This is used to create html formatters from string
+ * formats.
  *
- * @author Tobias Kampmann
+ * @author David Hickey, TNG Technology Consulting GmbH
  */
-@SuppressWarnings("restriction")
-public final class LocaleStateProvider implements StringChoicesStateProvider {
+public final class StringToAlignedHTMLUtil {
 
-    private static final List<Locale> LOCALES_TO_SHOW_FIRST = List.of(Locale.getDefault());
-
-    private static final List<Locale> LOCALES_TO_SHOW_SECOND = List.of( //
-        Locale.US, //
-        Locale.UK, //
-        Locale.GERMANY //
-    );
-
-    @Override
-    public void init(final StateProviderInitializer initializer) {
-        initializer.computeBeforeOpenDialog();
+    private StringToAlignedHTMLUtil() {
+        // Utility class
     }
 
-    @Override
-    public IdAndText[] computeState(final DefaultNodeSettingsContext context) throws WidgetHandlerException {
-        List<Locale> sortedLocales = Arrays.stream(Locale.getAvailableLocales()) //
-            .sorted(LocaleStateProvider::compareByEnglishTextRepresentation) //
-            .collect(Collectors.toCollection(ArrayList::new)); // modifiable list
+    private static final String CFG_KEY_ALIGNMENT = "alignment";
 
-        // Move special locales to the front
-        for (List<Locale> locales : List.of(LOCALES_TO_SHOW_SECOND, LOCALES_TO_SHOW_FIRST)) {
-            sortedLocales.removeAll(locales);
-            sortedLocales.addAll(0, locales);
+    /**
+     * Transform a string to a span element with text-align
+     *
+     * @param plainText
+     * @param alignment
+     * @return a span with a set text-align style
+     */
+    public static String getHTML(final String plainText, final AlignmentSuggestionOption alignment) {
+
+        return "<span style=\""//
+            + "display:inline-block;width:100%;"//
+            + "overflow:hidden;text-overflow:ellipsis;"//
+            + String.format("%s\">%s</span>", //
+                alignment.getCSSAttribute(), //
+                plainText //
+            );
+    }
+
+    /**
+     * Save the alignment option to the config. This is to be used in the save method of formatters
+     *
+     * @param config
+     * @param alignment
+     */
+    public static void saveAlignment(final ConfigBaseWO config, final AlignmentSuggestionOption alignment) {
+        config.addString(CFG_KEY_ALIGNMENT, alignment.name());
+    }
+
+    /**
+     * Load the alignment option from the config. This is to be used in formatter factories.
+     *
+     * @param config
+     * @return the alignment
+     * @throws InvalidSettingsException if the alignment is not a valid option
+     */
+    public static AlignmentSuggestionOption loadAlignment(final ConfigBaseRO config) throws InvalidSettingsException {
+        final var alignmentAsString = config.getString(CFG_KEY_ALIGNMENT);
+        try {
+            return AlignmentSuggestionOption.valueOf(alignmentAsString);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidSettingsException("Invalid alignment: '%s'. Valid alignments are: %s".formatted( //
+                alignmentAsString, //
+                Arrays.stream(AlignmentSuggestionOption.values()) //
+                    .map(AlignmentSuggestionOption::name) //
+                    .collect(Collectors.joining(", ")) //
+            ), e);
         }
 
-        return sortedLocales.stream() //
-            .map(LocaleStateProvider::localeToIdAndText) //
-            .toArray(IdAndText[]::new);
     }
 
-    private static int compareByEnglishTextRepresentation(final Locale l1, final Locale l2) {
-        return l1.getDisplayName(Locale.ENGLISH).compareTo(l2.getDisplayName(Locale.ENGLISH));
-    }
-
-    private static IdAndText localeToIdAndText(final Locale locale) {
-        return new IdAndText(locale.toLanguageTag(), locale.getDisplayName(Locale.ENGLISH));
-    }
 }

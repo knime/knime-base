@@ -49,10 +49,6 @@
 package org.knime.time.node.manipulate.datetimeround;
 
 import java.time.DateTimeException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZonedDateTime;
 import java.time.temporal.Temporal;
 import java.util.Collection;
 import java.util.function.Consumer;
@@ -65,17 +61,10 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.MissingCell;
 import org.knime.core.data.container.SingleCellFactory;
-import org.knime.core.data.time.localdate.LocalDateCell;
-import org.knime.core.data.time.localdate.LocalDateCellFactory;
-import org.knime.core.data.time.localdatetime.LocalDateTimeCell;
-import org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory;
-import org.knime.core.data.time.localtime.LocalTimeCell;
-import org.knime.core.data.time.localtime.LocalTimeCellFactory;
-import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCell;
-import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFactory;
 import org.knime.core.node.message.Message;
 import org.knime.core.node.message.MessageBuilder;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.time.util.TemporalCellUtils;
 
 /**
  *
@@ -127,7 +116,8 @@ final class DateTimeRoundModelUtils {
             }
 
             try {
-                return createRoundedTemporalDataCell(m_roundingOperator.apply(getTemporalFromCell(cell)));
+                return TemporalCellUtils.createTemporalDataCell(
+                    m_roundingOperator.apply(TemporalCellUtils.getTemporalFromCell(cell)));
             } catch (IllegalArgumentException | DateTimeException | ArithmeticException e) { // NOSONAR - this is logging the error message
                 m_messageBuilder.addRowIssue(0, m_targetColumnIndex, rowIndex, e.getMessage());
                 return new MissingCell(e.getMessage());
@@ -140,49 +130,6 @@ final class DateTimeRoundModelUtils {
             if (issueCount > 0) {
                 m_messageBuilder.withSummary("Problems occurred in " + issueCount + " rows.").build()
                     .ifPresent(this.m_setWarning);
-            }
-        }
-
-        /**
-         * Convenience function to create a new data cell from a Temporal. Supported Temporal types: ZonedDateTime,
-         * LocalDateTime, LocalTime, LocalDate
-         *
-         * @return The new data cell
-         */
-        private static DataCell createRoundedTemporalDataCell(final Temporal temporal) {
-
-            if (temporal instanceof ZonedDateTime zonedDateTime) {
-                return ZonedDateTimeCellFactory.create(zonedDateTime);
-            } else if (temporal instanceof LocalDateTime localDateTime) {
-                return LocalDateTimeCellFactory.create(localDateTime);
-            } else if (temporal instanceof LocalTime localTime) {
-                return LocalTimeCellFactory.create(localTime);
-            } else if (temporal instanceof LocalDate localDate) {
-                return LocalDateCellFactory.create(localDate);
-            } else {
-                throw new IllegalArgumentException("Unsupported Temporal type: " + temporal.getClass());
-            }
-        }
-
-        /**
-         * Convenience function to get a Temporal from a DataCell.
-         *
-         * @param cell The cell to get the Temporal from. Allowed: LocalTimeValue, LocalDateValue, LocalDateTimeValue,
-         *            ZonedDateTime
-         * @return The Temporal from the cell
-         */
-        private static Temporal getTemporalFromCell(final DataCell cell) {
-
-            if (cell instanceof ZonedDateTimeCell zonedDateTimeCell) {
-                return zonedDateTimeCell.getZonedDateTime();
-            } else if (cell instanceof LocalDateTimeCell localDateTimeCell) {
-                return localDateTimeCell.getLocalDateTime();
-            } else if (cell instanceof LocalTimeCell localTimeCell) {
-                return localTimeCell.getLocalTime();
-            } else if (cell instanceof LocalDateCell localDateCell) {
-                return localDateCell.getLocalDate();
-            } else {
-                throw new IllegalArgumentException("Unsupported Temporal type: " + cell.getClass());
             }
         }
     }
