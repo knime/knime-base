@@ -44,63 +44,48 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 28, 2024 (Tobias Kampmann): created
+ *   Nov 28, 2024 (tobias): created
  */
-package org.knime.time.util;
+package org.knime.time.node.format.datetimeformatmanager;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.stream.Collectors;
-
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
- * A state provider that provides a list of all available locales as choices. The list is sorted by the English display
- * name of the locales, except for a few commonly-used locales (including the system default) that are moved to the top
- * of the list.
+ * The node factory of the node which converts a date&time column to a string column.
  *
- * @author Tobias Kampmann
+ * @author Tobias Kampmann, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public final class LocaleStateProvider implements StringChoicesStateProvider {
-
-    private static final List<Locale> LOCALES_TO_SHOW_FIRST = List.of( //
-        Locale.getDefault(), //
-        Locale.US, //
-        Locale.UK, //
-        Locale.GERMANY //
-    );
+public final class DateTimeFormatManagerNodeFactory extends WebUINodeFactory<DateTimeFormatManagerNodeModel> {
 
     @Override
-    public void init(final StateProviderInitializer initializer) {
-        initializer.computeBeforeOpenDialog();
+    public DateTimeFormatManagerNodeModel createNodeModel() {
+        return new DateTimeFormatManagerNodeModel(CONFIGURATION);
     }
 
-    @Override
-    public IdAndText[] computeState(final DefaultNodeSettingsContext context) throws WidgetHandlerException {
-        List<Locale> sortedLocales = Arrays.stream(Locale.getAvailableLocales()) //
-            .sorted(LocaleStateProvider::compareByEnglishTextRepresentation) //
-            .collect(Collectors.toCollection(ArrayList::new)); // modifiable list
+    private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
+        .name("Date&Time Format Manager") //
+        .icon("date-time-format-manager.png") //
+        .shortDescription("Attach formatter to Date&amp;Time cells.") //
+        .fullDescription("""
+                This node attaches formatting information to date&amp;time in a table. \
+                This does not change the data, only the way the strings in the \
+                selected columns are displayed in views, e.g., the Table View. \
+                """) //
+        .modelSettingsClass(DateTimeFormatManagerNodeSettings.class) //
+        .nodeType(NodeType.Visualizer)//
+        .addInputTable("Input table", "Input table.") //
+        .addOutputTable("Output table", "Output table with columns containing the attached formatter.") //
+        .keywords("date-time", "locale", "hour", "minute", "second", "millisecond", "date", "year", "month", "day",
+            "time", "formatter", "day light saving")//
+        .build();
 
-        // Move the locales in LOCALES_TO_SHOW_FIRST to the front
-        sortedLocales.removeAll(LOCALES_TO_SHOW_FIRST);
-        sortedLocales.addAll(0, LOCALES_TO_SHOW_FIRST);
-
-        return sortedLocales.stream() //
-            .map(LocaleStateProvider::localeToIdAndText) //
-            .toArray(IdAndText[]::new);
+    /**
+     *
+     */
+    public DateTimeFormatManagerNodeFactory() {
+        super(CONFIGURATION);
     }
 
-    private static int compareByEnglishTextRepresentation(final Locale l1, final Locale l2) {
-        return l1.getDisplayName(Locale.ENGLISH).compareTo(l2.getDisplayName(Locale.ENGLISH));
-    }
-
-    private static IdAndText localeToIdAndText(final Locale locale) {
-        return new IdAndText(locale.toLanguageTag(), locale.getDisplayName(Locale.ENGLISH));
-    }
 }

@@ -1270,6 +1270,18 @@
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
+        "id" : "de-DE",
+        "text" : "German (Germany)"
+      }, {
+        "id" : "en-US",
+        "text" : "English (United States)"
+      }, {
+        "id" : "en-GB",
+        "text" : "English (United Kingdom)"
+      }, {
+        "id" : "de-DE",
+        "text" : "German (Germany)"
+      }, {
         "id" : "und",
         "text" : ""
       }, {
@@ -2173,12 +2185,6 @@
         "id" : "en-AE",
         "text" : "English (United Arab Emirates)"
       }, {
-        "id" : "en-GB",
-        "text" : "English (United Kingdom)"
-      }, {
-        "id" : "en-US",
-        "text" : "English (United States)"
-      }, {
         "id" : "en-US-POSIX",
         "text" : "English (United States, Computer)"
       }, {
@@ -2538,9 +2544,6 @@
       }, {
         "id" : "de-BE",
         "text" : "German (Belgium)"
-      }, {
-        "id" : "de-DE",
-        "text" : "German (Germany)"
       }, {
         "id" : "de-IT",
         "text" : "German (Italy)"

@@ -354,9 +354,6 @@ final class DateTimeToStringNodeModel extends NodeModel {
         m_locale.saveSettingsTo(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_colSelect.validateSettings(settings);
@@ -380,9 +377,6 @@ final class DateTimeToStringNodeModel extends NodeModel {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_colSelect.loadSettingsFrom(settings);
@@ -416,9 +410,6 @@ final class DateTimeToStringNodeModel extends NodeModel {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void reset() {
         // no internals

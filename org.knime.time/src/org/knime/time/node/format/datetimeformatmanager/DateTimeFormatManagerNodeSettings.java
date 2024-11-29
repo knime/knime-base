@@ -46,67 +46,63 @@
  * History
  *   Nov 28, 2024 (Tobias Kampmann): created
  */
-package org.knime.time.node.convert.datetimetostring;
+package org.knime.time.node.format.datetimeformatmanager;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Predicate;
 
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.time.localdate.LocalDateValue;
 import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
 import org.knime.core.data.time.localtime.LocalTimeValue;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.CompatibleColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.time.util.LocaleStateProvider;
-import org.knime.time.util.ReplaceOrAppend;
 
 /**
  * @author Tobias Kampmann
  */
 @SuppressWarnings("restriction")
-final class DateTimeToStringNodeSettings implements DefaultNodeSettings {
+final class DateTimeFormatManagerNodeSettings implements DefaultNodeSettings {
 
-    @Widget(title = "DateTime columns", description = "Only the included columns will be converted.")
-    @Persist(configKey = "col_select", customPersistor = LegacyColumnFilterPersistor.class)
+    DateTimeFormatManagerNodeSettings() {
+    }
+
+    DateTimeFormatManagerNodeSettings(final DefaultNodeSettingsContext context) {
+        var spec = context.getDataTableSpec(0);
+
+        if (spec.isPresent()) {
+            m_columnFilter = new ColumnFilter(spec.get().stream() //
+                .filter(IS_COMPATIBLE_TYPE) //
+                .map(DataColumnSpec::getName) //
+                .toArray(String[]::new) //
+            );
+        }
+    }
+
+    @Widget(title = "Date&Time columns", description = "Only the included columns will be converted.")
     @ChoicesWidget(choices = DateAndTimeColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
-    @Widget(title = "Output columns",
-        description = "Depending on the selection, the selected columns will be replaced "
-            + "or appended to the input table.")
-    @ValueSwitchWidget
-    @Persist(customPersistor = ReplaceOrAppend.Persistor.class)
-    @ValueReference(ReplaceOrAppend.ValueRef.class)
-    ReplaceOrAppend m_appendOrReplace = ReplaceOrAppend.REPLACE;
-
-    @Widget(title = "Output column suffix", description = "The selected columns will be appended to the input table.")
-    @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
-    @Persist(configKey = "suffix")
-    String m_outputColumnSuffix = " (String)";
-
-    @Widget(title = "Locale",
-        description = "The locale to use for formatting the date and time. "
-            + "Names of months and days of the week will be translated according to the selected locale.")
+    @Widget(title = "Locale", description = """
+            The locale to use for formatting the date and time. \
+            Names of months and days of the week will be translated \
+            according to the selected locale.
+            """)
     @ChoicesWidget(choicesProvider = LocaleStateProvider.class)
-    String m_locale;
+    String m_locale = Locale.getDefault().toLanguageTag();
 
-    @Widget(title = "DateTime format", description = """
+    @Widget(title = "Date&Time format", description = """
             A format string (defined by <a href="
-            https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html
+            https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html
             ">DateTimeFormatter</a>).
             <br />
             <b>Examples:</b>
@@ -115,46 +111,29 @@ final class DateTimeToStringNodeSettings implements DefaultNodeSettings {
                 </li>
                 <li>"yyyy-MM-dd'T'HH:mm:ss.SSSZ" produces dates such as "2001-07-04T12:08:56.235-0700"
                 </li>
-                <li>"yyyy-MM-dd'T'HH:mm:ss.SSSXXX'['VV']'" produces dates such as
-                "2001-07-04T12:08:56.235+02:00[Europe/Berlin]"
+                <li>"GGGG: yyyy-MMMM-dd ' at 'HH:mm[:ss[.SSS]] 'in' VV[' [also known as 'zzzz']']"
+                produces dates such as "Anno Domini: 2024-November-26  at 22:37:59.674 in Europe/Berlin
+                [also known as Central European Standard Time]"
                 </li>
             </ul>
             <b>Supported placeholders in the pattern are:</b>
             """ + ComprehensiveDateTimeFormatProvider.DATE_FORMAT_LIST_FOR_DOCS)
-    @Persist(configKey = "date_format")
-    @DateTimeFormatPickerWidget
+    @DateTimeFormatPickerWidget(formatProvider = ComprehensiveDateTimeFormatProvider.class)
     String m_format = "yyyy-MM-dd HH:mm:ss";
 
-    DateTimeToStringNodeSettings() {
-        this((DataTableSpec)null);
-    }
+    /**
+     * Supported column types
+     */
+    public static final List<Class<? extends DataValue>> DATE_TIME_COLUMN_TYPES =
+        List.of(LocalDateValue.class, LocalTimeValue.class, ZonedDateTimeValue.class, LocalDateTimeValue.class);
 
-    DateTimeToStringNodeSettings(final DefaultNodeSettingsContext context) {
-        this(context.getDataTableSpec(0).orElse(null));
-    }
-
-    DateTimeToStringNodeSettings(final DataTableSpec spec) {
-        if (spec != null) {
-            m_columnFilter = new ColumnFilter(spec.stream() //
-                .filter(DateAndTimeColumnProvider.IS_COMPATIBLE_COLUMN) //
-                .map(DataColumnSpec::getName) //
-                .toArray(String[]::new) //
-            );
-        }
-    }
+    private static final Predicate<DataColumnSpec> IS_COMPATIBLE_TYPE =
+        spec -> DATE_TIME_COLUMN_TYPES.stream().anyMatch(spec.getType()::isCompatible);
 
     static final class DateAndTimeColumnProvider extends CompatibleColumnChoicesProvider {
-        /**
-         * Supported column types
-         */
-        private static final List<Class<? extends DataValue>> DATE_TIME_COLUMN_TYPES =
-            List.of(LocalDateValue.class, LocalTimeValue.class, ZonedDateTimeValue.class, LocalDateTimeValue.class);
-
-        static final Predicate<DataColumnSpec> IS_COMPATIBLE_COLUMN =
-            c -> DATE_TIME_COLUMN_TYPES.stream().anyMatch(c.getType()::isCompatible);
-
         DateAndTimeColumnProvider() {
             super(DATE_TIME_COLUMN_TYPES);
         }
     }
+
 }

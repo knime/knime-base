@@ -2,27 +2,25 @@
   "data" : {
     "model" : {
       "columnFilter" : {
-        "selected" : [ ],
+        "selected" : [ "localTimeTest", "localDateTest", "localDateTimeTest", "zonedDateTimeTest" ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
-          "isCaseSensitive" : true,
+          "isCaseSensitive" : false,
           "isInverted" : false
         },
         "manualFilter" : {
-          "manuallySelected" : [ ],
+          "manuallySelected" : [ "localTimeTest", "localDateTest", "localDateTimeTest", "zonedDateTimeTest" ],
           "manuallyDeselected" : [ ],
-          "includeUnknownColumns" : true
+          "includeUnknownColumns" : false
         },
         "typeFilter" : {
           "selectedTypes" : [ ],
           "typeDisplays" : [ ]
         }
       },
-      "appendOrReplace" : "APPEND",
-      "outputColumnSuffix" : "(String)",
-      "locale" : "en-US",
-      "format" : "yyyy-MM-dd;HH:mm:ss.S"
+      "locale" : "de-DE",
+      "format" : "yyyy-MM-dd HH:mm:ss"
     }
   },
   "schema" : {
@@ -31,18 +29,6 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "appendOrReplace" : {
-            "oneOf" : [ {
-              "const" : "REPLACE",
-              "title" : "Replace"
-            }, {
-              "const" : "APPEND",
-              "title" : "Append with suffix"
-            } ],
-            "title" : "Output columns",
-            "description" : "Depending on the selection, the selected columns will be replaced or appended to the input table.\n<ul>\n<li><b>Replace</b>: The selected columns will be replaced by the new columns.</li>\n<li><b>Append with suffix</b>: The selected columns will be appended to the input table, with a new name that is the previous name plus the provided suffix.</li>\n</ul>",
-            "default" : "REPLACE"
-          },
           "columnFilter" : {
             "type" : "object",
             "properties" : {
@@ -149,7 +135,7 @@
                 }
               }
             },
-            "title" : "DateTime columns",
+            "title" : "Date&Time columns",
             "description" : "Only the included columns will be converted.",
             "default" : {
               "selected" : [ "localTimeTest", "localDateTest", "localDateTimeTest", "zonedDateTimeTest" ],
@@ -172,20 +158,15 @@
           },
           "format" : {
             "type" : "string",
-            "title" : "DateTime format",
-            "description" : "A format string (defined by <a href=\"\nhttps://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html\n\">DateTimeFormatter</a>).\n<br />\n<b>Examples:</b>\n<ul>\n    <li>\"yyyy.MM.dd HH:mm:ss.SSS\" produces dates such as \"2001.07.04 12:08:56.000\"\n    </li>\n    <li>\"yyyy-MM-dd'T'HH:mm:ss.SSSZ\" produces dates such as \"2001-07-04T12:08:56.235-0700\"\n    </li>\n    <li>\"yyyy-MM-dd'T'HH:mm:ss.SSSXXX'['VV']'\" produces dates such as\n    \"2001-07-04T12:08:56.235+02:00[Europe/Berlin]\"\n    </li>\n</ul>\n<b>Supported placeholders in the pattern are:</b>\n<ul>\n    <li>G: era</li>\n    <li>u: year</li>\n    <li>y: year of era</li>\n    <li>D: day of year</li>\n    <li>M: month in year (context sensitive)</li>\n    <li>L: month in year (standalone form)</li>\n    <li>d: day of month</li>\n    <li>Q: quarter of year</li>\n    <li>q: quarter of year</li>\n    <li>Y: week based year</li>\n    <li>w: week of week based year</li>\n    <li>W: week of month</li>\n    <li>E: day of week</li>\n    <li>e: localized day of week</li>\n    <li>c: localized day of week</li>\n    <li>F: week of month</li>\n    <li>a: am/pm of day</li>\n    <li>h: clock hour of am/pm (1-12)</li>\n    <li>K: hour of am/pm (0-11)</li>\n    <li>k: clock hour of am/pm (1-24)</li>\n    <li>H: hour of day (0-23)</li>\n    <li>m: minute of hour</li>\n    <li>s: second of minute</li>\n    <li>S: fraction of second</li>\n    <li>A: milli of day</li>\n    <li>n: nano of second</li>\n    <li>N: nano of second</li>\n    <li>V: time zone ID</li>\n    <li>z: time zone name</li>\n    <li>O: localized zone offset</li>\n    <li>X zone offset ('Z' for zero)</li>\n    <li>x: zone offset</li>\n    <li>Z: zone offset</li>\n    <li>p: pad next</li>\n    <li>' : escape for text</li>\n    <li>'': single quote</li>\n    <li>[: optional section start</li>\n    <li>]: optional section end</li>\n</ul>\n",
+            "title" : "Date&Time format",
+            "description" : "A format string (defined by <a href=\"\nhttps://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html\n\">DateTimeFormatter</a>).\n<br />\n<b>Examples:</b>\n<ul>\n    <li>\"yyyy.MM.dd HH:mm:ss.SSS\" produces dates such as \"2001.07.04 12:08:56.000\"\n    </li>\n    <li>\"yyyy-MM-dd'T'HH:mm:ss.SSSZ\" produces dates such as \"2001-07-04T12:08:56.235-0700\"\n    </li>\n    <li>\"GGGG: yyyy-MMMM-dd ' at 'HH:mm[:ss[.SSS]] 'in' VV[' [also known as 'zzzz']']\"\n    produces dates such as \"Anno Domini: 2024-November-26  at 22:37:59.674 in Europe/Berlin\n    [also known as Central European Standard Time]\"\n    </li>\n</ul>\n<b>Supported placeholders in the pattern are:</b>\n<ul>\n    <li>G: era</li>\n    <li>u: year</li>\n    <li>y: year of era</li>\n    <li>D: day of year</li>\n    <li>M: month in year (context sensitive)</li>\n    <li>L: month in year (standalone form)</li>\n    <li>d: day of month</li>\n    <li>Q: quarter of year</li>\n    <li>q: quarter of year</li>\n    <li>Y: week based year</li>\n    <li>w: week of week based year</li>\n    <li>W: week of month</li>\n    <li>E: day of week</li>\n    <li>e: localized day of week</li>\n    <li>c: localized day of week</li>\n    <li>F: week of month</li>\n    <li>a: am/pm of day</li>\n    <li>h: clock hour of am/pm (1-12)</li>\n    <li>K: hour of am/pm (0-11)</li>\n    <li>k: clock hour of am/pm (1-24)</li>\n    <li>H: hour of day (0-23)</li>\n    <li>m: minute of hour</li>\n    <li>s: second of minute</li>\n    <li>S: fraction of second</li>\n    <li>A: milli of day</li>\n    <li>n: nano of second</li>\n    <li>N: nano of second</li>\n    <li>V: time zone ID</li>\n    <li>z: time zone name</li>\n    <li>O: localized zone offset</li>\n    <li>X zone offset ('Z' for zero)</li>\n    <li>x: zone offset</li>\n    <li>Z: zone offset</li>\n    <li>p: pad next</li>\n    <li>' : escape for text</li>\n    <li>'': single quote</li>\n    <li>[: optional section start</li>\n    <li>]: optional section end</li>\n</ul>\n",
             "default" : "yyyy-MM-dd HH:mm:ss"
           },
           "locale" : {
             "type" : "string",
             "title" : "Locale",
-            "description" : "The locale to use for formatting the date and time. Names of months and days of the week will be translated according to the selected locale."
-          },
-          "outputColumnSuffix" : {
-            "type" : "string",
-            "title" : "Output column suffix",
-            "description" : "The selected columns will be appended to the input table.",
-            "default" : " (String)"
+            "description" : "The locale to use for formatting the date and time. Names of months and days of the week will be translated according to the selected locale.\n",
+            "default" : "de-DE"
           }
         }
       }
@@ -237,26 +218,6 @@
       }
     }, {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/appendOrReplace",
-      "options" : {
-        "format" : "valueSwitch"
-      }
-    }, {
-      "type" : "Control",
-      "scope" : "#/properties/model/properties/outputColumnSuffix",
-      "rule" : {
-        "effect" : "SHOW",
-        "condition" : {
-          "scope" : "#/properties/model/properties/appendOrReplace",
-          "schema" : {
-            "oneOf" : [ {
-              "const" : "APPEND"
-            } ]
-          }
-        }
-      }
-    }, {
-      "type" : "Control",
       "scope" : "#/properties/model/properties/locale",
       "options" : {
         "choicesProvider" : "org.knime.time.util.LocaleStateProvider",
@@ -282,7 +243,6 @@
         "type" : "object",
         "properties" : {
           "columnFilter" : {
-            "configPaths" : [ [ "col_select", "filter-type" ], [ "col_select", "included_names" ], [ "col_select", "excluded_names" ], [ "col_select", "enforce_option" ], [ "col_select", "name_pattern", "pattern" ], [ "col_select", "name_pattern", "type" ], [ "col_select", "name_pattern", "caseSensitive" ], [ "col_select", "name_pattern", "excludeMatching" ] ],
             "type" : "object",
             "properties" : {
               "selected" : {
@@ -324,16 +284,8 @@
               }
             }
           },
-          "appendOrReplace" : {
-            "configPaths" : [ [ "replace_or_append" ] ]
-          },
-          "outputColumnSuffix" : {
-            "configKey" : "suffix"
-          },
           "locale" : { },
-          "format" : {
-            "configKey" : "date_format"
-          }
+          "format" : { }
         }
       }
     }
