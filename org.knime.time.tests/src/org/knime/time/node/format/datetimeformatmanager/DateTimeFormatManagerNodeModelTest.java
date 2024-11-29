@@ -1,0 +1,149 @@
+/*
+ * ------------------------------------------------------------------------
+ *
+ *  Copyright by KNIME AG, Zurich, Switzerland
+ *  Website: http://www.knime.com; Email: contact@knime.com
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License, Version 3, as
+ *  published by the Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful, but
+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, see <http://www.gnu.org/licenses>.
+ *
+ *  Additional permission under GNU GPL version 3 section 7:
+ *
+ *  KNIME interoperates with ECLIPSE solely via ECLIPSE's plug-in APIs.
+ *  Hence, KNIME and ECLIPSE are both independent programs and are not
+ *  derived from each other. Should, however, the interpretation of the
+ *  GNU GPL Version 3 ("License") under any applicable laws result in
+ *  KNIME and ECLIPSE being a combined program, KNIME AG herewith grants
+ *  you the additional permission to use and propagate KNIME together with
+ *  ECLIPSE with only the license terms in place for ECLIPSE applying to
+ *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
+ *  license terms of ECLIPSE themselves allow for the respective use and
+ *  propagation of ECLIPSE together with KNIME.
+ *
+ *  Additional permission relating to nodes for KNIME that extend the Node
+ *  Extension (and in particular that are based on subclasses of NodeModel,
+ *  NodeDialog, and NodeView) and that only interoperate with KNIME through
+ *  standard APIs ("Nodes"):
+ *  Nodes are deemed to be separate and independent programs and to not be
+ *  covered works.  Notwithstanding anything to the contrary in the
+ *  License, the License does not apply to Nodes, you are not required to
+ *  license Nodes under the License, and you are granted a license to
+ *  prepare and propagate Nodes, in each case even if such Nodes are
+ *  propagated with or for interoperation with KNIME.  The owner of a Node
+ *  may freely choose the license terms applicable to such Node, including
+ *  when such Node is propagated with or for interoperation with KNIME.
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   Nov 20, 2024 (Tobias Kampmann, TNG): created
+ */
+package org.knime.time.node.format.datetimeformatmanager;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Locale;
+
+import org.apache.commons.lang3.LocaleUtils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.knime.InputTableNode;
+import org.knime.core.data.property.ValueFormatHandler;
+import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.workflow.NativeNodeContainer;
+import org.knime.core.node.workflow.WorkflowManager;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.testing.util.WorkflowManagerUtil;
+
+@SuppressWarnings({"restriction", "squid:S5960"})
+class DateTimeFormatManagerNodeModelTest {
+
+    private NativeNodeContainer m_dateTimeFormatManagerNode;
+
+    private WorkflowManager m_wfm;
+
+    @BeforeEach
+    void resetWorkflow() throws IOException {
+        m_wfm = WorkflowManagerUtil.createEmptyWorkflow();
+        m_dateTimeFormatManagerNode =
+            WorkflowManagerUtil.createAndAddNode(m_wfm, new DateTimeFormatManagerNodeFactory());
+    }
+
+    @Test
+    void canBeExecuted() throws InvalidSettingsException {
+
+        final var settings = new DateTimeFormatManagerNodeSettings();
+        setSettings(settings);
+
+        InputTableNode.addDefaultTableToNodeInputPort(m_wfm, m_dateTimeFormatManagerNode, 1);
+
+        assertTrue(m_wfm.executeAllAndWaitUntilDone());
+        assertTrue(m_dateTimeFormatManagerNode.getNodeContainerState().isExecuted());
+    }
+
+    @Test
+    void appendDateTimeFormatter() throws InvalidSettingsException {
+
+        String[] columnNamesToAddFormatterTo = { //
+            InputTableNode.COLUMN_LOCAL_TIME, //
+            InputTableNode.COLUMN_LOCAL_DATE_TIME, //
+            InputTableNode.COLUMN_LOCAL_DATE, //
+            InputTableNode.COLUMN_ZONED_DATE_TIME};
+
+        final var settings = new DateTimeFormatManagerNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(columnNamesToAddFormatterTo);
+        settings.m_locale = Locale.ENGLISH.toLanguageTag();
+        settings.m_format = "yyyy-MM-dd HH:mm:ss [VV]";
+
+        var formatterToAppend = new ValueFormatHandler(new DateTimeDataValueFormatter( //
+            settings.m_format, //
+            LocaleUtils.toLocale(settings.m_locale)));
+
+        setSettings(settings);
+
+        var inputTable = InputTableNode.createDefaultTestTable();
+
+        InputTableNode.addTableToNodeInputPort(m_wfm, inputTable, m_dateTimeFormatManagerNode, 1);
+        assertTrue(m_wfm.executeAllAndWaitUntilDone());
+
+        var outputTable = (BufferedDataTable)m_dateTimeFormatManagerNode.getOutPort(1).getPortObject();
+
+        assertTrue(outputTable.getDataTableSpec().equalStructure(inputTable.get().getDataTableSpec()),
+            "The output table should have the same structure as the input table");
+
+        for (var columnName : columnNamesToAddFormatterTo) {
+            assertColumnContainsFormatter(outputTable, columnName, formatterToAppend);
+        }
+    }
+
+    private static void assertColumnContainsFormatter(final BufferedDataTable table, final String columnName,
+        final ValueFormatHandler expectedFormatter) {
+
+        assertTrue(Arrays.stream(table.getDataTableSpec().getColumnNames()).anyMatch(columnName::equals),
+            "The column " + columnName + " should exist in the output table");
+
+        assertTrue(expectedFormatter.equals( //
+            table.getDataTableSpec().getColumnSpec(columnName).getValueFormatHandler()));
+    }
+
+    private void setSettings(final DateTimeFormatManagerNodeSettings settings) throws InvalidSettingsException {
+        final var nodeSettings = new NodeSettings("DateTimeRoundNode");
+        m_wfm.saveNodeSettings(m_dateTimeFormatManagerNode.getID(), nodeSettings);
+        var modelSettings = nodeSettings.addNodeSettings("model");
+        DefaultNodeSettings.saveSettings(DateTimeFormatManagerNodeSettings.class, settings, modelSettings);
+        m_wfm.loadNodeSettings(m_dateTimeFormatManagerNode.getID(), nodeSettings);
+    }
+}

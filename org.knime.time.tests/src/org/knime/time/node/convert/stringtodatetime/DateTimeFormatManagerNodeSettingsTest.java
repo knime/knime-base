@@ -71,14 +71,14 @@ import org.knime.time.node.convert.datetimetostring.DateTimeToStringNodeSettings
  * @author Tobias Kampmann, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public class DateTimeToStringNodeSettingsTest extends DefaultNodeSettingsSnapshotTest { // NOSONAR
+public class DateTimeFormatManagerNodeSettingsTest extends DefaultNodeSettingsSnapshotTest { // NOSONAR
 
     private Locale m_defaultLocale;
 
     static final PortObjectSpec[] TEST_TABLE_SPECS = new PortObjectSpec[]{
         new DataTableSpec(new String[]{"test"}, new DataType[]{DataType.getType(LocalDateTimeCell.class)})};
 
-    protected DateTimeToStringNodeSettingsTest() {
+    protected DateTimeFormatManagerNodeSettingsTest() {
         super(getConfig());
     }
 
