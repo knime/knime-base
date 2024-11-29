@@ -1,0 +1,323 @@
+{
+  "data" : {
+    "model" : {
+      "filter" : {
+        "selected" : [ "periodTest", "durationTest" ],
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "periodTest", "durationTest" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : false
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "outputFormat" : "ISO",
+      "appendOrReplaceColumn" : "REPLACE",
+      "suffix" : ""
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "appendOrReplaceColumn" : {
+            "oneOf" : [ {
+              "const" : "REPLACE",
+              "title" : "Replace"
+            }, {
+              "const" : "APPEND",
+              "title" : "Append with suffix"
+            } ],
+            "title" : "Output columns",
+            "description" : "Depending on this setting, the output columns will either replace the modified columns, or be appended to the table with a suffix.\n\n<ul>\n<li><b>Replace</b>: The selected columns will be replaced by the new columns.</li>\n<li><b>Append with suffix</b>: The selected columns will be appended to the input table, with a new name that is the previous name plus the provided suffix.</li>\n</ul>",
+            "default" : "REPLACE"
+          },
+          "filter" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "default" : [ ],
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "typeDisplays" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : {
+                          "type" : "string"
+                        },
+                        "text" : {
+                          "type" : "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Duration columns",
+            "description" : "The columns to convert to a string.",
+            "default" : {
+              "selected" : [ "periodTest", "durationTest" ],
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ "periodTest", "durationTest" ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "outputFormat" : {
+            "oneOf" : [ {
+              "const" : "ISO",
+              "title" : "ISO 8601"
+            }, {
+              "const" : "WORDS",
+              "title" : "Whole words"
+            }, {
+              "const" : "LETTERS",
+              "title" : "Single letters"
+            } ],
+            "title" : "Output format",
+            "description" : "The format of the output string.\n<ul>\n<li><b>ISO 8601</b>: The durations will be formatted using the ISO-8601 representation, e.g. 'P2Y3M5D'.\n</li>\n<li><b>Whole words</b>: The durations will be formatted using words to represent them, e.g. '2 years 3 months 5 days'.\n</li>\n<li><b>Single letters</b>: The durations will be formatted using letters to represent them, e.g. '2y 3M 5d' (Date-based duration: y: years, M: months, d: days; Time-based duration: H: hours, m: minutes, s: seconds).\n</li>\n</ul>",
+            "default" : "ISO"
+          },
+          "suffix" : {
+            "type" : "string",
+            "title" : "Suffix of appended column",
+            "description" : "The suffix to append to the column names of the new columns.\n",
+            "default" : ""
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/filter",
+      "options" : {
+        "format" : "columnFilter",
+        "choicesProvider" : "org.knime.time.node.convert.durationperiodtostring.DurationPeriodToStringNodeSettings$ColumnProvider",
+        "showNoneColumn" : false,
+        "showRowKeys" : false,
+        "showSearch" : true,
+        "showMode" : true
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/outputFormat",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/appendOrReplaceColumn",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/suffix",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/appendOrReplaceColumn",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "APPEND"
+            } ]
+          }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "filter" : {
+            "configPaths" : [ [ "col_select", "filter-type" ], [ "col_select", "included_names" ], [ "col_select", "excluded_names" ], [ "col_select", "enforce_option" ], [ "col_select", "name_pattern", "pattern" ], [ "col_select", "name_pattern", "type" ], [ "col_select", "name_pattern", "caseSensitive" ], [ "col_select", "name_pattern", "excludeMatching" ] ],
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : { },
+                  "typeDisplays" : {
+                    "type" : "array",
+                    "configPaths" : [ ],
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : { },
+                        "text" : { }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "outputFormat" : {
+            "configKey" : "format"
+          },
+          "appendOrReplaceColumn" : {
+            "configPaths" : [ [ "replace_or_append" ] ]
+          },
+          "suffix" : {
+            "configKey" : "suffix"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.time.node.convert.durationperiodtostring.DurationPeriodToStringNodeSettings$ColumnProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "periodTest",
+        "text" : "periodTest",
+        "type" : {
+          "id" : "org.knime.core.data.time.period.PeriodValue",
+          "text" : "Period"
+        },
+        "compatibleTypes" : [ "org.knime.core.data.time.period.PeriodValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
+      }, {
+        "id" : "durationTest",
+        "text" : "durationTest",
+        "type" : {
+          "id" : "org.knime.core.data.time.duration.DurationValue",
+          "text" : "Duration"
+        },
+        "compatibleTypes" : [ "org.knime.core.data.time.duration.DurationValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
+      } ]
+    } ]
+  } ]
+}
