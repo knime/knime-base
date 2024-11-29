@@ -269,29 +269,24 @@ final class DateTimeToStringNodeModel extends NodeModel {
             } else {
                 final DataColumnSpec dataColSpec =
                     new UniqueNameGenerator(inSpec).newColumn(includedCol + m_suffix.getStringValue(), StringCell.TYPE);
-                final TimeToStringCellFactory cellFac = new TimeToStringCellFactory(dataColSpec, inSpec.findColumnIndex(includedCol),
-                    createMessageBuilder(), this::setWarning);
+                final TimeToStringCellFactory cellFac = new TimeToStringCellFactory(dataColSpec,
+                    inSpec.findColumnIndex(includedCol), createMessageBuilder(), this::setWarning);
                 rearranger.append(cellFac);
             }
         }
         return rearranger;
     }
 
-    /** {@inheritDoc} */
     @Override
     public InputPortRole[] getInputPortRoles() {
         return new InputPortRole[]{InputPortRole.DISTRIBUTED_STREAMABLE};
     }
 
-    /** {@inheritDoc} */
     @Override
     public OutputPortRole[] getOutputPortRoles() {
         return new OutputPortRole[]{OutputPortRole.DISTRIBUTED};
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
         final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
@@ -341,27 +336,18 @@ final class DateTimeToStringNodeModel extends NodeModel {
         };
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
         // no internals
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
         // no internals
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_colSelect.saveSettingsTo(settings);
@@ -379,9 +365,6 @@ final class DateTimeToStringNodeModel extends NodeModel {
         m_locale.saveSettingsTo(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_colSelect.validateSettings(settings);
@@ -405,9 +388,6 @@ final class DateTimeToStringNodeModel extends NodeModel {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_colSelect.loadSettingsFrom(settings);
@@ -427,8 +407,7 @@ final class DateTimeToStringNodeModel extends NodeModel {
             // check for backwards compatibility (AP-8915)
             LocaleUtils.toLocale(localeString);
         } catch (IllegalArgumentException e) {
-            LOGGER.debug("Could not read settings value '" + localeString + "' \n" + "                    as locale",
-                e);
+            LOGGER.debug("Could not read settings value '" + localeString + "' \n as locale", e);
             try {
                 final String iso3Country = Locale.forLanguageTag(localeString).getISO3Country();
                 final String iso3Language = Locale.forLanguageTag(localeString).getISO3Language();
@@ -441,9 +420,6 @@ final class DateTimeToStringNodeModel extends NodeModel {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void reset() {
         // no internals
