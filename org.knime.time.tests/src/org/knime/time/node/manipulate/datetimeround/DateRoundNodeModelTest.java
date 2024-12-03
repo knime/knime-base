@@ -67,7 +67,7 @@ import org.knime.testing.util.WorkflowManagerUtil;
 import org.knime.time.util.ReplaceOrAppend;
 
 @SuppressWarnings({"restriction", "squid:S5960"})
-class DateTimeRoundNodeModelTest {
+class DateRoundNodeModelTest {
 
     private NativeNodeContainer m_dateTimeRoundNode;
 
@@ -76,13 +76,13 @@ class DateTimeRoundNodeModelTest {
     @BeforeEach
     void resetWorkflow() throws IOException {
         m_wfm = WorkflowManagerUtil.createEmptyWorkflow();
-        m_dateTimeRoundNode = WorkflowManagerUtil.createAndAddNode(m_wfm, new DateTimeRoundNodeFactory());
+        m_dateTimeRoundNode = WorkflowManagerUtil.createAndAddNode(m_wfm, new DateRoundNodeFactory());
     }
 
     @Test
     void canBeExecuted() throws InvalidSettingsException {
 
-        final var settings = new DateTimeRoundNodeSettings();
+        final var settings = new DateRoundNodeSettings();
         setSettings(settings);
 
         InputTableNode.addDefaultTableToNodeInputPort(m_wfm, m_dateTimeRoundNode, 1);
@@ -94,35 +94,21 @@ class DateTimeRoundNodeModelTest {
     @Test
     void appendReplaceTimeBasedRounding() throws InvalidSettingsException {
 
-        String[] columnNamesToRound = {InputTableNode.COLUMN_LOCAL_TIME, InputTableNode.COLUMN_LOCAL_DATE_TIME,
-            InputTableNode.COLUMN_ZONED_DATE_TIME};
-
-        final var settings = new DateTimeRoundNodeSettings();
-        settings.m_roundingMode = DateTimeRoundNodeSettings.RoundingMode.TIME;
-        settings.m_timeRoundSettings.m_columnFilter = new ColumnFilter(columnNamesToRound);
-
-        testAppendingColumns(columnNamesToRound, settings);
-        testReplacingColumns(settings);
-    }
-
-    @Test
-    void appendReplaceDateBasedRounding() throws InvalidSettingsException {
-
         String[] columnNamesToRound = {InputTableNode.COLUMN_LOCAL_DATE, InputTableNode.COLUMN_LOCAL_DATE_TIME,
             InputTableNode.COLUMN_ZONED_DATE_TIME};
 
-        final var settings = new DateTimeRoundNodeSettings();
-        settings.m_roundingMode = DateTimeRoundNodeSettings.RoundingMode.DATE;
-        settings.m_dateRoundSettings.m_columnFilter = new ColumnFilter(columnNamesToRound);
+        final var settings = new DateRoundNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(columnNamesToRound);
 
         testAppendingColumns(columnNamesToRound, settings);
         testReplacingColumns(settings);
     }
 
-    private void testAppendingColumns(final String[] columnNamesToRound, final DateTimeRoundNodeSettings settings)
+
+    private void testAppendingColumns(final String[] columnNamesToRound, final DateRoundNodeSettings settings)
         throws InvalidSettingsException {
 
-        settings.m_appendOrReplace = ReplaceOrAppend.APPEND;
+        settings.m_replaceOrAppend = ReplaceOrAppend.APPEND;
         settings.m_outputColumnSuffix = "TheSuffixToAppend";
         setSettings(settings);
 
@@ -135,9 +121,9 @@ class DateTimeRoundNodeModelTest {
             outputTable.getDataTableSpec().containsName(columnName + settings.m_outputColumnSuffix)));
     }
 
-    private void testReplacingColumns(final DateTimeRoundNodeSettings settings) throws InvalidSettingsException {
+    private void testReplacingColumns(final DateRoundNodeSettings settings) throws InvalidSettingsException {
 
-        settings.m_appendOrReplace = ReplaceOrAppend.REPLACE;
+        settings.m_replaceOrAppend = ReplaceOrAppend.REPLACE;
         setSettings(settings);
 
         var inputTable = InputTableNode.createDefaultTestTable();
@@ -152,11 +138,11 @@ class DateTimeRoundNodeModelTest {
 
     }
 
-    private void setSettings(final DateTimeRoundNodeSettings settings) throws InvalidSettingsException {
+    private void setSettings(final DateRoundNodeSettings settings) throws InvalidSettingsException {
         final var nodeSettings = new NodeSettings("DateTimeRoundNode");
         m_wfm.saveNodeSettings(m_dateTimeRoundNode.getID(), nodeSettings);
         var modelSettings = nodeSettings.addNodeSettings("model");
-        DefaultNodeSettings.saveSettings(DateTimeRoundNodeSettings.class, settings, modelSettings);
+        DefaultNodeSettings.saveSettings(DateRoundNodeSettings.class, settings, modelSettings);
         m_wfm.loadNodeSettings(m_dateTimeRoundNode.getID(), nodeSettings);
     }
 

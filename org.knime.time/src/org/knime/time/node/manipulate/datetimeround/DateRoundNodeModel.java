@@ -44,30 +44,69 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 26, 2024 (Tobias Kampmann): created
+ *   Dec 3, 2024 (Tobias Kampmann): created
  */
 package org.knime.time.node.manipulate.datetimeround;
 
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.container.ColumnRearranger;
+import org.knime.core.data.container.SingleCellFactory;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
+import org.knime.time.util.ReplaceOrAppend;
+
 /**
- *  Enumeration for the shift mode.
- *  Additional option to shift the value to round by the rounding precision
- *  so 12:12 rounded to first hour with a "PREVIOUS" shift mode will be 11:00.
+ *
+ * @author Tobias Kampmann
  */
-enum ShiftMode {
-        /**
-         * Shift to the previous value.
-         * 12:12 rounded to first hour with a "PREVIOUS" shift mode will be 11:00.
-         */
-        PREVIOUS,
-        /**
-         * Option to not shift the value.
-         * Shift to the this value, i.e., no shift at all.
-         * 12:12 rounded to first hour with a "THIS" shift mode will be 12:00.
-         */
-        THIS,
-        /**
-         * Shift to the next value.
-         * 12:12 rounded to first hour with a "NEXT" shift mode will be 13:00.
-         */
-        NEXT;
+@SuppressWarnings("restriction")
+public class DateRoundNodeModel extends WebUISimpleStreamableFunctionNodeModel<DateRoundNodeSettings> {
+
+    /**
+     * @param configuration
+     */
+    protected DateRoundNodeModel(final WebUINodeConfiguration configuration) {
+        super(configuration, DateRoundNodeSettings.class);
+    }
+
+    @Override
+    protected ColumnRearranger createColumnRearranger(final DataTableSpec spec,
+        final DateRoundNodeSettings modelSettings) throws InvalidSettingsException {
+
+        ColumnRearranger rearranger = new ColumnRearranger(spec);
+
+        String[] selectedColumns = DateTimeRoundModelUtils.getSelectedColumns(spec,
+            DateRoundNodeSettings.DATE_COLUMN_TYPES, modelSettings.m_columnFilter);
+
+        for (String selectedColumn : selectedColumns) {
+
+            SingleCellFactory factory = createCellFactory(spec, selectedColumn, modelSettings);
+
+            if (modelSettings.m_replaceOrAppend == ReplaceOrAppend.REPLACE) {
+                rearranger.replace(factory, selectedColumn);
+            } else {
+                rearranger.append(factory);
+            }
+        }
+        return rearranger;
+    }
+
+    private SingleCellFactory createCellFactory(final DataTableSpec spec, final String selectedColumn,
+        final DateRoundNodeSettings settings) {
+        var indexOfTargetColumn = spec.findColumnIndex(selectedColumn);
+
+        DataColumnSpec newColSpec = DateTimeRoundModelUtils.createColumnSpec(spec, selectedColumn,
+            settings.m_replaceOrAppend, settings.m_outputColumnSuffix);
+
+        return new DateTimeRoundModelUtils.RoundCellFactory( //
+            newColSpec, //
+            indexOfTargetColumn, //
+            DateRoundingUtil.createDateRounder(settings), //
+            createMessageBuilder(), //
+            this::setWarning); //
+
+    }
+
 }

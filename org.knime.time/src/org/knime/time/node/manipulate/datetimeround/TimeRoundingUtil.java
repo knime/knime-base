@@ -57,6 +57,7 @@ import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.Temporal;
+import java.util.function.UnaryOperator;
 
 import org.knime.time.node.manipulate.datetimeround.TimeRoundNodeSettings.TimeRoundingStrategy;
 
@@ -73,38 +74,34 @@ public final class TimeRoundingUtil {
      * Rounds a temporal value based on the specified rounding strategy, interval, and shift mode.
      *
      * @param temporal the temporal value to round, e.g., a {@link LocalTime}, {@link LocalDateTime}, or
-     *           {@link ZonedDateTime}
+     *            {@link ZonedDateTime}
      * @param strategy the rounding strategy, i.e., whether to round to the first point in time of the interval or the
      *            next
      * @param roundingInterval the interval to which the temporal value should be rounded, i.e., "round to full 2 hours"
-     * @param shiftMode the shift mode, i.e., whether to shift the rounded value to the previous, next, or this interval
      * @return the rounded temporal value
+     * @throws ArithmeticException
      */
     public static Temporal roundTimeBasedTemporal(final Temporal temporal, final TimeRoundingStrategy strategy,
-        final Duration roundingInterval, final ShiftMode shiftMode) {
+        final Duration roundingInterval) throws ArithmeticException {
 
-        Temporal roundedTemporal;
-        if (temporal instanceof LocalTime) {
-            roundedTemporal = roundLocalTime((LocalTime)temporal, strategy, roundingInterval);
-        } else if (temporal instanceof LocalDateTime) {
-            roundedTemporal = roundLocalDateTime((LocalDateTime)temporal, strategy, roundingInterval);
-        } else if (temporal instanceof ZonedDateTime) {
-            roundedTemporal = roundZonedDateTime((ZonedDateTime)temporal, strategy, roundingInterval);
+        if (temporal instanceof LocalTime localTime) {
+            return roundLocalTime(localTime, strategy, roundingInterval);
+        } else if (temporal instanceof LocalDateTime localDateTime) {
+            return roundLocalDateTime(localDateTime, strategy, roundingInterval);
+        } else if (temporal instanceof ZonedDateTime zonedDateTime) {
+            return roundZonedDateTime(zonedDateTime, strategy, roundingInterval);
         } else {
             throw new IllegalArgumentException("Unsupported Temporal type: " + temporal.getClass());
         }
-
-        return applyShift(roundedTemporal, roundingInterval, shiftMode);
     }
 
-    private static LocalTime roundLocalTime(final LocalTime time, final TimeRoundingStrategy strategy,
-        final Duration roundingInterval) {
-
-        // We could handle this separately since nanoseconds of a day fit very well into a long
-        // but we keep it consistent with the other methods to reduce complexity
-        Instant instant = time.atDate(LocalDate.ofEpochDay(0)).toInstant(ZoneOffset.UTC);
-        Instant roundedInstant = roundInstant(instant, strategy, roundingInterval);
-        return LocalDateTime.ofInstant(roundedInstant, ZoneOffset.UTC).toLocalTime();
+    /**
+     * @param settings the time rounding settings to create the rounding operator for
+     * @return the rounding operator
+     */
+    public static UnaryOperator<Temporal> createRoundingOperator(final TimeRoundNodeSettings settings) {
+        return temporal -> roundTimeBasedTemporal(temporal, settings.m_timeRoundingStrategy,
+            settings.m_timeRoundingPrecision.getDuration());
     }
 
     private static LocalDateTime roundLocalDateTime(final LocalDateTime dateTime, final TimeRoundingStrategy strategy,
@@ -115,6 +112,16 @@ public final class TimeRoundingUtil {
         return LocalDateTime.ofInstant(roundedInstant, ZoneOffset.UTC);
     }
 
+    private static LocalTime roundLocalTime(final LocalTime time, final TimeRoundingStrategy strategy,
+        final Duration roundingInterval) {
+
+        // We could handle this separately since nanoseconds of a day fit very well into a long
+        // but we keep it consistent with the other methods to reduce complexity
+        LocalDateTime localDateTime = time.atDate(LocalDate.ofEpochDay(0));
+        LocalDateTime roundedLocalDateTime = roundLocalDateTime(localDateTime, strategy, roundingInterval);
+        return roundedLocalDateTime.toLocalTime();
+    }
+
     private static ZonedDateTime roundZonedDateTime(final ZonedDateTime dateTime, final TimeRoundingStrategy strategy,
         final Duration roundingInterval) {
 
@@ -122,14 +129,6 @@ public final class TimeRoundingUtil {
         LocalDateTime roundedLocalDateTime = roundLocalDateTime(localDateTime, strategy, roundingInterval);
 
         return roundedLocalDateTime.atZone(dateTime.getZone());
-    }
-
-    private static Temporal applyShift(final Temporal temporal, final Duration shift, final ShiftMode shiftMode) {
-        return switch (shiftMode) {
-            case PREVIOUS -> temporal.minus(shift);
-            case NEXT -> temporal.plus(shift);
-            default -> temporal;
-        };
     }
 
     private static final BigInteger ONE_MILLION = BigInteger.valueOf(1_000_000L);
@@ -144,13 +143,10 @@ public final class TimeRoundingUtil {
         final Duration roundingInterval) {
 
         BigInteger epochNanos = getNanoSecondsSinceEpoch(instant);
-
         BigInteger intervalNanos = BigInteger.valueOf(roundingInterval.toNanos());
-
         BigInteger roundedNanos = roundRegardingStrategy(epochNanos, intervalNanos, strategy);
 
         long roundedMillis = roundedNanos.divide(ONE_MILLION).longValue();
-
         return Instant.ofEpochMilli(roundedMillis);
     }
 

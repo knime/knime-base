@@ -48,22 +48,34 @@
  */
 package org.knime.time.node.manipulate.datetimeround;
 
+import java.time.DateTimeException;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
 import org.knime.core.data.time.localtime.LocalTimeValue;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.CompatibleColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.time.util.ReplaceOrAppend;
 
 /**
  *
@@ -73,7 +85,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoic
 public class TimeRoundNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Time columns", description = "Only the included columns will be shifted.")
-    @Persist(customPersistor = LegacyColumnFilterPersistor.class)
     @ChoicesWidget(choices = TimeColumnProvider.class)
     @Layout(DateTimeRoundNodeLayout.Top.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
@@ -86,25 +97,56 @@ public class TimeRoundNodeSettings implements DefaultNodeSettings {
     TimeRoundingStrategy m_timeRoundingStrategy = TimeRoundingStrategy.FIRST_POINT_IN_TIME;
 
     @Widget(title = "of", description = """
-            Option to shift the time to the previous or next time in the chosen \
-            resolution.
-            """)
-    @Layout(DateTimeRoundNodeLayout.SecondHorizontal.class)
-    ShiftMode m_shiftMode = ShiftMode.THIS;
-
-    @Widget(title = "precision", description = """
             The rounding precision. The date will be rounded to the first or last \
-            value of the chosen precision.
+            value of the chosen precision. Represented as a duration, i.e., PT1H for \
+            one hour.
             """)
-    @Layout(DateTimeRoundNodeLayout.SecondHorizontal.class)
+    @Persist(customPersistor = RoundTimePrecision.Persistor.class)
+    @Layout(DateTimeRoundNodeLayout.FirstHorizontal.class)
     RoundTimePrecision m_timeRoundingPrecision = RoundTimePrecision.HOURS_1;
 
+    @Widget(title = "Output columns",
+        description = "Depending on the selection, the selected columns will be replaced "
+            + "or appended to the input table.")
+    @ValueSwitchWidget
+    @Persist(customPersistor = ReplaceOrAppend.Persistor.class)
+    @ValueReference(ReplaceOrAppend.ValueRef.class)
+    @Layout(DateTimeRoundNodeLayout.Bottom.class)
+    ReplaceOrAppend m_replaceOrAppend = ReplaceOrAppend.REPLACE;
+
+    @Widget(title = "Output column suffix",
+        description = "The suffix that is appended to the column name. "
+            + "The suffix will be added to the original column name separated by a space.")
+    @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
+    @Layout(DateTimeRoundNodeLayout.Bottom.class)
+    String m_outputColumnSuffix = " (rounded)";
+
+    TimeRoundNodeSettings() {
+        this((DataTableSpec)null);
+    }
+
+    TimeRoundNodeSettings(final DefaultNodeSettingsContext ctx) {
+        this(ctx.getDataTableSpec(0).orElse(null));
+    }
+
+    TimeRoundNodeSettings(final DataTableSpec spec) {
+        if (spec != null) {
+            m_columnFilter = new ColumnFilter(DateTimeRoundModelUtils.getCompatibleColumns(spec, TIME_COLUMN_TYPES));
+        }
+    }
+
     enum TimeRoundingStrategy {
-            @Label(value = "First Point in time", description = "Round to the first point in time")
+            @Label(value = "First Point in time",
+                description = "Round to the first point in time of the selected duration. "
+                    + "E.g., rounding 18:45.215 to one hour yields 18:00.")
             FIRST_POINT_IN_TIME, //
-            @Label(value = "Last Point in time", description = "Round to the last point in time")
+            @Label(value = "Last Point in time",
+                description = "Round to the last point in time of the selected duration. "
+                    + "E.g., rounding 18:45.215 to one hour yields 19:00.")
             LAST_POINT_IN_TIME, //
-            @Label(value = "Nearest Point in time", description = "Round to the nearest point in time")
+            @Label(value = "Nearest Point in time",
+                description = "Round to the nearest point in time of the selected duration. "
+                    + "E.g., Last/First is chosen depending on which one is closer to the to be rounded time")
             NEAREST_POINT_IN_TIME;
     }
 
@@ -179,6 +221,45 @@ public class TimeRoundNodeSettings implements DefaultNodeSettings {
         public Duration getDuration() {
             return m_duration;
         }
+
+        public static RoundTimePrecision getByDuration(final Duration duration) {
+            for (RoundTimePrecision rtp : RoundTimePrecision.values()) {
+                if (rtp.getDuration().equals(duration)) {
+                    return rtp;
+                }
+            }
+
+            throw new IllegalArgumentException("No RoundTimePrecision for duration: " + duration + " found. "
+                + " Possible values are: " + getAllAllowedDurations() + ".");
+        }
+
+        static final List<String> getAllAllowedDurations() {
+            return Arrays.stream(RoundTimePrecision.values()) //
+                .map(RoundTimePrecision::getDuration) //
+                .map(Duration::toString) //
+                .collect(Collectors.toList());
+        }
+
+        static final class Persistor extends NodeSettingsPersistorWithConfigKey<RoundTimePrecision> {
+
+            @Override
+            public RoundTimePrecision load(final NodeSettingsRO settings) throws InvalidSettingsException {
+                var precisionSetting = settings.getString(getConfigKey());
+                try {
+                    var parsedDurationFromSetting = Duration.parse(precisionSetting);
+                    return RoundTimePrecision.getByDuration(parsedDurationFromSetting);
+                } catch (DateTimeException e) {
+                    throw new InvalidSettingsException(
+                        "Could not parse the duration ('" + precisionSetting + "') from the settings.", e);
+                }
+            }
+
+            @Override
+            public void save(final RoundTimePrecision obj, final NodeSettingsWO settings) {
+                settings.addString(getConfigKey(), obj.getDuration().toString());
+            }
+        }
+
     }
 
     static final List<Class<? extends DataValue>> TIME_COLUMN_TYPES =

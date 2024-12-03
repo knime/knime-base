@@ -48,20 +48,16 @@
  */
 package org.knime.time.node.manipulate.datetimeround;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.Locale;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.data.time.localdate.LocalDateCell;
 import org.knime.core.data.time.localdatetime.LocalDateTimeCell;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettings;
+import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCell;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
@@ -70,17 +66,25 @@ import org.knime.testing.node.dialog.SnapshotTestConfiguration;
  * @author Tobias Kampmann, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public class DateTimeRoundNodeSettingsTest extends DefaultNodeSettingsSnapshotTest { // NOSONAR
+public class DateRoundNodeSettingsTest extends DefaultNodeSettingsSnapshotTest { // NOSONAR
 
     private Locale m_defaultLocale;
 
-    static final PortObjectSpec[] TEST_TABLE_SPECS = new PortObjectSpec[]{
-        new DataTableSpec(new String[]{"test"}, new DataType[]{DataType.getType(LocalDateTimeCell.class)})};
+    static final PortObjectSpec[] TEST_TABLE_SPECS = new PortObjectSpec[]{new DataTableSpec( //
+        new String[]{ //
+            "localDateTest", //"
+            "localDateTimeTest", //
+            "zonedDateTimeTest"},
+        new DataType[]{ //
+            DataType.getType(LocalDateCell.class), //
+            DataType.getType(LocalDateTimeCell.class), //
+            DataType.getType(ZonedDateTimeCell.class)} //
+            )};
 
     /**
      *
      */
-    protected DateTimeRoundNodeSettingsTest() {
+    protected DateRoundNodeSettingsTest() {
         super(getConfig());
     }
 
@@ -98,24 +102,8 @@ public class DateTimeRoundNodeSettingsTest extends DefaultNodeSettingsSnapshotTe
     private static SnapshotTestConfiguration getConfig() {
         return SnapshotTestConfiguration.builder() //
             .withInputPortObjectSpecs(TEST_TABLE_SPECS) //
-            .testJsonFormsForModel(DateTimeRoundNodeSettings.class) //
-            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
-            .testNodeSettingsStructure(() -> readSettings()) //
+            .testJsonFormsForModel(DateRoundNodeSettings.class) //
             .build();
-    }
-
-    private static DateTimeRoundNodeSettings readSettings() {
-        try {
-            var path = getSnapshotPath(DateTimeRoundNodeSettings.class).getParent().resolve("node_settings")
-                .resolve("DateTimeRoundNodeSettings.xml");
-            try (var fis = new FileInputStream(path.toFile())) {
-                var nodeSettings = NodeSettings.loadFromXML(fis);
-                return DefaultNodeSettings.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
-                    DateTimeRoundNodeSettings.class);
-            }
-        } catch (IOException | InvalidSettingsException e) {
-            throw new IllegalStateException(e);
-        }
     }
 
 }

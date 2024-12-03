@@ -51,6 +51,7 @@ package org.knime.time.node.manipulate.datetimeround;
 import java.time.Period;
 import java.util.List;
 
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.time.localdate.LocalDateValue;
 import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
@@ -59,10 +60,15 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.CompatibleColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.time.util.ReplaceOrAppend;
 
 /**
  *
@@ -72,7 +78,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoic
 public class DateRoundNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Time columns", description = "Only the included columns will be shifted.")
-    @Persist(customPersistor = LegacyColumnFilterPersistor.class)
     @ChoicesWidget(choices = DateColumnProvider.class)
     @Layout(DateTimeRoundNodeLayout.Top.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
@@ -105,6 +110,36 @@ public class DateRoundNodeSettings implements DefaultNodeSettings {
     @Layout(DateTimeRoundNodeLayout.SecondHorizontal.class)
     RoundDatePrecision m_dateRoundingPrecision = RoundDatePrecision.MONTH;
 
+    @Widget(title = "Output columns",
+        description = "Depending on the selection, the selected columns will be replaced "
+            + "or appended to the input table.")
+    @ValueSwitchWidget
+    @Persist(customPersistor = ReplaceOrAppend.Persistor.class)
+    @ValueReference(ReplaceOrAppend.ValueRef.class)
+    @Layout(DateTimeRoundNodeLayout.Bottom.class)
+    ReplaceOrAppend m_replaceOrAppend = ReplaceOrAppend.REPLACE;
+
+    @Widget(title = "Output column suffix",
+        description = "The suffix that is appended to the column name. "
+            + "The suffix will be added to the original column name separated by a space.")
+    @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
+    @Layout(DateTimeRoundNodeLayout.Bottom.class)
+    String m_outputColumnSuffix = " (rounded)";
+
+    DateRoundNodeSettings() {
+        this((DataTableSpec)null);
+    }
+
+    DateRoundNodeSettings(final DefaultNodeSettingsContext ctx) {
+        this(ctx.getDataTableSpec(0).orElse(null));
+    }
+
+    DateRoundNodeSettings(final DataTableSpec spec) {
+        if (spec != null) {
+            m_columnFilter = new ColumnFilter(DateTimeRoundModelUtils.getCompatibleColumns(spec, DATE_COLUMN_TYPES));
+        }
+    }
+
     enum DateRoundingStrategy {
             FIRST, LAST;
     }
@@ -130,6 +165,31 @@ public class DateRoundNodeSettings implements DefaultNodeSettings {
         public Period getPeriod() {
             return m_period;
         }
+    }
+
+    /**
+     * Enumeration for the shift mode. Additional option to shift the date to the previous or next date in the chosen
+     * resolution.
+     */
+    enum ShiftMode {
+            /**
+             * Shift to the previous value. 12.12.24 rounded to the first day of the 'previous' month will result in
+             * 1.11.24.
+             */
+            @Label(value = "Previous", description = "Shift to the previous value. 12.12.24 rounded to the"
+                + "first day of the 'previous' month will result in 1.11.24.")
+            PREVIOUS,
+            /**
+             * Option to not shift the value. Shift to the this value, i.e., no shift at all.
+             */
+            @Label(value = "This", description = "Shift to the this value, i.e., no shift at all.")
+            THIS,
+            /**
+             * Shift to the next value. 12.12.24 rounded to the first day of the 'next' month will result in 1.1.25.
+             */
+            @Label(value = "Next", description = "Shift to the next value. 12.12.24 rounded to the "
+                + "first day of the 'next' month will result in 1.1.25.")
+            NEXT;
     }
 
     /**
