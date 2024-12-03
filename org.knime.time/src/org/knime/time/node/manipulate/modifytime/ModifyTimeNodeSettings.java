@@ -132,7 +132,7 @@ class ModifyTimeNodeSettings implements DefaultNodeSettings {
             + "The suffix will be added to the original column name separated by a space.")
     @Effect(predicate = ReplaceOrAppendIsAppend.class, type = EffectType.SHOW)
     @Persist(configKey = "suffix")
-    String m_outputColumnSuffix = "(modified time)";
+    String m_outputColumnSuffix = " (modified time)";
 
     /*
      * ------------------------------------------------------------------------

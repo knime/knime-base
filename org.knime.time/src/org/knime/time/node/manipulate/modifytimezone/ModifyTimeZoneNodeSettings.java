@@ -116,7 +116,7 @@ public class ModifyTimeZoneNodeSettings implements DefaultNodeSettings {
             + "The suffix will be added to the original column name separated by a space.")
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
     @Persist(configKey = "suffix")
-    String m_outputColumnSuffix = "(modified time zone)";
+    String m_outputColumnSuffix = " (modified time zone)";
 
     /*
      * ------------------------------------------------------------------------

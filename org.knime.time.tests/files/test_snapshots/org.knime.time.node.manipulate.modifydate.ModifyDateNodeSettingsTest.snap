@@ -23,7 +23,7 @@
         }
       },
       "appendOrReplace" : "REPLACE",
-      "outputColumnSuffix" : "(modified date)"
+      "outputColumnSuffix" : " (modified date)"
     }
   },
   "schema" : {
@@ -197,7 +197,7 @@
             "type" : "string",
             "title" : "Output column suffix",
             "description" : "The suffix that is appended to the column name. The suffix will be added to the original column name separated by a space.",
-            "default" : "(modified date)"
+            "default" : " (modified date)"
           },
           "timeZone" : {
             "type" : "string",

@@ -132,7 +132,7 @@ public class ModifyDateNodeSettings implements DefaultNodeSettings {
             + "The suffix will be added to the original column name separated by a space.")
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
     @Persist(configKey = "suffix")
-    String m_outputColumnSuffix = "(modified date)";
+    String m_outputColumnSuffix = " (modified date)";
 
     /*
      * ------------------------------------------------------------------------
@@ -143,15 +143,16 @@ public class ModifyDateNodeSettings implements DefaultNodeSettings {
     enum BehaviourType implements CompatibleDataValueClassesSupplier {
             @Label(value = "Change", //
                 description = "Changes the date of a date-time column, leaving the timezone unchanged.")
-            CHANGE("Change date",List.of(ZonedDateTimeValue.class, LocalDateTimeValue.class)), //
+            CHANGE("Change date", List.of(ZonedDateTimeValue.class, LocalDateTimeValue.class)), //
             @Label(value = "Append", description = "Appends a date to a time column, resulting in a date-time column. "
                 + "A time zone can optionally be set.")
-            APPEND("Append date",List.of(LocalTimeValue.class)), //
+            APPEND("Append date", List.of(LocalTimeValue.class)), //
             @Label(value = "Remove", description = "Removes the date and timezone information from date-time columns, "
                 + "leaving only the time.")
-            REMOVE("Remove date",List.of(ZonedDateTimeValue.class, LocalDateTimeValue.class));
+            REMOVE("Remove date", List.of(ZonedDateTimeValue.class, LocalDateTimeValue.class));
 
         private String m_oldConfigValue;
+
         private List<Class<? extends DataValue>> m_compatibleDataValues;
 
         BehaviourType(final String oldConfigValue, final List<Class<? extends DataValue>> compatibleDataValues) {
