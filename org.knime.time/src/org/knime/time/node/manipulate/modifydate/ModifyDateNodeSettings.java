@@ -105,14 +105,14 @@ public class ModifyDateNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Date", description = "A date value like YYYY-mm-dd.")
     @Persist(configKey = "date")
     @Effect(predicate = BehaviourTypeIsRemove.class, type = EffectType.HIDE)
-    LocalDate m_localDate = LocalDate.of(1984, 1, 1);
+    LocalDate m_localDate = LocalDate.now();
 
     @Widget(title = "Time zone", description = "A timezone to be used when saving the date.")
     @Persist(configKey = "time_zone")
     @ChoicesWidget(optional = true)
     @Effect(predicate = BehaviourTypeIsAppend.class, type = EffectType.SHOW)
     @JsonInclude(Include.ALWAYS)
-    ZoneId m_timeZone;
+    ZoneId m_timeZone = ZoneId.systemDefault();
 
     @Widget(title = "Date&time columns", description = "Only the included columns will be modified.")
     @Persist(configKey = "col_select", customPersistor = LegacyColumnFilterPersistor.class)

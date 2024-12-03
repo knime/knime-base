@@ -2,7 +2,7 @@
   "data" : {
     "model" : {
       "modifySelect" : "CHANGE",
-      "localTime" : "00:00:00",
+      "localTime" : "14:00:00",
       "timeZone" : "Europe/Berlin",
       "columnFilter" : {
         "selected" : [ ],
@@ -176,7 +176,7 @@
             "format" : "date-time",
             "title" : "Time",
             "description" : "A time value in form of HH:mm:ss.SSS.",
-            "default" : "00:00:00"
+            "default" : "14:00:00"
           },
           "modifySelect" : {
             "oneOf" : [ {

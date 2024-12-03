@@ -50,6 +50,8 @@ package org.knime.time.node.manipulate.modifydate;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Locale;
 
 import org.junit.jupiter.api.AfterEach;
@@ -67,6 +69,8 @@ import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 import org.knime.testing.node.dialog.SnapshotTestConfiguration;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 /**
  *
@@ -81,15 +85,29 @@ public class ModifyDateNodeSettingsTest extends DefaultNodeSettingsSnapshotTest 
         super(getConfig());
     }
 
+    private static final LocalDate MOCKED_NOW = LocalDate.of(2024, 10, 31);
+
+    private static final ZoneId MOCKED_ZONE_ID = ZoneId.of("Europe/Berlin");
+
+    private MockedStatic<LocalDate> m_mockedStaticLocalDate;
+
+    private MockedStatic<ZoneId> m_mockedStaticZoneId;
+
     @BeforeEach
     void setDefaultLocale() {
         m_defaultLocale = Locale.getDefault();
         Locale.setDefault(Locale.GERMANY);
+        m_mockedStaticLocalDate = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS);
+        m_mockedStaticLocalDate.when(LocalDate::now).thenReturn(MOCKED_NOW);
+        m_mockedStaticZoneId = Mockito.mockStatic(ZoneId.class, Mockito.CALLS_REAL_METHODS);
+        m_mockedStaticZoneId.when(ZoneId::systemDefault).thenReturn(MOCKED_ZONE_ID);
     }
 
     @AfterEach
     void resetDefaultLocale() {
         Locale.setDefault(m_defaultLocale);
+        m_mockedStaticLocalDate.close();
+        m_mockedStaticZoneId.close();
     }
 
     private static SnapshotTestConfiguration getConfig() {

@@ -96,7 +96,7 @@ public class ModifyTimeZoneNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Time zone", description = "A timezone to be used when saving the date.")
     @Persist(configKey = "time_zone_select")
     @Effect(predicate = BehaviourTypeIsRemove.class, type = EffectType.HIDE)
-    ZoneId m_timeZone = ZoneId.of("Europe/Berlin");
+    ZoneId m_timeZone = ZoneId.systemDefault();
 
     @Widget(title = "Date&time columns", description = "Only the included columns will be modified.")
     @Persist(configKey = "col_select", customPersistor = LegacyColumnFilterPersistor.class)

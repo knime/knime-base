@@ -102,18 +102,17 @@ class ModifyTimeNodeSettings implements DefaultNodeSettings {
     @ValueReference(BehaviourTypeRef.class)
     BehaviourType m_modifySelect = BehaviourType.CHANGE;
 
-    @Widget(title = "Time",
-        description = "A time value in form of HH:mm:ss.SSS.")
+    @Widget(title = "Time", description = "A time value in form of HH:mm:ss.SSS.")
     @Effect(predicate = BehaviourTypeIsRemove.class, type = EffectType.HIDE)
     @Persist(configKey = "time")
-    LocalTime m_localTime = LocalTime.of(0,0,0);
+    LocalTime m_localTime = LocalTime.now();
 
     @Widget(title = "Time zone", description = "If checked, the user can choose a time zone to append also.")
     @Persist(configKey = "time_zone")
     @ChoicesWidget(optional = true)
     @Effect(predicate = BehaviourTypeIsAppend.class, type = EffectType.SHOW)
     @JsonInclude(Include.ALWAYS)
-    ZoneId m_timeZone = ZoneId.of("Europe/Berlin");
+    ZoneId m_timeZone = ZoneId.systemDefault();
 
     @Widget(title = "Date&time columns", description = "Only the included columns will be modified.")
     @Persist(configKey = "col_select", customPersistor = LegacyColumnFilterPersistor.class, optional = true)
@@ -144,15 +143,16 @@ class ModifyTimeNodeSettings implements DefaultNodeSettings {
             @Label(value = "Change", //
                 description = "Changes the time of local or zoned date&amp;time columns. The time zone "
                     + "will not be changed. The <i>Modify Time Zone</i> node can be used to change it.")
-            CHANGE("Change time",List.of(ZonedDateTimeValue.class, LocalDateTimeValue.class)), //
+            CHANGE("Change time", List.of(ZonedDateTimeValue.class, LocalDateTimeValue.class)), //
             @Label(value = "Append",
                 description = "Appends a time to local date columns. Optionally a time zone can be appended too.")
-            APPEND("Append time",List.of(LocalDateValue.class)), //
+            APPEND("Append time", List.of(LocalDateValue.class)), //
             @Label(value = "Remove", description = "Removes the time from local or zoned date&amp;time columns. "
                 + "Time zones will be removed, too.")
-            REMOVE("Remove time",List.of(ZonedDateTimeValue.class, LocalDateTimeValue.class));
+            REMOVE("Remove time", List.of(ZonedDateTimeValue.class, LocalDateTimeValue.class));
 
         private String m_oldConfigValue;
+
         private List<Class<? extends DataValue>> m_compatibleDataValues;
 
         BehaviourType(final String oldConfigValue, final List<Class<? extends DataValue>> compatibleDataValues) {
@@ -181,13 +181,11 @@ class ModifyTimeNodeSettings implements DefaultNodeSettings {
         }
     }
 
-
     /*
      * ------------------------------------------------------------------------
      * PERSISTORS
      * ------------------------------------------------------------------------
      */
-
 
     static final class BehaviourTypePersistor implements FieldNodeSettingsPersistor<BehaviourType> {
 
@@ -243,7 +241,6 @@ class ModifyTimeNodeSettings implements DefaultNodeSettings {
             return i.getEnum(ReplaceOrAppendRef.class).isOneOf(ReplaceOrAppend.APPEND);
         }
     }
-
 
     /*
      * ------------------------------------------------------------------------

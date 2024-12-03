@@ -2,8 +2,8 @@
   "data" : {
     "model" : {
       "behaviourType" : "CHANGE",
-      "localDate" : "1984-01-01",
-      "timeZone" : null,
+      "localDate" : "2024-10-31",
+      "timeZone" : "Europe/Berlin",
       "columnFilter" : {
         "selected" : [ ],
         "mode" : "MANUAL",
@@ -191,7 +191,7 @@
             "format" : "date",
             "title" : "Date",
             "description" : "A date value like YYYY-mm-dd.",
-            "default" : "1984-01-01"
+            "default" : "2024-10-31"
           },
           "outputColumnSuffix" : {
             "type" : "string",
@@ -202,7 +202,8 @@
           "timeZone" : {
             "type" : "string",
             "title" : "Time zone",
-            "description" : "A timezone to be used when saving the date."
+            "description" : "A timezone to be used when saving the date.",
+            "default" : "Europe/Berlin"
           }
         }
       }
