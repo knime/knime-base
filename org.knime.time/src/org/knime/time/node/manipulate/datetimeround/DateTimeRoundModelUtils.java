@@ -44,7 +44,7 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 11, 2024 (tobias): created
+ *   Dec 3, 2024 (Tobias Kampmann): created
  */
 package org.knime.time.node.manipulate.datetimeround;
 
@@ -56,6 +56,7 @@ import java.time.ZonedDateTime;
 import java.time.temporal.Temporal;
 import java.util.Collection;
 import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -64,7 +65,6 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.MissingCell;
-import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.data.time.localdate.LocalDateCell;
 import org.knime.core.data.time.localdate.LocalDateCellFactory;
@@ -74,48 +74,18 @@ import org.knime.core.data.time.localtime.LocalTimeCell;
 import org.knime.core.data.time.localtime.LocalTimeCellFactory;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCell;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFactory;
-import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.message.Message;
 import org.knime.core.node.message.MessageBuilder;
 import org.knime.core.util.UniqueNameGenerator;
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.time.util.ReplaceOrAppend;
 
 /**
- * The node model of the node which rounds time and date columns.
  *
- * @author Tobias Kampmann, TNG
+ * @author Tobias Kampmann
  */
 @SuppressWarnings("restriction")
-final class DateTimeRoundNodeModel extends WebUISimpleStreamableFunctionNodeModel<DateTimeRoundNodeSettings> {
-
-    /**
-     * @param configuration
-     */
-    protected DateTimeRoundNodeModel(final WebUINodeConfiguration configuration) {
-        super(configuration, DateTimeRoundNodeSettings.class);
-    }
-
-    @Override
-    protected ColumnRearranger createColumnRearranger(final DataTableSpec spec, final DateTimeRoundNodeSettings modelSettings)
-        throws InvalidSettingsException {
-
-        ColumnRearranger rearranger = new ColumnRearranger(spec);
-        String[] selectedColumns = getSelectedColumns(spec, modelSettings);
-
-        for (String selectedColumn : selectedColumns) {
-
-            SingleCellFactory factory = createCellFactory(spec, selectedColumn, modelSettings);
-
-            if (modelSettings.m_appendOrReplace == ReplaceOrAppend.REPLACE) {
-                rearranger.replace(factory, selectedColumn);
-            } else {
-                rearranger.append(factory);
-            }
-        }
-        return rearranger;
-    }
+final class DateTimeRoundModelUtils {
 
     static class RoundCellFactory extends SingleCellFactory {
 
@@ -125,24 +95,24 @@ final class DateTimeRoundNodeModel extends WebUISimpleStreamableFunctionNodeMode
 
         private final Consumer<Message> m_setWarning;
 
-        private final DateTimeRoundNodeSettings m_settings;
+        private final UnaryOperator<Temporal> m_roundingOperator;
 
         /**
          * @param newColSpec new column spec
          * @param targetColumnIndex index of the column to round
-         * @param settings the rounding settings of the node
+         * @param roundingOperator the rounding operator to apply
          * @param messageBuilder the message builder to collect issues called from NodeModel context:
          *            "createMessageBuilder()"
          * @param setWarningConsumer the consumer to set warnings from the NodeModel context: "setWarning"
          */
         public RoundCellFactory(final DataColumnSpec newColSpec, final int targetColumnIndex,
-            final DateTimeRoundNodeSettings settings, final MessageBuilder messageBuilder,
+            final UnaryOperator<Temporal> roundingOperator, final MessageBuilder messageBuilder,
             final Consumer<Message> setWarningConsumer) {
 
             super(newColSpec);
             this.m_targetColumnIndex = targetColumnIndex;
 
-            this.m_settings = settings;
+            this.m_roundingOperator = roundingOperator;
 
             this.m_messageBuilder = messageBuilder;
             this.m_setWarning = setWarningConsumer;
@@ -155,21 +125,9 @@ final class DateTimeRoundNodeModel extends WebUISimpleStreamableFunctionNodeMode
                 return cell;
             }
 
-            var timeSettings = m_settings.m_timeRoundSettings;
-            var dateSettings = m_settings.m_dateRoundSettings;
-
             try {
-                return createRoundedTemporalDataCell( //
-                    m_settings.m_roundingMode == DateTimeRoundNodeSettings.RoundingMode.TIME //
-                        ? DateRoundingUtil.roundDateBasedTemporal(getTemporalFromCell(cell),
-                            dateSettings.m_dateRoundingStrategy, dateSettings.m_dateRoundingPrecision,
-                            dateSettings.m_shiftMode, dateSettings.m_dayOrWeekDay) //
-                        : //
-                        TimeRoundingUtil.roundTimeBasedTemporal(getTemporalFromCell(cell),
-                            timeSettings.m_timeRoundingStrategy, timeSettings.m_timeRoundingPrecision.getDuration(),
-                            timeSettings.m_shiftMode));
-
-            } catch (IllegalArgumentException | DateTimeException e) { // NOSONAR - this is logging the error message
+                return createRoundedTemporalDataCell(m_roundingOperator.apply(getTemporalFromCell(cell)));
+            } catch (IllegalArgumentException | DateTimeException | ArithmeticException e) { // NOSONAR - this is logging the error message
                 m_messageBuilder.addRowIssue(0, m_targetColumnIndex, rowIndex, e.getMessage());
                 return new MissingCell(e.getMessage());
             }
@@ -185,37 +143,6 @@ final class DateTimeRoundNodeModel extends WebUISimpleStreamableFunctionNodeMode
         }
     }
 
-    static String[] getCompatibleColumns(final DataTableSpec spec,
-        final Collection<Class<? extends DataValue>> valueClasses) {
-        return spec.stream()
-            .filter(s -> valueClasses.stream().anyMatch(s.getType()::isCompatible))
-            .map(DataColumnSpec::getName).toArray(String[]::new);
-    }
-
-    SingleCellFactory createCellFactory(final DataTableSpec spec, final String selectedColumn,
-        final DateTimeRoundNodeSettings settings) {
-        var indexOfTargetColumn = spec.findColumnIndex(selectedColumn);
-
-        DataColumnSpec newColSpec = createColumnSpec(spec, selectedColumn, settings);
-
-        return new RoundCellFactory( //
-            newColSpec, //
-            indexOfTargetColumn, //
-            settings, //
-            createMessageBuilder(), //
-            this::setWarning); //
-
-    }
-
-    static String[] getSelectedColumns(final DataTableSpec spec, final DateTimeRoundNodeSettings fullSettings) {
-
-        return fullSettings.m_roundingMode == DateTimeRoundNodeSettings.RoundingMode.TIME //
-            ? fullSettings.m_timeRoundSettings.m_columnFilter
-                .getSelected(getCompatibleColumns(spec, TimeRoundNodeSettings.TIME_COLUMN_TYPES), spec) //
-            : fullSettings.m_dateRoundSettings.m_columnFilter
-                .getSelected(getCompatibleColumns(spec, DateRoundNodeSettings.DATE_COLUMN_TYPES), spec);
-    }
-
     /**
      * Creates a new DataColumnSpec with the given column name and the type of the selected column.
      *
@@ -224,14 +151,30 @@ final class DateTimeRoundNodeModel extends WebUISimpleStreamableFunctionNodeMode
      * @param settings The settings of the node
      * @return The new DataColumnSpec
      */
-    private static DataColumnSpec createColumnSpec(final DataTableSpec spec, final String selectedColumn,
-        final DateTimeRoundNodeSettings settings) {
+    static DataColumnSpec createColumnSpec(final DataTableSpec spec, final String selectedColumn,
+        final ReplaceOrAppend replaceOrAppend, final String outputColumnSuffix) {
 
         var typeOfTargetColumn = spec.getColumnSpec(selectedColumn).getType();
-        return settings.m_appendOrReplace == ReplaceOrAppend.REPLACE
+        return replaceOrAppend == ReplaceOrAppend.REPLACE
             ? new DataColumnSpecCreator(selectedColumn, typeOfTargetColumn).createSpec() //
-            : new UniqueNameGenerator(spec).newColumn(selectedColumn + settings.m_outputColumnSuffix,
-                typeOfTargetColumn);
+            : new UniqueNameGenerator(spec).newColumn(selectedColumn + outputColumnSuffix, typeOfTargetColumn);
+    }
+
+    /**
+     * Get the compatible columns from the DataTableSpec by checking the value classes.
+     *
+     * @param spec The DataTable spec
+     * @param valueClasses The value classes to check for compatibility
+     * @return A list of compatible columns names
+     */
+    static String[] getSelectedColumns(final DataTableSpec spec,
+        final Collection<Class<? extends DataValue>> valueClasses, final ColumnFilter columnFilter) {
+
+        var compatibleColumns = spec.stream()
+            .filter(dateColumnSpec -> valueClasses.stream().anyMatch(dateColumnSpec.getType()::isCompatible))
+            .map(DataColumnSpec::getName).toArray(String[]::new);
+
+        return columnFilter.getSelected(compatibleColumns, spec);
     }
 
     /**

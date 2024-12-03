@@ -67,6 +67,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.time.node.manipulate.datetimeround.DateRoundNodeSettings.DateRoundingStrategy;
 import org.knime.time.node.manipulate.datetimeround.DateRoundNodeSettings.DayOrWeekday;
 import org.knime.time.node.manipulate.datetimeround.DateRoundNodeSettings.RoundDatePrecision;
+import org.knime.time.node.manipulate.datetimeround.DateRoundNodeSettings.ShiftMode;
 
 @SuppressWarnings({"squid:S5960", "squid:S1192"})
 class DateRoundingUtilTest {
@@ -230,9 +231,9 @@ class DateRoundingUtilTest {
             ), //
             Arguments.of( //
                 "ZonedDateTime: Round to Quarter", //
-                ZonedDateTime.of(LocalDate.of(2024, 8, 15), now, zoneId), //
+                ZonedDateTime.of(LocalDate.of(2024, 1, 15), now, zoneId), //
                 RoundDatePrecision.QUARTER, //
-                ZonedDateTime.of(LocalDate.of(2024, 7, 1), now, zoneId) //
+                ZonedDateTime.of(LocalDate.of(2024, 1, 1), now, zoneId) //
             ), //
             Arguments.of( //
                 "ZonedDateTime: Round to year", //

@@ -44,40 +44,68 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 18, 2024 (tobias): created
+ *   Dec 3, 2024 (Tobias Kampmann): created
  */
 package org.knime.time.node.manipulate.datetimeround;
 
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.container.ColumnRearranger;
+import org.knime.core.data.container.SingleCellFactory;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.impl.WebUINodeFactory;
+import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
+import org.knime.time.node.manipulate.datetimeround.DateTimeRoundModelUtils.RoundCellFactory;
+import org.knime.time.util.ReplaceOrAppend;
 
 /**
- * The node factory of the node which rounds dates&times.
  *
- * @author Tobias Kampmann, TNG Technology Consulting GmbH
+ * @author Tobias Kampmann
  */
 @SuppressWarnings("restriction")
-public final class DateTimeRoundNodeFactory extends WebUINodeFactory<DateTimeRoundNodeModel> {
+public class TimeRoundNodeModel extends WebUISimpleStreamableFunctionNodeModel<TimeRoundNodeSettings> {
+
+    /**
+     * @param configuration
+     */
+    protected TimeRoundNodeModel(final WebUINodeConfiguration configuration) {
+        super(configuration, TimeRoundNodeSettings.class);
+    }
 
     @Override
-    public DateTimeRoundNodeModel createNodeModel() {
-        return new DateTimeRoundNodeModel(CONFIGURATION);
+    protected ColumnRearranger createColumnRearranger(final DataTableSpec spec,
+        final TimeRoundNodeSettings modelSettings) throws InvalidSettingsException {
+
+        ColumnRearranger rearranger = new ColumnRearranger(spec);
+        String[] selectedColumns = DateTimeRoundModelUtils.getSelectedColumns(spec,
+            TimeRoundNodeSettings.TIME_COLUMN_TYPES, modelSettings.m_columnFilter);
+
+        for (String selectedColumn : selectedColumns) {
+
+            SingleCellFactory factory = createCellFactory(spec, selectedColumn, modelSettings);
+
+            if (modelSettings.m_replaceOrAppend == ReplaceOrAppend.REPLACE) {
+                rearranger.replace(factory, selectedColumn);
+            } else {
+                rearranger.append(factory);
+            }
+        }
+        return rearranger;
     }
 
-    private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
-        .name("Date&Time Rounder") //
-        .icon("date-time-rounder.png") //
-        .shortDescription("Rounds a date or time.") //
-        .fullDescription("This modes can round Date and Time data in a date-base or time-based manner.") //
-        .modelSettingsClass(DateTimeRoundNodeSettings.class) //
-        .addInputTable("Input table", "Input table.") //
-        .addOutputTable("Output table", "Output table with rounded dates and times.") //
-        .keywords("modify", "ceil", "floor", "trunc", "fields", "hour", "minute", "second", "milli", "precision", "day",
-            "weekday", "month", "quater", "decade", "week")//
-        .build();
+    SingleCellFactory createCellFactory(final DataTableSpec spec, final String selectedColumn,
+        final TimeRoundNodeSettings settings) {
+        var indexOfTargetColumn = spec.findColumnIndex(selectedColumn);
 
-    public DateTimeRoundNodeFactory() {
-        super(CONFIGURATION);
+        DataColumnSpec newColSpec = DateTimeRoundModelUtils.createColumnSpec(spec, selectedColumn,
+            settings.m_replaceOrAppend, settings.m_outputColumnSuffix);
+
+        return new RoundCellFactory( //
+            newColSpec, //
+            indexOfTargetColumn, //
+            TimeRoundingUtil.createRoundingOperator(settings), //
+            createMessageBuilder(), //
+            this::setWarning); //
+
     }
-
 }

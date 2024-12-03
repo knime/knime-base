@@ -75,25 +75,16 @@ class TimeRoundingUtilTest {
     void testRoundTimeBasedTemporal(final String label, final Temporal input, final TimeRoundingStrategy strategy,
         final Duration interval, final Temporal expected) {
 
-        Temporal result = TimeRoundingUtil.roundTimeBasedTemporal(input, strategy, interval, ShiftMode.THIS);
-        assertEquals(expected, result, "Failed test: shift mode(THIS): " + label);
-
-        Temporal resultShiftedPrevious =
-            TimeRoundingUtil.roundTimeBasedTemporal(input, strategy, interval, ShiftMode.PREVIOUS);
-        assertEquals(expected.minus(interval), resultShiftedPrevious, "Failed test: shift mode(PREVIOUS): " + label);
-
-        Temporal resultShiftedNext = TimeRoundingUtil.roundTimeBasedTemporal(input, strategy, interval, ShiftMode.NEXT);
-        assertEquals(expected.plus(interval), resultShiftedNext, "Failed test: shift mode(NEXT): " + label);
+        Temporal result = TimeRoundingUtil.roundTimeBasedTemporal(input, strategy, interval);
+        assertEquals(expected, result, "Failed test: " + label);
 
         if (strategy == TimeRoundingStrategy.FIRST_POINT_IN_TIME) {
             Temporal resultShiftedThis = TimeRoundingUtil.roundTimeBasedTemporal(input,
-                TimeRoundingStrategy.LAST_POINT_IN_TIME, interval, ShiftMode.THIS);
+                TimeRoundingStrategy.LAST_POINT_IN_TIME, interval);
+
             if (!expected.equals(input)) {
                 assertEquals(expected.plus(interval), resultShiftedThis,
-                    "Failed test: shift mode(THIS) rounding strategy(LAST): " + label);
-            } else {
-                assertEquals(expected, resultShiftedThis,
-                    "Failed test case for LAST (input was already rounded): " + label);
+                    "Failed test: (rounding strategy: LAST, automatic tested): " + label);
             }
         }
     }
@@ -475,7 +466,7 @@ class TimeRoundingUtilTest {
     @Test
     void testUnsupportedTemporalType() {
         assertThrows(IllegalArgumentException.class, () -> TimeRoundingUtil.roundTimeBasedTemporal(LocalDate.now(),
-            TimeRoundingStrategy.FIRST_POINT_IN_TIME, Duration.ofHours(24), ShiftMode.THIS));
+            TimeRoundingStrategy.FIRST_POINT_IN_TIME, Duration.ofHours(24)));
     }
 
 }

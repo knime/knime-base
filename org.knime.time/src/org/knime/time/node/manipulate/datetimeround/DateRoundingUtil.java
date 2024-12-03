@@ -54,10 +54,12 @@ import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.temporal.Temporal;
 import java.time.temporal.TemporalAdjusters;
+import java.util.function.UnaryOperator;
 
 import org.knime.time.node.manipulate.datetimeround.DateRoundNodeSettings.DateRoundingStrategy;
 import org.knime.time.node.manipulate.datetimeround.DateRoundNodeSettings.DayOrWeekday;
 import org.knime.time.node.manipulate.datetimeround.DateRoundNodeSettings.RoundDatePrecision;
+import org.knime.time.node.manipulate.datetimeround.DateRoundNodeSettings.ShiftMode;
 
 /**
  * Utility class for rounding date-based temporal values to a specified precision.
@@ -95,15 +97,25 @@ public final class DateRoundingUtil {
         }
     }
 
+    /**
+
+     * @param settings the settings to use for rounding
+     * @return the rounding operator, i.e., a function that takes a temporal value and returns the rounded value
+     */
+    public static UnaryOperator<Temporal> createDateRounder(final DateRoundNodeSettings settings) {
+
+        return temporal -> roundDateBasedTemporal(temporal, settings.m_dateRoundingStrategy,
+            settings.m_dateRoundingPrecision, settings.m_shiftMode, settings.m_dayOrWeekDay);
+    }
+
     private static LocalDate roundLocalDate(final LocalDate date, final DateRoundingStrategy strategy,
         final RoundDatePrecision roundingPrecision, final ShiftMode shiftMode, final DayOrWeekday dayOrWeekday) {
 
         LocalDate shiftedDate = shiftDate(date, roundingPrecision, shiftMode);
-
         LocalDate roundedDate = getRoundedDate(shiftedDate, roundingPrecision, strategy);
 
         if (dayOrWeekday == DayOrWeekday.WEEKDAY) {
-            return adjustForWeekday(roundedDate, strategy, roundingPrecision);
+            return adjustForWeekday(roundedDate, roundingPrecision, strategy);
         } else {
             return roundedDate;
         }
@@ -120,8 +132,8 @@ public final class DateRoundingUtil {
     }
 
     /**
-     * Returns the rounded date based on the specified precision and strategy. DayAndWeekday is not considered and
-     * need to be adjusted separately.
+     * Returns the rounded date based on the specified precision and strategy. DayAndWeekday is not considered and need
+     * to be adjusted separately.
      *
      * @param date the date to round
      * @param precision the precision to round to
@@ -154,7 +166,7 @@ public final class DateRoundingUtil {
     }
 
     private static LocalDate roundToQuaters(final LocalDate date, final DateRoundingStrategy strategy) {
-        int startMonthOfQuarter = ((date.getMonthValue() - 1) / 3) * 3 + 1;
+        int startMonthOfQuarter = (date.getMonthValue()+2)/3 * 3 - 2;
         LocalDate startOfQuarter = date.withMonth(startMonthOfQuarter).withDayOfMonth(1);
         return strategy == DateRoundingStrategy.FIRST //
             ? startOfQuarter //
@@ -166,11 +178,11 @@ public final class DateRoundingUtil {
         LocalDate startOfDecade = LocalDate.of(startYearOfDecade, 1, 1);
         return strategy == DateRoundingStrategy.FIRST //
             ? startOfDecade //
-            : LocalDate.of(startYearOfDecade + 9, 12, 31);
+            : startOfDecade.plusYears(10).minusDays(1);
     }
 
-    private static LocalDate adjustForWeekday(final LocalDate date, final DateRoundingStrategy strategy,
-        final RoundDatePrecision roundingInterval) {
+    private static LocalDate adjustForWeekday(final LocalDate date, final RoundDatePrecision roundingInterval,
+        final DateRoundingStrategy strategy) {
 
         if (roundingInterval == RoundDatePrecision.WEEK) {
             // At this point,
@@ -181,6 +193,7 @@ public final class DateRoundingUtil {
                 : date.with(TemporalAdjusters.previousOrSame(DayOfWeek.FRIDAY));
         }
 
+        // All other precision are rounded to the first or last day of the month, i.e., month, quarter, year, decade.
         return strategy == DateRoundingStrategy.FIRST //
             ? date.with(TemporalAdjusters.firstInMonth(DayOfWeek.MONDAY)) //
             : date.with(TemporalAdjusters.lastInMonth(DayOfWeek.FRIDAY));

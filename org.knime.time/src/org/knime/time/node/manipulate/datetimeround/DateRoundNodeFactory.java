@@ -44,30 +44,46 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 26, 2024 (Tobias Kampmann): created
+ *   Nov 18, 2024 (tobias): created
  */
 package org.knime.time.node.manipulate.datetimeround;
 
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
+
 /**
- *  Enumeration for the shift mode.
- *  Additional option to shift the value to round by the rounding precision
- *  so 12:12 rounded to first hour with a "PREVIOUS" shift mode will be 11:00.
+ * The node factory of the node which rounds dates.
+ *
+ * @author Tobias Kampmann, TNG Technology Consulting GmbH
  */
-enum ShiftMode {
-        /**
-         * Shift to the previous value.
-         * 12:12 rounded to first hour with a "PREVIOUS" shift mode will be 11:00.
-         */
-        PREVIOUS,
-        /**
-         * Option to not shift the value.
-         * Shift to the this value, i.e., no shift at all.
-         * 12:12 rounded to first hour with a "THIS" shift mode will be 12:00.
-         */
-        THIS,
-        /**
-         * Shift to the next value.
-         * 12:12 rounded to first hour with a "NEXT" shift mode will be 13:00.
-         */
-        NEXT;
+@SuppressWarnings("restriction")
+public final class DateRoundNodeFactory extends WebUINodeFactory<DateRoundNodeModel> {
+
+    @Override
+    public DateRoundNodeModel createNodeModel() {
+        return new DateRoundNodeModel(CONFIGURATION);
+    }
+
+    private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
+        .name("Date Rounder") //
+        .icon("date-time-rounder.png") //
+        .shortDescription("Rounds a date.") //
+        .fullDescription("""
+            The Date Rounder Node is designed for rounding date-based data within a table. \
+            It offers a flexible interface to adjust and transform date column values based \
+            on user-defined strategies and precision settings. This node is highly adaptable, \
+            enabling users to replace or append transformed columns to the input table, \
+            facilitating seamless integration into data workflows.
+            """) //
+        .modelSettingsClass(DateRoundNodeSettings.class) //
+        .addInputTable("Input table", "Input table.") //
+        .addOutputTable("Output table", "Output table with rounded dates.") //
+        .keywords("modify", "ceil", "floor", "trunc", "fields", "hour", "minute", "second", "milli", "precision", "day",
+            "weekday", "month", "quater", "decade", "week")//
+        .build();
+
+    public DateRoundNodeFactory() {
+        super(CONFIGURATION);
+    }
+
 }

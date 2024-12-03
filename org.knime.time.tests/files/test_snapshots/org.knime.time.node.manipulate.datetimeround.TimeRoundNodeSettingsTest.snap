@@ -1,0 +1,419 @@
+{
+  "data" : {
+    "model" : {
+      "columnFilter" : {
+        "selected" : [ ],
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : false
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "timeRoundingStrategy" : "FIRST_POINT_IN_TIME",
+      "timeRoundingPrecision" : "HOURS_1",
+      "replaceOrAppend" : "REPLACE",
+      "outputColumnSuffix" : " (rounded)"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnFilter" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "default" : [ ],
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "typeDisplays" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : {
+                          "type" : "string"
+                        },
+                        "text" : {
+                          "type" : "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Time columns",
+            "description" : "Only the included columns will be shifted.",
+            "default" : {
+              "selected" : [ ],
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "outputColumnSuffix" : {
+            "type" : "string",
+            "title" : "Output column suffix",
+            "description" : "The suffix that is appended to the column name. The suffix will be added to the original column name separated by a space.",
+            "default" : " (rounded)"
+          },
+          "replaceOrAppend" : {
+            "oneOf" : [ {
+              "const" : "REPLACE",
+              "title" : "Replace"
+            }, {
+              "const" : "APPEND",
+              "title" : "Append with suffix"
+            } ],
+            "title" : "Output columns",
+            "description" : "Depending on the selection, the selected columns will be replaced or appended to the input table.\n<ul>\n<li><b>Replace</b>: The selected columns will be replaced by the new columns.</li>\n<li><b>Append with suffix</b>: The selected columns will be appended to the input table, with a new name that is the previous name plus the provided suffix.</li>\n</ul>",
+            "default" : "REPLACE"
+          },
+          "timeRoundingPrecision" : {
+            "oneOf" : [ {
+              "const" : "HOURS_24",
+              "title" : "24 Hours"
+            }, {
+              "const" : "HOURS_12",
+              "title" : "12 Hours"
+            }, {
+              "const" : "HOURS_6",
+              "title" : "6 Hours"
+            }, {
+              "const" : "HOURS_4",
+              "title" : "4 Hours"
+            }, {
+              "const" : "HOURS_3",
+              "title" : "3 Hours"
+            }, {
+              "const" : "HOURS_2",
+              "title" : "2 Hours"
+            }, {
+              "const" : "HOURS_1",
+              "title" : "1 Hour"
+            }, {
+              "const" : "MINUTES_30",
+              "title" : "30 Minutes"
+            }, {
+              "const" : "MINUTES_15",
+              "title" : "15 Minutes"
+            }, {
+              "const" : "MINUTES_10",
+              "title" : "10 Minutes"
+            }, {
+              "const" : "MINUTES_5",
+              "title" : "5 Minutes"
+            }, {
+              "const" : "MINUTES_2",
+              "title" : "2 Minutes"
+            }, {
+              "const" : "MINUTES_1",
+              "title" : "1 Minute"
+            }, {
+              "const" : "SECONDS_30",
+              "title" : "30 Seconds"
+            }, {
+              "const" : "SECONDS_15",
+              "title" : "15 Seconds"
+            }, {
+              "const" : "SECONDS_10",
+              "title" : "10 Seconds"
+            }, {
+              "const" : "SECONDS_5",
+              "title" : "5 Seconds"
+            }, {
+              "const" : "SECONDS_2",
+              "title" : "2 Seconds"
+            }, {
+              "const" : "SECONDS_1",
+              "title" : "1 Second"
+            }, {
+              "const" : "MILLISECONDS_500",
+              "title" : "500 Milliseconds"
+            }, {
+              "const" : "MILLISECONDS_250",
+              "title" : "250 Milliseconds"
+            }, {
+              "const" : "MILLISECONDS_125",
+              "title" : "125 Milliseconds"
+            }, {
+              "const" : "MILLISECONDS_100",
+              "title" : "100 Milliseconds"
+            }, {
+              "const" : "MILLISECONDS_50",
+              "title" : "50 Milliseconds"
+            }, {
+              "const" : "MILLISECONDS_25",
+              "title" : "25 Milliseconds"
+            }, {
+              "const" : "MILLISECONDS_20",
+              "title" : "20 Milliseconds"
+            }, {
+              "const" : "MILLISECONDS_10",
+              "title" : "10 Milliseconds"
+            }, {
+              "const" : "MILLISECONDS_5",
+              "title" : "5 Milliseconds"
+            }, {
+              "const" : "MILLISECONDS_2",
+              "title" : "2 Milliseconds"
+            }, {
+              "const" : "MILLISECONDS_1",
+              "title" : "1 Millisecond"
+            } ],
+            "title" : "of",
+            "description" : "The rounding precision. The date will be rounded to the first or last value of the chosen precision. Represented as a duration, i.e., PT1H for one hour.\n",
+            "default" : "HOURS_1"
+          },
+          "timeRoundingStrategy" : {
+            "oneOf" : [ {
+              "const" : "FIRST_POINT_IN_TIME",
+              "title" : "First Point in time"
+            }, {
+              "const" : "LAST_POINT_IN_TIME",
+              "title" : "Last Point in time"
+            }, {
+              "const" : "NEAREST_POINT_IN_TIME",
+              "title" : "Nearest Point in time"
+            } ],
+            "title" : "Round to",
+            "description" : "The rounding strategy to apply, either round to the first, last or nearest value of the chosen rounding precision.\n\n<ul>\n<li><b>First Point in time</b>: Round to the first point in time of the selected duration. E.g., rounding 18:45.215 to one hour yields 18:00.</li>\n<li><b>Last Point in time</b>: Round to the last point in time of the selected duration. E.g., rounding 18:45.215 to one hour yields 19:00.</li>\n<li><b>Nearest Point in time</b>: Round to the nearest point in time of the selected duration. E.g., Last/First is chosen depending on which one is closer to the to be rounded time</li>\n</ul>",
+            "default" : "FIRST_POINT_IN_TIME"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/columnFilter",
+      "options" : {
+        "format" : "columnFilter",
+        "possibleValues" : [ {
+          "id" : "localTimeTest",
+          "text" : "localTimeTest",
+          "type" : {
+            "id" : "org.knime.core.data.time.localtime.LocalTimeValue",
+            "text" : "Local Time"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.time.localtime.LocalTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
+        }, {
+          "id" : "localDateTimeTest",
+          "text" : "localDateTimeTest",
+          "type" : {
+            "id" : "org.knime.core.data.time.localdatetime.LocalDateTimeValue",
+            "text" : "Local Date Time"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.time.localdatetime.LocalDateTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
+        }, {
+          "id" : "zonedDateTimeTest",
+          "text" : "zonedDateTimeTest",
+          "type" : {
+            "id" : "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue",
+            "text" : "Zoned Date Time"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
+        } ],
+        "showNoneColumn" : false,
+        "showRowKeys" : false,
+        "showSearch" : true,
+        "showMode" : true
+      }
+    }, {
+      "type" : "HorizontalLayout",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/timeRoundingStrategy"
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/timeRoundingPrecision"
+      } ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/replaceOrAppend",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/outputColumnSuffix",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/replaceOrAppend",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "APPEND"
+            } ]
+          }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnFilter" : {
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : { },
+                  "typeDisplays" : {
+                    "type" : "array",
+                    "configPaths" : [ ],
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : { },
+                        "text" : { }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "timeRoundingStrategy" : { },
+          "timeRoundingPrecision" : { },
+          "replaceOrAppend" : {
+            "configPaths" : [ [ "replace_or_append" ] ]
+          },
+          "outputColumnSuffix" : { }
+        }
+      }
+    }
+  }
+}
