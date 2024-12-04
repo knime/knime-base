@@ -167,14 +167,25 @@ final class DateTimeRoundModelUtils {
      * @param valueClasses The value classes to check for compatibility
      * @return A list of compatible columns names
      */
-    static String[] getSelectedColumns(final DataTableSpec spec,
+    static SelectedColumns getSelectedColumns(final DataTableSpec spec,
         final Collection<Class<? extends DataValue>> valueClasses, final ColumnFilter columnFilter) {
 
-        var compatibleColumns = spec.stream()
+
+        var selectedColumnNames = columnFilter.getSelected(getCompatibleColumns(spec,valueClasses), spec);
+        var selectedColumnsIncludingMissing = columnFilter.getSelectedIncludingMissing(getCompatibleColumns(spec,valueClasses), spec);
+
+        return new SelectedColumns(selectedColumnNames, selectedColumnsIncludingMissing.length != selectedColumnNames.length);
+    }
+
+    record SelectedColumns(String[] selectedColumns, boolean areColumnsMissing) {
+    }
+
+    static String[] getCompatibleColumns(final DataTableSpec spec,
+        final Collection<Class<? extends DataValue>> valueClasses) {
+
+        return spec.stream()
             .filter(dateColumnSpec -> valueClasses.stream().anyMatch(dateColumnSpec.getType()::isCompatible))
             .map(DataColumnSpec::getName).toArray(String[]::new);
-
-        return columnFilter.getSelected(compatibleColumns, spec);
     }
 
     /**

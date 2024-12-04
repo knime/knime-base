@@ -56,6 +56,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 import org.knime.time.node.manipulate.datetimeround.DateTimeRoundModelUtils.RoundCellFactory;
+import org.knime.time.node.manipulate.datetimeround.DateTimeRoundModelUtils.SelectedColumns;
 import org.knime.time.util.ReplaceOrAppend;
 
 /**
@@ -77,10 +78,14 @@ public class TimeRoundNodeModel extends WebUISimpleStreamableFunctionNodeModel<T
         final TimeRoundNodeSettings modelSettings) throws InvalidSettingsException {
 
         ColumnRearranger rearranger = new ColumnRearranger(spec);
-        String[] selectedColumns = DateTimeRoundModelUtils.getSelectedColumns(spec,
+        SelectedColumns selection = DateTimeRoundModelUtils.getSelectedColumns(spec,
             TimeRoundNodeSettings.TIME_COLUMN_TYPES, modelSettings.m_columnFilter);
 
-        for (String selectedColumn : selectedColumns) {
+        if(selection.areColumnsMissing()) {
+            setWarningMessage("Some columns are missing in the input table. Please check the configuration.");
+        }
+
+        for (String selectedColumn : selection.selectedColumns()) {
 
             SingleCellFactory factory = createCellFactory(spec, selectedColumn, modelSettings);
 
