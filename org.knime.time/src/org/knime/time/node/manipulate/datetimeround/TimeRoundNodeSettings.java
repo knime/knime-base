@@ -54,6 +54,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
 import org.knime.core.data.time.localtime.LocalTimeValue;
@@ -119,6 +120,20 @@ public class TimeRoundNodeSettings implements DefaultNodeSettings {
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
     @Layout(DateTimeRoundNodeLayout.Bottom.class)
     String m_outputColumnSuffix = " (rounded)";
+
+    TimeRoundNodeSettings() {
+        this((DataTableSpec)null);
+    }
+
+    TimeRoundNodeSettings(final DefaultNodeSettingsContext ctx) {
+        this(ctx.getDataTableSpec(0).orElse(null));
+    }
+
+    TimeRoundNodeSettings(final DataTableSpec spec) {
+        if (spec != null) {
+            m_columnFilter = new ColumnFilter(DateTimeRoundModelUtils.getCompatibleColumns(spec, TIME_COLUMN_TYPES));
+        }
+    }
 
     enum TimeRoundingStrategy {
             @Label(value = "First Point in time",
