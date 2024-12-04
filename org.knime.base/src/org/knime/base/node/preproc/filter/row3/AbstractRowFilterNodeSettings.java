@@ -496,7 +496,6 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
 
         @Override
         public void init(final StateProviderInitializer initializer) {
-            initializer.computeAfterOpenDialog();
             m_columnSelection = initializer.computeFromValueSupplier(SelectedColumnRef.class);
         }
 

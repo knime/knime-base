@@ -193,11 +193,6 @@ final class FilterOperatorTest {
                 throw new IllegalStateException("Unexpected dependency \"%s\"".formatted(ref.getName()));
             }
 
-            @Override
-            public void computeAfterOpenDialog() {
-                // Do nothing
-            }
-
         });
 
         final var choices = new TypeBasedOperatorChoices();
@@ -213,6 +208,10 @@ final class FilterOperatorTest {
                     "Unexpected provider class \"%s\"".formatted(stateProviderClass.getName()));
             }
 
+            @Override
+            public void computeBeforeOpenDialog() {
+                // expected to be called
+            }
         });
 
         return Arrays.stream(choices.computeState(ctx)).map(idAndText -> FilterOperator.valueOf(idAndText.id()))

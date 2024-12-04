@@ -354,15 +354,6 @@
   } ],
   "globalUpdates" : [ {
     "trigger" : {
-      "id" : "after-open-dialog",
-      "triggerInitially" : true
-    },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/predicates", "#/properties/column" ],
-      "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$SelectedColumnRef"
-    } ]
-  }, {
-    "trigger" : {
       "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$OperatorRef",
       "scopes" : [ "#/properties/model/properties/predicates", "#/properties/operator" ]
     },
