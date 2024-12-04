@@ -346,9 +346,6 @@ public final class SettingsModelDateTime extends SettingsModel {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @SuppressWarnings("unchecked")
     @Override
     protected SettingsModelDateTime createClone() {
@@ -360,25 +357,16 @@ public final class SettingsModelDateTime extends SettingsModel {
         return modelClone;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected String getModelTypeID() {
         return "settingsmodel.date&time";
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected String getConfigName() {
         return m_configName;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
@@ -392,9 +380,6 @@ public final class SettingsModelDateTime extends SettingsModel {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         final String string = settings.getString(m_configName);
@@ -431,13 +416,10 @@ public final class SettingsModelDateTime extends SettingsModel {
             setUseTime(false);
             setUseZone(true);
         } else {
-            throw new InvalidSettingsException("'" + string + "' could not be parsed as a date, time, or time zone.");
+            throw new InvalidSettingsException("Setting for <"+m_configName+"> '" + string + "' could not be parsed as a date, time, or time zone.");
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         final String string = settings.getString(m_configName);
@@ -445,21 +427,15 @@ public final class SettingsModelDateTime extends SettingsModel {
             && !DateTimeUtils.asZonedDateTime(string).isPresent() && !DateTimeUtils.asLocalDateTime(string).isPresent()
             && !DateTimeUtils.asLocalDate(string).isPresent() && !DateTimeUtils.asLocalTime(string).isPresent()
             && !DateTimeUtils.asTimezone(string).isPresent()) {
-            throw new InvalidSettingsException("'" + string + "' could not be parsed as a date, time, or time zone.");
+            throw new InvalidSettingsException("Setting for <"+m_configName+"> '" + string + "' could not be parsed as a date, time, or time zone.");
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
         saveSettingsForModel(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveSettingsForModel(final NodeSettingsWO settings) {
         if (m_useDate && m_useTime && m_useZone) {
@@ -477,9 +453,6 @@ public final class SettingsModelDateTime extends SettingsModel {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         if (!m_useDate && !m_useTime && !m_useZone) {
