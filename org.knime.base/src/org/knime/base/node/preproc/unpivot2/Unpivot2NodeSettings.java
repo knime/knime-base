@@ -77,7 +77,8 @@ public final class Unpivot2NodeSettings implements DefaultNodeSettings {
 
     @Persist(configKey = Unpivot2NodeModel.CFG_VALUE_COLUMNS, customPersistor = LegacyColumnFilterPersistor.class)
     @Widget(title = "Value columns",
-        description = "This list contains the columns that are rotated into one single column.", hideTitle = true)
+        description = "This list contains the columns that are rotated into one single column.",
+        hideControlHeader = true)
     @ChoicesWidget(choices = AllColumns.class)
     @Layout(ValueColumnsSection.class)
     ColumnFilter m_valueColumns = new ColumnFilter();
@@ -98,7 +99,7 @@ public final class Unpivot2NodeSettings implements DefaultNodeSettings {
     @Widget(title = "Retained columns",
         description = "This list contains the columns "
             + "which are duplicated by the number of selected value columns.",
-        hideTitle = true)
+        hideControlHeader = true)
     @ChoicesWidget(choices = AllColumns.class)
     @Layout(RetainedColumnsSection.class)
     ColumnFilter m_retainedColumns = new ColumnFilter();

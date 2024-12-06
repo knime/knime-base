@@ -22,7 +22,7 @@
       "timeRoundingStrategy" : "FIRST_POINT_IN_TIME",
       "timeRoundingPrecision" : "HOURS_1",
       "replaceOrAppend" : "REPLACE",
-      "outputColumnSuffix" : " (rounded)"
+      "outputColumnSuffix" : " (Rounded)"
     }
   },
   "schema" : {
@@ -162,7 +162,7 @@
             "type" : "string",
             "title" : "Output column suffix",
             "description" : "The suffix that is appended to the column name. The suffix will be added to the original column name separated by a space.",
-            "default" : " (rounded)"
+            "default" : " (Rounded)"
           },
           "replaceOrAppend" : {
             "oneOf" : [ {
@@ -268,7 +268,7 @@
               "const" : "MILLISECONDS_1",
               "title" : "1 Millisecond"
             } ],
-            "title" : "of",
+            "title" : "Rounding Precision",
             "description" : "The rounding precision. The date will be rounded to the first or last value of the chosen precision. Represented as a duration, i.e., PT1H for one hour.\n",
             "default" : "HOURS_1"
           },
@@ -334,7 +334,8 @@
         "scope" : "#/properties/model/properties/timeRoundingStrategy"
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/timeRoundingPrecision"
+        "scope" : "#/properties/model/properties/timeRoundingPrecision",
+        "label" : "of"
       } ]
     }, {
       "type" : "Control",
@@ -408,9 +409,7 @@
           },
           "timeRoundingStrategy" : { },
           "timeRoundingPrecision" : { },
-          "replaceOrAppend" : {
-            "configPaths" : [ [ "replace_or_append" ] ]
-          },
+          "replaceOrAppend" : { },
           "outputColumnSuffix" : { }
         }
       }
