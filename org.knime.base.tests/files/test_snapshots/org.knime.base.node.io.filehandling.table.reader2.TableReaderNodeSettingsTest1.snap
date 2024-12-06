@@ -20,10 +20,10 @@
         "prependTableIndexToRowId" : false
       },
       "advancedSettings" : {
+        "ifSchemaChangesOption" : "FAIL",
         "howToCombineColumns" : "FAIL",
         "appendPathColumn" : false,
         "filePathColumnName" : "File Path",
-        "ifSchemaChangesOption" : "FAIL",
         "skipFirstDataRows" : 0,
         "limitNumberOfRows" : false,
         "maximumNumberOfRows" : 50
@@ -125,10 +125,10 @@
               }
             },
             "default" : {
+              "ifSchemaChangesOption" : "FAIL",
               "howToCombineColumns" : "FAIL",
               "appendPathColumn" : false,
               "filePathColumnName" : "File Path",
-              "ifSchemaChangesOption" : "FAIL",
               "skipFirstDataRows" : 0,
               "limitNumberOfRows" : false,
               "maximumNumberOfRows" : 50
@@ -498,7 +498,6 @@
           "detail" : [ {
             "type" : "Control",
             "scope" : "#/properties/columnRename",
-            "label" : "",
             "rule" : {
               "effect" : "SHOW",
               "condition" : {
@@ -529,7 +528,6 @@
               "showSearch" : true,
               "showMode" : true
             },
-            "label" : "",
             "rule" : {
               "effect" : "SHOW",
               "condition" : {
@@ -601,6 +599,9 @@
             "configKey" : "advanced_settings",
             "type" : "object",
             "properties" : {
+              "ifSchemaChangesOption" : {
+                "configPaths" : [ [ "check_table_spec" ] ]
+              },
               "howToCombineColumns" : {
                 "configPaths" : [ [ "fail_on_differing_specs" ], [ "spec_merge_mode" ] ]
               },
@@ -609,9 +610,6 @@
               },
               "filePathColumnName" : {
                 "configPaths" : [ ]
-              },
-              "ifSchemaChangesOption" : {
-                "configPaths" : [ [ "check_table_spec" ] ]
               },
               "skipFirstDataRows" : {
                 "configPaths" : [ [ "skip_data_rows" ], [ "number_of_rows_to_skip" ] ]
