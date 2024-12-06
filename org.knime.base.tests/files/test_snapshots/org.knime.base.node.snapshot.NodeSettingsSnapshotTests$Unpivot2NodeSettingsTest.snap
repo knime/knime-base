@@ -347,8 +347,7 @@
           "showRowKeys" : false,
           "showSearch" : true,
           "showMode" : true
-        },
-        "label" : ""
+        }
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/missingValues",
@@ -385,8 +384,7 @@
           "showRowKeys" : false,
           "showSearch" : true,
           "showMode" : true
-        },
-        "label" : ""
+        }
       } ]
     }, {
       "label" : "Performance",

@@ -230,7 +230,9 @@ public abstract class CommonReaderTransformationSettings<I extends ConfigIdSetti
 
     static class TakeColumnsFromProvider implements StateProvider<ColumnFilterMode> {
 
-        private Supplier<CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling.HowToCombineColumnsOption> m_howToCombineColumnsSup;
+        private Supplier<CommonReaderNodeSettings //
+                .AdvancedSettingsWithMultipleFileHandling //
+                .HowToCombineColumnsOption> m_howToCombineColumnsSup;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
