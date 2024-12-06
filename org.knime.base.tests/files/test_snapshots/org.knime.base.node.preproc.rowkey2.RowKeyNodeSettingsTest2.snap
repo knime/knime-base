@@ -57,7 +57,7 @@
               "title" : "Replace by \"?\""
             } ],
             "title" : "If ID column contains missing values",
-            "description" : "Fail if encountering missing values, or replace them.\n<ul>\n<li><b>Fail</b>: If selected, the node fails if a missing value is encountered in the selected column.</li>\n<li><b>Replace by \"?\"</b>: If selected, missing values are replaced with \"?\". We recommend also enabling the\"Append counter\" option to handle any duplicate missing values.</li>\n</ul>",
+            "description" : "Fail if encountering missing values, or replace them.\n<ul>\n<li><b>Fail</b>: If selected, the node fails if a missing value is encountered in the selected column.</li>\n<li><b>Replace by &quot;?&quot;</b>: If selected, missing values are replaced with \"?\". We recommend also enabling the\"Append counter\" option to handle any duplicate missing values.</li>\n</ul>",
             "default" : "FAIL"
           },
           "newRowKeyColumnV2" : {
