@@ -220,10 +220,7 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/localDate",
       "options" : {
-        "format" : "localDate",
-        "showTime" : false,
-        "showSeconds" : false,
-        "showMilliseconds" : false
+        "format" : "localDate"
       },
       "rule" : {
         "effect" : "HIDE",
