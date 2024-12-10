@@ -72,8 +72,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
 final class NormalizerNodeSettings implements DefaultNodeSettings {
 
     @Persist(configKey = "data-column-filter", customPersistor = LegacyColumnFilterPersistor.class)
-    @Widget(title = "Number columns", description = "Select the numerical columns to normalize.",
-        hideControlHeader = true)
+    @Widget(title = "Number columns", description = "Select the numerical columns to normalize.")
     @ChoicesWidget(choices = DoubleColumnChoicesProvider.class)
     ColumnFilter m_dataColumnFilterConfig = new ColumnFilter().withIncludeUnknownColumns();
 
