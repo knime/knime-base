@@ -57,7 +57,6 @@ import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.Temporal;
-import java.util.function.UnaryOperator;
 
 import org.knime.time.node.manipulate.datetimeround.TimeRoundNodeSettings.TimeRoundingStrategy;
 
@@ -93,15 +92,6 @@ public final class TimeRoundingUtil {
         } else {
             throw new IllegalArgumentException("Unsupported Temporal type: " + temporal.getClass());
         }
-    }
-
-    /**
-     * @param settings the time rounding settings to create the rounding operator for
-     * @return the rounding operator
-     */
-    public static UnaryOperator<Temporal> createRoundingOperator(final TimeRoundNodeSettings settings) {
-        return temporal -> roundTimeBasedTemporal(temporal, settings.m_timeRoundingStrategy,
-            settings.m_timeRoundingPrecision.getDuration());
     }
 
     private static LocalDateTime roundLocalDateTime(final LocalDateTime dateTime, final TimeRoundingStrategy strategy,

@@ -48,6 +48,9 @@
  */
 package org.knime.time.node.manipulate.datetimeround;
 
+import java.time.temporal.Temporal;
+import java.util.function.UnaryOperator;
+
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.ColumnRearranger;
@@ -103,9 +106,18 @@ public class TimeRoundNodeModel extends WebUISimpleStreamableFunctionNodeModel<T
         return new RoundCellFactory( //
             newColSpec, //
             indexOfTargetColumn, //
-            TimeRoundingUtil.createRoundingOperator(settings), //
+            createRoundingOperator(settings), //
             createMessageBuilder(), //
             this::setWarning); //
 
+    }
+
+    /**
+     * @param settings the time rounding settings to create the rounding operator for
+     * @return the rounding operator
+     */
+    public static UnaryOperator<Temporal> createRoundingOperator(final TimeRoundNodeSettings settings) {
+        return temporal -> TimeRoundingUtil.roundTimeBasedTemporal(temporal, settings.m_timeRoundingStrategy,
+            settings.m_timeRoundingPrecision.getDuration());
     }
 }

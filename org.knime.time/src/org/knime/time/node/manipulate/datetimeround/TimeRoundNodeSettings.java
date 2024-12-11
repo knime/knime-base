@@ -75,6 +75,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoic
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.time.node.manipulate.datetimeround.TimeRoundingUtil.TimeRoundingStrategy;
 import org.knime.time.util.ReplaceOrAppend;
 
 /**
@@ -135,7 +136,7 @@ public class TimeRoundNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    enum TimeRoundingStrategy {
+    public enum TimeRoundingStrategy {
             @Label(value = "First Point in time",
                 description = "Round to the first point in time of the selected duration. "
                     + "E.g., rounding 18:45.215 to one hour yields 18:00.")

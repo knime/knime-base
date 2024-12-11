@@ -140,15 +140,15 @@ public class DateRoundNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    enum DateRoundingStrategy {
+    public enum DateRoundingStrategy {
             FIRST, LAST;
     }
 
-    enum DayOrWeekday {
+    public enum DayOrWeekday {
             DAY, WEEKDAY;
     }
 
-    enum RoundDatePrecision {
+    public enum RoundDatePrecision {
 
             DECADE(Period.ofYears(10)), //
             YEAR(Period.ofYears(1)), //
@@ -171,7 +171,7 @@ public class DateRoundNodeSettings implements DefaultNodeSettings {
      * Enumeration for the shift mode. Additional option to shift the date to the previous or next date in the chosen
      * resolution.
      */
-    enum ShiftMode {
+    public enum ShiftMode {
             /**
              * Shift to the previous value. 12.12.24 rounded to the first day of the 'previous' month will result in
              * 1.11.24.
