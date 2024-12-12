@@ -65,9 +65,9 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.util.UniqueNameGenerator;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
-import org.knime.time.node.convert.durationtonumber.DurationToNumberNodeSettings.AllowedUnits;
 import org.knime.time.node.convert.durationtonumber.DurationToNumberNodeSettings.RoundingBehaviour;
 import org.knime.time.util.ReplaceOrAppend;
+import org.knime.time.util.TimeBasedGranularityUnit;
 
 /**
  * New node model for the node that converts durations to numbers.
@@ -137,7 +137,7 @@ final class DurationToNumberNodeModel2 extends WebUISimpleStreamableFunctionNode
 
         private final RoundingBehaviour m_roundingBehaviour;
 
-        private final AllowedUnits m_unit;
+        private final TimeBasedGranularityUnit m_unit;
 
         private final int m_inputColumnIndex;
 
@@ -145,7 +145,7 @@ final class DurationToNumberNodeModel2 extends WebUISimpleStreamableFunctionNode
             final int inputColumnIndex, //
             final RoundingBehaviour roundingBehaviour, //
             final String newColumnName, //
-            final AllowedUnits unit //
+            final TimeBasedGranularityUnit unit //
         ) {
             super(createNewColumnSpec(newColumnName, roundingBehaviour));
 

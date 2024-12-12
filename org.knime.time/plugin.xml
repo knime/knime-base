@@ -132,8 +132,13 @@
       </node>
       <node
             category-path="/applications/timeseries/manipulate"
-            deprecated="false"
+            deprecated="true"
             factory-class="org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeFactory">
+      </node>
+      <node
+            category-path="/applications/timeseries/manipulate"
+            deprecated="false"
+            factory-class="org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeFactory2">
       </node>
       <node
             category-path="/applications/timeseries/transform"

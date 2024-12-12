@@ -73,9 +73,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
-import org.knime.time.node.convert.durationtonumber.DurationToNumberNodeSettings.AllowedUnits;
 import org.knime.time.node.convert.durationtonumber.DurationToNumberNodeSettings.RoundingBehaviour;
 import org.knime.time.util.ReplaceOrAppend;
+import org.knime.time.util.TimeBasedGranularityUnit;
 
 /**
  *
@@ -84,7 +84,7 @@ import org.knime.time.util.ReplaceOrAppend;
 @SuppressWarnings({"restriction", "squid:S5960", "squid:S1192"})
 public class DurationToNumberNodeModelTest {
 
-    private record TestCase(AllowedUnits targetUnit, Duration input, long expectedTruncatedOutput,
+    private record TestCase(TimeBasedGranularityUnit targetUnit, Duration input, long expectedTruncatedOutput,
         double expectedExactOutput) {
     }
 
@@ -101,48 +101,51 @@ public class DurationToNumberNodeModelTest {
      * Every test case will be negated and tested again, so we know that negative durations work too.
      */
     private static final List<TestCase> TEST_CASES = List.of( //
-        new TestCase(AllowedUnits.HOURS, Duration.parse("PT0.000000001S"), 0L, 1.0e-9 / 3600), //
-        new TestCase(AllowedUnits.HOURS, Duration.parse("PT0.000002S"), 0L, 2.0e-6 / 3600), //
-        new TestCase(AllowedUnits.HOURS, Duration.parse("PT0.003S"), 0L, 3.0e-3 / 3600), //
-        new TestCase(AllowedUnits.HOURS, Duration.parse("PT4S"), 0L, 4.0e+0 / 3600), //
-        new TestCase(AllowedUnits.HOURS, Duration.parse("PT5M"), 0L, 5.0e+0 / 60), //
-        new TestCase(AllowedUnits.HOURS, Duration.parse("PT6H"), 6L, 6.0e+0), //
-        new TestCase(AllowedUnits.HOURS, Duration.parse("PT1H2M3.0456789S"), 1L, 3.7230456789e+3 / 3600), //
-        new TestCase(AllowedUnits.MINUTES, Duration.parse("PT0.000000001S"), 0L, 1.0e-9 / 60), //
-        new TestCase(AllowedUnits.MINUTES, Duration.parse("PT0.000002S"), 0L, 2.0e-6 / 60), //
-        new TestCase(AllowedUnits.MINUTES, Duration.parse("PT0.003S"), 0L, 5.0e-5), //
-        new TestCase(AllowedUnits.MINUTES, Duration.parse("PT4S"), 0L, 4.0e+0 / 60), //
-        new TestCase(AllowedUnits.MINUTES, Duration.parse("PT5M"), 5L, 5.0e+0), //
-        new TestCase(AllowedUnits.MINUTES, Duration.parse("PT6H"), 360L, 3.6e+2), //
-        new TestCase(AllowedUnits.MINUTES, Duration.parse("PT1H2M3.0456789S"), 62L, 3.7230456789e+3 / 60), //
-        new TestCase(AllowedUnits.SECONDS, Duration.parse("PT0.000000001S"), 0L, 1.0e-9), //
-        new TestCase(AllowedUnits.SECONDS, Duration.parse("PT0.000002S"), 0L, 2.0e-6), //
-        new TestCase(AllowedUnits.SECONDS, Duration.parse("PT0.003S"), 0L, 3.0e-3), //
-        new TestCase(AllowedUnits.SECONDS, Duration.parse("PT4S"), 4L, 4.0e+0), //
-        new TestCase(AllowedUnits.SECONDS, Duration.parse("PT5M"), 300L, 3.0e+2), //
-        new TestCase(AllowedUnits.SECONDS, Duration.parse("PT6H"), 21600L, 2.16e+4), //
-        new TestCase(AllowedUnits.SECONDS, Duration.parse("PT1H2M3.0456789S"), 3723L, 3.7230456789e+3), //
-        new TestCase(AllowedUnits.MILLISECONDS, Duration.parse("PT0.000000001S"), 0L, 1.0e-6), //
-        new TestCase(AllowedUnits.MILLISECONDS, Duration.parse("PT0.000002S"), 0L, 2.0e-3), //
-        new TestCase(AllowedUnits.MILLISECONDS, Duration.parse("PT0.003S"), 3L, 3.0e+0), //
-        new TestCase(AllowedUnits.MILLISECONDS, Duration.parse("PT4S"), 4000L, 4.0e+3), //
-        new TestCase(AllowedUnits.MILLISECONDS, Duration.parse("PT5M"), 300000L, 3.0e+5), //
-        new TestCase(AllowedUnits.MILLISECONDS, Duration.parse("PT6H"), 21600000L, 2.16e+7), //
-        new TestCase(AllowedUnits.MILLISECONDS, Duration.parse("PT1H2M3.0456789S"), 3723045L, 3.7230456789e+6), //
-        new TestCase(AllowedUnits.MICROSECONDS, Duration.parse("PT0.000000001S"), 0L, 1.0e-3), //
-        new TestCase(AllowedUnits.MICROSECONDS, Duration.parse("PT0.000002S"), 2L, 2.0e+0), //
-        new TestCase(AllowedUnits.MICROSECONDS, Duration.parse("PT0.003S"), 3000L, 3.0e+3), //
-        new TestCase(AllowedUnits.MICROSECONDS, Duration.parse("PT4S"), 4000000L, 4.0e+6), //
-        new TestCase(AllowedUnits.MICROSECONDS, Duration.parse("PT5M"), 300000000L, 3.0e+8), //
-        new TestCase(AllowedUnits.MICROSECONDS, Duration.parse("PT6H"), 21600000000L, 2.16e+10), //
-        new TestCase(AllowedUnits.MICROSECONDS, Duration.parse("PT1H2M3.0456789S"), 3723045678L, 3.7230456789e+9), //
-        new TestCase(AllowedUnits.NANOSECONDS, Duration.parse("PT0.000000001S"), 1L, 1.0e+0), //
-        new TestCase(AllowedUnits.NANOSECONDS, Duration.parse("PT0.000002S"), 2000L, 2.0e+3), //
-        new TestCase(AllowedUnits.NANOSECONDS, Duration.parse("PT0.003S"), 3000000L, 3.0e+6), //
-        new TestCase(AllowedUnits.NANOSECONDS, Duration.parse("PT4S"), 4000000000L, 4.0e+9), //
-        new TestCase(AllowedUnits.NANOSECONDS, Duration.parse("PT5M"), 300000000000L, 3.0e+11), //
-        new TestCase(AllowedUnits.NANOSECONDS, Duration.parse("PT6H"), 21600000000000L, 2.16e+13), //
-        new TestCase(AllowedUnits.NANOSECONDS, Duration.parse("PT1H2M3.0456789S"), 3723045678900L, 3.7230456789e+12) //
+        new TestCase(TimeBasedGranularityUnit.HOURS, Duration.parse("PT0.000000001S"), 0L, 1.0e-9 / 3600), //
+        new TestCase(TimeBasedGranularityUnit.HOURS, Duration.parse("PT0.000002S"), 0L, 2.0e-6 / 3600), //
+        new TestCase(TimeBasedGranularityUnit.HOURS, Duration.parse("PT0.003S"), 0L, 3.0e-3 / 3600), //
+        new TestCase(TimeBasedGranularityUnit.HOURS, Duration.parse("PT4S"), 0L, 4.0e+0 / 3600), //
+        new TestCase(TimeBasedGranularityUnit.HOURS, Duration.parse("PT5M"), 0L, 5.0e+0 / 60), //
+        new TestCase(TimeBasedGranularityUnit.HOURS, Duration.parse("PT6H"), 6L, 6.0e+0), //
+        new TestCase(TimeBasedGranularityUnit.HOURS, Duration.parse("PT1H2M3.0456789S"), 1L, 3.7230456789e+3 / 3600), //
+        new TestCase(TimeBasedGranularityUnit.MINUTES, Duration.parse("PT0.000000001S"), 0L, 1.0e-9 / 60), //
+        new TestCase(TimeBasedGranularityUnit.MINUTES, Duration.parse("PT0.000002S"), 0L, 2.0e-6 / 60), //
+        new TestCase(TimeBasedGranularityUnit.MINUTES, Duration.parse("PT0.003S"), 0L, 5.0e-5), //
+        new TestCase(TimeBasedGranularityUnit.MINUTES, Duration.parse("PT4S"), 0L, 4.0e+0 / 60), //
+        new TestCase(TimeBasedGranularityUnit.MINUTES, Duration.parse("PT5M"), 5L, 5.0e+0), //
+        new TestCase(TimeBasedGranularityUnit.MINUTES, Duration.parse("PT6H"), 360L, 3.6e+2), //
+        new TestCase(TimeBasedGranularityUnit.MINUTES, Duration.parse("PT1H2M3.0456789S"), 62L, 3.7230456789e+3 / 60), //
+        new TestCase(TimeBasedGranularityUnit.SECONDS, Duration.parse("PT0.000000001S"), 0L, 1.0e-9), //
+        new TestCase(TimeBasedGranularityUnit.SECONDS, Duration.parse("PT0.000002S"), 0L, 2.0e-6), //
+        new TestCase(TimeBasedGranularityUnit.SECONDS, Duration.parse("PT0.003S"), 0L, 3.0e-3), //
+        new TestCase(TimeBasedGranularityUnit.SECONDS, Duration.parse("PT4S"), 4L, 4.0e+0), //
+        new TestCase(TimeBasedGranularityUnit.SECONDS, Duration.parse("PT5M"), 300L, 3.0e+2), //
+        new TestCase(TimeBasedGranularityUnit.SECONDS, Duration.parse("PT6H"), 21600L, 2.16e+4), //
+        new TestCase(TimeBasedGranularityUnit.SECONDS, Duration.parse("PT1H2M3.0456789S"), 3723L, 3.7230456789e+3), //
+        new TestCase(TimeBasedGranularityUnit.MILLISECONDS, Duration.parse("PT0.000000001S"), 0L, 1.0e-6), //
+        new TestCase(TimeBasedGranularityUnit.MILLISECONDS, Duration.parse("PT0.000002S"), 0L, 2.0e-3), //
+        new TestCase(TimeBasedGranularityUnit.MILLISECONDS, Duration.parse("PT0.003S"), 3L, 3.0e+0), //
+        new TestCase(TimeBasedGranularityUnit.MILLISECONDS, Duration.parse("PT4S"), 4000L, 4.0e+3), //
+        new TestCase(TimeBasedGranularityUnit.MILLISECONDS, Duration.parse("PT5M"), 300000L, 3.0e+5), //
+        new TestCase(TimeBasedGranularityUnit.MILLISECONDS, Duration.parse("PT6H"), 21600000L, 2.16e+7), //
+        new TestCase(TimeBasedGranularityUnit.MILLISECONDS, Duration.parse("PT1H2M3.0456789S"), 3723045L,
+            3.7230456789e+6), //
+        new TestCase(TimeBasedGranularityUnit.MICROSECONDS, Duration.parse("PT0.000000001S"), 0L, 1.0e-3), //
+        new TestCase(TimeBasedGranularityUnit.MICROSECONDS, Duration.parse("PT0.000002S"), 2L, 2.0e+0), //
+        new TestCase(TimeBasedGranularityUnit.MICROSECONDS, Duration.parse("PT0.003S"), 3000L, 3.0e+3), //
+        new TestCase(TimeBasedGranularityUnit.MICROSECONDS, Duration.parse("PT4S"), 4000000L, 4.0e+6), //
+        new TestCase(TimeBasedGranularityUnit.MICROSECONDS, Duration.parse("PT5M"), 300000000L, 3.0e+8), //
+        new TestCase(TimeBasedGranularityUnit.MICROSECONDS, Duration.parse("PT6H"), 21600000000L, 2.16e+10), //
+        new TestCase(TimeBasedGranularityUnit.MICROSECONDS, Duration.parse("PT1H2M3.0456789S"), 3723045678L,
+            3.7230456789e+9), //
+        new TestCase(TimeBasedGranularityUnit.NANOSECONDS, Duration.parse("PT0.000000001S"), 1L, 1.0e+0), //
+        new TestCase(TimeBasedGranularityUnit.NANOSECONDS, Duration.parse("PT0.000002S"), 2000L, 2.0e+3), //
+        new TestCase(TimeBasedGranularityUnit.NANOSECONDS, Duration.parse("PT0.003S"), 3000000L, 3.0e+6), //
+        new TestCase(TimeBasedGranularityUnit.NANOSECONDS, Duration.parse("PT4S"), 4000000000L, 4.0e+9), //
+        new TestCase(TimeBasedGranularityUnit.NANOSECONDS, Duration.parse("PT5M"), 300000000000L, 3.0e+11), //
+        new TestCase(TimeBasedGranularityUnit.NANOSECONDS, Duration.parse("PT6H"), 21600000000000L, 2.16e+13), //
+        new TestCase(TimeBasedGranularityUnit.NANOSECONDS, Duration.parse("PT1H2M3.0456789S"), 3723045678900L,
+            3.7230456789e+12) //
     );
 
     static Stream<Arguments> provideArgumentsForIntegerTestCase() {
@@ -184,7 +187,7 @@ public class DurationToNumberNodeModelTest {
     @Test
     void testOutputSettingReplace() throws InvalidSettingsException, IOException {
         var settings = new DurationToNumberNodeSettings();
-        settings.m_unit = AllowedUnits.SECONDS;
+        settings.m_unit = TimeBasedGranularityUnit.SECONDS;
         settings.m_appendOrReplaceColumn = ReplaceOrAppend.REPLACE;
         settings.m_filter = new ColumnFilter(new String[]{INPUT_COLUMN});
         settings.m_roundingBehaviour = RoundingBehaviour.DOUBLE;
@@ -202,7 +205,7 @@ public class DurationToNumberNodeModelTest {
     @Test
     void testOutputSettingAppendWithSuffix() throws InvalidSettingsException, IOException {
         var settings = new DurationToNumberNodeSettings();
-        settings.m_unit = AllowedUnits.SECONDS;
+        settings.m_unit = TimeBasedGranularityUnit.SECONDS;
         settings.m_appendOrReplaceColumn = ReplaceOrAppend.APPEND;
         settings.m_filter = new ColumnFilter(new String[]{INPUT_COLUMN});
         settings.m_roundingBehaviour = RoundingBehaviour.DOUBLE;
@@ -221,7 +224,7 @@ public class DurationToNumberNodeModelTest {
     @ParameterizedTest(name = "{0} (with truncation)")
     @MethodSource("provideArgumentsForIntegerTestCase")
     void testConvertDurationToNumberInteger(@SuppressWarnings("unused") final String testName, final Duration input,
-        final AllowedUnits targetUnit, final Long expected) throws InvalidSettingsException, IOException {
+        final TimeBasedGranularityUnit targetUnit, final Long expected) throws InvalidSettingsException, IOException {
 
         var settings = new DurationToNumberNodeSettings();
         settings.m_unit = targetUnit;
@@ -243,7 +246,7 @@ public class DurationToNumberNodeModelTest {
     @ParameterizedTest(name = "{0} (no truncation)")
     @MethodSource("provideArgumentsForDoubleTestCase")
     void testConvertDurationToNumberDouble(@SuppressWarnings("unused") final String testName, final Duration input,
-        final AllowedUnits targetUnit, final Double expected) throws InvalidSettingsException, IOException {
+        final TimeBasedGranularityUnit targetUnit, final Double expected) throws InvalidSettingsException, IOException {
 
         var settings = new DurationToNumberNodeSettings();
         settings.m_unit = targetUnit;

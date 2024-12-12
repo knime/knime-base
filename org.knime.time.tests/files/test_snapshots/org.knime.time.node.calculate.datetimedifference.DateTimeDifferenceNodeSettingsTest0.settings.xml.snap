@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <config key="firstColumnSelection">
+        <entry key="selected" type="xstring" isnull="true" value=""/>
+        <config key="compatibleTypes_Internals"/>
+    </config>
+    <entry key="secondDateTimeValueType" type="xstring" value="COLUMN"/>
+    <config key="secondColumnSelection">
+        <entry key="selected" type="xstring" isnull="true" value=""/>
+        <config key="compatibleTypes_Internals"/>
+    </config>
+    <entry key="localDateFixed" type="xstring" value="2025-01-17"/>
+    <entry key="localTimeFixed" type="xstring" value="14:05:20.750987898"/>
+    <entry key="timezoneFixed" type="xstring" value="Europe/Berlin"/>
+    <entry key="mode" type="xstring" value="SECOND_MINUS_FIRST"/>
+    <entry key="outputType" type="xstring" value="DURATION_OR_PERIOD"/>
+    <entry key="granularity" type="xstring" value="SECOND"/>
+    <entry key="outputNumberType" type="xstring" value="DECIMALS"/>
+    <entry key="outputColumnName" type="xstring" value="Date&amp;Time Difference"/>
+</config>
