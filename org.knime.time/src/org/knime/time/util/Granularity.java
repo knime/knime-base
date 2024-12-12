@@ -48,11 +48,13 @@
  */
 package org.knime.time.util;
 
+import java.time.DateTimeException;
 import java.time.Duration;
 import java.time.Period;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.Temporal;
 import java.time.temporal.TemporalAmount;
+import java.util.function.LongFunction;
 
 /**
  * An enumeration that contains all different granularities for Date&Time shifting.
@@ -60,19 +62,40 @@ import java.time.temporal.TemporalAmount;
  * @author Simon Schmid, KNIME.com, Konstanz, Germany
  */
 public enum Granularity {
-        YEAR(ChronoUnit.YEARS), MONTH(ChronoUnit.MONTHS), WEEK(ChronoUnit.WEEKS), DAY(ChronoUnit.DAYS),
-        HOUR(ChronoUnit.HOURS), MINUTE(ChronoUnit.MINUTES), SECOND(ChronoUnit.SECONDS), MILLISECOND(ChronoUnit.MILLIS),
-        MICROSECOND(ChronoUnit.MICROS), NANOSECOND(ChronoUnit.NANOS);
+        /** Year granularity. */
+        YEAR(ChronoUnit.YEARS, null, value -> Period.ofYears(Math.toIntExact(value))), //
+        /** Month granularity. */
+        MONTH(ChronoUnit.MONTHS, null, value -> Period.ofMonths(Math.toIntExact(value))), //
+        /** Week granularity. */
+        WEEK(ChronoUnit.WEEKS, null, value -> Period.ofWeeks(Math.toIntExact(value))), //
+        /** Day granularity. */
+        DAY(ChronoUnit.DAYS, null, value -> Period.ofDays(Math.toIntExact(value))), //
+        /** Hour granularity. */
+        HOUR(ChronoUnit.HOURS, TimeBasedGranularityUnit.HOURS, Duration::ofHours), //
+        /** Minute granularity. */
+        MINUTE(ChronoUnit.MINUTES, TimeBasedGranularityUnit.MINUTES, Duration::ofMinutes), //
+        /** Second granularity. */
+        SECOND(ChronoUnit.SECONDS, TimeBasedGranularityUnit.SECONDS, Duration::ofSeconds), //
+        /** Millisecond granularity. */
+        MILLISECOND(ChronoUnit.MILLIS, TimeBasedGranularityUnit.MILLISECONDS, Duration::ofMillis), //
+        /** Microsecond granularity. */
+        MICROSECOND(ChronoUnit.MICROS, TimeBasedGranularityUnit.MICROSECONDS, Granularity::ofMicros), //
+        /** Nanosecond granularity. */
+        NANOSECOND(ChronoUnit.NANOS, TimeBasedGranularityUnit.NANOSECONDS, Duration::ofNanos);
 
     private final ChronoUnit m_chronoUnit;
 
-    private Granularity(final ChronoUnit chronoUnit) {
+    private final TimeBasedGranularityUnit m_timeBasedGranularityUnit;
+
+    private final LongFunction<? extends TemporalAmount> m_getPeriodOrDuration;
+
+    Granularity(final ChronoUnit chronoUnit, final TimeBasedGranularityUnit timeBasedGranularityUnit,
+        final LongFunction<? extends TemporalAmount> getPeriodOrDuration) {
         m_chronoUnit = chronoUnit;
+        m_timeBasedGranularityUnit = timeBasedGranularityUnit;
+        m_getPeriodOrDuration = getPeriodOrDuration;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         return m_chronoUnit.toString();
@@ -83,6 +106,13 @@ public enum Granularity {
      */
     public boolean isPartOfDate() {
         return m_chronoUnit.isDateBased();
+    }
+
+    /**
+     * @return true if it is possible to use {@link #betweenExact(Temporal, Temporal)} with this granularity
+     */
+    public boolean supportsExactDifferences() {
+        return m_timeBasedGranularityUnit != null;
     }
 
     /**
@@ -120,42 +150,12 @@ public enum Granularity {
      * @throws ArithmeticException if the input overflows an integer
      */
     public TemporalAmount getPeriodOrDuration(final long value) throws ArithmeticException {
-        final String name = name();
-        if (name.equals(YEAR.name())) {
-            return Period.ofYears(Math.toIntExact(value));
-        }
-        if (name.equals(MONTH.name())) {
-            return Period.ofMonths(Math.toIntExact(value));
-        }
-        if (name.equals(WEEK.name())) {
-            return Period.ofWeeks(Math.toIntExact(value));
-        }
-        if (name.equals(DAY.name())) {
-            return Period.ofDays(Math.toIntExact(value));
-        }
-        if (name.equals(HOUR.name())) {
-            return Duration.ofHours(value);
-        }
-        if (name.equals(MINUTE.name())) {
-            return Duration.ofMinutes(value);
-        }
-        if (name.equals(SECOND.name())) {
-            return Duration.ofSeconds(value);
-        }
-        if (name.equals(MILLISECOND.name())) {
-            return Duration.ofMillis(value);
-        }
-        if (name.equals(MICROSECOND.name())) {
-            return Duration.ofNanos(value * 1000);
-        }
-        if (name.equals(NANOSECOND.name())) {
-            return Duration.ofNanos(value);
-        }
-        throw new IllegalStateException(name() + " not defined.");
+        return m_getPeriodOrDuration.apply(value);
     }
 
     /**
-     * Calculates the amount of time between two temporal objects.
+     * Calculates the amount of time between two temporal objects, truncating it to a long and disregarding the decimal
+     * part.
      *
      * @param temporal1Inclusive the base temporal object, not null
      * @param temporal2Exclusive the other temporal object, exclusive, not null
@@ -163,7 +163,26 @@ public enum Granularity {
      *         temporal2Exclusive is later than temporal1Inclusive, negative if earlier
      */
     public long between(final Temporal temporal1Inclusive, final Temporal temporal2Exclusive) {
-        return m_chronoUnit.between(temporal1Inclusive, temporal2Exclusive);
+        try {
+            return m_chronoUnit.between(temporal1Inclusive, temporal2Exclusive);
+        } catch (DateTimeException ex) {
+            throw new DateTimeException("Cannot calculate difference between " + temporal1Inclusive + " and "
+                + temporal2Exclusive + " using granularity " + this.name(), ex);
+        }
+    }
+
+    /**
+     * Calculates the amount of time between two temporal objects, returning it as a double.
+     *
+     * @param start the start temporal
+     * @param end the end temporal
+     * @return the amount of time between start and end in terms of this unit; positive if end is later than start
+     */
+    public double betweenExact(final Temporal start, final Temporal end) {
+        if (m_timeBasedGranularityUnit == null) {
+            throw new IllegalStateException("This granularity does not support exact differences.");
+        }
+        return m_timeBasedGranularityUnit.getConversionExact(Duration.between(start, end));
     }
 
     /**
@@ -171,5 +190,9 @@ public enum Granularity {
      */
     public ChronoUnit getChronoUnit() {
         return m_chronoUnit;
+    }
+
+    private static Duration ofMicros(final long value) {
+        return Duration.ofMillis(1000 * value);
     }
 }

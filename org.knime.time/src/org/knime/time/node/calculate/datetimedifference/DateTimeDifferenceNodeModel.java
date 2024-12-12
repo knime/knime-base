@@ -158,9 +158,6 @@ final class DateTimeDifferenceNodeModel extends NodeModel {
         super(1, 1);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         final var colName1 = m_col1stSelectModel.getStringValue();
@@ -203,7 +200,6 @@ final class DateTimeDifferenceNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
      * @throws InvalidSettingsException
      * @throws CanceledExecutionException
      * @throws InterruptedException
@@ -308,27 +304,18 @@ final class DateTimeDifferenceNodeModel extends NodeModel {
         return rearranger;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
         // nothing to do
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
         // nothing to do
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_col1stSelectModel.saveSettingsTo(settings);
@@ -340,9 +327,6 @@ final class DateTimeDifferenceNodeModel extends NodeModel {
         m_newColNameModel.saveSettingsTo(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_col1stSelectModel.validateSettings(settings);
@@ -363,9 +347,6 @@ final class DateTimeDifferenceNodeModel extends NodeModel {
         m_newColNameModel.validateSettings(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_col1stSelectModel.loadSettingsFrom(settings);
@@ -377,34 +358,22 @@ final class DateTimeDifferenceNodeModel extends NodeModel {
         m_newColNameModel.loadSettingsFrom(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void reset() {
         // nothing to do
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public InputPortRole[] getInputPortRoles() {
         return new InputPortRole[]{m_modusSelectModel.getStringValue().equals(ModusOptions.UsePreviousRow.name())
             ? InputPortRole.NONDISTRIBUTED_STREAMABLE : InputPortRole.DISTRIBUTED_STREAMABLE};
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public OutputPortRole[] getOutputPortRoles() {
         return new OutputPortRole[]{OutputPortRole.DISTRIBUTED};
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
         final PortObjectSpec[] inSpecs) throws InvalidSettingsException {

@@ -212,6 +212,22 @@ public final class InputTableNode {
     }
 
     /**
+     * Extract the last row from the table.
+     *
+     * @param table the table to extract the row from
+     * @return the last row of the table
+     */
+    public static DataRow getLastRow(final BufferedDataTable table) {
+        try (var it = table.iterator()) {
+            DataRow row = null;
+            while (it.hasNext()) {
+                row = it.next();
+            }
+            return row;
+        }
+    }
+
+    /**
      * Creates a TableSupplier, with a single row, which can be used for unit testing implementations of view nodes.
      *
      * @return a TableSupplier object containing the created table
