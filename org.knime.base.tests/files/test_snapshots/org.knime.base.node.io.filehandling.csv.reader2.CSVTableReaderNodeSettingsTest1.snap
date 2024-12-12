@@ -174,8 +174,7 @@
               "maxDataRowsScanned" : {
                 "type" : "integer",
                 "format" : "int64",
-                "default" : 10000,
-                "minimum" : 0.0
+                "default" : 10000
               },
               "maxNumChunksPerFile" : {
                 "type" : "integer",
@@ -187,8 +186,7 @@
                 "format" : "int32",
                 "title" : "Maximum number of columns",
                 "description" : "Sets the number of allowed columns (default 8192 columns) to prevent memory exhaustion. The node will\nfail if the number of columns exceeds the set limit.\n",
-                "default" : 8192,
-                "minimum" : 0.0
+                "default" : 8192
               },
               "minChunkSizeInBytes" : {
                 "type" : "integer",
@@ -314,24 +312,21 @@
                 "format" : "int64",
                 "title" : "Maximum number of rows",
                 "description" : "Defines the maximum number of rows that are read.",
-                "default" : 50,
-                "minimum" : 0.0
+                "default" : 50
               },
               "skipFirstDataRows" : {
                 "type" : "integer",
                 "format" : "int64",
                 "title" : "Skip first data rows",
                 "description" : "Use this option to skip the specified number of valid data rows. This has no effect on which row will be\nchosen as a column header. Skipping rows prevents parallel reading of individual files.\n",
-                "default" : 0,
-                "minimum" : 0.0
+                "default" : 0
               },
               "skipFirstLines" : {
                 "type" : "integer",
                 "format" : "int64",
                 "title" : "Skip first lines of file",
                 "description" : "Use this option to skip lines that do not fit in the table structure (e.g. multi-line comments).\n<br/>\nThe specified number of lines are skipped in the input file before the parsing starts. Skipping lines\nprevents parallel reading of individual files.\n",
-                "default" : 0,
-                "minimum" : 0.0
+                "default" : 0
               }
             },
             "default" : {
@@ -420,8 +415,7 @@
                 "format" : "int32",
                 "title" : "Number of characters for autodetection",
                 "description" : "Specifies on how many characters of the selected file should be used for autodetection. The\nautodetection by default is based on the first 1024 * 1024 characters.\n",
-                "default" : 1048576,
-                "minimum" : 1.0
+                "default" : 1048576
               },
               "prependFileIndexToRowId" : {
                 "type" : "boolean",
@@ -905,7 +899,10 @@
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/limitRows/properties/skipFirstLines"
+        "scope" : "#/properties/model/properties/limitRows/properties/skipFirstLines",
+        "options" : {
+          "min" : 0.0
+        }
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/settings/properties/commentLineCharacter",
@@ -982,7 +979,8 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection",
         "options" : {
-          "isAdvanced" : true
+          "isAdvanced" : true,
+          "min" : 1.0
         }
       } ]
     }, {
@@ -996,7 +994,10 @@
         }
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/limitRows/properties/skipFirstDataRows"
+        "scope" : "#/properties/model/properties/limitRows/properties/skipFirstDataRows",
+        "options" : {
+          "min" : 0.0
+        }
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/limitRows/properties/limitNumberOfRows",
@@ -1007,6 +1008,9 @@
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/limitRows/properties/maximumNumberOfRows",
+        "options" : {
+          "min" : 0.0
+        },
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
@@ -1071,6 +1075,9 @@
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/advancedSettings/properties/maxDataRowsScanned",
+        "options" : {
+          "min" : 0.0
+        },
         "label" : "",
         "rule" : {
           "effect" : "SHOW",
@@ -1091,7 +1098,10 @@
         }
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/advancedSettings/properties/maximumNumberOfColumns"
+        "scope" : "#/properties/model/properties/advancedSettings/properties/maximumNumberOfColumns",
+        "options" : {
+          "min" : 0.0
+        }
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/advancedSettings/properties/limitMemoryPerColumn",

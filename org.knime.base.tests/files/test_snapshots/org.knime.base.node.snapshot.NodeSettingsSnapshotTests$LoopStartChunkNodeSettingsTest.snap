@@ -29,16 +29,14 @@
             "format" : "int32",
             "title" : "Number of chunks",
             "description" : "Set the number of chunks. The number of rows per chunk is the row count of the input table divided by this value.\n",
-            "default" : 1,
-            "minimum" : 1.0
+            "default" : 1
           },
           "nrRowsPerChunk" : {
             "type" : "integer",
             "format" : "int32",
             "title" : "Rows per chunk",
             "description" : "Set the number of rows per chunk. The number of iterations is the row count of the input table divided by this value. To implement a streaming approach with one row at a time, set this value to 1.\n",
-            "default" : 1,
-            "minimum" : 1.0
+            "default" : 1
           }
         }
       }
@@ -54,6 +52,9 @@
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/nrRowsPerChunk",
+      "options" : {
+        "min" : 1.0
+      },
       "rule" : {
         "effect" : "SHOW",
         "condition" : {
@@ -68,6 +69,9 @@
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/nrOfChunks",
+      "options" : {
+        "min" : 1.0
+      },
       "rule" : {
         "effect" : "HIDE",
         "condition" : {

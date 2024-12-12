@@ -195,16 +195,14 @@
             "format" : "int32",
             "title" : "Show first characters",
             "description" : "Select the number of characters that should be retained at the <b>start</b> of the string. If a string's length is longer than the permitted length, it will be truncated. This does not change the data, but only the way the strings are being displayed in views.\n",
-            "default" : 500,
-            "minimum" : 0.0
+            "default" : 500
           },
           "nLastChars" : {
             "type" : "integer",
             "format" : "int32",
             "title" : "Show last characters",
             "description" : "Select the number of characters that should be retained at the <b>end</b> of the string. If a string's length is longer than the permitted length, it will be truncated. This does not change the data, but only the way the strings are being displayed in views.\n",
-            "default" : 5,
-            "minimum" : 0.0
+            "default" : 5
           },
           "replaceEmptyString" : {
             "oneOf" : [ {
@@ -280,10 +278,16 @@
         "type" : "HorizontalLayout",
         "elements" : [ {
           "type" : "Control",
-          "scope" : "#/properties/model/properties/nFirstChars"
+          "scope" : "#/properties/model/properties/nFirstChars",
+          "options" : {
+            "min" : 0.0
+          }
         }, {
           "type" : "Control",
-          "scope" : "#/properties/model/properties/nLastChars"
+          "scope" : "#/properties/model/properties/nLastChars",
+          "options" : {
+            "min" : 0.0
+          }
         } ]
       }, {
         "type" : "Control",

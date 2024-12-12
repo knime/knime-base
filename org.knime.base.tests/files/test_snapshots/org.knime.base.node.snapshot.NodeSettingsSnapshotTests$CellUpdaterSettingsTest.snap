@@ -35,8 +35,7 @@
             "format" : "int32",
             "title" : "Column number",
             "description" : "Provide the number of the column that contains the target cell.",
-            "default" : 1,
-            "minimum" : 1.0
+            "default" : 1
           },
           "countFromEnd" : {
             "type" : "boolean",
@@ -54,8 +53,7 @@
             "format" : "int32",
             "title" : "Row number",
             "description" : "Provide the number of the row that contains the target cell.",
-            "default" : 1,
-            "minimum" : 1.0
+            "default" : 1
           }
         }
       }
@@ -109,6 +107,9 @@
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/columnNumber",
+      "options" : {
+        "min" : 1.0
+      },
       "rule" : {
         "effect" : "HIDE",
         "condition" : {
@@ -122,7 +123,10 @@
       }
     }, {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/rowNumber"
+      "scope" : "#/properties/model/properties/rowNumber",
+      "options" : {
+        "min" : 1.0
+      }
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/countFromEnd",

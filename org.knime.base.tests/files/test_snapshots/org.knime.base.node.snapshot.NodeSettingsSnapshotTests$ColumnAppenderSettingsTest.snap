@@ -31,9 +31,7 @@
             "format" : "int32",
             "title" : "RowID table number",
             "description" : "Select the table whose RowIDs should be used for the output table.",
-            "default" : 1,
-            "minimum" : 1.0,
-            "maximum" : 1.0
+            "default" : 1
           }
         }
       }
@@ -50,6 +48,10 @@
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/rowIdTableSelect",
+      "options" : {
+        "min" : 1.0,
+        "maxProvider" : "org.knime.base.node.preproc.columnappend2.ColumnAppenderSettings$NumTables"
+      },
       "rule" : {
         "effect" : "SHOW",
         "condition" : {
@@ -78,5 +80,13 @@
         }
       }
     }
-  }
+  },
+  "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.base.node.preproc.columnappend2.ColumnAppenderSettings$NumTables",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : 1.0
+    } ]
+  } ]
 }

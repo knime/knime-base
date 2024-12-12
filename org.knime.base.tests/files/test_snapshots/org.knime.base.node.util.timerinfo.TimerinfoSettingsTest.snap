@@ -30,9 +30,7 @@
             "format" : "int32",
             "title" : "Max Depth",
             "description" : "Controls depth of reporting of nodes in (nested) metanodes and components.\n",
-            "default" : 2,
-            "minimum" : 0.0,
-            "maximum" : 2147483647
+            "default" : 2
           },
           "recursionPolicy" : {
             "oneOf" : [ {
@@ -63,6 +61,10 @@
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/maxDepth",
+      "options" : {
+        "min" : 0.0,
+        "max" : 2147483647
+      },
       "rule" : {
         "effect" : "DISABLE",
         "condition" : {

@@ -112,16 +112,14 @@
                 "format" : "int64",
                 "title" : "Maximum number of rows",
                 "description" : "Defines the maximum number of rows that are read.",
-                "default" : 50,
-                "minimum" : 0.0
+                "default" : 50
               },
               "skipFirstDataRows" : {
                 "type" : "integer",
                 "format" : "int64",
                 "title" : "Skip first data rows",
                 "description" : "Use this option to skip the specified number of valid data rows. This has no effect on which row will be\nchosen as a column header. Skipping rows prevents parallel reading of individual files.\n",
-                "default" : 0,
-                "minimum" : 0.0
+                "default" : 0
               }
             },
             "default" : {
@@ -388,7 +386,10 @@
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/advancedSettings/properties/skipFirstDataRows"
+        "scope" : "#/properties/model/properties/advancedSettings/properties/skipFirstDataRows",
+        "options" : {
+          "min" : 0.0
+        }
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/advancedSettings/properties/limitNumberOfRows",
@@ -399,6 +400,9 @@
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/advancedSettings/properties/maximumNumberOfRows",
+        "options" : {
+          "min" : 0.0
+        },
         "rule" : {
           "effect" : "SHOW",
           "condition" : {

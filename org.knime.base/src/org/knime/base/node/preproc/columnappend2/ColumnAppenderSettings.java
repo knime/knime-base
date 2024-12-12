@@ -77,7 +77,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
 @SuppressWarnings("restriction")
 public final class ColumnAppenderSettings implements DefaultNodeSettings {
 
-
     static final class RowKeyModeSettingsModelStringPersistor extends EnumSettingsModelStringPersistor<RowKeyMode> {
 
         @Override
@@ -111,19 +110,26 @@ public final class ColumnAppenderSettings implements DefaultNodeSettings {
     @RadioButtonsWidget
     RowKeyMode m_rowIdMode = RowKeyMode.IDENTICAL;
 
+    static final class NumTables implements DoubleProvider {
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            initializer.computeBeforeOpenDialog();
+        }
+
+        @Override
+        public Double computeState(final DefaultNodeSettingsContext context) {
+            return (double)context.getDataTableSpecs().length;
+        }
+
+    }
+
     @Persist(customPersistor = RowIdTableSelectPersistor.class)
     @Widget(title = "RowID table number",
         description = "Select the table whose RowIDs should be used for the output table.")
     @NumberInputWidget(min = 1, maxProvider = NumTables.class)
     @Effect(type = EffectType.SHOW, predicate = IsKeyTable.class)
     int m_rowIdTableSelect = 1;
-
-    private static final class NumTables implements DoubleProvider {
-        @Override
-        public double getValue(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpecs().length;
-        }
-    }
 
     interface RowKeyModeRef extends Reference<RowKeyMode> {
     }

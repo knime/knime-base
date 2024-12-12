@@ -50,8 +50,7 @@
             "format" : "int32",
             "title" : "End column number (inclusive)",
             "description" : "Select the last column to include.",
-            "default" : 2,
-            "minimum" : 1.0
+            "default" : 2
           },
           "endRowCountFromEnd" : {
             "type" : "boolean",
@@ -64,8 +63,7 @@
             "format" : "int64",
             "title" : "End row number (inclusive)",
             "description" : "Select the last row to include.",
-            "default" : 1,
-            "minimum" : 1.0
+            "default" : 1
           },
           "startColumnCountFromEnd" : {
             "type" : "boolean",
@@ -84,8 +82,7 @@
             "format" : "int32",
             "title" : "Start column number",
             "description" : "Select the first column to include (the first column of the table has number 1).",
-            "default" : 1,
-            "minimum" : 1.0
+            "default" : 1
           },
           "startRowCountFromEnd" : {
             "type" : "boolean",
@@ -98,8 +95,7 @@
             "format" : "int64",
             "title" : "Start row number",
             "description" : "Select the first row to include (the first row of the table has number 1).",
-            "default" : 1,
-            "minimum" : 1.0
+            "default" : 1
           },
           "updateDomains" : {
             "type" : "boolean",
@@ -180,6 +176,9 @@
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/startColumnNumber",
+        "options" : {
+          "min" : 1.0
+        },
         "rule" : {
           "effect" : "HIDE",
           "condition" : {
@@ -211,6 +210,9 @@
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/endColumnNumber",
+        "options" : {
+          "min" : 1.0
+        },
         "rule" : {
           "effect" : "HIDE",
           "condition" : {
@@ -245,7 +247,10 @@
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/startRowNumber"
+        "scope" : "#/properties/model/properties/startRowNumber",
+        "options" : {
+          "min" : 1.0
+        }
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/startRowCountFromEnd",
@@ -254,7 +259,10 @@
         }
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/endRowNumber"
+        "scope" : "#/properties/model/properties/endRowNumber",
+        "options" : {
+          "min" : 1.0
+        }
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/endRowCountFromEnd",

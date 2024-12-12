@@ -29,8 +29,7 @@
             "format" : "int32",
             "title" : "Number of rows before the header",
             "description" : "Number of rows in the input table that precede the row that should be used as new column header",
-            "default" : 0,
-            "minimum" : 0.0
+            "default" : 0
           }
         }
       }
@@ -39,7 +38,10 @@
   "ui_schema" : {
     "elements" : [ {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/headerRowIndex"
+      "scope" : "#/properties/model/properties/headerRowIndex",
+      "options" : {
+        "min" : 0.0
+      }
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/discardBefore",
