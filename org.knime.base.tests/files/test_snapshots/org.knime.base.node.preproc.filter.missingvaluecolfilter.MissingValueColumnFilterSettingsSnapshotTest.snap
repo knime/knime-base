@@ -162,17 +162,14 @@
             "format" : "int64",
             "title" : "Threshold number (equal or more than)",
             "description" : "Selected columns with at least this number of missing values are filtered out.",
-            "default" : 1,
-            "minimum" : 0.0
+            "default" : 1
           },
           "percentage" : {
             "type" : "number",
             "format" : "double",
             "title" : "Threshold percentage (equal or more than %)",
             "description" : "Selected columns with at least this percentage of missing values are filtered out.",
-            "default" : 100.0,
-            "minimum" : 0.0,
-            "maximum" : 100.0
+            "default" : 100.0
           },
           "removeColumnsBy" : {
             "oneOf" : [ {
@@ -236,6 +233,10 @@
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/percentage",
+      "options" : {
+        "min" : 0.0,
+        "max" : 100.0
+      },
       "rule" : {
         "effect" : "SHOW",
         "condition" : {
@@ -250,6 +251,9 @@
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/number",
+      "options" : {
+        "min" : 0.0
+      },
       "rule" : {
         "effect" : "SHOW",
         "condition" : {

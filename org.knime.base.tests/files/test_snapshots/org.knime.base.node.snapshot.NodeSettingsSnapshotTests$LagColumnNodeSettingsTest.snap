@@ -25,16 +25,14 @@
             "format" : "int32",
             "title" : "Number of copies",
             "description" : " <i>L</i> = defines how many lagged column copies to create.",
-            "default" : 1,
-            "minimum" : 1.0
+            "default" : 1
           },
           "lagInterval" : {
             "type" : "integer",
             "format" : "int32",
             "title" : "Lag per copy",
             "description" : "<i>I</i> = lag interval (sometimes also called periodicity or seasonality), defines how many rows to shift per column copy.",
-            "default" : 1,
-            "minimum" : 1.0
+            "default" : 1
           },
           "skipInitialIncompleteRows" : {
             "type" : "boolean",
@@ -82,10 +80,16 @@
       }
     }, {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/lag"
+      "scope" : "#/properties/model/properties/lag",
+      "options" : {
+        "min" : 1.0
+      }
     }, {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/lagInterval"
+      "scope" : "#/properties/model/properties/lagInterval",
+      "options" : {
+        "min" : 1.0
+      }
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/skipInitialIncompleteRows",

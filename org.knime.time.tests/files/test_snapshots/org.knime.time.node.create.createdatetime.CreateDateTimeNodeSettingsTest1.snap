@@ -73,8 +73,7 @@
             "format" : "int64",
             "title" : "Number of Rows",
             "description" : "The number of rows to create.\n",
-            "default" : 1000,
-            "minimum" : 1.0
+            "default" : 1000
           },
           "outputColumnName" : {
             "type" : "string",
@@ -2002,6 +2001,9 @@
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/numberOfRows",
+        "options" : {
+          "min" : 1.0
+        },
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
