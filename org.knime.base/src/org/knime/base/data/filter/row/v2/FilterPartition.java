@@ -150,7 +150,7 @@ public record FilterPartition(ImmutableRangeSet<Long> matching, ImmutableRangeSe
      * @return sliced table(s)
      * @throws CanceledExecutionException
      */
-    public BufferedDataTable[] sliceTable(final ExecutionContext exec, final BufferedDataTable in,
+    BufferedDataTable[] sliceTable(final ExecutionContext exec, final BufferedDataTable in,
         final boolean isSplitter) throws CanceledExecutionException {
 
         final var includedRanges = matching();
