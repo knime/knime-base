@@ -328,7 +328,7 @@ abstract class EqualityPredicateFactory extends AbstractPredicateFactory {
                 ref = doubleCell.getDoubleValue();
             } else {
                 final var refCellType = refCell.getType();
-                final var inEq = m_matchEqual ? "in" : "";
+                final var inEq = m_matchEqual ? "" : "in";
                 throw Message.builder()
                     .withSummary("Cannot compare column of type \"%s\" with a value of type \"%s\" for %sequality"
                         .formatted(DoubleCell.TYPE, refCellType, inEq))
@@ -360,7 +360,7 @@ abstract class EqualityPredicateFactory extends AbstractPredicateFactory {
             final var refCell = getCellAtOrThrow(inputValues, 0);
             final var refCellType = refCell.getType();
             if (!refCellType.isCompatible(StringValue.class)) {
-                final var inEq = m_matchEqual ? "in" : "";
+                final var inEq = m_matchEqual ? "" : "in";
                 final var builder = Message.builder()
                     .withSummary("Cannot compare column of type \"%s\" with a value of type \"%s\" for %sequality"
                         .formatted(StringCell.TYPE, refCellType, inEq))
@@ -395,7 +395,7 @@ abstract class EqualityPredicateFactory extends AbstractPredicateFactory {
             final var refCell = getCellAtOrThrow(inputValues, 0);
             final var refCellType = refCell.getType();
             if (!refCellType.isCompatible(StringValue.class)) {
-                final var inEq = m_matchEqual ? "in" : "";
+                final var inEq = m_matchEqual ? "" : "in";
                 final var builder = Message.builder()
                     .withSummary("Cannot compare RowID of type \"%s\" with a value of type \"%s\" for %sequality"
                         .formatted(StringCell.TYPE, refCellType, inEq))
