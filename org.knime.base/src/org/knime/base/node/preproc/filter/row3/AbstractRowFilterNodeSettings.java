@@ -56,8 +56,8 @@ import java.util.OptionalInt;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion.SelectedColumnRef;
-import org.knime.base.node.preproc.filter.row3.predicates.IndexedRowReadPredicate;
 import org.knime.base.node.preproc.filter.row3.predicates.PredicateFactories;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
@@ -239,8 +239,8 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
 
         void validate(final DataTableSpec spec) throws InvalidSettingsException {
             // check table slicing (filter on numeric row number values)
-            if (isFilterOnRowNumbers() && RowNumberFilter.supportsOperator(m_operator)) {
-                RowNumberFilter.getAsFilterSpec(this);
+            if (isFilterOnRowNumbers() && RowNumberFilterSpec.supportsOperator(m_operator)) {
+                RowNumberFilterSpec.getAsFilterSpec(this);
                 return;
             }
 
@@ -671,9 +671,9 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
         final long optionalTableSize) throws InvalidSettingsException {
         final var predicates = new ArrayList<IndexedRowReadPredicate>();
         for (final var filterCriterion : criteria) {
-            final var filterSpec = RowNumberFilter.getAsFilterSpec(filterCriterion);
+            final var filterSpec = RowNumberFilterSpec.getAsFilterSpec(filterCriterion);
             final var offsetFilter = filterSpec.toOffsetFilter(optionalTableSize);
-            predicates.add(offsetFilter.toPredicate());
+            predicates.add(offsetFilter.asPredicate());
         }
         return predicates;
     }

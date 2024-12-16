@@ -53,6 +53,7 @@ import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.function.BiPredicate;
 
+import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
 import org.knime.base.node.preproc.filter.row3.FilterOperator;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;

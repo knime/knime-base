@@ -50,6 +50,7 @@ package org.knime.base.node.preproc.filter.row3.predicates;
 
 import java.util.OptionalInt;
 
+import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
 import org.knime.core.data.DataCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;

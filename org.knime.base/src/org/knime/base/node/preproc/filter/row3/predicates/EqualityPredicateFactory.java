@@ -54,6 +54,7 @@ import java.util.function.DoublePredicate;
 import java.util.function.IntPredicate;
 import java.util.function.LongPredicate;
 
+import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
 import org.knime.core.data.BooleanValue;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DoubleValue;

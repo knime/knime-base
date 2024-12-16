@@ -44,64 +44,26 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   14 Oct 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   23 Oct 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3.predicates;
+package org.knime.base.data.filter.row.v2;
 
 import org.knime.core.data.v2.RowRead;
 
 /**
- * Predicate on row read and row index.
+ * Function operating on indexed row reads.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * @param <T> function return type
  */
 @FunctionalInterface
-public interface IndexedRowReadPredicate {
+public interface IndexedRowReadFunction<T> {
 
     /**
-     * Predicate that always evaluates to {@code true}.
+     * Applies the function on the given (0-based) index and row read.
+     * @param index 0-based index
+     * @param row row read
+     * @return function application result
      */
-    IndexedRowReadPredicate TRUE = (index, read) -> true;
-
-    /**
-     * Predicate that always evaluates to {@code false}.
-     */
-    IndexedRowReadPredicate FALSE = (index, read) -> false;
-
-    /**
-     * Tests the predicate with the supplied row index (0-based) and {@link RowRead row read}.
-     *
-     * @param index 0-based index of row
-     * @param read row data
-     * @return {@code true} if the predicate matches the supplied row, {@code false} otherwise
-     */
-    boolean test(final long index, final RowRead read);
-
-    /**
-     * Composed predicate of short-circuiting logical AND.
-     *
-     * @param other the rhs AND predicate
-     * @return logically-ANDed predicate
-     */
-    default IndexedRowReadPredicate and(final IndexedRowReadPredicate other) {
-        return (index, read) -> test(index, read) && other.test(index, read);
-    }
-
-    /**
-     * Composed predicate of short-circuiting logical OR.
-     *
-     * @param other the rhs OR predicate
-     * @return logically-ORed predicate
-     */
-    default IndexedRowReadPredicate or(final IndexedRowReadPredicate other) {
-        return (index, read) -> test(index, read) || other.test(index, read);
-    }
-
-    /**
-     * Negates the predicate.
-     * @return negated predicate
-     */
-    default IndexedRowReadPredicate negate() {
-        return (index, read) -> !test(index, read);
-    }
+    T apply(long index, RowRead row);
 }

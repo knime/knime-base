@@ -44,45 +44,43 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   27 Aug 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   16 Dec 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3.predicates;
+package org.knime.base.data.filter.row.v2;
 
-import java.util.Optional;
-import java.util.OptionalInt;
-
-import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
-import org.knime.core.data.DataType;
-import org.knime.core.data.def.BooleanCell;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
+import org.knime.core.node.util.CheckUtils;
 
 /**
- * Predicate factory for boolean columns.
+ * A filter using a row offset (aka. row index) from the start of the table.
  *
- * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * @param operator filter operator taking an offset value
+ * @param offset offset value
  */
-final class BooleanPredicateFactory extends AbstractPredicateFactory {
+public record OffsetFilter(Operator operator, long offset) {
 
-    private final boolean m_matchTrue;
-
-    private BooleanPredicateFactory(final boolean matchTrue) {
-        m_matchTrue = matchTrue;
+    public enum Operator {
+            EQ,
+            NEQ,
+            LT,
+            LTE,
+            GT,
+            GTE
     }
 
-    public static Optional<PredicateFactory> create(final DataType columnDataType, final boolean matchTrue) {
-        if (columnDataType.equals(BooleanCell.TYPE)) {
-            return Optional.of(new BooleanPredicateFactory(matchTrue));
-        }
-        return Optional.empty();
+    public OffsetFilter {
+        CheckUtils.checkArgument(offset >= 0, "Offset must not be negative: %d", offset);
     }
 
-    @Override
-    public IndexedRowReadPredicate createPredicate(final OptionalInt colIdx, final DynamicValuesInput ignored)
-        throws InvalidSettingsException {
-        final var columnIndex = colIdx.orElseThrow(
-            () -> new IllegalStateException("Boolean predicate operates on column but did not get a column index"));
-        return (i, rowRead) -> rowRead.<BooleanCell> getValue(columnIndex).getBooleanValue() == m_matchTrue;
+    public IndexedRowReadPredicate asPredicate() {
+        return switch (operator) {
+            case EQ -> (rowIndex, read) -> rowIndex == offset;
+            case NEQ -> (rowIndex, read) -> rowIndex != offset;
+            case LT -> (rowIndex, read) -> rowIndex < offset;
+            case LTE -> (rowIndex, read) -> rowIndex <= offset;
+            case GT -> (rowIndex, read) -> rowIndex > offset;
+            case GTE -> (rowIndex, read) -> rowIndex >= offset;
+        };
     }
+
 
 }

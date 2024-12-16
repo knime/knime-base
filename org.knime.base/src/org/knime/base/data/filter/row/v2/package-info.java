@@ -44,26 +44,11 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   23 Oct 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   16 Dec 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3.predicates;
-
-import org.knime.core.data.v2.RowRead;
-
 /**
- * Function operating on indexed row reads.
- *
- * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
- * @param <T> function return type
+ * This package contains functionality to filter rows based on the row representation of {@link org.knime.core.data.v2}.
+ * It also provides functionality to efficiently filter rows by index/number through the slicing operation offered by
+ * the table backend.
  */
-@FunctionalInterface
-public interface IndexedRowReadFunction<T> {
-
-    /**
-     * Applies the function on the given (0-based) index and row read.
-     * @param index 0-based index
-     * @param row row read
-     * @return function application result
-     */
-    T apply(long index, RowRead row);
-}
+package org.knime.base.data.filter.row.v2;

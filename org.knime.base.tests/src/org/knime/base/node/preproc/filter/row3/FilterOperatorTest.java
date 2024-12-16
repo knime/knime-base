@@ -350,7 +350,7 @@ final class FilterOperatorTest {
             criterion.m_predicateValues = input;
             for (final var op : SLICED_OPS) {
                 criterion.m_operator = op;
-                RowNumberFilter.getAsFilterSpec(criterion);
+                RowNumberFilterSpec.getAsFilterSpec(criterion);
             }
             for (final var op : VALUE_OPS) {
                 criterion.m_operator = op;

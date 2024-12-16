@@ -51,6 +51,7 @@ package org.knime.base.node.preproc.filter.row3.predicates;
 import java.util.Optional;
 import java.util.function.IntFunction;
 
+import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
 import org.knime.base.node.preproc.filter.row3.FilterOperator;
 import org.knime.core.data.DataType;
 import org.knime.core.data.v2.RowRead;

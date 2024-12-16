@@ -134,9 +134,9 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
         if (dataCriteria.isEmpty()) {
             // slicing-only is possible since we never look at any column
             final var includedExcludedPartition =
-                    RowNumberFilter.computeRowPartition(isAnd, RowNumberFilter.getAsFilterSpecs(rowNumberCriteria),
+                    RowNumberFilterSpec.computeRowPartition(isAnd, RowNumberFilterSpec.getAsFilterSpecs(rowNumberCriteria),
                         settings.outputMode(), tableSize);
-            return RowNumberFilter.sliceTable(exec, in, includedExcludedPartition, isSplitter);
+            return includedExcludedPartition.sliceTable(exec, in, isSplitter);
         }
         final var inSpec = in.getSpec();
         // TODO (performance): use ALWAYS_TRUE and ALWAYS_FALSE predicates to return input table or empty table
@@ -205,7 +205,7 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
             final var selected = c.m_column.getSelected();
             // in case of REGEX and WILDCARD operators, we treat the row number column as a data column
             if (AbstractRowFilterNodeSettings.isRowNumberSelected(selected)
-                    && RowNumberFilter.supportsOperator(c.m_operator)) {
+                    && RowNumberFilterSpec.supportsOperator(c.m_operator)) {
                 rowNumberCriteria.add(c);
             } else {
                 dataCriteria.add(c);
@@ -366,9 +366,9 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
             final var isSplitter = outputs.length > 1;
 
             final var rowNumberCriteria = partitionCriteria(settings.m_predicates).getFirst();
-            final var filterSpecs = RowNumberFilter.getAsFilterSpecs(rowNumberCriteria);
+            final var filterSpecs = RowNumberFilterSpec.getAsFilterSpecs(rowNumberCriteria);
 
-            final var rowPartition = RowNumberFilter.computeRowPartition(settings.m_matchCriteria.isAnd(),
+            final var rowPartition = RowNumberFilterSpec.computeRowPartition(settings.m_matchCriteria.isAnd(),
                 filterSpecs, settings.outputMode(), UNKNOWN_SIZE);
             final var includeRanges = rowPartition.matching().asRanges().stream().toList();
             final var numIncludeRanges = includeRanges.size();

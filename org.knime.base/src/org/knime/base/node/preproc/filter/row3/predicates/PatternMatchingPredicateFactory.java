@@ -52,6 +52,8 @@ import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.function.Function;
 
+import org.knime.base.data.filter.row.v2.IndexedRowReadFunction;
+import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.IntValue;
