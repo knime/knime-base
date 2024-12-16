@@ -65,6 +65,13 @@ import org.knime.core.node.message.Message;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 
+/**
+ * Factory for creating predicates that test whether a string representation of a value matches a pattern (regex or
+ * wildcard).
+ * The string representation is supplied by a function that operates on an indexed row read.
+ *
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ */
 abstract class PatternMatchingPredicateFactory extends AbstractPredicateFactory {
 
     protected final boolean m_isRegex;

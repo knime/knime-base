@@ -56,6 +56,11 @@ import org.knime.core.data.def.BooleanCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 
+/**
+ * Predicate factory for boolean columns.
+ *
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ */
 final class BooleanPredicateFactory extends AbstractPredicateFactory {
 
     private final boolean m_matchTrue;

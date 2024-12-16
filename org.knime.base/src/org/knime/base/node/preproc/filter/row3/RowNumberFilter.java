@@ -54,6 +54,7 @@ import java.util.List;
 
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterMode;
+import org.knime.base.node.preproc.filter.row3.predicates.IndexedRowReadPredicate;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -287,7 +288,7 @@ final class RowNumberFilter {
     }
 
     /**
-     * A filter using a row offset from the start of the table.
+     * A filter using a row offset (aka. row index) from the start of the table.
      *
      * @param operator filter operator taking an offset value
      * @param offset offset value
@@ -300,14 +301,14 @@ final class RowNumberFilter {
                 "Offset filter must use \"absolute\" operator, %s was given", operator.name());
         }
 
-        RowNumberPredicate toPredicate() {
+        IndexedRowReadPredicate toPredicate() {
             return switch (operator) {
-                case EQ  -> rowNumber -> rowNumber == offset;
-                case NEQ -> rowNumber -> rowNumber != offset;
-                case LT -> rowNumber -> rowNumber < offset;
-                case LTE -> rowNumber -> rowNumber <= offset;
-                case GT -> rowNumber -> rowNumber > offset;
-                case GTE -> rowNumber -> rowNumber >= offset;
+                case EQ  -> (rowIndex, read) -> rowIndex == offset;
+                case NEQ -> (rowIndex, read) -> rowIndex != offset;
+                case LT  -> (rowIndex, read) -> rowIndex <  offset;
+                case LTE -> (rowIndex, read) -> rowIndex <= offset;
+                case GT  -> (rowIndex, read) -> rowIndex >  offset;
+                case GTE -> (rowIndex, read) -> rowIndex >= offset;
                 default  -> throw new IllegalStateException("Unsupported offset filter operator: " + operator);
             };
         }

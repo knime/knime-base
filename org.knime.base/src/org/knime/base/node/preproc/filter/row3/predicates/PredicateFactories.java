@@ -87,7 +87,7 @@ public final class PredicateFactories {
      * @return factory for the given operator and column, or empty if the operator is not supported for the given data
      *         type
      */
-    public static Optional<PredicateFactory> getValuePredicateFactory(final FilterOperator operator,
+    public static Optional<PredicateFactory> getValuePredicateFactory(final FilterOperator operator, // NOSONAR
         final DataType dataType) {
         return switch (operator) {
             case EQ:
@@ -115,6 +115,12 @@ public final class PredicateFactories {
         };
     }
 
+    /**
+     * Creates a factory for the given operator for row key predicates. If the operator does not support row keys,
+     * the returned optional is empty.
+     * @param operator filter operator
+     * @return factory for the given operator, or empty if the operator is not supported for row keys
+     */
     public static Optional<PredicateFactory> getRowKeyPredicateFactory(final FilterOperator operator) {
         return switch (operator) {
             case EQ:
@@ -130,6 +136,12 @@ public final class PredicateFactories {
         };
     }
 
+    /**
+     * Creates a factory for the given operator for row number predicates. If the operator does not support row numbers,
+     * the returned optional is empty.
+     * @param operator filter operator
+     * @return factory for the given operator, or empty if the operator is not supported for row numbers
+     */
     public static Optional<PredicateFactory> getRowNumberPredicateFactory(final FilterOperator operator) {
         return switch (operator) {
             case EQ:

@@ -48,6 +48,7 @@
  */
 package org.knime.base.node.preproc.filter.row3;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -644,85 +645,89 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
     static IndexedRowReadPredicate createFilterPredicate(final boolean isAnd,
         final List<FilterCriterion> rowNumberCriteria, final List<FilterCriterion> dataCriteria,
         final DataTableSpec spec, final long tableSize) throws InvalidSettingsException {
-        // TODO (performance): use domain bounds to derive whether predicates are always true or always false
-        // TODO (performance): propagate ALWAYS_TRUE and ALWAYS_FALSE predicates
-        final var rowNumbers = buildPredicate(isAnd, rowNumberCriteria, tableSize);
-        final var data = buildPredicate(isAnd, dataCriteria, spec);
-        if (rowNumbers == null) {
+        // TODO(performance): use domain bounds to derive whether predicates are always true or always false
+        // TODO(performance): propagate ALWAYS_TRUE and ALWAYS_FALSE predicates
+        final var optRowNumbers = mergeRowNumberPredicates(isAnd, mapToPredicates(rowNumberCriteria, tableSize));
+        final var data = mergeValuePredicates(isAnd, mapToPredicates(dataCriteria, spec)).orElseThrow(
+            () -> new IllegalStateException("Row number predicate without data predicate, should have used slicing"));
+        if (optRowNumbers.isEmpty()) {
             return data::test;
         }
-        if (data == null) {
-            throw new IllegalStateException("Row number predicate without data predicate, should have used slicing");
+        final var rowNumbers = optRowNumbers.get();
+        return isAnd ? (index, read) -> rowNumbers.test(index, read) && data.test(index, read) // NOSONAR this is not too hard to read
+            : (index, read) -> rowNumbers.test(index, read) || data.test(index, read); // NOSONAR see above
+    }
+
+    private static List<IndexedRowReadPredicate> mapToPredicates(final List<FilterCriterion> criteria,
+        final DataTableSpec spec) throws InvalidSettingsException {
+        final var predicates = new ArrayList<IndexedRowReadPredicate>();
+        for (final var filterCriterion : criteria) {
+            predicates.add(filterCriterion.toPredicate(spec));
         }
-        return isAnd ? (index, read) -> rowNumbers.test(index) && data.test(index, read) // NOSONAR this is not too hard to read
-            : (index, read) -> rowNumbers.test(index) || data.test(index, read); // NOSONAR see above
+        return predicates;
+    }
+
+    private static List<IndexedRowReadPredicate> mapToPredicates(final List<FilterCriterion> criteria,
+        final long optionalTableSize) throws InvalidSettingsException {
+        final var predicates = new ArrayList<IndexedRowReadPredicate>();
+        for (final var filterCriterion : criteria) {
+            final var filterSpec = RowNumberFilter.getAsFilterSpec(filterCriterion);
+            final var offsetFilter = filterSpec.toOffsetFilter(optionalTableSize);
+            predicates.add(offsetFilter.toPredicate());
+        }
+        return predicates;
+    }
+
+    /* === Private methods operating on "core" classes  === */
+
+    /**
+     * Merges the given predicates using AND or OR, possibly short-circuiting.
+     *
+     * @param isAnd if {@code true}, combine predicates with AND, otherwise with OR
+     * @param rowNumberCriteria list of predicates to merge
+     * @return merged predicate
+     */
+    private static Optional<IndexedRowReadPredicate> mergeRowNumberPredicates(final boolean isAnd,
+        final List<IndexedRowReadPredicate> rowNumberCriteria) {
+        return rowNumberCriteria.stream().reduce((l, r) -> isAnd ? l.and(r) : l.or(r));
     }
 
     /**
-     * Builds a single predicate from filter criteria, combined by AND or OR.
+     * Merges the given predicates using AND or OR.
      *
      * @param isAnd if {@code true}, combine predicates with AND, otherwise with OR
-     * @param filterCriteria filter criteria to build predicates from
-     * @param spec data table spec to filter on
-     * @return predicate that combines all filter criteria
-     * @throws InvalidSettingsException if a filter criterion is invalid
+     * @param predicates list of predicates to merge
+     * @return merged predicate, possibly short-circuited
      */
-    private static IndexedRowReadPredicate buildPredicate(final boolean isAnd,
-        final Iterable<FilterCriterion> filterCriteria, final DataTableSpec spec) throws InvalidSettingsException {
-        final var iter = filterCriteria.iterator();
-        if (!iter.hasNext()) {
-            return null;
-        }
-        // collect predicates from filter criteria, short-circuiting whenever we can prove that the predicate will
-        // always be true or false
-        var filterPredicate = iter.next().toPredicate(spec);
-        while (iter.hasNext()) {
-            final var predicate = iter.next().toPredicate(spec);
-            if (isAnd) {
-                // x AND false -> false
-                // x AND true -> x
-                if (predicate == IndexedRowReadPredicate.FALSE) {
-                    filterPredicate = IndexedRowReadPredicate.FALSE;
-                } else if (predicate == IndexedRowReadPredicate.TRUE) {
-                    // nothing to change
-                } else {
-                    filterPredicate = filterPredicate.and(predicate);
-                }
-            } else {
-                // x OR false -> x
+    private static Optional<IndexedRowReadPredicate> mergeValuePredicates(final boolean isAnd,
+        final List<IndexedRowReadPredicate> predicates) {
+        return predicates.stream().reduce((l, r) -> merge(isAnd, l, r));
+    }
+
+    /**
+     * Merges the given predicates, short-circuiting if possible.
+     * @param isAnd if {@code true}, combine predicates with AND, otherwise with OR
+     * @param l left-hand-side predicate
+     * @param r right-hand-side predicate
+     * @return combined predicate
+     */
+    private static final IndexedRowReadPredicate merge(final boolean isAnd, final IndexedRowReadPredicate l,
+        final IndexedRowReadPredicate r) {
+        return isAnd ? // NOSONAR
+          // AND case
+            // l AND false -> false
+            (r == IndexedRowReadPredicate.FALSE ? IndexedRowReadPredicate.FALSE // NOSONAR
+            // l AND true -> l
+          : (r == IndexedRowReadPredicate.TRUE ? l // NOSONAR
+            // else simply combine
+          : l.and(r)))
+        : // OR case
+            // l OR false -> l
+            (r == IndexedRowReadPredicate.FALSE ? l // NOSONAR
                 // x OR true -> true
-                if (predicate == IndexedRowReadPredicate.FALSE) {
-                    // nothing to change
-                } else if (predicate == IndexedRowReadPredicate.TRUE) {
-                    filterPredicate = IndexedRowReadPredicate.TRUE;
-                } else {
-                    filterPredicate = filterPredicate.or(predicate);
-                }
-            }
-        }
-        return filterPredicate;
-    }
-
-    static RowNumberPredicate buildPredicate(final boolean isAnd, final Iterable<FilterCriterion> rowNumberCriteria,
-        // TODO (performance): introduce and propagate ALWAYS_TRUE and ALWAYS_FALSE predicates
-        final long optionalTableSize) throws InvalidSettingsException {
-        final var iter = rowNumberCriteria.iterator();
-        if (!iter.hasNext()) {
-            return null;
-        }
-        var filterPredicate = createFrom(iter.next(), optionalTableSize);
-        while (iter.hasNext()) {
-            final var predicate = createFrom(iter.next(), optionalTableSize);
-            filterPredicate = isAnd ? filterPredicate.and(predicate) : filterPredicate.or(predicate);
-        }
-        return filterPredicate;
-    }
-
-    private static RowNumberPredicate createFrom(final FilterCriterion criterion, final long optionalTableSize)
-        throws InvalidSettingsException {
-        final var filterSpec = RowNumberFilter.getAsFilterSpec(criterion);
-        final var offsetFilter = filterSpec.toOffsetFilter(optionalTableSize);
-        return offsetFilter.toPredicate();
+          : (r == IndexedRowReadPredicate.TRUE ? IndexedRowReadPredicate.TRUE // NOSONAR
+          : // else simply combine
+            l.or(r)));
     }
 
 }
