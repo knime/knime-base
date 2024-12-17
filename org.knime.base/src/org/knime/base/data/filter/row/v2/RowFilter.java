@@ -75,6 +75,20 @@ public final class RowFilter {
         // no instantiation
     }
 
+    /**
+     * Filter the input with the given predicate and writes matching rows to the {@code included} output cursor
+     * and optionally, non-matching rows to the {@code excluded} output cursor.
+     *
+     * @param exec execution context
+     * @param input input data
+     * @param tableSize number of input rows for reporting progress
+     * @param included output for included rows matching the predicate
+     * @param excluded nullable output for excluded rows, not matching the predicate
+     * @param predicate predicate to test input rows
+     * @param includeMatches whether to include rows that match the predicate or exclude them
+     * @throws CanceledExecutionException if execution was canceled by the user
+     * @throws InvalidSettingsException in case some settings are invalid
+     */
     public static void filterOnPredicate(final ExecutionContext exec, final RowCursor input, final long tableSize,
         final RowWriteCursor included, final RowWriteCursor excluded, final IndexedRowReadPredicate predicate,
         final boolean includeMatches) throws CanceledExecutionException, InvalidSettingsException {
@@ -103,13 +117,38 @@ public final class RowFilter {
         }
     }
 
+    /**
+     * Slices the input table according to the given partition information into one or two output tables.
+     *
+     * @param exec execution context
+     * @param input input data
+     * @param partition partition information about matching and non-matching rows
+     * @param isSplitting whether the filter is a splitter, i.e. returns the "non-matching" output table
+     * @return single-element array with output table containing matching rows or two-element array with matching and
+     *         non-matching table output
+     * @throws CanceledExecutionException if the user canceled the execution
+     */
     public static BufferedDataTable[] slice(final ExecutionContext exec, final BufferedDataTable input,
         final FilterPartition partition, final boolean isSplitting) throws CanceledExecutionException {
         return partition.sliceTable(exec, input, isSplitting);
     }
 
+    /**
+     * Filters the streaming input with the given predicate and writes matching rows to the {@code included} output.
+     * Non-matching rows are written to the {@code excluded} output, if provided.
+     *
+     * @param exec execution context
+     * @param input streaming input data
+     * @param included output for included rows matching the predicate
+     * @param excluded nullable output for excluded rows, not matching the predicate
+     * @param predicate predicate to test input rows
+     * @param includeMatches whether to include rows that match the predicate or exclude them
+     * @throws CanceledExecutionException if execution was canceled by the user
+     * @throws InvalidSettingsException in case some settings are invalid
+     * @throws InterruptedException if execution was interrupted
+     */
     public static void filterOnPredicate(final ExecutionContext exec, final RowInput input, final RowOutput included,
-        final RowOutput excluded, final IndexedRowReadPredicate rowPredicate, final boolean includeMatches)
+        final RowOutput excluded, final IndexedRowReadPredicate predicate, final boolean includeMatches)
         // The method uses InterruptibleRowCursor and InterruptibleRowWriteCursor, which for
         // backwards-compatibility do not annotate that they may throw InterruptedException.
         // However, by re-annotating here, we can signal to callers that we might throw this.
@@ -135,7 +174,7 @@ public final class RowFilter {
                 final var index = matchedRead[1];
                 matchedRead[1]++;
 
-                if (includeMatches == rowPredicate.test(index, rowRead)) {
+                if (includeMatches == predicate.test(index, rowRead)) {
                     incl.commit(rowRead);
                     matchedRead[0]++;
                 } else if (excl != null) {
@@ -146,6 +185,19 @@ public final class RowFilter {
         }
     }
 
+    /**
+     * Filters the streaming input according to the given partition information. Matching rows are written to the
+     * {@code included} output, non-matching rows to the optional {@code excluded} output.
+     *
+     * @param exec execution context
+     * @param input streaming input data
+     * @param included output for included rows according to the {@code matching} partition
+     * @param excluded nullable output for excluded rows according to the {@code non-matching} partition
+     * @param rowPartition partition information about matching and non-matching rows
+     * @throws CanceledExecutionException if execution was canceled by the user
+     * @throws InvalidSettingsException in case some settings are invalid
+     * @throws InterruptedException if execution was interrupted
+     */
     public static void filterRange(final ExecutionContext exec, final RowInput input, // NOSONAR
         final RowOutput included, final RowOutput excluded, final FilterPartition rowPartition)
         throws CanceledExecutionException, //

@@ -73,6 +73,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValu
 @SuppressWarnings("restriction") // new ui
 public enum FilterOperator {
 
+        /** Operator checking equality between values. */
         @Label(value = "Equals", description =
                 """
                 Value in column must be <b>equal</b> to the specified reference value.
@@ -80,12 +81,18 @@ public enum FilterOperator {
                 representation.
                 """)
         EQ("Equals"),
+        /**
+         * Operator checking inequality between values. In particular, two missing cells are considered neither equal
+         * nor non-equal to each other (following the SQL semantic of nullable comparison with {@code !=}/{@code <>}).
+         * To check whether a cell is missing, use {@link #IS_MISSING} or {@link #IS_NOT_MISSING}.
+         */
         @Label(value = "Does not equal", description =
                 """
                 Value in column must be <b>not equal</b> to specified reference value.
                 """)
         NEQ("Does not equal"),
 
+        /** Operator checking that the left-hand-side value is strictly less than the right-hand-side value. */
         @Label(value = "Less than", description =
         """
         Value in column must be <b>strictly smaller</b> than specified value.
@@ -98,20 +105,20 @@ public enum FilterOperator {
         "Greather than", and "Greater than or equal".
         """) //
         LT("Less than"), //
+        /** Operator checking that the lhs value is less than or equal to the rhs value. */
         @Label(value = "Less than or equal", //
             description = "Value in column must be <b>smaller than or equal</b> to specified value") //
         LTE("Less than or equal"), //
-
-        /** Greater than. */
+        /** Operator checking that the lhs value is strictly greater than the rhs value. */
         @Label(value = "Greater than", //
             description = "Value in column must be <b>strictly larger</b> than specified value") //
         GT("Greater than"), //
-
-        /** Greater than or equal. */
+        /** Operator checking that the lhs value is strictly greater than or equal to the rhs value. */
         @Label(value = "Greater than or equal", //
             description = "Value in column must be <b>larger than or equal</b> than specified value") //
         GTE("Greater than or equal"), //
 
+        /** Operator matching the first {@code n} rows. */
         @Label(value = "First <i>n</i> rows", description =
                 """
                 Matches the specified number of rows counted from the start of the input.
@@ -121,8 +128,10 @@ public enum FilterOperator {
                 """
                 Matches the specified number of rows counted from the end of the input.
                 """)
+        /** Operator matching the last {@code n} rows. */
         LAST_N_ROWS("Last n rows"), //
 
+        /** Operator matching the lhs value with the given regular expression. */
         @Label(value = "Matches regex", description =
                 """
                 Value in column must match the specified regular expression.
@@ -141,23 +150,24 @@ public enum FilterOperator {
                 <tt>MULTILINE</tt> use prefix <tt>(?-m)</tt>. To disable both, use <tt>(?-sm)</tt>.
                 """)
         REGEX("Matches regex"),
+        /** Operator matching the lhs value with the given wildcard pattern. */
         @Label(value = "Matches wildcard", description = "Value in column must match the specified pattern, "
                 + "which may contain wildcards <tt>*</tt> and <tt>?</tt>.")
         WILDCARD("Matches wildcard"),
 
-        /** Is true. */
+        /** Operator checking that the lhs boolean cell value is true. */
         @Label(value = "Is true", description = "Boolean value in column must be <tt>true</tt>")
         IS_TRUE("Is true"),
 
-        /** Is false. */
+        /** Operator checking that the lhs boolean cell value is false. */
         @Label(value = "Is false", description = "Boolean value in column must be <tt>false</tt>")
         IS_FALSE("Is false"),
 
-        /** Is missing. */
+        /** Operator checking that the lhs cell is missing. */
         @Label(value = "Is missing", description = "Value in column must be <i>missing</i>")
         IS_MISSING("Is missing"),
 
-        /** Is not missing. */
+        /** Operator checking that the lhs cell is not missing. */
         @Label(value = "Is not missing", description = "Value in column must <em>not</em> be <i>missing</i>")
         IS_NOT_MISSING("Is not missing");
 
@@ -198,7 +208,7 @@ public enum FilterOperator {
      * @param dataType data type of the column
      * @return {@code true} if the operator is applicable, {@code false} otherwise
      */
-    boolean isApplicableFor(final SpecialColumns specialColumn, final DataType dataType) {
+    boolean isApplicableFor(final SpecialColumns specialColumn, final DataType dataType) { // NOSONAR single switch
         // we only need to check if the input supports the data type in case of a binary operator
         final var inputSupportsDataType = !isBinary() || DynamicValuesInput.supportsDataType(dataType);
         return inputSupportsDataType && switch (this) {

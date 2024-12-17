@@ -72,7 +72,7 @@ final class RowNumberFilterSpec {
     private final long m_value;
 
     RowNumberFilterSpec(final FilterOperator operator, final long value) throws InvalidSettingsException {
-        CheckUtils.checkSetting(supportsOperator(operator), "Canno use operator \"%s\" to filter by row number",
+        CheckUtils.checkSetting(supportsOperator(operator), "Cannot use operator \"%s\" to filter by row number",
             operator);
         m_operator = operator;
         m_value = value;
@@ -132,7 +132,7 @@ final class RowNumberFilterSpec {
      * @return row number filter specification
      * @throws InvalidSettingsException if the filter criterion contains an unsupported operator or the value is missing
      */
-    static RowNumberFilterSpec getAsFilterSpec(final FilterCriterion criterion) throws InvalidSettingsException {
+    static RowNumberFilterSpec toFilterSpec(final FilterCriterion criterion) throws InvalidSettingsException {
         final var value = ((LongCell)criterion.m_predicateValues.getCellAt(0).filter(cell -> !cell.isMissing())
             .orElseThrow(() -> new InvalidSettingsException("Row number value is missing"))).getLongValue();
         if (criterion.m_operator == FilterOperator.FIRST_N_ROWS || criterion.m_operator == FilterOperator.LAST_N_ROWS) {
@@ -151,11 +151,11 @@ final class RowNumberFilterSpec {
      * @throws InvalidSettingsException if not supported
      * @see {@link #getAsFilterSpec(FilterCriterion)}
      */
-    static List<RowNumberFilterSpec> getAsFilterSpecs(final List<FilterCriterion> rowNumberCriteria)
+    static List<RowNumberFilterSpec> toFilterSpec(final List<FilterCriterion> rowNumberCriteria)
         throws InvalidSettingsException {
         final List<RowNumberFilterSpec> rowNumberFilterSpecs = new ArrayList<>();
         for (final var criterion : rowNumberCriteria) {
-            rowNumberFilterSpecs.add(getAsFilterSpec(criterion));
+            rowNumberFilterSpecs.add(toFilterSpec(criterion));
         }
         return rowNumberFilterSpecs;
     }

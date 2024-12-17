@@ -240,7 +240,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
         void validate(final DataTableSpec spec) throws InvalidSettingsException {
             // check table slicing (filter on numeric row number values)
             if (isFilterOnRowNumbers() && RowNumberFilterSpec.supportsOperator(m_operator)) {
-                RowNumberFilterSpec.getAsFilterSpec(this);
+                RowNumberFilterSpec.toFilterSpec(this);
                 return;
             }
 
@@ -444,18 +444,18 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
     ColumnDomains m_domains = ColumnDomains.RETAIN;
 
     enum ColumnDomains {
-            @Label(value = "Retain",
-                description = """
-                        Retain input domains on output columns, i.e. the upper and lower bounds or possible values in the table spec
-                        are not changed, even if one of the bounds or one value is fully filtered out from the output table.
-                        If the input does not contain domain information, so will the output.
-                            """)
-            RETAIN, @Label(value = "Compute",
-                description = """
-                        Compute column domains on output columns, i.e. upper and lower bounds and possible values are computed only
-                        on the rows output by the node.
-                            """)
-            COMPUTE;
+        @Label(value = "Retain",
+        description = """
+                Retain input domains on output columns, i.e. the upper and lower bounds or possible values in the table
+                spec are not changed, even if one of the bounds or one value is fully filtered out from the output
+                table. If the input does not contain domain information, so will the output.
+                    """)
+        RETAIN, @Label(value = "Compute",
+        description = """
+                Compute column domains on output columns, i.e. upper and lower bounds and possible values are computed
+                only on the rows output by the node.
+                    """)
+        COMPUTE;
     }
 
     /**
@@ -671,7 +671,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
         final long optionalTableSize) throws InvalidSettingsException {
         final var predicates = new ArrayList<IndexedRowReadPredicate>();
         for (final var filterCriterion : criteria) {
-            final var filterSpec = RowNumberFilterSpec.getAsFilterSpec(filterCriterion);
+            final var filterSpec = RowNumberFilterSpec.toFilterSpec(filterCriterion);
             final var offsetFilter = filterSpec.toOffsetFilter(optionalTableSize);
             predicates.add(offsetFilter.asPredicate());
         }

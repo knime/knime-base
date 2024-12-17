@@ -86,11 +86,7 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
 
     private static final int INPUT = 0;
 
-    private static final int MATCHING_OUTPUT = 0;
-
-    private static final int NON_MATCHING_OUTPUT = 1;
-
-    static final long UNKNOWN_SIZE = -1;
+    private static final long UNKNOWN_SIZE = -1;
 
     RowFilterNodeModel(final WebUINodeConfiguration config, final Class<S> settingsClass) {
         super(config, settingsClass);
@@ -128,7 +124,7 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
         if (dataCriteria.isEmpty()) {
             // slicing-only is possible since we never look at any column
             final var includedExcludedPartition = RowNumberFilterSpec.computeRowPartition(isAnd,
-                RowNumberFilterSpec.getAsFilterSpecs(rowNumberCriteria), settings.outputMode(), tableSize);
+                RowNumberFilterSpec.toFilterSpec(rowNumberCriteria), settings.outputMode(), tableSize);
             return RowFilter.slice(exec, in, includedExcludedPartition, isSplitter);
         }
         final var inSpec = in.getSpec();
@@ -219,6 +215,10 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
         return new RowFilterOperator();
     }
 
+    private static final int MATCHING_OUTPUT = 0;
+
+    private static final int NON_MATCHING_OUTPUT = 1;
+
     /**
      * Streamable operator implementation for Row Filter.
      *
@@ -237,7 +237,7 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
                 final var dataPredicates = rowNumberAndDataPredicates.getSecond();
                 if (!rowNumberPredicates.isEmpty() && dataPredicates.isEmpty()) {
                     // we can only filter based on row numbers
-                    final var filterSpecs = RowNumberFilterSpec.getAsFilterSpecs(rowNumberPredicates);
+                    final var filterSpecs = RowNumberFilterSpec.toFilterSpec(rowNumberPredicates);
                     final var rowPartition = RowNumberFilterSpec.computeRowPartition(settings.m_matchCriteria.isAnd(),
                         filterSpecs, settings.outputMode(), UNKNOWN_SIZE);
                     final var included = (RowOutput)outputs[MATCHING_OUTPUT];

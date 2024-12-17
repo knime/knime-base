@@ -48,6 +48,7 @@
  */
 package org.knime.base.data.filter.row.v2;
 
+import org.knime.core.data.v2.RowRead;
 import org.knime.core.node.util.CheckUtils;
 
 /**
@@ -58,19 +59,40 @@ import org.knime.core.node.util.CheckUtils;
  */
 public record OffsetFilter(Operator operator, long offset) {
 
+    /**
+     * Supported operators for row number offset filter.
+     */
     public enum Operator {
+            /** "Row number equals". */
             EQ,
+            /** "Row number does not equal". */
             NEQ,
+            /** "Row number is less than". */
             LT,
+            /** "Row number is less than or equal to". */
             LTE,
+            /** "Row number is greater than". */
             GT,
+            /** "Row number is greater than or equal to". */
             GTE
     }
 
+    /**
+     * Creates a new offset filter.
+     *
+     * @param operator operator to use
+     * @param offset non-negative offset from start of table
+     */
     public OffsetFilter {
         CheckUtils.checkArgument(offset >= 0, "Offset must not be negative: %d", offset);
     }
 
+    /**
+     * Converts the offset filter definition into a predicate that can be evaluated on an {@link RowRead indexed row
+     * read}.
+     *
+     * @return predicate to evaluate on indexed row read
+     */
     public IndexedRowReadPredicate asPredicate() {
         return switch (operator) {
             case EQ -> (rowIndex, read) -> rowIndex == offset;
@@ -81,6 +103,5 @@ public record OffsetFilter(Operator operator, long offset) {
             case GTE -> (rowIndex, read) -> rowIndex >= offset;
         };
     }
-
 
 }
