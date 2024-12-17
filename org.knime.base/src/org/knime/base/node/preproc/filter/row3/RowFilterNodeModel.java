@@ -246,7 +246,7 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
                 } else {
                     // we have to filter on richer predicates
                     final var predicates = partitionCriteria(settings.m_predicates);
-                    // TODO (performance): use ALWAYS_TRUE and ALWAYS_FALSE predicates to return whole table or empty table
+                    // TODO(performance): use TRUE and FALSE static predicates to return whole or empty table
                     final var rowPredicate =
                         AbstractRowFilterNodeSettings.createFilterPredicate(settings.m_matchCriteria.isAnd(),
                             predicates.getFirst(), predicates.getSecond(), input.getDataTableSpec(), UNKNOWN_SIZE);

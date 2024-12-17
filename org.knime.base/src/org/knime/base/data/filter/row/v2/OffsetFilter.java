@@ -103,5 +103,4 @@ public record OffsetFilter(Operator operator, long offset) {
             case GTE -> (rowIndex, read) -> rowIndex >= offset;
         };
     }
-
 }

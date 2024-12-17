@@ -102,19 +102,21 @@ abstract class OrderingPredicateFactory extends AbstractPredicateFactory {
     }
 
     static Optional<PredicateFactory> create(final DataType columnDataType, final FilterOperator operator) {
-        return Ordering.fromOperator(operator).map(ordering -> {
-            final var preferredValueClass = columnDataType.getPreferredValueClass();
-            if (preferredValueClass.equals(IntValue.class)) {
-                return new OrderingIntPredicateFactory(ordering);
-            }
-            if (preferredValueClass.equals(LongValue.class)) {
-                return new OrderingLongPredicateFactory(ordering);
-            }
-            if (preferredValueClass.equals(DoubleValue.class)) {
-                return new OrderingDoublePredicateFactory(ordering);
-            }
-            return new OrderingDataValuePredicateFactory(ordering, columnDataType);
-        });
+        return Ordering.fromOperator(operator).map(ordering -> mapToFactory(columnDataType, ordering));
+    }
+
+    private static PredicateFactory mapToFactory(final DataType columnDataType, final Ordering ordering) {
+        final var preferredValueClass = columnDataType.getPreferredValueClass();
+        if (preferredValueClass.equals(IntValue.class)) {
+            return new OrderingIntPredicateFactory(ordering);
+        }
+        if (preferredValueClass.equals(LongValue.class)) {
+            return new OrderingLongPredicateFactory(ordering);
+        }
+        if (preferredValueClass.equals(DoubleValue.class)) {
+            return new OrderingDoublePredicateFactory(ordering);
+        }
+        return new OrderingDataValuePredicateFactory(ordering, columnDataType);
     }
 
     protected abstract IndexedRowReadPredicate createPredicate(final int columnIndex,
@@ -268,10 +270,8 @@ abstract class OrderingPredicateFactory extends AbstractPredicateFactory {
             final var refCell = getCellAtOrThrow(inputValues, 0);
             double ref;
             if (refCell instanceof IntCell intCell) {
-                LOGGER.debug("Creating equality predicate for Double column with Integer reference value");
                 ref = intCell.getIntValue();
             } else if (refCell instanceof DoubleCell doubleCell) {
-                LOGGER.debug("Creating equality predicate for Double column with Double reference value");
                 ref = doubleCell.getDoubleValue();
             } else {
                 final var refCellType = refCell.getType();

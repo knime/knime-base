@@ -140,9 +140,6 @@ abstract class PatternMatchingPredicateFactory extends AbstractPredicateFactory 
         @Override
         public IndexedRowReadPredicate createPredicate(final OptionalInt columnIndex,
             final DynamicValuesInput inputValues) throws InvalidSettingsException {
-            final var columnIndexValue = columnIndex.orElseThrow(() -> new IllegalArgumentException(
-                "Pattern match on column requires a column index, but none was provided"));
-
             final var valueIndex = 0; // we have only one value
             final var patternCell = getCellAtOrThrow(inputValues, valueIndex);
             if (!isSupported(patternCell.getType())) {
@@ -157,6 +154,8 @@ abstract class PatternMatchingPredicateFactory extends AbstractPredicateFactory 
             final var pattern = ((StringValue)patternCell).getStringValue();
             final var isCaseSensitive = inputValues.isStringMatchCaseSensitive(valueIndex);
             final var patternPredicate = StringPredicate.pattern(pattern, m_isRegex, isCaseSensitive);
+            final var columnIndexValue = columnIndex.orElseThrow(() -> new IllegalArgumentException(
+                    "Pattern match on column requires a column index, but none was provided"));
             final var toStringFn = m_columnIdxToStringFn.apply(columnIndexValue);
             return (idx, row) -> patternPredicate.test(toStringFn.apply(idx, row));
         }
