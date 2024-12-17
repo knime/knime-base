@@ -122,9 +122,6 @@
 	<!--  	<b>aggregateNodes:</b> <br/>--><!-- not supported -->
 		<b>NONE:</b> use the noTrueChildStrategy
 		</option>
-		<link href="https://www.knime.com/knime-introductory-course/chapter6/section3/decision-tree">
-			KNIME E-Learning Course: Decision Tree
-		</link>
 	</fullDescription>
 	<ports>
 		<inPort index="0" name="Input data">
