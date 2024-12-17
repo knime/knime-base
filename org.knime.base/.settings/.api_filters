@@ -1,9 +1,324 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <component id="org.knime.base" version="2">
-    <resource path="src/org/knime/base/node/util/cache/CacheNodeFactory.java" type="org.knime.base.node.util.cache.CacheNodeFactory">
-        <filter comment="made changes to Cache node, which is not API." id="337768515">
+    <resource path="src/org/knime/base/data/filter/row/v2/FilterPartition.java" type="org.knime.base.data.filter.row.v2.FilterPartition">
+        <filter id="640712815">
             <message_arguments>
-                <message_argument value="org.knime.base.node.util.cache.CacheNodeFactory"/>
+                <message_argument value="InternalTableAPI"/>
+                <message_argument value="FilterPartition"/>
+                <message_argument value="multiSlice(ExecutionContext, BufferedDataTable, Selection[])"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="InternalTableAPI"/>
+                <message_argument value="FilterPartition"/>
+                <message_argument value="slice(ExecutionContext, BufferedDataTable, Selection)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/data/filter/row/v2/RowFilter.java" type="org.knime.base.data.filter.row.v2.RowFilter">
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowCursor"/>
+                <message_argument value="RowFilter"/>
+                <message_argument value="canForward()"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowCursor"/>
+                <message_argument value="RowFilter"/>
+                <message_argument value="forward()"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowWriteCursor"/>
+                <message_argument value="RowFilter"/>
+                <message_argument value="commit(RowRead)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/FilterOperator.java" type="org.knime.base.node.preproc.filter.row3.FilterOperator">
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="FilterOperator"/>
+                <message_argument value="isMissing(int)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/RowFilterNodeModel.java" type="org.knime.base.node.preproc.filter.row3.RowFilterNodeModel">
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="ExecutionContext"/>
+                <message_argument value="RowFilterNodeModel&lt;S&gt;"/>
+                <message_argument value="createRowContainer(DataTableSpec, DataContainerSettings)"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowContainer"/>
+                <message_argument value="RowFilterNodeModel&lt;S&gt;"/>
+                <message_argument value="close()"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowContainer"/>
+                <message_argument value="RowFilterNodeModel&lt;S&gt;"/>
+                <message_argument value="createCursor()"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowContainer"/>
+                <message_argument value="RowFilterNodeModel&lt;S&gt;"/>
+                <message_argument value="finish()"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowCursor"/>
+                <message_argument value="RowFilterNodeModel&lt;S&gt;"/>
+                <message_argument value="close()"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/RowFilterNodeModel.java" type="org.knime.base.node.preproc.filter.row3.RowFilterNodeModel$RowFilterOperator">
+        <filter id="571473929">
+            <message_arguments>
+                <message_argument value="StreamableOperator"/>
+                <message_argument value="RowFilterOperator"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/predicates/AbstractPredicateFactory.java" type="org.knime.base.node.preproc.filter.row3.predicates.AbstractPredicateFactory">
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="Message"/>
+                <message_argument value="AbstractPredicateFactory"/>
+                <message_argument value="builder()"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/predicates/BooleanPredicateFactory.java" type="org.knime.base.node.preproc.filter.row3.predicates.BooleanPredicateFactory">
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="BooleanPredicateFactory"/>
+                <message_argument value="getValue(int)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/predicates/EqualityPredicateFactory.java" type="org.knime.base.node.preproc.filter.row3.predicates.EqualityPredicateFactory$EqualityDataCellPredicateFactory">
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="EqualityDataCellPredicateFactory"/>
+                <message_argument value="getValue(int)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/predicates/EqualityPredicateFactory.java" type="org.knime.base.node.preproc.filter.row3.predicates.EqualityPredicateFactory$EqualityDoublePredicateFactory">
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="Message"/>
+                <message_argument value="EqualityDoublePredicateFactory"/>
+                <message_argument value="builder()"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="EqualityDoublePredicateFactory"/>
+                <message_argument value="getValue(int)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/predicates/EqualityPredicateFactory.java" type="org.knime.base.node.preproc.filter.row3.predicates.EqualityPredicateFactory$EqualityIntPredicateFactory">
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="Message"/>
+                <message_argument value="EqualityIntPredicateFactory"/>
+                <message_argument value="builder()"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="EqualityIntPredicateFactory"/>
+                <message_argument value="getValue(int)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/predicates/EqualityPredicateFactory.java" type="org.knime.base.node.preproc.filter.row3.predicates.EqualityPredicateFactory$EqualityLongPredicateFactory">
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="Message"/>
+                <message_argument value="EqualityLongPredicateFactory"/>
+                <message_argument value="builder()"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="EqualityLongPredicateFactory"/>
+                <message_argument value="getValue(int)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/predicates/EqualityPredicateFactory.java" type="org.knime.base.node.preproc.filter.row3.predicates.EqualityPredicateFactory$EqualityRowKeyPredicateFactory">
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="Message"/>
+                <message_argument value="EqualityRowKeyPredicateFactory"/>
+                <message_argument value="builder()"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowRead"/>
+                <message_argument value="EqualityRowKeyPredicateFactory"/>
+                <message_argument value="getRowKey()"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/predicates/EqualityPredicateFactory.java" type="org.knime.base.node.preproc.filter.row3.predicates.EqualityPredicateFactory$EqualityRowNumberPredicateFactory">
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="Message"/>
+                <message_argument value="EqualityRowNumberPredicateFactory"/>
+                <message_argument value="builder()"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/predicates/EqualityPredicateFactory.java" type="org.knime.base.node.preproc.filter.row3.predicates.EqualityPredicateFactory$EqualityStringPredicateFactory">
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="Message"/>
+                <message_argument value="EqualityStringPredicateFactory"/>
+                <message_argument value="builder()"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="EqualityStringPredicateFactory"/>
+                <message_argument value="getValue(int)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/predicates/OrderingPredicateFactory.java" type="org.knime.base.node.preproc.filter.row3.predicates.OrderingPredicateFactory$OrderingDataValuePredicateFactory">
+        <filter id="640708718">
+            <message_arguments>
+                <message_argument value="DataValueComparatorDelegator(DataValueComparator)"/>
+                <message_argument value="OrderingDataValuePredicateFactory"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="Message"/>
+                <message_argument value="OrderingDataValuePredicateFactory"/>
+                <message_argument value="builder()"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="OrderingDataValuePredicateFactory"/>
+                <message_argument value="getValue(int)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/predicates/OrderingPredicateFactory.java" type="org.knime.base.node.preproc.filter.row3.predicates.OrderingPredicateFactory$OrderingDoublePredicateFactory">
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="Message"/>
+                <message_argument value="OrderingDoublePredicateFactory"/>
+                <message_argument value="builder()"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="OrderingDoublePredicateFactory"/>
+                <message_argument value="getValue(int)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/predicates/OrderingPredicateFactory.java" type="org.knime.base.node.preproc.filter.row3.predicates.OrderingPredicateFactory$OrderingIntPredicateFactory">
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="Message"/>
+                <message_argument value="OrderingIntPredicateFactory"/>
+                <message_argument value="builder()"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="OrderingIntPredicateFactory"/>
+                <message_argument value="getValue(int)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/predicates/OrderingPredicateFactory.java" type="org.knime.base.node.preproc.filter.row3.predicates.OrderingPredicateFactory$OrderingLongPredicateFactory">
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="Message"/>
+                <message_argument value="OrderingLongPredicateFactory"/>
+                <message_argument value="builder()"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="OrderingLongPredicateFactory"/>
+                <message_argument value="getValue(int)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/predicates/PatternMatchingPredicateFactory.java" type="org.knime.base.node.preproc.filter.row3.predicates.PatternMatchingPredicateFactory">
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowRead"/>
+                <message_argument value="PatternMatchingPredicateFactory"/>
+                <message_argument value="getRowKey()"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="PatternMatchingPredicateFactory"/>
+                <message_argument value="getValue(int)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/predicates/PatternMatchingPredicateFactory.java" type="org.knime.base.node.preproc.filter.row3.predicates.PatternMatchingPredicateFactory$Column">
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="Message"/>
+                <message_argument value="Column"/>
+                <message_argument value="builder()"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/predicates/PatternMatchingPredicateFactory.java" type="org.knime.base.node.preproc.filter.row3.predicates.PatternMatchingPredicateFactory$NonColumn">
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="Message"/>
+                <message_argument value="NonColumn"/>
+                <message_argument value="builder()"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/predicates/PredicateFactories.java" type="org.knime.base.node.preproc.filter.row3.predicates.PredicateFactories">
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="PredicateFactories"/>
+                <message_argument value="isMissing(int)"/>
             </message_arguments>
         </filter>
     </resource>
