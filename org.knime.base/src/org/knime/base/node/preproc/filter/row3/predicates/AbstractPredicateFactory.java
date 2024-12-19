@@ -49,12 +49,15 @@
 package org.knime.base.node.preproc.filter.row3.predicates;
 
 import java.util.OptionalInt;
+import java.util.function.UnaryOperator;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataType;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.message.Message;
+import org.knime.core.node.message.MessageBuilder;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 
@@ -68,31 +71,11 @@ abstract class AbstractPredicateFactory implements PredicateFactory {
 
     protected static final NodeLogger LOGGER = NodeLogger.getLogger(AbstractPredicateFactory.class);
 
-    /**
-     * Gets the input value at the specified index, throwing an exception if the value is missing.
-     *
-     * @param inputValues input values to access
-     * @param inputValueIndex index of the input value
-     * @return input value
-     * @throws InvalidSettingsException if the input value is missing
-     */
-    protected DataCell getCellAtOrThrow(final DynamicValuesInput inputValues, final int inputValueIndex)
-        throws InvalidSettingsException {
-        return inputValues.getCellAt(inputValueIndex)
-            .orElseThrow(AbstractPredicateFactory::createMissingReferenceValueException);
-    }
+    protected AbstractPredicateFactory() { }
 
     /**
-     * Creates a nice exception message with potential resolution.
-     *
-     * @return exception to throw
+     * Predicate factory base for row key predicates.
      */
-    private static InvalidSettingsException createMissingReferenceValueException() {
-        return Message.builder().withSummary("Reference value is missing")
-            .addResolutions("Reconfigure the node to provide a reference value.").build().orElseThrow()
-            .toInvalidSettingsException();
-    }
-
     abstract static class RowKeyPredicateFactory extends AbstractPredicateFactory {
 
         protected abstract IndexedRowReadPredicate createPredicate(final DynamicValuesInput inputValues)
@@ -106,6 +89,9 @@ abstract class AbstractPredicateFactory implements PredicateFactory {
         }
     }
 
+    /**
+     * Predicate factory base for row number predicates.
+     */
     abstract static class RowNumberPredicateFactory extends AbstractPredicateFactory {
 
         protected abstract IndexedRowReadPredicate createPredicate(final DynamicValuesInput inputValues)
@@ -117,5 +103,63 @@ abstract class AbstractPredicateFactory implements PredicateFactory {
             CheckUtils.checkArgument(columnIndex.isEmpty(), "Unexpected column index for row number predicate");
             return createPredicate(inputValues);
         }
+    }
+
+    /**
+     * Gets the input value at the specified index, throwing an exception if the value is missing.
+     *
+     * @param inputValues input values to access
+     * @param inputValueIndex index of the input value
+     * @return input value
+     * @throws InvalidSettingsException if the input value is missing
+     */
+    protected static DataCell getCellAtOrThrow(final DynamicValuesInput inputValues, final int inputValueIndex)
+        throws InvalidSettingsException {
+        return inputValues.getCellAt(inputValueIndex)
+            .orElseThrow(AbstractPredicateFactory::createMissingReferenceValueException);
+    }
+
+    /**
+     * Throws the exception resulting from the configured message builder.
+     *
+     * @param builderFn function to configure the message builder
+     * @return invalid settings exception containing mandatory summary, details, and potential resolutions from the
+     *         builder
+     */
+    protected static InvalidSettingsException
+        createInvalidSettingsException(final UnaryOperator<MessageBuilder> builderFn) {
+        return builderFn.apply(Message.builder()).build().orElseThrow().toInvalidSettingsException();
+    }
+
+    /**
+     * Creates a nice exception message with potential resolution.
+     *
+     * @return exception to throw
+     */
+    private static InvalidSettingsException createMissingReferenceValueException() {
+        return Message.builder().withSummary("Reference value is missing")
+            .addResolutions("Reconfigure the node to provide a reference value.").build().orElseThrow()
+            .toInvalidSettingsException();
+    }
+
+    /* === UTILITY === */
+
+    protected static StringBuilder appendElements(final StringBuilder prefix, final DataType[] elements) {
+        CheckUtils.checkArgument(elements.length > 0, "Cannot append empty elements array");
+        final var quote = "\"";
+        if (elements.length == 1) {
+            return prefix.append(quote).append(elements[0]).append(quote);
+        }
+        if (elements.length == 2) {
+            return prefix.append(quote).append(elements[0]).append(quote) //
+                .append(" or ").append(quote).append(elements[1]).append(quote);
+        }
+        for (var i = 0; i < elements.length - 1; i++) {
+            prefix.append(quote).append(elements[i]).append(quote).append(", ");
+            if (i == elements.length - 2) {
+                prefix.append("or ");
+            }
+        }
+        return prefix;
     }
 }

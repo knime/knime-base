@@ -44,52 +44,20 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   27 Aug 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   16 Dec 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ */
+/**
+ * <p>
+ * This package contains all predicate implementations for the Row Filter and Row Splitter nodes. The primary entrypoint
+ * is the {@link org.knime.base.node.preproc.filter.row3.predicates.PredicateFactories} utility. All predicate factories
+ * implement the common interface {@link org.knime.base.node.preproc.filter.row3.predicates.PredicateFactory} that
+ * creates predicates of the {@link org.knime.base.data.filter.row.v2.IndexedRowReadPredicate} interface required by the
+ * {@link org.knime.base.data.filter.row.v2.RowFilter row filter implementation}.
+ * </p>
+ *
+ * Predicate implementations should make sure that they are as specialized as possible to allow for an efficient
+ * evaluation, e.g. by creating specialized predicate functions based on the given data type in the factory and not only
+ * in the {@link org.knime.base.data.filter.row.v2.IndexedRowReadPredicate#test(long, org.knime.core.data.v2.RowRead)
+ * predicate test} method.
  */
 package org.knime.base.node.preproc.filter.row3.predicates;
-
-import java.util.Optional;
-import java.util.OptionalInt;
-
-import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
-import org.knime.core.data.DataType;
-import org.knime.core.data.def.BooleanCell;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
-
-/**
- * Predicate factory for boolean columns.
- *
- * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
- */
-final class BooleanPredicateFactory extends AbstractPredicateFactory {
-
-    private final boolean m_matchTrue;
-
-    private BooleanPredicateFactory(final boolean matchTrue) {
-        m_matchTrue = matchTrue;
-    }
-
-    /**
-     * Creates a factory for boolean predicates, if applicable to the column data type.
-     *
-     * @param columnDataType the data type of the column
-     * @param matchTrue whether to match true or false
-     * @return an optional predicate factory
-     */
-    static Optional<PredicateFactory> create(final DataType columnDataType, final boolean matchTrue) {
-        if (columnDataType.equals(BooleanCell.TYPE)) {
-            return Optional.of(new BooleanPredicateFactory(matchTrue));
-        }
-        return Optional.empty();
-    }
-
-    @Override
-    public IndexedRowReadPredicate createPredicate(final OptionalInt colIdx, final DynamicValuesInput ignored)
-        throws InvalidSettingsException {
-        final var columnIndex = colIdx.orElseThrow(
-            () -> new IllegalStateException("Boolean predicate operates on column but did not get a column index"));
-        return (i, rowRead) -> rowRead.<BooleanCell> getValue(columnIndex).getBooleanValue() == m_matchTrue;
-    }
-
-}

@@ -51,6 +51,7 @@ package org.knime.base.node.preproc.filter.row3.predicates;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.function.DoublePredicate;
+import java.util.function.Function;
 import java.util.function.IntPredicate;
 import java.util.function.LongPredicate;
 
@@ -65,8 +66,8 @@ import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.data.v2.RowRead;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.message.Message;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 
@@ -87,11 +88,38 @@ abstract class EqualityPredicateFactory extends AbstractPredicateFactory {
         m_matchEqual = matchEqual;
     }
 
-    public static Optional<PredicateFactory> forRowKey(final boolean matchEqual) {
+    protected static InvalidSettingsException createInvalidSettingsException(final String rowNumberOrColumn,
+        final DataType type, final DataType refCellType, final boolean isEquals, final DataType... supportedTypes) {
+        return createInvalidSettingsException(builder -> builder //
+            .withSummary("Cannot compare %s of type \"%s\" with a value of type \"%s\" for %sequality"
+                .formatted(rowNumberOrColumn, type, refCellType, isEquals ? "" : "in"))
+            .addResolutions(
+                appendElements(new StringBuilder("Reconfigure the node to use a reference value of type "),
+                    supportedTypes).toString(),
+                "Convert the %s to \"%s\" before applying the filter using a converter node, e.g. an expression node"
+                    .formatted(rowNumberOrColumn, refCellType))
+        );
+    }
+
+    /**
+     * Creates an equality predicate for row keys.
+     *
+     * @param matchEqual {@code true} if the equality predicate should match "equal", {@code false} if it should match
+     *            "not equal"
+     * @return factory for row key equality predicates
+     */
+    static Optional<PredicateFactory> forRowKey(final boolean matchEqual) {
         return Optional.of(new EqualityRowKeyPredicateFactory(matchEqual));
     }
 
-    public static Optional<PredicateFactory> forRowNumber(final boolean matchEqual) {
+    /**
+     * Creates an equality predicate for row numbers.
+     *
+     * @param matchEqual {@code true} if the equality predicate should match "equal", {@code false} if it should match
+     *            "not equal"
+     * @return factory for row number equality predicates
+     */
+    static Optional<PredicateFactory> forRowNumber(final boolean matchEqual) {
         return Optional.of(new EqualityRowNumberPredicateFactory(matchEqual));
     }
 
@@ -103,7 +131,7 @@ abstract class EqualityPredicateFactory extends AbstractPredicateFactory {
      *            "not equals"
      * @return factory for the given data type, or empty optional if the data type is not supported
      */
-    public static Optional<PredicateFactory> create(final DataType columnDataType, final boolean matchEqual) {
+    static Optional<PredicateFactory> create(final DataType columnDataType, final boolean matchEqual) {
         final var preferredValueClass = columnDataType.getPreferredValueClass();
 
         if (preferredValueClass.equals(BooleanValue.class)) {
@@ -166,7 +194,7 @@ abstract class EqualityPredicateFactory extends AbstractPredicateFactory {
             if (refCell instanceof IntCell intCell) {
                 // comparing Integer column with int value
                 final var ref = intCell.getIntValue();
-                final var predicate = new IntValuePredicate(ref, m_matchEqual);
+                final var predicate = new IntEquality(ref, m_matchEqual);
                 return (i, rowRead) -> predicate.test(rowRead.<IntValue> getValue(columnIndex).getIntValue());
             }
 
@@ -183,16 +211,8 @@ abstract class EqualityPredicateFactory extends AbstractPredicateFactory {
             }
 
             final var refCellType = refCell.getType();
-            final var inEq = m_matchEqual ? "" : "in";
-            throw Message.builder()
-                .withSummary("Cannot compare column of type \"%s\" with a value of type \"%s\" for %sequality"
-                    .formatted(IntCell.TYPE, refCellType, inEq))
-                .addResolutions(
-                    "Reconfigure the node to provide a reference value of \"%s\", \"%s\", or \"%s\" type."
-                        .formatted(IntCell.TYPE, LongCell.TYPE, DoubleCell.TYPE),
-                    "Convert the input column to \"%s\" using a converter node, e.g. an expression node"
-                        .formatted(refCellType))
-                .build().orElseThrow().toInvalidSettingsException();
+            throw createInvalidSettingsException("input column", IntCell.TYPE, refCellType, m_matchEqual, IntCell.TYPE,
+                LongCell.TYPE, DoubleCell.TYPE);
         }
 
         private IndexedRowReadPredicate comparingWithLongValue(final int columnIndex, final long ref) {
@@ -205,7 +225,7 @@ abstract class EqualityPredicateFactory extends AbstractPredicateFactory {
             }
 
             // long value is inside of the int domain, so matches are possible
-            final var predicate = new IntValuePredicate((int)ref, m_matchEqual);
+            final var predicate = new IntEquality((int)ref, m_matchEqual);
             return (i, rowRead) -> predicate.test(rowRead.<IntValue> getValue(columnIndex).getIntValue());
         }
 
@@ -219,7 +239,7 @@ abstract class EqualityPredicateFactory extends AbstractPredicateFactory {
             }
 
             // double value is inside of the int domain, so matches are possible
-            final var predicate = new DoubleValuePredicate(ref, m_matchEqual);
+            final var predicate = new DoubleEquality(ref, m_matchEqual);
             return (i, rowRead) -> predicate.test(rowRead.<IntValue> getValue(columnIndex).getIntValue());
         }
 
@@ -244,18 +264,10 @@ abstract class EqualityPredicateFactory extends AbstractPredicateFactory {
                 ref = longCell.getLongValue();
             } else {
                 final var refCellType = refCell.getType();
-                final var inEq = m_matchEqual ? "" : "in";
-                throw Message.builder()
-                    .withSummary("Cannot compare column of type \"%s\" with a value of type \"%s\" for %sequality"
-                        .formatted(LongCell.TYPE, refCellType, inEq))
-                    .addResolutions(
-                        "Reconfigure the node to provide a reference value of \"%s\" or \"%s\" type."
-                            .formatted(IntCell.TYPE, LongCell.TYPE),
-                        "Convert the input column to \"%s\" using a converter node, e.g. an expression node"
-                            .formatted(refCellType))
-                    .build().orElseThrow().toInvalidSettingsException();
+                throw createInvalidSettingsException("input column", LongCell.TYPE, refCellType, m_matchEqual,
+                    IntCell.TYPE, LongCell.TYPE);
             }
-            final var predicate = new LongValuePredicate(ref, m_matchEqual);
+            final var predicate = new LongEquality(ref, m_matchEqual);
             return (i, rowRead) -> predicate.test(rowRead.<LongValue> getValue(columnIndex).getLongValue());
         }
     }
@@ -279,18 +291,10 @@ abstract class EqualityPredicateFactory extends AbstractPredicateFactory {
                 ref = longCell.getLongValue();
             } else {
                 final var refCellType = refCell.getType();
-                final var inEq = m_matchEqual ? "" : "in";
-                throw Message.builder()
-                    .withSummary("Cannot compare row number with a value of type \"%s\" for %sequality"
-                        .formatted(refCellType, inEq))
-                    .addResolutions(
-                        "Reconfigure the node to provide a reference value of \"%s\" or \"%s\" type."
-                            .formatted(IntCell.TYPE, LongCell.TYPE),
-                        "Convert row numbers to \"%s\" using a converter node, e.g. an expression node"
-                            .formatted(refCellType))
-                    .build().orElseThrow().toInvalidSettingsException();
+                throw EqualityPredicateFactory.createInvalidSettingsException("row number", LongCell.TYPE, refCellType,
+                    m_matchEqual, IntCell.TYPE, LongCell.TYPE);
             }
-            final var predicate = new LongValuePredicate(ref, m_matchEqual);
+            final var predicate = new LongEquality(ref, m_matchEqual);
             return (i, rowRead) -> predicate.test(i);
         }
     }
@@ -312,18 +316,10 @@ abstract class EqualityPredicateFactory extends AbstractPredicateFactory {
                 ref = doubleCell.getDoubleValue();
             } else {
                 final var refCellType = refCell.getType();
-                final var inEq = m_matchEqual ? "" : "in";
-                throw Message.builder()
-                    .withSummary("Cannot compare column of type \"%s\" with a value of type \"%s\" for %sequality"
-                        .formatted(DoubleCell.TYPE, refCellType, inEq))
-                    .addResolutions(
-                        "Reconfigure the node to provide a reference value of \"%s\" or \"%s\" type."
-                            .formatted(IntCell.TYPE, DoubleCell.TYPE),
-                        "Convert the input column to \"%s\" using a converter node, e.g. an expression node"
-                            .formatted(refCellType))
-                    .build().orElseThrow().toInvalidSettingsException();
+                throw createInvalidSettingsException("input column", DoubleCell.TYPE, refCellType, m_matchEqual,
+                    IntCell.TYPE, DoubleCell.TYPE);
             }
-            final var predicate = new DoubleValuePredicate(ref, m_matchEqual);
+            final var predicate = new DoubleEquality(ref, m_matchEqual);
             return (i, rowRead) -> predicate.test(rowRead.<DoubleValue> getValue(columnIndex).getDoubleValue());
         }
 
@@ -340,25 +336,26 @@ abstract class EqualityPredicateFactory extends AbstractPredicateFactory {
             throws InvalidSettingsException {
             CheckUtils.checkArgument(columnIndex >= 0,
                 "Expected non-negative column index for String equality predicate");
+            final var columnOrRowKey = "input column";
+            final var referenceValueIndex = 0;
+            return getPredicate(m_matchEqual, inputValues, referenceValueIndex, columnOrRowKey,
+                r -> r.<StringValue> getValue(columnIndex).getStringValue());
+        }
 
-            final var refCell = getCellAtOrThrow(inputValues, 0);
+        private static IndexedRowReadPredicate getPredicate(final boolean matchEqual,
+            final DynamicValuesInput inputValues, final int referenceValueIndex, final String rowKeyOrColumn,
+            final Function<RowRead, String> valueFn) throws InvalidSettingsException {
+            final var refCell = getCellAtOrThrow(inputValues, referenceValueIndex);
             final var refCellType = refCell.getType();
             if (!refCellType.isCompatible(StringValue.class)) {
-                final var inEq = m_matchEqual ? "" : "in";
-                final var builder = Message.builder()
-                    .withSummary("Cannot compare column of type \"%s\" with a value of type \"%s\" for %sequality"
-                        .formatted(StringCell.TYPE, refCellType, inEq))
-                    .addResolutions(
-                        "Reconfigure the node to provide a reference value of \"%s\" type.".formatted(StringCell.TYPE))
-                    .addResolutions("Convert the input column to \"%s\" using a converter node, e.g. an expression node"
-                        .formatted(refCellType));
-                throw builder.build().orElseThrow().toInvalidSettingsException();
+                throw createInvalidSettingsException(rowKeyOrColumn, StringCell.TYPE, refCellType, matchEqual,
+                    StringCell.TYPE);
             }
             final var refValue = ((StringValue)refCell).getStringValue();
-            final var isCaseSensitive = inputValues.isStringMatchCaseSensitive(0);
-            final var predicate = StringPredicate.equality(refValue, isCaseSensitive);
-            return (i, rowRead) -> //
-            m_matchEqual == predicate.test(rowRead.<StringValue> getValue(columnIndex).getStringValue());
+            final var isCaseSensitive = inputValues.isStringMatchCaseSensitive(referenceValueIndex);
+            final var pred = StringPredicate.equality(refValue, isCaseSensitive);
+
+            return (i, rowRead) -> matchEqual == pred.test(valueFn.apply(rowRead));
         }
 
     }
@@ -375,30 +372,19 @@ abstract class EqualityPredicateFactory extends AbstractPredicateFactory {
         protected IndexedRowReadPredicate createPredicate(final DynamicValuesInput inputValues)
             throws InvalidSettingsException {
 
-            final var refCell = getCellAtOrThrow(inputValues, 0);
-            final var refCellType = refCell.getType();
-            if (!refCellType.isCompatible(StringValue.class)) {
-                final var inEq = m_matchEqual ? "" : "in";
-                final var builder = Message.builder()
-                    .withSummary("Cannot compare RowID of type \"%s\" with a value of type \"%s\" for %sequality"
-                        .formatted(StringCell.TYPE, refCellType, inEq))
-                    .addResolutions(
-                        "Reconfigure the node to provide a reference value of \"%s\" type.".formatted(StringCell.TYPE));
-                throw builder.build().orElseThrow().toInvalidSettingsException();
-            }
-            final var refValue = ((StringValue)refCell).getStringValue();
-            final var isCaseSensitive = inputValues.isStringMatchCaseSensitive(0);
-            final var predicate = StringPredicate.equality(refValue, isCaseSensitive);
-            return (i, rowRead) -> m_matchEqual == predicate.test(rowRead.getRowKey().getString());
+            final var columnOrRowKey = "RowID";
+            final var referenceValueIndex = 0;
+            return EqualityStringPredicateFactory.getPredicate(m_matchEqual, inputValues, referenceValueIndex,
+                columnOrRowKey, r -> r.getRowKey().getString());
         }
 
     }
 
-    private static final class IntValuePredicate implements IntPredicate {
+    private static final class IntEquality implements IntPredicate {
 
         private final IntPredicate m_predicate;
 
-        private IntValuePredicate(final int ref, final boolean matchEqual) {
+        private IntEquality(final int ref, final boolean matchEqual) {
             m_predicate = matchEqual ? (i -> i == ref) : (i -> i != ref);
         }
 
@@ -409,11 +395,11 @@ abstract class EqualityPredicateFactory extends AbstractPredicateFactory {
 
     }
 
-    private static final class LongValuePredicate implements LongPredicate {
+    private static final class LongEquality implements LongPredicate {
 
         private final LongPredicate m_predicate;
 
-        private LongValuePredicate(final long ref, final boolean matchEqual) {
+        private LongEquality(final long ref, final boolean matchEqual) {
             m_predicate = matchEqual ? (l -> l == ref) : (l -> l != ref);
         }
 
@@ -424,11 +410,11 @@ abstract class EqualityPredicateFactory extends AbstractPredicateFactory {
 
     }
 
-    private static final class DoubleValuePredicate implements DoublePredicate {
+    private static final class DoubleEquality implements DoublePredicate {
 
         private DoublePredicate m_predicate;
 
-        private DoubleValuePredicate(final double ref, final boolean matchEqual) {
+        private DoubleEquality(final double ref, final boolean matchEqual) {
             m_predicate = matchEqual ? (d -> Double.doubleToLongBits(d) == Double.doubleToLongBits(ref))
                 : (d -> Double.doubleToLongBits(d) != Double.doubleToLongBits(ref));
         }

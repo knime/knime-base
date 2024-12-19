@@ -57,7 +57,9 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.v2.RowRead;
 
 /**
- * Utility to create value predicate factories for indexed {@link RowRead row read} predicates.
+ * Utility to create value predicate factories for indexed {@link RowRead row read} predicates. Notable factories are
+ * {@link PredicateFactories#IS_MISSING_FACTORY} and {@link PredicateFactories#IS_NOT_MISSING_FACTORY}, which can be
+ * used to test for missingness.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */

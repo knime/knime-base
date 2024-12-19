@@ -97,10 +97,44 @@ abstract class OrderingPredicateFactory extends AbstractPredicateFactory {
         m_ordering = ordering;
     }
 
+    /**
+     * Utility method to create an exception with a nice message mentioning the problem and providing potential
+     * resolutions based on the passed types.
+     *
+     * @param rowNumberOrColumn "row number" or "input column" to put into error message summary
+     * @param type the actual type
+     * @param refCellType the reference cell type
+     * @param supportedTypes supported types
+     * @return the exception
+     */
+    protected static InvalidSettingsException createInvalidSettingsException(final String rowNumberOrColumn,
+        final DataType type, final DataType refCellType, final DataType[] supportedTypes) {
+        return createInvalidSettingsException(builder -> builder //
+            .withSummary("Cannot apply ordering comparison to %s of type \"%s\" and reference value of type \"%s\""
+                .formatted(rowNumberOrColumn, type, refCellType)) //
+            .addResolutions( //
+                appendElements(new StringBuilder("Reconfigure the node to use a reference value of type "),
+                    supportedTypes).toString(),
+                "Convert the %s to \"%s\" before applying the filter, e.g. with an expression node."
+                    .formatted(rowNumberOrColumn, refCellType)) //
+        );
+    }
+
+    /**
+     * Factory method for row number predicat factories.
+     * @param operator filter operator to use
+     * @return factory for predicates applying the given operator
+     */
     static Optional<PredicateFactory> forRowNumber(final FilterOperator operator) {
         return Ordering.fromOperator(operator).map(OrderingRowNumberPredicateFactory::new);
     }
 
+    /**
+     * Factory method for column predicate factories.
+     * @param columnDataType column data type
+     * @param operator filter operator to use
+     * @return factory for predicates applying the given operator
+     */
     static Optional<PredicateFactory> create(final DataType columnDataType, final FilterOperator operator) {
         return Ordering.fromOperator(operator).map(ordering -> mapToFactory(columnDataType, ordering));
     }
@@ -163,21 +197,13 @@ abstract class OrderingPredicateFactory extends AbstractPredicateFactory {
             }
 
             final var refCellType = refCell.getType();
-            throw Message.builder() //
-                .withSummary(
-                    "Cannot apply ordering comparison to column of type \"%s\" and reference value of type \"%s\""
-                        .formatted(IntCell.TYPE, refCellType)) //
-                .addResolutions( //
-                    "Reconfigure the node to use a reference value of type \"%s\", \"%s\", or \"%s\"" //
-                        .formatted(IntCell.TYPE, LongCell.TYPE, DoubleCell.TYPE), //
-                    "Convert the input column to \"%s\" before applying the filter, e.g. with an expression node."
-                        .formatted(refCellType)) //
-                .build().orElseThrow().toInvalidSettingsException();
+            throw createInvalidSettingsException("input column", IntCell.TYPE, refCellType,
+                new DataType[]{IntCell.TYPE, LongCell.TYPE, DoubleCell.TYPE});
         }
 
         private IndexedRowReadPredicate comparingWithLongValue(final int intColumnIndex, final long ref) {
-            // TODO(performance): take Integer max/min values into account to return static ALWAYS_TRUE/ALWAYS_FALSE
-            //                    and then use int predicate for remaining comparison
+            // [performance optimization]: take Integer max/min values into account to return static TRUE/FALSE
+            //                             and then use int predicate for remaining comparison
 
             // the column is an IntValue, but the reference is a long, so we need to upcast the column value
             final var predicate = LongOrderingPredicate.create(ref, m_ordering);
@@ -185,9 +211,9 @@ abstract class OrderingPredicateFactory extends AbstractPredicateFactory {
         }
 
         private IndexedRowReadPredicate comparingWithDoubleValue(final int intColumnIndex, final double reference) {
-            // TODO(performance): take Integer max/min values into account to return static ALWAYS_TRUE/ALWAYS_FALSE
-            //                    We might then be able to round the reference depending on the operator
-            //                    and use the int predicate.
+            // [performance optimization]: take Integer max/min values into account to return static TRUE/FALSE
+            //                             We might then be able to round the reference depending on the operator
+            //                             and use the int predicate.
 
             // the column is an IntValue, but the reference is a double, so we need to upcast the column value
             final var predicate = DoubleOrderingPredicate.create(reference, m_ordering);
@@ -207,7 +233,8 @@ abstract class OrderingPredicateFactory extends AbstractPredicateFactory {
         @Override
         protected IndexedRowReadPredicate createPredicate(final DynamicValuesInput inputValues)
             throws InvalidSettingsException {
-            final var ref = OrderingLongPredicateFactory.getReferenceValue(getCellAtOrThrow(inputValues, 0));
+            final var refCell = getCellAtOrThrow(inputValues, 0);
+            final var ref = OrderingLongPredicateFactory.getReferenceValue(refCell, "row number");
             final var predicate = LongOrderingPredicate.create(ref, m_ordering);
             return (idx, rowRead) -> predicate.test(idx);
         }
@@ -226,13 +253,15 @@ abstract class OrderingPredicateFactory extends AbstractPredicateFactory {
         @Override
         public IndexedRowReadPredicate createPredicate(final int columnIndex, final DynamicValuesInput inputValues)
             throws InvalidSettingsException {
-            final var ref = getReferenceValue(getCellAtOrThrow(inputValues, 0));
+            final var refCell = getCellAtOrThrow(inputValues, 0);
+            final var ref = getReferenceValue(refCell, "input column");
 
             final var predicate = LongOrderingPredicate.create(ref, m_ordering);
             return (idx, rowRead) -> predicate.test(rowRead.<LongValue> getValue(columnIndex).getLongValue());
         }
 
-        private static long getReferenceValue(final DataCell refCell) throws InvalidSettingsException {
+        private static long getReferenceValue(final DataCell refCell,
+            final String rowNumberOrColumn) throws InvalidSettingsException {
             long ref;
             if (refCell instanceof IntCell intCell) {
                 ref = intCell.getIntValue();
@@ -240,15 +269,8 @@ abstract class OrderingPredicateFactory extends AbstractPredicateFactory {
                 ref = longCell.getLongValue();
             } else {
                 final var refCellType = refCell.getType();
-                throw Message.builder()
-                    .withSummary("Cannot compare column of type \"%s\" with a value of type \"%s\""
-                        .formatted(LongCell.TYPE, refCellType))
-                    .addResolutions(
-                        "Reconfigure the node to provide a reference value of \"%s\" or \"%s\" type."
-                            .formatted(IntCell.TYPE, LongCell.TYPE),
-                        "Convert the input column to \"%s\" using a converter node, e.g. an expression node"
-                            .formatted(refCellType))
-                    .build().orElseThrow().toInvalidSettingsException();
+                throw createInvalidSettingsException(rowNumberOrColumn, LongCell.TYPE, refCellType,
+                    new DataType[]{IntCell.TYPE, LongCell.TYPE});
             }
             return ref;
         }
@@ -275,15 +297,8 @@ abstract class OrderingPredicateFactory extends AbstractPredicateFactory {
                 ref = doubleCell.getDoubleValue();
             } else {
                 final var refCellType = refCell.getType();
-                throw Message.builder()
-                    .withSummary("Cannot compare column of type \"%s\" with a value of type \"%s\""
-                        .formatted(DoubleCell.TYPE, refCellType))
-                    .addResolutions(
-                        "Reconfigure the node to provide a reference value of \"%s\" or \"%s\" type."
-                            .formatted(IntCell.TYPE, DoubleCell.TYPE),
-                        "Convert the input column to \"%s\" using a converter node, e.g. an expression node"
-                            .formatted(refCellType))
-                    .build().orElseThrow().toInvalidSettingsException();
+                throw createInvalidSettingsException("input column", DoubleCell.TYPE, refCellType,
+                    new DataType[]{IntCell.TYPE, DoubleCell.TYPE});
             }
             final var predicate = DoubleOrderingPredicate.create(ref, m_ordering);
             return (idx, rowRead) -> predicate.test(rowRead.<DoubleValue> getValue(columnIndex).getDoubleValue());

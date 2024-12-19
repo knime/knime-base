@@ -63,14 +63,12 @@ import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.message.Message;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 
 /**
  * Factory for creating predicates that test whether a string representation of a value matches a pattern (regex or
- * wildcard).
- * The string representation is supplied by a function that operates on an indexed row read.
+ * wildcard). The string representation is supplied by a function that operates on an indexed row read.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
@@ -82,83 +80,20 @@ abstract class PatternMatchingPredicateFactory extends AbstractPredicateFactory 
         m_isRegex = isRegex;
     }
 
-    private static final class NonColumn extends PatternMatchingPredicateFactory {
-
-        enum Type {
-            ROW_ID,
-            ROW_NUMBER
+    private StringPredicate getPredicate(final DynamicValuesInput inputValues, final int valueIndex,
+        final boolean isCaseSensitive) throws InvalidSettingsException {
+        final var patternCell = getCellAtOrThrow(inputValues, valueIndex);
+        final var type = patternCell.getType();
+        if (!isSupported(type)) {
+            final var regexOrWildcard = m_isRegex ? "regex" : "wildcard";
+            throw createInvalidSettingsException(builder -> builder //
+                .withSummary("Cannot obtain pattern for %s operator from reference value of type \"%s\""
+                    .formatted(regexOrWildcard, type))
+                .addResolutions("Reconfigure the node to use a pattern value of type \"%s\", \"%s\", or \"%s\""
+                    .formatted(StringCell.TYPE, IntCell.TYPE, LongCell.TYPE)));
         }
-
-        private final IndexedRowReadFunction<String> m_toStringFn;
-        private final Type m_type;
-
-        NonColumn(final Type type, final boolean isRegex, final IndexedRowReadFunction<String> toStringFn) {
-            super(isRegex);
-            m_toStringFn = toStringFn;
-            m_type = type;
-        }
-
-        @Override
-        public IndexedRowReadPredicate createPredicate(final OptionalInt columnIndex,
-            final DynamicValuesInput inputValues) throws InvalidSettingsException {
-            CheckUtils.checkArgument(columnIndex.isEmpty(),
-                "Pattern match predicate on %d did not expect any column index, but got one", switch (m_type) {
-                    case ROW_ID -> "RowID";
-                    case ROW_NUMBER -> "row number";
-                });
-            final var valueIndex = 0; // we have only one value
-            final var patternCell = getCellAtOrThrow(inputValues, valueIndex);
-            if (!isSupported(patternCell.getType())) {
-                final var regexOrWildcard = m_isRegex ? "regex" : "wildcard";
-                throw Message.builder() //
-                    .withSummary("Cannot obtain pattern for %s operator from reference value of type \"%s\""
-                        .formatted(regexOrWildcard, patternCell.getType()))
-                    .addResolutions("Reconfigure the node to use a pattern value of type \"%s\", \"%s\", or \"%s\""
-                        .formatted(StringCell.TYPE, IntCell.TYPE, LongCell.TYPE))
-                    .build().orElseThrow().toInvalidSettingsException();
-            }
-            final var pattern = ((StringValue)patternCell).getStringValue();
-            final var isCaseSensitive = switch (m_type) {
-                case ROW_ID -> inputValues.isStringMatchCaseSensitive(valueIndex);
-                case ROW_NUMBER -> false;
-            };
-            final var patternPredicate = StringPredicate.pattern(pattern, m_isRegex, isCaseSensitive);
-            return (idx, row) -> patternPredicate.test(m_toStringFn.apply(idx, row));
-        }
-
-    }
-
-    private static final class Column extends PatternMatchingPredicateFactory {
-
-        private final Function<Integer, IndexedRowReadFunction<String>> m_columnIdxToStringFn;
-
-        Column(final boolean isRegex, final Function<Integer, IndexedRowReadFunction<String>> columnIdxToStringFn) {
-            super(isRegex);
-            m_columnIdxToStringFn = columnIdxToStringFn;
-        }
-
-        @Override
-        public IndexedRowReadPredicate createPredicate(final OptionalInt columnIndex,
-            final DynamicValuesInput inputValues) throws InvalidSettingsException {
-            final var valueIndex = 0; // we have only one value
-            final var patternCell = getCellAtOrThrow(inputValues, valueIndex);
-            if (!isSupported(patternCell.getType())) {
-                final var regexOrWildcard = m_isRegex ? "regex" : "wildcard";
-                throw Message.builder() //
-                    .withSummary("Cannot obtain pattern for %s operator from reference value of type \"%s\""
-                        .formatted(regexOrWildcard, patternCell.getType()))
-                    .addResolutions("Reconfigure the node to use a pattern value of type \"%s\", \"%s\", or \"%s\""
-                        .formatted(StringCell.TYPE, IntCell.TYPE, LongCell.TYPE))
-                    .build().orElseThrow().toInvalidSettingsException();
-            }
-            final var pattern = ((StringValue)patternCell).getStringValue();
-            final var isCaseSensitive = inputValues.isStringMatchCaseSensitive(valueIndex);
-            final var patternPredicate = StringPredicate.pattern(pattern, m_isRegex, isCaseSensitive);
-            final var columnIndexValue = columnIndex.orElseThrow(() -> new IllegalArgumentException(
-                    "Pattern match on column requires a column index, but none was provided"));
-            final var toStringFn = m_columnIdxToStringFn.apply(columnIndexValue);
-            return (idx, row) -> patternPredicate.test(toStringFn.apply(idx, row));
-        }
+        final var pattern = ((StringValue)patternCell).getStringValue();
+        return StringPredicate.pattern(pattern, m_isRegex, isCaseSensitive);
     }
 
     /**
@@ -206,6 +141,63 @@ abstract class PatternMatchingPredicateFactory extends AbstractPredicateFactory 
         }
         return Optional.of(new Column(isRegex,
             columnIndex -> (idx, rowRead) -> toStringFunction.apply(rowRead.getValue(columnIndex))));
+    }
+
+    private static final class NonColumn extends PatternMatchingPredicateFactory {
+
+        enum Type {
+                ROW_ID, ROW_NUMBER
+        }
+
+        private final IndexedRowReadFunction<String> m_toStringFn;
+
+        private final Type m_type;
+
+        NonColumn(final Type type, final boolean isRegex, final IndexedRowReadFunction<String> toStringFn) {
+            super(isRegex);
+            m_toStringFn = toStringFn;
+            m_type = type;
+        }
+
+        @Override
+        public IndexedRowReadPredicate createPredicate(final OptionalInt columnIndex,
+            final DynamicValuesInput inputValues) throws InvalidSettingsException {
+            CheckUtils.checkArgument(columnIndex.isEmpty(),
+                "Pattern match predicate on %d did not expect any column index, but got one", switch (m_type) {
+                    case ROW_ID -> "RowID";
+                    case ROW_NUMBER -> "row number";
+                });
+            final var valueIndex = 0; // we have only one value
+            final var isCaseSensitive = switch (m_type) {
+                case ROW_ID -> inputValues.isStringMatchCaseSensitive(valueIndex);
+                case ROW_NUMBER -> false;
+            };
+            final var predicate = super.getPredicate(inputValues, valueIndex, isCaseSensitive);
+            return (idx, row) -> predicate.test(m_toStringFn.apply(idx, row));
+        }
+
+    }
+
+    private static final class Column extends PatternMatchingPredicateFactory {
+
+        private final Function<Integer, IndexedRowReadFunction<String>> m_columnIdxToStringFn;
+
+        Column(final boolean isRegex, final Function<Integer, IndexedRowReadFunction<String>> columnIdxToStringFn) {
+            super(isRegex);
+            m_columnIdxToStringFn = columnIdxToStringFn;
+        }
+
+        @Override
+        public IndexedRowReadPredicate createPredicate(final OptionalInt columnIndex,
+            final DynamicValuesInput inputValues) throws InvalidSettingsException {
+            final var valueIndex = 0; // we have only one value
+            final var isCaseSensitive = inputValues.isStringMatchCaseSensitive(valueIndex);
+            final var predicate = super.getPredicate(inputValues, valueIndex, isCaseSensitive);
+            final var columnIndexValue = columnIndex.orElseThrow(() -> new IllegalArgumentException(
+                "Pattern match on column requires a column index, but none was provided"));
+            final var toStringFn = m_columnIdxToStringFn.apply(columnIndexValue);
+            return (idx, row) -> predicate.test(toStringFn.apply(idx, row));
+        }
     }
 
     private static boolean isSupported(final DataType type) {
