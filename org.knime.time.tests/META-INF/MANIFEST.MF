@@ -4,12 +4,12 @@ Bundle-Name: Unit-Tests for org.knime.time
 Bundle-SymbolicName: org.knime.time.tests;singleton:=true
 Bundle-Version: 5.5.0.qualifier
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
-Fragment-Host: org.knime.time;bundle-version="[5.4.0,6.0.0)"
+Fragment-Host: org.knime.time;bundle-version="[5.5.0,6.0.0)"
 Require-Bundle: org.junit;bundle-version="[4.13.2,5.0.0)",
- org.knime.testing;bundle-version="[5.4.0,6.0.0)",
+ org.knime.testing;bundle-version="[5.5.0,6.0.0)",
  junit-platform-suite-api;bundle-version="[1.10.2,2.0.0)",
  junit-jupiter-params;bundle-version="[5.10.2,6.0.0)",
- org.knime.core.ui.testing;bundle-version="[5.4.0,6.0.0)",
+ org.knime.core.ui.testing;bundle-version="[5.5.0,6.0.0)",
  org.hamcrest.library;bundle-version="[2.2.0,3.0.0)",
  org.hamcrest.core;bundle-version="[2.2.0,3.0.0)",
  junit-jupiter-api;bundle-version="[5.10.2,6.0.0)"
