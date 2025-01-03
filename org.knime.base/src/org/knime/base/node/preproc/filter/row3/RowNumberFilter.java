@@ -54,7 +54,7 @@ import java.util.List;
 
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterMode;
-import org.knime.core.data.def.LongCell;
+import org.knime.core.data.LongValue;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -258,8 +258,11 @@ final class RowNumberFilter {
     static RowNumberFilterSpec getAsFilterSpec(final FilterCriterion criterion)
         throws InvalidSettingsException {
         validateRowNumberOperatorSupported(criterion.m_operator);
-        final var value = ((LongCell)criterion.m_predicateValues.getCellAt(0).filter(cell -> !cell.isMissing())
-            .orElseThrow(() -> new InvalidSettingsException("Row number value is missing"))).getLongValue();
+
+        final var value = (criterion.m_predicateValues.getCellAt(0)//
+                .filter(cell -> !cell.isMissing())//
+                .map(cell -> ((LongValue)cell).getLongValue())//
+            .orElseThrow(() -> new InvalidSettingsException("Row number value is missing")));
         final var op = criterion.m_operator;
         final var isNumberOfRows = op == FilterOperator.FIRST_N_ROWS || op == FilterOperator.LAST_N_ROWS;
         if (!isNumberOfRows) {
