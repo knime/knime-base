@@ -55,6 +55,8 @@ import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 
 /**
  * NodeFactory for the Number to String Node that converts numbers
@@ -64,7 +66,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
  * @since 4.0
  */
 @SuppressWarnings("restriction")
-public class NumberToString2NodeFactory extends NodeFactory<NumberToString2NodeModel> implements NodeDialogFactory {
+public class NumberToString2NodeFactory extends NodeFactory<NumberToString2NodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     /**
      * {@inheritDoc}
@@ -112,6 +115,14 @@ public class NumberToString2NodeFactory extends NodeFactory<NumberToString2NodeM
      */
     @Override
     public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, NumberToStringSettings.class);
+    }
+
+    /**
+     * @since 5.5
+     */
+    @Override
+    public KaiNodeInterface createNodeInterface() {
         return new DefaultNodeDialog(SettingsType.MODEL, NumberToStringSettings.class);
     }
 

@@ -60,6 +60,8 @@ import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeFactory;
 import org.xml.sax.SAXException;
@@ -73,7 +75,7 @@ import org.xml.sax.SAXException;
  */
 @SuppressWarnings("restriction")
 public class ReadContextProperty2NodeFactory extends NodeFactory<ReadContextProperty2NodeModel>
-implements NodeDialogFactory {
+implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder() //
             .name("Extract Context Properties") //
@@ -164,6 +166,11 @@ implements NodeDialogFactory {
      */
     @Override
     public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, ReadContextProperty2NodeSettings.class);
+    }
+
+    @Override
+    public KaiNodeInterface createNodeInterface() {
         return new DefaultNodeDialog(SettingsType.MODEL, ReadContextProperty2NodeSettings.class);
     }
 }

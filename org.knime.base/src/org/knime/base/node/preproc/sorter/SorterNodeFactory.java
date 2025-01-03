@@ -61,6 +61,8 @@ import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeFactory;
 import org.xml.sax.SAXException;
@@ -71,7 +73,7 @@ import org.xml.sax.SAXException;
  * @author Nicolas Cebron, University of Konstanz
  */
 
-public class SorterNodeFactory extends NodeFactory implements NodeDialogFactory {
+public class SorterNodeFactory extends NodeFactory implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
         .name("Sorter") //
@@ -130,5 +132,13 @@ public class SorterNodeFactory extends NodeFactory implements NodeDialogFactory 
     @Override
     public NodeDialogPane createNodeDialogPane() {
         return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * @since 5.5
+     */
+    @Override
+    public KaiNodeInterface createNodeInterface() {
+        return new DefaultNodeDialog(SettingsType.MODEL, SorterNodeSettings.class);
     }
 }

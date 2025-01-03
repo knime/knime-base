@@ -56,6 +56,8 @@ import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 
 /**
  * The duplicates row filter node factory.
@@ -64,7 +66,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
  */
 @SuppressWarnings("restriction")
 public final class DuplicateRowFilterNodeFactory extends NodeFactory<DuplicateRowFilterNodeModel>
-    implements NodeDialogFactory {
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     @Override
     public DuplicateRowFilterNodeModel createNodeModel() {
@@ -94,6 +96,11 @@ public final class DuplicateRowFilterNodeFactory extends NodeFactory<DuplicateRo
 
     @Override
     public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, DuplicateRowFilterDialogSettings.class);
+    }
+
+    @Override
+    public KaiNodeInterface createNodeInterface() {
         return new DefaultNodeDialog(SettingsType.MODEL, DuplicateRowFilterDialogSettings.class);
     }
 }

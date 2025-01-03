@@ -52,13 +52,16 @@ import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 
 /**
  *
  * @author Thomas Gabriel, University of Konstanz
  */
 @SuppressWarnings("restriction")
-public class Unpivot2NodeFactory extends NodeFactory<Unpivot2NodeModel>   implements NodeDialogFactory{
+public class Unpivot2NodeFactory extends NodeFactory<Unpivot2NodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     /**
      * Default constructor.
@@ -114,6 +117,11 @@ public class Unpivot2NodeFactory extends NodeFactory<Unpivot2NodeModel>   implem
      */
     @Override
     public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, Unpivot2NodeSettings.class);
+    }
+
+    @Override
+    public KaiNodeInterface createNodeInterface() {
         return new DefaultNodeDialog(SettingsType.MODEL, Unpivot2NodeSettings.class);
     }
 

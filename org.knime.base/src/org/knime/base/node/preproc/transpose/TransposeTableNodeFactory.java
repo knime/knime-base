@@ -53,6 +53,8 @@ import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 
 /**
  * Factory to create a Transpose Node.
@@ -60,7 +62,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
  * @author Thomas Gabriel, University of Konstanz
  */
 @SuppressWarnings("restriction")
-public class TransposeTableNodeFactory extends NodeFactory<TransposeTableNodeModel> implements NodeDialogFactory {
+public class TransposeTableNodeFactory extends NodeFactory<TransposeTableNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     @Override
     public TransposeTableNodeModel createNodeModel() {
@@ -93,6 +96,14 @@ public class TransposeTableNodeFactory extends NodeFactory<TransposeTableNodeMod
      */
     @Override
     public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, TransposeTableNodeSettings.class);
+    }
+
+    /**
+     * @since 5.5
+     */
+    @Override
+    public KaiNodeInterface createNodeInterface() {
         return new DefaultNodeDialog(SettingsType.MODEL, TransposeTableNodeSettings.class);
     }
 }

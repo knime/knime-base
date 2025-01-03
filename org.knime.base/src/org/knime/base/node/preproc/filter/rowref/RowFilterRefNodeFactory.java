@@ -52,6 +52,8 @@ import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 
 /**
  * Factory for the creation of a Reference Row Filter node.
@@ -59,7 +61,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
  * @author Thomas Gabriel, University of Konstanz
  */
 @SuppressWarnings("restriction")
-public class RowFilterRefNodeFactory extends NodeFactory<RowFilterRefNodeModel> implements NodeDialogFactory {
+public class RowFilterRefNodeFactory extends NodeFactory<RowFilterRefNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     @Override
     protected NodeDialogPane createNodeDialogPane() {
@@ -91,6 +94,14 @@ public class RowFilterRefNodeFactory extends NodeFactory<RowFilterRefNodeModel> 
      */
     @Override
     public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, RowFilterRefNodeSettings.class);
+    }
+
+    /**
+     * @since 5.5
+     */
+    @Override
+    public KaiNodeInterface createNodeInterface() {
         return new DefaultNodeDialog(SettingsType.MODEL, RowFilterRefNodeSettings.class);
     }
 }

@@ -60,6 +60,8 @@ import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 
 /**
  * <code>NodeFactory</code> for the "ColumnAppender" Node.
@@ -68,7 +70,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
  */
 @SuppressWarnings("restriction")
 public final class ColumnAppender2NodeFactory extends ConfigurableNodeFactory<ColumnAppender2NodeModel>
-    implements NodeDialogFactory {
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     @Override
     public int getNrNodeViews() {
@@ -107,6 +109,11 @@ public final class ColumnAppender2NodeFactory extends ConfigurableNodeFactory<Co
 
     @Override
     public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, ColumnAppenderSettings.class);
+    }
+
+    @Override
+    public KaiNodeInterface createNodeInterface() {
         return new DefaultNodeDialog(SettingsType.MODEL, ColumnAppenderSettings.class);
     }
 

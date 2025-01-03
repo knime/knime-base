@@ -53,13 +53,15 @@ import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 
 /**
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  */
 @SuppressWarnings("restriction")
 public final class ColumnHeaderInsertNodeFactory extends NodeFactory<ColumnHeaderInsertNodeModel>
-    implements NodeDialogFactory {
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     /** {@inheritDoc} */
     @Override
@@ -100,6 +102,14 @@ public final class ColumnHeaderInsertNodeFactory extends NodeFactory<ColumnHeade
     public NodeDialog createNodeDialog() {
         return new DefaultNodeDialog(SettingsType.MODEL, ColumnHeaderInsertSettings.class);
 
+    }
+
+    /**
+     * @since 5.5
+     */
+    @Override
+    public KaiNodeInterface createNodeInterface() {
+        return new DefaultNodeDialog(SettingsType.MODEL, ColumnHeaderInsertSettings.class);
     }
 
 }
