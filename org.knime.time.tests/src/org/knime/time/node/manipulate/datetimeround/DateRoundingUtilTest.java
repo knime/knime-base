@@ -67,7 +67,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.time.node.manipulate.datetimeround.DateRoundNodeSettings.DateRoundingStrategy;
 import org.knime.time.node.manipulate.datetimeround.DateRoundNodeSettings.DayOrWeekday;
 import org.knime.time.node.manipulate.datetimeround.DateRoundNodeSettings.RoundDatePrecision;
-import org.knime.time.node.manipulate.datetimeround.DateRoundNodeSettings.ShiftMode;
+import org.knime.time.util.DateRoundingUtil;
+import org.knime.time.util.ShiftMode;
 
 @SuppressWarnings({"squid:S5960", "squid:S1192"})
 class DateRoundingUtilTest {

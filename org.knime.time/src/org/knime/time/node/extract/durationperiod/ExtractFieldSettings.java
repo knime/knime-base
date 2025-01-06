@@ -80,6 +80,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.time.node.extract.durationperiod.ExtractDurationPeriodFieldsNodeSettings.SelectedInputColumnHelpers;
 import org.knime.time.node.extract.durationperiod.ExtractFieldSettings.OutputColumnNamePlaceholderProvider.ExtractableFieldsReference;
+import org.knime.time.util.ExtractableIntervalField;
 
 /**
  * A widget group representing a TimeUnit to extract from a {@link DataCell} of type {@link DurationValue} or
@@ -93,7 +94,7 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
     public ExtractFieldSettings() {
     }
 
-    public ExtractFieldSettings(final ExtractableField field, final String outputColumnName) {
+    public ExtractFieldSettings(final ExtractableIntervalField field, final String outputColumnName) {
         m_field = field;
         m_outputcolumnName = outputColumnName;
     }
@@ -106,7 +107,7 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
     @ChoicesWidget(choicesProvider = FilteredPossibleFieldsChoices.class)
     @Layout(ExtractFieldWidgetLayout.class)
     @ValueReference(ExtractableFieldsReference.class)
-    ExtractableField m_field;
+    ExtractableIntervalField m_field;
 
     @Widget(title = "Column name", description = """
             The name of the column populated with the values of the selected field. Cannot be empty!
@@ -130,17 +131,17 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
 
         private static ExtractFieldSettings[] loadOldConfig(final NodeSettingsRO settings) {
 
-            Predicate<ExtractableField> isSelectedInOldConfig = field -> field.getOldConfigValue() //
+            Predicate<ExtractableIntervalField> isSelectedInOldConfig = field -> field.getOldConfigValue() //
                 .map(key -> settings.getBoolean(key, false)) //
                 .orElse(false);
 
             final List<ExtractFieldSettings> fieldsExceptSubSeconds = List.of( //
-                ExtractableField.YEARS, //
-                ExtractableField.MONTHS, //
-                ExtractableField.DAYS, //
-                ExtractableField.HOURS, //
-                ExtractableField.MINUTES, //
-                ExtractableField.SECONDS //
+                ExtractableIntervalField.YEARS, //
+                ExtractableIntervalField.MONTHS, //
+                ExtractableIntervalField.DAYS, //
+                ExtractableIntervalField.HOURS, //
+                ExtractableIntervalField.MINUTES, //
+                ExtractableIntervalField.SECONDS //
             ).stream() //
                 .filter(isSelectedInOldConfig) //
                 .map(extractableFieldPresentInOldConfig -> new ExtractFieldSettings( //
@@ -152,10 +153,10 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
 
             // skip the subseconds if the old config is missing the key
             if (settings.getBoolean(OLD_KEY_USE_SUBSECONDS, false)) {
-                var subsecondUnits = ExtractableField.getByOldConfigValue( //
+                var subsecondUnits = ExtractableIntervalField.getByOldConfigValue( //
                     settings.getString( //
                         OLD_KEY_SUBSECOND_UNITS, //
-                        ExtractableField.MILLIS_ALL.getOldConfigValue().orElseThrow() //
+                        ExtractableIntervalField.MILLIS_ALL.getOldConfigValue().orElseThrow() //
                     ) //
                 );
                 fieldsExceptSubSeconds.add(new ExtractFieldSettings( //
@@ -172,8 +173,8 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
         public List<ConfigsDeprecation<ExtractFieldSettings[]>> getConfigsDeprecations() {
             var deprecationBuilder = ConfigsDeprecation.<ExtractFieldSettings[]> builder(Persistor::loadOldConfig);
 
-            Arrays.stream(ExtractableField.values()) //
-                .map(ExtractableField::getOldConfigValue) //
+            Arrays.stream(ExtractableIntervalField.values()) //
+                .map(ExtractableIntervalField::getOldConfigValue) //
                 .flatMap(Optional::stream) //
                 .forEach(deprecationBuilder::withDeprecatedConfigPath);
             deprecationBuilder.withDeprecatedConfigPath(OLD_KEY_USE_SUBSECONDS);
@@ -191,10 +192,10 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
      */
     static final class OutputColumnNamePlaceholderProvider implements StateProvider<String> {
 
-        static final class ExtractableFieldsReference implements Reference<ExtractableField> {
+        static final class ExtractableFieldsReference implements Reference<ExtractableIntervalField> {
         }
 
-        private Supplier<ExtractableField> m_valueSupplier;
+        private Supplier<ExtractableIntervalField> m_valueSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
@@ -205,7 +206,7 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
         @Override
         public String computeState(final DefaultNodeSettingsContext context) {
             return Optional.of(m_valueSupplier.get()) //
-                .map(ExtractableField::niceName) //
+                .map(ExtractableIntervalField::niceName) //
                 .orElse("");
         }
     }
@@ -238,23 +239,23 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
 
             return selectedColumnType.isEmpty() //
                 ? new IdAndText[0] //
-                : Arrays.stream(ExtractableField.values()) //
+                : Arrays.stream(ExtractableIntervalField.values()) //
                     .filter(v -> v.isCompatibleWith(selectedColumnType.get())) //
                     .map(FilteredPossibleFieldsChoices::extractableFieldToIdAndText) //
                     .toArray(IdAndText[]::new); //
         }
 
-        private static IdAndText extractableFieldToIdAndText(final ExtractableField field) {
+        private static IdAndText extractableFieldToIdAndText(final ExtractableIntervalField field) {
             return new IdAndText(field.name(), field.niceName());
         }
     }
 
     /**
-     * A state provider that computes the default value for the {@link ExtractableField} enum, which will be used by the
+     * A state provider that computes the default value for the {@link ExtractableIntervalField} enum, which will be used by the
      * {@link DefaultExtractFieldWidgetProvider} to provide the initial {@link ExtractFieldSettings} widget group
      * settings.
      */
-    static final class DefaultEnumProvider implements StateProvider<ExtractableField> {
+    static final class DefaultEnumProvider implements StateProvider<ExtractableIntervalField> {
 
         private Supplier<IdAndText[]> m_possibleDropDownChoicesSupplier;
 
@@ -265,10 +266,10 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public ExtractableField computeState(final DefaultNodeSettingsContext context) {
+        public ExtractableIntervalField computeState(final DefaultNodeSettingsContext context) {
             return Arrays.stream(m_possibleDropDownChoicesSupplier.get()) //
                 .map(IdAndText::id) //
-                .map(ExtractableField::valueOf) //
+                .map(ExtractableIntervalField::valueOf) //
                 .findFirst() //
                 .orElse(null);
         }
@@ -280,7 +281,7 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
      */
     static final class DefaultExtractFieldWidgetProvider implements StateProvider<ExtractFieldSettings> {
 
-        private Supplier<ExtractableField> m_defaultExtractableFieldSupplier;
+        private Supplier<ExtractableIntervalField> m_defaultExtractableFieldSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {

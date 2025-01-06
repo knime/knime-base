@@ -42,72 +42,35 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
+ * 
  * History
- *   Dec 3, 2024 (Tobias Kampmann): created
+ *   Jan 6, 2025 (david): created
  */
-package org.knime.time.node.manipulate.datetimeround;
+package org.knime.time.util;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.container.ColumnRearranger;
-import org.knime.core.data.container.SingleCellFactory;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
-import org.knime.time.util.DateRoundingUtil;
-import org.knime.time.util.ReplaceOrAppend;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 
 /**
- *
- * @author Tobias Kampmann
+ * Enumeration for the shift mode. Additional option to shift the date to the previous or next date in the chosen
+ * resolution.
  */
-@SuppressWarnings("restriction")
-public class DateRoundNodeModel extends WebUISimpleStreamableFunctionNodeModel<DateRoundNodeSettings> {
-
-    /**
-     * @param configuration
-     */
-    protected DateRoundNodeModel(final WebUINodeConfiguration configuration) {
-        super(configuration, DateRoundNodeSettings.class);
-    }
-
-    @Override
-    protected ColumnRearranger createColumnRearranger(final DataTableSpec spec,
-        final DateRoundNodeSettings modelSettings) throws InvalidSettingsException {
-
-        ColumnRearranger rearranger = new ColumnRearranger(spec);
-
-        String[] selectedColumns = DateTimeRoundModelUtils.getSelectedColumns(spec,
-            DateRoundNodeSettings.DATE_COLUMN_TYPES, modelSettings.m_columnFilter);
-
-        for (String selectedColumn : selectedColumns) {
-
-            SingleCellFactory factory = createCellFactory(spec, selectedColumn, modelSettings);
-
-            if (modelSettings.m_replaceOrAppend == ReplaceOrAppend.REPLACE) {
-                rearranger.replace(factory, selectedColumn);
-            } else {
-                rearranger.append(factory);
-            }
-        }
-        return rearranger;
-    }
-
-    private SingleCellFactory createCellFactory(final DataTableSpec spec, final String selectedColumn,
-        final DateRoundNodeSettings settings) {
-        var indexOfTargetColumn = spec.findColumnIndex(selectedColumn);
-
-        DataColumnSpec newColSpec = DateTimeRoundModelUtils.createColumnSpec(spec, selectedColumn,
-            settings.m_replaceOrAppend, settings.m_outputColumnSuffix);
-
-        return new DateTimeRoundModelUtils.RoundCellFactory( //
-            newColSpec, //
-            indexOfTargetColumn, //
-            DateRoundingUtil.createDateRounder(settings), //
-            createMessageBuilder(), //
-            this::setWarning); //
-
-    }
-
+public enum ShiftMode {
+        /**
+         * Shift to the previous value. 12.12.24 rounded to the first day of the 'previous' month will result in
+         * 1.11.24.
+         */
+        @Label(value = "Previous", description = "Shift to the previous value. 12.12.24 rounded to the"
+            + "first day of the 'previous' month will result in 1.11.24.")
+        PREVIOUS,
+        /**
+         * Option to not shift the value. Shift to the this value, i.e., no shift at all.
+         */
+        @Label(value = "This", description = "Shift to the this value, i.e., no shift at all.")
+        THIS,
+        /**
+         * Shift to the next value. 12.12.24 rounded to the first day of the 'next' month will result in 1.1.25.
+         */
+        @Label(value = "Next", description = "Shift to the next value. 12.12.24 rounded to the "
+            + "first day of the 'next' month will result in 1.1.25.")
+        NEXT;
 }

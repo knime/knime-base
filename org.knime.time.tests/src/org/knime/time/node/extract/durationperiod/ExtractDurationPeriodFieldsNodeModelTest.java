@@ -75,6 +75,7 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
+import org.knime.time.util.ExtractableIntervalField;
 
 /**
  *
@@ -83,7 +84,7 @@ import org.knime.testing.util.WorkflowManagerUtil;
 @SuppressWarnings({"restriction", "squid:S5960", "squid:S1192"})
 class ExtractDurationPeriodFieldsNodeModelTest {
 
-    private record TestCase<I>(I input, ExtractableField targetUnit, long expectedTruncatedOutput) {
+    private record TestCase<I>(I input, ExtractableIntervalField targetUnit, long expectedTruncatedOutput) {
     }
 
     private static final String INPUT_COLUMN = "test_input";
@@ -98,16 +99,16 @@ class ExtractDurationPeriodFieldsNodeModelTest {
      * again.
      */
     private static final List<TestCase<Duration>> DURATION_TEST_CASES = List.of( //
-        new TestCase<>(Duration.parse("PT1H2M3.123456789S"), ExtractableField.HOURS, 1), //
-        new TestCase<>(Duration.parse("PT1H2M3.123456789S"), ExtractableField.MINUTES, 2), //
-        new TestCase<>(Duration.parse("PT1H2M3.123456789S"), ExtractableField.SECONDS, 3), //
-        new TestCase<>(Duration.parse("PT1H2M3.123456789S"), ExtractableField.MILLIS_PART, 123), //
-        new TestCase<>(Duration.parse("PT1H2M3.123456789S"), ExtractableField.MICROS_PART, 456), //
-        new TestCase<>(Duration.parse("PT1H2M3.123456789S"), ExtractableField.NANOS_PART, 789), //
-        new TestCase<>(Duration.parse("PT1H2M3.123456789S"), ExtractableField.MILLIS_ALL, 123), //
-        new TestCase<>(Duration.parse("PT1H2M3.123456789S"), ExtractableField.MICROS_ALL, 123456), //
-        new TestCase<>(Duration.parse("PT1H2M3.123456789S"), ExtractableField.NANOS_ALL, 123456789), //
-        new TestCase<>(Duration.parse("PT25H"), ExtractableField.HOURS, 25) // with >24h
+        new TestCase<>(Duration.parse("PT1H2M3.123456789S"), ExtractableIntervalField.HOURS, 1), //
+        new TestCase<>(Duration.parse("PT1H2M3.123456789S"), ExtractableIntervalField.MINUTES, 2), //
+        new TestCase<>(Duration.parse("PT1H2M3.123456789S"), ExtractableIntervalField.SECONDS, 3), //
+        new TestCase<>(Duration.parse("PT1H2M3.123456789S"), ExtractableIntervalField.MILLIS_PART, 123), //
+        new TestCase<>(Duration.parse("PT1H2M3.123456789S"), ExtractableIntervalField.MICROS_PART, 456), //
+        new TestCase<>(Duration.parse("PT1H2M3.123456789S"), ExtractableIntervalField.NANOS_PART, 789), //
+        new TestCase<>(Duration.parse("PT1H2M3.123456789S"), ExtractableIntervalField.MILLIS_ALL, 123), //
+        new TestCase<>(Duration.parse("PT1H2M3.123456789S"), ExtractableIntervalField.MICROS_ALL, 123456), //
+        new TestCase<>(Duration.parse("PT1H2M3.123456789S"), ExtractableIntervalField.NANOS_ALL, 123456789), //
+        new TestCase<>(Duration.parse("PT25H"), ExtractableIntervalField.HOURS, 25) // with >24h
     );
 
     /**
@@ -115,9 +116,9 @@ class ExtractDurationPeriodFieldsNodeModelTest {
      * again.
      */
     private static final List<TestCase<Period>> PERIOD_TEST_CASES = List.of( //
-        new TestCase<>(Period.parse("P1Y2M3D"), ExtractableField.YEARS, 1), //
-        new TestCase<>(Period.parse("P1Y2M3D"), ExtractableField.MONTHS, 2), //
-        new TestCase<>(Period.parse("P1Y2M3D"), ExtractableField.DAYS, 3) //
+        new TestCase<>(Period.parse("P1Y2M3D"), ExtractableIntervalField.YEARS, 1), //
+        new TestCase<>(Period.parse("P1Y2M3D"), ExtractableIntervalField.MONTHS, 2), //
+        new TestCase<>(Period.parse("P1Y2M3D"), ExtractableIntervalField.DAYS, 3) //
     );
 
     static Stream<Arguments> provideArgumentsForDurationTestCase() {
@@ -160,7 +161,7 @@ class ExtractDurationPeriodFieldsNodeModelTest {
     void testThatOutputColumnNameIsRespected() throws InvalidSettingsException, IOException {
         var settings = new ExtractDurationPeriodFieldsNodeSettings();
         settings.m_extractFields = new ExtractFieldSettings[]{ //
-            new ExtractFieldSettings(ExtractableField.HOURS, "some_output_col_name") //
+            new ExtractFieldSettings(ExtractableIntervalField.HOURS, "some_output_col_name") //
         };
         settings.m_selectedColumn = INPUT_COLUMN;
 
@@ -173,7 +174,7 @@ class ExtractDurationPeriodFieldsNodeModelTest {
 
     @Test
     void testThatEmptyColumnNameUsesPlaceholderValueDuration() throws InvalidSettingsException, IOException {
-        var durationFields = Arrays.stream(ExtractableField.values()) //
+        var durationFields = Arrays.stream(ExtractableIntervalField.values()) //
             .filter(f -> f.isCompatibleWith(DurationCellFactory.TYPE)) //
             .toList();
 
@@ -196,7 +197,7 @@ class ExtractDurationPeriodFieldsNodeModelTest {
 
     @Test
     void testThatEmptyColumnNameUsesPlaceholderValuePeriod() throws InvalidSettingsException, IOException {
-        var periodFields = Arrays.stream(ExtractableField.values()) //
+        var periodFields = Arrays.stream(ExtractableIntervalField.values()) //
             .filter(f -> f.isCompatibleWith(PeriodCellFactory.TYPE)) //
             .toList();
 
@@ -220,8 +221,8 @@ class ExtractDurationPeriodFieldsNodeModelTest {
     void testThatDuplicateColumnNamesGivesConfigurationError() throws InvalidSettingsException, IOException {
         var settings = new ExtractDurationPeriodFieldsNodeSettings();
         settings.m_extractFields = new ExtractFieldSettings[]{ //
-            new ExtractFieldSettings(ExtractableField.HOURS, "some_output_col_name"), //
-            new ExtractFieldSettings(ExtractableField.MONTHS, "some_output_col_name") //
+            new ExtractFieldSettings(ExtractableIntervalField.HOURS, "some_output_col_name"), //
+            new ExtractFieldSettings(ExtractableIntervalField.MONTHS, "some_output_col_name") //
         };
         settings.m_selectedColumn = INPUT_COLUMN;
 
@@ -234,7 +235,7 @@ class ExtractDurationPeriodFieldsNodeModelTest {
     void testThatExistingColumnNamesAreReplacedWithUniqueName() throws InvalidSettingsException, IOException {
         var settings = new ExtractDurationPeriodFieldsNodeSettings();
         settings.m_extractFields = new ExtractFieldSettings[]{ //
-            new ExtractFieldSettings(ExtractableField.HOURS, INPUT_COLUMN), //
+            new ExtractFieldSettings(ExtractableIntervalField.HOURS, INPUT_COLUMN), //
         };
         settings.m_selectedColumn = INPUT_COLUMN;
 
@@ -249,7 +250,7 @@ class ExtractDurationPeriodFieldsNodeModelTest {
     void testThatMissingColumnGivesExecutionError() throws InvalidSettingsException, IOException {
         var settings = new ExtractDurationPeriodFieldsNodeSettings();
         settings.m_extractFields = new ExtractFieldSettings[]{ //
-            new ExtractFieldSettings(ExtractableField.HOURS, "some_output_col_name") //
+            new ExtractFieldSettings(ExtractableIntervalField.HOURS, "some_output_col_name") //
         };
         settings.m_selectedColumn = "non_existing_column";
 
@@ -261,7 +262,7 @@ class ExtractDurationPeriodFieldsNodeModelTest {
     @ParameterizedTest(name = "{0} (time/duration based)")
     @MethodSource("provideArgumentsForDurationTestCase")
     void testExtractDurationPart(@SuppressWarnings("unused") final String testName, final Duration input,
-        final ExtractableField targetUnit, final Long expected) throws InvalidSettingsException, IOException {
+        final ExtractableIntervalField targetUnit, final Long expected) throws InvalidSettingsException, IOException {
 
         var settings = new ExtractDurationPeriodFieldsNodeSettings();
         settings.m_extractFields = new ExtractFieldSettings[]{ //
@@ -286,7 +287,7 @@ class ExtractDurationPeriodFieldsNodeModelTest {
     @ParameterizedTest(name = "{0} (date/period based)")
     @MethodSource("provideArgumentsForPeriodTestCase")
     void testExtractPeriodPart(@SuppressWarnings("unused") final String testName, final Period input,
-        final ExtractableField targetUnit, final Long expected) throws InvalidSettingsException, IOException {
+        final ExtractableIntervalField targetUnit, final Long expected) throws InvalidSettingsException, IOException {
 
         var settings = new ExtractDurationPeriodFieldsNodeSettings();
         settings.m_extractFields = new ExtractFieldSettings[]{ //
@@ -312,7 +313,7 @@ class ExtractDurationPeriodFieldsNodeModelTest {
     void testThatMissingInputGivesMissingOutput() throws InvalidSettingsException, IOException {
         var settings = new ExtractDurationPeriodFieldsNodeSettings();
         settings.m_extractFields = new ExtractFieldSettings[]{ //
-            new ExtractFieldSettings(ExtractableField.HOURS, "some_output_col_name") //
+            new ExtractFieldSettings(ExtractableIntervalField.HOURS, "some_output_col_name") //
         };
         settings.m_selectedColumn = INPUT_COLUMN;
 
@@ -329,7 +330,7 @@ class ExtractDurationPeriodFieldsNodeModelTest {
     void testExtractingIncompatibleField() throws InvalidSettingsException, IOException {
         var settings = new ExtractDurationPeriodFieldsNodeSettings();
         settings.m_extractFields = new ExtractFieldSettings[]{ //
-            new ExtractFieldSettings(ExtractableField.YEARS, "some_output_col_name") //
+            new ExtractFieldSettings(ExtractableIntervalField.YEARS, "some_output_col_name") //
         };
         settings.m_selectedColumn = INPUT_COLUMN;
 

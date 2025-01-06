@@ -48,8 +48,6 @@
  */
 package org.knime.time.node.convert.durationtonumber;
 
-import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -66,6 +64,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.time.util.AllowedUnitForDurationConversion;
 import org.knime.time.util.ReplaceOrAppend;
 
 /**
@@ -113,7 +112,7 @@ final class DurationToNumberNodeSettings implements DefaultNodeSettings {
     RoundingBehaviour m_roundingBehaviour = RoundingBehaviour.INTEGER;
 
     @Widget(title = "Unit of the number", description = "The unit of the number to output.")
-    AllowedUnits m_unit = AllowedUnits.SECONDS;
+    AllowedUnitForDurationConversion m_unit = AllowedUnitForDurationConversion.SECONDS;
 
     enum RoundingBehaviour {
             @Label(value = "No decimals", description = """
@@ -130,53 +129,6 @@ final class DurationToNumberNodeSettings implements DefaultNodeSettings {
                     etc., depending upon the value of the unit of the number. \
                     """)
             DOUBLE;
-    }
-
-    enum AllowedUnits {
-            @Label("Hours")
-            HOURS(TimeUnit.HOURS), //
-            @Label("Minutes")
-            MINUTES(TimeUnit.MINUTES), //
-            @Label("Seconds")
-            SECONDS(TimeUnit.SECONDS), //
-            @Label("Milliseconds")
-            MILLISECONDS(TimeUnit.MILLISECONDS), //
-            @Label("Microseconds")
-            MICROSECONDS(TimeUnit.MICROSECONDS), //
-            @Label("Nanoseconds")
-            NANOSECONDS(TimeUnit.NANOSECONDS);
-
-        private final TimeUnit m_timeUnit;
-
-        AllowedUnits(final TimeUnit timeUnit) {
-            this.m_timeUnit = timeUnit;
-        }
-
-        double getConversionExact(final Duration duration) {
-            var convertedDuration = convertDuration(m_timeUnit, duration);
-
-            return convertedDuration.integerPart + convertedDuration.decimalPart;
-        }
-
-        long getConversionFloored(final Duration duration) {
-            var convertedDuration = convertDuration(m_timeUnit, duration);
-
-            return convertedDuration.integerPart;
-        }
-
-        static record IntegerAndDecimalPart(long integerPart, double decimalPart) {
-        }
-
-        private static IntegerAndDecimalPart convertDuration(final TimeUnit unit, final Duration duration) {
-            // Get the duration in the specified unit as an integer, e.g. '3 hours'
-            long durationInSpecifiedUnit = unit.convert(duration);
-
-            // Figure out the fractional part
-            Duration leftoverDuration = duration.minus(durationInSpecifiedUnit, unit.toChronoUnit());
-            long leftoverNanos = TimeUnit.NANOSECONDS.convert(leftoverDuration);
-            double leftOverDurationAsFractionOfSpecifiedUnit = leftoverNanos / (double)unit.toNanos(1);
-            return new IntegerAndDecimalPart(durationInSpecifiedUnit, leftOverDurationAsFractionOfSpecifiedUnit);
-        }
     }
 
     static final class ColumnProvider implements ColumnChoicesStateProvider {

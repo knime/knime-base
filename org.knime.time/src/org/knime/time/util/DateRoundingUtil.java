@@ -46,20 +46,18 @@
  * History
  *   Nov 25, 2024 (Tobias Kampmann): created
  */
-package org.knime.time.node.manipulate.datetimeround;
+package org.knime.time.util;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.time.ZonedDateTime;
 import java.time.temporal.Temporal;
 import java.time.temporal.TemporalAdjusters;
 import java.util.function.UnaryOperator;
 
-import org.knime.time.node.manipulate.datetimeround.DateRoundNodeSettings.DateRoundingStrategy;
-import org.knime.time.node.manipulate.datetimeround.DateRoundNodeSettings.DayOrWeekday;
-import org.knime.time.node.manipulate.datetimeround.DateRoundNodeSettings.RoundDatePrecision;
-import org.knime.time.node.manipulate.datetimeround.DateRoundNodeSettings.ShiftMode;
+import org.knime.time.node.manipulate.datetimeround.DateRoundNodeSettings;
 
 /**
  * Utility class for rounding date-based temporal values to a specified precision.
@@ -222,4 +220,32 @@ public final class DateRoundingUtil {
             default -> throw new IllegalArgumentException("Unexpected value: " + strategy);
         };
     }
+
+    public enum DateRoundingStrategy {
+        FIRST, LAST;
+}
+
+public enum DayOrWeekday {
+        DAY, WEEKDAY;
+}
+
+public enum RoundDatePrecision {
+
+        DECADE(Period.ofYears(10)), //
+        YEAR(Period.ofYears(1)), //
+        QUARTER(Period.ofMonths(3)), //
+        MONTH(Period.ofMonths(1)), //
+        WEEK(Period.ofWeeks(1)); //
+
+    private final Period m_period;
+
+    RoundDatePrecision(final Period period) {
+        this.m_period = period;
+    }
+
+    public Period getPeriod() {
+        return m_period;
+    }
+}
+
 }

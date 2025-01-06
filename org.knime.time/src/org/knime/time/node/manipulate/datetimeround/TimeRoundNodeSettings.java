@@ -52,7 +52,6 @@ import java.time.DateTimeException;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
@@ -75,8 +74,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoic
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.time.node.manipulate.datetimeround.TimeRoundingUtil.TimeRoundingStrategy;
 import org.knime.time.util.ReplaceOrAppend;
+import org.knime.time.util.TimeRoundingUtil.TimeRoundingStrategy;
 
 /**
  *
@@ -134,21 +133,6 @@ public class TimeRoundNodeSettings implements DefaultNodeSettings {
         if (spec != null) {
             m_columnFilter = new ColumnFilter(DateTimeRoundModelUtils.getCompatibleColumns(spec, TIME_COLUMN_TYPES));
         }
-    }
-
-    public enum TimeRoundingStrategy {
-            @Label(value = "First Point in time",
-                description = "Round to the first point in time of the selected duration. "
-                    + "E.g., rounding 18:45.215 to one hour yields 18:00.")
-            FIRST_POINT_IN_TIME, //
-            @Label(value = "Last Point in time",
-                description = "Round to the last point in time of the selected duration. "
-                    + "E.g., rounding 18:45.215 to one hour yields 19:00.")
-            LAST_POINT_IN_TIME, //
-            @Label(value = "Nearest Point in time",
-                description = "Round to the nearest point in time of the selected duration. "
-                    + "E.g., Last/First is chosen depending on which one is closer to the to be rounded time")
-            NEAREST_POINT_IN_TIME;
     }
 
     enum RoundTimePrecision {
@@ -238,7 +222,7 @@ public class TimeRoundNodeSettings implements DefaultNodeSettings {
             return Arrays.stream(RoundTimePrecision.values()) //
                 .map(RoundTimePrecision::getDuration) //
                 .map(Duration::toString) //
-                .collect(Collectors.toList());
+                .toList();
         }
 
         static final class Persistor extends NodeSettingsPersistorWithConfigKey<RoundTimePrecision> {

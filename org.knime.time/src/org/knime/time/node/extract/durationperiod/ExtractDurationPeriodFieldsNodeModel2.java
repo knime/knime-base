@@ -66,6 +66,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.util.UniqueNameGenerator;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
+import org.knime.time.util.ExtractableIntervalField;
 
 /**
  * The node model for the "Extract Duration/Period Fields" node.
@@ -134,14 +135,14 @@ public class ExtractDurationPeriodFieldsNodeModel2
 
     static class ExtractedPartCellFactory extends SingleCellFactory {
 
-        private final ExtractableField m_extractableField;
+        private final ExtractableIntervalField m_extractableField;
 
         private final int m_referenceColumnIndex;
 
         ExtractedPartCellFactory( //
             final String outputColumnName, //
             final int referenceColumnIndex, //
-            final ExtractableField extractableField //
+            final ExtractableIntervalField extractableField //
         ) {
             super(createNewColumnSpec(outputColumnName));
 

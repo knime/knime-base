@@ -60,6 +60,7 @@ import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 import org.knime.time.node.manipulate.datetimeround.DateTimeRoundModelUtils.RoundCellFactory;
 import org.knime.time.util.ReplaceOrAppend;
+import org.knime.time.util.TimeRoundingUtil;
 
 /**
  *

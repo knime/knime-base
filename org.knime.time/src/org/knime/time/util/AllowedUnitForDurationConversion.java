@@ -44,70 +44,58 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 3, 2024 (Tobias Kampmann): created
+ *   Jan 6, 2025 (david): created
  */
-package org.knime.time.node.manipulate.datetimeround;
+package org.knime.time.util;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.container.ColumnRearranger;
-import org.knime.core.data.container.SingleCellFactory;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
-import org.knime.time.util.DateRoundingUtil;
-import org.knime.time.util.ReplaceOrAppend;
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
-/**
- *
- * @author Tobias Kampmann
- */
-@SuppressWarnings("restriction")
-public class DateRoundNodeModel extends WebUISimpleStreamableFunctionNodeModel<DateRoundNodeSettings> {
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 
-    /**
-     * @param configuration
-     */
-    protected DateRoundNodeModel(final WebUINodeConfiguration configuration) {
-        super(configuration, DateRoundNodeSettings.class);
+public enum AllowedUnitForDurationConversion {
+        @Label("Hours")
+        HOURS(TimeUnit.HOURS), //
+        @Label("Minutes")
+        MINUTES(TimeUnit.MINUTES), //
+        @Label("Seconds")
+        SECONDS(TimeUnit.SECONDS), //
+        @Label("Milliseconds")
+        MILLISECONDS(TimeUnit.MILLISECONDS), //
+        @Label("Microseconds")
+        MICROSECONDS(TimeUnit.MICROSECONDS), //
+        @Label("Nanoseconds")
+        NANOSECONDS(TimeUnit.NANOSECONDS);
+
+    private final TimeUnit m_timeUnit;
+
+    AllowedUnitForDurationConversion(final TimeUnit timeUnit) {
+        this.m_timeUnit = timeUnit;
     }
 
-    @Override
-    protected ColumnRearranger createColumnRearranger(final DataTableSpec spec,
-        final DateRoundNodeSettings modelSettings) throws InvalidSettingsException {
+    public double getConversionExact(final Duration duration) {
+        var convertedDuration = convertDuration(m_timeUnit, duration);
 
-        ColumnRearranger rearranger = new ColumnRearranger(spec);
-
-        String[] selectedColumns = DateTimeRoundModelUtils.getSelectedColumns(spec,
-            DateRoundNodeSettings.DATE_COLUMN_TYPES, modelSettings.m_columnFilter);
-
-        for (String selectedColumn : selectedColumns) {
-
-            SingleCellFactory factory = createCellFactory(spec, selectedColumn, modelSettings);
-
-            if (modelSettings.m_replaceOrAppend == ReplaceOrAppend.REPLACE) {
-                rearranger.replace(factory, selectedColumn);
-            } else {
-                rearranger.append(factory);
-            }
-        }
-        return rearranger;
+        return convertedDuration.integerPart + convertedDuration.decimalPart;
     }
 
-    private SingleCellFactory createCellFactory(final DataTableSpec spec, final String selectedColumn,
-        final DateRoundNodeSettings settings) {
-        var indexOfTargetColumn = spec.findColumnIndex(selectedColumn);
+    public long getConversionFloored(final Duration duration) {
+        var convertedDuration = convertDuration(m_timeUnit, duration);
 
-        DataColumnSpec newColSpec = DateTimeRoundModelUtils.createColumnSpec(spec, selectedColumn,
-            settings.m_replaceOrAppend, settings.m_outputColumnSuffix);
-
-        return new DateTimeRoundModelUtils.RoundCellFactory( //
-            newColSpec, //
-            indexOfTargetColumn, //
-            DateRoundingUtil.createDateRounder(settings), //
-            createMessageBuilder(), //
-            this::setWarning); //
-
+        return convertedDuration.integerPart;
     }
 
+    private static record IntegerAndDecimalPart(long integerPart, double decimalPart) {
+    }
+
+    private static AllowedUnitForDurationConversion.IntegerAndDecimalPart convertDuration(final TimeUnit unit, final Duration duration) {
+        // Get the duration in the specified unit as an integer, e.g. '3 hours'
+        long durationInSpecifiedUnit = unit.convert(duration);
+
+        // Figure out the fractional part
+        Duration leftoverDuration = duration.minus(durationInSpecifiedUnit, unit.toChronoUnit());
+        long leftoverNanos = TimeUnit.NANOSECONDS.convert(leftoverDuration);
+        double leftOverDurationAsFractionOfSpecifiedUnit = leftoverNanos / (double)unit.toNanos(1);
+        return new IntegerAndDecimalPart(durationInSpecifiedUnit, leftOverDurationAsFractionOfSpecifiedUnit);
+    }
 }

@@ -65,7 +65,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.knime.time.node.manipulate.datetimeround.TimeRoundNodeSettings.TimeRoundingStrategy;
+import org.knime.time.util.TimeRoundingUtil;
+import org.knime.time.util.TimeRoundingUtil.TimeRoundingStrategy;
 
 @SuppressWarnings({"squid:S5960", "squid:S1192"})
 class TimeRoundingUtilTest {

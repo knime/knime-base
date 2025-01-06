@@ -48,7 +48,6 @@
  */
 package org.knime.time.node.manipulate.datetimeround;
 
-import java.time.Period;
 import java.util.List;
 
 import org.knime.core.data.DataTableSpec;
@@ -61,14 +60,17 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.CompatibleColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.time.util.DateRoundingUtil.DateRoundingStrategy;
+import org.knime.time.util.DateRoundingUtil.DayOrWeekday;
+import org.knime.time.util.DateRoundingUtil.RoundDatePrecision;
 import org.knime.time.util.ReplaceOrAppend;
+import org.knime.time.util.ShiftMode;
 
 /**
  *
@@ -87,28 +89,28 @@ public class DateRoundNodeSettings implements DefaultNodeSettings {
             of the chosen rounding precision.
             """)
     @Layout(DateTimeRoundNodeLayout.FirstHorizontal.class)
-    DateRoundingStrategy m_dateRoundingStrategy = DateRoundingStrategy.FIRST;
+    public DateRoundingStrategy m_dateRoundingStrategy = DateRoundingStrategy.FIRST;
 
     @Widget(title = "target", description = """
             Option to exclude weekends from the rounding. A weekend is defined as \
             Saturday and Sunday.
             """)
     @Layout(DateTimeRoundNodeLayout.FirstHorizontal.class)
-    DayOrWeekday m_dayOrWeekDay = DayOrWeekday.DAY;
+    public DayOrWeekday m_dayOrWeekDay = DayOrWeekday.DAY;
 
     @Widget(title = "of", description = """
             Option to shift the date to the previous or next date in the chosen \
             resolution.
             """)
     @Layout(DateTimeRoundNodeLayout.SecondHorizontal.class)
-    ShiftMode m_shiftMode = ShiftMode.THIS;
+    public ShiftMode m_shiftMode = ShiftMode.THIS;
 
     @Widget(title = "precision", description = """
             The rounding precision. The date will be rounded to the first or last \
             value of the chosen precision.
             """)
     @Layout(DateTimeRoundNodeLayout.SecondHorizontal.class)
-    RoundDatePrecision m_dateRoundingPrecision = RoundDatePrecision.MONTH;
+    public RoundDatePrecision m_dateRoundingPrecision = RoundDatePrecision.MONTH;
 
     @Widget(title = "Output columns",
         description = "Depending on the selection, the selected columns will be replaced "
@@ -138,58 +140,6 @@ public class DateRoundNodeSettings implements DefaultNodeSettings {
         if (spec != null) {
             m_columnFilter = new ColumnFilter(DateTimeRoundModelUtils.getCompatibleColumns(spec, DATE_COLUMN_TYPES));
         }
-    }
-
-    public enum DateRoundingStrategy {
-            FIRST, LAST;
-    }
-
-    public enum DayOrWeekday {
-            DAY, WEEKDAY;
-    }
-
-    public enum RoundDatePrecision {
-
-            DECADE(Period.ofYears(10)), //
-            YEAR(Period.ofYears(1)), //
-            QUARTER(Period.ofMonths(3)), //
-            MONTH(Period.ofMonths(1)), //
-            WEEK(Period.ofWeeks(1)); //
-
-        private final Period m_period;
-
-        RoundDatePrecision(final Period period) {
-            this.m_period = period;
-        }
-
-        public Period getPeriod() {
-            return m_period;
-        }
-    }
-
-    /**
-     * Enumeration for the shift mode. Additional option to shift the date to the previous or next date in the chosen
-     * resolution.
-     */
-    public enum ShiftMode {
-            /**
-             * Shift to the previous value. 12.12.24 rounded to the first day of the 'previous' month will result in
-             * 1.11.24.
-             */
-            @Label(value = "Previous", description = "Shift to the previous value. 12.12.24 rounded to the"
-                + "first day of the 'previous' month will result in 1.11.24.")
-            PREVIOUS,
-            /**
-             * Option to not shift the value. Shift to the this value, i.e., no shift at all.
-             */
-            @Label(value = "This", description = "Shift to the this value, i.e., no shift at all.")
-            THIS,
-            /**
-             * Shift to the next value. 12.12.24 rounded to the first day of the 'next' month will result in 1.1.25.
-             */
-            @Label(value = "Next", description = "Shift to the next value. 12.12.24 rounded to the "
-                + "first day of the 'next' month will result in 1.1.25.")
-            NEXT;
     }
 
     /**

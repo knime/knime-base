@@ -51,6 +51,7 @@ package org.knime.time.util;
 import java.time.Duration;
 import java.time.Period;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.TemporalAmount;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -166,7 +167,8 @@ public final class DurationPeriodFormatUtils {
         String s = text;
         // check for correct ISO usage
         if (s.startsWith("P") && !s.startsWith("PT")) {
-            throw new DateTimeParseException("A leading 'P' indicates a date-based duration, not a time-based duration.", s, 0);
+            throw new DateTimeParseException(
+                "A leading 'P' indicates a date-based duration, not a time-based duration.", s, 0);
         }
 
         // replace words with ISO letters
@@ -183,8 +185,8 @@ public final class DurationPeriodFormatUtils {
             final int idx = StringUtils.indexOf(s, "M");
             if (idx >= 0) {
                 throw new DateTimeParseException(
-                    "'M' stands for months and cannot be parsed as part of a time-based duration. Use 'm' for minutes instead.", s,
-                    idx);
+                    "'M' stands for months and cannot be parsed as part of a time-based duration. Use 'm' for minutes instead.",
+                    s, idx);
             }
             s = "PT" + s;
         }
@@ -207,7 +209,8 @@ public final class DurationPeriodFormatUtils {
         String s = text;
         // check for correct ISO usage
         if (s.startsWith("PT")) {
-            throw new DateTimeParseException("A leading 'PT' indicates a time-based duration, not a date-based duration.", s, 0);
+            throw new DateTimeParseException(
+                "A leading 'PT' indicates a time-based duration, not a date-based duration.", s, 0);
         }
 
         // replace words with ISO letters
@@ -238,4 +241,23 @@ public final class DurationPeriodFormatUtils {
         return Period.parse(s);
     }
 
+    public static String formatTemporalAmountShort(final TemporalAmount amount) {
+        if (amount instanceof Duration) {
+            return formatDurationShort((Duration) amount);
+        } else if (amount instanceof Period) {
+            return formatPeriodShort((Period) amount);
+        } else {
+            throw new IllegalArgumentException("Unsupported TemporalAmount type: " + amount.getClass());
+        }
+    }
+
+    public static String formatTemporalAmountLong(final TemporalAmount amount) {
+        if (amount instanceof Duration) {
+            return formatDurationLong((Duration) amount);
+        } else if (amount instanceof Period) {
+            return formatPeriodLong((Period) amount);
+        } else {
+            throw new IllegalArgumentException("Unsupported TemporalAmount type: " + amount.getClass());
+        }
+    }
 }

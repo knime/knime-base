@@ -46,7 +46,7 @@
  * History
  *   Nov 20, 2024 (david): created
  */
-package org.knime.time.node.extract.durationperiod;
+package org.knime.time.util;
 
 import java.time.Duration;
 import java.time.Period;
@@ -70,7 +70,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-enum ExtractableField {
+public enum ExtractableIntervalField {
 
         @Label(value = "Years", description = "The years component of a period.")
         YEARS(Period.class, Period::getYears, "Year", "Years"), //
@@ -123,7 +123,7 @@ enum ExtractableField {
 
     private final String m_niceName;
 
-    <T extends TemporalAmount> ExtractableField( //
+    <T extends TemporalAmount> ExtractableIntervalField( //
         final Class<T> extractionType, //
         final ToLongFunction<T> extractor, //
         final String oldConfigValue, //
@@ -137,13 +137,13 @@ enum ExtractableField {
 
     /**
      * If this returns true, the field can be extracted from the given {@link DataCell} using
-     * {@link ExtractableField#extractFieldFrom(DataCell)}. If it returns false, the field cannot be extracted from the
-     * given {@link DataCell} by this enum constant.
+     * {@link ExtractableIntervalField#extractFieldFrom(DataCell)}. If it returns false, the field cannot be extracted
+     * from the given {@link DataCell} by this enum constant.
      *
      * @param dataValueType
      * @return
      */
-    boolean isCompatibleWith(final DataType dataValueType) {
+    public boolean isCompatibleWith(final DataType dataValueType) {
         return (m_extractionType == Duration.class && dataValueType.isCompatible(DurationValue.class)) //
             || (m_extractionType == Period.class && dataValueType.isCompatible(PeriodValue.class));
     }
@@ -156,10 +156,21 @@ enum ExtractableField {
      * @param value
      * @return
      */
-    @SuppressWarnings("unchecked") // these casts should be fine
-    long extractFieldFrom(final DataCell value) {
+    public long extractFieldFrom(final DataCell value) {
         var amount = extractFromCell(value);
+        return extractFieldFrom(amount);
+    }
 
+    /**
+     * Extract the field from the given {@link TemporalAmount} and return it as a long. Will throw an
+     * {@link IllegalArgumentException} if the field cannot be extracted, for example because you passed a
+     * {@link Period} but this is a time-based field.
+     *
+     * @param amount
+     * @return
+     */
+    @SuppressWarnings("unchecked") // these casts should be fine
+    public long extractFieldFrom(final TemporalAmount amount) {
         if (amount instanceof Duration d && m_extractionType == Duration.class) {
             return ((ToLongFunction<Duration>)this.m_extractor).applyAsLong(d.abs()) * (d.isNegative() ? -1 : 1);
         } else if (amount instanceof Period p && m_extractionType == Period.class) {
@@ -175,7 +186,7 @@ enum ExtractableField {
      *
      * @return
      */
-    String niceName() {
+    public String niceName() {
         return m_niceName;
     }
 
@@ -188,11 +199,11 @@ enum ExtractableField {
      *
      * @return
      */
-    Optional<String> getOldConfigValue() {
+    public Optional<String> getOldConfigValue() {
         return Optional.ofNullable(m_oldConfigValue);
     }
 
-    static ExtractableField getByOldConfigValue(final String oldConfigValue) {
+    public static ExtractableIntervalField getByOldConfigValue(final String oldConfigValue) {
         String oldConfigValuesSeparatedByCommas = Arrays.stream(values()) //
             .map(f -> f.m_oldConfigValue) //
             .filter(v -> v != null) //

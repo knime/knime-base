@@ -46,7 +46,7 @@
  * History
  *   Nov 25, 2024 (Tobias Kampmann): created
  */
-package org.knime.time.node.manipulate.datetimeround;
+package org.knime.time.util;
 
 import java.math.BigInteger;
 import java.time.Duration;
@@ -58,7 +58,7 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.Temporal;
 
-import org.knime.time.node.manipulate.datetimeround.TimeRoundNodeSettings.TimeRoundingStrategy;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 
 /**
  * Utility class for rounding time-based temporal values to a specified interval.
@@ -142,15 +142,28 @@ public final class TimeRoundingUtil {
 
     private static BigInteger roundRegardingStrategy(final BigInteger current, final BigInteger interval,
         final TimeRoundingStrategy strategy) {
-        switch (strategy) {
-            case FIRST_POINT_IN_TIME:
-                return current.divide(interval).multiply(interval);
-            case NEAREST_POINT_IN_TIME:
-                return current.add(interval.divide(BigInteger.valueOf(2))).divide(interval).multiply(interval);
-            case LAST_POINT_IN_TIME:
-                return current.add(interval).subtract(BigInteger.ONE).divide(interval).multiply(interval);
-        }
-        throw new IllegalArgumentException("Unsupported rounding strategy: " + strategy);
+        return switch (strategy) {
+            case FIRST_POINT_IN_TIME -> current.divide(interval).multiply(interval);
+            case NEAREST_POINT_IN_TIME -> current.add(interval.divide(BigInteger.valueOf(2))).divide(interval)
+                .multiply(interval);
+            case LAST_POINT_IN_TIME -> current.add(interval).subtract(BigInteger.ONE).divide(interval)
+                .multiply(interval);
+            default -> throw new IllegalArgumentException("Unsupported rounding strategy: " + strategy);
+        };
     }
 
+    public enum TimeRoundingStrategy {
+            @Label(value = "First Point in time",
+                description = "Round to the first point in time of the selected duration. "
+                    + "E.g., rounding 18:45.215 to one hour yields 18:00.")
+            FIRST_POINT_IN_TIME, //
+            @Label(value = "Last Point in time",
+                description = "Round to the last point in time of the selected duration. "
+                    + "E.g., rounding 18:45.215 to one hour yields 19:00.")
+            LAST_POINT_IN_TIME, //
+            @Label(value = "Nearest Point in time",
+                description = "Round to the nearest point in time of the selected duration. "
+                    + "E.g., Last/First is chosen depending on which one is closer to the to be rounded time")
+            NEAREST_POINT_IN_TIME;
+    }
 }
