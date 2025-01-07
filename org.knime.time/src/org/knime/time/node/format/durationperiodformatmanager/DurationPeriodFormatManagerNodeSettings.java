@@ -44,97 +44,72 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 18, 2024 (david): created
+ *   Jan 7, 2025 (david): created
  */
-package org.knime.time.node.convert.durationperiodtostring;
+package org.knime.time.node.format.durationperiodformatmanager;
 
 import java.util.List;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
 
+import org.knime.base.node.viz.format.AlignmentSuggestionOption;
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.time.duration.DurationValue;
 import org.knime.core.data.time.period.PeriodValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.CompatibleColumnChoicesProvider;
 import org.knime.time.util.DurationPeriodStringFormat;
-import org.knime.time.util.ReplaceOrAppend;
 
 /**
- * Settings for the Duration/Period To String node.
+ * The settings for the DurationPeriodFormatManager node.
  *
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-final class DurationPeriodToStringNodeSettings implements DefaultNodeSettings {
+final class DurationPeriodFormatManagerNodeSettings implements DefaultNodeSettings {
 
-    DurationPeriodToStringNodeSettings() {
+    DurationPeriodFormatManagerNodeSettings() {
     }
 
-    DurationPeriodToStringNodeSettings(final DefaultNodeSettingsContext context) {
+    /**
+     * Selects all compatible columns by default.
+     *
+     * @param context the settings context
+     */
+    DurationPeriodFormatManagerNodeSettings(final DefaultNodeSettingsContext context) {
         var spec = context.getDataTableSpec(0);
 
         if (spec.isPresent()) {
-            m_filter = new ColumnFilter(spec.get().stream() //
-                .filter(ColumnProvider.IS_COMPATIBLE_TYPE) //
+            m_columnFilter = new ColumnFilter(spec.get().stream() //
+                .filter(cs -> INTERVAL_VALUE_TYPES.stream().anyMatch(cs.getType()::isCompatible)) //
                 .map(DataColumnSpec::getName) //
                 .toArray(String[]::new) //
             );
         }
     }
 
-    @Widget(title = "Duration columns", description = "The columns to convert to a string.")
-    @ChoicesWidget(choicesProvider = ColumnProvider.class)
-    @Persist(configKey = "col_select", customPersistor = LegacyColumnFilterPersistor.class)
-    ColumnFilter m_filter = new ColumnFilter();
+    @Widget(title = "Duration/Period columns", description = "Only the included columns will receive a formatter.")
+    @ChoicesWidget(choices = IntervalColumnProvider.class)
+    ColumnFilter m_columnFilter = new ColumnFilter();
 
-    @Widget(title = "Output format", description = "The format of the output string.")
+    @Widget(title = "Duration format", description = "The format of the output string.")
     @ValueSwitchWidget
-    @Persist(configKey = "format", customPersistor = DurationPeriodStringFormat.LegacyPersistor.class)
-    @ValueReference(DurationPeriodStringFormat.Ref.class)
-    DurationPeriodStringFormat m_outputFormat = DurationPeriodStringFormat.ISO;
+    DurationPeriodStringFormat m_format = DurationPeriodStringFormat.ISO;
 
-    @Widget(title = "Output columns", description = """
-            Depending on this setting, the output columns will either replace the modified columns, or be \
-            appended to the table with a suffix.
-            """)
+    @Widget(title = "Alignment suggestion",
+        description = "To be considered by views like Table View, Tile View, and for Spreadsheet export.")
     @ValueSwitchWidget
-    @Persist(customPersistor = ReplaceOrAppend.Persistor.class)
-    @ValueReference(ReplaceOrAppend.ValueRef.class)
-    ReplaceOrAppend m_appendOrReplaceColumn = ReplaceOrAppend.REPLACE;
+    AlignmentSuggestionOption m_alignment = AlignmentSuggestionOption.RIGHT;
 
-    @Widget(title = "Suffix of appended column", description = """
-            The suffix to append to the column names of the new columns.
-            """)
-    @Persist(configKey = "suffix")
-    @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
-    String m_suffix = "";
+    public static final List<Class<? extends DataValue>> INTERVAL_VALUE_TYPES =
+        List.of(DurationValue.class, PeriodValue.class);
 
-    static final class ColumnProvider implements ColumnChoicesStateProvider {
-
-        private static final List<Class<? extends DataValue>> COMPATIBLE_TYPES =
-            List.of(DurationValue.class, PeriodValue.class);
-
-        static final Predicate<DataColumnSpec> IS_COMPATIBLE_TYPE =
-            columnSpec -> COMPATIBLE_TYPES.stream().anyMatch(columnSpec.getType()::isCompatible);
-
-        @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0).map(DataTableSpec::stream) //
-                .orElseGet(Stream::empty) //
-                .filter(IS_COMPATIBLE_TYPE) //
-                .toArray(DataColumnSpec[]::new);
+    static final class IntervalColumnProvider extends CompatibleColumnChoicesProvider {
+        IntervalColumnProvider() {
+            super(INTERVAL_VALUE_TYPES);
         }
     }
 }

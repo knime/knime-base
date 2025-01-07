@@ -121,7 +121,8 @@ final class DateTimeFormatManagerNodeSettings implements DefaultNodeSettings {
     @DateTimeFormatPickerWidget(formatProvider = ComprehensiveDateTimeFormatProvider.class)
     String m_format = "yyyy-MM-dd HH:mm:ss";
 
-    @Widget(title = "Alignment suggestion", description = "Specify how to align the formatted value.")
+    @Widget(title = "Alignment suggestion",
+        description = "To be considered by views like Table View, Tile View, and for Spreadsheet export.")
     @ValueSwitchWidget
     AlignmentSuggestionOption m_alignmentSuggestion = AlignmentSuggestionOption.LEFT;
 

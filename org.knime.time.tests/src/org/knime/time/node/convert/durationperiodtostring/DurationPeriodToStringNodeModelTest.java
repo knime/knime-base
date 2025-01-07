@@ -76,7 +76,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
-import org.knime.time.node.convert.durationperiodtostring.DurationPeriodToStringNodeSettings.OutputFormat;
+import org.knime.time.util.DurationPeriodStringFormat;
 import org.knime.time.util.ReplaceOrAppend;
 
 /**
@@ -123,7 +123,7 @@ class DurationPeriodToStringNodeModelTest {
     );
 
     static Stream<Arguments> provideArgumentsForPeriodTestCases() {
-        return Arrays.stream(OutputFormat.values())
+        return Arrays.stream(DurationPeriodStringFormat.values())
             .map(format -> PERIOD_TEST_CASES.stream().map(testCase -> Arguments.of( //
                 "Convert '%s' to %s".formatted(testCase.input.toString(), format.name()), //
                 testCase.input, //
@@ -137,7 +137,7 @@ class DurationPeriodToStringNodeModelTest {
     }
 
     static Stream<Arguments> provideArgumentsForDurationTestCases() {
-        return Arrays.stream(OutputFormat.values())
+        return Arrays.stream(DurationPeriodStringFormat.values())
             .map(format -> DURATION_TEST_CASES.stream().map(testCase -> Arguments.of( //
                 "Convert '%s' to %s".formatted(testCase.input.toString(), format.name()), //
                 testCase.input, //
@@ -186,7 +186,7 @@ class DurationPeriodToStringNodeModelTest {
     @ParameterizedTest(name = "{0} (date/period based)")
     @MethodSource("provideArgumentsForPeriodTestCases")
     void testConvertPeriodToString(@SuppressWarnings("unused") final String testName, final Period input,
-        final OutputFormat format, final String expected) throws InvalidSettingsException, IOException {
+        final DurationPeriodStringFormat format, final String expected) throws InvalidSettingsException, IOException {
 
         var settings = new DurationPeriodToStringNodeSettings();
         settings.m_outputFormat = format;
@@ -207,7 +207,7 @@ class DurationPeriodToStringNodeModelTest {
     @ParameterizedTest(name = "{0} (date/period based)")
     @MethodSource("provideArgumentsForDurationTestCases")
     void testConvertDurationToString(@SuppressWarnings("unused") final String testName, final Duration input,
-        final OutputFormat format, final String expected) throws InvalidSettingsException, IOException {
+        final DurationPeriodStringFormat format, final String expected) throws InvalidSettingsException, IOException {
 
         var settings = new DurationPeriodToStringNodeSettings();
         settings.m_outputFormat = format;

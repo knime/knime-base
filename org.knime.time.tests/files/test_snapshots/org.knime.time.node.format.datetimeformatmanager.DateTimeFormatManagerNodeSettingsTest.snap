@@ -42,7 +42,7 @@
               "title" : "Right"
             } ],
             "title" : "Alignment suggestion",
-            "description" : "Specify how to align the formatted value.\n<ul>\n<li><b>Left</b>: Align the text to the left.</li>\n<li><b>Center</b>: Center the text.</li>\n<li><b>Right</b>: Align the text to the right.</li>\n</ul>",
+            "description" : "To be considered by views like Table View, Tile View, and for Spreadsheet export.\n<ul>\n<li><b>Left</b>: Align the text to the left.</li>\n<li><b>Center</b>: Center the text.</li>\n<li><b>Right</b>: Align the text to the right.</li>\n</ul>",
             "default" : "LEFT"
           },
           "columnFilter" : {

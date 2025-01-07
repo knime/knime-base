@@ -1,0 +1,289 @@
+{
+  "data" : {
+    "model" : {
+      "columnFilter" : {
+        "selected" : [ "duration", "period" ],
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "duration", "period" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : false
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "format" : "ISO",
+      "alignment" : "RIGHT"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "alignment" : {
+            "oneOf" : [ {
+              "const" : "LEFT",
+              "title" : "Left"
+            }, {
+              "const" : "CENTER",
+              "title" : "Center"
+            }, {
+              "const" : "RIGHT",
+              "title" : "Right"
+            } ],
+            "title" : "Alignment suggestion",
+            "description" : "To be considered by views like Table View, Tile View, and for Spreadsheet export.\n<ul>\n<li><b>Left</b>: Align the text to the left.</li>\n<li><b>Center</b>: Center the text.</li>\n<li><b>Right</b>: Align the text to the right.</li>\n</ul>",
+            "default" : "RIGHT"
+          },
+          "columnFilter" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "default" : [ ],
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "typeDisplays" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : {
+                          "type" : "string"
+                        },
+                        "text" : {
+                          "type" : "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Duration/Period columns",
+            "description" : "Only the included columns will receive a formatter.",
+            "default" : {
+              "selected" : [ "duration", "period" ],
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ "duration", "period" ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "format" : {
+            "oneOf" : [ {
+              "const" : "ISO",
+              "title" : "ISO 8601"
+            }, {
+              "const" : "WORDS",
+              "title" : "Whole words"
+            }, {
+              "const" : "LETTERS",
+              "title" : "Single letters"
+            } ],
+            "title" : "Duration format",
+            "description" : "The format of the output string.\n<ul>\n<li><b>ISO 8601</b>: The durations will be formatted using the ISO-8601 representation, e.g. 'P2Y3M5D'.\n</li>\n<li><b>Whole words</b>: The durations will be formatted using words to represent them, e.g. '2 years 3 months 5 days'.\n</li>\n<li><b>Single letters</b>: The durations will be formatted using letters to represent them, e.g. '2y 3M 5d' (Date-based duration: y: years, M: months, d: days; Time-based duration: H: hours, m: minutes, s: seconds).\n</li>\n</ul>",
+            "default" : "ISO"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/columnFilter",
+      "options" : {
+        "format" : "columnFilter",
+        "possibleValues" : [ {
+          "id" : "duration",
+          "text" : "duration",
+          "type" : {
+            "id" : "org.knime.core.data.time.duration.DurationValue",
+            "text" : "Duration"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.time.duration.DurationValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
+        }, {
+          "id" : "period",
+          "text" : "period",
+          "type" : {
+            "id" : "org.knime.core.data.time.period.PeriodValue",
+            "text" : "Period"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.time.period.PeriodValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
+        } ],
+        "showNoneColumn" : false,
+        "showRowKeys" : false,
+        "showSearch" : true,
+        "showMode" : true
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/format",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/alignment",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnFilter" : {
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : { },
+                  "typeDisplays" : {
+                    "type" : "array",
+                    "configPaths" : [ ],
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : { },
+                        "text" : { }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "format" : { },
+          "alignment" : { }
+        }
+      }
+    }
+  }
+}

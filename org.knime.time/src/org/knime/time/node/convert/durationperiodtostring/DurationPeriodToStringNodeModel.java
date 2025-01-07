@@ -138,7 +138,7 @@ final class DurationPeriodToStringNodeModel extends SimpleStreamableFunctionNode
         final ColumnRearranger rearranger = new ColumnRearranger(spec);
         final String[] includeList = m_colSelect.applyTo(spec).getIncludes();
         final int[] includeIndices =
-            Arrays.stream(m_colSelect.applyTo(spec).getIncludes()).mapToInt(s -> spec.findColumnIndex(s)).toArray();
+            Arrays.stream(m_colSelect.applyTo(spec).getIncludes()).mapToInt(spec::findColumnIndex).toArray();
         int i = 0;
 
         for (String includedCol : includeList) {
