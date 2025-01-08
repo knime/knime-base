@@ -187,8 +187,7 @@ public class AppendedRowsNodeModel extends NodeModel {
     private final HiLiteTranslator[] initHiLiteTranslators(final int n) {
         final var translators = new HiLiteTranslator[n];
         for (var i = 0; i < n; ++i) {
-            translators[i] = new HiLiteTranslator();
-            translators[i].addToHiLiteHandler(m_customHiliteHandler);
+            translators[i] = new HiLiteTranslator(m_customHiliteHandler);
         }
         return translators;
     }
@@ -478,14 +477,14 @@ public class AppendedRowsNodeModel extends NodeModel {
         try (final var is =
             new GZIPInputStream(new FileInputStream(new File(nodeInternDir, "hilite_mapping.xml.gz")))) {
             final NodeSettingsRO config = NodeSettings.loadFromXML(is);
-            if (config.getBoolean("individual_ports", false)) {
+            if (config.getInt("version", 1) == 2) {
                 // load hilite mappings
                 for (var i = 0; i < m_hiliteTranslators.length; ++i) {
                     final var portConfig = config.getConfig("input_" + i);
                     m_hiliteTranslators[i].setMapper(DefaultHiLiteMapper.load(portConfig));
                 }
             } else {
-                // old node, needs to be re-executed
+                // old node, needs to be re-executed, not critical therefore no backwards-compatibility
                 setWarning(Message.fromSummary("Please re-execute the node to enable hiliting."));
             }
         } catch (InvalidSettingsException ise) {
@@ -500,7 +499,7 @@ public class AppendedRowsNodeModel extends NodeModel {
             return;
         }
         final var config = new NodeSettings("hilite_mapping");
-        config.addBoolean("individual_ports", true);
+        config.addInt("version", 2);
         for (var i = 0; i < m_hiliteTranslators.length; ++i) {
             final var portConfig = config.addConfig("input_" + i);
             if (m_hiliteTranslators[i].getMapper() instanceof DefaultHiLiteMapper dhm) {
@@ -515,13 +514,9 @@ public class AppendedRowsNodeModel extends NodeModel {
 
     @Override
     protected void setInHiLiteHandler(final int inIndex, final HiLiteHandler hiLiteHdl) {
-        if (m_hiliteTranslators[inIndex] != null) {
-            m_hiliteTranslators[inIndex].dispose();
-            m_hiliteTranslators[inIndex] = null;
-        }
+        m_hiliteTranslators[inIndex].removeAllToHiliteHandlers();
         if (hiLiteHdl != null) {
-            m_hiliteTranslators[inIndex] = new HiLiteTranslator(hiLiteHdl);
-            m_hiliteTranslators[inIndex].addToHiLiteHandler(m_customHiliteHandler);
+            m_hiliteTranslators[inIndex].addToHiLiteHandler(hiLiteHdl);
         }
     }
 
@@ -565,9 +560,8 @@ public class AppendedRowsNodeModel extends NodeModel {
             final var outKey = e.getKey();
             final var inKey = e.getValue().key();
             final var inTableIndex = e.getValue().index();
-            Set<RowKey> set = Collections.singleton(outKey);
             // put key and original key into map for the specific table index
-            maps.get(inTableIndex).put(inKey, set);
+            maps.get(inTableIndex).put(outKey, Collections.singleton(inKey));
             exec.checkCanceled();
         }
 
@@ -585,7 +579,7 @@ public class AppendedRowsNodeModel extends NodeModel {
             Map<RowKey, Set<RowKey>> translation = new HashMap<>();
             try (var iterator = table.filter(TableFilter.materializeCols()).iterator()) {
                 while (iterator.hasNext()) {
-                    translation.put(iterator.next().getKey(), Set.of(RowKey.createRowKey(rowIndex)));
+                    translation.put(RowKey.createRowKey(rowIndex), Collections.singleton(iterator.next().getKey()));
                     ++rowIndex;
                     exec.checkCanceled();
                 }
