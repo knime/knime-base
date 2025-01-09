@@ -2718,64 +2718,10 @@
               impl="org.knime.base.node.preproc.groupby.GroupByNodeFunc">
         </nodeFunc>
         <nodeFunc
-              impl="org.knime.base.node.preproc.append.row.AppendRowsNodeFunc">
-        </nodeFunc>
-        <nodeFunc
-              impl="org.knime.base.node.preproc.joiner3.JoinerNodeFunc">
-        </nodeFunc>
-        <nodeFunc
-              impl="org.knime.base.node.preproc.column.renamer.ColumnRenamerNodeFunc">
-        </nodeFunc>
-        <nodeFunc
-              impl="org.knime.base.node.preproc.filter.column.ColumnFilterNodeFunc">
-        </nodeFunc>
-        <nodeFunc
-              impl="org.knime.base.node.preproc.sorter.SorterNodeFunc">
-        </nodeFunc>
-        <nodeFunc
-              impl="org.knime.base.node.preproc.columnappend2.ColumnAppenderNodeFunc">
-        </nodeFunc>
-        <nodeFunc
-              impl="org.knime.base.node.preproc.filter.rowref.RowFilterRefNodeFunc">
-        </nodeFunc>
-        <nodeFunc
-              impl="org.knime.base.node.preproc.filter.columnref.ColumnFilterRefNodeFunc">
-        </nodeFunc>
-        <nodeFunc
-              impl="org.knime.base.node.preproc.duplicates.DuplicateRowFilterNodeFunc">
-        </nodeFunc>
-        <nodeFunc
-              impl="org.knime.base.node.preproc.columnresorter.ColumnResorterNodeFunc">
-        </nodeFunc>
-        <nodeFunc
               impl="org.knime.base.node.preproc.columnrenameregex.ColumnRenameRegexNodeFunc">
         </nodeFunc>
         <nodeFunc
               impl="org.knime.base.node.preproc.pivot.PivotNodeFunc">
-        </nodeFunc>
-        <nodeFunc
-              impl="org.knime.base.node.preproc.unpivot2.UnpivotNodeFunc">
-        </nodeFunc>
-        <nodeFunc
-              impl="org.knime.base.node.preproc.stringreplacer.StringReplacerNodeFunc">
-        </nodeFunc>
-        <nodeFunc
-              impl="org.knime.base.node.preproc.valuelookup.ValueLookupNodeFunc">
-        </nodeFunc>
-        <nodeFunc
-              impl="org.knime.base.node.preproc.filter.row3.RowIDRowFilterNodeFunc">
-        </nodeFunc>
-        <nodeFunc
-              impl="org.knime.base.node.preproc.filter.row3.MissingValueRowFilterNodeFunc">
-        </nodeFunc>
-        <nodeFunc
-              impl="org.knime.base.node.preproc.filter.row3.AttributePatternRowFilterNodeFunc">
-        </nodeFunc>
-        <nodeFunc
-              impl="org.knime.base.node.preproc.filter.row3.RowFilterByRowNumberNodeFunc">
-        </nodeFunc>
-        <nodeFunc
-              impl="org.knime.base.node.preproc.filter.row3.AttributeRangeRowFilterNodeFunc">
         </nodeFunc>
      </extension>
 </plugin>
