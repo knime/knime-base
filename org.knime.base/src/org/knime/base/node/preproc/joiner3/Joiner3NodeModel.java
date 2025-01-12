@@ -255,7 +255,7 @@ class Joiner3NodeModel extends WebUINodeModel<Joiner3NodeSettings> {
 
     @Override
     protected void validateSettings(final Joiner3NodeSettings settings) throws InvalidSettingsException {
-        new JoinSpecificationCreator(settings, m_matchingCriteriaSpec).validateSettings();
+        new JoinSpecificationCreator(settings,(DataTableSpec) null).validateSettings();
     }
 
     @Override
