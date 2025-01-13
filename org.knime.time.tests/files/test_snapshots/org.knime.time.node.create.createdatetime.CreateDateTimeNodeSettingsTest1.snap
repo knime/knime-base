@@ -1990,7 +1990,7 @@
         }
       } ]
     }, {
-      "label" : "Range Settings",
+      "label" : "Range",
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
@@ -2099,7 +2099,7 @@
         }
       } ]
     }, {
-      "label" : "Output Settings",
+      "label" : "Output",
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",

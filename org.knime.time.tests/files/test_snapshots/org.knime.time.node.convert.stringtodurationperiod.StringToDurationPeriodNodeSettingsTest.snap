@@ -22,7 +22,7 @@
       "durationType" : "AUTO_DETECT",
       "actionIfExtractionFails" : "SET_MISSING",
       "replaceOrAppend" : "REPLACE",
-      "appendedSuffix" : "(Duration)"
+      "appendedSuffix" : " (Duration)"
     }
   },
   "schema" : {
@@ -34,20 +34,20 @@
           "actionIfExtractionFails" : {
             "oneOf" : [ {
               "const" : "SET_MISSING",
-              "title" : "Set missing"
+              "title" : "Insert missing"
             }, {
               "const" : "FAIL",
               "title" : "Fail"
             } ],
             "title" : "If extraction fails",
-            "description" : "Action to take if the extraction fails.\n<ul>\n<li><b>Set missing</b>: Set the cell to missing if the string column cannot be converted to the specified type.\n</li>\n<li><b>Fail</b>: Fail with an error if the string column cannot be converted to the specified type.\n</li>\n</ul>",
+            "description" : "Action to take if the extraction fails.\n<ul>\n<li><b>Insert missing</b>: Set the cell to missing if the string column cannot be converted to the specified type.\n</li>\n<li><b>Fail</b>: Fail with an error if the string column cannot be converted to the specified type.\n</li>\n</ul>",
             "default" : "SET_MISSING"
           },
           "appendedSuffix" : {
             "type" : "string",
-            "title" : "Append suffix",
+            "title" : "Output column suffix",
             "description" : "The suffix to append to the output column name.",
-            "default" : "(Duration)"
+            "default" : " (Duration)"
           },
           "columnFilter" : {
             "type" : "object",
@@ -155,7 +155,7 @@
                 }
               }
             },
-            "title" : "Input columns",
+            "title" : "String columns",
             "description" : "The string columns to convert to a duration/period.",
             "default" : {
               "selected" : [ ],

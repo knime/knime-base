@@ -77,12 +77,15 @@ public final class CreateDateTimeNodeFactory2 extends WebUINodeFactory<CreateDat
         .shortDescription("Generates date&amp;time values.") //
         .fullDescription("""
                 Generates date&amp;time values, i.e. either a date, a time, a date&amp;time \
-                (local) or a zoned date&amp;time. There are three creation modes: Either a \
-                number of rows, a starting point, and an ending point is selected (the steps \
-                in between will be calculated), <b>or</b> a number of rows, a starting point \
-                and an interval is selected (the interval defines the steps between each row), \
-                <b>or</b> a starting point, an ending point and an interval is selected (the \
-                number of rows corresponds to how often the interval fits between start and end). \
+                (local) or a zoned date&amp;time. There are three creation modes:
+                <ul>
+                    <li>a number of rows, a starting point, and an ending point is selected \
+                    (the steps in between will be calculated)</li>
+                    <li>a number of rows, a starting point and an interval is selected \
+                    (the interval defines the steps between each row)</li>
+                    <li>a starting point, an ending point and an interval is selected \
+                    (the number of rows corresponds to how often the interval fits between start and end).</li>
+                </ul> \
                 """) //
         .modelSettingsClass(CreateDateTimeNodeSettings.class) //
         .addOutputTable("Output table", "Output table with created date range.") //

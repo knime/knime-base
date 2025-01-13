@@ -88,7 +88,7 @@ import org.knime.time.util.ReplaceOrAppend;
 @SuppressWarnings("restriction")
 class DateShiftNodeSettings implements DefaultNodeSettings {
 
-    @Widget(title = "Date columns", description = "Only the included columns will be shifted.")
+    @Widget(title = "Date&time columns", description = "Only the included columns will be shifted.")
     @Persist(customPersistor = LegacyColumnFilterPersistor.class)
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
@@ -100,7 +100,7 @@ class DateShiftNodeSettings implements DefaultNodeSettings {
     @ValueReference(ShiftModeRef.class)
     ShiftMode m_shiftMode = ShiftMode.SHIFT;
 
-    @Widget(title = "Shift Value", description = """
+    @Widget(title = "Shift value", description = """
             Select to insert a format string to use as constant shift value. The inserted string \
             can be either in:
             <ul>
@@ -147,12 +147,12 @@ class DateShiftNodeSettings implements DefaultNodeSettings {
     @ValueReference(ReplaceOrAppend.ValueRef.class)
     ReplaceOrAppend m_replaceOrAppend = ReplaceOrAppend.REPLACE;
 
-    @Widget(title = "Suffix of appended column", description = """
+    @Widget(title = "Output column suffix", description = """
             The suffix that is appended to the column name. The suffix will be added to the original \
             column name.
             """)
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
-    String m_outputColumnSuffix = "(shifted)";
+    String m_outputColumnSuffix = " (Shifted)";
 
     /*
      * ------------------------------------------------------------------------
@@ -193,12 +193,12 @@ class DateShiftNodeSettings implements DefaultNodeSettings {
         List.of(LocalDateValue.class, ZonedDateTimeValue.class, LocalDateTimeValue.class);
 
     enum ShiftMode implements CompatibleDataValueClassesSupplier {
-            @Label(value = "Shift Value", description = "A date-based shift value.")
+            @Label(value = "Shift value", description = "A date-based shift value.")
             SHIFT(), //
             @Label(value = "Period column", //
                 description = "Select to choose the shift value from a period column.")
             PERIOD(), //
-            @Label(value = "Numerical column", //
+            @Label(value = "Number column", //
                 description = "Select a numerical column to scale a configurable time unit.")
             NUMERICAL(); //
 
@@ -256,11 +256,14 @@ class DateShiftNodeSettings implements DefaultNodeSettings {
     }
 
     enum DateGranularity {
+            @Label("Years")
+            YEARS(Granularity.YEAR), //
+            @Label("Months")
+            MONTHS(Granularity.MONTH), //
+            @Label("Weeks")
+            WEEKS(Granularity.WEEK), //
             @Label("Days")
-            DAYS(Granularity.DAY), @Label("Weeks")
-            WEEKS(Granularity.WEEK), @Label("Months")
-            MONTHS(Granularity.MONTH), @Label("Years")
-            YEARS(Granularity.YEAR);
+            DAYS(Granularity.DAY); //
 
         private final Granularity m_granularity;
 

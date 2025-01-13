@@ -155,7 +155,7 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
                 var subsecondUnits = ExtractableField.getByOldConfigValue( //
                     settings.getString( //
                         OLD_KEY_SUBSECOND_UNITS, //
-                        ExtractableField.MILLIS_ALL.getOldConfigValue().orElseThrow() //
+                        ExtractableField.MILLIS.getOldConfigValue().orElseThrow() //
                     ) //
                 );
                 fieldsExceptSubSeconds.add(new ExtractFieldSettings( //

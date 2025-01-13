@@ -69,15 +69,17 @@ public final class ExtractDurationPeriodFieldsNodeFactory2
                 for a time-based duration and years, months and days for a date-based duration. \
                 </p>
                 <p>
-                Note that for a time-based duration, the subsecond parts have both a 'part' and an 'all' \
+                Note that for a time-based duration, some subsecond parts can have both a 'part' and an 'all' \
                 variant. The 'all' variant includes all parts of the duration that are smaller than one \
-                second, while the 'part' variant only includes the part that is selected. For example, \
-                for a duration of 123456789 nanoseconds, the 'all' variant of the nanoseconds part would \
-                be 123456789, while the 'part' variant would be 789. Similar logic applies to the microseconds \
-                (which would be 456 and 123456 respectively) and milliseconds (which would be 123 and 123 \
-                respectively - for milliseconds the two always give the same result, but are provided \
-                for consistency).
+                second, while the 'part' variant only includes the part that is selected. For example:
                 </p>
+                <ul>
+                    <li><strong>Nanos (all subseconds)</strong>: Nanoseconds of a duration, \
+                    including all of the subseconds. In other words, a duration of 10.123456789 seconds \
+                    would have 123456789 nanoseconds.</li>
+                    <li><strong>Nanos</strong>: The nanoseconds component of a duration. In other words, \
+                    a duration of 10.123456789 seconds would have 789 nanoseconds.</li>
+                </ul>
                 """) //
         .modelSettingsClass(ExtractDurationPeriodFieldsNodeSettings.class) //
         .addInputTable("Input table", "Input table.") //

@@ -88,7 +88,7 @@ import org.knime.time.util.ReplaceOrAppend;
  */
 @SuppressWarnings("restriction")
 class TimeShiftNodeSettings implements DefaultNodeSettings {
-    @Widget(title = "Time columns", description = "Only the included columns will be shifted.")
+    @Widget(title = "Date&time columns", description = "Only the included columns will be shifted.")
     @Persist(customPersistor = LegacyColumnFilterPersistor.class)
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
@@ -100,7 +100,7 @@ class TimeShiftNodeSettings implements DefaultNodeSettings {
     @ValueReference(ShiftModeRef.class)
     ShiftMode m_shiftMode = ShiftMode.SHIFT_VALUE;
 
-    @Widget(title = "Shift Value", description = """
+    @Widget(title = "Shift value", description = """
             Select to insert a format string to use as constant shift value. The inserted string \
             can be either in:
             <ul>
@@ -149,12 +149,12 @@ class TimeShiftNodeSettings implements DefaultNodeSettings {
     @ValueReference(ReplaceOrAppend.ValueRef.class)
     ReplaceOrAppend m_replaceOrAppend = ReplaceOrAppend.REPLACE;
 
-    @Widget(title = "Suffix of appended column", description = """
+    @Widget(title = "Output column suffix", description = """
             The suffix that is appended to the column name. The suffix will be added to the original \
             column name.
             """)
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
-    String m_outputColumnSuffix = "(shifted)";
+    String m_outputColumnSuffix = " (Shifted)";
 
     /*
      * ------------------------------------------------------------------------
@@ -195,7 +195,7 @@ class TimeShiftNodeSettings implements DefaultNodeSettings {
         List.of(LocalTimeValue.class, ZonedDateTimeValue.class, LocalDateTimeValue.class);
 
     enum ShiftMode implements CompatibleDataValueClassesSupplier {
-            @Label(value = "Shift Value", description = "A time-based shift value.")
+            @Label(value = "Shift value", description = "A time-based shift value.")
             SHIFT_VALUE(), //
             @Label(value = "Duration column", //
                 description = "Select to choose the shift value from a duration column.")

@@ -86,7 +86,7 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
     interface StartingPointSettingsSection {
     }
 
-    @Section(title = "Range Settings")
+    @Section(title = "Range")
     @After(StartingPointSettingsSection.class)
     interface RangeSettingsSection {
     }
@@ -97,7 +97,7 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
     interface EndSettingsSection {
     }
 
-    @Section(title = "Output Settings")
+    @Section(title = "Output")
     @After(EndSettingsSection.class)
     interface OutputSettingsSection {
     }

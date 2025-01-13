@@ -7,7 +7,7 @@
             <entry key="outputcolumnName" type="xstring" value="Hours"/>
         </config>
         <config key="1">
-            <entry key="field" type="xstring" value="MILLIS_ALL"/>
+            <entry key="field" type="xstring" value="MILLIS"/>
             <entry key="outputcolumnName" type="xstring" value="Millis"/>
         </config>
     </config>

@@ -101,10 +101,9 @@ class ExtractDurationPeriodFieldsNodeModelTest {
         new TestCase<>(Duration.parse("PT1H2M3.123456789S"), ExtractableField.HOURS, 1), //
         new TestCase<>(Duration.parse("PT1H2M3.123456789S"), ExtractableField.MINUTES, 2), //
         new TestCase<>(Duration.parse("PT1H2M3.123456789S"), ExtractableField.SECONDS, 3), //
-        new TestCase<>(Duration.parse("PT1H2M3.123456789S"), ExtractableField.MILLIS_PART, 123), //
+        new TestCase<>(Duration.parse("PT1H2M3.123456789S"), ExtractableField.MILLIS, 123), //
         new TestCase<>(Duration.parse("PT1H2M3.123456789S"), ExtractableField.MICROS_PART, 456), //
         new TestCase<>(Duration.parse("PT1H2M3.123456789S"), ExtractableField.NANOS_PART, 789), //
-        new TestCase<>(Duration.parse("PT1H2M3.123456789S"), ExtractableField.MILLIS_ALL, 123), //
         new TestCase<>(Duration.parse("PT1H2M3.123456789S"), ExtractableField.MICROS_ALL, 123456), //
         new TestCase<>(Duration.parse("PT1H2M3.123456789S"), ExtractableField.NANOS_ALL, 123456789), //
         new TestCase<>(Duration.parse("PT25H"), ExtractableField.HOURS, 25) // with >24h

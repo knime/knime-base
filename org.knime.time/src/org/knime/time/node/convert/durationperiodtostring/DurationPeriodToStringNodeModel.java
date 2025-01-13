@@ -115,7 +115,7 @@ final class DurationPeriodToStringNodeModel extends SimpleStreamableFunctionNode
      * @return the string model, used in both dialog and model.
      */
     public static SettingsModelString createSuffixModel(final SettingsModelString replaceOrAppendModel) {
-        final SettingsModelString suffixModel = new SettingsModelString("suffix", "(String)");
+        final SettingsModelString suffixModel = new SettingsModelString("suffix", " (String)");
         replaceOrAppendModel.addChangeListener(
             e -> suffixModel.setEnabled(replaceOrAppendModel.getStringValue().equals(OPTION_APPEND)));
         suffixModel.setEnabled(false);
