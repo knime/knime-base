@@ -48,9 +48,6 @@
  */
 package org.knime.time.node.convert.durationtonumber;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -62,7 +59,6 @@ import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.time.duration.DurationValue;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.util.UniqueNameGenerator;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 import org.knime.time.node.convert.durationtonumber.DurationToNumberNodeSettings.RoundingBehaviour;
@@ -91,7 +87,7 @@ final class DurationToNumberNodeModel2 extends WebUISimpleStreamableFunctionNode
      * @param settings
      * @return
      */
-    private static List<String> getInputColumnNames(final DataTableSpec inputSpec,
+    private static String[] getInputColumnNames(final DataTableSpec inputSpec,
         final DurationToNumberNodeSettings settings) {
 
         var compatibleColumns = inputSpec.stream() //
@@ -99,38 +95,21 @@ final class DurationToNumberNodeModel2 extends WebUISimpleStreamableFunctionNode
             .map(DataColumnSpec::getName) //
             .toArray(String[]::new);
 
-        return Arrays.asList(settings.m_filter.getSelected(compatibleColumns, inputSpec));
+        return settings.m_filter.getSelected(compatibleColumns, inputSpec);
     }
 
     @Override
     protected ColumnRearranger createColumnRearranger(final DataTableSpec inputSpec,
         final DurationToNumberNodeSettings modelSettings) throws InvalidSettingsException {
 
-        var columnRearranger = new ColumnRearranger(inputSpec);
         var inputColumnNames = getInputColumnNames(inputSpec, modelSettings);
-        var uniqueNameGenerator = new UniqueNameGenerator(inputSpec);
-
-        if (modelSettings.m_appendOrReplaceColumn == ReplaceOrAppend.APPEND) {
-            for (String inputName : inputColumnNames) {
-                columnRearranger.append(new DurationToNumberCellFactory( //
-                    inputSpec.findColumnIndex(inputName), //
-                    modelSettings.m_roundingBehaviour, //
-                    uniqueNameGenerator.newName(inputName + modelSettings.m_suffix), //
-                    modelSettings.m_unit //
-                ));
-            }
-        } else {
-            for (String inputName : inputColumnNames) {
-                columnRearranger.replace(new DurationToNumberCellFactory( //
-                    inputSpec.findColumnIndex(inputName), //
-                    modelSettings.m_roundingBehaviour, //
-                    inputName, //
-                    modelSettings.m_unit //
-                ), inputName);
-            }
-        }
-
-        return columnRearranger;
+        return modelSettings.m_appendOrReplaceColumn.createRearranger(inputColumnNames, inputSpec,
+            (inputColumnSpec, newColumnName) -> new DurationToNumberCellFactory( //
+                inputSpec.findColumnIndex(inputColumnSpec.getName()), //
+                modelSettings.m_roundingBehaviour, //
+                newColumnName, //
+                modelSettings.m_unit //
+            ), modelSettings.m_suffix);
     }
 
     static final class DurationToNumberCellFactory extends SingleCellFactory {

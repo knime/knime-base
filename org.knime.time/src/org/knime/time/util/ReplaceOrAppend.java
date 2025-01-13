@@ -49,31 +49,42 @@
 package org.knime.time.util;
 
 import java.util.Arrays;
+import java.util.function.BiFunction;
 
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.container.ColumnRearranger;
+import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.util.UniqueNameGenerator;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
- * convenience enum to handle often occurring ValueSwitch to choose between
- * replacing a column or appending a new one to the table.
+ * Convenience enum to handle frequently occurring ValueSwitch to choose between replacing an existing column or
+ * appending a new one to the table.
  *
- * Only use once! The predicates will only work for the last one used.
+ * Only use once! The utilities provided in this file will only work for the last one used in a node settings.
+ *
+ * @author Tobias Kampmann, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
 public enum ReplaceOrAppend {
 
+        /** Replace the existing column */
         @Label(value = "Replace", description = "The selected columns will be replaced by the new columns.")
         REPLACE("Replace selected columns"), //
-        @Label(value = "Append with suffix", //
-            description = "The selected columns will be appended to the input table, "
-                + "with a new name that is the previous name plus the provided suffix.")
+        /** Append a new column with a name based on the existing column name + suffix */
+        @Label(value = "Append with suffix", description = """
+                The selected columns will be appended to the input table with \
+                a new name that is the previous name plus the provided suffix.
+                """)
         APPEND("Append selected columns"); //
 
     private final String m_oldConfigValue;
@@ -82,7 +93,61 @@ public enum ReplaceOrAppend {
         this.m_oldConfigValue = oldConfigValue;
     }
 
-    static ReplaceOrAppend getByOldConfigValue(final String oldValue) throws InvalidSettingsException {
+    /**
+     * Create a column rearranger that processes multiple columns. If the mode is {@link #APPEND}, the new column names
+     * are created by appending a suffix to the old column names, and each is guaranteed to be unique. If the mode is
+     * {@link #REPLACE}, the output column names are the same as the input column names.
+     *
+     * @param inputColumnNames the names of the columns to process.
+     * @param originalSpec the spec of the input table
+     * @param cellFactoryFactory a function that creates a {@link SingleCellFactory} for a given input column spec and a
+     *            given output column name.
+     * @param suffix the suffix to append to the column names if the mode is {@link #APPEND}. If the mode is not append,
+     *            this argument is ignored.
+     * @return a column rearranger that processes the input columns.
+     */
+    public ColumnRearranger createRearranger(final Iterable<String> inputColumnNames, final DataTableSpec originalSpec,
+        final BiFunction<DataColumnSpec, String, SingleCellFactory> cellFactoryFactory, final String suffix) {
+
+        final var rearranger = new ColumnRearranger(originalSpec);
+
+        if (this == REPLACE) {
+            for (String inputName : inputColumnNames) {
+                var inputSpec = originalSpec.getColumnSpec(inputName);
+                rearranger.replace(cellFactoryFactory.apply(inputSpec, inputName),
+                    originalSpec.findColumnIndex(inputName));
+            }
+        } else {
+            var uniqueNameGenerator = new UniqueNameGenerator(originalSpec);
+
+            for (String inputName : inputColumnNames) {
+                var inputSpec = originalSpec.getColumnSpec(inputName);
+                var newName = uniqueNameGenerator.newName(inputName + suffix);
+                var factory = cellFactoryFactory.apply(inputSpec, newName);
+
+                rearranger.append(factory);
+            }
+        }
+
+        return rearranger;
+    }
+
+    /**
+     * See {@link #createRearranger(Iterable, DataTableSpec, BiFunction, String)}, which this function defers to.
+     *
+     * @param inputColumnNames
+     * @param originalSpec
+     * @param cellFactoryFactory
+     * @param suffix
+     * @return a column rearranger that processes the input columns.
+     */
+    public ColumnRearranger createRearranger(final String[] inputColumnNames, final DataTableSpec originalSpec,
+        final BiFunction<DataColumnSpec, String, SingleCellFactory> cellFactoryFactory, final String suffix) {
+
+        return createRearranger(Arrays.asList(inputColumnNames), originalSpec, cellFactoryFactory, suffix);
+    }
+
+    private static ReplaceOrAppend getByOldConfigValue(final String oldValue) throws InvalidSettingsException {
         return Arrays.stream(values()) //
             .filter(v -> v.m_oldConfigValue.equals(oldValue)) //
             .findFirst() //
@@ -90,19 +155,22 @@ public enum ReplaceOrAppend {
                 String.format("Invalid value '%s'. Possible values: %s", oldValue, getOldConfigValues())));
     }
 
-    static String[] getOldConfigValues() {
+    private static String[] getOldConfigValues() {
         return Arrays.stream(values()).map(v -> v.m_oldConfigValue).toArray(String[]::new);
     }
 
     /**
-     * Defining the Reference for the ReplaceOrAppend enum.
-     * Dont use ReplaceOrAppend more than once. The predicates will only work for the last one.
+     * A reference for the ReplaceOrAppend enum. Will only work for the last usage of {@link ReplaceOrAppend} in a node
+     * settings.
+     *
+     * @see ValueReference
      */
     public interface ValueRef extends Reference<ReplaceOrAppend> {
     }
 
     /**
-     * Predicate to check if the selected value is Append.
+     * Predicate to check if the selected value is {@link #APPEND}. Will only work for the last usage of
+     * {@link ReplaceOrAppend} in a node settings.
      */
     public static final class IsAppend implements PredicateProvider {
 
@@ -113,7 +181,8 @@ public enum ReplaceOrAppend {
     }
 
     /**
-     * Predicate to check if the selected value is Replace.
+     * Predicate to check if the selected value is {@link #REPLACE}. Will only work for the last usage of
+     * {@link ReplaceOrAppend} in a node settings.
      */
     public static final class IsReplace implements PredicateProvider {
 
@@ -124,7 +193,8 @@ public enum ReplaceOrAppend {
     }
 
     /**
-     *  used to persist the value of the enum in the node settings
+     * Backwards-compatible persistor to store the value of the enum in the node settings. Since the key is hardcoded,
+     * it will only work for the last usage of {@link ReplaceOrAppend} in a node settings.
      */
     public static final class Persistor implements FieldNodeSettingsPersistor<ReplaceOrAppend> {
 

@@ -60,7 +60,6 @@ import java.util.function.UnaryOperator;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
@@ -76,9 +75,7 @@ import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCell;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFactory;
 import org.knime.core.node.message.Message;
 import org.knime.core.node.message.MessageBuilder;
-import org.knime.core.util.UniqueNameGenerator;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.time.util.ReplaceOrAppend;
 
 /**
  *
@@ -188,23 +185,6 @@ final class DateTimeRoundModelUtils {
                 throw new IllegalArgumentException("Unsupported Temporal type: " + cell.getClass());
             }
         }
-    }
-
-    /**
-     * Creates a new DataColumnSpec with the given column name and the type of the selected column.
-     *
-     * @param spec The DataTableSpec of the input table
-     * @param selectedColumn The name of the selected column
-     * @param settings The settings of the node
-     * @return The new DataColumnSpec
-     */
-    static DataColumnSpec createColumnSpec(final DataTableSpec spec, final String selectedColumn,
-        final ReplaceOrAppend replaceOrAppend, final String outputColumnSuffix) {
-
-        var typeOfTargetColumn = spec.getColumnSpec(selectedColumn).getType();
-        return replaceOrAppend == ReplaceOrAppend.REPLACE
-            ? new DataColumnSpecCreator(selectedColumn, typeOfTargetColumn).createSpec() //
-            : new UniqueNameGenerator(spec).newColumn(selectedColumn + outputColumnSuffix, typeOfTargetColumn);
     }
 
     /**

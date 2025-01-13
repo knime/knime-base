@@ -40,7 +40,7 @@
               "title" : "Append with suffix"
             } ],
             "title" : "Output columns",
-            "description" : "Depending on this setting, the output columns will either replace the modified columns, or be appended to the table with a suffix.\n\n<ul>\n<li><b>Replace</b>: The selected columns will be replaced by the new columns.</li>\n<li><b>Append with suffix</b>: The selected columns will be appended to the input table, with a new name that is the previous name plus the provided suffix.</li>\n</ul>",
+            "description" : "Depending on this setting, the output columns will either replace the modified columns, or be appended to the table with a suffix.\n\n<ul>\n<li><b>Replace</b>: The selected columns will be replaced by the new columns.</li>\n<li><b>Append with suffix</b>: The selected columns will be appended to the input table with a new name that is the previous name plus the provided suffix.\n</li>\n</ul>",
             "default" : "REPLACE"
           },
           "filter" : {
