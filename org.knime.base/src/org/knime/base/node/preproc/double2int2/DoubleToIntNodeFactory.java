@@ -117,7 +117,7 @@ public class DoubleToIntNodeFactory extends NodeFactory<DoubleToIntNodeModel>
     }
 
     @Override
-    public KaiNodeInterface createNodeInterface() {
+    public KaiNodeInterface createKaiNodeInterface() {
         return new DefaultNodeDialog(SettingsType.MODEL, DoubleToIntNodeSettings.class);
     }
 

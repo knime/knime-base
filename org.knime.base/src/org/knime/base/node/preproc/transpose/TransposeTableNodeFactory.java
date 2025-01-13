@@ -103,7 +103,7 @@ public class TransposeTableNodeFactory extends NodeFactory<TransposeTableNodeMod
      * @since 5.5
      */
     @Override
-    public KaiNodeInterface createNodeInterface() {
+    public KaiNodeInterface createKaiNodeInterface() {
         return new DefaultNodeDialog(SettingsType.MODEL, TransposeTableNodeSettings.class);
     }
 }

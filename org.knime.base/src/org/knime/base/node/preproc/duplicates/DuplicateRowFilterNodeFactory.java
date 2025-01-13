@@ -100,7 +100,7 @@ public final class DuplicateRowFilterNodeFactory extends NodeFactory<DuplicateRo
     }
 
     @Override
-    public KaiNodeInterface createNodeInterface() {
+    public KaiNodeInterface createKaiNodeInterface() {
         return new DefaultNodeDialog(SettingsType.MODEL, DuplicateRowFilterDialogSettings.class);
     }
 }

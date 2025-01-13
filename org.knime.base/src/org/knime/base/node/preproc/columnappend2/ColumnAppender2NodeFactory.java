@@ -113,7 +113,7 @@ public final class ColumnAppender2NodeFactory extends ConfigurableNodeFactory<Co
     }
 
     @Override
-    public KaiNodeInterface createNodeInterface() {
+    public KaiNodeInterface createKaiNodeInterface() {
         return new DefaultNodeDialog(SettingsType.MODEL, ColumnAppenderSettings.class);
     }
 

@@ -100,7 +100,7 @@ public class RowToColumnHeaderNodeFactory extends NodeFactory<RowToColumnHeaderN
     }
 
     @Override
-    public KaiNodeInterface createNodeInterface() {
+    public KaiNodeInterface createKaiNodeInterface() {
         return new DefaultNodeDialog(SettingsType.MODEL, RowToColumnHeaderSettings.class);
     }
 }

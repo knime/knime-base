@@ -103,7 +103,7 @@ public class DataColumnSpecFilterNodeFactory
      * @since 5.5
      */
     @Override
-    public KaiNodeInterface createNodeInterface() {
+    public KaiNodeInterface createKaiNodeInterface() {
         return new DefaultNodeDialog(SettingsType.MODEL, ColumnFilterNodeSettings.class);
     }
 }

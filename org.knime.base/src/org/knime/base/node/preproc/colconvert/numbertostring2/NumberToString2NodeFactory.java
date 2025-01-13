@@ -122,7 +122,7 @@ public class NumberToString2NodeFactory extends NodeFactory<NumberToString2NodeM
      * @since 5.5
      */
     @Override
-    public KaiNodeInterface createNodeInterface() {
+    public KaiNodeInterface createKaiNodeInterface() {
         return new DefaultNodeDialog(SettingsType.MODEL, NumberToStringSettings.class);
     }
 

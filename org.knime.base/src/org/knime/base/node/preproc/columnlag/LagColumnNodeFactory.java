@@ -114,7 +114,7 @@ public final class LagColumnNodeFactory extends NodeFactory<LagColumnNodeModel>
     }
 
     @Override
-    public KaiNodeInterface createNodeInterface() {
+    public KaiNodeInterface createKaiNodeInterface() {
         return new DefaultNodeDialog(SettingsType.MODEL, LagColumnNodeSettings.class);
     }
 

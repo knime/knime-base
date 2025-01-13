@@ -101,7 +101,7 @@ public class RowFilterRefNodeFactory extends NodeFactory<RowFilterRefNodeModel>
      * @since 5.5
      */
     @Override
-    public KaiNodeInterface createNodeInterface() {
+    public KaiNodeInterface createKaiNodeInterface() {
         return new DefaultNodeDialog(SettingsType.MODEL, RowFilterRefNodeSettings.class);
     }
 }

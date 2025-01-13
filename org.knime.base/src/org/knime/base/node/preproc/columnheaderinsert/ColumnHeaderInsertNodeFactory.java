@@ -108,7 +108,7 @@ public final class ColumnHeaderInsertNodeFactory extends NodeFactory<ColumnHeade
      * @since 5.5
      */
     @Override
-    public KaiNodeInterface createNodeInterface() {
+    public KaiNodeInterface createKaiNodeInterface() {
         return new DefaultNodeDialog(SettingsType.MODEL, ColumnHeaderInsertSettings.class);
     }
 

@@ -170,7 +170,7 @@ implements NodeDialogFactory, KaiNodeInterfaceFactory {
     }
 
     @Override
-    public KaiNodeInterface createNodeInterface() {
+    public KaiNodeInterface createKaiNodeInterface() {
         return new DefaultNodeDialog(SettingsType.MODEL, ReadContextProperty2NodeSettings.class);
     }
 }

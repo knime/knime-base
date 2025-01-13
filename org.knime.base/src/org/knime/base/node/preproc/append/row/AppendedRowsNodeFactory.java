@@ -121,7 +121,7 @@ public class AppendedRowsNodeFactory extends ConfigurableNodeFactory<AppendedRow
      * @since 5.5
      */
     @Override
-    public KaiNodeInterface createNodeInterface() {
+    public KaiNodeInterface createKaiNodeInterface() {
         return new DefaultNodeDialog(SettingsType.MODEL, AppendedRowsNodeSettings.class);
     }
 }

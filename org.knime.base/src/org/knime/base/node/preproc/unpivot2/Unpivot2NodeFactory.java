@@ -121,7 +121,7 @@ public class Unpivot2NodeFactory extends NodeFactory<Unpivot2NodeModel>
     }
 
     @Override
-    public KaiNodeInterface createNodeInterface() {
+    public KaiNodeInterface createKaiNodeInterface() {
         return new DefaultNodeDialog(SettingsType.MODEL, Unpivot2NodeSettings.class);
     }
 

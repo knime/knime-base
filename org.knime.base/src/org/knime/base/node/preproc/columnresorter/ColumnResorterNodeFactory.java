@@ -137,7 +137,7 @@ public class ColumnResorterNodeFactory extends NodeFactory<ColumnResorterNodeMod
     }
 
     @Override
-    public KaiNodeInterface createNodeInterface() {
+    public KaiNodeInterface createKaiNodeInterface() {
         return new DefaultNodeDialog(SettingsType.MODEL, ColumnResorterNodeSettings.class);
     }
 }
