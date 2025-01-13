@@ -97,6 +97,7 @@ import org.knime.core.node.streamable.simple.SimpleStreamableOperatorInternals;
 import org.knime.core.node.util.filter.InputFilter;
 import org.knime.core.util.UniqueNameGenerator;
 import org.knime.time.util.DurationPeriodFormatUtils;
+import org.knime.time.util.ReplaceOrAppend;
 
 /**
  * The node model of the node which converts string cells to period or duration cells.
@@ -278,28 +279,17 @@ final class StringToDurationPeriodNodeModel extends NodeModel {
     }
 
     private ColumnRearranger createColumnRearranger(final DataTableSpec spec) throws InvalidSettingsException {
-        final ColumnRearranger rearranger = new ColumnRearranger(spec);
         final String[] includeList = m_colSelect.applyTo(spec).getIncludes();
-        final int[] includeIndices =
-            Arrays.stream(m_colSelect.applyTo(spec).getIncludes()).mapToInt(s -> spec.findColumnIndex(s)).toArray();
 
-        int i = 0;
-        for (final String includedCol : includeList) {
-            if (m_isReplaceOrAppend.getStringValue().equals(OPTION_REPLACE)) {
-                final DataColumnSpecCreator dataColumnSpecCreator =
-                    new DataColumnSpecCreator(includedCol, m_detectedTypes[i]);
-                final StringToDurationPeriodCellFactory cellFac =
-                    new StringToDurationPeriodCellFactory(dataColumnSpecCreator.createSpec(), includeIndices[i++]);
-                rearranger.replace(cellFac, includedCol);
-            } else {
-                final DataColumnSpec dataColSpec = new UniqueNameGenerator(spec)
-                    .newColumn(includedCol + m_suffix.getStringValue(), m_detectedTypes[i]);
-                final StringToDurationPeriodCellFactory cellFac =
-                    new StringToDurationPeriodCellFactory(dataColSpec, includeIndices[i++]);
-                rearranger.append(cellFac);
-            }
-        }
-        return rearranger;
+        return (m_isReplaceOrAppend.getStringValue().equals(OPTION_REPLACE) //
+            ? ReplaceOrAppend.REPLACE //
+            : ReplaceOrAppend.APPEND).createRearranger(includeList, spec, (inputColumnSpec, newColumnName) -> {
+                var index = Arrays.asList(includeList).indexOf(inputColumnSpec.getName());
+                final DataColumnSpec outSpec =
+                    new DataColumnSpecCreator(newColumnName, m_detectedTypes[index]).createSpec();
+
+                return new StringToDurationPeriodCellFactory(outSpec, spec.findColumnIndex(inputColumnSpec.getName()));
+            }, m_suffix.getStringValue());
     }
 
     /**
@@ -592,7 +582,7 @@ final class StringToDurationPeriodNodeModel extends NodeModel {
 
                 // compute every row
                 DataRow row;
-                for (var r = 0L;(row = in.poll()) != null; r++) {
+                for (var r = 0L; (row = in.poll()) != null; r++) {
                     exec.checkCanceled();
                     DataCell[] datacells = new DataCell[includeIndexes.length];
                     for (int i = 0; i < includeIndexes.length; i++) {
@@ -645,7 +635,9 @@ final class StringToDurationPeriodNodeModel extends NodeModel {
     private static final class OneRowAdditionalRowInput extends RowInput {
 
         private final RowInput m_rowInput;
+
         private final DataRow m_row;
+
         private boolean m_taken;
 
         /**
@@ -657,6 +649,7 @@ final class StringToDurationPeriodNodeModel extends NodeModel {
             m_row = row;
             m_taken = false;
         }
+
         /**
          * {@inheritDoc}
          */

@@ -49,6 +49,7 @@
 package org.knime.time.node.manipulate.datetimeround;
 
 import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
@@ -56,7 +57,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 import org.knime.time.node.manipulate.datetimeround.DateTimeRoundModelUtils.RoundCellFactory;
-import org.knime.time.util.ReplaceOrAppend;
 
 /**
  *
@@ -76,36 +76,26 @@ public class TimeRoundNodeModel extends WebUISimpleStreamableFunctionNodeModel<T
     protected ColumnRearranger createColumnRearranger(final DataTableSpec spec,
         final TimeRoundNodeSettings modelSettings) throws InvalidSettingsException {
 
-        ColumnRearranger rearranger = new ColumnRearranger(spec);
         String[] selectedColumns = DateTimeRoundModelUtils.getSelectedColumns(spec,
             TimeRoundNodeSettings.TIME_COLUMN_TYPES, modelSettings.m_columnFilter);
 
-        for (String selectedColumn : selectedColumns) {
-
-            SingleCellFactory factory = createCellFactory(spec, selectedColumn, modelSettings);
-
-            if (modelSettings.m_replaceOrAppend == ReplaceOrAppend.REPLACE) {
-                rearranger.replace(factory, selectedColumn);
-            } else {
-                rearranger.append(factory);
-            }
-        }
-        return rearranger;
+        return modelSettings.m_replaceOrAppend.createRearranger(selectedColumns, spec,
+            (inputColumnSpec, newColumnName) -> createCellFactory(spec, inputColumnSpec, newColumnName, modelSettings),
+            modelSettings.m_outputColumnSuffix);
     }
 
-    private SingleCellFactory createCellFactory(final DataTableSpec spec, final String selectedColumn,
-        final TimeRoundNodeSettings settings) {
-        var indexOfTargetColumn = spec.findColumnIndex(selectedColumn);
+    private SingleCellFactory createCellFactory(final DataTableSpec spec, final DataColumnSpec inputColumnSpec,
+        final String newColumnName, final TimeRoundNodeSettings settings) {
+        var indexOfInputColumn = spec.findColumnIndex(inputColumnSpec.getName());
 
-        DataColumnSpec newColSpec = DateTimeRoundModelUtils.createColumnSpec(spec, selectedColumn,
-            settings.m_replaceOrAppend, settings.m_outputColumnSuffix);
+        // type of column doesn't change
+        var newColSpec = new DataColumnSpecCreator(newColumnName, inputColumnSpec.getType()).createSpec();
 
         return new RoundCellFactory( //
             newColSpec, //
-            indexOfTargetColumn, //
+            indexOfInputColumn, //
             TimeRoundingUtil.createRoundingOperator(settings), //
             createMessageBuilder(), //
             this::setWarning); //
-
     }
 }

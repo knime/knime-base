@@ -50,7 +50,6 @@ package org.knime.time.node.convert.durationperiodtostring;
 
 import java.time.Duration;
 import java.time.Period;
-import java.util.Arrays;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -59,7 +58,6 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
-import org.knime.core.data.def.StringCell;
 import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.data.time.duration.DurationValue;
 import org.knime.core.data.time.period.PeriodValue;
@@ -69,8 +67,8 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.streamable.simple.SimpleStreamableFunctionNodeModel;
-import org.knime.core.util.UniqueNameGenerator;
 import org.knime.time.util.DurationPeriodFormatUtils;
+import org.knime.time.util.ReplaceOrAppend;
 
 /**
  * The node model of the node which converts period or duration cells to string cells.
@@ -131,31 +129,21 @@ final class DurationPeriodToStringNodeModel extends SimpleStreamableFunctionNode
      * {@inheritDoc}
      */
     @Override
-    protected ColumnRearranger createColumnRearranger(final DataTableSpec spec) throws InvalidSettingsException {
+    protected ColumnRearranger createColumnRearranger(final DataTableSpec inSpec) throws InvalidSettingsException {
         if (!m_hasValidatedConfiguration) {
-            m_colSelect.loadDefaults(spec);
+            m_colSelect.loadDefaults(inSpec);
         }
-        final ColumnRearranger rearranger = new ColumnRearranger(spec);
-        final String[] includeList = m_colSelect.applyTo(spec).getIncludes();
-        final int[] includeIndices =
-            Arrays.stream(m_colSelect.applyTo(spec).getIncludes()).mapToInt(s -> spec.findColumnIndex(s)).toArray();
-        int i = 0;
+        final String[] includeList = m_colSelect.applyTo(inSpec).getIncludes();
 
-        for (String includedCol : includeList) {
-            if (m_isReplaceOrAppend.getStringValue().equals(OPTION_REPLACE)) {
-                DataColumnSpecCreator dataColumnSpecCreator = new DataColumnSpecCreator(includedCol, StringCell.TYPE);
-                DurationPeriodToStringCellFactory cellFac =
-                    new DurationPeriodToStringCellFactory(dataColumnSpecCreator.createSpec(), includeIndices[i++]);
-                rearranger.replace(cellFac, includedCol);
-            } else {
-                DataColumnSpec dataColSpec =
-                    new UniqueNameGenerator(spec).newColumn(includedCol + m_suffix.getStringValue(), StringCell.TYPE);
-                DurationPeriodToStringCellFactory cellFac =
-                    new DurationPeriodToStringCellFactory(dataColSpec, includeIndices[i++]);
-                rearranger.append(cellFac);
-            }
-        }
-        return rearranger;
+        return ( //
+        m_isReplaceOrAppend.getStringValue().equals(OPTION_REPLACE) //
+            ? ReplaceOrAppend.REPLACE //
+            : ReplaceOrAppend.APPEND //
+        ).createRearranger(includeList, inSpec, (inputColumnSpec, newColumnName) -> {
+            var outSpec = new DataColumnSpecCreator(newColumnName, StringCellFactory.TYPE).createSpec();
+
+            return new DurationPeriodToStringCellFactory(outSpec, inSpec.findColumnIndex(inputColumnSpec.getName()));
+        }, m_suffix.getStringValue());
     }
 
     /**

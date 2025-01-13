@@ -104,7 +104,6 @@ class DateRoundNodeModelTest {
         testReplacingColumns(settings);
     }
 
-
     private void testAppendingColumns(final String[] columnNamesToRound, final DateRoundNodeSettings settings)
         throws InvalidSettingsException {
 
@@ -113,12 +112,13 @@ class DateRoundNodeModelTest {
         setSettings(settings);
 
         InputTableNode.addDefaultTableToNodeInputPort(m_wfm, m_dateTimeRoundNode, 1);
-        assertTrue(m_wfm.executeAllAndWaitUntilDone());
+        assertTrue(m_wfm.executeAllAndWaitUntilDone(), "expected workflow to execute successfully");
 
         var outputTable = (BufferedDataTable)m_dateTimeRoundNode.getOutPort(1).getPortObject();
 
         Arrays.stream(columnNamesToRound).forEach(columnName -> assertTrue(
-            outputTable.getDataTableSpec().containsName(columnName + settings.m_outputColumnSuffix)));
+            outputTable.getDataTableSpec().containsName(columnName + settings.m_outputColumnSuffix),
+            "expected column " + columnName + settings.m_outputColumnSuffix + " to be present in the output table"));
     }
 
     private void testReplacingColumns(final DateRoundNodeSettings settings) throws InvalidSettingsException {
