@@ -139,7 +139,7 @@
                 }
               }
             },
-            "title" : "Time columns",
+            "title" : "Date&time columns",
             "description" : "Only the included columns will be shifted.",
             "default" : {
               "selected" : [ "localTimeTest", "localDateTimeTest", "zonedDateTimeTest" ],
@@ -197,7 +197,7 @@
           },
           "outputColumnSuffix" : {
             "type" : "string",
-            "title" : "Suffix of appended column",
+            "title" : "Output column suffix",
             "description" : "The suffix that is appended to the column name. The suffix will be added to the original column name.\n",
             "default" : " (Shifted)"
           },
@@ -215,14 +215,14 @@
           },
           "shiftDurationValue" : {
             "type" : "object",
-            "title" : "Shift Value",
+            "title" : "Shift value",
             "description" : "Select to insert a format string to use as constant shift value. The inserted string can be either in:\n<ul>\n  <li>\n    the ISO-8601 representation (see <a href=     \"https://docs.oracle.com/javase/8/docs/api/java/time/Duration.html#parse-java.lang.CharSequence-\">     time-based duration format</a> for details)\n  </li>\n  <li>\n    the short letter representation (e.g. '4H 5m 6s'). In this case, the letters H, m, and s     respectively indicate hours, minutes, and seconds.\n  </li>\n  <li>\n    the long word representation (e.g. '4 hours 5 minutes 6 seconds).\n  </li>\n</ul>\n",
             "default" : "PT0H1M0.000S"
           },
           "shiftMode" : {
             "oneOf" : [ {
               "const" : "SHIFT_VALUE",
-              "title" : "Shift Value"
+              "title" : "Shift value"
             }, {
               "const" : "DURATION_COLUMN",
               "title" : "Duration column"
@@ -231,7 +231,7 @@
               "title" : "Numerical column"
             } ],
             "title" : "Shift mode",
-            "description" : "Select the shift mode to use.\n<ul>\n<li><b>Shift Value</b>: A time-based shift value.</li>\n<li><b>Duration column</b>: A shift value from a duration column.</li>\n<li><b>Numerical column</b>: Select a numerical column to scale a configurable time unit.</li>\n</ul>",
+            "description" : "Select the shift mode to use.\n<ul>\n<li><b>Shift value</b>: A time-based shift value.</li>\n<li><b>Duration column</b>: A shift value from a duration column.</li>\n<li><b>Numerical column</b>: Select a numerical column to scale a configurable time unit.</li>\n</ul>",
             "default" : "SHIFT_VALUE"
           }
         }

@@ -35,26 +35,23 @@
                     "const" : "SECONDS",
                     "title" : "Seconds"
                   }, {
-                    "const" : "MILLIS_ALL",
-                    "title" : "Millis"
-                  }, {
-                    "const" : "MILLIS_PART",
+                    "const" : "MILLIS",
                     "title" : "Millis"
                   }, {
                     "const" : "MICROS_ALL",
-                    "title" : "Micros"
+                    "title" : "Micros (all subseconds)"
                   }, {
                     "const" : "MICROS_PART",
                     "title" : "Micros"
                   }, {
                     "const" : "NANOS_ALL",
-                    "title" : "Nanos"
+                    "title" : "Nanos (all subseconds)"
                   }, {
                     "const" : "NANOS_PART",
                     "title" : "Nanos"
                   } ],
                   "title" : "Field",
-                  "description" : "The type of field to extract.\n<ul>\n<li><b>Years</b>: The years component of a period.</li>\n<li><b>Months</b>: The months component of a period.</li>\n<li><b>Days</b>: The days component of a period.</li>\n<li><b>Hours</b>: The hours component of a duration.</li>\n<li><b>Minutes</b>: The minutes component of a duration.</li>\n<li><b>Seconds</b>: The seconds component of a duration.</li>\n<li><b>Millis</b>: Milliseconds of a duration, including all of the subseconds. In other words, a duration of 10.123456789 seconds would have 123 milliseconds.\n</li>\n<li><b>Millis</b>: The milliseconds component of a duration. In other words, a duration of 10.123456789 seconds would have 123 milliseconds.\n</li>\n<li><b>Micros</b>: Microseconds of a duration, including all of the subseconds. In other words, a duration of 10.123456789 seconds would have 123456 microseconds.\n</li>\n<li><b>Micros</b>: The microseconds component of a duration. In other words, a duration of 10.123456789 seconds would have 456 microseconds.\n</li>\n<li><b>Nanos</b>: Nanoseconds of a duration, including all of the subseconds. In other words, a duration of 10.123456789 seconds would have 123456789 nanoseconds.\n</li>\n<li><b>Nanos</b>: The nanoseconds component of a duration. In other words, a duration of 10.123456789 seconds would have 789 nanoseconds.\n</li>\n</ul>"
+                  "description" : "The type of field to extract.\n<ul>\n<li><b>Years</b>: The years component of a period.</li>\n<li><b>Months</b>: The months component of a period.</li>\n<li><b>Days</b>: The days component of a period.</li>\n<li><b>Hours</b>: The hours component of a duration.</li>\n<li><b>Minutes</b>: The minutes component of a duration.</li>\n<li><b>Seconds</b>: The seconds component of a duration.</li>\n<li><b>Millis</b>: The milliseconds component of a duration. In other words, a duration of 10.123456789 seconds would have 123 milliseconds.\n</li>\n<li><b>Micros (all subseconds)</b>: Microseconds of a duration, including all of the subseconds. In other words, a duration of 10.123456789 seconds would have 123456 microseconds.\n</li>\n<li><b>Micros</b>: The microseconds component of a duration. In other words, a duration of 10.123456789 seconds would have 456 microseconds.\n</li>\n<li><b>Nanos (all subseconds)</b>: Nanoseconds of a duration, including all of the subseconds. In other words, a duration of 10.123456789 seconds would have 123456789 nanoseconds.\n</li>\n<li><b>Nanos</b>: The nanoseconds component of a duration. In other words, a duration of 10.123456789 seconds would have 789 nanoseconds.\n</li>\n</ul>"
                 },
                 "outputcolumnName" : {
                   "type" : "string",

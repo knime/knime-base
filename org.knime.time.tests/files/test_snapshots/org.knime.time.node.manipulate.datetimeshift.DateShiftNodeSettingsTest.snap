@@ -139,7 +139,7 @@
                 }
               }
             },
-            "title" : "Date columns",
+            "title" : "Date&time columns",
             "description" : "Only the included columns will be shifted.",
             "default" : {
               "selected" : [ "localDateTest", "localDateTimeTest", "zonedDateTimeTest" ],
@@ -162,17 +162,17 @@
           },
           "granularity" : {
             "oneOf" : [ {
-              "const" : "DAYS",
-              "title" : "Days"
-            }, {
-              "const" : "WEEKS",
-              "title" : "Weeks"
+              "const" : "YEARS",
+              "title" : "Years"
             }, {
               "const" : "MONTHS",
               "title" : "Months"
             }, {
-              "const" : "YEARS",
-              "title" : "Years"
+              "const" : "WEEKS",
+              "title" : "Weeks"
+            }, {
+              "const" : "DAYS",
+              "title" : "Days"
             } ],
             "title" : "Granularity",
             "description" : "The granularity (i.e. days, weeks, etc) of the shift.",
@@ -185,7 +185,7 @@
           },
           "outputColumnSuffix" : {
             "type" : "string",
-            "title" : "Suffix of appended column",
+            "title" : "Output column suffix",
             "description" : "The suffix that is appended to the column name. The suffix will be added to the original column name.\n",
             "default" : " (Shifted)"
           },
@@ -210,21 +210,21 @@
           "shiftMode" : {
             "oneOf" : [ {
               "const" : "SHIFT_VALUE",
-              "title" : "Shift Value"
+              "title" : "Shift value"
             }, {
               "const" : "PERIOD_COLUMN",
               "title" : "Period column"
             }, {
               "const" : "NUMERICAL_COLUMN",
-              "title" : "Numerical column"
+              "title" : "Number column"
             } ],
             "title" : "Shift mode",
-            "description" : "Select the shift mode to use.\n<ul>\n<li><b>Shift Value</b>: A date-based shift value.</li>\n<li><b>Period column</b>: A shift value from a period column.</li>\n<li><b>Numerical column</b>: Select a numerical column to scale a configurable time unit.</li>\n</ul>",
+            "description" : "Select the shift mode to use.\n<ul>\n<li><b>Shift value</b>: A date-based shift value.</li>\n<li><b>Period column</b>: A shift value from a period column.</li>\n<li><b>Number column</b>: Select a numerical column to scale a configurable time unit.</li>\n</ul>",
             "default" : "SHIFT_VALUE"
           },
           "shiftPeriodValue" : {
             "type" : "object",
-            "title" : "Shift Value",
+            "title" : "Shift value",
             "description" : "Select to insert a format string to use as constant shift value. The inserted string can be either in:\n<ul>\n  <li>\n    the ISO-8601 representation (see <a href=\"    http://docs.oracle.com/javase/8/docs/api/java/time/Period.html#parse-java.lang.CharSequence-\">     date-based duration format</a> for details)\n  </li>\n  <li>\n    the short letter representation (e.g. '2y 3M 1d'). In this case, for the  the letters     y, M, and d respectively indicate years, months, and days.\n  </li>\n  <li>\n    the long word representation (e.g. '2 years 3 months 1 day').\n  </li>\n</ul>\n",
             "default" : "P0Y0M0W1D"
           }

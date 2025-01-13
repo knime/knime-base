@@ -86,7 +86,7 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
     interface StartingPointSettingsSection {
     }
 
-    @Section(title = "Range Settings")
+    @Section(title = "Range")
     @After(StartingPointSettingsSection.class)
     interface RangeSettingsSection {
     }
@@ -97,12 +97,12 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
     interface EndSettingsSection {
     }
 
-    @Section(title = "Output Settings")
+    @Section(title = "Output")
     @After(EndSettingsSection.class)
     interface OutputSettingsSection {
     }
 
-    @Widget(title = "Output Type", description = """
+    @Widget(title = "Output type", description = """
             The type to create can be selected. It can be either a Local Date, Local Time, Local Date Time, \
             or Zoned Date Time.
             """)
@@ -132,7 +132,7 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
     ZoneId m_timezone = ZoneId.systemDefault();
 
     @Layout(RangeSettingsSection.class)
-    @Widget(title = "Fixed Steps", description = """
+    @Widget(title = "Fixed steps", description = """
             How the rows are created.
             """)
     @ValueReference(FixedSteps.FixedStepsValueReference.class)
@@ -140,7 +140,7 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
     FixedSteps m_fixedSteps = FixedSteps.INTERVAL_AND_END;
 
     @Layout(value = RangeSettingsSection.class)
-    @Widget(title = "Number of Rows", description = """
+    @Widget(title = "Number of rows", description = """
             The number of rows to create.
             """)
     @Effect(predicate = FixedSteps.IncludesNumber.class, type = EffectType.SHOW)
@@ -188,11 +188,11 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
                     Outputs will be of type Local Time
                     """)
             TIME, //
-            @Label(value = "Date & Time", description = """
+            @Label(value = "Date & time", description = """
                     Outputs will be of type Local Date Time
                     """)
             DATE_TIME, //
-            @Label(value = "Date & Time & Zone", description = """
+            @Label(value = "Date & time & zone", description = """
                     Outputs will be of type Zoned Date Time
                     """)
             DATE_TIME_WITH_TIMEZONE;
@@ -226,20 +226,20 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
 
     enum FixedSteps {
 
-            @Label(value = "Duration & End", description = """
+            @Label(value = "Duration & end", description = """
                     The outputs will be evenly spaced, with the specified interval between them, starting at the \
                     start date&amp;time and ending at or before the end date&amp;time, depending on whether the \
                     interval divides exactly into the range. The number of rows produced in this case is variable and \
                     depends on the interval and the range.
                     """)
             INTERVAL_AND_END, //
-            @Label(value = "Number & End", description = """
+            @Label(value = "Number & end", description = """
                     The outputs will be evenly spaced, with the specified number of output values, starting at the \
                     the start date&amp;time and ending exactly at the specified end date&amp;time. The number of rows \
                     produced in this case is fixed to the number of steps specified.
                     """)
             NUMBER_AND_END, //
-            @Label(value = "Number & Duration", description = """
+            @Label(value = "Number & duration", description = """
                     The outputs will be evenly spaced, with the specified interval between them, starting at the \
                     start date&amp;time and ending once the specified number of rows have been added. The number \
                     of rows produced in this case is fixed to the number of steps specified.

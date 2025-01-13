@@ -85,7 +85,7 @@ import org.knime.time.util.ReplaceOrAppend;
 @SuppressWarnings("restriction")
 public class TimeRoundNodeSettings implements DefaultNodeSettings {
 
-    @Widget(title = "Time columns", description = "Only the included columns will be shifted.")
+    @Widget(title = "Date&time columns", description = "Only the included columns will be shifted.")
     @ChoicesWidget(choices = TimeColumnProvider.class)
     @Layout(DateTimeRoundNodeLayout.Top.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
@@ -97,7 +97,7 @@ public class TimeRoundNodeSettings implements DefaultNodeSettings {
     @Layout(DateTimeRoundNodeLayout.FirstHorizontal.class)
     TimeRoundingStrategy m_timeRoundingStrategy = TimeRoundingStrategy.FIRST_POINT_IN_TIME;
 
-    @Widget(title = "Rounding Precision", description = """
+    @Widget(title = "Rounding precision", description = """
             The rounding precision. The date will be rounded to the first or last \
             value of the chosen precision. Represented as a duration, i.e., PT1H for \
             one hour.
@@ -137,15 +137,15 @@ public class TimeRoundNodeSettings implements DefaultNodeSettings {
     }
 
     enum TimeRoundingStrategy {
-            @Label(value = "First Point in time",
+            @Label(value = "First point in time",
                 description = "Round to the first point in time of the selected duration. "
                     + "E.g., rounding 18:45.215 to one hour yields 18:00.")
             FIRST_POINT_IN_TIME, //
-            @Label(value = "Last Point in time",
+            @Label(value = "Last point in time",
                 description = "Round to the last point in time of the selected duration. "
                     + "E.g., rounding 18:45.215 to one hour yields 19:00.")
             LAST_POINT_IN_TIME, //
-            @Label(value = "Nearest Point in time",
+            @Label(value = "Nearest point in time",
                 description = "Round to the nearest point in time of the selected duration. "
                     + "E.g., Last/First is chosen depending on which one is closer to the to be rounded time")
             NEAREST_POINT_IN_TIME;
@@ -168,24 +168,44 @@ public class TimeRoundNodeSettings implements DefaultNodeSettings {
             HOURS_1(Duration.ofHours(1)), //
             @Label("30 Minutes")
             MINUTES_30(Duration.ofMinutes(30)), //
+            @Label("20 Minutes")
+            MINUTES_20(Duration.ofMinutes(20)), //
             @Label("15 Minutes")
             MINUTES_15(Duration.ofMinutes(15)), //
+            @Label("12 Minutes")
+            MINUTES_12(Duration.ofMinutes(12)), //
             @Label("10 Minutes")
             MINUTES_10(Duration.ofMinutes(10)), //
+            @Label("6 Minutes")
+            MINUTES_6(Duration.ofMinutes(6)), //
             @Label("5 Minutes")
             MINUTES_5(Duration.ofMinutes(5)), //
+            @Label("4 Minutes")
+            MINUTES_4(Duration.ofMinutes(4)), //
+            @Label("3 Minutes")
+            MINUTES_3(Duration.ofMinutes(3)), //
             @Label("2 Minutes")
             MINUTES_2(Duration.ofMinutes(2)), //
             @Label("1 Minute")
             MINUTES_1(Duration.ofMinutes(1)), //
             @Label("30 Seconds")
             SECONDS_30(Duration.ofSeconds(30)), //
+            @Label("20 Seconds")
+            SECONDS_20(Duration.ofSeconds(20)), //
             @Label("15 Seconds")
             SECONDS_15(Duration.ofSeconds(15)), //
+            @Label("12 Seconds")
+            SECONDS_12(Duration.ofSeconds(12)), //
             @Label("10 Seconds")
             SECONDS_10(Duration.ofSeconds(10)), //
+            @Label("6 Seconds")
+            SECONDS_6(Duration.ofSeconds(6)), //
             @Label("5 Seconds")
             SECONDS_5(Duration.ofSeconds(5)), //
+            @Label("4 Seconds")
+            SECONDS_4(Duration.ofSeconds(4)), //
+            @Label("3 Seconds")
+            SECONDS_3(Duration.ofSeconds(3)), //
             @Label("2 Seconds")
             SECONDS_2(Duration.ofSeconds(2)), //
             @Label("1 Second")

@@ -137,7 +137,7 @@
                 }
               }
             },
-            "title" : "Time columns",
+            "title" : "Date&time columns",
             "description" : "Only the included columns will be shifted.",
             "default" : {
               "selected" : [ "localTimeTest", "localDateTimeTest", "zonedDateTimeTest" ],
@@ -202,14 +202,29 @@
               "const" : "MINUTES_30",
               "title" : "30 Minutes"
             }, {
+              "const" : "MINUTES_20",
+              "title" : "20 Minutes"
+            }, {
               "const" : "MINUTES_15",
               "title" : "15 Minutes"
+            }, {
+              "const" : "MINUTES_12",
+              "title" : "12 Minutes"
             }, {
               "const" : "MINUTES_10",
               "title" : "10 Minutes"
             }, {
+              "const" : "MINUTES_6",
+              "title" : "6 Minutes"
+            }, {
               "const" : "MINUTES_5",
               "title" : "5 Minutes"
+            }, {
+              "const" : "MINUTES_4",
+              "title" : "4 Minutes"
+            }, {
+              "const" : "MINUTES_3",
+              "title" : "3 Minutes"
             }, {
               "const" : "MINUTES_2",
               "title" : "2 Minutes"
@@ -220,14 +235,29 @@
               "const" : "SECONDS_30",
               "title" : "30 Seconds"
             }, {
+              "const" : "SECONDS_20",
+              "title" : "20 Seconds"
+            }, {
               "const" : "SECONDS_15",
               "title" : "15 Seconds"
+            }, {
+              "const" : "SECONDS_12",
+              "title" : "12 Seconds"
             }, {
               "const" : "SECONDS_10",
               "title" : "10 Seconds"
             }, {
+              "const" : "SECONDS_6",
+              "title" : "6 Seconds"
+            }, {
               "const" : "SECONDS_5",
               "title" : "5 Seconds"
+            }, {
+              "const" : "SECONDS_4",
+              "title" : "4 Seconds"
+            }, {
+              "const" : "SECONDS_3",
+              "title" : "3 Seconds"
             }, {
               "const" : "SECONDS_2",
               "title" : "2 Seconds"
@@ -268,23 +298,23 @@
               "const" : "MILLISECONDS_1",
               "title" : "1 Millisecond"
             } ],
-            "title" : "Rounding Precision",
+            "title" : "Rounding precision",
             "description" : "The rounding precision. The date will be rounded to the first or last value of the chosen precision. Represented as a duration, i.e., PT1H for one hour.\n",
             "default" : "HOURS_1"
           },
           "timeRoundingStrategy" : {
             "oneOf" : [ {
               "const" : "FIRST_POINT_IN_TIME",
-              "title" : "First Point in time"
+              "title" : "First point in time"
             }, {
               "const" : "LAST_POINT_IN_TIME",
-              "title" : "Last Point in time"
+              "title" : "Last point in time"
             }, {
               "const" : "NEAREST_POINT_IN_TIME",
-              "title" : "Nearest Point in time"
+              "title" : "Nearest point in time"
             } ],
             "title" : "Round to",
-            "description" : "The rounding strategy to apply, either round to the first, last or nearest value of the chosen rounding precision.\n\n<ul>\n<li><b>First Point in time</b>: Round to the first point in time of the selected duration. E.g., rounding 18:45.215 to one hour yields 18:00.</li>\n<li><b>Last Point in time</b>: Round to the last point in time of the selected duration. E.g., rounding 18:45.215 to one hour yields 19:00.</li>\n<li><b>Nearest Point in time</b>: Round to the nearest point in time of the selected duration. E.g., Last/First is chosen depending on which one is closer to the to be rounded time</li>\n</ul>",
+            "description" : "The rounding strategy to apply, either round to the first, last or nearest value of the chosen rounding precision.\n\n<ul>\n<li><b>First point in time</b>: Round to the first point in time of the selected duration. E.g., rounding 18:45.215 to one hour yields 18:00.</li>\n<li><b>Last point in time</b>: Round to the last point in time of the selected duration. E.g., rounding 18:45.215 to one hour yields 19:00.</li>\n<li><b>Nearest point in time</b>: Round to the nearest point in time of the selected duration. E.g., Last/First is chosen depending on which one is closer to the to be rounded time</li>\n</ul>",
             "default" : "FIRST_POINT_IN_TIME"
           }
         }

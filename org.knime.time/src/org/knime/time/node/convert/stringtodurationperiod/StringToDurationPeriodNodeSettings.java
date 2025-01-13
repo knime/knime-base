@@ -97,7 +97,7 @@ final class StringToDurationPeriodNodeSettings implements DefaultNodeSettings {
         // default constructor is needed
     }
 
-    @Widget(title = "Input columns", description = "The string columns to convert to a duration/period.")
+    @Widget(title = "String columns", description = "The string columns to convert to a duration/period.")
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
     @Persist(configKey = "col_select", customPersistor = LegacyColumnFilterPersistor.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
@@ -119,10 +119,10 @@ final class StringToDurationPeriodNodeSettings implements DefaultNodeSettings {
     @ValueReference(ReplaceOrAppend.ValueRef.class)
     ReplaceOrAppend m_replaceOrAppend = ReplaceOrAppend.REPLACE;
 
-    @Widget(title = "Append suffix", description = "The suffix to append to the output column name.")
+    @Widget(title = "Output column suffix", description = "The suffix to append to the output column name.")
     @Persist(configKey = "suffix")
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
-    String m_appendedSuffix = "(Duration)";
+    String m_appendedSuffix = " (Duration)";
 
     enum DurationPeriodType {
             @Label(value = "Auto-detected", description = """
@@ -181,7 +181,7 @@ final class StringToDurationPeriodNodeSettings implements DefaultNodeSettings {
     }
 
     enum ActionIfExtractionFails {
-            @Label(value = "Set missing", description = """
+            @Label(value = "Insert missing", description = """
                     Set the cell to missing if the string column cannot be converted to the specified \
                     type.
                     """)

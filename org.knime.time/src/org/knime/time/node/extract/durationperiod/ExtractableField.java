@@ -85,16 +85,11 @@ enum ExtractableField {
         @Label(value = "Seconds", description = "The seconds component of a duration.")
         SECONDS(Duration.class, Duration::toSecondsPart, "Seconds", "Seconds"), //
         @Label(value = "Millis", description = """
-                Milliseconds of a duration, including all of the subseconds. In other words, \
-                a duration of 10.123456789 seconds would have 123 milliseconds.
-                """)
-        MILLIS_ALL(Duration.class, Duration::toMillisPart, "Millis", "Milliseconds (all subseconds)"), //
-        @Label(value = "Millis", description = """
                 The milliseconds component of a duration. In other words, a duration of 10.123456789 \
                 seconds would have 123 milliseconds.
                 """)
-        MILLIS_PART(Duration.class, d -> d.toMillisPart() % 1_000, null, "Milliseconds"), //
-        @Label(value = "Micros", description = """
+        MILLIS(Duration.class, d -> d.toMillisPart() % 1_000, "Millis", "Milliseconds"), //
+        @Label(value = "Micros (all subseconds)", description = """
                 Microseconds of a duration, including all of the subseconds. In other words, \
                 a duration of 10.123456789 seconds would have 123456 microseconds.
                 """)
@@ -104,7 +99,7 @@ enum ExtractableField {
                 seconds would have 456 microseconds.
                 """)
         MICROS_PART(Duration.class, d -> (d.toNanosPart() / 1_000) % 1_000, null, "Microseconds"), //
-        @Label(value = "Nanos", description = """
+        @Label(value = "Nanos (all subseconds)", description = """
                 Nanoseconds of a duration, including all of the subseconds. In other words, \
                 a duration of 10.123456789 seconds would have 123456789 nanoseconds.
                 """)
