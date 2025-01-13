@@ -31,16 +31,16 @@
           "fixedSteps" : {
             "oneOf" : [ {
               "const" : "INTERVAL_AND_END",
-              "title" : "Duration & End"
+              "title" : "Duration & end"
             }, {
               "const" : "NUMBER_AND_END",
-              "title" : "Number & End"
+              "title" : "Number & end"
             }, {
               "const" : "NUMBER_AND_INTERVAL",
-              "title" : "Number & Duration"
+              "title" : "Number & duration"
             } ],
-            "title" : "Fixed Steps",
-            "description" : "How the rows are created.\n<ul>\n<li><b>Duration &amp; End</b>: The outputs will be evenly spaced, with the specified interval between them, starting at the start date&amp;time and ending at or before the end date&amp;time, depending on whether the interval divides exactly into the range. The number of rows produced in this case is variable and depends on the interval and the range.\n</li>\n<li><b>Number &amp; End</b>: The outputs will be evenly spaced, with the specified number of output values, starting at the the start date&amp;time and ending exactly at the specified end date&amp;time. The number of rows produced in this case is fixed to the number of steps specified.\n</li>\n<li><b>Number &amp; Duration</b>: The outputs will be evenly spaced, with the specified interval between them, starting at the start date&amp;time and ending once the specified number of rows have been added. The number of rows produced in this case is fixed to the number of steps specified.\n</li>\n</ul>",
+            "title" : "Fixed steps",
+            "description" : "How the rows are created.\n<ul>\n<li><b>Duration &amp; end</b>: The outputs will be evenly spaced, with the specified interval between them, starting at the start date&amp;time and ending at or before the end date&amp;time, depending on whether the interval divides exactly into the range. The number of rows produced in this case is variable and depends on the interval and the range.\n</li>\n<li><b>Number &amp; end</b>: The outputs will be evenly spaced, with the specified number of output values, starting at the the start date&amp;time and ending exactly at the specified end date&amp;time. The number of rows produced in this case is fixed to the number of steps specified.\n</li>\n<li><b>Number &amp; duration</b>: The outputs will be evenly spaced, with the specified interval between them, starting at the start date&amp;time and ending once the specified number of rows have been added. The number of rows produced in this case is fixed to the number of steps specified.\n</li>\n</ul>",
             "default" : "INTERVAL_AND_END"
           },
           "interval" : {
@@ -94,7 +94,7 @@
           "numberOfRows" : {
             "type" : "integer",
             "format" : "int64",
-            "title" : "Number of Rows",
+            "title" : "Number of rows",
             "description" : "The number of rows to create.\n",
             "default" : 1000
           },
@@ -113,13 +113,13 @@
               "title" : "Time"
             }, {
               "const" : "DATE_TIME",
-              "title" : "Date & Time"
+              "title" : "Date & time"
             }, {
               "const" : "DATE_TIME_WITH_TIMEZONE",
-              "title" : "Date & Time & Zone"
+              "title" : "Date & time & zone"
             } ],
-            "title" : "Output Type",
-            "description" : "The type to create can be selected. It can be either a Local Date, Local Time, Local Date Time, or Zoned Date Time.\n\n<ul>\n<li><b>Date</b>: Outputs will be of type Local Date</li>\n<li><b>Time</b>: Outputs will be of type Local Time</li>\n<li><b>Date &amp; Time</b>: Outputs will be of type Local Date Time</li>\n<li><b>Date &amp; Time &amp; Zone</b>: Outputs will be of type Zoned Date Time</li>\n</ul>",
+            "title" : "Output type",
+            "description" : "The type to create can be selected. It can be either a Local Date, Local Time, Local Date Time, or Zoned Date Time.\n\n<ul>\n<li><b>Date</b>: Outputs will be of type Local Date</li>\n<li><b>Time</b>: Outputs will be of type Local Time</li>\n<li><b>Date &amp; time</b>: Outputs will be of type Local Date Time</li>\n<li><b>Date &amp; time &amp; zone</b>: Outputs will be of type Zoned Date Time</li>\n</ul>",
             "default" : "DATE"
           },
           "zonedDateTimeEnd" : {
@@ -2036,7 +2036,7 @@
         }
       } ]
     }, {
-      "label" : "Range Settings",
+      "label" : "Range",
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
@@ -3981,7 +3981,7 @@
         }
       } ]
     }, {
-      "label" : "Output Settings",
+      "label" : "Output",
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",

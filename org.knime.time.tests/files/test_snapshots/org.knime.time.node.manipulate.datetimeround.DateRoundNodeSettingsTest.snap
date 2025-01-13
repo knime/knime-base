@@ -24,7 +24,7 @@
       "shiftMode" : "THIS",
       "dateRoundingPrecision" : "MONTH",
       "replaceOrAppend" : "REPLACE",
-      "outputColumnSuffix" : " (rounded)"
+      "outputColumnSuffix" : " (Rounded)"
     }
   },
   "schema" : {
@@ -139,7 +139,7 @@
                 }
               }
             },
-            "title" : "Time columns",
+            "title" : "Date&time columns",
             "description" : "Only the included columns will be shifted.",
             "default" : {
               "selected" : [ "localDateTest", "localDateTimeTest", "zonedDateTimeTest" ],
@@ -177,7 +177,7 @@
               "const" : "WEEK",
               "title" : "Week"
             } ],
-            "title" : "Rounding Precision",
+            "title" : "Rounding precision",
             "description" : "The rounding precision. The date will be rounded to the first or last value of the chosen precision.\n",
             "default" : "MONTH"
           },
@@ -209,7 +209,7 @@
             "type" : "string",
             "title" : "Output column suffix",
             "description" : "The suffix that is appended to the column name. The suffix will be added to the original column name separated by a space.",
-            "default" : " (rounded)"
+            "default" : " (Rounded)"
           },
           "replaceOrAppend" : {
             "oneOf" : [ {

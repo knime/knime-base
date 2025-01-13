@@ -189,7 +189,7 @@
           },
           "suffix" : {
             "type" : "string",
-            "title" : "Suffix of appended column",
+            "title" : "Output column suffix",
             "description" : "The suffix to append to the column names of the new columns.\n",
             "default" : ""
           }

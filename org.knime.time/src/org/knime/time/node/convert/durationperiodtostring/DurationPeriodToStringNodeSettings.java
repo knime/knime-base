@@ -126,7 +126,7 @@ final class DurationPeriodToStringNodeSettings implements DefaultNodeSettings {
     @ValueReference(ReplaceOrAppend.ValueRef.class)
     ReplaceOrAppend m_appendOrReplaceColumn = ReplaceOrAppend.REPLACE;
 
-    @Widget(title = "Suffix of appended column", description = """
+    @Widget(title = "Output column suffix", description = """
             The suffix to append to the column names of the new columns.
             """)
     @Persist(configKey = "suffix")

@@ -77,7 +77,7 @@ import org.knime.time.util.ReplaceOrAppend;
 @SuppressWarnings("restriction")
 public class DateRoundNodeSettings implements DefaultNodeSettings {
 
-    @Widget(title = "Time columns", description = "Only the included columns will be shifted.")
+    @Widget(title = "Date&time columns", description = "Only the included columns will be shifted.")
     @ChoicesWidget(choices = DateColumnProvider.class)
     @Layout(DateTimeRoundNodeLayout.Top.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
@@ -105,7 +105,7 @@ public class DateRoundNodeSettings implements DefaultNodeSettings {
     @Layout(DateTimeRoundNodeLayout.SecondHorizontal.class)
     ShiftMode m_shiftMode = ShiftMode.THIS;
 
-    @Widget(title = "Rounding Precision", description = """
+    @Widget(title = "Rounding precision", description = """
             The rounding precision. The date will be rounded to the first or last \
             value of the chosen precision.
             """)
@@ -126,7 +126,7 @@ public class DateRoundNodeSettings implements DefaultNodeSettings {
             + "The suffix will be added to the original column name separated by a space.")
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
     @Layout(DateTimeRoundNodeLayout.Bottom.class)
-    String m_outputColumnSuffix = " (rounded)";
+    String m_outputColumnSuffix = " (Rounded)";
 
     DateRoundNodeSettings() {
         this((DataTableSpec)null);

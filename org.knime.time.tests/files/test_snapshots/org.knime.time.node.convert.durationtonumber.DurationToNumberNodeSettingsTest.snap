@@ -19,10 +19,10 @@
           "typeDisplays" : [ ]
         }
       },
-      "appendOrReplaceColumn" : "REPLACE",
-      "suffix" : " (Number)",
       "roundingBehaviour" : "INTEGER",
-      "unit" : "HOURS"
+      "unit" : "HOURS",
+      "appendOrReplaceColumn" : "REPLACE",
+      "suffix" : " (Number)"
     }
   },
   "schema" : {
@@ -176,13 +176,13 @@
           "roundingBehaviour" : {
             "oneOf" : [ {
               "const" : "INTEGER",
-              "title" : "No decimals"
+              "title" : "Integer"
             }, {
               "const" : "DOUBLE",
               "title" : "Decimals"
             } ],
-            "title" : "Rounding behaviour",
-            "description" : "The behaviour for rounding the number.\n<ul>\n<li><b>No decimals</b>: The output will be the truncated calculation, i.e. the duration <i>1 hour 30 minutes 30 seconds</i> will be converted to <i>1 hour</i> or <i>90 minutes</i> or <i>5430 seconds</i> etc., depending upon the value of the unit of the number. </li>\n<li><b>Decimals</b>: The output will be the exact calculation, i.e. the duration <i>1 hour 30 minutes 30 seconds</i> will be converted to <i>1.508 hours</i> or <i>90.5 minutes</i> or <i>5430 seconds</i> etc., depending upon the value of the unit of the number. </li>\n</ul>",
+            "title" : "Output mode",
+            "description" : "The behaviour for rounding the number.\n<ul>\n<li><b>Integer</b>: The output will be the truncated calculation, i.e. the duration <i>1 hour 30 minutes 30 seconds</i> will be converted to <i>1 hour</i> or <i>90 minutes</i> or <i>5430 seconds</i> etc., depending upon the value of the unit of the number. </li>\n<li><b>Decimals</b>: The output will be the exact calculation, i.e. the duration <i>1 hour 30 minutes 30 seconds</i> will be converted to <i>1.508 hours</i> or <i>90.5 minutes</i> or <i>5430.0 seconds</i> etc., depending upon the value of the unit of the number. </li>\n</ul>",
             "default" : "INTEGER"
           },
           "suffix" : {
@@ -211,7 +211,7 @@
               "const" : "NANOSECONDS",
               "title" : "Nanoseconds"
             } ],
-            "title" : "Unit of the number",
+            "title" : "Granularity",
             "description" : "The unit of the number to output.",
             "default" : "HOURS"
           }
@@ -240,6 +240,15 @@
       }
     }, {
       "type" : "Control",
+      "scope" : "#/properties/model/properties/roundingBehaviour",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/unit"
+    }, {
+      "type" : "Control",
       "scope" : "#/properties/model/properties/appendOrReplaceColumn",
       "options" : {
         "format" : "valueSwitch"
@@ -258,15 +267,6 @@
           }
         }
       }
-    }, {
-      "type" : "Control",
-      "scope" : "#/properties/model/properties/roundingBehaviour",
-      "options" : {
-        "format" : "valueSwitch"
-      }
-    }, {
-      "type" : "Control",
-      "scope" : "#/properties/model/properties/unit"
     } ]
   },
   "persist" : {
@@ -318,10 +318,10 @@
             }
           },
           "firstCell" : { },
-          "appendOrReplaceColumn" : { },
-          "suffix" : { },
           "roundingBehaviour" : { },
-          "unit" : { }
+          "unit" : { },
+          "appendOrReplaceColumn" : { },
+          "suffix" : { }
         }
       }
     }

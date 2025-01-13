@@ -69,6 +69,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.StateProviderInitializer;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.time.util.DurationPeriodFormatUtils;
 import org.knime.time.util.ReplaceOrAppend;
@@ -106,6 +107,13 @@ final class DurationToNumberNodeSettings implements DefaultNodeSettings {
     @TextMessage(value = InputPreviewMessage.class)
     Void m_firstCell;
 
+    @Widget(title = "Output mode", description = "The behaviour for rounding the number.")
+    @ValueSwitchWidget
+    RoundingBehaviour m_roundingBehaviour = RoundingBehaviour.INTEGER;
+
+    @Widget(title = "Granularity", description = "The unit of the number to output.")
+    TimeBasedGranularityUnit m_unit = TimeBasedGranularityUnit.HOURS;
+
     @Widget(title = "Output columns", description = """
             Depending on this setting, the output columns will either replace the modified columns, or be \
             appended to the table with a suffix.
@@ -119,15 +127,9 @@ final class DurationToNumberNodeSettings implements DefaultNodeSettings {
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
     String m_suffix = " (Number)"; // space is intentional
 
-    @Widget(title = "Rounding behaviour", description = "The behaviour for rounding the number.")
-    @ValueSwitchWidget
-    RoundingBehaviour m_roundingBehaviour = RoundingBehaviour.INTEGER;
-
-    @Widget(title = "Unit of the number", description = "The unit of the number to output.")
-    TimeBasedGranularityUnit m_unit = TimeBasedGranularityUnit.HOURS;
 
     enum RoundingBehaviour {
-            @Label(value = "No decimals", description = """
+            @Label(value = "Integer", description = """
                     The output will be the truncated calculation, i.e. the duration \
                     <i>1 hour 30 minutes 30 seconds</i> will be converted to \
                     <i>1 hour</i> or <i>90 minutes</i> or <i>5430 seconds</i> \
@@ -137,7 +139,7 @@ final class DurationToNumberNodeSettings implements DefaultNodeSettings {
             @Label(value = "Decimals", description = """
                     The output will be the exact calculation, i.e. the duration \
                     <i>1 hour 30 minutes 30 seconds</i> will be converted to \
-                    <i>1.508 hours</i> or <i>90.5 minutes</i> or <i>5430 seconds</i> \
+                    <i>1.508 hours</i> or <i>90.5 minutes</i> or <i>5430.0 seconds</i> \
                     etc., depending upon the value of the unit of the number. \
                     """)
             DOUBLE;
