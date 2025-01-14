@@ -99,8 +99,8 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
             SIGNIFICANT_DIGITS("Significant figures"),
 
             @Label(value = "Integer", description = """
-                    Converts numeric values to integer. Note that automatically converting <em>Number (double)</em> or
-                    <em>Number (long)</em> input columns to <em>Number (integer)</em> output columns might yield
+                    Converts numeric values to integer. Note that automatically converting <em>Number (Floating Decimal)</em> or
+                    <em>Number (Long Integer)</em> input columns to <em>Number (Integer)</em> output columns might yield
                     missing values due to integer overflows.
                     """)
             INTEGER;

@@ -87,7 +87,7 @@
               "title" : "Make integer types compatible"
             } ],
             "title" : "Compare values in join columns by",
-            "description" : "Defines how to compare the values in the join columns:\n<ul>\n<li><b>Value and type</b>: Two rows match only if their values in the join columns selected have the same value and type, e.g. Number (integer) values will never match Number (long) values because they have two different types.</li>\n<li><b>String representation</b>: Use this option if you want the values to be converted to string before comparing them. In this way you compare only the value in the selected join columns.</li>\n<li><b>Make integer types compatible</b>: Use this option to ignore type differences between Number (integer) and Number (long) types.</li>\n</ul>",
+            "description" : "Defines how to compare the values in the join columns:\n<ul>\n<li><b>Value and type</b>: Two rows match only if their values in the join columns selected have the same value and type, e.g. Number (Integer) values will never match Number (Long Integer) values because they have two different types.</li>\n<li><b>String representation</b>: Use this option if you want the values to be converted to string before comparing them. In this way you compare only the value in the selected join columns.</li>\n<li><b>Make integer types compatible</b>: Use this option to ignore type differences between Number (Integer) and Number (Long Integer) types.</li>\n</ul>",
             "default" : "STRICT"
           },
           "duplicateHandling" : {

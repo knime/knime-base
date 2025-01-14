@@ -183,10 +183,10 @@
               "title" : "Number (Integer)"
             }, {
               "const" : "DOUBLE",
-              "title" : "Number (Double)"
+              "title" : "Number (Floating Decimal)"
             }, {
               "const" : "LONG",
-              "title" : "Number (Long)"
+              "title" : "Number (Long Integer)"
             } ],
             "title" : "Type",
             "description" : "Choose the DataType that your string should be converted to.",

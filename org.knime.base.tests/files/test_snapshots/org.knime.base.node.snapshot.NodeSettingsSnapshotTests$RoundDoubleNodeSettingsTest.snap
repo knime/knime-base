@@ -175,7 +175,7 @@
               "title" : "Integer"
             } ],
             "title" : "Rounding mode",
-            "description" : "Select the rounding mode to apply.\n<ul>\n<li><b>Decimals</b>: Rounds numeric values up to the specified number of decimal places.\n</li>\n<li><b>Significant digits</b>: Only keeps the specified number of significant digits.</li>\n<li><b>Integer</b>: Converts numeric values to integer. Note that automatically converting <em>Number (double)</em> or\n<em>Number (long)</em> input columns to <em>Number (integer)</em> output columns might yield\nmissing values due to integer overflows.\n</li>\n</ul>",
+            "description" : "Select the rounding mode to apply.\n<ul>\n<li><b>Decimals</b>: Rounds numeric values up to the specified number of decimal places.\n</li>\n<li><b>Significant digits</b>: Only keeps the specified number of significant digits.</li>\n<li><b>Integer</b>: Converts numeric values to integer. Note that automatically converting <em>Number (Floating Decimal)</em> or\n<em>Number (Long Integer)</em> input columns to <em>Number (Integer)</em> output columns might yield\nmissing values due to integer overflows.\n</li>\n</ul>",
             "default" : "DECIMALS"
           },
           "outputColumn" : {
@@ -284,7 +284,7 @@
           "text" : "test1",
           "type" : {
             "id" : "org.knime.core.data.DoubleValue",
-            "text" : "Number (double)"
+            "text" : "Number (Floating Decimal)"
           },
           "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
         } ],

@@ -43,7 +43,7 @@
           "lookupColumn" : {
             "type" : "string",
             "title" : "Lookup column",
-            "description" : "Select the column that should be used to evaluate the matching criteria. Only columns of type String, Number (integer), or Number (long) can be selected.",
+            "description" : "Select the column that should be used to evaluate the matching criteria. Only columns of type String, Number (Integer), or Number (Long Integer) can be selected.",
             "default" : "<row-keys>"
           },
           "matchingCriteria" : {
