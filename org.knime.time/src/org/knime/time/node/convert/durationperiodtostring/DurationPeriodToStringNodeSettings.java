@@ -49,10 +49,13 @@
 package org.knime.time.node.convert.durationperiodtostring;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.time.duration.DurationValue;
@@ -63,13 +66,18 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.Colum
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesStateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage.InputPreviewMessageProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.time.util.DurationPeriodFormatUtils;
 import org.knime.time.util.DurationPeriodStringFormat;
 import org.knime.time.util.ReplaceOrAppend;
+import org.knime.time.util.SettingsDataUtil;
 
 /**
  * Settings for the Duration/Period To String node.
@@ -97,7 +105,11 @@ final class DurationPeriodToStringNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Duration columns", description = "The columns to convert to a string.")
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
     @Persist(configKey = "col_select", customPersistor = LegacyColumnFilterPersistor.class)
+    @ValueReference(ColumnFilterRef.class)
     ColumnFilter m_filter = new ColumnFilter();
+
+    @TextMessage(value = InputPreviewMessage.class)
+    Void m_firstCell;
 
     @Widget(title = "Output format", description = "The format of the output string.")
     @ValueSwitchWidget
@@ -121,6 +133,9 @@ final class DurationPeriodToStringNodeSettings implements DefaultNodeSettings {
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
     String m_suffix = "";
 
+    interface ColumnFilterRef extends Reference<ColumnFilter> {
+    }
+
     static final class ColumnProvider implements ColumnChoicesStateProvider {
 
         private static final List<Class<? extends DataValue>> COMPATIBLE_TYPES =
@@ -135,6 +150,44 @@ final class DurationPeriodToStringNodeSettings implements DefaultNodeSettings {
                 .orElseGet(Stream::empty) //
                 .filter(IS_COMPATIBLE_TYPE) //
                 .toArray(DataColumnSpec[]::new);
+        }
+    }
+
+    static final class InputPreviewMessage implements InputPreviewMessageProvider {
+
+        private Supplier<ColumnFilter> m_columnFilter;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            InputPreviewMessageProvider.super.init(initializer);
+            m_columnFilter = initializer.computeFromValueSupplier(ColumnFilterRef.class);
+        }
+
+        @Override
+        public Optional<String> getFirstDataCellPreview(final DataTable dt, final String[] selectedCols) {
+            var colNum = SettingsDataUtil.getFirstColumnIndexFromSelectedColumnArray(dt.getDataTableSpec(),
+                ColumnProvider.IS_COMPATIBLE_TYPE, selectedCols);
+
+            if (colNum.isPresent()) {
+                var cell = SettingsDataUtil.getFirstNonMissingCellInColumn(dt, colNum.get());
+
+                if (cell.isEmpty()) {
+                    return Optional.empty();
+                }
+
+                if (cell.get() instanceof DurationValue dv) {
+                    return Optional.of(DurationPeriodFormatUtils.formatDurationShort(dv.getDuration()));
+                } else if (cell.get() instanceof PeriodValue pv) {
+                    return Optional.of(DurationPeriodFormatUtils.formatPeriodShort(pv.getPeriod()));
+                }
+            }
+
+            return Optional.empty();
+        }
+
+        @Override
+        public Optional<ColumnFilter> getFilter() {
+            return Optional.of(m_columnFilter.get());
         }
     }
 }

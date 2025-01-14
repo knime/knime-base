@@ -48,10 +48,13 @@
  */
 package org.knime.time.node.convert.durationtonumber;
 
+import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.time.duration.DurationValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
@@ -59,12 +62,17 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.Colum
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage.InputPreviewMessageProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.time.util.DurationPeriodFormatUtils;
 import org.knime.time.util.ReplaceOrAppend;
+import org.knime.time.util.SettingsDataUtil;
 import org.knime.time.util.TimeBasedGranularityUnit;
 
 /**
@@ -92,7 +100,11 @@ final class DurationToNumberNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Duration columns", description = "The columns to convert to a number.")
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
+    @ValueReference(ColumnFilterRef.class)
     ColumnFilter m_filter = new ColumnFilter();
+
+    @TextMessage(value = InputPreviewMessage.class)
+    Void m_firstCell;
 
     @Widget(title = "Output columns", description = """
             Depending on this setting, the output columns will either replace the modified columns, or be \
@@ -131,6 +143,9 @@ final class DurationToNumberNodeSettings implements DefaultNodeSettings {
             DOUBLE;
     }
 
+    interface ColumnFilterRef extends Reference<ColumnFilter> {
+    }
+
     static final class ColumnProvider implements ColumnChoicesStateProvider {
 
         static final Predicate<DataColumnSpec> IS_COMPATIBLE_COLUMN =
@@ -143,5 +158,42 @@ final class DurationToNumberNodeSettings implements DefaultNodeSettings {
                 .filter(IS_COMPATIBLE_COLUMN) //
                 .toArray(DataColumnSpec[]::new);
         }
+    }
+
+    static final class InputPreviewMessage implements InputPreviewMessageProvider {
+
+        private Supplier<ColumnFilter> m_columnFilter;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            InputPreviewMessageProvider.super.init(initializer);
+            m_columnFilter = initializer.computeFromValueSupplier(ColumnFilterRef.class);
+        }
+
+        @Override
+        public Optional<ColumnFilter> getFilter() {
+            return Optional.of(m_columnFilter.get());
+        }
+
+        @Override
+        public Optional<String> getFirstDataCellPreview(final DataTable dt, final String[] selectedCols) {
+            var colNum = SettingsDataUtil.getFirstColumnIndexFromSelectedColumnArray(dt.getDataTableSpec(),
+                ColumnProvider.IS_COMPATIBLE_COLUMN, selectedCols);
+
+            if (colNum.isPresent()) {
+                var cell = SettingsDataUtil.getFirstNonMissingCellInColumn(dt, colNum.get());
+
+                if (cell.isEmpty()) {
+                    return Optional.empty();
+                }
+
+                if (cell.get() instanceof DurationValue dv) {
+                    return Optional.of(DurationPeriodFormatUtils.formatDurationShort(dv.getDuration()));
+                }
+            }
+
+            return Optional.empty();
+        }
+
     }
 }

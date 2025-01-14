@@ -170,6 +170,9 @@
               }
             }
           },
+          "firstCell" : {
+            "type" : "object"
+          },
           "roundingBehaviour" : {
             "oneOf" : [ {
               "const" : "INTEGER",
@@ -227,6 +230,13 @@
         "showRowKeys" : false,
         "showSearch" : true,
         "showMode" : true
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/firstCell",
+      "options" : {
+        "format" : "textMessage",
+        "messageProvider" : "org.knime.time.node.convert.durationtonumber.DurationToNumberNodeSettings$InputPreviewMessage"
       }
     }, {
       "type" : "Control",
@@ -307,6 +317,7 @@
               }
             }
           },
+          "firstCell" : { },
           "appendOrReplaceColumn" : { },
           "suffix" : { },
           "roundingBehaviour" : { },
@@ -329,6 +340,27 @@
         },
         "compatibleTypes" : [ "org.knime.core.data.time.duration.DurationValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
       } ]
+    } ]
+  }, {
+    "scopes" : null,
+    "id" : "org.knime.time.node.convert.durationtonumber.DurationToNumberNodeSettings$InputPreviewMessage",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "title" : "Content of the first cell",
+        "description" : "Connect a table to see a preview",
+        "type" : "INFO"
+      }
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "org.knime.time.node.convert.durationtonumber.DurationToNumberNodeSettings$ColumnFilterRef",
+      "scopes" : [ "#/properties/model/properties/filter" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/filter" ],
+      "id" : "org.knime.time.node.convert.durationtonumber.DurationToNumberNodeSettings$ColumnFilterRef"
     } ]
   } ]
 }
