@@ -49,11 +49,14 @@
 package org.knime.time.node.convert.durationtonumber;
 
 import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.time.duration.DurationValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
@@ -61,12 +64,18 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.Colum
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage.MessageType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage.SimpleTextMessageProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.time.util.DurationPeriodFormatUtils;
 import org.knime.time.util.ReplaceOrAppend;
+import org.knime.time.util.SettingsDataUtil;
 
 /**
  * New settings for the node which converts durations to numbers.
@@ -93,7 +102,11 @@ final class DurationToNumberNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Duration columns", description = "The columns to convert to a number.")
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
+    @ValueReference(ColumnFilterRef.class)
     ColumnFilter m_filter = new ColumnFilter();
+
+    @TextMessage(value = InputPreviewMessage.class)
+    Void m_firstCell;
 
     @Widget(title = "Output columns", description = """
             Depending on this setting, the output columns will either replace the modified columns, or be \
@@ -179,6 +192,9 @@ final class DurationToNumberNodeSettings implements DefaultNodeSettings {
         }
     }
 
+    interface ColumnFilterRef extends Reference<ColumnFilter> {
+    }
+
     static final class ColumnProvider implements ColumnChoicesStateProvider {
 
         static final Predicate<DataColumnSpec> IS_COMPATIBLE_COLUMN =
@@ -191,5 +207,70 @@ final class DurationToNumberNodeSettings implements DefaultNodeSettings {
                 .filter(IS_COMPATIBLE_COLUMN) //
                 .toArray(DataColumnSpec[]::new);
         }
+    }
+
+    static final class InputPreviewMessage implements SimpleTextMessageProvider {
+
+        private String m_value;
+
+        private Supplier<ColumnFilter> m_columnFilter;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            SimpleTextMessageProvider.super.init(initializer);
+            m_columnFilter = initializer.computeFromValueSupplier(ColumnFilterRef.class);
+        }
+
+        @Override
+        public boolean showMessage(final DefaultNodeSettingsContext context) {
+            m_value = null;
+            Optional<DataTable> dt = SettingsDataUtil.getDataTable(context);
+
+            if (dt.isEmpty()) {
+                m_value = "Connect a table to see a preview";
+            } else {
+                var spec = dt.get().getDataTableSpec();
+                var cols = spec.getColumnNames();
+                var selectedCols = m_columnFilter.get().getSelected(cols, spec);
+
+                if (selectedCols.length == 0) {
+                    m_value = "Select a column to see a preview";
+                }
+
+                int colNum = SettingsDataUtil.getFirstColumnIndexFromSelectedColumnArray(spec,
+                    ColumnProvider.IS_COMPATIBLE_COLUMN, selectedCols);
+
+                if (colNum != -1) {
+                    var cell = SettingsDataUtil.getFirstNonMissingCellInColumn(dt.get(), colNum);
+                    if (cell instanceof DurationValue dv) {
+                        m_value = DurationPeriodFormatUtils.formatDurationShort(dv.getDuration());
+                    }
+                }
+            }
+
+            if (m_value == null) {
+                m_value = "No valid data available";
+            }
+            return true;
+        }
+
+        @Override
+        public String title() {
+            return "Content of the first cell";
+        }
+
+        @Override
+        public String description() {
+            if (m_value == null) {
+                return "";
+            }
+            return m_value;
+        }
+
+        @Override
+        public MessageType type() {
+            return MessageType.INFO;
+        }
+
     }
 }
