@@ -67,6 +67,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.InputTableNode;
 import org.knime.InputTableNode.NamedCell;
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataType;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.time.duration.DurationCellFactory;
 import org.knime.core.data.time.localdatetime.LocalDateTimeCell;
@@ -84,7 +86,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
+import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
+import org.knime.time.node.manipulate.datetimeshift.TimeShiftNodeSettings.ShiftMode;
 import org.knime.time.node.manipulate.datetimeshift.TimeShiftNodeSettings.TimeGranularity;
 import org.knime.time.util.ReplaceOrAppend;
 
@@ -94,6 +98,13 @@ class TimeShiftNodeModelTest {
     private NativeNodeContainer m_timeShiftNode;
 
     private WorkflowManager m_wfm;
+
+    private static final String INPUT_COLUMN = "test_input";
+
+    private static final String NODE_NAME = "TimeShiftNode";
+
+    private static final Class<? extends DefaultNodeSettings> SETTINGS_CLASS = TimeShiftNodeSettings.class;
+
 
     @BeforeEach
     void resetWorkflow() throws IOException {
@@ -408,12 +419,94 @@ class TimeShiftNodeModelTest {
         assertEquals(zonedDateTimeBefore.plus(temporalAmountToShift), zonedDateTimeAfter);
     }
 
+    @Test
+    public void testNumericalThatMissingInputGivesMissingOutput() throws InvalidSettingsException, IOException {
+        var settings = new TimeShiftNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
+        settings.m_shiftMode = ShiftMode.NUMERICAL_COLUMN;
+        settings.m_numericalColumn = INPUT_COLUMN;
+
+        var testSetup = setupAndExecuteWorkflow(settings, DataType.getMissingCell());
+
+        assertTrue(testSetup.success, "Execution should have been successful");
+        assertTrue(testSetup.firstCell.isMissing(), "Output cell should be missing");
+    }
+
+    @Test
+    public void testDurationThatMissingInputGivesMissingOutput() throws InvalidSettingsException, IOException {
+        var settings = new TimeShiftNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
+        settings.m_shiftMode = ShiftMode.DURATION_COLUMN;
+        settings.m_durationColumn = INPUT_COLUMN;
+
+        var testSetup = setupAndExecuteWorkflow(settings, DataType.getMissingCell());
+
+        assertTrue(testSetup.success, "Execution should have been successful");
+        assertTrue(testSetup.firstCell.isMissing(), "Output cell should be missing");
+    }
+
+    @Test
+    public void testShiftThatMissingInputGivesMissingOutput() throws InvalidSettingsException, IOException {
+        var settings = new TimeShiftNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
+        settings.m_shiftMode = ShiftMode.SHIFT_VALUE;
+
+        var testSetup = setupAndExecuteWorkflow(settings, DataType.getMissingCell());
+
+        assertTrue(testSetup.success, "Execution should have been successful");
+        assertTrue(testSetup.firstCell.isMissing(), "Output cell should be missing");
+    }
+
     private void setSettings(final TimeShiftNodeSettings settings) throws InvalidSettingsException {
         final var nodeSettings = new NodeSettings("TimeShiftNode");
         m_wfm.saveNodeSettings(m_timeShiftNode.getID(), nodeSettings);
         var modelSettings = nodeSettings.addNodeSettings("model");
         DefaultNodeSettings.saveSettings(TimeShiftNodeSettings.class, settings, modelSettings);
         m_wfm.loadNodeSettings(m_timeShiftNode.getID(), nodeSettings);
+    }
+
+    record TestSetup(BufferedDataTable outputTable, DataCell firstCell, boolean success) {
+    }
+
+    static TestSetup setupAndExecuteWorkflow(final TimeShiftNodeSettings settings, final DataCell cellToAdd)
+        throws InvalidSettingsException, IOException {
+        var workflowManager = WorkflowManagerUtil.createEmptyWorkflow();
+
+        var node = WorkflowManagerUtil.createAndAddNode(workflowManager, new TimeShiftNodeFactory());
+
+        // set the settings
+        final var nodeSettings = new NodeSettings(NODE_NAME);
+        workflowManager.saveNodeSettings(node.getID(), nodeSettings);
+        var modelSettings = nodeSettings.addNodeSettings("model");
+        DefaultNodeSettings.saveSettings(SETTINGS_CLASS, settings, modelSettings);
+        workflowManager.loadNodeSettings(node.getID(), nodeSettings);
+
+        // populate the input table
+        var inputTableSpec = new TableTestUtil.SpecBuilder() //
+            .addColumn(INPUT_COLUMN, cellToAdd.getType()) //
+            .build();
+        var inputTable = new TableTestUtil.TableBuilder(inputTableSpec) //
+            .addRow(cellToAdd) //
+            .build();
+        var tableSupplierNode =
+            WorkflowManagerUtil.createAndAddNode(workflowManager, new InputTableNode.InputDataNodeFactory(inputTable));
+
+        // link the nodes
+        workflowManager.addConnection(tableSupplierNode.getID(), 1, node.getID(), 1);
+
+        // execute and wait...
+        var success = workflowManager.executeAllAndWaitUntilDone();
+
+        var outputTable = (BufferedDataTable)node.getOutPort(1).getPortObject();
+
+        try (var it = outputTable.iterator()) {
+            return new TestSetup( //
+                outputTable, //
+                it.next().getCell(0), //
+                success //
+            );
+        }
+
     }
 
 }
