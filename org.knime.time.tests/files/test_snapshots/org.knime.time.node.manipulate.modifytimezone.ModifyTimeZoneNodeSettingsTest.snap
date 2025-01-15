@@ -4,7 +4,7 @@
       "behaviourType" : "SET",
       "timeZone" : "Europe/Berlin",
       "columnFilter" : {
-        "selected" : [ ],
+        "selected" : [ "localDateTimeTest", "zonedDateTimeTest" ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -12,7 +12,7 @@
           "isInverted" : false
         },
         "manualFilter" : {
-          "manuallySelected" : [ ],
+          "manuallySelected" : [ "localDateTimeTest", "zonedDateTimeTest" ],
           "manuallyDeselected" : [ ],
           "includeUnknownColumns" : false
         },
@@ -167,7 +167,7 @@
             "title" : "Date&time columns",
             "description" : "Only the included columns will be modified.",
             "default" : {
-              "selected" : [ ],
+              "selected" : [ "localDateTimeTest", "zonedDateTimeTest" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",
@@ -175,7 +175,7 @@
                 "isInverted" : false
               },
               "manualFilter" : {
-                "manuallySelected" : [ ],
+                "manuallySelected" : [ "localDateTimeTest", "zonedDateTimeTest" ],
                 "manuallyDeselected" : [ ],
                 "includeUnknownColumns" : false
               },

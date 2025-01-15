@@ -5,7 +5,7 @@
       "localDate" : "2024-10-31",
       "timeZone" : "Europe/Berlin",
       "columnFilter" : {
-        "selected" : [ ],
+        "selected" : [ "localDateTime", "zonedDateTime" ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -13,7 +13,7 @@
           "isInverted" : false
         },
         "manualFilter" : {
-          "manuallySelected" : [ ],
+          "manuallySelected" : [ "localDateTime", "zonedDateTime" ],
           "manuallyDeselected" : [ ],
           "includeUnknownColumns" : false
         },
@@ -168,7 +168,7 @@
             "title" : "Date&time columns",
             "description" : "Only the included columns will be modified.",
             "default" : {
-              "selected" : [ ],
+              "selected" : [ "localDateTime", "zonedDateTime" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",
@@ -176,7 +176,7 @@
                 "isInverted" : false
               },
               "manualFilter" : {
-                "manuallySelected" : [ ],
+                "manuallySelected" : [ "localDateTime", "zonedDateTime" ],
                 "manuallyDeselected" : [ ],
                 "includeUnknownColumns" : false
               },
