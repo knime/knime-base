@@ -54,6 +54,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
 import org.knime.core.data.time.localtime.LocalTimeValue;
@@ -91,6 +93,21 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  */
 @SuppressWarnings("restriction")
 public class ModifyDateNodeSettings implements DefaultNodeSettings {
+
+    ModifyDateNodeSettings() {
+    }
+
+    ModifyDateNodeSettings(final DefaultNodeSettingsContext context) {
+        var spec = context.getDataTableSpec(0);
+
+        if (spec.isPresent()) {
+            m_columnFilter = new ColumnFilter(spec.get().stream() //
+                .filter(cspec -> m_behaviourType.isCompatibleType(cspec.getType())) //
+                .map(DataColumnSpec::getName) //
+                .toArray(String[]::new) //
+            );
+        }
+    }
 
     @Widget(title = "Modification",
         description = "Defines the action to be performed on the selected columns. "
@@ -172,12 +189,13 @@ public class ModifyDateNodeSettings implements DefaultNodeSettings {
             return Arrays.stream(values()).map(v -> v.m_oldConfigValue).toArray(String[]::new);
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public Collection<Class<? extends DataValue>> getCompatibleDataValueClasses() {
             return m_compatibleDataValues;
+        }
+
+        boolean isCompatibleType(final DataType type) {
+            return m_compatibleDataValues.stream().anyMatch(type::isCompatible);
         }
     }
 

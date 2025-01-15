@@ -49,6 +49,7 @@
 package org.knime.time.node.convert.stringtodurationperiod;
 
 import java.util.Arrays;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -80,6 +81,21 @@ import org.knime.time.util.ReplaceOrAppend;
  */
 @SuppressWarnings("restriction")
 final class StringToDurationPeriodNodeSettings implements DefaultNodeSettings {
+
+    StringToDurationPeriodNodeSettings(final DefaultNodeSettingsContext context) {
+        var spec = context.getDataTableSpec(0);
+
+        if (spec.isPresent()) {
+            m_columnFilter = new ColumnFilter(spec.get().stream() //
+                .filter(ColumnProvider.IS_COMPATIBLE_TYPE) //
+                .map(DataColumnSpec::getName) //
+                .toArray(String[]::new));
+        }
+    }
+
+    StringToDurationPeriodNodeSettings() {
+        // default constructor is needed
+    }
 
     @Widget(title = "Input columns", description = "The string columns to convert to a duration/period.")
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
@@ -194,11 +210,13 @@ final class StringToDurationPeriodNodeSettings implements DefaultNodeSettings {
 
     static final class ColumnProvider implements ColumnChoicesStateProvider {
 
+        static final Predicate<DataColumnSpec> IS_COMPATIBLE_TYPE = c -> c.getType().isCompatible(StringValue.class);
+
         @Override
         public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0).map(DataTableSpec::stream) //
                 .orElseGet(Stream::empty) //
-                .filter(c -> c.getType().isCompatible(StringValue.class)) //
+                .filter(IS_COMPATIBLE_TYPE) //
                 .toArray(DataColumnSpec[]::new);
         }
     }
