@@ -56,6 +56,8 @@ import java.util.Arrays;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.knime.InputTableNode;
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataType;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
@@ -63,6 +65,7 @@ import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
 import org.knime.time.util.ReplaceOrAppend;
 
@@ -72,6 +75,13 @@ class DateRoundNodeModelTest {
     private NativeNodeContainer m_dateTimeRoundNode;
 
     private WorkflowManager m_wfm;
+
+    private static final String INPUT_COLUMN = "test_input";
+
+    private static final String NODE_NAME = "DateRoundNode";
+
+    private static final Class<? extends DefaultNodeSettings> SETTINGS_CLASS = DateRoundNodeSettings.class;
+
 
     @BeforeEach
     void resetWorkflow() throws IOException {
@@ -102,6 +112,17 @@ class DateRoundNodeModelTest {
 
         testAppendingColumns(columnNamesToRound, settings);
         testReplacingColumns(settings);
+    }
+
+    @Test
+    public void testThatMissingInputGivesMissingOutput() throws InvalidSettingsException, IOException {
+        var settings = new DateRoundNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
+
+        var testSetup = setupAndExecuteWorkflow(settings, DataType.getMissingCell());
+
+        assertTrue(testSetup.success, "Execution should have been successful");
+        assertTrue(testSetup.firstCell.isMissing(), "Output cell should be missing");
     }
 
     private void testAppendingColumns(final String[] columnNamesToRound, final DateRoundNodeSettings settings)
@@ -148,4 +169,48 @@ class DateRoundNodeModelTest {
 
     // The rounding logic is implemented in the TimeRoundingUtil and DateRoundingUtil classes.
     // There are dedicated tests for these classes, so we do not need to test the rounding logic here.
+
+    record TestSetup(BufferedDataTable outputTable, DataCell firstCell, boolean success) {
+    }
+
+    static TestSetup setupAndExecuteWorkflow(final DateRoundNodeSettings settings, final DataCell cellToAdd)
+        throws InvalidSettingsException, IOException {
+        var workflowManager = WorkflowManagerUtil.createEmptyWorkflow();
+
+        var node = WorkflowManagerUtil.createAndAddNode(workflowManager, new DateRoundNodeFactory());
+
+        // set the settings
+        final var nodeSettings = new NodeSettings(NODE_NAME);
+        workflowManager.saveNodeSettings(node.getID(), nodeSettings);
+        var modelSettings = nodeSettings.addNodeSettings("model");
+        DefaultNodeSettings.saveSettings(SETTINGS_CLASS, settings, modelSettings);
+        workflowManager.loadNodeSettings(node.getID(), nodeSettings);
+
+        // populate the input table
+        var inputTableSpec = new TableTestUtil.SpecBuilder() //
+            .addColumn(INPUT_COLUMN, cellToAdd.getType()) //
+            .build();
+        var inputTable = new TableTestUtil.TableBuilder(inputTableSpec) //
+            .addRow(cellToAdd) //
+            .build();
+        var tableSupplierNode =
+            WorkflowManagerUtil.createAndAddNode(workflowManager, new InputTableNode.InputDataNodeFactory(inputTable));
+
+        // link the nodes
+        workflowManager.addConnection(tableSupplierNode.getID(), 1, node.getID(), 1);
+
+        // execute and wait...
+        var success = workflowManager.executeAllAndWaitUntilDone();
+
+        var outputTable = (BufferedDataTable)node.getOutPort(1).getPortObject();
+
+        try (var it = outputTable.iterator()) {
+            return new TestSetup( //
+                outputTable, //
+                it.next().getCell(0), //
+                success //
+            );
+        }
+
+    }
 }

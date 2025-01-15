@@ -53,6 +53,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Locale;
@@ -60,13 +61,22 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.Test;
+import org.knime.InputTableNode;
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataType;
+import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.testing.util.TableTestUtil;
+import org.knime.testing.util.WorkflowManagerUtil;
 
 /**
  * Test class that ensures that with Java-11 all Locales without a region/country as being mapped to a proper value.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
+@SuppressWarnings("restriction")
 public class ExtractDateTimeFieldsNodeModelTest {
 
     private static final Set<String> J_8_REGION_FREE_LOCALES =
@@ -79,6 +89,12 @@ public class ExtractDateTimeFieldsNodeModelTest {
     private static Locale getLocale(final String languageTag) throws InvalidSettingsException {
         return LocaleProvider.JAVA_8.stringToLocale(languageTag);
     }
+
+    private static final String INPUT_COLUMN = "test_input";
+
+    private static final String NODE_NAME = "ExtractDateTimeFieldNode";
+
+    private static final Class<? extends DefaultNodeSettings> SETTINGS_CLASS = ExtractDateTimeFieldsSettings.class;
 
     /**
      * Tests that the jvm does not use COMPAT, i.e., the test is run with Java 11 and the locales.providers have not
@@ -150,6 +166,65 @@ public class ExtractDateTimeFieldsNodeModelTest {
             assertNotEquals(getLocale(l), ExtractDateTimeFieldsNodeModel.getLocale(l, true));
             assertEquals(getLocale(l), ExtractDateTimeFieldsNodeModel.getLocale(l, false));
         }
+    }
+
+    /**
+     * Tests that missing value gives missing output.
+     */
+    @Test
+    public void test_that_missing_input_gives_missing_output() throws InvalidSettingsException, IOException {
+        var settings = new ExtractDateTimeFieldsSettings();
+        settings.m_selectedColumn = INPUT_COLUMN;
+
+        var testSetup = setupAndExecuteWorkflow(settings, DataType.getMissingCell());
+
+        assertTrue(testSetup.success);
+        assertTrue(testSetup.firstCell.isMissing());
+    }
+
+
+    record TestSetup(BufferedDataTable outputTable, DataCell firstCell, boolean success) {
+    }
+
+    static TestSetup setupAndExecuteWorkflow(final ExtractDateTimeFieldsSettings settings, final DataCell cellToAdd)
+        throws InvalidSettingsException, IOException {
+        var workflowManager = WorkflowManagerUtil.createEmptyWorkflow();
+
+        var node = WorkflowManagerUtil.createAndAddNode(workflowManager, new ExtractDateTimeFieldsNodeFactory2());
+
+        // set the settings
+        final var nodeSettings = new NodeSettings(NODE_NAME);
+        workflowManager.saveNodeSettings(node.getID(), nodeSettings);
+        var modelSettings = nodeSettings.addNodeSettings("model");
+        DefaultNodeSettings.saveSettings(SETTINGS_CLASS, settings, modelSettings);
+        workflowManager.loadNodeSettings(node.getID(), nodeSettings);
+
+        // populate the input table
+        var inputTableSpec = new TableTestUtil.SpecBuilder() //
+            .addColumn(INPUT_COLUMN, cellToAdd.getType()) //
+            .build();
+        var inputTable = new TableTestUtil.TableBuilder(inputTableSpec) //
+            .addRow(cellToAdd) //
+            .build();
+        var tableSupplierNode =
+            WorkflowManagerUtil.createAndAddNode(workflowManager, new InputTableNode.InputDataNodeFactory(inputTable));
+
+        // link the nodes
+        workflowManager.addConnection(tableSupplierNode.getID(), 1, node.getID(), 1);
+
+        // execute and wait...
+        var success = workflowManager.executeAllAndWaitUntilDone();
+
+        var outputTable = (BufferedDataTable)node.getOutPort(1).getPortObject();
+
+        try (var it = outputTable.iterator()) {
+            return new TestSetup( //
+                outputTable, //
+                it.next().getCell(0), //
+                success //
+            );
+        }
+
     }
 
 }

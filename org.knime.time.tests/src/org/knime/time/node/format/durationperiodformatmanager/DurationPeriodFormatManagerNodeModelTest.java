@@ -56,11 +56,14 @@ import java.io.IOException;
 import org.junit.jupiter.api.Test;
 import org.knime.InputTableNode;
 import org.knime.base.node.viz.format.AlignmentSuggestionOption;
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataType;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
 import org.knime.time.util.DurationPeriodStringFormat;
 
@@ -70,6 +73,13 @@ import org.knime.time.util.DurationPeriodStringFormat;
  */
 @SuppressWarnings({"static-method", "restriction"})
 final class DurationPeriodFormatManagerNodeModelTest {
+
+    private static final String INPUT_COLUMN = "test_input";
+
+    private static final String NODE_NAME = "DurationPeriodFormatManagerNode";
+
+    private static final Class<? extends DefaultNodeSettings> SETTINGS_CLASS =
+        DurationPeriodFormatManagerNodeSettings.class;
 
     @Test
     void testSetFormatter() throws IOException, InvalidSettingsException {
@@ -117,6 +127,62 @@ final class DurationPeriodFormatManagerNodeModelTest {
                 new DurationPeriodDataValueFormatter(DurationPeriodStringFormat.WORDS,
                     AlignmentSuggestionOption.CENTER),
                 formatter, "Expected formatted column to have the right attached formatter");
+        }
+    }
+
+    @Test
+    void testThatMissingInputGivesMissingOutput() throws IOException, InvalidSettingsException {
+        final var settings = new DurationPeriodFormatManagerNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
+        settings.m_format = DurationPeriodStringFormat.WORDS;
+        settings.m_alignment = AlignmentSuggestionOption.CENTER;
+
+        var testSetup = setupAndExecuteWorkflow(settings, DataType.getMissingCell());
+
+        assertTrue(testSetup.success, "Execution should have been successful");
+        assertTrue(testSetup.firstCell.isMissing(), "Output cell should be missing");
+    }
+
+    record TestSetup(BufferedDataTable outputTable, DataCell firstCell, boolean success) {
+    }
+
+    static TestSetup setupAndExecuteWorkflow(final DurationPeriodFormatManagerNodeSettings settings,
+        final DataCell cellToAdd) throws InvalidSettingsException, IOException {
+        var workflowManager = WorkflowManagerUtil.createEmptyWorkflow();
+
+        var node = WorkflowManagerUtil.createAndAddNode(workflowManager, new DurationPeriodFormatManagerNodeFactory());
+
+        // set the settings
+        final var nodeSettings = new NodeSettings(NODE_NAME);
+        workflowManager.saveNodeSettings(node.getID(), nodeSettings);
+        var modelSettings = nodeSettings.addNodeSettings("model");
+        DefaultNodeSettings.saveSettings(SETTINGS_CLASS, settings, modelSettings);
+        workflowManager.loadNodeSettings(node.getID(), nodeSettings);
+
+        // populate the input table
+        var inputTableSpec = new TableTestUtil.SpecBuilder() //
+            .addColumn(INPUT_COLUMN, cellToAdd.getType()) //
+            .build();
+        var inputTable = new TableTestUtil.TableBuilder(inputTableSpec) //
+            .addRow(cellToAdd) //
+            .build();
+        var tableSupplierNode =
+            WorkflowManagerUtil.createAndAddNode(workflowManager, new InputTableNode.InputDataNodeFactory(inputTable));
+
+        // link the nodes
+        workflowManager.addConnection(tableSupplierNode.getID(), 1, node.getID(), 1);
+
+        // execute and wait...
+        var success = workflowManager.executeAllAndWaitUntilDone();
+
+        var outputTable = (BufferedDataTable)node.getOutPort(1).getPortObject();
+
+        try (var it = outputTable.iterator()) {
+            return new TestSetup( //
+                outputTable, //
+                it.next().getCell(0), //
+                success //
+            );
         }
     }
 }

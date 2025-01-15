@@ -44,16 +44,14 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 20, 2024 (Tobias Kampmann, TNG): created
+ *   Jan 15, 2025 (sillyem): created
  */
-package org.knime.time.node.manipulate.datetimeround;
+package org.knime.time.node.manipulate.modifytimezone;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
-import java.util.Arrays;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.knime.InputTableNode;
 import org.knime.core.data.DataCell;
@@ -61,63 +59,28 @@ import org.knime.core.data.DataType;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
-import org.knime.core.node.workflow.NativeNodeContainer;
-import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
-import org.knime.time.util.ReplaceOrAppend;
-
-@SuppressWarnings({"restriction", "squid:S5960"})
-class TimeRoundNodeModelTest {
-
-    private NativeNodeContainer m_dateTimeRoundNode;
-
-    private WorkflowManager m_wfm;
-
+import org.knime.time.node.manipulate.modifytimezone.ModifyTimeZoneNodeSettings.BehaviourType;
+/**
+*
+* @author Martin Sillye, TNG Technology Consulting GmbH
+*/
+@SuppressWarnings("restriction")
+public class ModifyTimeZoneNodeModelTest {
     private static final String INPUT_COLUMN = "test_input";
 
-    private static final String NODE_NAME = "TimeRoundNode";
+    private static final String NODE_NAME = "ModifyTimeZoneNode";
 
-    private static final Class<? extends DefaultNodeSettings> SETTINGS_CLASS = TimeRoundNodeSettings.class;
-
-
-    @BeforeEach
-    void resetWorkflow() throws IOException {
-        m_wfm = WorkflowManagerUtil.createEmptyWorkflow();
-        m_dateTimeRoundNode = WorkflowManagerUtil.createAndAddNode(m_wfm, new TimeRoundNodeFactory());
-    }
+    private static final Class<? extends DefaultNodeSettings> SETTINGS_CLASS = ModifyTimeZoneNodeSettings.class;
 
     @Test
-    void canBeExecuted() throws InvalidSettingsException {
-
-        final var settings = new TimeRoundNodeSettings();
-        setSettings(settings);
-
-        InputTableNode.addDefaultTableToNodeInputPort(m_wfm, m_dateTimeRoundNode, 1);
-
-        assertTrue(m_wfm.executeAllAndWaitUntilDone());
-        assertTrue(m_dateTimeRoundNode.getNodeContainerState().isExecuted());
-    }
-
-    @Test
-    void appendReplaceTimeBasedRounding() throws InvalidSettingsException {
-
-        String[] columnNamesToRound = {InputTableNode.COLUMN_LOCAL_TIME, InputTableNode.COLUMN_LOCAL_DATE_TIME,
-            InputTableNode.COLUMN_ZONED_DATE_TIME};
-
-        final var settings = new TimeRoundNodeSettings();
-        settings.m_columnFilter = new ColumnFilter(columnNamesToRound);
-
-        testAppendingColumns(columnNamesToRound, settings);
-        testReplacingColumns(settings);
-    }
-
-    @Test
-    public void testThatMissingInputGivesMissingOutput() throws InvalidSettingsException, IOException {
-        var settings = new TimeRoundNodeSettings();
+    void testSetThatMissingInputGivesMissingOutput() throws InvalidSettingsException, IOException {
+        var settings = new ModifyTimeZoneNodeSettings();
         settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
+        settings.m_behaviourType = BehaviourType.SET;
 
         var testSetup = setupAndExecuteWorkflow(settings, DataType.getMissingCell());
 
@@ -125,59 +88,38 @@ class TimeRoundNodeModelTest {
         assertTrue(testSetup.firstCell.isMissing(), "Output cell should be missing");
     }
 
+    @Test
+    void testShiftThatMissingInputGivesMissingOutput() throws InvalidSettingsException, IOException {
+        var settings = new ModifyTimeZoneNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
+        settings.m_behaviourType = BehaviourType.SHIFT;
 
-    private void testAppendingColumns(final String[] columnNamesToRound, final TimeRoundNodeSettings settings)
-        throws InvalidSettingsException {
+        var testSetup = setupAndExecuteWorkflow(settings, DataType.getMissingCell());
 
-        settings.m_replaceOrAppend = ReplaceOrAppend.APPEND;
-        settings.m_outputColumnSuffix = "TheSuffixToAppend";
-        setSettings(settings);
-
-        InputTableNode.addDefaultTableToNodeInputPort(m_wfm, m_dateTimeRoundNode, 1);
-        assertTrue(m_wfm.executeAllAndWaitUntilDone());
-
-        var outputTable = (BufferedDataTable)m_dateTimeRoundNode.getOutPort(1).getPortObject();
-
-        Arrays.stream(columnNamesToRound).forEach(columnName -> assertTrue(
-            outputTable.getDataTableSpec().containsName(columnName + settings.m_outputColumnSuffix)));
+        assertTrue(testSetup.success, "Execution should have been successful");
+        assertTrue(testSetup.firstCell.isMissing(), "Output cell should be missing");
     }
 
-    private void testReplacingColumns(final TimeRoundNodeSettings settings) throws InvalidSettingsException {
+    @Test
+    void testRemoveThatMissingInputGivesMissingOutput() throws InvalidSettingsException, IOException {
+        var settings = new ModifyTimeZoneNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
+        settings.m_behaviourType = BehaviourType.REMOVE;
 
-        settings.m_replaceOrAppend = ReplaceOrAppend.REPLACE;
-        setSettings(settings);
+        var testSetup = setupAndExecuteWorkflow(settings, DataType.getMissingCell());
 
-        var inputTable = InputTableNode.createDefaultTestTable();
-
-        InputTableNode.addTableToNodeInputPort(m_wfm, inputTable, m_dateTimeRoundNode, 1);
-        assertTrue(m_wfm.executeAllAndWaitUntilDone());
-
-        var outputTable = (BufferedDataTable)m_dateTimeRoundNode.getOutPort(1).getPortObject();
-
-        assertTrue(outputTable.getDataTableSpec().equalStructure(inputTable.get().getDataTableSpec()),
-            "The output table should have the same structure as the input table");
-
+        assertTrue(testSetup.success, "Execution should have been successful");
+        assertTrue(testSetup.firstCell.isMissing(), "Output cell should be missing");
     }
-
-    private void setSettings(final TimeRoundNodeSettings settings) throws InvalidSettingsException {
-        final var nodeSettings = new NodeSettings("DateTimeRoundNode");
-        m_wfm.saveNodeSettings(m_dateTimeRoundNode.getID(), nodeSettings);
-        var modelSettings = nodeSettings.addNodeSettings("model");
-        DefaultNodeSettings.saveSettings(TimeRoundNodeSettings.class, settings, modelSettings);
-        m_wfm.loadNodeSettings(m_dateTimeRoundNode.getID(), nodeSettings);
-    }
-
-    // The rounding logic is implemented in the TimeRoundingUtil and DateRoundingUtil classes.
-    // There are dedicated tests for these classes, so we do not need to test the rounding logic here.
 
     record TestSetup(BufferedDataTable outputTable, DataCell firstCell, boolean success) {
     }
 
-    static TestSetup setupAndExecuteWorkflow(final TimeRoundNodeSettings settings, final DataCell cellToAdd)
-        throws InvalidSettingsException, IOException {
+    static TestSetup setupAndExecuteWorkflow(final ModifyTimeZoneNodeSettings settings,
+        final DataCell cellToAdd) throws InvalidSettingsException, IOException {
         var workflowManager = WorkflowManagerUtil.createEmptyWorkflow();
 
-        var node = WorkflowManagerUtil.createAndAddNode(workflowManager, new TimeRoundNodeFactory());
+        var node = WorkflowManagerUtil.createAndAddNode(workflowManager, new ModifyTimeZoneNodeFactory2());
 
         // set the settings
         final var nodeSettings = new NodeSettings(NODE_NAME);
@@ -205,12 +147,8 @@ class TimeRoundNodeModelTest {
         var outputTable = (BufferedDataTable)node.getOutPort(1).getPortObject();
 
         try (var it = outputTable.iterator()) {
-            return new TestSetup( //
-                outputTable, //
-                it.next().getCell(0), //
-                success //
-            );
+            var firstCell = it.next().getCell(0);
+            return new TestSetup(outputTable, firstCell, success);
         }
-
     }
 }
