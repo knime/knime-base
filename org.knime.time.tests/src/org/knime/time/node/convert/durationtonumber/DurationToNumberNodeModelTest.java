@@ -63,6 +63,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.InputTableNode;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataType;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.LongValue;
 import org.knime.core.data.time.duration.DurationCellFactory;
@@ -221,6 +222,17 @@ public class DurationToNumberNodeModelTest {
             "Second column name is not as expected");
     }
 
+    @Test
+    void testThatMissingInputGivesMissingOutput() throws InvalidSettingsException, IOException {
+        var settings = new DurationToNumberNodeSettings();
+        settings.m_filter = new ColumnFilter(new String[]{INPUT_COLUMN});
+
+        var testSetup = setupAndExecuteWorkflow(settings, DataType.getMissingCell());
+
+        assertTrue(testSetup.success, "Execution should have been successful");
+        assertTrue(testSetup.firstCell.isMissing(), "Output cell should be missing");
+    }
+
     @ParameterizedTest(name = "{0} (with truncation)")
     @MethodSource("provideArgumentsForIntegerTestCase")
     void testConvertDurationToNumberInteger(@SuppressWarnings("unused") final String testName, final Duration input,
@@ -265,7 +277,7 @@ public class DurationToNumberNodeModelTest {
         assertEquals(expected, actual, 1e-9, "Output value is not as expected");
     }
 
-    record TestSetup(BufferedDataTable outputTable, DataCell firstCell) {
+    record TestSetup(BufferedDataTable outputTable, DataCell firstCell, boolean success) {
     }
 
     static TestSetup setupAndExecuteWorkflow(final DurationToNumberNodeSettings settings, final DataCell cellToAdd)
@@ -295,14 +307,15 @@ public class DurationToNumberNodeModelTest {
         workflowManager.addConnection(tableSupplierNode.getID(), 1, node.getID(), 1);
 
         // execute and wait...
-        workflowManager.executeAllAndWaitUntilDone();
+        var success = workflowManager.executeAllAndWaitUntilDone();
 
         var outputTable = (BufferedDataTable)node.getOutPort(1).getPortObject();
 
         try (var it = outputTable.iterator()) {
             return new TestSetup( //
                 outputTable, //
-                it.next().getCell(0) //
+                it.next().getCell(0), //
+                success //
             );
         }
 

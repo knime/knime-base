@@ -68,6 +68,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.InputTableNode;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataType;
 import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.data.time.duration.DurationCell;
 import org.knime.core.data.time.period.PeriodCell;
@@ -218,6 +219,17 @@ final class StringToDurationPeriodNodeModelTest {
         var testSetup = setupAndExecuteWorkflow(settings, StringCellFactory.create("not parseable"));
 
         assertFalse(testSetup.success, "Execution should have failed");
+    }
+
+    @Test
+    void testThatMissingInputGivesMissingOutput() throws InvalidSettingsException, IOException {
+        var settings = new StringToDurationPeriodNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
+
+        var testSetup = setupAndExecuteWorkflow(settings, DataType.getMissingCell());
+
+        assertTrue(testSetup.success, "Execution should have been successful");
+        assertTrue(testSetup.firstCell.isMissing(), "Output cell should be missing");
     }
 
     record TestSetup(BufferedDataTable outputTable, DataCell firstCell, boolean success) {

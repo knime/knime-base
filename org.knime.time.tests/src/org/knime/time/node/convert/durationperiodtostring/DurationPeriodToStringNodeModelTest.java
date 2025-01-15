@@ -66,6 +66,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.InputTableNode;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataType;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.time.duration.DurationCellFactory;
 import org.knime.core.data.time.period.PeriodCellFactory;
@@ -183,6 +184,17 @@ class DurationPeriodToStringNodeModelTest {
             "Second column name is not as expected");
     }
 
+    @Test
+    void testThatMissingInputGivesMissingOutput() throws InvalidSettingsException, IOException {
+        var settings = new DurationPeriodToStringNodeSettings();
+        settings.m_filter = new ColumnFilter(new String[]{INPUT_COLUMN});
+
+        var testSetup = setupAndExecuteWorkflow(settings, DataType.getMissingCell());
+
+        assertTrue(testSetup.success, "Execution should have been successful");
+        assertTrue(testSetup.firstCell.isMissing(), "Output cell should be missing");
+    }
+
     @ParameterizedTest(name = "{0} (date/period based)")
     @MethodSource("provideArgumentsForPeriodTestCases")
     void testConvertPeriodToString(@SuppressWarnings("unused") final String testName, final Period input,
@@ -225,7 +237,7 @@ class DurationPeriodToStringNodeModelTest {
         assertEquals(expected, actual, "Output value is not as expected");
     }
 
-    record TestSetup(BufferedDataTable outputTable, DataCell firstCell) {
+    record TestSetup(BufferedDataTable outputTable, DataCell firstCell, boolean success) {
     }
 
     static TestSetup setupAndExecuteWorkflow(final DurationPeriodToStringNodeSettings settings,
@@ -255,13 +267,13 @@ class DurationPeriodToStringNodeModelTest {
         workflowManager.addConnection(tableSupplierNode.getID(), 1, node.getID(), 1);
 
         // execute and wait...
-        workflowManager.executeAllAndWaitUntilDone();
+        var success = workflowManager.executeAllAndWaitUntilDone();
 
         var outputTable = (BufferedDataTable)node.getOutPort(1).getPortObject();
 
         try (var it = outputTable.iterator()) {
             var firstCell = it.next().getCell(0);
-            return new TestSetup(outputTable, firstCell);
+            return new TestSetup(outputTable, firstCell, success);
         }
     }
 }

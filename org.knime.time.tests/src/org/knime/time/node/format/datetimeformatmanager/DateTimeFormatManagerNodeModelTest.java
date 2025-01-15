@@ -61,6 +61,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.knime.InputTableNode;
 import org.knime.base.node.viz.format.AlignmentSuggestionOption;
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataType;
 import org.knime.core.data.property.ValueFormatHandler;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
@@ -70,6 +72,7 @@ import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
 import org.mockito.Mockito;
 
@@ -79,6 +82,12 @@ class DateTimeFormatManagerNodeModelTest {
     private NativeNodeContainer m_dateTimeFormatManagerNode;
 
     private WorkflowManager m_wfm;
+
+    private static final String INPUT_COLUMN = "test_input";
+
+    private static final String NODE_NAME = "DateTimeFormatManagerNode";
+
+    private static final Class<? extends DefaultNodeSettings> SETTINGS_CLASS = DateTimeFormatManagerNodeSettings.class;
 
     @BeforeEach
     void resetWorkflow() throws IOException {
@@ -147,6 +156,21 @@ class DateTimeFormatManagerNodeModelTest {
         }
     }
 
+    @Test
+    void testThatMissingInputGivesMissingOutput() throws InvalidSettingsException, IOException {
+
+        final var settings = new DateTimeFormatManagerNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
+        settings.m_locale = Locale.ENGLISH.toLanguageTag();
+        settings.m_format = "yyyy-MM-dd HH:mm:ss [VV]";
+        settings.m_alignmentSuggestion = AlignmentSuggestionOption.CENTER;
+
+        var testSetup = setupAndExecuteWorkflow(settings, DataType.getMissingCell());
+
+        assertTrue(testSetup.success, "Execution should have been successful");
+        assertTrue(testSetup.firstCell.isMissing(), "Output cell should be missing");
+    }
+
     private Supplier<BufferedDataTable> connectInputTableAndExecute(final DateTimeFormatManagerNodeSettings settings)
         throws InvalidSettingsException {
         setSettings(settings);
@@ -174,5 +198,48 @@ class DateTimeFormatManagerNodeModelTest {
         var modelSettings = nodeSettings.addNodeSettings("model");
         DefaultNodeSettings.saveSettings(DateTimeFormatManagerNodeSettings.class, settings, modelSettings);
         m_wfm.loadNodeSettings(m_dateTimeFormatManagerNode.getID(), nodeSettings);
+    }
+
+    record TestSetup(BufferedDataTable outputTable, DataCell firstCell, boolean success) {
+    }
+
+    static TestSetup setupAndExecuteWorkflow(final DateTimeFormatManagerNodeSettings settings, final DataCell cellToAdd)
+        throws InvalidSettingsException, IOException {
+        var workflowManager = WorkflowManagerUtil.createEmptyWorkflow();
+
+        var node = WorkflowManagerUtil.createAndAddNode(workflowManager, new DateTimeFormatManagerNodeFactory());
+
+        // set the settings
+        final var nodeSettings = new NodeSettings(NODE_NAME);
+        workflowManager.saveNodeSettings(node.getID(), nodeSettings);
+        var modelSettings = nodeSettings.addNodeSettings("model");
+        DefaultNodeSettings.saveSettings(SETTINGS_CLASS, settings, modelSettings);
+        workflowManager.loadNodeSettings(node.getID(), nodeSettings);
+
+        // populate the input table
+        var inputTableSpec = new TableTestUtil.SpecBuilder() //
+            .addColumn(INPUT_COLUMN, cellToAdd.getType()) //
+            .build();
+        var inputTable = new TableTestUtil.TableBuilder(inputTableSpec) //
+            .addRow(cellToAdd) //
+            .build();
+        var tableSupplierNode =
+            WorkflowManagerUtil.createAndAddNode(workflowManager, new InputTableNode.InputDataNodeFactory(inputTable));
+
+        // link the nodes
+        workflowManager.addConnection(tableSupplierNode.getID(), 1, node.getID(), 1);
+
+        // execute and wait...
+        var success = workflowManager.executeAllAndWaitUntilDone();
+
+        var outputTable = (BufferedDataTable)node.getOutPort(1).getPortObject();
+
+        try (var it = outputTable.iterator()) {
+            return new TestSetup( //
+                outputTable, //
+                it.next().getCell(0), //
+                success //
+            );
+        }
     }
 }
