@@ -67,18 +67,24 @@ public final class TimeShiftNodeFactory extends WebUINodeFactory<TimeShiftNodeMo
     private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
         .name("Time Shifter") //
         .icon("time-shift.png") //
-        .shortDescription("Shifts a time according to a duration or granularity.") //
-        .fullDescription("The node shifts a time with a defined duration or granularity. "
-            + "The user can select the Time columns to shift and the shift value. "
-            + "The shift value can be achieved by using either a duration column or a numerical column, "
-            + "however, it is also possible to enter a constant shift value (either duration or "
-            + "numerical combined with a granularity). If the shift value is positive, it is added to "
-            + "the selected time. A negative value will be subtracted. A numerical value is interpreted "
-            + "based on the selected granularity (hour, minute, second, " + "millisecond, microsecond, nanosecond).") //
+        .shortDescription("Shifts a time by a duration or granularity.") //
+        .fullDescription("""
+                The node shifts a date by a defined duration or granularity. \
+                The user can select the date columns to shift and the shift value. \
+                The shift value can be either
+                <ul>
+                  <li>a duration column</li>
+                  <li>a numerical column and a granularity</li>
+                  <li>a constant numerical value and a granularity</li>
+                </ul>
+                If the shift value is positive, it is added to the selected \
+                date. A negative value will be subtracted. A numerical value \
+                is interpreted based on the selected granularity.
+                """) //
         .modelSettingsClass(TimeShiftNodeSettings.class) //
         .addInputTable("Input table", "Input table.") //
-        .addOutputTable("Output table", "Output table with modified time.") //
-        .keywords("modify", "fields", "hour", "minute", "second", "milli")//
+        .addOutputTable("Output table", "Output table with shifted time.") //
+        .keywords("modify", "shift", "date&time", "hour", "minute", "second", "millisecond", "nanosecond") //
         .build();
 
     /**
