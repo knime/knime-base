@@ -36,10 +36,10 @@
 				determined based on the first cell in each column which can be successfully parsed.
 			</option>
 			<option name="Create time-based duration">
-				All included columns will be converted to time-based duration columns (their data type is "Period").
+				All included columns will be converted to time-based duration columns (their data type is "Duration").
 			</option>
 			<option name="Create date-based duration">
-				All included columns will be converted to date-based duration columns (their data type is "Duration").
+				All included columns will be converted to date-based duration columns (their data type is "Period").
 			</option>
 			<option name="Fail on error">
 				If checked, the node will abort the execution and fail on errors. If unchecked, missing values will be

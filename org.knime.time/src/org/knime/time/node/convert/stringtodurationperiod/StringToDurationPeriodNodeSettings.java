@@ -97,7 +97,7 @@ final class StringToDurationPeriodNodeSettings implements DefaultNodeSettings {
         // default constructor is needed
     }
 
-    @Widget(title = "Input columns", description = "The string columns to convert to a duration/period.")
+    @Widget(title = "String columns", description = "The string columns to convert to a duration/period.")
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
     @Persist(configKey = "col_select", customPersistor = LegacyColumnFilterPersistor.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
@@ -181,16 +181,16 @@ final class StringToDurationPeriodNodeSettings implements DefaultNodeSettings {
     }
 
     enum ActionIfExtractionFails {
-            @Label(value = "Set missing", description = """
-                    Set the cell to missing if the string column cannot be converted to the specified \
-                    type.
-                    """)
-            SET_MISSING, //
             @Label(value = "Fail", description = """
                     Fail with an error if the string column cannot be converted to the specified \
                     type.
                     """)
-            FAIL;
+            FAIL, //
+            @Label(value = "Set missing", description = """
+                    Set the cell to missing if the string column cannot be converted to the specified \
+                    type.
+                    """)
+            SET_MISSING; //
 
         static final class Persistor extends NodeSettingsPersistorWithConfigKey<ActionIfExtractionFails> {
 
