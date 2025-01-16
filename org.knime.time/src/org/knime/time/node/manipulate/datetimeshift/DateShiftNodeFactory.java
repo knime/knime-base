@@ -67,20 +67,24 @@ public final class DateShiftNodeFactory extends WebUINodeFactory<DateShiftNodeMo
     private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
         .name("Date Shifter") //
         .icon("date-shift.png") //
-        .shortDescription("Shifts a date according to a period or granularity.") //
+        .shortDescription("Shifts a date by a period or granularity.") //
         .fullDescription("""
-                The node shifts a date with a defined period or granularity. /
-                The user can select the date columns to shift and the shift value. /
-                The shift value can be achieved by using either a period column or a numerical column, /
-                however, it is also possible to enter a constant shift value (either of period type or /
-                numerical combined with a granularity). If the shift value is positive, it is added to /
-                the selected date. A negative value will be subtracted. A numerical value is interpreted /
-                based on the selected granularity (year, month, week, day)."
+                The node shifts a date by a defined period or granularity. \
+                The user can select the date columns to shift and the shift value. \
+                The shift value can be either
+                <ul>
+                  <li>a period column</li>
+                  <li>a numerical column and a granularity</li>
+                  <li>a constant numerical value and a granularity</li>
+                </ul>
+                If the shift value is positive, it is added to the selected \
+                date. A negative value will be subtracted. A numerical value \
+                is interpreted based on the selected granularity.
                 """) //
         .modelSettingsClass(DateShiftNodeSettings.class) //
         .addInputTable("Input table", "Input table.") //
-        .addOutputTable("Output table", "Output table with modified time.") //
-        .keywords("modify", "fields", "day", "month", "week", "year")//
+        .addOutputTable("Output table", "Output table with shifted date.") //
+        .keywords("date&time", "shift", "modify", "fields", "day", "month", "week", "year") //
         .build();
 
     /**
