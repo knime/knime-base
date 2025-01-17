@@ -193,10 +193,16 @@ public final class InputTableNode {
      * @param wfm the workflow manager that handles adding the table
      * @param nodeToConnectTo the node to connect the table to, that should accept the table as input
      * @param portIndex the index of the input port of the node to connect the table to
+     * @return
      */
-    public static void addDefaultTableToNodeInputPort(final WorkflowManager wfm, final NodeContainer nodeToConnectTo,
+    public static Supplier<BufferedDataTable> addDefaultTableToNodeInputPort(final WorkflowManager wfm, final NodeContainer nodeToConnectTo,
         final int portIndex) {
-        addTableToNodeInputPort(wfm, createDefaultTestTable(), nodeToConnectTo, portIndex);
+
+        var table = createDefaultTestTable();
+
+        addTableToNodeInputPort(wfm, table, nodeToConnectTo, portIndex);
+
+        return table;
     }
 
     /**

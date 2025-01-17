@@ -19,12 +19,12 @@
           "typeDisplays" : [ ]
         }
       },
-      "shiftMode" : "SHIFT",
+      "shiftMode" : "SHIFT_VALUE",
       "shiftPeriodValue" : "P0Y0M0W1D",
-      "periodColumn" : "",
+      "periodColumn" : "periodTest",
       "granularity" : "DAYS",
       "replaceOrAppend" : "REPLACE",
-      "outputColumnSuffix" : "(shifted)"
+      "outputColumnSuffix" : " (Shifted)"
     }
   },
   "schema" : {
@@ -187,13 +187,13 @@
             "type" : "string",
             "title" : "Suffix of appended column",
             "description" : "The suffix that is appended to the column name. The suffix will be added to the original column name.\n",
-            "default" : "(shifted)"
+            "default" : " (Shifted)"
           },
           "periodColumn" : {
             "type" : "string",
             "title" : "Column",
             "description" : "Select to choose the shift value from a period column.",
-            "default" : ""
+            "default" : "periodTest"
           },
           "replaceOrAppend" : {
             "oneOf" : [ {
@@ -209,18 +209,18 @@
           },
           "shiftMode" : {
             "oneOf" : [ {
-              "const" : "SHIFT",
+              "const" : "SHIFT_VALUE",
               "title" : "Shift Value"
             }, {
-              "const" : "PERIOD",
+              "const" : "PERIOD_COLUMN",
               "title" : "Period column"
             }, {
-              "const" : "NUMERICAL",
+              "const" : "NUMERICAL_COLUMN",
               "title" : "Numerical column"
             } ],
             "title" : "Shift mode",
-            "description" : "Select the shift mode to use.\n\n<ul>\n<li><b>Shift Value</b>: A date-based shift value.</li>\n<li><b>Period column</b>: Select to choose the shift value from a period column.</li>\n<li><b>Numerical column</b>: Select a numerical column to scale a configurable time unit.</li>\n</ul>",
-            "default" : "SHIFT"
+            "description" : "Select the shift mode to use.\n<ul>\n<li><b>Shift Value</b>: A date-based shift value.</li>\n<li><b>Period column</b>: A shift value from a period column.</li>\n<li><b>Numerical column</b>: Select a numerical column to scale a configurable time unit.</li>\n</ul>",
+            "default" : "SHIFT_VALUE"
           },
           "shiftPeriodValue" : {
             "type" : "object",
@@ -263,7 +263,7 @@
           "scope" : "#/properties/model/properties/shiftMode",
           "schema" : {
             "oneOf" : [ {
-              "const" : "SHIFT"
+              "const" : "SHIFT_VALUE"
             } ]
           }
         }
@@ -285,7 +285,7 @@
           "scope" : "#/properties/model/properties/shiftMode",
           "schema" : {
             "oneOf" : [ {
-              "const" : "PERIOD"
+              "const" : "PERIOD_COLUMN"
             } ]
           }
         }
@@ -307,7 +307,7 @@
           "scope" : "#/properties/model/properties/shiftMode",
           "schema" : {
             "oneOf" : [ {
-              "const" : "NUMERICAL"
+              "const" : "NUMERICAL_COLUMN"
             } ]
           }
         }
@@ -321,7 +321,7 @@
           "scope" : "#/properties/model/properties/shiftMode",
           "schema" : {
             "oneOf" : [ {
-              "const" : "NUMERICAL"
+              "const" : "NUMERICAL_COLUMN"
             } ]
           }
         }
@@ -446,7 +446,15 @@
     "id" : "org.knime.time.node.manipulate.datetimeshift.DateShiftNodeSettings$PeriodColumns",
     "values" : [ {
       "indices" : [ ],
-      "value" : [ ]
+      "value" : [ {
+        "id" : "periodTest",
+        "text" : "periodTest",
+        "type" : {
+          "id" : "org.knime.core.data.time.period.PeriodValue",
+          "text" : "Period"
+        },
+        "compatibleTypes" : [ "org.knime.core.data.time.period.PeriodValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
+      } ]
     } ]
   }, {
     "scopes" : null,

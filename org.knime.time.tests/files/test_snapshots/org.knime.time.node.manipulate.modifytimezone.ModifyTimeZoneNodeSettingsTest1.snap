@@ -40,8 +40,8 @@
               "title" : "Append with suffix"
             } ],
             "title" : "Output columns",
-            "description" : "Depending on the selection, the selected columns will be replaced or appended to the input table.\n<ul>\n<li><b>Replace</b>: The selected columns will be replaced by the new columns.</li>\n<li><b>Append with suffix</b>: The selected columns will be appended to the input table with a new name that is the previous name plus the provided suffix.\n</li>\n</ul>",
-            "default" : "APPEND"
+            "description" : "Depending on the selection, the selected columns will be replaced or appended to the input table.\n\n<ul>\n<li><b>Replace</b>: The selected columns will be replaced by the new columns.</li>\n<li><b>Append with suffix</b>: The selected columns will be appended to the input table with a new name that is the previous name plus the provided suffix.\n</li>\n</ul>",
+            "default" : "REPLACE"
           },
           "behaviourType" : {
             "oneOf" : [ {
@@ -55,7 +55,7 @@
               "title" : "Remove"
             } ],
             "title" : "Modification",
-            "description" : "Defines the action to be performed on the selected columns.\n<ul>\n<li><b>Set</b>: Changes the timezone of a date-time column, leaving the nominal time unchanged.</li>\n<li><b>Shift</b>: Changes the timezone of a date-time column, changing the nominal time so it refers to the same instant. The date and time may change.</li>\n<li><b>Remove</b>: Removes timezone information from date-time columns.</li>\n</ul>",
+            "description" : "Defines the action to be performed on the selected columns.\n<ul>\n<li><b>Set</b>: Changes the timezone of a date-time column, leaving the wall time unchanged.\n</li>\n<li><b>Shift</b>: Changes the timezone of a date-time column, changing the wall time so it refers to the same instant. Both the nominal date and time may change.\n</li>\n<li><b>Remove</b>: Removes timezone information from zoned date-time columns.</li>\n</ul>",
             "default" : "SET"
           },
           "columnFilter" : {
@@ -188,8 +188,8 @@
           "outputColumnSuffix" : {
             "type" : "string",
             "title" : "Output column suffix",
-            "description" : "The suffix that is appended to the column name. The suffix will be added to the original column name separated by a space.",
-            "default" : " (modified time zone)"
+            "description" : "The suffix that is appended to the column name.",
+            "default" : " (Modified time zone)"
           },
           "timeZone" : {
             "type" : "string",

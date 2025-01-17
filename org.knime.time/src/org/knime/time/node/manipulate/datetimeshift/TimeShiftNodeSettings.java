@@ -93,9 +93,7 @@ class TimeShiftNodeSettings implements DefaultNodeSettings {
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
-    @Widget(title = "Shift mode", description = """
-            Select the shift mode to use.
-            """)
+    @Widget(title = "Shift mode", description = "Select the shift mode to use.")
     @ValueSwitchWidget
     @ValueReference(ShiftModeRef.class)
     ShiftMode m_shiftMode = ShiftMode.SHIFT_VALUE;
@@ -154,7 +152,7 @@ class TimeShiftNodeSettings implements DefaultNodeSettings {
             column name.
             """)
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
-    String m_outputColumnSuffix = "(shifted)";
+    String m_outputColumnSuffix = " (Shifted)";
 
     /*
      * ------------------------------------------------------------------------
@@ -195,14 +193,14 @@ class TimeShiftNodeSettings implements DefaultNodeSettings {
         List.of(LocalTimeValue.class, ZonedDateTimeValue.class, LocalDateTimeValue.class);
 
     enum ShiftMode implements CompatibleDataValueClassesSupplier {
+
             @Label(value = "Shift Value", description = "A time-based shift value.")
-            SHIFT_VALUE(), //
-            @Label(value = "Duration column", //
-                description = "Select to choose the shift value from a duration column.")
-            DURATION_COLUMN(), //
+            SHIFT_VALUE, //
+            @Label(value = "Duration column", description = "A shift value from a duration column.")
+            DURATION_COLUMN, //
             @Label(value = "Numerical column", //
                 description = "Select a numerical column to scale a configurable time unit.")
-            NUMERICAL_COLUMN(); //
+            NUMERICAL_COLUMN;
 
         @Override
         public Collection<Class<? extends DataValue>> getCompatibleDataValueClasses() {
@@ -258,6 +256,7 @@ class TimeShiftNodeSettings implements DefaultNodeSettings {
     }
 
     enum TimeGranularity {
+
             @Label("Hours")
             HOURS(Granularity.HOUR), //
             @Label("Minutes")

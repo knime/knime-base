@@ -56,6 +56,7 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.time.localdate.LocalDateCell;
 import org.knime.core.data.time.localdatetime.LocalDateTimeCell;
+import org.knime.core.data.time.period.PeriodCell;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCell;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
@@ -74,11 +75,15 @@ public class DateShiftNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         new String[]{ //
             "localDateTest", //
             "localDateTimeTest", //
-            "zonedDateTimeTest"},
+            "zonedDateTimeTest", //
+            "periodTest", //
+        }, //
         new DataType[]{ //
             DataType.getType(LocalDateCell.class), //
             DataType.getType(LocalDateTimeCell.class), //
-            DataType.getType(ZonedDateTimeCell.class)} //
+            DataType.getType(ZonedDateTimeCell.class), //
+            DataType.getType(PeriodCell.class) //
+        } //
             )};
 
     protected DateShiftNodeSettingsTest() {

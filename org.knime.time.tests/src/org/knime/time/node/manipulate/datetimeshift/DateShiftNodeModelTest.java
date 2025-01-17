@@ -191,7 +191,7 @@ class DateShiftNodeModelTest {
 
         final var settings = new DateShiftNodeSettings();
 
-        settings.m_shiftMode = DateShiftNodeSettings.ShiftMode.SHIFT;
+        settings.m_shiftMode = DateShiftNodeSettings.ShiftMode.SHIFT_VALUE;
 
         var interval = Interval.parseHumanReadableOrIso(periodValue);
         if (!(interval instanceof DateInterval)) {
@@ -291,7 +291,7 @@ class DateShiftNodeModelTest {
         // settings
         final var settings = new DateShiftNodeSettings();
 
-        settings.m_shiftMode = DateShiftNodeSettings.ShiftMode.PERIOD;
+        settings.m_shiftMode = DateShiftNodeSettings.ShiftMode.PERIOD_COLUMN;
         settings.m_periodColumn = InputTableNode.COLUMN_PERIOD;
         settings.m_columnFilter = new ColumnFilter(new String[]{InputTableNode.COLUMN_LOCAL_DATE,
             InputTableNode.COLUMN_LOCAL_DATE_TIME, InputTableNode.COLUMN_ZONED_DATE_TIME});
@@ -389,7 +389,7 @@ class DateShiftNodeModelTest {
         // settings
         final var settings = new DateShiftNodeSettings();
 
-        settings.m_shiftMode = DateShiftNodeSettings.ShiftMode.NUMERICAL;
+        settings.m_shiftMode = DateShiftNodeSettings.ShiftMode.NUMERICAL_COLUMN;
         settings.m_numericalColumn = InputTableNode.COLUMN_LONG;
         settings.m_granularity = dateGranularity;
         settings.m_replaceOrAppend = ReplaceOrAppend.REPLACE;

@@ -109,22 +109,24 @@ class ModifyTimeNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    @Widget(title = "Modification",
-        description = "Defines the action to be performed on the selected columns. "
-            + "The time can be changed, appended, or removed, with different columns being eligible for each action. "
-            + "For example, only local date columns can have time appended, while local date-time columns can only "
-            + "be modified or have their time component removed.")
+    @Widget(title = "Modification", description = """
+            Defines the action to be performed on the selected columns. \
+            The time can be changed, appended, or removed, with different \
+            columns being eligible for each action. For example, only local \
+            date columns can have time appended, while local date-time \
+            columns can only  be modified or have their time component removed.
+            """)
     @ValueSwitchWidget
     @Persist(customPersistor = BehaviourTypePersistor.class)
     @ValueReference(BehaviourTypeRef.class)
     BehaviourType m_modifySelect = BehaviourType.CHANGE;
 
-    @Widget(title = "Time", description = "A time value in form of HH:mm:ss.SSS.")
+    @Widget(title = "Time", description = "A time value.")
     @Effect(predicate = BehaviourTypeIsRemove.class, type = EffectType.HIDE)
     @Persist(configKey = "time")
     LocalTime m_localTime = LocalTime.now();
 
-    @Widget(title = "Time zone", description = "If checked, the user can choose a time zone to append also.")
+    @Widget(title = "Time zone", description = "If checked, the user can choose a time zone to append.")
     @Persist(configKey = "time_zone")
     @ChoicesWidget(optional = true)
     @Effect(predicate = BehaviourTypeIsAppend.class, type = EffectType.SHOW)
@@ -136,20 +138,19 @@ class ModifyTimeNodeSettings implements DefaultNodeSettings {
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
-    @Widget(title = "Output columns",
-        description = "Depending on the selection, the selected columns will be replaced "
-            + "or appended to the input table.")
+    @Widget(title = "Output columns", description = """
+            Depending on the selection, the selected columns will be replaced \
+            or appended to the input table.
+            """)
     @ValueSwitchWidget
     @Persist(customPersistor = ReplaceOrAppend.Persistor.class)
     @ValueReference(ReplaceOrAppend.ValueRef.class)
     ReplaceOrAppend m_appendOrReplace = ReplaceOrAppend.REPLACE;
 
-    @Widget(title = "Output column suffix",
-        description = "The suffix that is appended to the column name. "
-            + "The suffix will be added to the original column name separated by a space.")
+    @Widget(title = "Output column suffix", description = "The suffix that is appended to the column name.")
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
     @Persist(configKey = "suffix")
-    String m_outputColumnSuffix = " (modified time)";
+    String m_outputColumnSuffix = " (Modified time)";
 
     /*
      * ------------------------------------------------------------------------

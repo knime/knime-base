@@ -109,17 +109,19 @@ public class ModifyDateNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    @Widget(title = "Modification",
-        description = "Defines the action to be performed on the selected columns. "
-            + "The date can be changed, appended, or removed, with different columns being eligible for each action. "
-            + "For example, only local time columns can have date appended, while local date-time columns can only "
-            + "be modified or have their date component removed.")
+    @Widget(title = "Modification", description = """
+            Defines the action to be performed on the selected columns. \
+            The date can be changed, appended, or removed, with different \
+            columns being eligible for each action. For example, only local \
+            time columns can have date appended, while local date-time \
+            columns can only be modified or have their date component removed.
+            """)
     @ValueSwitchWidget
     @Persist(configKey = "modify_select", customPersistor = BehaviourTypePersistor.class)
     @ValueReference(BehaviourTypeRef.class)
     BehaviourType m_behaviourType = BehaviourType.CHANGE;
 
-    @Widget(title = "Date", description = "A date value like YYYY-mm-dd.")
+    @Widget(title = "Date", description = "A date value.")
     @Persist(configKey = "date")
     @Effect(predicate = BehaviourTypeIsRemove.class, type = EffectType.HIDE)
     LocalDate m_localDate = LocalDate.now();
@@ -136,20 +138,19 @@ public class ModifyDateNodeSettings implements DefaultNodeSettings {
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
-    @Widget(title = "Output columns",
-        description = "Depending on the selection, the selected columns will be replaced "
-            + "or appended to the input table.")
+    @Widget(title = "Output columns", description = """
+            Depending on the selection, the selected columns will be replaced \
+            or appended to the input table.
+            """)
     @ValueSwitchWidget
     @Persist(customPersistor = ReplaceOrAppend.Persistor.class)
     @ValueReference(ReplaceOrAppend.ValueRef.class)
     ReplaceOrAppend m_appendOrReplace = ReplaceOrAppend.REPLACE;
 
-    @Widget(title = "Output column suffix",
-        description = "The suffix that is appended to the column name. "
-            + "The suffix will be added to the original column name separated by a space.")
+    @Widget(title = "Output column suffix", description = "The suffix that is appended to the column name.")
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
     @Persist(configKey = "suffix")
-    String m_outputColumnSuffix = " (modified date)";
+    String m_outputColumnSuffix = " (Modified date)";
 
     /*
      * ------------------------------------------------------------------------

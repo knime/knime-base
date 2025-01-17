@@ -41,7 +41,7 @@
               "title" : "Append with suffix"
             } ],
             "title" : "Output columns",
-            "description" : "Depending on the selection, the selected columns will be replaced or appended to the input table.\n<ul>\n<li><b>Replace</b>: The selected columns will be replaced by the new columns.</li>\n<li><b>Append with suffix</b>: The selected columns will be appended to the input table with a new name that is the previous name plus the provided suffix.\n</li>\n</ul>",
+            "description" : "Depending on the selection, the selected columns will be replaced or appended to the input table.\n\n<ul>\n<li><b>Replace</b>: The selected columns will be replaced by the new columns.</li>\n<li><b>Append with suffix</b>: The selected columns will be appended to the input table with a new name that is the previous name plus the provided suffix.\n</li>\n</ul>",
             "default" : "REPLACE"
           },
           "behaviourType" : {
@@ -56,7 +56,7 @@
               "title" : "Remove"
             } ],
             "title" : "Modification",
-            "description" : "Defines the action to be performed on the selected columns. The date can be changed, appended, or removed, with different columns being eligible for each action. For example, only local time columns can have date appended, while local date-time columns can only be modified or have their date component removed.\n<ul>\n<li><b>Change</b>: Changes the date of a date-time column, leaving the timezone unchanged.</li>\n<li><b>Append</b>: Appends a date to a time column, resulting in a date-time column. A time zone can optionally be set.</li>\n<li><b>Remove</b>: Removes the date and timezone information from date-time columns, leaving only the time.</li>\n</ul>",
+            "description" : "Defines the action to be performed on the selected columns. The date can be changed, appended, or removed, with different columns being eligible for each action. For example, only local time columns can have date appended, while local date-time columns can only be modified or have their date component removed.\n\n<ul>\n<li><b>Change</b>: Changes the date of a date-time column, leaving the timezone unchanged.</li>\n<li><b>Append</b>: Appends a date to a time column, resulting in a date-time column. A time zone can optionally be set.</li>\n<li><b>Remove</b>: Removes the date and timezone information from date-time columns, leaving only the time.</li>\n</ul>",
             "default" : "CHANGE"
           },
           "columnFilter" : {
@@ -190,14 +190,14 @@
             "type" : "string",
             "format" : "date",
             "title" : "Date",
-            "description" : "A date value like YYYY-mm-dd.",
+            "description" : "A date value.",
             "default" : "2024-10-31"
           },
           "outputColumnSuffix" : {
             "type" : "string",
             "title" : "Output column suffix",
-            "description" : "The suffix that is appended to the column name. The suffix will be added to the original column name separated by a space.",
-            "default" : " (modified date)"
+            "description" : "The suffix that is appended to the column name.",
+            "default" : " (Modified date)"
           },
           "timeZone" : {
             "type" : "string",

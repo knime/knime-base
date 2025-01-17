@@ -112,7 +112,7 @@ final class DurationToNumberNodeSettings implements DefaultNodeSettings {
     RoundingBehaviour m_roundingBehaviour = RoundingBehaviour.INTEGER;
 
     @Widget(title = "Unit of the number", description = "The unit of the number to output.")
-    TimeBasedGranularityUnit m_unit = TimeBasedGranularityUnit.SECONDS;
+    TimeBasedGranularityUnit m_unit = TimeBasedGranularityUnit.HOURS;
 
     enum RoundingBehaviour {
             @Label(value = "No decimals", description = """

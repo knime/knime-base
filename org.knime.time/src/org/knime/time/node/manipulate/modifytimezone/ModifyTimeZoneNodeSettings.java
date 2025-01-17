@@ -120,20 +120,19 @@ public class ModifyTimeZoneNodeSettings implements DefaultNodeSettings {
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
-    @Widget(title = "Output columns",
-        description = "Depending on the selection, the selected columns will be replaced "
-            + "or appended to the input table.")
+    @Widget(title = "Output columns", description = """
+            Depending on the selection, the selected columns will be replaced \
+            or appended to the input table.
+            """)
     @ValueSwitchWidget
     @Persist(customPersistor = ReplaceOrAppend.Persistor.class)
     @ValueReference(ReplaceOrAppend.ValueRef.class)
-    ReplaceOrAppend m_appendOrReplace = ReplaceOrAppend.APPEND;
+    ReplaceOrAppend m_appendOrReplace = ReplaceOrAppend.REPLACE;
 
-    @Widget(title = "Output column suffix",
-        description = "The suffix that is appended to the column name. "
-            + "The suffix will be added to the original column name separated by a space.")
+    @Widget(title = "Output column suffix", description = "The suffix that is appended to the column name.")
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
     @Persist(configKey = "suffix")
-    String m_outputColumnSuffix = " (modified time zone)";
+    String m_outputColumnSuffix = " (Modified time zone)";
 
     /*
      * ------------------------------------------------------------------------
@@ -141,21 +140,25 @@ public class ModifyTimeZoneNodeSettings implements DefaultNodeSettings {
      * ------------------------------------------------------------------------
      */
     enum BehaviourType implements CompatibleDataValueClassesSupplier {
-            @Label(value = "Set", //
-                description = "Changes the timezone of a date-time column, leaving the nominal time unchanged.")
+            @Label(value = "Set", description = """
+                    Changes the timezone of a date-time column, leaving the wall time \
+                    unchanged.
+                    """)
             SET("Set time zone", List.of(LocalDateTimeValue.class, ZonedDateTimeValue.class)), //
-            @Label(value = "Shift",
-                description = "Changes the timezone of a date-time column, changing the nominal time "
-                    + "so it refers to the same instant. The date and time may change.")
+            @Label(value = "Shift", description = """
+                    Changes the timezone of a date-time column, changing the wall time \
+                    so it refers to the same instant. Both the nominal date and time may \
+                    change.
+                    """)
             SHIFT("Shift time zone", List.of(ZonedDateTimeValue.class)), //
-            @Label(value = "Remove", description = "Removes timezone information from date-time columns.")
+            @Label(value = "Remove", description = "Removes timezone information from zoned date-time columns.")
             REMOVE("Remove time zone", List.of(ZonedDateTimeValue.class));
 
-        private String m_oldConfigValue;
+        private final String m_oldConfigValue;
 
-        private List<Class<? extends DataValue>> m_compatibleDataValues;
+        private final Collection<Class<? extends DataValue>> m_compatibleDataValues;
 
-        BehaviourType(final String oldConfigValue, final List<Class<? extends DataValue>> compatibleDataValues) {
+        BehaviourType(final String oldConfigValue, final Collection<Class<? extends DataValue>> compatibleDataValues) {
             this.m_oldConfigValue = oldConfigValue;
             this.m_compatibleDataValues = compatibleDataValues;
         }

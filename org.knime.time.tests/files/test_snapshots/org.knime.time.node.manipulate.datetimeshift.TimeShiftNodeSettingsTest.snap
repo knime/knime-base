@@ -21,10 +21,10 @@
       },
       "shiftMode" : "SHIFT_VALUE",
       "shiftDurationValue" : "PT0H1M0.000S",
-      "durationColumn" : "",
+      "durationColumn" : "durationTest",
       "granularity" : "HOURS",
       "replaceOrAppend" : "REPLACE",
-      "outputColumnSuffix" : "(shifted)"
+      "outputColumnSuffix" : " (Shifted)"
     }
   },
   "schema" : {
@@ -164,7 +164,7 @@
             "type" : "string",
             "title" : "Column",
             "description" : "Select to choose the shift value from a duration column.\n",
-            "default" : ""
+            "default" : "durationTest"
           },
           "granularity" : {
             "oneOf" : [ {
@@ -199,7 +199,7 @@
             "type" : "string",
             "title" : "Suffix of appended column",
             "description" : "The suffix that is appended to the column name. The suffix will be added to the original column name.\n",
-            "default" : "(shifted)"
+            "default" : " (Shifted)"
           },
           "replaceOrAppend" : {
             "oneOf" : [ {
@@ -231,7 +231,7 @@
               "title" : "Numerical column"
             } ],
             "title" : "Shift mode",
-            "description" : "Select the shift mode to use.\n\n<ul>\n<li><b>Shift Value</b>: A time-based shift value.</li>\n<li><b>Duration column</b>: Select to choose the shift value from a duration column.</li>\n<li><b>Numerical column</b>: Select a numerical column to scale a configurable time unit.</li>\n</ul>",
+            "description" : "Select the shift mode to use.\n<ul>\n<li><b>Shift Value</b>: A time-based shift value.</li>\n<li><b>Duration column</b>: A shift value from a duration column.</li>\n<li><b>Numerical column</b>: Select a numerical column to scale a configurable time unit.</li>\n</ul>",
             "default" : "SHIFT_VALUE"
           }
         }
@@ -459,7 +459,15 @@
     "id" : "org.knime.time.node.manipulate.datetimeshift.TimeShiftNodeSettings$DurationColumns",
     "values" : [ {
       "indices" : [ ],
-      "value" : [ ]
+      "value" : [ {
+        "id" : "durationTest",
+        "text" : "durationTest",
+        "type" : {
+          "id" : "org.knime.core.data.time.duration.DurationValue",
+          "text" : "Duration"
+        },
+        "compatibleTypes" : [ "org.knime.core.data.time.duration.DurationValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
+      } ]
     } ]
   } ],
   "globalUpdates" : [ {
