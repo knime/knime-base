@@ -113,7 +113,7 @@ final class DurationToNumberNodeSettings implements DefaultNodeSettings {
     RoundingBehaviour m_roundingBehaviour = RoundingBehaviour.INTEGER;
 
     @Widget(title = "Unit of the number", description = "The unit of the number to output.")
-    AllowedUnits m_unit = AllowedUnits.SECONDS;
+    AllowedUnits m_unit = AllowedUnits.HOURS;
 
     enum RoundingBehaviour {
             @Label(value = "No decimals", description = """

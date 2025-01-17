@@ -93,12 +93,10 @@ class DateShiftNodeSettings implements DefaultNodeSettings {
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
-    @Widget(title = "Shift mode", description = """
-            Select the shift mode to use.
-            """)
+    @Widget(title = "Shift mode", description = "Select the shift mode to use.")
     @ValueSwitchWidget
     @ValueReference(ShiftModeRef.class)
-    ShiftMode m_shiftMode = ShiftMode.SHIFT;
+    ShiftMode m_shiftMode = ShiftMode.SHIFT_VALUE;
 
     @Widget(title = "Shift Value", description = """
             Select to insert a format string to use as constant shift value. The inserted string \
@@ -152,7 +150,7 @@ class DateShiftNodeSettings implements DefaultNodeSettings {
             column name.
             """)
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
-    String m_outputColumnSuffix = "(shifted)";
+    String m_outputColumnSuffix = " (Shifted)";
 
     /*
      * ------------------------------------------------------------------------
@@ -193,14 +191,14 @@ class DateShiftNodeSettings implements DefaultNodeSettings {
         List.of(LocalDateValue.class, ZonedDateTimeValue.class, LocalDateTimeValue.class);
 
     enum ShiftMode implements CompatibleDataValueClassesSupplier {
+
             @Label(value = "Shift Value", description = "A date-based shift value.")
-            SHIFT(), //
-            @Label(value = "Period column", //
-                description = "Select to choose the shift value from a period column.")
-            PERIOD(), //
+            SHIFT_VALUE, //
+            @Label(value = "Period column", description = "A shift value from a period column.")
+            PERIOD_COLUMN, //
             @Label(value = "Numerical column", //
                 description = "Select a numerical column to scale a configurable time unit.")
-            NUMERICAL(); //
+            NUMERICAL_COLUMN;
 
         @Override
         public Collection<Class<? extends DataValue>> getCompatibleDataValueClasses() {
@@ -221,7 +219,7 @@ class DateShiftNodeSettings implements DefaultNodeSettings {
 
         @Override
         public Predicate init(final PredicateInitializer i) {
-            return i.getEnum(ShiftModeRef.class).isOneOf(ShiftMode.SHIFT);
+            return i.getEnum(ShiftModeRef.class).isOneOf(ShiftMode.SHIFT_VALUE);
         }
     }
 
@@ -229,7 +227,7 @@ class DateShiftNodeSettings implements DefaultNodeSettings {
 
         @Override
         public Predicate init(final PredicateInitializer i) {
-            return i.getEnum(ShiftModeRef.class).isOneOf(ShiftMode.PERIOD);
+            return i.getEnum(ShiftModeRef.class).isOneOf(ShiftMode.PERIOD_COLUMN);
         }
     }
 
@@ -237,7 +235,7 @@ class DateShiftNodeSettings implements DefaultNodeSettings {
 
         @Override
         public Predicate init(final PredicateInitializer i) {
-            return i.getEnum(ShiftModeRef.class).isOneOf(ShiftMode.NUMERICAL);
+            return i.getEnum(ShiftModeRef.class).isOneOf(ShiftMode.NUMERICAL_COLUMN);
         }
     }
 
@@ -256,10 +254,14 @@ class DateShiftNodeSettings implements DefaultNodeSettings {
     }
 
     enum DateGranularity {
+
             @Label("Days")
-            DAYS(Granularity.DAY), @Label("Weeks")
-            WEEKS(Granularity.WEEK), @Label("Months")
-            MONTHS(Granularity.MONTH), @Label("Years")
+            DAYS(Granularity.DAY), //
+            @Label("Weeks")
+            WEEKS(Granularity.WEEK), //
+            @Label("Months")
+            MONTHS(Granularity.MONTH), //
+            @Label("Years")
             YEARS(Granularity.YEAR);
 
         private final Granularity m_granularity;

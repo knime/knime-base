@@ -210,7 +210,7 @@
             } ],
             "title" : "Unit of the number",
             "description" : "The unit of the number to output.",
-            "default" : "SECONDS"
+            "default" : "HOURS"
           }
         }
       }

@@ -54,6 +54,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.data.time.duration.DurationCell;
 import org.knime.core.data.time.localdatetime.LocalDateTimeCell;
 import org.knime.core.data.time.localtime.LocalTimeCell;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCell;
@@ -74,11 +75,15 @@ public class TimeShiftNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         new String[]{ //
             "localTimeTest", //
             "localDateTimeTest", //
-            "zonedDateTimeTest"},
+            "zonedDateTimeTest", //
+            "durationTest" //
+        }, //
         new DataType[]{ //
             DataType.getType(LocalTimeCell.class), //
             DataType.getType(LocalDateTimeCell.class), //
-            DataType.getType(ZonedDateTimeCell.class)} //
+            DataType.getType(ZonedDateTimeCell.class), //
+            DataType.getType(DurationCell.class) //
+        } //
             )};
 
     protected TimeShiftNodeSettingsTest() {

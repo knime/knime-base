@@ -77,10 +77,10 @@ final class DateShiftNodeModel extends WebUINodeModel<DateShiftNodeSettings> {
         throws InvalidSettingsException {
 
         switch (settings.m_shiftMode) {
-            case PERIOD:
+            case PERIOD_COLUMN:
                 DateTimeShiftSettingsUtils.validatePeriodColumn(settings.m_periodColumn, inSpecs[0]);
                 break;
-            case NUMERICAL:
+            case NUMERICAL_COLUMN:
                 DateTimeShiftSettingsUtils.validateNumericalColumn(settings.m_numericalColumn, inSpecs[0]);
                 break;
             default:
@@ -118,11 +118,11 @@ final class DateShiftNodeModel extends WebUINodeModel<DateShiftNodeSettings> {
             .build();
 
         return switch (settings.m_shiftMode) {
-            case PERIOD -> DateTimeShiftUtils.createColumnRearranger(spec, shiftNodeSettings,
+            case PERIOD_COLUMN -> DateTimeShiftUtils.createColumnRearranger(spec, shiftNodeSettings,
                 GenericShiftType.TEMPORAL_COLUMN);
-            case NUMERICAL -> DateTimeShiftUtils.createColumnRearranger(spec, shiftNodeSettings,
+            case NUMERICAL_COLUMN -> DateTimeShiftUtils.createColumnRearranger(spec, shiftNodeSettings,
                 GenericShiftType.NUMERICAL_COLUMN);
-            case SHIFT -> DateTimeShiftUtils.createColumnRearranger(spec, shiftNodeSettings,
+            case SHIFT_VALUE -> DateTimeShiftUtils.createColumnRearranger(spec, shiftNodeSettings,
                 GenericShiftType.TEMPORAL_VALUE);
             default -> new ColumnRearranger(spec); // do nothing
         };
