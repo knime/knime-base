@@ -58,7 +58,6 @@ import org.knime.core.data.DataValue;
 import org.knime.core.data.time.duration.DurationValue;
 import org.knime.core.data.time.period.PeriodValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -81,11 +80,9 @@ class ExtractDurationPeriodFieldsNodeSettings implements DefaultNodeSettings {
     @ChoicesWidget(choices = SelectedInputColumnHelpers.ColumnChoicesProvider.class)
     @ValueReference(SelectedInputColumnHelpers.ValueRef.class)
     @ValueProvider(SelectedInputColumnHelpers.ValueProvider.class)
-    @Persist(configKey = "col_select")
     public String m_selectedColumn;
 
     @Widget(title = "Extracted fields", description = "Define fields to extract and set column names.")
-    @Persist(customPersistor = ExtractFieldSettings.Persistor.class)
     @ArrayWidget( //
         addButtonText = "Add field", //
         showSortButtons = true, //

@@ -6,125 +6,24 @@
         <entry key="memory_policy" type="xstring" value="CacheSmallInMemory"/>
     </config>
     <config key="model">
-        <config key="col_select_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_string"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="col_select" type="xstring" value="local_date_time"/>
-        <config key="Year_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="Year" type="xboolean" value="true"/>
-        <config key="Year (week-based)_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="Year (week-based)" type="xboolean" value="true"/>
-        <config key="Quarter_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="Quarter" type="xboolean" value="true"/>
-        <config key="Month (number)_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="Month (number)" type="xboolean" value="true"/>
-        <config key="Month (name)_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="Month (name)" type="xboolean" value="false"/>
-        <config key="Week_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="Week" type="xboolean" value="true"/>
-        <config key="Day of year_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="Day of year" type="xboolean" value="false"/>
-        <config key="Day of month_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="Day of month" type="xboolean" value="true"/>
-        <config key="Day of week (number)_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="Day of week (number)" type="xboolean" value="true"/>
-        <config key="Day of week (name)_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="Day of week (name)" type="xboolean" value="true"/>
-        <config key="Hour_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="Hour" type="xboolean" value="true"/>
-        <config key="Minute_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="Minute" type="xboolean" value="true"/>
-        <config key="Second_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="Second" type="xboolean" value="true"/>
-        <config key="Subsecond in_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="Subsecond in" type="xboolean" value="true"/>
-        <config key="subsecond_units_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_string"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="subsecond_units" type="xstring" value="microseconds"/>
-        <config key="Time zone name_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="Time zone name" type="xboolean" value="true"/>
-        <config key="Time zone offset_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="Time zone offset" type="xboolean" value="true"/>
-        <config key="locale_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_string"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="locale" type="xstring" value="he-IL"/>
-    </config>
-    <config key="variables">
-        <entry key="version" type="xstring" value="V_2019_09_13"/>
-        <config key="tree">
-            <config key="Second">
-                <entry key="used_variable" type="xstring" value="extract-second"/>
-                <entry key="exposed_variable" type="xstring" isnull="true" value=""/>
-            </config>
-        </config>
+        <entry key="selectedColumn" type="xstring" isnull="true" value=""/>
+        <config key="extractFields"/>
+        <entry key="locale" type="xstring" value="en-US"/>
     </config>
     <entry key="customDescription" type="xstring" isnull="true" value=""/>
-    <entry key="state" type="xstring" value="CONFIGURED"/>
+    <entry key="state" type="xstring" value="IDLE"/>
     <entry key="factory" type="xstring" value="org.knime.time.node.extract.datetime.ExtractDateTimeFieldsNodeFactory2"/>
-    <entry key="node-name" type="xstring" value="Extract Date&amp;Time Fields"/>
+    <entry key="node-name" type="xstring" value="Date&amp;Time Part Extractor"/>
     <entry key="node-bundle-name" type="xstring" value="KNIME Date and Time Handling"/>
     <entry key="node-bundle-symbolic-name" type="xstring" value="org.knime.time"/>
     <entry key="node-bundle-vendor" type="xstring" value="KNIME AG, Zurich, Switzerland"/>
-    <entry key="node-bundle-version" type="xstring" value="5.2.0.v202310301554"/>
-    <entry key="node-feature-name" type="xstring" value="KNIME Base nodes"/>
-    <entry key="node-feature-symbolic-name" type="xstring" value="org.knime.features.base.feature.group"/>
-    <entry key="node-feature-vendor" type="xstring" value="KNIME AG, Zurich, Switzerland"/>
-    <entry key="node-feature-version" type="xstring" value="5.2.2.v202403061155"/>
+    <entry key="node-bundle-version" type="xstring" value="5.5.0.qualifier"/>
+    <entry key="node-feature-name" type="xstring" isnull="true" value=""/>
+    <entry key="node-feature-symbolic-name" type="xstring" isnull="true" value=""/>
+    <entry key="node-feature-vendor" type="xstring" isnull="true" value=""/>
+    <entry key="node-feature-version" type="xstring" value="0.0.0"/>
     <config key="factory_settings"/>
-    <entry key="name" type="xstring" value="Extract Date&amp;Time Fields"/>
+    <entry key="name" type="xstring" value="Date&amp;Time Part Extractor"/>
     <entry key="hasContent" type="xboolean" value="false"/>
     <entry key="isInactive" type="xboolean" value="false"/>
     <config key="ports">

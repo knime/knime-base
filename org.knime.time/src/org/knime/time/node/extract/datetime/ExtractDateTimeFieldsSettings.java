@@ -68,7 +68,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
@@ -98,14 +97,19 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
     }
 
     ExtractDateTimeFieldsSettings(final DefaultNodeSettingsContext context) {
-        m_selectedColumn = context.getDataTableSpec(0).map(ExtractDateTimeFieldsSettings::autoGuessColumn).orElse(null);
+        m_selectedColumn = context.getDataTableSpec(0) //
+            .map(ExtractDateTimeFieldsSettings::autoGuessColumn) //
+            .orElse(null);
     }
 
     static String autoGuessColumn(final DataTableSpec spec) {
         if (spec == null) {
             return null;
         }
-        return spec.stream().filter(colSpec -> isDateTimeCompatible(colSpec)).findFirst().map(DataColumnSpec::getName)
+        return spec.stream() //
+            .filter(ExtractDateTimeFieldsSettings::isDateTimeCompatible) //
+            .findFirst() //
+            .map(DataColumnSpec::getName) //
             .orElse(null);
     }
 
@@ -120,18 +124,12 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
 
         private Supplier<String> m_valueSupplier;
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public void init(final StateProviderInitializer initializer) {
             initializer.computeAfterOpenDialog();
             m_valueSupplier = initializer.getValueSupplier(SelectedColumnRef.class);
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public String computeState(final DefaultNodeSettingsContext context) {
             if (m_valueSupplier.get() == null || m_valueSupplier.get().isEmpty()) {
@@ -144,7 +142,6 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
     @Widget(title = "Date&Time column",
         description = "A Local Date, Local Time, Local Date Time or "
             + "Zoned Date Time column whose fields to extract.")
-    @Persist(configKey = "col_select")
     @ChoicesWidget(choices = DateTimeColumnChoices.class)
     @Layout(ColumnSection.class)
     @ValueReference(SelectedColumnRef.class)
@@ -176,7 +173,6 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
     }
 
     @Widget(title = "Extracted fields", description = "Define date or time fields to extract and set column names.")
-    @Persist(customPersistor = DateTimeFieldsPersistor.class)
     @ArrayWidget(addButtonText = "Add field", showSortButtons = true,
         elementDefaultValueProvider = DefaultExtractFieldProvider.class)
     @Layout(DateTimeFieldsSection.class)
@@ -346,15 +342,15 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
         }
     }
 
-    private static DateTimeField[] dateFields =
+    private static final DateTimeField[] DATE_FIELDS =
         new DateTimeField[]{DateTimeField.YEAR, DateTimeField.YEAR_WEEK_BASED, DateTimeField.QUARTER,
             DateTimeField.MONTH_NUMBER, DateTimeField.MONTH_NAME, DateTimeField.WEEK, DateTimeField.DAY_OF_YEAR,
             DateTimeField.DAY_OF_MONTH, DateTimeField.DAY_OF_WEEK_NUMBER, DateTimeField.DAY_OF_WEEK_NAME};
 
-    private static DateTimeField[] timeFields = new DateTimeField[]{DateTimeField.HOUR, DateTimeField.MINUTE,
+    private static final DateTimeField[] TIME_FIELDS = new DateTimeField[]{DateTimeField.HOUR, DateTimeField.MINUTE,
         DateTimeField.SECOND, DateTimeField.MILLISECOND, DateTimeField.MICROSECOND, DateTimeField.NANOSECOND};
 
-    private static DateTimeField[] timeZoneFields =
+    private static final DateTimeField[] TIME_ZONE_FIELDS =
         new DateTimeField[]{DateTimeField.TIME_ZONE_NAME, DateTimeField.TIME_ZONE_OFFSET};
 
     static final class FilteredPossibleFieldsChoices implements StringChoicesStateProvider {
@@ -376,15 +372,15 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
                 var colSpec = spec.get().getColumnSpec(selectedColumn);
                 if (isDateType(colSpec)) {
                     filteredChoices
-                        .addAll(Arrays.stream(dateFields).map(ExtractDateTimeFieldsSettings::toIdAndText).toList());
+                        .addAll(Arrays.stream(DATE_FIELDS).map(ExtractDateTimeFieldsSettings::toIdAndText).toList());
                 }
                 if (isTimeType(colSpec)) {
                     filteredChoices
-                        .addAll(Arrays.stream(timeFields).map(ExtractDateTimeFieldsSettings::toIdAndText).toList());
+                        .addAll(Arrays.stream(TIME_FIELDS).map(ExtractDateTimeFieldsSettings::toIdAndText).toList());
                 }
                 if (isZonedType(colSpec)) {
-                    filteredChoices
-                        .addAll(Arrays.stream(timeZoneFields).map(ExtractDateTimeFieldsSettings::toIdAndText).toList());
+                    filteredChoices.addAll(
+                        Arrays.stream(TIME_ZONE_FIELDS).map(ExtractDateTimeFieldsSettings::toIdAndText).toList());
                 }
             }
             return filteredChoices.toArray(IdAndText[]::new);
@@ -398,24 +394,17 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
 
         private Supplier<DateTimeField> m_valueSupplier;
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public void init(final StateProviderInitializer initializer) {
             initializer.computeBeforeOpenDialog();
             m_valueSupplier = initializer.computeFromValueSupplier(DateTimeFieldReference.class);
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public String computeState(final DefaultNodeSettingsContext context) {
             final var dateTimeField = m_valueSupplier.get();
             return dateTimeField == null ? "" : dateTimeField.getLabelValue();
         }
-
     }
 
     static boolean isDateTimeCompatible(final DataColumnSpec colSpec) {

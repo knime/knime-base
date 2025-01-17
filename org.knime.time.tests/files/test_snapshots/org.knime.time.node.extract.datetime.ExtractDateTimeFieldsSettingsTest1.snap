@@ -1,51 +1,8 @@
 {
   "data" : {
     "model" : {
-      "selectedColumn" : "local_date_time",
-      "extractFields" : [ {
-        "field" : "YEAR",
-        "columnName" : "Year"
-      }, {
-        "field" : "YEAR_WEEK_BASED",
-        "columnName" : "Year (week-based)"
-      }, {
-        "field" : "QUARTER",
-        "columnName" : "Quarter"
-      }, {
-        "field" : "MONTH_NUMBER",
-        "columnName" : "Month (number)"
-      }, {
-        "field" : "WEEK",
-        "columnName" : "Week"
-      }, {
-        "field" : "DAY_OF_MONTH",
-        "columnName" : "Day of month"
-      }, {
-        "field" : "DAY_OF_WEEK_NUMBER",
-        "columnName" : "Day of week (number)"
-      }, {
-        "field" : "DAY_OF_WEEK_NAME",
-        "columnName" : "Day of week (name)"
-      }, {
-        "field" : "HOUR",
-        "columnName" : "Hour"
-      }, {
-        "field" : "MINUTE",
-        "columnName" : "Minute"
-      }, {
-        "field" : "SECOND",
-        "columnName" : "Second"
-      }, {
-        "field" : "MICROSECOND",
-        "columnName" : "Subsecond (in microseconds)"
-      }, {
-        "field" : "TIME_ZONE_NAME",
-        "columnName" : "Time zone name"
-      }, {
-        "field" : "TIME_ZONE_OFFSET",
-        "columnName" : "Time zone offset"
-      } ],
-      "locale" : "he-IL"
+      "extractFields" : [ ],
+      "locale" : "en-US"
     }
   },
   "schema" : {
@@ -226,15 +183,9 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "selectedColumn" : {
-            "configKey" : "col_select"
-          },
+          "selectedColumn" : { },
           "extractFields" : {
             "type" : "array",
-            "deprecatedConfigKeys" : [ {
-              "new" : [ [ ] ],
-              "deprecated" : [ [ "Year" ], [ "Year (week-based)" ], [ "Quarter" ], [ "Month (number)" ], [ "Month (name)" ], [ "Week" ], [ "Day of year" ], [ "Day of month" ], [ "Day of week (number)" ], [ "Day of week (name)" ], [ "Hour" ], [ "Minute" ], [ "Second" ], [ "Subsecond in" ], [ "Time zone name" ], [ "Time zone offset" ], [ "subsecond_units" ] ]
-            } ],
             "items" : {
               "type" : "object",
               "properties" : {
@@ -251,49 +202,7 @@
   "initialUpdates" : [ {
     "scopes" : null,
     "id" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$ColumnNameProvider",
-    "values" : [ {
-      "indices" : [ 0 ],
-      "value" : "Year"
-    }, {
-      "indices" : [ 1 ],
-      "value" : "Year (Week-based)"
-    }, {
-      "indices" : [ 10 ],
-      "value" : "Second"
-    }, {
-      "indices" : [ 11 ],
-      "value" : "Microsecond"
-    }, {
-      "indices" : [ 12 ],
-      "value" : "Time Zone Name"
-    }, {
-      "indices" : [ 13 ],
-      "value" : "Time Zone Offset"
-    }, {
-      "indices" : [ 2 ],
-      "value" : "Quarter"
-    }, {
-      "indices" : [ 3 ],
-      "value" : "Month (Number)"
-    }, {
-      "indices" : [ 4 ],
-      "value" : "Week"
-    }, {
-      "indices" : [ 5 ],
-      "value" : "Day of Month"
-    }, {
-      "indices" : [ 6 ],
-      "value" : "Day of Week (Number)"
-    }, {
-      "indices" : [ 7 ],
-      "value" : "Day of Week (Name)"
-    }, {
-      "indices" : [ 8 ],
-      "value" : "Hour"
-    }, {
-      "indices" : [ 9 ],
-      "value" : "Minute"
-    } ]
+    "values" : [ ]
   }, {
     "scopes" : null,
     "id" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$DefaultExtractFieldProvider",

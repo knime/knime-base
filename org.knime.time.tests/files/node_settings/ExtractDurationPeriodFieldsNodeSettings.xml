@@ -6,66 +6,23 @@
         <entry key="memory_policy" type="xstring" value="CacheSmallInMemory"/>
     </config>
     <config key="model">
-        <config key="col_select_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_string"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="col_select" type="xstring" isnull="true" value=""/>
-        <config key="Hours_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="Hours" type="xboolean" value="true"/>
-        <config key="Minutes_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="Minutes" type="xboolean" value="false"/>
-        <config key="Seconds_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="Seconds" type="xboolean" value="false"/>
-        <config key="subsecond_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="subsecond" type="xboolean" value="true"/>
-        <config key="subsecond_units_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_string"/>
-            <entry key="EnabledStatus" type="xboolean" value="false"/>
-        </config>
-        <entry key="subsecond_units" type="xstring" value="Millis"/>
-        <config key="Years_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="Years" type="xboolean" value="false"/>
-        <config key="Months_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="Months" type="xboolean" value="false"/>
-        <config key="Days_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="Days" type="xboolean" value="false"/>
+        <entry key="selectedColumn" type="xstring" isnull="true" value=""/>
+        <config key="extractFields"/>
     </config>
     <entry key="customDescription" type="xstring" isnull="true" value=""/>
     <entry key="state" type="xstring" value="IDLE"/>
-    <entry key="factory" type="xstring" value="org.knime.time.node.extract.durationperiod.ExtractDurationPeriodFieldsNodeFactory"/>
-    <entry key="node-name" type="xstring" value="Extract Duration Fields"/>
+    <entry key="factory" type="xstring" value="org.knime.time.node.extract.durationperiod.ExtractDurationPeriodFieldsNodeFactory2"/>
+    <entry key="node-name" type="xstring" value="Duration Part Extractor (Labs)"/>
     <entry key="node-bundle-name" type="xstring" value="KNIME Date and Time Handling"/>
     <entry key="node-bundle-symbolic-name" type="xstring" value="org.knime.time"/>
     <entry key="node-bundle-vendor" type="xstring" value="KNIME AG, Zurich, Switzerland"/>
-    <entry key="node-bundle-version" type="xstring" value="5.4.0.qualifier"/>
+    <entry key="node-bundle-version" type="xstring" value="5.5.0.qualifier"/>
     <entry key="node-feature-name" type="xstring" isnull="true" value=""/>
     <entry key="node-feature-symbolic-name" type="xstring" isnull="true" value=""/>
     <entry key="node-feature-vendor" type="xstring" isnull="true" value=""/>
     <entry key="node-feature-version" type="xstring" value="0.0.0"/>
     <config key="factory_settings"/>
-    <entry key="name" type="xstring" value="Extract Duration Fields"/>
+    <entry key="name" type="xstring" value="Duration Part Extractor (Labs)"/>
     <entry key="hasContent" type="xboolean" value="false"/>
     <entry key="isInactive" type="xboolean" value="false"/>
     <config key="ports">

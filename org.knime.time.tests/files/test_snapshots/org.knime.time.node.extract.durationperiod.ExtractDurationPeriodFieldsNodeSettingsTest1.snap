@@ -1,13 +1,7 @@
 {
   "data" : {
     "model" : {
-      "extractFields" : [ {
-        "field" : "HOURS",
-        "outputcolumnName" : "Hours"
-      }, {
-        "field" : "MILLIS_ALL",
-        "outputcolumnName" : "Millis"
-      } ]
+      "extractFields" : [ ]
     }
   },
   "schema" : {
@@ -148,15 +142,9 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "selectedColumn" : {
-            "configKey" : "col_select"
-          },
+          "selectedColumn" : { },
           "extractFields" : {
             "type" : "array",
-            "deprecatedConfigKeys" : [ {
-              "new" : [ [ "extracted_fields" ] ],
-              "deprecated" : [ [ "Year" ], [ "Months" ], [ "Days" ], [ "Hours" ], [ "Minutes" ], [ "Seconds" ], [ "Millis" ], [ "Micros" ], [ "Nanos" ], [ "subsecond" ] ]
-            } ],
             "items" : {
               "type" : "object",
               "properties" : {
@@ -186,13 +174,7 @@
   }, {
     "scopes" : null,
     "id" : "org.knime.time.node.extract.durationperiod.ExtractFieldSettings$OutputColumnNamePlaceholderProvider",
-    "values" : [ {
-      "indices" : [ 0 ],
-      "value" : "Hours"
-    }, {
-      "indices" : [ 1 ],
-      "value" : "Milliseconds (all subseconds)"
-    } ]
+    "values" : [ ]
   } ],
   "globalUpdates" : [ {
     "trigger" : {
