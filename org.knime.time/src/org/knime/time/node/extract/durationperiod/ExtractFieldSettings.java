@@ -48,26 +48,18 @@
  */
 package org.knime.time.node.extract.durationperiod;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.time.duration.DurationValue;
 import org.knime.core.data.time.period.PeriodValue;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultPersistorWithDeprecations;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateProvider;
@@ -114,76 +106,6 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
     @Layout(ExtractFieldWidgetLayout.class)
     @TextInputWidget(placeholderProvider = OutputColumnNamePlaceholderProvider.class)
     String m_outputcolumnName;
-
-    /**
-     * Backwards compatible persistor for the {@link ExtractFieldSettings} class. Will load in the old configuration
-     * format if it is present, and convert it to the new format.
-     */
-    static class Persistor extends NodeSettingsPersistorWithConfigKey<ExtractFieldSettings[]>
-        implements DefaultPersistorWithDeprecations<ExtractFieldSettings[]> {
-
-        private static final String OLD_KEY_USE_SUBSECONDS = "subsecond";
-
-        private static final String OLD_KEY_SUBSECOND_UNITS = "subsecond_units";
-
-        private static final String KEY_NEW_CONFIG_PATH = "extracted_fields";
-
-        private static ExtractFieldSettings[] loadOldConfig(final NodeSettingsRO settings) {
-
-            Predicate<ExtractableField> isSelectedInOldConfig = field -> field.getOldConfigValue() //
-                .map(key -> settings.getBoolean(key, false)) //
-                .orElse(false);
-
-            final List<ExtractFieldSettings> fieldsExceptSubSeconds = List.of( //
-                ExtractableField.YEARS, //
-                ExtractableField.MONTHS, //
-                ExtractableField.DAYS, //
-                ExtractableField.HOURS, //
-                ExtractableField.MINUTES, //
-                ExtractableField.SECONDS //
-            ).stream() //
-                .filter(isSelectedInOldConfig) //
-                .map(extractableFieldPresentInOldConfig -> new ExtractFieldSettings( //
-                    extractableFieldPresentInOldConfig, //
-                    // old config value is same as old output column name, so we can use it here
-                    extractableFieldPresentInOldConfig.getOldConfigValue().orElseThrow() //
-                )) //
-                .collect(Collectors.toCollection(ArrayList<ExtractFieldSettings>::new)); // modifiable list
-
-            // skip the subseconds if the old config is missing the key
-            if (settings.getBoolean(OLD_KEY_USE_SUBSECONDS, false)) {
-                var subsecondUnits = ExtractableField.getByOldConfigValue( //
-                    settings.getString( //
-                        OLD_KEY_SUBSECOND_UNITS, //
-                        ExtractableField.MILLIS_ALL.getOldConfigValue().orElseThrow() //
-                    ) //
-                );
-                fieldsExceptSubSeconds.add(new ExtractFieldSettings( //
-                    subsecondUnits, //
-                    // old config value is same as old output column name, so we can use it here
-                    subsecondUnits.getOldConfigValue().orElseThrow() //
-                ));
-            }
-
-            return fieldsExceptSubSeconds.toArray(ExtractFieldSettings[]::new);
-        }
-
-        @Override
-        public List<ConfigsDeprecation<ExtractFieldSettings[]>> getConfigsDeprecations() {
-            var deprecationBuilder = ConfigsDeprecation.<ExtractFieldSettings[]> builder(Persistor::loadOldConfig);
-
-            Arrays.stream(ExtractableField.values()) //
-                .map(ExtractableField::getOldConfigValue) //
-                .flatMap(Optional::stream) //
-                .forEach(deprecationBuilder::withDeprecatedConfigPath);
-            deprecationBuilder.withDeprecatedConfigPath(OLD_KEY_USE_SUBSECONDS);
-
-            deprecationBuilder.withMatcher(settings -> !settings.containsKey(getConfigKey())); //
-            deprecationBuilder.forNewConfigPath(KEY_NEW_CONFIG_PATH);
-
-            return List.of(deprecationBuilder.build());
-        }
-    }
 
     /**
      * A state provider that computes the placeholder text for the output column name text input field in the

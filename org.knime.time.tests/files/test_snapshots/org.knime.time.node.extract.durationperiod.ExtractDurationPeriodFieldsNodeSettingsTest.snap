@@ -142,15 +142,9 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "selectedColumn" : {
-            "configKey" : "col_select"
-          },
+          "selectedColumn" : { },
           "extractFields" : {
             "type" : "array",
-            "deprecatedConfigKeys" : [ {
-              "new" : [ [ "extracted_fields" ] ],
-              "deprecated" : [ [ "Year" ], [ "Months" ], [ "Days" ], [ "Hours" ], [ "Minutes" ], [ "Seconds" ], [ "Millis" ], [ "Micros" ], [ "Nanos" ], [ "subsecond" ] ]
-            } ],
             "items" : {
               "type" : "object",
               "properties" : {
