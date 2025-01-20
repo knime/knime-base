@@ -85,6 +85,9 @@ final class TopSelector implements TopKSelector {
      */
     @Override
     public Collection<DataRow> getTopK() {
+        if (m_topElement == null) {
+            return Collections.emptyList();
+        }
         return Collections.singletonList(m_topElement);
     }
 
