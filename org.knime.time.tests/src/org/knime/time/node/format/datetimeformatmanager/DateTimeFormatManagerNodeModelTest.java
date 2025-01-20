@@ -64,6 +64,7 @@ import org.knime.base.node.viz.format.AlignmentSuggestionOption;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
 import org.knime.core.data.property.ValueFormatHandler;
+import org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
@@ -77,7 +78,7 @@ import org.knime.testing.util.WorkflowManagerUtil;
 import org.mockito.Mockito;
 
 @SuppressWarnings({"restriction", "squid:S5960"})
-class DateTimeFormatManagerNodeModelTest {
+final class DateTimeFormatManagerNodeModelTest {
 
     private NativeNodeContainer m_dateTimeFormatManagerNode;
 
@@ -171,6 +172,21 @@ class DateTimeFormatManagerNodeModelTest {
         assertTrue(testSetup.firstCell.isMissing(), "Output cell should be missing");
     }
 
+    @Test
+    void testThatEmptyInputGivesNoError() throws InvalidSettingsException, IOException {
+        final var settings = new DateTimeFormatManagerNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
+        settings.m_locale = Locale.ENGLISH.toLanguageTag();
+        settings.m_format = "yyyy-MM-dd HH:mm:ss [VV]";
+        settings.m_alignmentSuggestion = AlignmentSuggestionOption.CENTER;
+
+        var testSetup = setupAndExecuteWorkflow(settings, null);
+
+        assertTrue(testSetup.success, "Execution should have been successful");
+        assertTrue(testSetup.firstCell == null, "Output cell should not exists");
+        assertTrue(testSetup.outputTable.size() == 0, "Ouptput table should be empty");
+    }
+
     private Supplier<BufferedDataTable> connectInputTableAndExecute(final DateTimeFormatManagerNodeSettings settings)
         throws InvalidSettingsException {
         setSettings(settings);
@@ -217,12 +233,18 @@ class DateTimeFormatManagerNodeModelTest {
         workflowManager.loadNodeSettings(node.getID(), nodeSettings);
 
         // populate the input table
-        var inputTableSpec = new TableTestUtil.SpecBuilder() //
-            .addColumn(INPUT_COLUMN, cellToAdd.getType()) //
-            .build();
-        var inputTable = new TableTestUtil.TableBuilder(inputTableSpec) //
-            .addRow(cellToAdd) //
-            .build();
+        var inputTableSpecBuilder = new TableTestUtil.SpecBuilder();
+        if (cellToAdd != null) {
+            inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMN, cellToAdd.getType());
+        } else {
+            inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMN, LocalDateTimeCellFactory.TYPE);
+        }
+        var inputTableSpec = inputTableSpecBuilder.build();
+        var inputTableBuilder = new TableTestUtil.TableBuilder(inputTableSpec);
+        if (cellToAdd != null) {
+            inputTableBuilder = inputTableBuilder.addRow(cellToAdd);
+        }
+        var inputTable = inputTableBuilder.build();
         var tableSupplierNode =
             WorkflowManagerUtil.createAndAddNode(workflowManager, new InputTableNode.InputDataNodeFactory(inputTable));
 
@@ -234,6 +256,9 @@ class DateTimeFormatManagerNodeModelTest {
 
         var outputTable = (BufferedDataTable)node.getOutPort(1).getPortObject();
 
+        if (outputTable.size() == 0) {
+            return new TestSetup(outputTable, null, success);
+        }
         try (var it = outputTable.iterator()) {
             return new TestSetup( //
                 outputTable, //

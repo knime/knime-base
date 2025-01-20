@@ -70,6 +70,7 @@ import org.knime.InputTableNode.NamedCell;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.LongCell;
+import org.knime.core.data.def.LongCell.LongCellFactory;
 import org.knime.core.data.time.duration.DurationCellFactory;
 import org.knime.core.data.time.localdatetime.LocalDateTimeCell;
 import org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory;
@@ -93,7 +94,7 @@ import org.knime.time.node.manipulate.datetimeshift.TimeShiftNodeSettings.TimeGr
 import org.knime.time.util.ReplaceOrAppend;
 
 @SuppressWarnings("restriction")
-class TimeShiftNodeModelTest {
+final class TimeShiftNodeModelTest {
 
     private NativeNodeContainer m_timeShiftNode;
 
@@ -104,7 +105,6 @@ class TimeShiftNodeModelTest {
     private static final String NODE_NAME = "TimeShiftNode";
 
     private static final Class<? extends DefaultNodeSettings> SETTINGS_CLASS = TimeShiftNodeSettings.class;
-
 
     @BeforeEach
     void resetWorkflow() throws IOException {
@@ -372,7 +372,8 @@ class TimeShiftNodeModelTest {
         final LocalTime localTimeBefore, final LocalDateTime localDateTimeBefore,
         final ZonedDateTime zonedDateTimeBefore, final String testName) throws IOException, InvalidSettingsException {
 
-        TemporalAmount temporalAmountToShift = timeGranularity.getGranularity().getPeriodOrDuration(numericalValueToShift);
+        TemporalAmount temporalAmountToShift =
+            timeGranularity.getGranularity().getPeriodOrDuration(numericalValueToShift);
 
         // settings
         final var settings = new TimeShiftNodeSettings();
@@ -457,6 +458,47 @@ class TimeShiftNodeModelTest {
         assertTrue(testSetup.firstCell.isMissing(), "Output cell should be missing");
     }
 
+    @Test
+    void testNumericalThatEmptyInputGivesNoError() throws InvalidSettingsException, IOException {
+        var settings = new TimeShiftNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
+        settings.m_shiftMode = ShiftMode.NUMERICAL_COLUMN;
+        settings.m_numericalColumn = INPUT_COLUMN;
+
+        var testSetup = setupAndExecuteWorkflow(settings, null, LongCellFactory.TYPE);
+
+        assertTrue(testSetup.success, "Execution should have been successful");
+        assertTrue(testSetup.firstCell == null, "Output cell should not exists");
+        assertTrue(testSetup.outputTable.size() == 0, "Ouptput table should be empty");
+    }
+
+    @Test
+    void testDurationThatEmptyInputGivesNoError() throws InvalidSettingsException, IOException {
+        var settings = new TimeShiftNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
+        settings.m_shiftMode = ShiftMode.DURATION_COLUMN;
+        settings.m_durationColumn = INPUT_COLUMN;
+
+        var testSetup = setupAndExecuteWorkflow(settings, null, DurationCellFactory.TYPE);
+
+        assertTrue(testSetup.success, "Execution should have been successful");
+        assertTrue(testSetup.firstCell == null, "Output cell should not exists");
+        assertTrue(testSetup.outputTable.size() == 0, "Ouptput table should be empty");
+    }
+
+    @Test
+    void testShiftThatEmptyInputGivesNoError() throws InvalidSettingsException, IOException {
+        var settings = new TimeShiftNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
+        settings.m_shiftMode = ShiftMode.SHIFT_VALUE;
+
+        var testSetup = setupAndExecuteWorkflow(settings, null);
+
+        assertTrue(testSetup.success, "Execution should have been successful");
+        assertTrue(testSetup.firstCell == null, "Output cell should not exists");
+        assertTrue(testSetup.outputTable.size() == 0, "Ouptput table should be empty");
+    }
+
     private void setSettings(final TimeShiftNodeSettings settings) throws InvalidSettingsException {
         final var nodeSettings = new NodeSettings("TimeShiftNode");
         m_wfm.saveNodeSettings(m_timeShiftNode.getID(), nodeSettings);
@@ -470,6 +512,11 @@ class TimeShiftNodeModelTest {
 
     static TestSetup setupAndExecuteWorkflow(final TimeShiftNodeSettings settings, final DataCell cellToAdd)
         throws InvalidSettingsException, IOException {
+        return setupAndExecuteWorkflow(settings, cellToAdd, LocalDateTimeCellFactory.TYPE);
+    }
+
+    static TestSetup setupAndExecuteWorkflow(final TimeShiftNodeSettings settings, final DataCell cellToAdd,
+        final DataType columnDataType) throws InvalidSettingsException, IOException {
         var workflowManager = WorkflowManagerUtil.createEmptyWorkflow();
 
         var node = WorkflowManagerUtil.createAndAddNode(workflowManager, new TimeShiftNodeFactory());
@@ -482,12 +529,18 @@ class TimeShiftNodeModelTest {
         workflowManager.loadNodeSettings(node.getID(), nodeSettings);
 
         // populate the input table
-        var inputTableSpec = new TableTestUtil.SpecBuilder() //
-            .addColumn(INPUT_COLUMN, cellToAdd.getType()) //
-            .build();
-        var inputTable = new TableTestUtil.TableBuilder(inputTableSpec) //
-            .addRow(cellToAdd) //
-            .build();
+        var inputTableSpecBuilder = new TableTestUtil.SpecBuilder();
+        if (cellToAdd != null) {
+            inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMN, cellToAdd.getType());
+        } else {
+            inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMN, columnDataType);
+        }
+        var inputTableSpec = inputTableSpecBuilder.build();
+        var inputTableBuilder = new TableTestUtil.TableBuilder(inputTableSpec);
+        if (cellToAdd != null) {
+            inputTableBuilder = inputTableBuilder.addRow(cellToAdd);
+        }
+        var inputTable = inputTableBuilder.build();
         var tableSupplierNode =
             WorkflowManagerUtil.createAndAddNode(workflowManager, new InputTableNode.InputDataNodeFactory(inputTable));
 
@@ -499,6 +552,9 @@ class TimeShiftNodeModelTest {
 
         var outputTable = (BufferedDataTable)node.getOutPort(1).getPortObject();
 
+        if (outputTable.size() == 0) {
+            return new TestSetup(outputTable, null, success);
+        }
         try (var it = outputTable.iterator()) {
             return new TestSetup( //
                 outputTable, //

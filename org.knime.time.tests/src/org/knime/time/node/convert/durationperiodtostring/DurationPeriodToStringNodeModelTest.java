@@ -85,7 +85,7 @@ import org.knime.time.util.ReplaceOrAppend;
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-class DurationPeriodToStringNodeModelTest {
+final class DurationPeriodToStringNodeModelTest {
 
     private record TestCase<I>(I input, String expectedIso, String expectedShortForm, String expectedLongForm) {
     }
@@ -195,6 +195,18 @@ class DurationPeriodToStringNodeModelTest {
         assertTrue(testSetup.firstCell.isMissing(), "Output cell should be missing");
     }
 
+    @Test
+    void testThatEmptyInputGivesNoError() throws InvalidSettingsException, IOException {
+        var settings = new DurationPeriodToStringNodeSettings();
+        settings.m_filter = new ColumnFilter(new String[]{INPUT_COLUMN});
+
+        var testSetup = setupAndExecuteWorkflow(settings, null);
+
+        assertTrue(testSetup.success, "Execution should have been successful");
+        assertTrue(testSetup.firstCell == null, "Output cell should not exists");
+        assertTrue(testSetup.outputTable.size() == 0, "Ouptput table should be empty");
+    }
+
     @ParameterizedTest(name = "{0} (date/period based)")
     @MethodSource("provideArgumentsForPeriodTestCases")
     void testConvertPeriodToString(@SuppressWarnings("unused") final String testName, final Period input,
@@ -254,12 +266,18 @@ class DurationPeriodToStringNodeModelTest {
         workflowManager.loadNodeSettings(node.getID(), nodeSettings);
 
         // populate the input table
-        var inputTableSpec = new TableTestUtil.SpecBuilder() //
-            .addColumn(INPUT_COLUMN, cellToAdd.getType()) //
-            .build();
-        var inputTable = new TableTestUtil.TableBuilder(inputTableSpec) //
-            .addRow(cellToAdd) //
-            .build();
+        var inputTableSpecBuilder = new TableTestUtil.SpecBuilder();
+        if (cellToAdd != null) {
+            inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMN, cellToAdd.getType());
+        } else {
+            inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMN, DurationCellFactory.TYPE);
+        }
+        var inputTableSpec = inputTableSpecBuilder.build();
+        var inputTableBuilder = new TableTestUtil.TableBuilder(inputTableSpec);
+        if (cellToAdd != null) {
+            inputTableBuilder = inputTableBuilder.addRow(cellToAdd);
+        }
+        var inputTable = inputTableBuilder.build();
         var tableSupplierNode =
             WorkflowManagerUtil.createAndAddNode(workflowManager, new InputTableNode.InputDataNodeFactory(inputTable));
 
@@ -271,6 +289,9 @@ class DurationPeriodToStringNodeModelTest {
 
         var outputTable = (BufferedDataTable)node.getOutPort(1).getPortObject();
 
+        if (outputTable.size() == 0) {
+            return new TestSetup(outputTable, null, success);
+        }
         try (var it = outputTable.iterator()) {
             var firstCell = it.next().getCell(0);
             return new TestSetup(outputTable, firstCell, success);

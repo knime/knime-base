@@ -66,7 +66,7 @@ import org.knime.testing.node.dialog.SnapshotTestConfiguration;
  * @author Tobias Kampmann, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public class DateRoundNodeSettingsTest extends DefaultNodeSettingsSnapshotTest { // NOSONAR
+final class DateRoundNodeSettingsTest extends DefaultNodeSettingsSnapshotTest { // NOSONAR
 
     private Locale m_defaultLocale;
 

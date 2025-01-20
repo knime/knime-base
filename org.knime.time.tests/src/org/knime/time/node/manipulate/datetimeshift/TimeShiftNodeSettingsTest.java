@@ -67,7 +67,7 @@ import org.knime.testing.node.dialog.SnapshotTestConfiguration;
  * @author Tobias Kampmann, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public class TimeShiftNodeSettingsTest extends DefaultNodeSettingsSnapshotTest { // NOSONAR
+final class TimeShiftNodeSettingsTest extends DefaultNodeSettingsSnapshotTest { // NOSONAR
 
     private Locale m_defaultLocale;
 

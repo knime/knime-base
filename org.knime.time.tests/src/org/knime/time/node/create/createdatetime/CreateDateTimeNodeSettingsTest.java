@@ -71,7 +71,7 @@ import org.mockito.Mockito;
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public class CreateDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshotTest { // NOSONAR
+final class CreateDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshotTest { // NOSONAR
 
     private Locale m_defaultLocale;
 

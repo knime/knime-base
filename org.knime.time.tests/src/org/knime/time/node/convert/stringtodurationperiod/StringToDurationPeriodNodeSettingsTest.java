@@ -67,7 +67,7 @@ import org.knime.testing.node.dialog.SnapshotTestConfiguration;
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public class StringToDurationPeriodNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+final class StringToDurationPeriodNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
     static final PortObjectSpec[] TEST_TABLE_SPECS = new PortObjectSpec[]{
         new DataTableSpec(new String[]{"test"}, new DataType[]{DataType.getType(StringCell.class)})};

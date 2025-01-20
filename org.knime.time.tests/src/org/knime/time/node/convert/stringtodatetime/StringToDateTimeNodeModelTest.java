@@ -58,7 +58,7 @@ import org.junit.Test;
  *
  * @author Carl Witt, KNIME AG, Zurich, Switzerland
  */
-public class StringToDateTimeNodeModelTest {
+final class StringToDateTimeNodeModelTest {
 
     static final String[] INPUTS =  new String[]{
         // as output by ZonedDateTime::toOffsetDatetime::toString which can be used to generate ISO 8601 strings

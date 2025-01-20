@@ -71,7 +71,7 @@ import org.knime.testing.node.dialog.SnapshotTestConfiguration;
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-class ExtractDurationPeriodFieldsNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+final class ExtractDurationPeriodFieldsNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
     private Locale m_defaultLocale;
 

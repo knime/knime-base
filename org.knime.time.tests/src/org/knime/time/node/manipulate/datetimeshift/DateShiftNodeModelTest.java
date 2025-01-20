@@ -70,6 +70,7 @@ import org.knime.InputTableNode.NamedCell;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.LongCell;
+import org.knime.core.data.def.LongCell.LongCellFactory;
 import org.knime.core.data.time.localdate.LocalDateCell;
 import org.knime.core.data.time.localdate.LocalDateCellFactory;
 import org.knime.core.data.time.localdatetime.LocalDateTimeCell;
@@ -94,7 +95,7 @@ import org.knime.time.util.Granularity;
 import org.knime.time.util.ReplaceOrAppend;
 
 @SuppressWarnings("restriction")
-class DateShiftNodeModelTest {
+final class DateShiftNodeModelTest {
 
     private NativeNodeContainer m_dateShiftNode;
 
@@ -358,7 +359,8 @@ class DateShiftNodeModelTest {
             Arguments.of(DateGranularity.DAYS, 0, LocalDate.of(2024, 1, 1), LocalDateTime.of(2024, 1, 1, 0, 0, 0),
                 ZonedDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC")), "Shift by 0 days (no change)"),
 
-            Arguments.of(DateGranularity.DAYS, 1, LocalDate.of(2023, 12, 31), LocalDateTime.of(2023, 12, 31, 23, 59, 59),
+            Arguments.of(DateGranularity.DAYS, 1, LocalDate.of(2023, 12, 31),
+                LocalDateTime.of(2023, 12, 31, 23, 59, 59),
                 ZonedDateTime.of(2023, 12, 31, 23, 59, 59, 0, ZoneId.of("UTC")), "Shift crossing new year"),
 
             Arguments.of(DateGranularity.MONTHS, 1, LocalDate.of(2024, 1, 31), LocalDateTime.of(2024, 1, 31, 12, 0, 0),
@@ -480,6 +482,47 @@ class DateShiftNodeModelTest {
         assertTrue(testSetup.firstCell.isMissing(), "Output cell should be missing");
     }
 
+    @Test
+    void testNumericalThatEmptyInputGivesNoError() throws InvalidSettingsException, IOException {
+        var settings = new DateShiftNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
+        settings.m_shiftMode = ShiftMode.NUMERICAL_COLUMN;
+        settings.m_numericalColumn = INPUT_COLUMN;
+
+        var testSetup = setupAndExecuteWorkflow(settings, null, LongCellFactory.TYPE);
+
+        assertTrue(testSetup.success, "Execution should have been successful");
+        assertTrue(testSetup.firstCell == null, "Output cell should not exists");
+        assertTrue(testSetup.outputTable.size() == 0, "Ouptput table should be empty");
+    }
+
+    @Test
+    void testPeriodThatEmptyInputGivesNoError() throws InvalidSettingsException, IOException {
+        var settings = new DateShiftNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
+        settings.m_shiftMode = ShiftMode.PERIOD_COLUMN;
+        settings.m_periodColumn = INPUT_COLUMN;
+
+        var testSetup = setupAndExecuteWorkflow(settings, null, PeriodCellFactory.TYPE);
+
+        assertTrue(testSetup.success, "Execution should have been successful");
+        assertTrue(testSetup.firstCell == null, "Output cell should not exists");
+        assertTrue(testSetup.outputTable.size() == 0, "Ouptput table should be empty");
+    }
+
+    @Test
+    void testShiftThatEmptyInputGivesNoError() throws InvalidSettingsException, IOException {
+        var settings = new DateShiftNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
+        settings.m_shiftMode = ShiftMode.SHIFT_VALUE;
+
+        var testSetup = setupAndExecuteWorkflow(settings, null, LocalDateTimeCellFactory.TYPE);
+
+        assertTrue(testSetup.success, "Execution should have been successful");
+        assertTrue(testSetup.firstCell == null, "Output cell should not exists");
+        assertTrue(testSetup.outputTable.size() == 0, "Ouptput table should be empty");
+    }
+
     private void setSettings(final DateShiftNodeSettings settings) throws InvalidSettingsException {
         final var nodeSettings = new NodeSettings("DateShiftNode");
         m_wfm.saveNodeSettings(m_dateShiftNode.getID(), nodeSettings);
@@ -493,6 +536,11 @@ class DateShiftNodeModelTest {
 
     static TestSetup setupAndExecuteWorkflow(final DateShiftNodeSettings settings, final DataCell cellToAdd)
         throws InvalidSettingsException, IOException {
+        return setupAndExecuteWorkflow(settings, cellToAdd, LocalDateTimeCellFactory.TYPE);
+    }
+
+    static TestSetup setupAndExecuteWorkflow(final DateShiftNodeSettings settings, final DataCell cellToAdd,
+        final DataType columnDataType) throws InvalidSettingsException, IOException {
         var workflowManager = WorkflowManagerUtil.createEmptyWorkflow();
 
         var node = WorkflowManagerUtil.createAndAddNode(workflowManager, new DateShiftNodeFactory());
@@ -505,12 +553,18 @@ class DateShiftNodeModelTest {
         workflowManager.loadNodeSettings(node.getID(), nodeSettings);
 
         // populate the input table
-        var inputTableSpec = new TableTestUtil.SpecBuilder() //
-            .addColumn(INPUT_COLUMN, cellToAdd.getType()) //
-            .build();
-        var inputTable = new TableTestUtil.TableBuilder(inputTableSpec) //
-            .addRow(cellToAdd) //
-            .build();
+        var inputTableSpecBuilder = new TableTestUtil.SpecBuilder();
+        if (cellToAdd != null) {
+            inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMN, cellToAdd.getType());
+        } else {
+            inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMN, columnDataType);
+        }
+        var inputTableSpec = inputTableSpecBuilder.build();
+        var inputTableBuilder = new TableTestUtil.TableBuilder(inputTableSpec);
+        if (cellToAdd != null) {
+            inputTableBuilder = inputTableBuilder.addRow(cellToAdd);
+        }
+        var inputTable = inputTableBuilder.build();
         var tableSupplierNode =
             WorkflowManagerUtil.createAndAddNode(workflowManager, new InputTableNode.InputDataNodeFactory(inputTable));
 
@@ -522,6 +576,9 @@ class DateShiftNodeModelTest {
 
         var outputTable = (BufferedDataTable)node.getOutPort(1).getPortObject();
 
+        if (outputTable.size() == 0) {
+            return new TestSetup(outputTable, null, success);
+        }
         try (var it = outputTable.iterator()) {
             return new TestSetup( //
                 outputTable, //

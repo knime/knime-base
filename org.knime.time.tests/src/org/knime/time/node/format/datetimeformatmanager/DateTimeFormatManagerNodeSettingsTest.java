@@ -76,7 +76,7 @@ import org.mockito.Mockito;
  * @author Tobias Kampmann, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-class DateTimeFormatManagerNodeSettingsTest extends DefaultNodeSettingsSnapshotTest { // NOSONAR
+final class DateTimeFormatManagerNodeSettingsTest extends DefaultNodeSettingsSnapshotTest { // NOSONAR
 
     private Locale m_defaultLocale;
 

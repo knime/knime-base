@@ -70,7 +70,7 @@ import org.knime.testing.node.dialog.SnapshotTestConfiguration;
  * @author Christian Albrecht, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public class ExtractDateTimeFieldsSettingsTest extends DefaultNodeSettingsSnapshotTest { // NOSONAR
+final class ExtractDateTimeFieldsSettingsTest extends DefaultNodeSettingsSnapshotTest { // NOSONAR
 
     private Locale m_defaultLocale;
 

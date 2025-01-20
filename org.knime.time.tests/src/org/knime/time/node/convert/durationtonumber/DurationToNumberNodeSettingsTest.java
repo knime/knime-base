@@ -71,7 +71,7 @@ import org.knime.testing.node.dialog.SnapshotTestConfiguration;
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public class DurationToNumberNodeSettingsTest extends DefaultNodeSettingsSnapshotTest { // NOSONAR
+final class DurationToNumberNodeSettingsTest extends DefaultNodeSettingsSnapshotTest { // NOSONAR
 
     private Locale m_defaultLocale;
 

@@ -83,7 +83,7 @@ import org.knime.time.util.TimeBasedGranularityUnit;
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings({"restriction", "squid:S5960", "squid:S1192"})
-public class DurationToNumberNodeModelTest {
+final class DurationToNumberNodeModelTest {
 
     private record TestCase(TimeBasedGranularityUnit targetUnit, Duration input, long expectedTruncatedOutput,
         double expectedExactOutput) {
@@ -233,6 +233,18 @@ public class DurationToNumberNodeModelTest {
         assertTrue(testSetup.firstCell.isMissing(), "Output cell should be missing");
     }
 
+    @Test
+    void testThatEmptyInputGivesNoError() throws InvalidSettingsException, IOException {
+        var settings = new DurationToNumberNodeSettings();
+        settings.m_filter = new ColumnFilter(new String[]{INPUT_COLUMN});
+
+        var testSetup = setupAndExecuteWorkflow(settings, null);
+
+        assertTrue(testSetup.success, "Execution should have been successful");
+        assertTrue(testSetup.firstCell == null, "Output cell should not exists");
+        assertTrue(testSetup.outputTable.size() == 0, "Ouptput table should be empty");
+    }
+
     @ParameterizedTest(name = "{0} (with truncation)")
     @MethodSource("provideArgumentsForIntegerTestCase")
     void testConvertDurationToNumberInteger(@SuppressWarnings("unused") final String testName, final Duration input,
@@ -294,12 +306,18 @@ public class DurationToNumberNodeModelTest {
         workflowManager.loadNodeSettings(node.getID(), nodeSettings);
 
         // populate the input table
-        var inputTableSpec = new TableTestUtil.SpecBuilder() //
-            .addColumn(INPUT_COLUMN, cellToAdd.getType()) //
-            .build();
-        var inputTable = new TableTestUtil.TableBuilder(inputTableSpec) //
-            .addRow(cellToAdd) //
-            .build();
+        var inputTableSpecBuilder = new TableTestUtil.SpecBuilder();
+        if (cellToAdd != null) {
+            inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMN, cellToAdd.getType());
+        } else {
+            inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMN, DurationCellFactory.TYPE);
+        }
+        var inputTableSpec = inputTableSpecBuilder.build();
+        var inputTableBuilder = new TableTestUtil.TableBuilder(inputTableSpec);
+        if (cellToAdd != null) {
+            inputTableBuilder = inputTableBuilder.addRow(cellToAdd);
+        }
+        var inputTable = inputTableBuilder.build();
         var tableSupplierNode =
             WorkflowManagerUtil.createAndAddNode(workflowManager, new InputTableNode.InputDataNodeFactory(inputTable));
 
@@ -311,6 +329,9 @@ public class DurationToNumberNodeModelTest {
 
         var outputTable = (BufferedDataTable)node.getOutPort(1).getPortObject();
 
+        if (outputTable.size() == 0) {
+            return new TestSetup(outputTable, null, success);
+        }
         try (var it = outputTable.iterator()) {
             return new TestSetup( //
                 outputTable, //
