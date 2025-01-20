@@ -64,6 +64,7 @@ import org.junit.Test;
 import org.knime.InputTableNode;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
+import org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
@@ -77,7 +78,7 @@ import org.knime.testing.util.WorkflowManagerUtil;
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
-public class ExtractDateTimeFieldsNodeModelTest {
+final class ExtractDateTimeFieldsNodeModelTest {
 
     private static final Set<String> J_8_REGION_FREE_LOCALES =
         Arrays
@@ -182,6 +183,17 @@ public class ExtractDateTimeFieldsNodeModelTest {
         assertTrue(testSetup.firstCell.isMissing());
     }
 
+    @Test
+    public void test_that_empty_input_gives_no_error() throws InvalidSettingsException, IOException {
+        var settings = new ExtractDateTimeFieldsSettings();
+        settings.m_selectedColumn = INPUT_COLUMN;
+
+        var testSetup = setupAndExecuteWorkflow(settings, null);
+
+        assertTrue(testSetup.success);
+        assertTrue(testSetup.firstCell == null);
+        assertTrue(testSetup.outputTable.size() == 0);
+    }
 
     record TestSetup(BufferedDataTable outputTable, DataCell firstCell, boolean success) {
     }
@@ -200,12 +212,18 @@ public class ExtractDateTimeFieldsNodeModelTest {
         workflowManager.loadNodeSettings(node.getID(), nodeSettings);
 
         // populate the input table
-        var inputTableSpec = new TableTestUtil.SpecBuilder() //
-            .addColumn(INPUT_COLUMN, cellToAdd.getType()) //
-            .build();
-        var inputTable = new TableTestUtil.TableBuilder(inputTableSpec) //
-            .addRow(cellToAdd) //
-            .build();
+        var inputTableSpecBuilder = new TableTestUtil.SpecBuilder();
+        if (cellToAdd != null) {
+            inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMN, cellToAdd.getType());
+        } else {
+            inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMN, LocalDateTimeCellFactory.TYPE);
+        }
+        var inputTableSpec = inputTableSpecBuilder.build();
+        var inputTableBuilder = new TableTestUtil.TableBuilder(inputTableSpec);
+        if (cellToAdd != null) {
+            inputTableBuilder = inputTableBuilder.addRow(cellToAdd);
+        }
+        var inputTable = inputTableBuilder.build();
         var tableSupplierNode =
             WorkflowManagerUtil.createAndAddNode(workflowManager, new InputTableNode.InputDataNodeFactory(inputTable));
 
@@ -217,6 +235,9 @@ public class ExtractDateTimeFieldsNodeModelTest {
 
         var outputTable = (BufferedDataTable)node.getOutPort(1).getPortObject();
 
+        if (outputTable.size() == 0) {
+            return new TestSetup(outputTable, null, success);
+        }
         try (var it = outputTable.iterator()) {
             return new TestSetup( //
                 outputTable, //

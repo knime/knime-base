@@ -56,6 +56,7 @@ import org.junit.jupiter.api.Test;
 import org.knime.InputTableNode;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
+import org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
@@ -64,12 +65,13 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.Colum
 import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
 import org.knime.time.node.manipulate.modifytimezone.ModifyTimeZoneNodeSettings.BehaviourType;
+
 /**
-*
-* @author Martin Sillye, TNG Technology Consulting GmbH
-*/
+ *
+ * @author Martin Sillye, TNG Technology Consulting GmbH
+ */
 @SuppressWarnings("restriction")
-public class ModifyTimeZoneNodeModelTest {
+final class ModifyTimeZoneNodeModelTest {
     private static final String INPUT_COLUMN = "test_input";
 
     private static final String NODE_NAME = "ModifyTimeZoneNode";
@@ -112,11 +114,50 @@ public class ModifyTimeZoneNodeModelTest {
         assertTrue(testSetup.firstCell.isMissing(), "Output cell should be missing");
     }
 
+    @Test
+    void testSetThatEmptyInputGivesNoError() throws InvalidSettingsException, IOException {
+        var settings = new ModifyTimeZoneNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
+        settings.m_behaviourType = BehaviourType.SET;
+
+        var testSetup = setupAndExecuteWorkflow(settings, null);
+
+        assertTrue(testSetup.success, "Execution should have been successful");
+        assertTrue(testSetup.firstCell == null, "Output cell should not exists");
+        assertTrue(testSetup.outputTable.size() == 0, "Ouptput table should be empty");
+    }
+
+    @Test
+    void testShiftThatEmptyInputGivesNoError() throws InvalidSettingsException, IOException {
+        var settings = new ModifyTimeZoneNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
+        settings.m_behaviourType = BehaviourType.SHIFT;
+
+        var testSetup = setupAndExecuteWorkflow(settings, null);
+
+        assertTrue(testSetup.success, "Execution should have been successful");
+        assertTrue(testSetup.firstCell == null, "Output cell should not exists");
+        assertTrue(testSetup.outputTable.size() == 0, "Ouptput table should be empty");
+    }
+
+    @Test
+    void testRemoveThatEmptyInputGivesNoError() throws InvalidSettingsException, IOException {
+        var settings = new ModifyTimeZoneNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
+        settings.m_behaviourType = BehaviourType.REMOVE;
+
+        var testSetup = setupAndExecuteWorkflow(settings, null);
+
+        assertTrue(testSetup.success, "Execution should have been successful");
+        assertTrue(testSetup.firstCell == null, "Output cell should not exists");
+        assertTrue(testSetup.outputTable.size() == 0, "Ouptput table should be empty");
+    }
+
     record TestSetup(BufferedDataTable outputTable, DataCell firstCell, boolean success) {
     }
 
-    static TestSetup setupAndExecuteWorkflow(final ModifyTimeZoneNodeSettings settings,
-        final DataCell cellToAdd) throws InvalidSettingsException, IOException {
+    static TestSetup setupAndExecuteWorkflow(final ModifyTimeZoneNodeSettings settings, final DataCell cellToAdd)
+        throws InvalidSettingsException, IOException {
         var workflowManager = WorkflowManagerUtil.createEmptyWorkflow();
 
         var node = WorkflowManagerUtil.createAndAddNode(workflowManager, new ModifyTimeZoneNodeFactory2());
@@ -129,12 +170,18 @@ public class ModifyTimeZoneNodeModelTest {
         workflowManager.loadNodeSettings(node.getID(), nodeSettings);
 
         // populate the input table
-        var inputTableSpec = new TableTestUtil.SpecBuilder() //
-            .addColumn(INPUT_COLUMN, cellToAdd.getType()) //
-            .build();
-        var inputTable = new TableTestUtil.TableBuilder(inputTableSpec) //
-            .addRow(cellToAdd) //
-            .build();
+        var inputTableSpecBuilder = new TableTestUtil.SpecBuilder();
+        if (cellToAdd != null) {
+            inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMN, cellToAdd.getType());
+        } else {
+            inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMN, LocalDateTimeCellFactory.TYPE);
+        }
+        var inputTableSpec = inputTableSpecBuilder.build();
+        var inputTableBuilder = new TableTestUtil.TableBuilder(inputTableSpec);
+        if (cellToAdd != null) {
+            inputTableBuilder = inputTableBuilder.addRow(cellToAdd);
+        }
+        var inputTable = inputTableBuilder.build();
         var tableSupplierNode =
             WorkflowManagerUtil.createAndAddNode(workflowManager, new InputTableNode.InputDataNodeFactory(inputTable));
 
@@ -146,6 +193,9 @@ public class ModifyTimeZoneNodeModelTest {
 
         var outputTable = (BufferedDataTable)node.getOutPort(1).getPortObject();
 
+        if (outputTable.size() == 0) {
+            return new TestSetup(outputTable, null, success);
+        }
         try (var it = outputTable.iterator()) {
             var firstCell = it.next().getCell(0);
             return new TestSetup(outputTable, firstCell, success);

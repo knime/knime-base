@@ -70,7 +70,7 @@ import org.knime.time.node.manipulate.datetimeround.DateRoundNodeSettings.RoundD
 import org.knime.time.node.manipulate.datetimeround.DateRoundNodeSettings.ShiftMode;
 
 @SuppressWarnings({"squid:S5960", "squid:S1192"})
-class DateRoundingUtilTest {
+final class DateRoundingUtilTest {
 
     /**
      * Test the rounding of date-based temporal values. Tests all combination of rounding strategies

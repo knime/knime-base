@@ -82,7 +82,7 @@ import org.knime.time.node.create.createdatetime.CreateDateTimeNodeSettings.Fixe
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public class CreateDateTimeNodeModel2Test {
+final class CreateDateTimeNodeModel2Test {
 
     private static final String NODE_NAME = "CreateDateTimeNode";
 
