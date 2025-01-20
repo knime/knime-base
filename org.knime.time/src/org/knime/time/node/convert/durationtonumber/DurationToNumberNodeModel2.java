@@ -62,7 +62,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 import org.knime.time.node.convert.durationtonumber.DurationToNumberNodeSettings.RoundingBehaviour;
-import org.knime.time.util.ReplaceOrAppend;
 import org.knime.time.util.TimeBasedGranularityUnit;
 
 /**

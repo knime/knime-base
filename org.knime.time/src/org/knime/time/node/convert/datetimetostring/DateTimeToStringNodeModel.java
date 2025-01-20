@@ -113,7 +113,6 @@ import org.knime.core.node.streamable.RowOutput;
 import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.node.util.StringHistory;
 import org.knime.core.util.UniqueNameGenerator;
-import org.knime.time.util.ReplaceOrAppend;
 
 /**
  * The node model of the node which converts the new date&time types to strings.
@@ -252,17 +251,26 @@ final class DateTimeToStringNodeModel extends NodeModel {
      * @return The CR describing the output
      */
     private ColumnRearranger createColumnRearranger(final DataTableSpec inSpec) {
+        final ColumnRearranger rearranger = new ColumnRearranger(inSpec);
         final String[] includeList = m_colSelect.applyTo(inSpec).getIncludes();
-
-        return ( //
-        m_isReplaceOrAppend.getStringValue().equals(OPTION_REPLACE) //
-            ? ReplaceOrAppend.REPLACE //
-            : ReplaceOrAppend.APPEND //
-        ).createRearranger(includeList, inSpec, (inputColumSpec, newColumnName) -> {
-            var outSpec = new DataColumnSpecCreator(newColumnName, StringCellFactory.TYPE).createSpec();
-
-            return new TimeToStringCellFactory(outSpec, inSpec.findColumnIndex(inputColumSpec.getName()));
-        }, m_suffix.getStringValue());
+        final int[] includeIndeces =
+            Arrays.stream(m_colSelect.applyTo(inSpec).getIncludes()).mapToInt(s -> inSpec.findColumnIndex(s)).toArray();
+        int i = 0;
+        for (String includedCol : includeList) {
+            if (m_isReplaceOrAppend.getStringValue().equals(OPTION_REPLACE)) {
+                final DataColumnSpecCreator dataColumnSpecCreator =
+                    new DataColumnSpecCreator(includedCol, StringCell.TYPE);
+                final TimeToStringCellFactory cellFac =
+                    new TimeToStringCellFactory(dataColumnSpecCreator.createSpec(), includeIndeces[i++]);
+                rearranger.replace(cellFac, includedCol);
+            } else {
+                final DataColumnSpec dataColSpec =
+                    new UniqueNameGenerator(inSpec).newColumn(includedCol + m_suffix.getStringValue(), StringCell.TYPE);
+                final TimeToStringCellFactory cellFac = new TimeToStringCellFactory(dataColSpec, includeIndeces[i++]);
+                rearranger.append(cellFac);
+            }
+        }
+        return rearranger;
     }
 
     /** {@inheritDoc} */

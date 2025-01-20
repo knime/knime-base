@@ -95,8 +95,8 @@ import org.knime.core.node.streamable.simple.SimpleStreamableFunctionWithInterna
 import org.knime.core.node.streamable.simple.SimpleStreamableOperatorInternals;
 import org.knime.core.node.util.StringHistory;
 import org.knime.core.node.util.filter.InputFilter;
+import org.knime.core.util.UniqueNameGenerator;
 import org.knime.time.util.DateTimeType;
-import org.knime.time.util.ReplaceOrAppend;
 
 /**
  * The node model of the node which converts strings to the new date&time types.
@@ -344,23 +344,27 @@ final class StringToDateTimeNodeModel
     protected ColumnRearranger createColumnRearranger(final DataTableSpec inSpec,
         final SimpleStreamableOperatorInternals internals) {
         m_messageBuilder = createMessageBuilder(); // Initialize message builder to be used by CellFactory
+        final ColumnRearranger rearranger = new ColumnRearranger(inSpec);
         final String[] includeList = m_colSelect.applyTo(inSpec).getIncludes();
-
-        return ( //
-        m_isReplaceOrAppend.getStringValue().equals(OPTION_REPLACE) //
-            ? ReplaceOrAppend.REPLACE //
-            : ReplaceOrAppend.APPEND //
-        ).createRearranger(includeList, inSpec, (inputColumSpec, newColumnName) -> {
-            var outputType = switch (DateTimeType.valueOf(m_selectedType)) {
-                case LOCAL_DATE -> LocalDateCellFactory.TYPE;
-                case LOCAL_TIME -> LocalTimeCellFactory.TYPE;
-                case LOCAL_DATE_TIME -> LocalDateTimeCellFactory.TYPE;
-                case ZONED_DATE_TIME -> ZonedDateTimeCellFactory.TYPE;
-            };
-            var outSpec = new DataColumnSpecCreator(newColumnName, outputType).createSpec();
-
-            return new StringToTimeCellFactory(outSpec, inSpec.findColumnIndex(inputColumSpec.getName()), internals);
-        }, m_suffix.getStringValue());
+        final int[] includeIndeces =
+            Arrays.stream(m_colSelect.applyTo(inSpec).getIncludes()).mapToInt(s -> inSpec.findColumnIndex(s)).toArray();
+        int i = 0;
+        for (String includedCol : includeList) {
+            if (m_isReplaceOrAppend.getStringValue().equals(OPTION_REPLACE)) {
+                final DataColumnSpecCreator dataColumnSpecCreator =
+                    new DataColumnSpecCreator(includedCol, DateTimeType.valueOf(m_selectedType).getDataType());
+                final StringToTimeCellFactory cellFac =
+                    new StringToTimeCellFactory(dataColumnSpecCreator.createSpec(), includeIndeces[i++], internals);
+                rearranger.replace(cellFac, includedCol);
+            } else {
+                final DataColumnSpec dataColSpec = new UniqueNameGenerator(inSpec).newColumn(
+                    includedCol + m_suffix.getStringValue(), DateTimeType.valueOf(m_selectedType).getDataType());
+                final StringToTimeCellFactory cellFac =
+                    new StringToTimeCellFactory(dataColSpec, includeIndeces[i++], internals);
+                rearranger.append(cellFac);
+            }
+        }
+        return rearranger;
     }
 
     /**
@@ -472,19 +476,19 @@ final class StringToDateTimeNodeModel
         private final DateTimeType m_enumType;
 
         /**
-         * @param outSpec spec of the column after computation
+         * @param inSpec spec of the column after computation
          * @param colIndex index of the column to work on
          * @param internals streamable operator internals to propagate the error messages
          */
-        public StringToTimeCellFactory(final DataColumnSpec outSpec, final int colIndex,
+        public StringToTimeCellFactory(final DataColumnSpec inSpec, final int colIndex,
             final SimpleStreamableOperatorInternals internals) {
-            super(outSpec);
+            super(inSpec);
             m_colIndex = colIndex;
             m_internals = internals;
-            m_spec = outSpec;
+            m_spec = inSpec;
             final var locale = Locale.forLanguageTag(m_locale.getStringValue());
             m_formatter = DateTimeFormatter.ofPattern(m_format.getStringValue(), locale)
-                .withChronology(Chronology.ofLocale(locale));
+                        .withChronology(Chronology.ofLocale(locale));
             m_enumType = DateTimeType.valueOf(m_selectedType);
         }
 
@@ -519,8 +523,7 @@ final class StringToDateTimeNodeModel
                 }
             } catch (DateTimeParseException e) {
                 m_failCounter++;
-                var msg = String.format(
-                    "Could not parse date in cell [%s, column \"%s\", row number %d]: "
+                var msg = String.format("Could not parse date in cell [%s, column \"%s\", row number %d]: "
                         + "Pattern \"%s\" does not match \"%s\".", //
                     StringUtils.abbreviate(row.getKey().getString(), 15), m_spec.getName(), rowIndex + 1, //
                     StringUtils.abbreviate(m_format.getStringValue(), 32), StringUtils.abbreviate(input, 32));

@@ -54,6 +54,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 import org.knime.core.data.DataCell;
@@ -77,8 +78,8 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.streamable.simple.SimpleStreamableFunctionNodeModel;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.filter.InputFilter;
+import org.knime.core.util.UniqueNameGenerator;
 import org.knime.time.util.DateTimeType;
-import org.knime.time.util.ReplaceOrAppend;
 
 /**
  * The node model of the node which converts unix timestamps to the new date&time types.
@@ -91,8 +92,8 @@ final class TimestampToDateTimeNodeModel extends SimpleStreamableFunctionNodeMod
 
     static final String OPTION_REPLACE = "Replace selected columns";
 
-    static final TimeUnit[] TIMEUNITS =
-        {TimeUnit.SECONDS, TimeUnit.MILLISECONDS, TimeUnit.MICROSECONDS, TimeUnit.NANOSECONDS};
+    static final TimeUnit[] TIMEUNITS = { TimeUnit.SECONDS, TimeUnit.MILLISECONDS,
+        TimeUnit.MICROSECONDS, TimeUnit.NANOSECONDS };
 
     private final SettingsModelColumnFilter2 m_colSelect = createColSelectModel();
 
@@ -112,7 +113,7 @@ final class TimestampToDateTimeNodeModel extends SimpleStreamableFunctionNodeMod
         @Override
         public boolean include(final DataColumnSpec spec) {
             return spec.getType().getPreferredValueClass() == LongValue.class
-                || spec.getType().getPreferredValueClass() == IntValue.class;
+                    || spec.getType().getPreferredValueClass() == IntValue.class;
         }
     };
 
@@ -145,16 +146,28 @@ final class TimestampToDateTimeNodeModel extends SimpleStreamableFunctionNodeMod
     @Override
     protected ColumnRearranger createColumnRearranger(final DataTableSpec inSpec) throws InvalidSettingsException {
         CheckUtils.checkSetting(m_hasValidatedConfiguration, "Node must be configured!");
+        final ColumnRearranger rearranger = new ColumnRearranger(inSpec);
         final String[] includeList = m_colSelect.applyTo(inSpec).getIncludes();
+        final int[] includeIndeces =
+            Arrays.stream(m_colSelect.applyTo(inSpec).getIncludes()).mapToInt(s -> inSpec.findColumnIndex(s)).toArray();
+        int i = 0;
         final boolean isReplace = m_isReplaceOrAppend.getStringValue().equals(OPTION_REPLACE);
-
-        return (isReplace ? ReplaceOrAppend.REPLACE : ReplaceOrAppend.APPEND).createRearranger(includeList, inSpec,
-            (inputColumnSpec, newColumnName) -> {
-                final DataColumnSpec outSpec =
-                    new DataColumnSpecCreator(newColumnName, DateTimeType.valueOf(m_selectedType).getDataType())
-                        .createSpec();
-                return new TimestampToTimeCellFactory(outSpec, inSpec.findColumnIndex(inputColumnSpec.getName()));
-            }, m_suffix.getStringValue());
+        UniqueNameGenerator uniqueNameGenerator = new UniqueNameGenerator(inSpec);
+        for (String includedCol : includeList) {
+            if (isReplace) {
+                final DataColumnSpecCreator dataColumnSpecCreator =
+                    new DataColumnSpecCreator(includedCol, DateTimeType.valueOf(m_selectedType).getDataType());
+                final TimestampToTimeCellFactory cellFac =
+                    new TimestampToTimeCellFactory(dataColumnSpecCreator.createSpec(), includeIndeces[i++]);
+                rearranger.replace(cellFac, includedCol);
+            } else {
+                final DataColumnSpec dataColSpec = uniqueNameGenerator.newColumn(
+                    includedCol + m_suffix.getStringValue(), DateTimeType.valueOf(m_selectedType).getDataType());
+                final TimestampToTimeCellFactory cellFac = new TimestampToTimeCellFactory(dataColSpec, includeIndeces[i++]);
+                rearranger.append(cellFac);
+            }
+        }
+        return rearranger;
     }
 
     /**
@@ -204,11 +217,11 @@ final class TimestampToDateTimeNodeModel extends SimpleStreamableFunctionNodeMod
         private final int m_colIndex;
 
         /**
-         * @param outSpec spec of the column after computation
+         * @param inSpec spec of the column after computation
          * @param colIndex index of the column to work on
          */
-        public TimestampToTimeCellFactory(final DataColumnSpec outSpec, final int colIndex) {
-            super(outSpec);
+        public TimestampToTimeCellFactory(final DataColumnSpec inSpec, final int colIndex) {
+            super(inSpec);
             m_colIndex = colIndex;
         }
 
@@ -226,13 +239,13 @@ final class TimestampToDateTimeNodeModel extends SimpleStreamableFunctionNodeMod
             input = ((LongValue)cell).getLongValue();
 
             Instant instant;
-            if (m_selectedUnit == TimeUnit.SECONDS) {
+            if(m_selectedUnit == TimeUnit.SECONDS) {
                 instant = Instant.ofEpochSecond(input);
-            } else if (m_selectedUnit == TimeUnit.MILLISECONDS) {
+            } else if(m_selectedUnit == TimeUnit.MILLISECONDS) {
                 instant = Instant.ofEpochSecond(input / 1000L, (input % 1000L) * (1000L * 1000L));
-            } else if (m_selectedUnit == TimeUnit.MICROSECONDS) {
+            } else if(m_selectedUnit == TimeUnit.MICROSECONDS) {
                 instant = Instant.ofEpochSecond(input / (1000L * 1000L), (input % (1000L * 1000L)) * 1000L);
-            } else if (m_selectedUnit == TimeUnit.NANOSECONDS) {
+            } else if(m_selectedUnit == TimeUnit.NANOSECONDS) {
                 instant = Instant.ofEpochSecond(input / (1000L * 1000L * 1000L), input % (1000L * 1000L * 1000L));
             } else {
                 throw new IllegalStateException("Unknown unit " + m_selectedUnit);
@@ -252,8 +265,8 @@ final class TimestampToDateTimeNodeModel extends SimpleStreamableFunctionNodeMod
                     return LocalDateTimeCellFactory.create(ldt);
                 }
                 case ZONED_DATE_TIME: {
-                    final ZonedDateTime zdt = ZonedDateTime.from(instant.atZone(m_timeZone));
-                    return ZonedDateTimeCellFactory.create(zdt);
+                        final ZonedDateTime zdt = ZonedDateTime.from(instant.atZone(m_timeZone));
+                        return ZonedDateTimeCellFactory.create(zdt);
                 }
                 default:
                     throw new IllegalStateException("Unhandled date&time type: " + m_selectedType);

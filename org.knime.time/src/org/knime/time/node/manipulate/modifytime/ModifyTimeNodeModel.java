@@ -52,6 +52,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -74,7 +75,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.streamable.simple.SimpleStreamableFunctionNodeModel;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.core.node.util.filter.column.DataTypeColumnFilter;
-import org.knime.time.util.ReplaceOrAppend;
+import org.knime.core.util.UniqueNameGenerator;
 import org.knime.time.util.SettingsModelDateTime;
 
 /**
@@ -146,12 +147,12 @@ final class ModifyTimeNodeModel extends SimpleStreamableFunctionNodeModel {
     }
 
     /** @return the date time model, used in both dialog and model. */
-    static SettingsModelDateTime createTimeModel() {
+    static SettingsModelDateTime createTimeModel(){
         return new SettingsModelDateTime("time", null, LocalTime.now().withNano(0), null);
     }
 
     /** @return the date time model, used in both dialog and model. */
-    static SettingsModelDateTime createTimeZoneModel() {
+    static SettingsModelDateTime createTimeZoneModel(){
         return new SettingsModelDateTime("time_zone", null, null, ZoneId.systemDefault());
     }
 
@@ -170,9 +171,12 @@ final class ModifyTimeNodeModel extends SimpleStreamableFunctionNodeModel {
     /** {@inheritDoc} */
     @Override
     protected ColumnRearranger createColumnRearranger(final DataTableSpec inSpec) {
+        final ColumnRearranger rearranger = new ColumnRearranger(inSpec);
         final String[] includeList = m_colSelect.applyTo(inSpec).getIncludes();
+        final int[] includeIndices =
+            Arrays.stream(m_colSelect.applyTo(inSpec).getIncludes()).mapToInt(s -> inSpec.findColumnIndex(s)).toArray();
 
-        // determine the data type of output, up to a point
+        // determine the data type of output
         DataType dataType;
         if (m_modifyAction.getStringValue().equals(MODIFY_OPTION_REMOVE)) {
             dataType = LocalDateCellFactory.TYPE;
@@ -188,29 +192,34 @@ final class ModifyTimeNodeModel extends SimpleStreamableFunctionNodeModel {
             }
         }
 
-        var isReplace = m_isReplaceOrAppend.getStringValue().equals(OPTION_REPLACE);
-        return (isReplace ? ReplaceOrAppend.REPLACE : ReplaceOrAppend.APPEND).createRearranger(includeList, inSpec,
-            (inputColumnSpec, newColumnName) -> {
-                var inputTypeIsZoned = inputColumnSpec.getType().equals(ZonedDateTimeCellFactory.TYPE);
-
-                var outputDataType = inputTypeIsZoned && m_modifyAction.getStringValue().equals(MODIFY_OPTION_CHANGE) //
-                    ? ZonedDateTimeCellFactory.TYPE //
-                    : dataType;
-
-                var newSpec = new DataColumnSpecCreator(newColumnName, outputDataType).createSpec();
-                return createCellFactory(newSpec, inSpec.findColumnIndex(inputColumnSpec.getName()),
-                    m_timeZone.getZone());
-            }, m_suffix.getStringValue());
+        int i = 0;
+        for (final String includedCol : includeList) {
+            if (inSpec.getColumnSpec(includedCol).getType().equals(ZonedDateTimeCellFactory.TYPE)
+                && m_modifyAction.getStringValue().equals(MODIFY_OPTION_CHANGE)) {
+                dataType = ZonedDateTimeCellFactory.TYPE;
+            }
+            if (m_isReplaceOrAppend.getStringValue().equals(OPTION_REPLACE)) {
+                final DataColumnSpecCreator dataColumnSpecCreator = new DataColumnSpecCreator(includedCol, dataType);
+                final SingleCellFactory cellFac =
+                    createCellFactory(dataColumnSpecCreator.createSpec(), includeIndices[i++], m_timeZone.getZone());
+                rearranger.replace(cellFac, includedCol);
+            } else {
+                final DataColumnSpec dataColSpec =
+                    new UniqueNameGenerator(inSpec).newColumn(includedCol + m_suffix.getStringValue(), dataType);
+                final SingleCellFactory cellFac = createCellFactory(dataColSpec, includeIndices[i++], m_timeZone.getZone());
+                rearranger.append(cellFac);
+            }
+        }
+        return rearranger;
     }
 
-    private SingleCellFactory createCellFactory(final DataColumnSpec dataColOutputSpec, final int index,
-        final ZoneId zone) {
+    private SingleCellFactory createCellFactory(final DataColumnSpec dataColSpec, final int index, final ZoneId zone) {
         if (m_modifyAction.getStringValue().equals(MODIFY_OPTION_APPEND)) {
-            return new AppendTimeCellFactory(dataColOutputSpec, index, zone);
+            return new AppendTimeCellFactory(dataColSpec, index, zone);
         } else if (m_modifyAction.getStringValue().equals(MODIFY_OPTION_CHANGE)) {
-            return new ChangeTimeCellFactory(dataColOutputSpec, index);
+            return new ChangeTimeCellFactory(dataColSpec, index);
         } else {
-            return new RemoveTimeCellFactory(dataColOutputSpec, index);
+            return new RemoveTimeCellFactory(dataColSpec, index);
         }
     }
 
@@ -260,8 +269,8 @@ final class ModifyTimeNodeModel extends SimpleStreamableFunctionNodeModel {
 
         private final ZoneId m_zone;
 
-        AppendTimeCellFactory(final DataColumnSpec outSpec, final int colIndex, final ZoneId zone) {
-            super(outSpec);
+        AppendTimeCellFactory(final DataColumnSpec inSpec, final int colIndex, final ZoneId zone) {
+            super(inSpec);
             m_colIndex = colIndex;
             m_zone = zone;
         }
@@ -289,8 +298,8 @@ final class ModifyTimeNodeModel extends SimpleStreamableFunctionNodeModel {
     private final class ChangeTimeCellFactory extends SingleCellFactory {
         private final int m_colIndex;
 
-        ChangeTimeCellFactory(final DataColumnSpec outSpec, final int colIndex) {
-            super(outSpec);
+        ChangeTimeCellFactory(final DataColumnSpec inSpec, final int colIndex) {
+            super(inSpec);
             m_colIndex = colIndex;
         }
 
@@ -317,8 +326,8 @@ final class ModifyTimeNodeModel extends SimpleStreamableFunctionNodeModel {
     private final class RemoveTimeCellFactory extends SingleCellFactory {
         private final int m_colIndex;
 
-        RemoveTimeCellFactory(final DataColumnSpec outSpec, final int colIndex) {
-            super(outSpec);
+        RemoveTimeCellFactory(final DataColumnSpec inSpec, final int colIndex) {
+            super(inSpec);
             m_colIndex = colIndex;
         }
 
