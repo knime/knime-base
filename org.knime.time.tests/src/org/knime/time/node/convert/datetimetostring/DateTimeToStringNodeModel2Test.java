@@ -67,7 +67,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.knime.InputTableNode;
+import org.knime.NodeModelTestRunnerUtil;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.MissingCell;
 import org.knime.core.data.StringValue;
@@ -75,14 +75,9 @@ import org.knime.core.data.time.localdate.LocalDateCellFactory;
 import org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory;
 import org.knime.core.data.time.localtime.LocalTimeCellFactory;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFactory;
-import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.testing.util.TableTestUtil;
-import org.knime.testing.util.WorkflowManagerUtil;
 import org.knime.time.util.ReplaceOrAppend;
 import org.mockito.Mockito;
 
@@ -93,9 +88,10 @@ import org.mockito.Mockito;
 @SuppressWarnings("static-method")
 final class DateTimeToStringNodeModel2Test {
 
-    private static final String NODE_NAME = "DateTimeToString";
-
     private static final String INPUT_COLUMN = "input_column";
+
+    private static final NodeModelTestRunnerUtil RUNNER = new NodeModelTestRunnerUtil(INPUT_COLUMN, "DateTimeToString",
+        DateTimeToStringNodeSettings.class, DateTimeToStringNodeFactory2.class);
 
     private static record TestCase<T extends TemporalAccessor>(String expected, String pattern, T input,
         Locale locale) {
@@ -130,9 +126,9 @@ final class DateTimeToStringNodeModel2Test {
 
         var cellToAdd = createDataCellFromTemporal(testCase.input);
 
-        var setup = setupAndExecuteWorkflow(settings, cellToAdd);
+        var setup = RUNNER.setupAndExecuteWorkflow(settings, cellToAdd);
 
-        var firstOutputCell = setup.firstOutputCell;
+        var firstOutputCell = setup.firstCell();
         var firstOutputValue = ((StringValue)firstOutputCell).getStringValue();
 
         assertEquals(testCase.expected, firstOutputValue);
@@ -149,10 +145,18 @@ final class DateTimeToStringNodeModel2Test {
 
         var cellToAdd = createDataCellFromTemporal(testCase.input);
 
-        var setup = setupAndExecuteWorkflow(settings, cellToAdd);
+        var setup = RUNNER.setupAndExecuteWorkflow(settings, cellToAdd);
 
-        var firstOutputCell = setup.firstOutputCell;
-        var firstOutputValue = ((StringValue)firstOutputCell).getStringValue();
+        DataCell firstCell;
+        try (var it = setup.outputTable().iterator()) {
+            if (settings.m_appendOrReplace == ReplaceOrAppend.REPLACE) {
+                firstCell = it.next().getCell(0);
+            } else {
+                firstCell = it.next().getCell(1);
+            }
+        }
+
+        var firstOutputValue = ((StringValue)firstCell).getStringValue();
 
         assertEquals(testCase.expected, firstOutputValue);
     }
@@ -169,7 +173,7 @@ final class DateTimeToStringNodeModel2Test {
 
         try (final var staticStringHistoryManagerMock =
             Mockito.mockStatic(DateTimeFormatStringHistoryManager.class, Mockito.CALLS_REAL_METHODS)) {
-            setupAndExecuteWorkflow(settings, cellToAdd);
+            RUNNER.setupAndExecuteWorkflow(settings, cellToAdd);
 
             staticStringHistoryManagerMock
                 .verify(() -> DateTimeFormatStringHistoryManager.addFormatToStringHistoryIfNotPresent("X"));
@@ -185,34 +189,9 @@ final class DateTimeToStringNodeModel2Test {
         settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
         settings.m_locale = Locale.ENGLISH.toLanguageTag();
 
-        var workflowManager = WorkflowManagerUtil.createEmptyWorkflow();
+        var setup = RUNNER.setupAndExecuteWorkflow(settings, null, LocalDateTimeCellFactory.TYPE);
 
-        var node = WorkflowManagerUtil.createAndAddNode(workflowManager, new DateTimeToStringNodeFactory2());
-
-        // set the settings
-        final var nodeSettings = new NodeSettings(NODE_NAME);
-        workflowManager.saveNodeSettings(node.getID(), nodeSettings);
-        var modelSettings = nodeSettings.addNodeSettings("model");
-        DefaultNodeSettings.saveSettings(DateTimeToStringNodeSettings.class, settings, modelSettings);
-
-        workflowManager.loadNodeSettings(node.getID(), nodeSettings);
-
-        var inputTableSpec = new TableTestUtil.SpecBuilder() //
-            .addColumn(INPUT_COLUMN, LocalDateCellFactory.TYPE) //
-            .build();
-        var inputTable = new TableTestUtil.TableBuilder(inputTableSpec) //
-            .build();
-        var tableSupplierNode =
-            WorkflowManagerUtil.createAndAddNode(workflowManager, new InputTableNode.InputDataNodeFactory(inputTable));
-
-        // link the nodes
-        workflowManager.addConnection(tableSupplierNode.getID(), 1, node.getID(), 1);
-
-        workflowManager.executeAllAndWaitUntilDone();
-
-        var outputTable = (BufferedDataTable)node.getOutPort(1).getPortObject();
-
-        assertEquals(0, outputTable.size(), "Output table should have zero rows");
+        assertEquals(0, setup.outputTable().size(), "Output table should have zero rows");
     }
 
     @Test
@@ -233,9 +212,9 @@ final class DateTimeToStringNodeModel2Test {
         settings.m_locale = Locale.ENGLISH.toLanguageTag();
 
         var cellToAdd = createDataCellFromTemporal(LocalDate.of(2024, 12, 18));
-        var setup = setupAndExecuteWorkflow(settings, cellToAdd);
+        var setup = RUNNER.setupAndExecuteWorkflow(settings, cellToAdd);
 
-        var firstOutputCell = setup.firstOutputCell;
+        var firstOutputCell = setup.firstCell();
 
         assertTrue(firstOutputCell.isMissing(),
             "Format 'X' should be incompatible with LocalDate and give a missing cell");
@@ -249,7 +228,7 @@ final class DateTimeToStringNodeModel2Test {
         settings.m_locale = Locale.ENGLISH.toLanguageTag();
 
         var cellToAdd = new MissingCell("test error");
-        var outputCell = setupAndExecuteWorkflow(settings, cellToAdd).firstOutputCell;
+        var outputCell = RUNNER.setupAndExecuteWorkflow(settings, cellToAdd).firstCell();
 
         assertTrue(outputCell.isMissing());
     }
@@ -266,52 +245,5 @@ final class DateTimeToStringNodeModel2Test {
         } else {
             throw new IllegalArgumentException("Unsupported TemporalAccessor type: " + a.getClass());
         }
-    }
-
-    private static record TestSetup(BufferedDataTable outputTable, DataCell firstOutputCell) {
-
-    }
-
-    static TestSetup setupAndExecuteWorkflow(final DateTimeToStringNodeSettings settings, final DataCell cellToAdd)
-        throws InvalidSettingsException, IOException {
-        var workflowManager = WorkflowManagerUtil.createEmptyWorkflow();
-
-        var node = WorkflowManagerUtil.createAndAddNode(workflowManager, new DateTimeToStringNodeFactory2());
-
-        // set the settings
-        final var nodeSettings = new NodeSettings(NODE_NAME);
-        workflowManager.saveNodeSettings(node.getID(), nodeSettings);
-        var modelSettings = nodeSettings.addNodeSettings("model");
-        DefaultNodeSettings.saveSettings(DateTimeToStringNodeSettings.class, settings, modelSettings);
-
-        workflowManager.loadNodeSettings(node.getID(), nodeSettings);
-
-        // populate the input table
-        var inputTableSpec = new TableTestUtil.SpecBuilder() //
-            .addColumn(INPUT_COLUMN, cellToAdd.getType()) //
-            .build();
-        var inputTable = new TableTestUtil.TableBuilder(inputTableSpec) //
-            .addRow(cellToAdd) //
-            .build();
-        var tableSupplierNode =
-            WorkflowManagerUtil.createAndAddNode(workflowManager, new InputTableNode.InputDataNodeFactory(inputTable));
-
-        // link the nodes
-        workflowManager.addConnection(tableSupplierNode.getID(), 1, node.getID(), 1);
-
-        workflowManager.executeAllAndWaitUntilDone();
-
-        var outputTable = (BufferedDataTable)node.getOutPort(1).getPortObject();
-
-        DataCell firstCell;
-        try (var it = outputTable.iterator()) {
-            if (settings.m_appendOrReplace == ReplaceOrAppend.REPLACE) {
-                firstCell = it.next().getCell(0);
-            } else {
-                firstCell = it.next().getCell(1);
-            }
-        }
-
-        return new TestSetup(outputTable, firstCell);
     }
 }

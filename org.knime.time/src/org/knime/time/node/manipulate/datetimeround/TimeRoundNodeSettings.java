@@ -55,10 +55,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataValue;
-import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
-import org.knime.core.data.time.localtime.LocalTimeValue;
-import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -76,6 +72,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.OverwriteD
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.ReplaceOrAppend;
 
 /**
@@ -86,7 +83,7 @@ import org.knime.time.util.ReplaceOrAppend;
 public class TimeRoundNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Time columns", description = "Only the included columns will be shifted.")
-    @ChoicesWidget(choices = TimeColumnProvider.class)
+    @ChoicesWidget(choices = DateTimeUtils.TimeColumnProvider.class)
     @Layout(DateTimeRoundNodeLayout.Top.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
@@ -132,7 +129,7 @@ public class TimeRoundNodeSettings implements DefaultNodeSettings {
 
     TimeRoundNodeSettings(final DataTableSpec spec) {
         if (spec != null) {
-            m_columnFilter = new ColumnFilter(DateTimeRoundModelUtils.getCompatibleColumns(spec, TIME_COLUMN_TYPES));
+            m_columnFilter = new ColumnFilter(DateTimeRoundModelUtils.getCompatibleColumns(spec, DateTimeUtils.TIME_COLUMN_TYPES));
         }
     }
 
@@ -261,14 +258,5 @@ public class TimeRoundNodeSettings implements DefaultNodeSettings {
             }
         }
 
-    }
-
-    static final List<Class<? extends DataValue>> TIME_COLUMN_TYPES =
-        List.of(LocalTimeValue.class, ZonedDateTimeValue.class, LocalDateTimeValue.class);
-
-    static final class TimeColumnProvider extends CompatibleColumnChoicesProvider {
-        TimeColumnProvider() {
-            super(TimeRoundNodeSettings.TIME_COLUMN_TYPES);
-        }
     }
 }

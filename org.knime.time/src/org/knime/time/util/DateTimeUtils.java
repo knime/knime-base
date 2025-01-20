@@ -56,7 +56,21 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.Temporal;
+import java.util.List;
 import java.util.Optional;
+
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataType;
+import org.knime.core.data.DataValue;
+import org.knime.core.data.time.localdate.LocalDateCellFactory;
+import org.knime.core.data.time.localdate.LocalDateValue;
+import org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory;
+import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
+import org.knime.core.data.time.localtime.LocalTimeCellFactory;
+import org.knime.core.data.time.localtime.LocalTimeValue;
+import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFactory;
+import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.CompatibleColumnChoicesProvider;
 
 /**
  * This class contains several useful functions for the the new date&time types.
@@ -182,4 +196,118 @@ public final class DateTimeUtils {
         return now.minusNanos(now.getNano() % 1000000);
     }
 
+    /**
+     * Extract temporal data from a data cell
+     *
+     * @param cell data cell containing temporal data
+     * @return the extracted temporal data
+     */
+    public static Temporal extractTemporalFromDataCell(final DataCell cell) {
+        if (cell instanceof ZonedDateTimeValue zonedDateTimeValue) {
+            return zonedDateTimeValue.getZonedDateTime();
+        } else if (cell instanceof LocalDateTimeValue localDateTimeValue) {
+            return localDateTimeValue.getLocalDateTime();
+        } else if (cell instanceof LocalTimeValue localTimeValue) {
+            return localTimeValue.getLocalTime();
+        } else if (cell instanceof LocalDateValue localDateValue) {
+            return localDateValue.getLocalDate();
+        } else {
+            throw new IllegalArgumentException("Unsupported Temporal type: " + cell.getClass());
+        }
+    }
+
+    /**
+     * Create a DataCell from a Temporal value
+     *
+     * @param temporal temporal value to create data cell from
+     * @return the created data cell
+     */
+    public static DataCell createDataCellfromTemporal(final Temporal temporal) {
+        if (temporal instanceof ZonedDateTime zonedDateTime) {
+            return ZonedDateTimeCellFactory.create(zonedDateTime);
+        } else if (temporal instanceof LocalDateTime localDateTime) {
+            return LocalDateTimeCellFactory.create(localDateTime);
+        } else if (temporal instanceof LocalTime localTime) {
+            return LocalTimeCellFactory.create(localTime);
+        } else if (temporal instanceof LocalDate localDate) {
+            return LocalDateCellFactory.create(localDate);
+        } else {
+            throw new IllegalArgumentException("Unsupported Temporal type: " + temporal.getClass());
+        }
+    }
+
+    /**
+     * List of Date Column types
+     */
+    public static final List<Class<? extends DataValue>> DATE_COLUMN_TYPES =
+        List.of(LocalDateValue.class, ZonedDateTimeValue.class, LocalDateTimeValue.class);
+
+    /**
+     * List of Time Column types
+     */
+    public static final List<Class<? extends DataValue>> TIME_COLUMN_TYPES =
+        List.of(LocalTimeValue.class, ZonedDateTimeValue.class, LocalDateTimeValue.class);
+
+    /**
+     * List of DateTime Column types
+     */
+    public static final List<Class<? extends DataValue>> DATE_TIME_COLUMN_TYPES =
+        List.of(LocalDateValue.class, LocalTimeValue.class, LocalDateTimeValue.class, ZonedDateTimeValue.class);
+
+    /**
+     * Decides if a DataType is compatible to DateTime columns
+     *
+     * @param type DataType to evaluate
+     * @return true if there is any compatibility, false otherwise
+     */
+    public static boolean isDateTimeCompatible(final DataType type) {
+        return DATE_TIME_COLUMN_TYPES.stream().anyMatch(type::isCompatible);
+    }
+
+    /**
+     * Decides if a DataType is compatible to Time columns
+     *
+     * @param type DataType to evaluate
+     * @return true if there is any compatibility, false otherwise
+     */
+    public static boolean isTimeCompatible(final DataType type) {
+        return TIME_COLUMN_TYPES.stream().anyMatch(type::isCompatible);
+    }
+
+    /**
+     * Decides if a DataType is compatible to Date columns
+     *
+     * @param type DataType to evaluate
+     * @return true if there is any compatibility, false otherwise
+     */
+    public static boolean isDateCompatible(final DataType type) {
+        return DATE_COLUMN_TYPES.stream().anyMatch(type::isCompatible);
+    }
+
+    /**
+     * A column provider for Date Columns
+     */
+    public static final class DateColumnProvider extends CompatibleColumnChoicesProvider {
+        DateColumnProvider() {
+            super(DATE_COLUMN_TYPES);
+        }
+    }
+
+    /**
+     * A column provider for Time Columns
+     */
+    public static final class TimeColumnProvider extends CompatibleColumnChoicesProvider {
+        TimeColumnProvider() {
+            super(TIME_COLUMN_TYPES);
+        }
+    }
+
+    /**
+     * A column provider for DateTime Columns
+     */
+    public static final class DateTimeColumnProvider extends CompatibleColumnChoicesProvider {
+        DateTimeColumnProvider() {
+            super(DATE_TIME_COLUMN_TYPES);
+        }
+    }
 }
