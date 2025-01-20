@@ -326,6 +326,19 @@ class ExtractDurationPeriodFieldsNodeModelTest {
     }
 
     @Test
+    void testThatEmptyInputGivesNoError() throws InvalidSettingsException, IOException {
+        var settings = new ExtractDurationPeriodFieldsNodeSettings();
+        settings.m_extractFields = new ExtractFieldSettings[]{ //
+            new ExtractFieldSettings(ExtractableField.HOURS, "some_output_col_name") //
+        };
+        settings.m_selectedColumn = INPUT_COLUMN;
+
+        var testSetup = setupAndExecuteWorkflow(settings, null);
+
+        assertTrue(testSetup.outputTable.size() == 0, "Ouptput table should be empty");
+    }
+
+    @Test
     void testExtractingIncompatibleField() throws InvalidSettingsException, IOException {
         var settings = new ExtractDurationPeriodFieldsNodeSettings();
         settings.m_extractFields = new ExtractFieldSettings[]{ //
@@ -360,12 +373,18 @@ class ExtractDurationPeriodFieldsNodeModelTest {
         }
 
         // populate the input table
-        var inputTableSpec = new TableTestUtil.SpecBuilder() //
-            .addColumn(INPUT_COLUMN, cellToAdd.getType()) //
-            .build();
-        var inputTable = new TableTestUtil.TableBuilder(inputTableSpec) //
-            .addRow(cellToAdd) //
-            .build();
+        var inputTableSpecBuilder = new TableTestUtil.SpecBuilder();
+        if (cellToAdd != null) {
+            inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMN, cellToAdd.getType());
+        } else {
+            inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMN, DurationCellFactory.TYPE);
+        }
+        var inputTableSpec = inputTableSpecBuilder.build();
+        var inputTableBuilder = new TableTestUtil.TableBuilder(inputTableSpec);
+        if (cellToAdd != null) {
+            inputTableBuilder = inputTableBuilder.addRow(cellToAdd);
+        }
+        var inputTable = inputTableBuilder.build();
         var tableSupplierNode =
             WorkflowManagerUtil.createAndAddNode(workflowManager, new InputTableNode.InputDataNodeFactory(inputTable));
 
