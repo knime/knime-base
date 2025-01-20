@@ -59,17 +59,16 @@ import java.time.ZonedDateTime;
 import java.time.temporal.Temporal;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.core.data.DataCell;
-import org.knime.core.data.time.localdate.LocalDateCell;
-import org.knime.core.data.time.localdatetime.LocalDateTimeCell;
-import org.knime.core.data.time.localtime.LocalTimeCell;
-import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCell;
+import org.knime.core.data.time.localdate.LocalDateValue;
+import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
+import org.knime.core.data.time.localtime.LocalTimeValue;
+import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
@@ -474,6 +473,7 @@ public class CreateDateTimeNodeModel2Test {
             for (int i = 0; i < expectedResults.length; ++i) {
                 var expected = expectedResults[i];
                 var actual = extractCellValue(it.next().getCell(0));
+
                 assertEquals(expected, actual,
                     "Unexpected value in table at at index %s; expected %s but got %s".formatted(i, expected, actual));
             }
@@ -558,98 +558,74 @@ public class CreateDateTimeNodeModel2Test {
     }
 
     private static Temporal extractCellValue(final DataCell cell) {
-        if (cell instanceof LocalDateCell) {
-            return ((LocalDateCell)cell).getLocalDate();
-        } else if (cell instanceof LocalTimeCell) {
-            return ((LocalTimeCell)cell).getLocalTime();
-        } else if (cell instanceof LocalDateTimeCell) {
-            return ((LocalDateTimeCell)cell).getLocalDateTime();
-        } else if (cell instanceof ZonedDateTimeCell) {
-            return ((ZonedDateTimeCell)cell).getZonedDateTime();
+        if (cell instanceof LocalDateValue ld) {
+            return ld.getLocalDate();
+        } else if (cell instanceof LocalTimeValue lt) {
+            return lt.getLocalTime();
+        } else if (cell instanceof LocalDateTimeValue ldt) {
+            return ldt.getLocalDateTime();
+        } else if (cell instanceof ZonedDateTimeValue zdt) {
+            return zdt.getZonedDateTime();
         } else {
             throw new IllegalArgumentException("Unknown cell type: " + cell.getClass());
         }
     }
 
     private static void writeStartPointIntoSettings(final CreateDateTimeNodeSettings settings, final Temporal start) {
-        var datePart = extractDatePartFromTemporal(start);
-        var timePart = extractTimePartFromTemporal(start);
-        var zoneId = extractZoneIdFromTemporal(start);
-
-        if (datePart.isPresent()) {
-            settings.m_localDateStart = datePart.get();
-        }
-        if (timePart.isPresent()) {
-            settings.m_localTimeStart = timePart.get();
-        }
-        if (zoneId.isPresent()) {
-            settings.m_timezone = zoneId.get();
+        if (start instanceof LocalDate ld) {
+            settings.m_localDateStart = ld;
+        } else if (start instanceof LocalTime lt) {
+            settings.m_localTimeStart = lt;
+        } else if (start instanceof LocalDateTime ldt) {
+            settings.m_localDateTimeStart = ldt;
+        } else if (start instanceof ZonedDateTime zdt) {
+            settings.m_zonedDateTimeStart = zdt;
+        } else {
+            throw new IllegalArgumentException("Cannot determine start point from temporal value: " + start);
         }
     }
 
     private static void writeEndPointIntoSettings(final CreateDateTimeNodeSettings settings, final Temporal end) {
-        var datePart = extractDatePartFromTemporal(end);
-        var timePart = extractTimePartFromTemporal(end);
-        var zoneId = extractZoneIdFromTemporal(end);
-
-        if (datePart.isPresent()) {
-            settings.m_localDateEnd = datePart.get();
-        }
-        if (timePart.isPresent()) {
-            settings.m_localTimeEnd = timePart.get();
-        }
-        if (zoneId.isPresent()) {
-            settings.m_timezone = zoneId.get();
+        if (end instanceof LocalDate ld) {
+            settings.m_localDateEnd = ld;
+            assertEquals(settings.m_outputType, CreateDateTimeNodeSettings.OutputType.DATE,
+                "End point is a LocalDate but output type is not DATE");
+        } else if (end instanceof LocalTime lt) {
+            settings.m_localTimeEnd = lt;
+            assertEquals(settings.m_outputType, CreateDateTimeNodeSettings.OutputType.TIME,
+                "End point is a LocalTime but output type is not TIME");
+        } else if (end instanceof LocalDateTime ldt) {
+            settings.m_localDateTimeEnd = ldt;
+            assertEquals(settings.m_outputType, CreateDateTimeNodeSettings.OutputType.DATE_TIME,
+                "End point is a LocalDateTime but output type is not DATE_TIME");
+        } else if (end instanceof ZonedDateTime zdt) {
+            settings.m_zonedDateTimeEnd = zdt;
+            assertEquals(settings.m_outputType, CreateDateTimeNodeSettings.OutputType.DATE_TIME_WITH_TIMEZONE,
+                "End point is a ZonedDateTime but output type is not DATE_TIME_WITH_TIMEZONE");
+        } else {
+            throw new IllegalArgumentException("Cannot determine end point from temporal value: " + end);
         }
     }
 
     private static void writeOutputModeIntoSettings(final CreateDateTimeNodeSettings settings, final Temporal start) {
-        var datePart = extractDatePartFromTemporal(start);
-        var timePart = extractTimePartFromTemporal(start);
-        var zoneId = extractZoneIdFromTemporal(start);
-
-        if (zoneId.isPresent()) {
-            settings.m_outputType = CreateDateTimeNodeSettings.OutputType.DATE_TIME_WITH_TIMEZONE;
-        } else if (datePart.isPresent() && timePart.isPresent()) {
-            settings.m_outputType = CreateDateTimeNodeSettings.OutputType.DATE_TIME;
-        } else if (datePart.isPresent()) {
+        if (start instanceof LocalDate) {
             settings.m_outputType = CreateDateTimeNodeSettings.OutputType.DATE;
-        } else if (timePart.isPresent()) {
+            assertEquals(settings.m_outputType, CreateDateTimeNodeSettings.OutputType.DATE,
+                "Start point is a LocalDate but output type is not DATE");
+        } else if (start instanceof LocalTime) {
             settings.m_outputType = CreateDateTimeNodeSettings.OutputType.TIME;
+            assertEquals(settings.m_outputType, CreateDateTimeNodeSettings.OutputType.TIME,
+                "Start point is a LocalTime but output type is not TIME");
+        } else if (start instanceof LocalDateTime) {
+            settings.m_outputType = CreateDateTimeNodeSettings.OutputType.DATE_TIME;
+            assertEquals(settings.m_outputType, CreateDateTimeNodeSettings.OutputType.DATE_TIME,
+                "Start point is a LocalDateTime but output type is not DATE_TIME");
+        } else if (start instanceof ZonedDateTime) {
+            settings.m_outputType = CreateDateTimeNodeSettings.OutputType.DATE_TIME_WITH_TIMEZONE;
+            assertEquals(settings.m_outputType, CreateDateTimeNodeSettings.OutputType.DATE_TIME_WITH_TIMEZONE,
+                "Start point is a ZonedDateTime but output type is not DATE_TIME_WITH_TIMEZONE");
         } else {
             throw new IllegalArgumentException("Cannot determine output type from temporal value: " + start);
-        }
-    }
-
-    private static Optional<LocalDate> extractDatePartFromTemporal(final Temporal t) {
-        if (t instanceof LocalDate) {
-            return Optional.of((LocalDate)t);
-        } else if (t instanceof LocalDateTime) {
-            return Optional.of(((LocalDateTime)t).toLocalDate());
-        } else if (t instanceof ZonedDateTime) {
-            return Optional.of(((ZonedDateTime)t).toLocalDate());
-        } else {
-            return Optional.empty();
-        }
-    }
-
-    private static Optional<LocalTime> extractTimePartFromTemporal(final Temporal t) {
-        if (t instanceof LocalTime) {
-            return Optional.of((LocalTime)t);
-        } else if (t instanceof LocalDateTime) {
-            return Optional.of(((LocalDateTime)t).toLocalTime());
-        } else if (t instanceof ZonedDateTime) {
-            return Optional.of(((ZonedDateTime)t).toLocalTime());
-        } else {
-            return Optional.empty();
-        }
-    }
-
-    private static Optional<ZoneId> extractZoneIdFromTemporal(final Temporal t) {
-        if (t instanceof ZonedDateTime) {
-            return Optional.of(((ZonedDateTime)t).getZone());
-        } else {
-            return Optional.empty();
         }
     }
 }

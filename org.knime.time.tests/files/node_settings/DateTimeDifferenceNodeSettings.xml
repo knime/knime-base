@@ -7,27 +7,37 @@
     </config>
     <config key="model">
         <config key="firstColumnSelection">
-            <entry key="selected" type="xstring" isnull="true" value=""/>
-            <config key="compatibleTypes_Internals"/>
+            <entry key="selected" type="xstring" value="Zoned Date Time"/>
+            <config key="compatibleTypes_Internals">
+                <entry key="array-size" type="xint" value="4"/>
+                <entry key="0" type="xstring" value="org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue"/>
+                <entry key="1" type="xstring" value="org.knime.core.data.DataValue"/>
+                <entry key="2" type="xstring" value="org.knime.core.data.BoundedValue"/>
+                <entry key="3" type="xstring" value="org.knime.core.data.StringValue"/>
+            </config>
         </config>
-        <entry key="secondDateTimeValueType" type="xstring" value="COLUMN"/>
+        <entry key="secondDateTimeValueType" type="xstring" value="FIXED_DATE_TIME"/>
         <config key="secondColumnSelection">
-            <entry key="selected" type="xstring" isnull="true" value=""/>
-            <config key="compatibleTypes_Internals"/>
+            <entry key="selected" type="xstring" value="Local Date"/>
+            <config key="compatibleTypes_Internals">
+                <entry key="array-size" type="xint" value="0"/>
+            </config>
         </config>
-        <entry key="localDateFixed" type="xstring" value="2025-01-17"/>
-        <entry key="localTimeFixed" type="xstring" value="14:05:20.750987898"/>
-        <entry key="timezoneFixed" type="xstring" value="Europe/Berlin"/>
+        <entry key="localDateFixed" type="xstring" value="2025-01-22"/>
+        <entry key="localTimeFixed" type="xstring" value="11:11:03.696287373"/>
+        <entry key="localDateTimeFixed" type="xstring" value="2025-01-22T11:11:03.696293188"/>
+        <entry key="zonedDateTimeFixed" type="xstring" value="2025-01-22T11:11:03.696297872-11:00[Pacific/Pago_Pago]"/>
         <entry key="mode" type="xstring" value="SECOND_MINUS_FIRST"/>
         <entry key="outputType" type="xstring" value="DURATION_OR_PERIOD"/>
         <entry key="granularity" type="xstring" value="SECOND"/>
         <entry key="outputNumberType" type="xstring" value="DECIMALS"/>
         <entry key="outputColumnName" type="xstring" value="Date&amp;Time Difference"/>
     </config>
+    <config key="variables"/>
     <entry key="customDescription" type="xstring" isnull="true" value=""/>
-    <entry key="state" type="xstring" value="IDLE"/>
+    <entry key="state" type="xstring" value="EXECUTED"/>
     <entry key="factory" type="xstring" value="org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeFactory2"/>
-    <entry key="node-name" type="xstring" value="Date&amp;Time Difference (Labs)"/>
+    <entry key="node-name" type="xstring" value="Date&amp;Time Difference"/>
     <entry key="node-bundle-name" type="xstring" value="KNIME Date and Time Handling"/>
     <entry key="node-bundle-symbolic-name" type="xstring" value="org.knime.time"/>
     <entry key="node-bundle-vendor" type="xstring" value="KNIME AG, Zurich, Switzerland"/>
@@ -37,17 +47,20 @@
     <entry key="node-feature-vendor" type="xstring" isnull="true" value=""/>
     <entry key="node-feature-version" type="xstring" value="0.0.0"/>
     <config key="factory_settings"/>
-    <entry key="name" type="xstring" value="Date&amp;Time Difference (Labs)"/>
-    <entry key="hasContent" type="xboolean" value="false"/>
+    <entry key="name" type="xstring" value="Date&amp;Time Difference"/>
+    <entry key="hasContent" type="xboolean" value="true"/>
     <entry key="isInactive" type="xboolean" value="false"/>
     <config key="ports">
         <config key="port_1">
             <entry key="index" type="xint" value="1"/>
-            <entry key="port_dir_location" type="xstring" isnull="true" value=""/>
+            <entry key="port_spec_class" type="xstring" value="org.knime.core.data.DataTableSpec"/>
+            <entry key="port_object_class" type="xstring" value="org.knime.core.node.BufferedDataTable"/>
+            <entry key="port_object_summary" type="xstring" value="Rows: 100, Cols: 33"/>
+            <entry key="port_dir_location" type="xstring" value="port_1"/>
         </config>
     </config>
     <config key="filestores">
         <entry key="file_store_location" type="xstring" isnull="true" value=""/>
-        <entry key="file_store_id" type="xstring" isnull="true" value=""/>
+        <entry key="file_store_id" type="xstring" value="a11457bd-40ab-4c7f-bc07-bb7f7a1b76a9"/>
     </config>
 </config>

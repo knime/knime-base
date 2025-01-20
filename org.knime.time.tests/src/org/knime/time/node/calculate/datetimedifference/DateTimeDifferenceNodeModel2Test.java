@@ -602,10 +602,9 @@ final class DateTimeDifferenceNodeModel2Test {
 
         settings.m_firstColumnSelection =
             new ColumnSelection(table.get().getDataTableSpec().getColumnSpec(COLUMN_1_NAME));
-        settings.m_secondDateTimeValueType = SecondDateTimeValueType.FIXED_DATE_TIME;
-        settings.m_localDateFixed = TemporalQueries.localDate().queryFrom(arg2);
-        settings.m_localTimeFixed = TemporalQueries.localTime().queryFrom(arg2);
-        settings.m_timezoneFixed = TemporalQueries.zone().queryFrom(arg2);
+
+        setFixedFieldsInSettings(settings, arg2);
+
         settings.m_outputType = OutputType.DURATION_OR_PERIOD;
         settings.m_mode = negated ? Mode.FIRST_MINUS_SECOND : Mode.SECOND_MINUS_FIRST;
 
@@ -626,10 +625,9 @@ final class DateTimeDifferenceNodeModel2Test {
 
         settings.m_firstColumnSelection =
             new ColumnSelection(table.get().getDataTableSpec().getColumnSpec(COLUMN_1_NAME));
-        settings.m_secondDateTimeValueType = SecondDateTimeValueType.FIXED_DATE_TIME;
-        settings.m_localDateFixed = TemporalQueries.localDate().queryFrom(arg2);
-        settings.m_localTimeFixed = TemporalQueries.localTime().queryFrom(arg2);
-        settings.m_timezoneFixed = TemporalQueries.zone().queryFrom(arg2);
+
+        setFixedFieldsInSettings(settings, arg2);
+
         settings.m_outputType = OutputType.NUMBER;
         settings.m_outputNumberType = OutputNumberType.DECIMALS;
         settings.m_granularity = unit;
@@ -652,10 +650,9 @@ final class DateTimeDifferenceNodeModel2Test {
 
         settings.m_firstColumnSelection =
             new ColumnSelection(table.get().getDataTableSpec().getColumnSpec(COLUMN_1_NAME));
-        settings.m_secondDateTimeValueType = SecondDateTimeValueType.FIXED_DATE_TIME;
-        settings.m_localDateFixed = TemporalQueries.localDate().queryFrom(arg2);
-        settings.m_localTimeFixed = TemporalQueries.localTime().queryFrom(arg2);
-        settings.m_timezoneFixed = TemporalQueries.zone().queryFrom(arg2);
+
+        setFixedFieldsInSettings(settings, arg2);
+
         settings.m_outputType = OutputType.NUMBER;
         settings.m_outputNumberType = OutputNumberType.NO_DECIMALS;
         settings.m_granularity = unit;
@@ -674,10 +671,9 @@ final class DateTimeDifferenceNodeModel2Test {
 
         settings.m_firstColumnSelection =
             new ColumnSelection(table.get().getDataTableSpec().getColumnSpec(COLUMN_1_NAME));
-        settings.m_secondDateTimeValueType = SecondDateTimeValueType.FIXED_DATE_TIME;
-        settings.m_localDateFixed = TemporalQueries.localDate().queryFrom(BASE_TIME);
-        settings.m_localTimeFixed = TemporalQueries.localTime().queryFrom(BASE_TIME);
-        settings.m_timezoneFixed = TemporalQueries.zone().queryFrom(BASE_TIME);
+
+        setFixedFieldsInSettings(settings, BASE_ZONED_DATE_TIME);
+
         settings.m_outputType = OutputType.DURATION_OR_PERIOD;
         settings.m_mode = Mode.FIRST_MINUS_SECOND;
 
@@ -697,16 +693,30 @@ final class DateTimeDifferenceNodeModel2Test {
 
         settings.m_firstColumnSelection =
             new ColumnSelection(emptyTable.get().getDataTableSpec().getColumnSpec(COLUMN_1_NAME));
-        settings.m_secondDateTimeValueType = SecondDateTimeValueType.FIXED_DATE_TIME;
-        settings.m_localDateFixed = BASE_DATE;
-        settings.m_localTimeFixed = BASE_TIME;
-        settings.m_timezoneFixed = ZoneId.of("UTC");
+
+        setFixedFieldsInSettings(settings, BASE_ZONED_DATE_TIME);
+
         settings.m_outputType = OutputType.DURATION_OR_PERIOD;
         settings.m_mode = Mode.FIRST_MINUS_SECOND;
 
         var outputTable = setupAndExecuteWorkflow(settings, emptyTable).outputTable;
 
         assertEquals(0, outputTable.size(), "expected empty output table");
+    }
+
+    private static void setFixedFieldsInSettings(final DateTimeDifferenceNodeSettings settings, final Temporal t) {
+        settings.m_secondDateTimeValueType = SecondDateTimeValueType.FIXED_DATE_TIME;
+        settings.m_localDateFixed = TemporalQueries.localDate().queryFrom(t);
+        settings.m_localTimeFixed = TemporalQueries.localTime().queryFrom(t);
+
+        if (settings.m_localTimeFixed != null && settings.m_localDateFixed != null) {
+            settings.m_localDateTimeFixed = LocalDateTime.of(settings.m_localDateFixed, settings.m_localTimeFixed);
+
+            var extractedZone = TemporalQueries.zone().queryFrom(t);
+            if (extractedZone != null) {
+                settings.m_zonedDateTimeFixed = ZonedDateTime.of(settings.m_localDateTimeFixed, extractedZone);
+            }
+        }
     }
 
     private record TestSetup(BufferedDataTable outputTable, DataCell lastAppendedCell) {

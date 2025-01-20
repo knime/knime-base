@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
     <entry key="outputType" type="xstring" value="DATE"/>
-    <entry key="localDateStart" type="xstring" value="2000-01-01"/>
-    <entry key="localTimeStart" type="xstring" value="00:00:00"/>
-    <entry key="timezone" type="xstring" value="Europe/Berlin"/>
+    <entry key="localDateStart" type="xstring" value="2024-01-22"/>
+    <entry key="localTimeStart" type="xstring" value="16:41:39"/>
+    <entry key="localDateTimeStart" type="xstring" value="2024-01-22T17:41:39.521969145"/>
+    <entry key="zonedDateTimeStart" type="xstring" value="2024-01-22T17:41:39.521973361+01:00[Europe/Berlin]"/>
     <entry key="fixedSteps" type="xstring" value="INTERVAL_AND_END"/>
     <entry key="numberOfRows" type="xlong" value="1000"/>
     <entry key="interval" type="xstring" value="P0Y0M0W1D"/>
-    <entry key="localDateEnd" type="xstring" value="2000-01-01"/>
-    <entry key="localTimeEnd" type="xstring" value="00:00:00"/>
-    <entry key="outputColumnName" type="xstring" value="Date&amp;Time"/>
+    <entry key="localDateEnd" type="xstring" value="2025-01-22"/>
+    <entry key="localTimeEnd" type="xstring" value="17:41:39"/>
+    <entry key="localDateTimeEnd" type="xstring" value="2025-01-22T17:41:39.521988364"/>
+    <entry key="zonedDateTimeEnd" type="xstring" value="2025-01-22T17:41:39.521989931+01:00[Europe/Berlin]"/>
+    <entry key="outputColumnName" type="xstring" value="Date"/>
 </config>

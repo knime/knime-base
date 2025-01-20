@@ -1,12 +1,22 @@
 {
   "data" : {
     "model" : {
-      "firstColumnSelection" : { },
-      "secondDateTimeValueType" : "COLUMN",
-      "secondColumnSelection" : { },
-      "localDateFixed" : "2025-01-17",
-      "localTimeFixed" : "14:05:20.750987898",
-      "timezoneFixed" : "Europe/Berlin",
+      "firstColumnSelection" : {
+        "selected" : "Zoned Date Time",
+        "compatibleTypes" : [ "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
+      },
+      "secondDateTimeValueType" : "FIXED_DATE_TIME",
+      "secondColumnSelection" : {
+        "selected" : "Local Date",
+        "compatibleTypes" : [ ]
+      },
+      "localDateFixed" : "2025-01-22",
+      "localTimeFixed" : "11:11:03.696287373",
+      "localDateTimeFixed" : "2025-01-22T11:11:03.696293188",
+      "zonedDateTimeFixed" : {
+        "dateTime" : "2025-01-22T11:11:03.696297872",
+        "timeZone" : "Pacific/Pago_Pago"
+      },
       "mode" : "SECOND_MINUS_FIRST",
       "outputType" : "DURATION_OR_PERIOD",
       "granularity" : "SECOND",
@@ -83,6 +93,13 @@
             "description" : "The fixed date to calculate the difference to.",
             "default" : "2020-01-01"
           },
+          "localDateTimeFixed" : {
+            "type" : "string",
+            "format" : "date-time",
+            "title" : "Date time",
+            "description" : "The fixed date&amp;time to calculate the difference to.",
+            "default" : "2020-01-01T14:00:00.123456789"
+          },
           "localTimeFixed" : {
             "type" : "string",
             "format" : "date-time",
@@ -145,7 +162,7 @@
                 "type" : "string"
               }
             },
-            "title" : "Second Date Time column",
+            "title" : "Second date time column",
             "description" : "The date&amp;time column that is subtracted from the first column, or vice versa, with the direction depending on the 'mode' option.\n",
             "default" : {
               "selected" : "localTimeTest",
@@ -170,11 +187,15 @@
             "description" : "The source of the second date&amp;time value.\n<ul>\n<li><b>Column</b>: Calculates the difference between the selected second column and the first column. Differences can only be calculated between columns of the same type. Using the <i>Modify Time</i>, <i>Modify Date</i>, and <i>Modify Time Zone</i> nodes you can adjust the date&amp;time formats beforehand.\n</li>\n<li><b>Fixed Date&amp;Time</b>: Calculates the difference between the selected fixed date&amp;time and the first column.\n</li>\n<li><b>Execution Date&amp;Time</b>: Calculates the difference between the execution date&amp;time and the chosen first column.\n</li>\n<li><b>Previous Row</b>: Calculates the difference between the date&amp;time in row <i>n</i> and row <i>n-1</i> in the chosen row. Note that the first row in the output will be MISSING as there is no previous row to calculate the difference with.\n</li>\n</ul>",
             "default" : "COLUMN"
           },
-          "timezoneFixed" : {
+          "zonedDateTimeFixed" : {
             "type" : "string",
-            "title" : "Timezone",
-            "description" : "The fixed timezone to calculate the difference to",
-            "default" : "Europe/Berlin"
+            "format" : "date-time",
+            "title" : "Zoned date time",
+            "description" : "The fixed date&amp;time&amp;zone to calculate the difference to.",
+            "default" : {
+              "dateTime" : "2020-01-01T14:00:00.123456789",
+              "timeZone" : "Europe/Berlin"
+            }
           }
         }
       }
@@ -234,44 +255,16 @@
           "condition" : {
             "type" : "AND",
             "conditions" : [ {
-              "type" : "OR",
-              "conditions" : [ {
-                "scope" : "#/properties/model/properties/firstColumnSelection",
-                "schema" : {
-                  "properties" : {
-                    "compatibleTypes" : {
-                      "contains" : {
-                        "const" : "org.knime.core.data.time.localdate.LocalDateValue"
-                      }
+              "scope" : "#/properties/model/properties/firstColumnSelection",
+              "schema" : {
+                "properties" : {
+                  "compatibleTypes" : {
+                    "contains" : {
+                      "const" : "org.knime.core.data.time.localdate.LocalDateValue"
                     }
                   }
                 }
-              }, {
-                "type" : "OR",
-                "conditions" : [ {
-                  "scope" : "#/properties/model/properties/firstColumnSelection",
-                  "schema" : {
-                    "properties" : {
-                      "compatibleTypes" : {
-                        "contains" : {
-                          "const" : "org.knime.core.data.time.localdatetime.LocalDateTimeValue"
-                        }
-                      }
-                    }
-                  }
-                }, {
-                  "scope" : "#/properties/model/properties/firstColumnSelection",
-                  "schema" : {
-                    "properties" : {
-                      "compatibleTypes" : {
-                        "contains" : {
-                          "const" : "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue"
-                        }
-                      }
-                    }
-                  }
-                } ]
-              } ]
+              }
             }, {
               "scope" : "#/properties/model/properties/secondDateTimeValueType",
               "schema" : {
@@ -293,44 +286,16 @@
           "condition" : {
             "type" : "AND",
             "conditions" : [ {
-              "type" : "OR",
-              "conditions" : [ {
-                "scope" : "#/properties/model/properties/firstColumnSelection",
-                "schema" : {
-                  "properties" : {
-                    "compatibleTypes" : {
-                      "contains" : {
-                        "const" : "org.knime.core.data.time.localtime.LocalTimeValue"
-                      }
+              "scope" : "#/properties/model/properties/firstColumnSelection",
+              "schema" : {
+                "properties" : {
+                  "compatibleTypes" : {
+                    "contains" : {
+                      "const" : "org.knime.core.data.time.localtime.LocalTimeValue"
                     }
                   }
                 }
-              }, {
-                "type" : "OR",
-                "conditions" : [ {
-                  "scope" : "#/properties/model/properties/firstColumnSelection",
-                  "schema" : {
-                    "properties" : {
-                      "compatibleTypes" : {
-                        "contains" : {
-                          "const" : "org.knime.core.data.time.localdatetime.LocalDateTimeValue"
-                        }
-                      }
-                    }
-                  }
-                }, {
-                  "scope" : "#/properties/model/properties/firstColumnSelection",
-                  "schema" : {
-                    "properties" : {
-                      "compatibleTypes" : {
-                        "contains" : {
-                          "const" : "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue"
-                        }
-                      }
-                    }
-                  }
-                } ]
-              } ]
+              }
             }, {
               "scope" : "#/properties/model/properties/secondDateTimeValueType",
               "schema" : {
@@ -343,9 +308,40 @@
         }
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/timezoneFixed",
+        "scope" : "#/properties/model/properties/localDateTimeFixed",
         "options" : {
-          "format" : "dropDown",
+          "format" : "dateTime"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "type" : "AND",
+            "conditions" : [ {
+              "scope" : "#/properties/model/properties/firstColumnSelection",
+              "schema" : {
+                "properties" : {
+                  "compatibleTypes" : {
+                    "contains" : {
+                      "const" : "org.knime.core.data.time.localdatetime.LocalDateTimeValue"
+                    }
+                  }
+                }
+              }
+            }, {
+              "scope" : "#/properties/model/properties/secondDateTimeValueType",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "FIXED_DATE_TIME"
+                } ]
+              }
+            } ]
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/zonedDateTimeFixed",
+        "options" : {
+          "format" : "zonedDateTime",
           "possibleValues" : [ {
             "id" : "Africa/Abidjan",
             "text" : "Africa/Abidjan"
@@ -2262,7 +2258,8 @@
           },
           "localDateFixed" : { },
           "localTimeFixed" : { },
-          "timezoneFixed" : { },
+          "localDateTimeFixed" : { },
+          "zonedDateTimeFixed" : { },
           "mode" : { },
           "outputType" : { },
           "granularity" : { },

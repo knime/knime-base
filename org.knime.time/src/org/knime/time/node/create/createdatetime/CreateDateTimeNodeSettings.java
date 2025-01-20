@@ -49,8 +49,9 @@
 package org.knime.time.node.create.createdatetime;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.function.Supplier;
 
@@ -72,7 +73,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicatePr
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.time.node.create.createdatetime.CreateDateTimeNodeSettings.OutputType.IncludesTimeZone;
 
 /**
  * Settings for the new Create Date Time webUI node.
@@ -113,28 +113,34 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Start date", description = """
             The date at which the date time creation should start, inclusive.
             """)
-    @Effect(predicate = OutputType.IncludesDate.class, type = EffectType.SHOW)
+    @Effect(predicate = OutputType.IsLocalDate.class, type = EffectType.SHOW)
     @Layout(StartingPointSettingsSection.class)
     LocalDate m_localDateStart = LocalDate.now().minusYears(1);
 
     @Widget(title = "Start time", description = """
             The time at which the date time creation should start, inclusive.
             """)
-    @Effect(predicate = OutputType.IncludesTime.class, type = EffectType.SHOW)
+    @Effect(predicate = OutputType.IsLocalTime.class, type = EffectType.SHOW)
     @Layout(StartingPointSettingsSection.class)
     LocalTime m_localTimeStart = LocalTime.now().truncatedTo(ChronoUnit.SECONDS).minusHours(1);
 
-    @Widget(title = "Timezone", description = """
-            The timezone to use for the zoned date&amp;time output type.
+    @Widget(title = "Start date time", description = """
+            The date&amp;time at which the date time creation should start, inclusive.
             """)
-    @Effect(predicate = IncludesTimeZone.class, type = EffectType.SHOW)
+    @Effect(predicate = OutputType.IsLocalDateTime.class, type = EffectType.SHOW)
     @Layout(StartingPointSettingsSection.class)
-    ZoneId m_timezone = ZoneId.systemDefault();
+    LocalDateTime m_localDateTimeStart = LocalDateTime.now().minusYears(1);
+
+    @Widget(title = "Start zoned date time", description = """
+            The date&amp;time&amp;zone at which the date time creation should start, \
+            inclusive.
+            """)
+    @Effect(predicate = OutputType.IsZonedDateTime.class, type = EffectType.SHOW)
+    @Layout(StartingPointSettingsSection.class)
+    ZonedDateTime m_zonedDateTimeStart = ZonedDateTime.now().minusYears(1);
 
     @Layout(RangeSettingsSection.class)
-    @Widget(title = "Fixed Steps", description = """
-            How the rows are created.
-            """)
+    @Widget(title = "Fixed Steps", description = "How the rows are created.")
     @ValueReference(FixedSteps.FixedStepsValueReference.class)
     @ValueSwitchWidget
     FixedSteps m_fixedSteps = FixedSteps.INTERVAL_AND_END;
@@ -160,7 +166,7 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
             if the output mode is 'Number and Duration' and the provided interval does not divide \
             evenly between the start and end date.
             """)
-    @Effect(predicate = OutputType.IncludesDate.class, type = EffectType.SHOW)
+    @Effect(predicate = OutputType.IsLocalDate.class, type = EffectType.SHOW)
     @Layout(value = EndSettingsSection.class)
     LocalDate m_localDateEnd = LocalDate.now();
 
@@ -169,54 +175,67 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
             if the output mode is 'Number and Duration' and the provided interval does not divide \
             evenly between the start and end time.
             """)
-    @Effect(predicate = OutputType.IncludesTime.class, type = EffectType.SHOW)
+    @Effect(predicate = OutputType.IsLocalTime.class, type = EffectType.SHOW)
     @Layout(value = EndSettingsSection.class)
     LocalTime m_localTimeEnd = LocalTime.now().truncatedTo(ChronoUnit.SECONDS);
 
-    @Layout(value = OutputSettingsSection.class)
-    @Widget(title = "Output column name", description = """
-            The name of the output column.
+    @Widget(title = "End date time", description = """
+            The date and time at which the date time creation should stop. The end date&amp;time is inclusive, \
+            except if the output mode is 'Number and Duration' and the provided interval does not divide \
+            evenly between the start and end date&amp;time.
             """)
+    @Effect(predicate = OutputType.IsLocalDateTime.class, type = EffectType.SHOW)
+    @Layout(value = EndSettingsSection.class)
+    LocalDateTime m_localDateTimeEnd = LocalDateTime.now();
+
+    @Widget(title = "End zoned date time", description = """
+            The date and time and zone at which the date time creation should stop. The end date&amp;time \
+            is inclusive,  except if the output mode is 'Number and Duration' and the provided interval \
+            does not divide evenly between the start and end date&amp;time.
+            """)
+    @Effect(predicate = OutputType.IsZonedDateTime.class, type = EffectType.SHOW)
+    @Layout(value = EndSettingsSection.class)
+    ZonedDateTime m_zonedDateTimeEnd = ZonedDateTime.now();
+
+    @Layout(value = OutputSettingsSection.class)
+    @Widget(title = "Output column name", description = "The name of the output column.")
     String m_outputColumnName = "Date";
 
     enum OutputType {
-            @Label(value = "Date", description = """
-                    Outputs will be of type Local Date
-                    """)
+            @Label(value = "Date", description = "Outputs will be of type Local Date")
             DATE, //
-            @Label(value = "Time", description = """
-                    Outputs will be of type Local Time
-                    """)
+            @Label(value = "Time", description = "Outputs will be of type Local Time")
             TIME, //
-            @Label(value = "Date & Time", description = """
-                    Outputs will be of type Local Date Time
-                    """)
+            @Label(value = "Date & Time", description = "Outputs will be of type Local Date Time")
             DATE_TIME, //
-            @Label(value = "Date & Time & Zone", description = """
-                    Outputs will be of type Zoned Date Time
-                    """)
+            @Label(value = "Date & Time & Zone", description = "Outputs will be of type Zoned Date Time")
             DATE_TIME_WITH_TIMEZONE;
 
         interface ValueReference extends Reference<OutputType> {
         }
 
-        static final class IncludesTime implements PredicateProvider {
+        static final class IsLocalTime implements PredicateProvider {
             @Override
             public Predicate init(final PredicateInitializer i) {
-                return i.getEnum(OutputType.ValueReference.class).isOneOf(OutputType.TIME, OutputType.DATE_TIME,
-                    OutputType.DATE_TIME_WITH_TIMEZONE);
+                return i.getEnum(OutputType.ValueReference.class).isOneOf(OutputType.TIME);
             }
         }
 
-        static final class IncludesDate implements PredicateProvider {
+        static final class IsLocalDate implements PredicateProvider {
             @Override
             public Predicate init(final PredicateInitializer i) {
-                return i.getEnum(OutputType.ValueReference.class).isOneOf(OutputType.DATE, OutputType.DATE_TIME,
-                    OutputType.DATE_TIME_WITH_TIMEZONE);
+                return i.getEnum(OutputType.ValueReference.class).isOneOf(OutputType.DATE);
             }
         }
 
-        static final class IncludesTimeZone implements PredicateProvider {
+        static final class IsLocalDateTime implements PredicateProvider {
+            @Override
+            public Predicate init(final PredicateInitializer i) {
+                return i.getEnum(OutputType.ValueReference.class).isOneOf(OutputType.DATE_TIME);
+            }
+        }
+
+        static final class IsZonedDateTime implements PredicateProvider {
             @Override
             public Predicate init(final PredicateInitializer i) {
                 return i.getEnum(OutputType.ValueReference.class).isOneOf(OutputType.DATE_TIME_WITH_TIMEZONE);

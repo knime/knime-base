@@ -53,10 +53,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Period;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.Temporal;
-import java.util.Objects;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -213,11 +211,7 @@ public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDiffere
                 return createDifferenceCell(firstTemporal, secondTemporal, m_settings);
             } else {
                 return createDifferenceCell(firstTemporal, switch (m_settings.m_secondDateTimeValueType) {
-                    case FIXED_DATE_TIME -> createTemporalFromPotentiallyNullFields( //
-                        m_settings.m_localDateFixed, //
-                        m_settings.m_localTimeFixed, //
-                        m_settings.m_timezoneFixed //
-                        );
+                    case FIXED_DATE_TIME -> extractFixedSecondTemporalFromSettings(firstTemporal, m_settings);
                     case EXECUTION_DATE_TIME -> ZonedDateTime.now();
                     default -> throw new IllegalArgumentException(
                         "Unsupported SecondDateTimeValueType: " + m_settings.m_secondDateTimeValueType);
@@ -225,26 +219,20 @@ public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDiffere
             }
         }
 
-        private static Temporal createTemporalFromPotentiallyNullFields(final LocalDate date, final LocalTime time,
-            final ZoneId id) {
+        private static Temporal extractFixedSecondTemporalFromSettings(final Temporal firstTemporal,
+            final DateTimeDifferenceNodeSettings settings) {
 
-            if (date == null && time == null && id == null) {
-                throw new IllegalArgumentException("All fields are null.");
+            if (firstTemporal instanceof LocalDate) {
+                return settings.m_localDateFixed;
+            } else if (firstTemporal instanceof LocalDateTime) {
+                return settings.m_localDateTimeFixed;
+            } else if (firstTemporal instanceof LocalTime) {
+                return settings.m_localTimeFixed;
+            } else if (firstTemporal instanceof ZonedDateTime) {
+                return settings.m_zonedDateTimeFixed;
+            } else {
+                throw new IllegalArgumentException("Unsupported Temporal type: " + firstTemporal.getClass());
             }
-
-            if (id != null) {
-                return ZonedDateTime.of(date, time, id);
-            }
-
-            if (date == null) {
-                return Objects.requireNonNull(time);
-            }
-
-            if (time == null) {
-                return Objects.requireNonNull(date);
-            }
-
-            return LocalDateTime.of(date, time);
         }
     }
 

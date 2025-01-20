@@ -1,17 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
     <config key="firstColumnSelection">
-        <entry key="selected" type="xstring" isnull="true" value=""/>
-        <config key="compatibleTypes_Internals"/>
+        <entry key="selected" type="xstring" value="Zoned Date Time"/>
+        <config key="compatibleTypes_Internals">
+            <entry key="array-size" type="xint" value="4"/>
+            <entry key="0" type="xstring" value="org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue"/>
+            <entry key="1" type="xstring" value="org.knime.core.data.DataValue"/>
+            <entry key="2" type="xstring" value="org.knime.core.data.BoundedValue"/>
+            <entry key="3" type="xstring" value="org.knime.core.data.StringValue"/>
+        </config>
     </config>
-    <entry key="secondDateTimeValueType" type="xstring" value="COLUMN"/>
+    <entry key="secondDateTimeValueType" type="xstring" value="FIXED_DATE_TIME"/>
     <config key="secondColumnSelection">
-        <entry key="selected" type="xstring" isnull="true" value=""/>
-        <config key="compatibleTypes_Internals"/>
+        <entry key="selected" type="xstring" value="Local Date"/>
+        <config key="compatibleTypes_Internals">
+            <entry key="array-size" type="xint" value="0"/>
+        </config>
     </config>
-    <entry key="localDateFixed" type="xstring" value="2025-01-17"/>
-    <entry key="localTimeFixed" type="xstring" value="14:05:20.750987898"/>
-    <entry key="timezoneFixed" type="xstring" value="Europe/Berlin"/>
+    <entry key="localDateFixed" type="xstring" value="2025-01-22"/>
+    <entry key="localTimeFixed" type="xstring" value="11:11:03.696287373"/>
+    <entry key="localDateTimeFixed" type="xstring" value="2025-01-22T11:11:03.696293188"/>
+    <entry key="zonedDateTimeFixed" type="xstring" value="2025-01-22T11:11:03.696297872-11:00[Pacific/Pago_Pago]"/>
     <entry key="mode" type="xstring" value="SECOND_MINUS_FIRST"/>
     <entry key="outputType" type="xstring" value="DURATION_OR_PERIOD"/>
     <entry key="granularity" type="xstring" value="SECOND"/>

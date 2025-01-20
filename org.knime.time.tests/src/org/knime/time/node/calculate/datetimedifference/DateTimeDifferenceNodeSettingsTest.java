@@ -51,8 +51,10 @@ package org.knime.time.node.calculate.datetimedifference;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Locale;
 
 import org.junit.jupiter.api.AfterEach;
@@ -99,6 +101,10 @@ final class DateTimeDifferenceNodeSettingsTest extends DefaultNodeSettingsSnapsh
             DataType.getType(ZonedDateTimeCell.class)} //
             )};
 
+    private MockedStatic<ZonedDateTime> m_mockedStaticZonedDateTime;
+
+    private MockedStatic<LocalDateTime> m_mockedStaticLocalDateTime;
+
     private MockedStatic<LocalDate> m_mockedStaticLocalDate;
 
     private MockedStatic<ZoneId> m_mockedStaticZoneId;
@@ -111,16 +117,27 @@ final class DateTimeDifferenceNodeSettingsTest extends DefaultNodeSettingsSnapsh
 
     private static final LocalTime MOCKED_CURRENT_TIME = LocalTime.of(14, 00, 00, 123456789);
 
+    private static final LocalDateTime MOCKED_CURRENT_DATE_TIME = LocalDateTime.of(2020, 1, 1, 14, 0, 0, 123456789);
+
+    private static final ZonedDateTime MOCKED_ZONED_DATE_TIME =
+        ZonedDateTime.of(2020, 1, 1, 14, 0, 0, 123456789, ZoneId.of("Europe/Berlin"));
+
     @BeforeEach
     void setDefaultLocaleAndCurrentTime() {
         m_defaultLocale = Locale.getDefault();
         Locale.setDefault(Locale.GERMANY);
 
-        m_mockedStaticLocalDate = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS);
-        m_mockedStaticLocalDate.when(LocalDate::now).thenReturn(MOCKED_CURRENT_DATE);
+        m_mockedStaticZonedDateTime = Mockito.mockStatic(ZonedDateTime.class, Mockito.CALLS_REAL_METHODS);
+        m_mockedStaticZonedDateTime.when(ZonedDateTime::now).thenReturn(MOCKED_ZONED_DATE_TIME);
+
+        m_mockedStaticLocalDateTime = Mockito.mockStatic(LocalDateTime.class, Mockito.CALLS_REAL_METHODS);
+        m_mockedStaticLocalDateTime.when(LocalDateTime::now).thenReturn(MOCKED_CURRENT_DATE_TIME);
 
         m_mockedStaticZoneId = Mockito.mockStatic(ZoneId.class, Mockito.CALLS_REAL_METHODS);
         m_mockedStaticZoneId.when(ZoneId::systemDefault).thenReturn(MOCKED_ZONE_ID);
+
+        m_mockedStaticLocalDate = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS);
+        m_mockedStaticLocalDate.when(LocalDate::now).thenReturn(MOCKED_CURRENT_DATE);
 
         m_mockedStaticLocalTime = Mockito.mockStatic(LocalTime.class, Mockito.CALLS_REAL_METHODS);
         m_mockedStaticLocalTime.when(LocalTime::now).thenReturn(MOCKED_CURRENT_TIME);
@@ -129,8 +146,11 @@ final class DateTimeDifferenceNodeSettingsTest extends DefaultNodeSettingsSnapsh
     @AfterEach
     void resetDefaultLocale() {
         Locale.setDefault(m_defaultLocale);
-        m_mockedStaticLocalDate.close();
+
+        m_mockedStaticZonedDateTime.close();
+        m_mockedStaticLocalDateTime.close();
         m_mockedStaticZoneId.close();
+        m_mockedStaticLocalDate.close();
         m_mockedStaticLocalTime.close();
     }
 

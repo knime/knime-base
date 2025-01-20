@@ -49,8 +49,9 @@
 package org.knime.time.node.calculate.datetimedifference;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -110,10 +111,10 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Second Date Time value", description = "The source of the second date&amp;time value.")
     @ValueReference(SecondDateTimeValueRef.class)
     @Layout(DifferencingSettingsSection.class)
-    @ValueSwitchWidget()
+    @ValueSwitchWidget
     SecondDateTimeValueType m_secondDateTimeValueType = SecondDateTimeValueType.COLUMN;
 
-    @Widget(title = "Second Date Time column", description = """
+    @Widget(title = "Second date time column", description = """
             The date&amp;time column that is subtracted from the first column, or vice versa, \
             with the direction depending on the 'mode' option.
             """)
@@ -123,19 +124,24 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
     ColumnSelection m_secondColumnSelection = new ColumnSelection();
 
     @Widget(title = "Date", description = "The fixed date to calculate the difference to.")
-    @Effect(predicate = FirstColumnIsDateCompatibleAndFixedDateTime.class, type = EffectType.SHOW)
+    @Effect(predicate = FirstColumnIsDateAndFixedDateTime.class, type = EffectType.SHOW)
     @Layout(DifferencingSettingsSection.class)
     LocalDate m_localDateFixed = LocalDate.now();
 
     @Widget(title = "Time", description = "The fixed time to calculate the difference to.")
-    @Effect(predicate = FirstColumnIsTimeCompatibleAndFixedDateTime.class, type = EffectType.SHOW)
+    @Effect(predicate = FirstColumnIsTimeAndFixedDateTime.class, type = EffectType.SHOW)
     @Layout(DifferencingSettingsSection.class)
     LocalTime m_localTimeFixed = LocalTime.now();
 
-    @Widget(title = "Timezone", description = "The fixed timezone to calculate the difference to")
-    @Effect(predicate = FirstColumnIsZoneDateTimeCompatibleAndFixedDateTime.class, type = EffectType.SHOW)
+    @Widget(title = "Date time", description = "The fixed date&amp;time to calculate the difference to.")
+    @Effect(predicate = FirstColumnIsDateTimeAndFixedDateTime.class, type = EffectType.SHOW)
     @Layout(DifferencingSettingsSection.class)
-    ZoneId m_timezoneFixed = ZoneId.systemDefault();
+    LocalDateTime m_localDateTimeFixed = LocalDateTime.now();
+
+    @Widget(title = "Zoned date time", description = "The fixed date&amp;time&amp;zone to calculate the difference to.")
+    @Effect(predicate = FirstColumnIsZonedDateTimeAndFixedDateTime.class, type = EffectType.SHOW)
+    @Layout(DifferencingSettingsSection.class)
+    ZonedDateTime m_zonedDateTimeFixed = ZonedDateTime.now();
 
     @Widget(title = "Mode", description = """
             The mode in which the date&amp; time values are subtracted from each other: \
@@ -222,52 +228,71 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
     interface FirstColumnSelectionRef extends Reference<ColumnSelection> {
     }
 
-    static final class FirstColumnIsDateCompatible implements PredicateProvider {
+    static final class FirstColumnIsDate implements PredicateProvider {
 
         @Override
         public Predicate init(final PredicateInitializer i) {
-            return i.getColumnSelection(FirstColumnSelectionRef.class).hasColumnType(LocalDateValue.class) //
-                .or(i.getColumnSelection(FirstColumnSelectionRef.class).hasColumnType(LocalDateTimeValue.class) //
-                    .or(i.getColumnSelection(FirstColumnSelectionRef.class).hasColumnType(ZonedDateTimeValue.class)));
+            return i.getColumnSelection(FirstColumnSelectionRef.class).hasColumnType(LocalDateValue.class);
         }
     }
 
-    static final class FirstColumnIsTimeCompatible implements PredicateProvider {
+    static final class FirstColumnIsTime implements PredicateProvider {
 
         @Override
         public Predicate init(final PredicateInitializer i) {
-            return i.getColumnSelection(FirstColumnSelectionRef.class).hasColumnType(LocalTimeValue.class) //
-                .or(i.getColumnSelection(FirstColumnSelectionRef.class).hasColumnType(LocalDateTimeValue.class) //
-                    .or(i.getColumnSelection(FirstColumnSelectionRef.class).hasColumnType(ZonedDateTimeValue.class)));
+            return i.getColumnSelection(FirstColumnSelectionRef.class).hasColumnType(LocalTimeValue.class);
         }
     }
 
-    static final class FirstColumnIsDateCompatibleAndFixedDateTime implements PredicateProvider {
+    static final class FirstColumnIsDateTime implements PredicateProvider {
+
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getColumnSelection(FirstColumnSelectionRef.class).hasColumnType(LocalDateTimeValue.class);
+        }
+    }
+
+    static final class FirstColumnIsZonedDateTime implements PredicateProvider {
+
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getColumnSelection(FirstColumnSelectionRef.class).hasColumnType(ZonedDateTimeValue.class);
+        }
+    }
+
+    static final class FirstColumnIsDateAndFixedDateTime implements PredicateProvider {
 
         @Override
         public Predicate init(final PredicateInitializer i) {
             var isFixedDateTime = i.getPredicate(SecondDateTimeValueTypeIsFixedDateTime.class);
-            return i.getPredicate(FirstColumnIsDateCompatible.class).and(isFixedDateTime);
+            return i.getPredicate(FirstColumnIsDate.class).and(isFixedDateTime);
         }
     }
 
-    static final class FirstColumnIsTimeCompatibleAndFixedDateTime implements PredicateProvider {
+    static final class FirstColumnIsTimeAndFixedDateTime implements PredicateProvider {
 
         @Override
         public Predicate init(final PredicateInitializer i) {
             var isFixedDateTime = i.getPredicate(SecondDateTimeValueTypeIsFixedDateTime.class);
-            return i.getPredicate(FirstColumnIsTimeCompatible.class).and(isFixedDateTime);
+            return i.getPredicate(FirstColumnIsTime.class).and(isFixedDateTime);
         }
     }
 
-    static final class FirstColumnIsZoneDateTimeCompatibleAndFixedDateTime implements PredicateProvider {
+    static final class FirstColumnIsDateTimeAndFixedDateTime implements PredicateProvider {
 
         @Override
         public Predicate init(final PredicateInitializer i) {
-            var predicateIsZonedDateTimeCompatible =
-                i.getColumnSelection(FirstColumnSelectionRef.class).hasColumnType(ZonedDateTimeValue.class);
             var isFixedDateTime = i.getPredicate(SecondDateTimeValueTypeIsFixedDateTime.class);
-            return predicateIsZonedDateTimeCompatible.and(isFixedDateTime);
+            return i.getPredicate(FirstColumnIsDateTime.class).and(isFixedDateTime);
+        }
+    }
+
+    static final class FirstColumnIsZonedDateTimeAndFixedDateTime implements PredicateProvider {
+
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            var isFixedDateTime = i.getPredicate(SecondDateTimeValueTypeIsFixedDateTime.class);
+            return i.getPredicate(FirstColumnIsZonedDateTime.class).and(isFixedDateTime);
         }
     }
 
