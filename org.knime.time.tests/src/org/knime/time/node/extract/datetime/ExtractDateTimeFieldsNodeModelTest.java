@@ -52,6 +52,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -61,16 +62,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.Test;
-import org.knime.InputTableNode;
-import org.knime.core.data.DataCell;
+import org.knime.NodeModelTestRunnerUtil;
 import org.knime.core.data.DataType;
 import org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory;
-import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.testing.util.TableTestUtil;
-import org.knime.testing.util.WorkflowManagerUtil;
 
 /**
  * Test class that ensures that with Java-11 all Locales without a region/country as being mapped to a proper value.
@@ -93,9 +88,8 @@ final class ExtractDateTimeFieldsNodeModelTest {
 
     private static final String INPUT_COLUMN = "test_input";
 
-    private static final String NODE_NAME = "ExtractDateTimeFieldNode";
-
-    private static final Class<? extends DefaultNodeSettings> SETTINGS_CLASS = ExtractDateTimeFieldsSettings.class;
+    private static final NodeModelTestRunnerUtil RUNNER = new NodeModelTestRunnerUtil(INPUT_COLUMN,
+        "ExtractDateTimeFieldNode", ExtractDateTimeFieldsSettings.class, ExtractDateTimeFieldsNodeFactory2.class);
 
     /**
      * Tests that the jvm does not use COMPAT, i.e., the test is run with Java 11 and the locales.providers have not
@@ -177,10 +171,10 @@ final class ExtractDateTimeFieldsNodeModelTest {
         var settings = new ExtractDateTimeFieldsSettings();
         settings.m_selectedColumn = INPUT_COLUMN;
 
-        var testSetup = setupAndExecuteWorkflow(settings, DataType.getMissingCell());
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, DataType.getMissingCell());
 
-        assertTrue(testSetup.success);
-        assertTrue(testSetup.firstCell.isMissing());
+        assertTrue(testSetup.success());
+        assertTrue(testSetup.firstCell().isMissing());
     }
 
     @Test
@@ -188,64 +182,11 @@ final class ExtractDateTimeFieldsNodeModelTest {
         var settings = new ExtractDateTimeFieldsSettings();
         settings.m_selectedColumn = INPUT_COLUMN;
 
-        var testSetup = setupAndExecuteWorkflow(settings, null);
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, null, LocalDateTimeCellFactory.TYPE);
 
-        assertTrue(testSetup.success);
-        assertTrue(testSetup.firstCell == null);
-        assertTrue(testSetup.outputTable.size() == 0);
-    }
-
-    record TestSetup(BufferedDataTable outputTable, DataCell firstCell, boolean success) {
-    }
-
-    static TestSetup setupAndExecuteWorkflow(final ExtractDateTimeFieldsSettings settings, final DataCell cellToAdd)
-        throws InvalidSettingsException, IOException {
-        var workflowManager = WorkflowManagerUtil.createEmptyWorkflow();
-
-        var node = WorkflowManagerUtil.createAndAddNode(workflowManager, new ExtractDateTimeFieldsNodeFactory2());
-
-        // set the settings
-        final var nodeSettings = new NodeSettings(NODE_NAME);
-        workflowManager.saveNodeSettings(node.getID(), nodeSettings);
-        var modelSettings = nodeSettings.addNodeSettings("model");
-        DefaultNodeSettings.saveSettings(SETTINGS_CLASS, settings, modelSettings);
-        workflowManager.loadNodeSettings(node.getID(), nodeSettings);
-
-        // populate the input table
-        var inputTableSpecBuilder = new TableTestUtil.SpecBuilder();
-        if (cellToAdd != null) {
-            inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMN, cellToAdd.getType());
-        } else {
-            inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMN, LocalDateTimeCellFactory.TYPE);
-        }
-        var inputTableSpec = inputTableSpecBuilder.build();
-        var inputTableBuilder = new TableTestUtil.TableBuilder(inputTableSpec);
-        if (cellToAdd != null) {
-            inputTableBuilder = inputTableBuilder.addRow(cellToAdd);
-        }
-        var inputTable = inputTableBuilder.build();
-        var tableSupplierNode =
-            WorkflowManagerUtil.createAndAddNode(workflowManager, new InputTableNode.InputDataNodeFactory(inputTable));
-
-        // link the nodes
-        workflowManager.addConnection(tableSupplierNode.getID(), 1, node.getID(), 1);
-
-        // execute and wait...
-        var success = workflowManager.executeAllAndWaitUntilDone();
-
-        var outputTable = (BufferedDataTable)node.getOutPort(1).getPortObject();
-
-        if (outputTable.size() == 0) {
-            return new TestSetup(outputTable, null, success);
-        }
-        try (var it = outputTable.iterator()) {
-            return new TestSetup( //
-                outputTable, //
-                it.next().getCell(0), //
-                success //
-            );
-        }
-
+        assertTrue(testSetup.success());
+        assertNull(testSetup.firstCell());
+        assertEquals(0, testSetup.outputTable().size());
     }
 
 }

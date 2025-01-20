@@ -592,7 +592,7 @@ final class StringToDurationPeriodNodeModel extends NodeModel {
 
                 // compute every row
                 DataRow row;
-                for (var r = 0L;(row = in.poll()) != null; r++) {
+                for (var r = 0L; (row = in.poll()) != null; r++) {
                     exec.checkCanceled();
                     DataCell[] datacells = new DataCell[includeIndexes.length];
                     for (int i = 0; i < includeIndexes.length; i++) {
@@ -645,7 +645,9 @@ final class StringToDurationPeriodNodeModel extends NodeModel {
     private static final class OneRowAdditionalRowInput extends RowInput {
 
         private final RowInput m_rowInput;
+
         private final DataRow m_row;
+
         private boolean m_taken;
 
         /**
@@ -657,6 +659,7 @@ final class StringToDurationPeriodNodeModel extends NodeModel {
             m_row = row;
             m_taken = false;
         }
+
         /**
          * {@inheritDoc}
          */

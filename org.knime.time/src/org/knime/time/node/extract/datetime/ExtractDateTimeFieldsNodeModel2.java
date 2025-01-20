@@ -138,10 +138,9 @@ public class ExtractDateTimeFieldsNodeModel2
         final DataColumnDomainCreator domainCreator = new DataColumnDomainCreator();
         final ColumnRearranger rearranger = new ColumnRearranger(spec);
 
-        Arrays.stream(modelSettings.m_extractFields).forEachOrdered(field ->
-            extractField(field.m_field, field.m_columnName, selectedColIdx, selectedColSpec.getType(), locale,
-                nameGenerator, domainCreator, rearranger)
-        );
+        Arrays.stream(modelSettings.m_extractFields)
+            .forEachOrdered(field -> extractField(field.m_field, field.m_columnName, selectedColIdx,
+                selectedColSpec.getType(), locale, nameGenerator, domainCreator, rearranger));
 
         if (rearranger.getColumnCount() == spec.getNumColumns()) {
             getLogger().info("No fields will be extracted. Output table will equal input table.");

@@ -44,26 +44,21 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 15, 2025 (sillyem): created
+ *   Jan 15, 2025 (Martin Sillye): created
  */
 package org.knime.time.node.manipulate.modifytimezone;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
-import org.knime.InputTableNode;
-import org.knime.core.data.DataCell;
+import org.knime.NodeModelTestRunnerUtil;
 import org.knime.core.data.DataType;
-import org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory;
-import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.testing.util.TableTestUtil;
-import org.knime.testing.util.WorkflowManagerUtil;
 import org.knime.time.node.manipulate.modifytimezone.ModifyTimeZoneNodeSettings.BehaviourType;
 
 /**
@@ -74,9 +69,8 @@ import org.knime.time.node.manipulate.modifytimezone.ModifyTimeZoneNodeSettings.
 final class ModifyTimeZoneNodeModelTest {
     private static final String INPUT_COLUMN = "test_input";
 
-    private static final String NODE_NAME = "ModifyTimeZoneNode";
-
-    private static final Class<? extends DefaultNodeSettings> SETTINGS_CLASS = ModifyTimeZoneNodeSettings.class;
+    private static final NodeModelTestRunnerUtil RUNNER = new NodeModelTestRunnerUtil(INPUT_COLUMN,
+        "ModifyTimeZoneNode", ModifyTimeZoneNodeSettings.class, ModifyTimeZoneNodeFactory2.class);
 
     @Test
     void testSetThatMissingInputGivesMissingOutput() throws InvalidSettingsException, IOException {
@@ -84,10 +78,10 @@ final class ModifyTimeZoneNodeModelTest {
         settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
         settings.m_behaviourType = BehaviourType.SET;
 
-        var testSetup = setupAndExecuteWorkflow(settings, DataType.getMissingCell());
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, DataType.getMissingCell());
 
-        assertTrue(testSetup.success, "Execution should have been successful");
-        assertTrue(testSetup.firstCell.isMissing(), "Output cell should be missing");
+        assertTrue(testSetup.success(), "Execution should have been successful");
+        assertTrue(testSetup.firstCell().isMissing(), "Output cell should be missing");
     }
 
     @Test
@@ -96,10 +90,10 @@ final class ModifyTimeZoneNodeModelTest {
         settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
         settings.m_behaviourType = BehaviourType.SHIFT;
 
-        var testSetup = setupAndExecuteWorkflow(settings, DataType.getMissingCell());
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, DataType.getMissingCell());
 
-        assertTrue(testSetup.success, "Execution should have been successful");
-        assertTrue(testSetup.firstCell.isMissing(), "Output cell should be missing");
+        assertTrue(testSetup.success(), "Execution should have been successful");
+        assertTrue(testSetup.firstCell().isMissing(), "Output cell should be missing");
     }
 
     @Test
@@ -108,10 +102,10 @@ final class ModifyTimeZoneNodeModelTest {
         settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
         settings.m_behaviourType = BehaviourType.REMOVE;
 
-        var testSetup = setupAndExecuteWorkflow(settings, DataType.getMissingCell());
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, DataType.getMissingCell());
 
-        assertTrue(testSetup.success, "Execution should have been successful");
-        assertTrue(testSetup.firstCell.isMissing(), "Output cell should be missing");
+        assertTrue(testSetup.success(), "Execution should have been successful");
+        assertTrue(testSetup.firstCell().isMissing(), "Output cell should be missing");
     }
 
     @Test
@@ -120,11 +114,11 @@ final class ModifyTimeZoneNodeModelTest {
         settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
         settings.m_behaviourType = BehaviourType.SET;
 
-        var testSetup = setupAndExecuteWorkflow(settings, null);
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, null);
 
-        assertTrue(testSetup.success, "Execution should have been successful");
-        assertTrue(testSetup.firstCell == null, "Output cell should not exists");
-        assertTrue(testSetup.outputTable.size() == 0, "Ouptput table should be empty");
+        assertTrue(testSetup.success(), "Execution should have been successful");
+        assertNull(testSetup.firstCell(), "Output cell should not exists");
+        assertEquals(0, testSetup.outputTable().size(), "Ouptput table should be empty");
     }
 
     @Test
@@ -133,11 +127,11 @@ final class ModifyTimeZoneNodeModelTest {
         settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
         settings.m_behaviourType = BehaviourType.SHIFT;
 
-        var testSetup = setupAndExecuteWorkflow(settings, null);
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, null);
 
-        assertTrue(testSetup.success, "Execution should have been successful");
-        assertTrue(testSetup.firstCell == null, "Output cell should not exists");
-        assertTrue(testSetup.outputTable.size() == 0, "Ouptput table should be empty");
+        assertTrue(testSetup.success(), "Execution should have been successful");
+        assertNull(testSetup.firstCell(), "Output cell should not exists");
+        assertEquals(0, testSetup.outputTable().size(), "Ouptput table should be empty");
     }
 
     @Test
@@ -146,59 +140,10 @@ final class ModifyTimeZoneNodeModelTest {
         settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
         settings.m_behaviourType = BehaviourType.REMOVE;
 
-        var testSetup = setupAndExecuteWorkflow(settings, null);
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, null);
 
-        assertTrue(testSetup.success, "Execution should have been successful");
-        assertTrue(testSetup.firstCell == null, "Output cell should not exists");
-        assertTrue(testSetup.outputTable.size() == 0, "Ouptput table should be empty");
-    }
-
-    record TestSetup(BufferedDataTable outputTable, DataCell firstCell, boolean success) {
-    }
-
-    static TestSetup setupAndExecuteWorkflow(final ModifyTimeZoneNodeSettings settings, final DataCell cellToAdd)
-        throws InvalidSettingsException, IOException {
-        var workflowManager = WorkflowManagerUtil.createEmptyWorkflow();
-
-        var node = WorkflowManagerUtil.createAndAddNode(workflowManager, new ModifyTimeZoneNodeFactory2());
-
-        // set the settings
-        final var nodeSettings = new NodeSettings(NODE_NAME);
-        workflowManager.saveNodeSettings(node.getID(), nodeSettings);
-        var modelSettings = nodeSettings.addNodeSettings("model");
-        DefaultNodeSettings.saveSettings(SETTINGS_CLASS, settings, modelSettings);
-        workflowManager.loadNodeSettings(node.getID(), nodeSettings);
-
-        // populate the input table
-        var inputTableSpecBuilder = new TableTestUtil.SpecBuilder();
-        if (cellToAdd != null) {
-            inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMN, cellToAdd.getType());
-        } else {
-            inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMN, LocalDateTimeCellFactory.TYPE);
-        }
-        var inputTableSpec = inputTableSpecBuilder.build();
-        var inputTableBuilder = new TableTestUtil.TableBuilder(inputTableSpec);
-        if (cellToAdd != null) {
-            inputTableBuilder = inputTableBuilder.addRow(cellToAdd);
-        }
-        var inputTable = inputTableBuilder.build();
-        var tableSupplierNode =
-            WorkflowManagerUtil.createAndAddNode(workflowManager, new InputTableNode.InputDataNodeFactory(inputTable));
-
-        // link the nodes
-        workflowManager.addConnection(tableSupplierNode.getID(), 1, node.getID(), 1);
-
-        // execute and wait...
-        var success = workflowManager.executeAllAndWaitUntilDone();
-
-        var outputTable = (BufferedDataTable)node.getOutPort(1).getPortObject();
-
-        if (outputTable.size() == 0) {
-            return new TestSetup(outputTable, null, success);
-        }
-        try (var it = outputTable.iterator()) {
-            var firstCell = it.next().getCell(0);
-            return new TestSetup(outputTable, firstCell, success);
-        }
+        assertTrue(testSetup.success(), "Execution should have been successful");
+        assertNull(testSetup.firstCell(), "Output cell should not exists");
+        assertEquals(0, testSetup.outputTable().size(), "Ouptput table should be empty");
     }
 }

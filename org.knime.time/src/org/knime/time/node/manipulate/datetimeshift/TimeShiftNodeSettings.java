@@ -49,15 +49,11 @@
 package org.knime.time.node.manipulate.datetimeshift;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
-import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
-import org.knime.core.data.time.localtime.LocalTimeValue;
-import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
@@ -75,6 +71,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicatePr
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.time.node.manipulate.datetimeshift.DateTimeShiftSettingsUtils.NumberColumnProvider;
+import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.Granularity;
 import org.knime.time.util.ReplaceOrAppend;
 
@@ -175,7 +172,7 @@ class TimeShiftNodeSettings implements DefaultNodeSettings {
         m_numericalColumn = NumberColumnProvider.getFirstNumberColumn(spec);
 
         if (spec != null) {
-            m_columnFilter = new ColumnFilter(DateTimeShiftUtils.getCompatibleColumns(spec, TIME_COLUMN_TYPES));
+            m_columnFilter = new ColumnFilter(DateTimeShiftUtils.getCompatibleColumns(spec, DateTimeUtils.TIME_COLUMN_TYPES));
         }
     }
 
@@ -184,9 +181,6 @@ class TimeShiftNodeSettings implements DefaultNodeSettings {
      * ENUMS
      * ------------------------------------------------------------------------
      */
-
-    static final List<Class<? extends DataValue>> TIME_COLUMN_TYPES =
-        List.of(LocalTimeValue.class, ZonedDateTimeValue.class, LocalDateTimeValue.class);
 
     enum ShiftMode implements CompatibleDataValueClassesSupplier {
             @Label(value = "Shift value", description = "A time-based shift value.")
@@ -200,7 +194,7 @@ class TimeShiftNodeSettings implements DefaultNodeSettings {
 
         @Override
         public Collection<Class<? extends DataValue>> getCompatibleDataValueClasses() {
-            return TIME_COLUMN_TYPES;
+            return DateTimeUtils.TIME_COLUMN_TYPES;
         }
     }
 
