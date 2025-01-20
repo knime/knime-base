@@ -49,18 +49,13 @@
 package org.knime.time.node.convert.durationtonumber;
 
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTable;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.time.duration.DurationValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage.InputPreviewMessageProvider;
@@ -69,8 +64,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.StateProviderInitializer;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.DurationPeriodFormatUtils;
 import org.knime.time.util.ReplaceOrAppend;
 import org.knime.time.util.SettingsDataUtil;
@@ -91,16 +86,12 @@ final class DurationToNumberNodeSettings implements DefaultNodeSettings {
         var spec = context.getDataTableSpec(0);
 
         if (spec.isPresent()) {
-            m_filter = new ColumnFilter(spec.get().stream() //
-                .filter(ColumnProvider.IS_COMPATIBLE_COLUMN) //
-                .map(DataColumnSpec::getName) //
-                .toArray(String[]::new) //
-            );
+            m_filter = new ColumnFilter(DateTimeUtils.getCompatibleColumns(spec.get(), DurationValue.class));
         }
     }
 
     @Widget(title = "Duration columns", description = "The columns to convert to a number.")
-    @ChoicesWidget(choicesProvider = ColumnProvider.class)
+    @ChoicesWidget(choices = DateTimeUtils.DurationColumnProvider.class)
     @ValueReference(ColumnFilterRef.class)
     ColumnFilter m_filter = new ColumnFilter();
 
@@ -127,7 +118,6 @@ final class DurationToNumberNodeSettings implements DefaultNodeSettings {
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
     String m_suffix = " (Number)"; // space is intentional
 
-
     enum RoundingBehaviour {
             @Label(value = "Integer", description = """
                     The output will be the truncated calculation, i.e. the duration \
@@ -148,20 +138,6 @@ final class DurationToNumberNodeSettings implements DefaultNodeSettings {
     interface ColumnFilterRef extends Reference<ColumnFilter> {
     }
 
-    static final class ColumnProvider implements ColumnChoicesStateProvider {
-
-        static final Predicate<DataColumnSpec> IS_COMPATIBLE_COLUMN =
-            c -> c.getType().isCompatible(DurationValue.class);
-
-        @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0).map(DataTableSpec::stream) //
-                .orElseGet(Stream::empty) //
-                .filter(IS_COMPATIBLE_COLUMN) //
-                .toArray(DataColumnSpec[]::new);
-        }
-    }
-
     static final class InputPreviewMessage implements InputPreviewMessageProvider {
 
         private Supplier<ColumnFilter> m_columnFilter;
@@ -180,7 +156,7 @@ final class DurationToNumberNodeSettings implements DefaultNodeSettings {
         @Override
         public Optional<String> getFirstDataCellPreview(final DataTable dt, final String[] selectedCols) {
             var colNum = SettingsDataUtil.getFirstColumnIndexFromSelectedColumnArray(dt.getDataTableSpec(),
-                ColumnProvider.IS_COMPATIBLE_COLUMN, selectedCols);
+                DateTimeUtils.DurationColumnProvider::isCompatibleType, selectedCols);
 
             if (colNum.isPresent()) {
                 var cell = SettingsDataUtil.getFirstNonMissingCellInColumn(dt, colNum.get());

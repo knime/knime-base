@@ -48,17 +48,9 @@
  */
 package org.knime.time.node.convert.datetimetostring;
 
-import java.util.List;
 import java.util.Locale;
-import java.util.function.Predicate;
 
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataValue;
-import org.knime.core.data.time.localdate.LocalDateValue;
-import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
-import org.knime.core.data.time.localtime.LocalTimeValue;
-import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
@@ -66,10 +58,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTi
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.CompatibleColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.LocaleStateProvider;
 import org.knime.time.util.ReplaceOrAppend;
 
@@ -82,7 +74,7 @@ import org.knime.time.util.ReplaceOrAppend;
 final class DateTimeToStringNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Date&time columns", description = "Only the included columns will be converted.")
-    @ChoicesWidget(choices = DateAndTimeColumnProvider.class)
+    @ChoicesWidget(choices = DateTimeUtils.DateTimeColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
     @Widget(title = "Output columns", description = """
@@ -135,27 +127,8 @@ final class DateTimeToStringNodeSettings implements DefaultNodeSettings {
 
     DateTimeToStringNodeSettings(final DataTableSpec spec) {
         if (spec != null) {
-            m_columnFilter = new ColumnFilter(spec.stream() //
-                .filter(DateAndTimeColumnProvider.IS_COMPATIBLE_COLUMN) //
-                .map(DataColumnSpec::getName) //
-                .toArray(String[]::new) //
-            );
+            m_columnFilter =
+                new ColumnFilter(DateTimeUtils.getCompatibleColumns(spec, DateTimeUtils.DATE_TIME_COLUMN_TYPES));
         }
     }
-
-    static final class DateAndTimeColumnProvider extends CompatibleColumnChoicesProvider {
-        /**
-         * Supported column types
-         */
-        static final List<Class<? extends DataValue>> DATE_TIME_COLUMN_TYPES =
-            List.of(LocalDateValue.class, LocalTimeValue.class, ZonedDateTimeValue.class, LocalDateTimeValue.class);
-
-        static final Predicate<DataColumnSpec> IS_COMPATIBLE_COLUMN =
-            c -> DATE_TIME_COLUMN_TYPES.stream().anyMatch(c.getType()::isCompatible);
-
-        DateAndTimeColumnProvider() {
-            super(DATE_TIME_COLUMN_TYPES);
-        }
-    }
-
 }

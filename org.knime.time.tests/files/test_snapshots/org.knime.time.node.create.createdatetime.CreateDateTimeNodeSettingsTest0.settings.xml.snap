@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
-    <entry key="outputType" type="xstring" value="DATE"/>
+    <entry key="outputType" type="xstring" value="LOCAL_DATE"/>
     <entry key="localDateStart" type="xstring" value="2024-01-22"/>
     <entry key="localTimeStart" type="xstring" value="16:41:39"/>
     <entry key="localDateTimeStart" type="xstring" value="2024-01-22T17:41:39.521969145"/>

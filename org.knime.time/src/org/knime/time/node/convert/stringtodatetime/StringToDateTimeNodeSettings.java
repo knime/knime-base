@@ -48,24 +48,13 @@
  */
 package org.knime.time.node.convert.stringtodatetime;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZonedDateTime;
-import java.time.temporal.TemporalAccessor;
-import java.time.temporal.TemporalQuery;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Supplier;
 import java.util.stream.StreamSupport;
 
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataType;
 import org.knime.core.data.StringValue;
-import org.knime.core.data.time.localdate.LocalDateCellFactory;
-import org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory;
-import org.knime.core.data.time.localtime.LocalTimeCellFactory;
-import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
@@ -75,7 +64,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatTemporalType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
@@ -91,6 +79,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.time.util.ActionIfExtractionFails;
+import org.knime.time.util.DateTimeType;
+import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.LocaleStateProvider;
 import org.knime.time.util.ReplaceOrAppend;
 
@@ -107,11 +97,7 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
         var spec = context.getDataTableSpec(0);
 
         if (spec.isPresent()) {
-            m_columnFilter = new ColumnFilter(spec.get().stream() //
-                .filter(cs -> cs.getType().isCompatible(StringValue.class)) //
-                .map(DataColumnSpec::getName) //
-                .toArray(String[]::new) //
-            );
+            m_columnFilter = new ColumnFilter(DateTimeUtils.getCompatibleColumns(spec.get(), StringValue.class));
         }
     }
 
@@ -127,8 +113,8 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Type", description = "The type of the output column.")
     @Layout(TypeFormatSection.class)
     @ValueSwitchWidget
-    @ValueReference(TemporalType.Ref.class)
-    TemporalType m_selectedType = TemporalType.LOCAL_DATE;
+    @ValueReference(DateTimeType.Ref.class)
+    DateTimeType m_selectedType = DateTimeType.LOCAL_DATE;
 
     @Widget(title = "Locale", description = """
             A locale can be chosen, which determines the language \
@@ -204,37 +190,6 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
     @Layout(OutputSection.class)
     ActionIfExtractionFails m_onError = ActionIfExtractionFails.SET_MISSING;
 
-    enum TemporalType {
-            @Label(value = "Date", description = "The output column will be of type LocalDate.")
-            LOCAL_DATE(LocalDate::from, LocalDateCellFactory.TYPE), //
-            @Label(value = "Time", description = "The output column will be of type LocalTime.")
-            LOCAL_TIME(LocalTime::from, LocalTimeCellFactory.TYPE), //
-            @Label(value = "DateTime", description = "The output column will be of type LocalDateTime.")
-            LOCAL_DATE_TIME(LocalDateTime::from, LocalDateTimeCellFactory.TYPE), //
-            @Label(value = "DateTimeZone", description = "The output column will be of type ZonedDateTime.")
-            ZONED_DATE_TIME(ZonedDateTime::from, ZonedDateTimeCellFactory.TYPE);
-
-        private final TemporalQuery<? extends TemporalAccessor> m_query;
-
-        private final DataType m_cellType;
-
-        TemporalType(final TemporalQuery<? extends TemporalAccessor> query, final DataType cellType) {
-            m_query = query;
-            m_cellType = cellType;
-        }
-
-        public TemporalQuery<? extends TemporalAccessor> getQuery() {
-            return m_query;
-        }
-
-        public DataType getCellType() {
-            return m_cellType;
-        }
-
-        static final class Ref implements Reference<TemporalType> {
-        }
-    }
-
     static final class StringColumnProvider extends CompatibleColumnChoicesProvider {
 
         StringColumnProvider() {
@@ -254,14 +209,14 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
 
         private Supplier<ColumnFilter> m_selectedColumns;
 
-        private Supplier<TemporalType> m_currentlySelectedType;
+        private Supplier<DateTimeType> m_currentlySelectedType;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
             initializer.computeOnButtonClick(AutoGuessFormatButtonRef.class);
 
             m_selectedColumns = initializer.getValueSupplier(ColumnFilterValueRef.class);
-            m_currentlySelectedType = initializer.getValueSupplier(TemporalType.Ref.class);
+            m_currentlySelectedType = initializer.getValueSupplier(DateTimeType.Ref.class);
         }
 
         @Override

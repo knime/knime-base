@@ -48,6 +48,8 @@
  */
 package org.knime.time.node.manipulate.datetimeround;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -56,7 +58,7 @@ import java.util.Arrays;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.knime.InputTableNode;
-import org.knime.core.data.DataCell;
+import org.knime.NodeModelTestRunnerUtil;
 import org.knime.core.data.DataType;
 import org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory;
 import org.knime.core.node.BufferedDataTable;
@@ -66,7 +68,6 @@ import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
 import org.knime.time.util.ReplaceOrAppend;
 
@@ -79,9 +80,8 @@ final class TimeRoundNodeModelTest {
 
     private static final String INPUT_COLUMN = "test_input";
 
-    private static final String NODE_NAME = "TimeRoundNode";
-
-    private static final Class<? extends DefaultNodeSettings> SETTINGS_CLASS = TimeRoundNodeSettings.class;
+    private static final NodeModelTestRunnerUtil RUNNER = new NodeModelTestRunnerUtil(INPUT_COLUMN, "TimeRoundNode",
+        TimeRoundNodeSettings.class, TimeRoundNodeFactory.class);
 
     @BeforeEach
     void resetWorkflow() throws IOException {
@@ -119,10 +119,10 @@ final class TimeRoundNodeModelTest {
         var settings = new TimeRoundNodeSettings();
         settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
 
-        var testSetup = setupAndExecuteWorkflow(settings, DataType.getMissingCell());
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, DataType.getMissingCell());
 
-        assertTrue(testSetup.success, "Execution should have been successful");
-        assertTrue(testSetup.firstCell.isMissing(), "Output cell should be missing");
+        assertTrue(testSetup.nodeState().isExecuted(), "Execution should have been successful");
+        assertTrue(testSetup.firstCell().isMissing(), "Output cell should be missing");
     }
 
     @Test
@@ -130,11 +130,11 @@ final class TimeRoundNodeModelTest {
         var settings = new TimeRoundNodeSettings();
         settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
 
-        var testSetup = setupAndExecuteWorkflow(settings, null);
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, null, LocalDateTimeCellFactory.TYPE);
 
-        assertTrue(testSetup.success, "Execution should have been successful");
-        assertTrue(testSetup.firstCell == null, "Output cell should not exists");
-        assertTrue(testSetup.outputTable.size() == 0, "Ouptput table should be empty");
+        assertTrue(testSetup.nodeState().isExecuted(), "Execution should have been successful");
+        assertNull(testSetup.firstCell(), "Output cell should not exists");
+        assertEquals(0, testSetup.outputTable().size(), "Ouptput table should be empty");
     }
 
     private void testAppendingColumns(final String[] columnNamesToRound, final TimeRoundNodeSettings settings)
@@ -180,57 +180,4 @@ final class TimeRoundNodeModelTest {
 
     // The rounding logic is implemented in the TimeRoundingUtil and DateRoundingUtil classes.
     // There are dedicated tests for these classes, so we do not need to test the rounding logic here.
-
-    record TestSetup(BufferedDataTable outputTable, DataCell firstCell, boolean success) {
-    }
-
-    static TestSetup setupAndExecuteWorkflow(final TimeRoundNodeSettings settings, final DataCell cellToAdd)
-        throws InvalidSettingsException, IOException {
-        var workflowManager = WorkflowManagerUtil.createEmptyWorkflow();
-
-        var node = WorkflowManagerUtil.createAndAddNode(workflowManager, new TimeRoundNodeFactory());
-
-        // set the settings
-        final var nodeSettings = new NodeSettings(NODE_NAME);
-        workflowManager.saveNodeSettings(node.getID(), nodeSettings);
-        var modelSettings = nodeSettings.addNodeSettings("model");
-        DefaultNodeSettings.saveSettings(SETTINGS_CLASS, settings, modelSettings);
-        workflowManager.loadNodeSettings(node.getID(), nodeSettings);
-
-        // populate the input table
-        var inputTableSpecBuilder = new TableTestUtil.SpecBuilder();
-        if (cellToAdd != null) {
-            inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMN, cellToAdd.getType());
-        } else {
-            inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMN, LocalDateTimeCellFactory.TYPE);
-        }
-        var inputTableSpec = inputTableSpecBuilder.build();
-        var inputTableBuilder = new TableTestUtil.TableBuilder(inputTableSpec);
-        if (cellToAdd != null) {
-            inputTableBuilder = inputTableBuilder.addRow(cellToAdd);
-        }
-        var inputTable = inputTableBuilder.build();
-        var tableSupplierNode =
-            WorkflowManagerUtil.createAndAddNode(workflowManager, new InputTableNode.InputDataNodeFactory(inputTable));
-
-        // link the nodes
-        workflowManager.addConnection(tableSupplierNode.getID(), 1, node.getID(), 1);
-
-        // execute and wait...
-        var success = workflowManager.executeAllAndWaitUntilDone();
-
-        var outputTable = (BufferedDataTable)node.getOutPort(1).getPortObject();
-
-        if (outputTable.size() == 0) {
-            return new TestSetup(outputTable, null, success);
-        }
-        try (var it = outputTable.iterator()) {
-            return new TestSetup( //
-                outputTable, //
-                it.next().getCell(0), //
-                success //
-            );
-        }
-
-    }
 }

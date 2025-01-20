@@ -50,6 +50,7 @@ package org.knime.time.node.convert.durationtonumber;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -61,19 +62,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.knime.InputTableNode;
-import org.knime.core.data.DataCell;
+import org.knime.NodeModelTestRunnerUtil;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.LongValue;
 import org.knime.core.data.time.duration.DurationCellFactory;
-import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.testing.util.TableTestUtil;
-import org.knime.testing.util.WorkflowManagerUtil;
 import org.knime.time.node.convert.durationtonumber.DurationToNumberNodeSettings.RoundingBehaviour;
 import org.knime.time.util.ReplaceOrAppend;
 import org.knime.time.util.TimeBasedGranularityUnit;
@@ -83,7 +78,7 @@ import org.knime.time.util.TimeBasedGranularityUnit;
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings({"restriction", "squid:S5960", "squid:S1192"})
-final class DurationToNumberNodeModelTest {
+final class DurationToNumberNodeModel2Test {
 
     private record TestCase(TimeBasedGranularityUnit targetUnit, Duration input, long expectedTruncatedOutput,
         double expectedExactOutput) {
@@ -91,9 +86,8 @@ final class DurationToNumberNodeModelTest {
 
     private static final String INPUT_COLUMN = "test_input";
 
-    private static final String NODE_NAME = "DurationToNumberNode";
-
-    private static final Class<? extends DefaultNodeSettings> SETTINGS_CLASS = DurationToNumberNodeSettings.class;
+    private static final NodeModelTestRunnerUtil RUNNER = new NodeModelTestRunnerUtil(INPUT_COLUMN,
+        "DurationToNumberNode", DurationToNumberNodeSettings.class, DurationToNumberNodeFactory2.class);
 
     /**
      * Test cases for the conversion of durations to numbers. The expected output is provided in two forms: one that is
@@ -194,9 +188,9 @@ final class DurationToNumberNodeModelTest {
         settings.m_roundingBehaviour = RoundingBehaviour.DOUBLE;
 
         var testSetup =
-            setupAndExecuteWorkflow(settings, DurationCellFactory.create(Duration.parse("PT1H2M3.0456789S")));
+            RUNNER.setupAndExecuteWorkflow(settings, DurationCellFactory.create(Duration.parse("PT1H2M3.0456789S")));
 
-        var outputTableSpec = testSetup.outputTable.getDataTableSpec();
+        var outputTableSpec = testSetup.outputTable().getDataTableSpec();
         assertEquals(1, outputTableSpec.getNumColumns(), "Expected exactly one output column");
 
         var outputColumnName = outputTableSpec.getColumnNames()[0];
@@ -213,9 +207,9 @@ final class DurationToNumberNodeModelTest {
         settings.m_suffix = "_converted";
 
         var testSetup =
-            setupAndExecuteWorkflow(settings, DurationCellFactory.create(Duration.parse("PT1H2M3.0456789S")));
+            RUNNER.setupAndExecuteWorkflow(settings, DurationCellFactory.create(Duration.parse("PT1H2M3.0456789S")));
 
-        var outputTableSpec = testSetup.outputTable.getDataTableSpec();
+        var outputTableSpec = testSetup.outputTable().getDataTableSpec();
         assertEquals(2, outputTableSpec.getNumColumns(), "Expected exactly two output columns");
         assertEquals(INPUT_COLUMN, outputTableSpec.getColumnNames()[0], "First column name should not have changed");
         assertEquals(INPUT_COLUMN + settings.m_suffix, outputTableSpec.getColumnNames()[1],
@@ -227,10 +221,10 @@ final class DurationToNumberNodeModelTest {
         var settings = new DurationToNumberNodeSettings();
         settings.m_filter = new ColumnFilter(new String[]{INPUT_COLUMN});
 
-        var testSetup = setupAndExecuteWorkflow(settings, DataType.getMissingCell());
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, DataType.getMissingCell());
 
-        assertTrue(testSetup.success, "Execution should have been successful");
-        assertTrue(testSetup.firstCell.isMissing(), "Output cell should be missing");
+        assertTrue(testSetup.nodeState().isExecuted(), "Execution should have been successful");
+        assertTrue(testSetup.firstCell().isMissing(), "Output cell should be missing");
     }
 
     @Test
@@ -238,11 +232,11 @@ final class DurationToNumberNodeModelTest {
         var settings = new DurationToNumberNodeSettings();
         settings.m_filter = new ColumnFilter(new String[]{INPUT_COLUMN});
 
-        var testSetup = setupAndExecuteWorkflow(settings, null);
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, null, DurationCellFactory.TYPE);
 
-        assertTrue(testSetup.success, "Execution should have been successful");
-        assertTrue(testSetup.firstCell == null, "Output cell should not exists");
-        assertTrue(testSetup.outputTable.size() == 0, "Ouptput table should be empty");
+        assertTrue(testSetup.nodeState().isExecuted(), "Execution should have been successful");
+        assertNull(testSetup.firstCell(), "Output cell should not exists");
+        assertEquals(0, testSetup.outputTable().size(), "Ouptput table should be empty");
     }
 
     @ParameterizedTest(name = "{0} (with truncation)")
@@ -256,8 +250,8 @@ final class DurationToNumberNodeModelTest {
         settings.m_filter = new ColumnFilter(new String[]{INPUT_COLUMN});
         settings.m_roundingBehaviour = RoundingBehaviour.INTEGER;
 
-        var testSetup = setupAndExecuteWorkflow(settings, DurationCellFactory.create(input));
-        var outputValue = testSetup.firstCell;
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, DurationCellFactory.create(input));
+        var outputValue = testSetup.firstCell();
 
         assertFalse(outputValue.isMissing(), "Output cell is missing");
         assertTrue(outputValue.getType().isCompatible(LongValue.class),
@@ -278,8 +272,8 @@ final class DurationToNumberNodeModelTest {
         settings.m_filter = new ColumnFilter(new String[]{INPUT_COLUMN});
         settings.m_roundingBehaviour = RoundingBehaviour.DOUBLE;
 
-        var testSetup = setupAndExecuteWorkflow(settings, DurationCellFactory.create(input));
-        var outputValue = testSetup.firstCell;
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, DurationCellFactory.create(input));
+        var outputValue = testSetup.firstCell();
 
         assertFalse(outputValue.isMissing(), "Output cell is missing");
         assertTrue(outputValue.getType().isCompatible(DoubleValue.class),
@@ -287,58 +281,5 @@ final class DurationToNumberNodeModelTest {
 
         double actual = ((DoubleValue)outputValue).getDoubleValue();
         assertEquals(expected, actual, 1e-9, "Output value is not as expected");
-    }
-
-    record TestSetup(BufferedDataTable outputTable, DataCell firstCell, boolean success) {
-    }
-
-    static TestSetup setupAndExecuteWorkflow(final DurationToNumberNodeSettings settings, final DataCell cellToAdd)
-        throws InvalidSettingsException, IOException {
-        var workflowManager = WorkflowManagerUtil.createEmptyWorkflow();
-
-        var node = WorkflowManagerUtil.createAndAddNode(workflowManager, new DurationToNumberNodeFactory2());
-
-        // set the settings
-        final var nodeSettings = new NodeSettings(NODE_NAME);
-        workflowManager.saveNodeSettings(node.getID(), nodeSettings);
-        var modelSettings = nodeSettings.addNodeSettings("model");
-        DefaultNodeSettings.saveSettings(SETTINGS_CLASS, settings, modelSettings);
-        workflowManager.loadNodeSettings(node.getID(), nodeSettings);
-
-        // populate the input table
-        var inputTableSpecBuilder = new TableTestUtil.SpecBuilder();
-        if (cellToAdd != null) {
-            inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMN, cellToAdd.getType());
-        } else {
-            inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMN, DurationCellFactory.TYPE);
-        }
-        var inputTableSpec = inputTableSpecBuilder.build();
-        var inputTableBuilder = new TableTestUtil.TableBuilder(inputTableSpec);
-        if (cellToAdd != null) {
-            inputTableBuilder = inputTableBuilder.addRow(cellToAdd);
-        }
-        var inputTable = inputTableBuilder.build();
-        var tableSupplierNode =
-            WorkflowManagerUtil.createAndAddNode(workflowManager, new InputTableNode.InputDataNodeFactory(inputTable));
-
-        // link the nodes
-        workflowManager.addConnection(tableSupplierNode.getID(), 1, node.getID(), 1);
-
-        // execute and wait...
-        var success = workflowManager.executeAllAndWaitUntilDone();
-
-        var outputTable = (BufferedDataTable)node.getOutPort(1).getPortObject();
-
-        if (outputTable.size() == 0) {
-            return new TestSetup(outputTable, null, success);
-        }
-        try (var it = outputTable.iterator()) {
-            return new TestSetup( //
-                outputTable, //
-                it.next().getCell(0), //
-                success //
-            );
-        }
-
     }
 }

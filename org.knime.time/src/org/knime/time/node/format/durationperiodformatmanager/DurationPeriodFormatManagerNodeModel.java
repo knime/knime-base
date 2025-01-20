@@ -50,9 +50,7 @@ package org.knime.time.node.format.durationperiodformatmanager;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Predicate;
 
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
@@ -62,6 +60,7 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
+import org.knime.time.util.DateTimeUtils;
 
 /**
  * The node model for the DurationPeriodFormatManager node.
@@ -128,15 +127,7 @@ public class DurationPeriodFormatManagerNodeModel extends WebUINodeModel<Duratio
     private static List<String> getInputColumnNames(final DataTableSpec inputSpec,
         final DurationPeriodFormatManagerNodeSettings settings) {
 
-        Predicate<DataColumnSpec> isCompatibleWithIntervalType =
-            columnSpec -> DurationPeriodFormatManagerNodeSettings.INTERVAL_VALUE_TYPES.stream()
-                .anyMatch(columnSpec.getType()::isCompatible);
-
-        var compatibleColumns = inputSpec.stream() //
-            .filter(isCompatibleWithIntervalType) //
-            .map(DataColumnSpec::getName) //
-            .toArray(String[]::new);
-
+        var compatibleColumns = DateTimeUtils.getCompatibleColumns(inputSpec, DateTimeUtils.INTERVAL_COLUMN_TYPES);
         return Arrays.asList(settings.m_columnFilter.getSelected(compatibleColumns, inputSpec));
     }
 }

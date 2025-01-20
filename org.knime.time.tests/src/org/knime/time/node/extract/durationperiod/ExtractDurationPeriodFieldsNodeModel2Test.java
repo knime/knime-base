@@ -50,6 +50,8 @@ package org.knime.time.node.extract.durationperiod;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -63,35 +65,28 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.knime.InputTableNode;
-import org.knime.core.data.DataCell;
+import org.knime.NodeModelTestRunnerUtil;
 import org.knime.core.data.LongValue;
 import org.knime.core.data.MissingCell;
 import org.knime.core.data.time.duration.DurationCellFactory;
 import org.knime.core.data.time.period.PeriodCellFactory;
-import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.testing.util.TableTestUtil;
-import org.knime.testing.util.WorkflowManagerUtil;
 
 /**
  *
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings({"restriction", "squid:S5960", "squid:S1192"})
-final class ExtractDurationPeriodFieldsNodeModelTest {
+final class ExtractDurationPeriodFieldsNodeModel2Test {
 
     private record TestCase<I>(I input, ExtractableField targetUnit, long expectedTruncatedOutput) {
     }
 
     private static final String INPUT_COLUMN = "test_input";
 
-    private static final String NODE_NAME = "ExtractDurationPeriodFieldsNodeSettings";
-
-    private static final Class<? extends DefaultNodeSettings> SETTINGS_CLASS =
-        ExtractDurationPeriodFieldsNodeSettings.class;
+    private static final NodeModelTestRunnerUtil RUNNER =
+        new NodeModelTestRunnerUtil(INPUT_COLUMN, "ExtractDurationPeriodFieldsNode",
+            ExtractDurationPeriodFieldsNodeSettings.class, ExtractDurationPeriodFieldsNodeFactory2.class);
 
     /**
      * Test cases for extracting fields from a {@link Duration} value. Every one of them will also be negated and tested
@@ -164,7 +159,7 @@ final class ExtractDurationPeriodFieldsNodeModelTest {
         settings.m_selectedColumn = INPUT_COLUMN;
 
         var outputTable =
-            setupAndExecuteWorkflow(settings, DurationCellFactory.create(Duration.ofHours(1))).outputTable;
+            RUNNER.setupAndExecuteWorkflow(settings, DurationCellFactory.create(Duration.ofHours(1))).outputTable();
 
         var outputColumnName = outputTable.getDataTableSpec().getColumnNames()[1];
         assertEquals("some_output_col_name", outputColumnName, "Output column name is not as expected");
@@ -183,7 +178,7 @@ final class ExtractDurationPeriodFieldsNodeModelTest {
         settings.m_selectedColumn = INPUT_COLUMN;
 
         var outputTable =
-            setupAndExecuteWorkflow(settings, DurationCellFactory.create(Duration.ofHours(1))).outputTable;
+            RUNNER.setupAndExecuteWorkflow(settings, DurationCellFactory.create(Duration.ofHours(1))).outputTable();
 
         var outputColumnNames = outputTable.getDataTableSpec().getColumnNames();
 
@@ -205,7 +200,8 @@ final class ExtractDurationPeriodFieldsNodeModelTest {
             .toArray(ExtractFieldSettings[]::new);
         settings.m_selectedColumn = INPUT_COLUMN;
 
-        var outputTable = setupAndExecuteWorkflow(settings, PeriodCellFactory.create(Period.ofDays(1))).outputTable;
+        var outputTable =
+            RUNNER.setupAndExecuteWorkflow(settings, PeriodCellFactory.create(Period.ofDays(1))).outputTable();
 
         var outputColumnNames = outputTable.getDataTableSpec().getColumnNames();
 
@@ -224,9 +220,9 @@ final class ExtractDurationPeriodFieldsNodeModelTest {
         };
         settings.m_selectedColumn = INPUT_COLUMN;
 
-        var testSetup = setupAndExecuteWorkflow(settings, DurationCellFactory.create(Duration.ofHours(1)));
-
-        assertFalse(testSetup.configured, "Configuration should have failed");
+        assertThrows(InvalidSettingsException.class,
+            () -> RUNNER.setupAndExecuteWorkflow(settings, DurationCellFactory.create(Duration.ofHours(1))),
+            "Configuration should have failed");
     }
 
     @Test
@@ -238,7 +234,7 @@ final class ExtractDurationPeriodFieldsNodeModelTest {
         settings.m_selectedColumn = INPUT_COLUMN;
 
         var outputTable =
-            setupAndExecuteWorkflow(settings, DurationCellFactory.create(Duration.ofHours(1))).outputTable;
+            RUNNER.setupAndExecuteWorkflow(settings, DurationCellFactory.create(Duration.ofHours(1))).outputTable();
 
         assertTrue(outputTable.getDataTableSpec().getColumnNames()[1].contains("#1"),
             "Expected a unique column name like '" + INPUT_COLUMN + "#1'");
@@ -252,9 +248,9 @@ final class ExtractDurationPeriodFieldsNodeModelTest {
         };
         settings.m_selectedColumn = "non_existing_column";
 
-        var testSetup = setupAndExecuteWorkflow(settings, DurationCellFactory.create(Duration.ZERO));
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, DurationCellFactory.create(Duration.ZERO));
 
-        assertFalse(testSetup.executed, "Node should not have executed");
+        assertFalse(testSetup.nodeState().isExecuted(), "Node should not have executed");
     }
 
     @ParameterizedTest(name = "{0} (time/duration based)")
@@ -268,7 +264,7 @@ final class ExtractDurationPeriodFieldsNodeModelTest {
         };
         settings.m_selectedColumn = INPUT_COLUMN;
 
-        var outputTable = setupAndExecuteWorkflow(settings, DurationCellFactory.create(input)).outputTable;
+        var outputTable = RUNNER.setupAndExecuteWorkflow(settings, DurationCellFactory.create(input)).outputTable();
 
         try (var it = outputTable.iterator()) {
             var outputValue = it.next().getCell(1);
@@ -293,7 +289,7 @@ final class ExtractDurationPeriodFieldsNodeModelTest {
         };
         settings.m_selectedColumn = INPUT_COLUMN;
 
-        var outputTable = setupAndExecuteWorkflow(settings, PeriodCellFactory.create(input)).outputTable;
+        var outputTable = RUNNER.setupAndExecuteWorkflow(settings, PeriodCellFactory.create(input)).outputTable();
 
         try (var it = outputTable.iterator()) {
             var outputValue = it.next().getCell(1);
@@ -315,7 +311,7 @@ final class ExtractDurationPeriodFieldsNodeModelTest {
         };
         settings.m_selectedColumn = INPUT_COLUMN;
 
-        var outputTable = setupAndExecuteWorkflow(settings, new MissingCell("missing")).outputTable;
+        var outputTable = RUNNER.setupAndExecuteWorkflow(settings, new MissingCell("missing")).outputTable();
 
         try (var it = outputTable.iterator()) {
             var outputValue = it.next().getCell(1);
@@ -332,9 +328,10 @@ final class ExtractDurationPeriodFieldsNodeModelTest {
         };
         settings.m_selectedColumn = INPUT_COLUMN;
 
-        var testSetup = setupAndExecuteWorkflow(settings, null);
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, null);
 
-        assertTrue(testSetup.outputTable.size() == 0, "Ouptput table should be empty");
+        assertNull(testSetup.firstCell(), "Output cell should not exists");
+        assertEquals(0, testSetup.outputTable().size(), "Ouptput table should be empty");
     }
 
     @Test
@@ -345,54 +342,8 @@ final class ExtractDurationPeriodFieldsNodeModelTest {
         };
         settings.m_selectedColumn = INPUT_COLUMN;
 
-        var testSetup = setupAndExecuteWorkflow(settings, DurationCellFactory.create(Duration.ofHours(1)));
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, DurationCellFactory.create(Duration.ofHours(1)));
 
-        assertFalse(testSetup.executed, "Node should not have executed");
-    }
-
-    static record TestSetup(BufferedDataTable outputTable, boolean configured, boolean executed) {
-    }
-
-    static TestSetup setupAndExecuteWorkflow(final ExtractDurationPeriodFieldsNodeSettings settings,
-        final DataCell cellToAdd) throws InvalidSettingsException, IOException {
-        var workflowManager = WorkflowManagerUtil.createEmptyWorkflow();
-
-        var node = WorkflowManagerUtil.createAndAddNode(workflowManager, new ExtractDurationPeriodFieldsNodeFactory2());
-
-        // set the settings
-        final var nodeSettings = new NodeSettings(NODE_NAME);
-        workflowManager.saveNodeSettings(node.getID(), nodeSettings);
-        var modelSettings = nodeSettings.addNodeSettings("model");
-        DefaultNodeSettings.saveSettings(SETTINGS_CLASS, settings, modelSettings);
-
-        try {
-            workflowManager.loadNodeSettings(node.getID(), nodeSettings);
-        } catch (InvalidSettingsException ex) {
-            return new TestSetup(null, false, false);
-        }
-
-        // populate the input table
-        var inputTableSpecBuilder = new TableTestUtil.SpecBuilder();
-        if (cellToAdd != null) {
-            inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMN, cellToAdd.getType());
-        } else {
-            inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMN, DurationCellFactory.TYPE);
-        }
-        var inputTableSpec = inputTableSpecBuilder.build();
-        var inputTableBuilder = new TableTestUtil.TableBuilder(inputTableSpec);
-        if (cellToAdd != null) {
-            inputTableBuilder = inputTableBuilder.addRow(cellToAdd);
-        }
-        var inputTable = inputTableBuilder.build();
-        var tableSupplierNode =
-            WorkflowManagerUtil.createAndAddNode(workflowManager, new InputTableNode.InputDataNodeFactory(inputTable));
-
-        // link the nodes
-        workflowManager.addConnection(tableSupplierNode.getID(), 1, node.getID(), 1);
-
-        workflowManager.executeAllAndWaitUntilDone();
-
-        return new TestSetup((BufferedDataTable)node.getOutPort(1).getPortObject(), true,
-            node.getNodeContainerState().isExecuted());
+        assertFalse(testSetup.nodeState().isExecuted(), "Node should not have executed");
     }
 }

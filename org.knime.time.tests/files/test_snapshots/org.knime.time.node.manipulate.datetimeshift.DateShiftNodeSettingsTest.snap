@@ -272,7 +272,15 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/periodColumn",
       "options" : {
-        "choicesProvider" : "org.knime.time.node.manipulate.datetimeshift.DateShiftNodeSettings$PeriodColumns",
+        "possibleValues" : [ {
+          "id" : "periodTest",
+          "text" : "periodTest",
+          "type" : {
+            "id" : "org.knime.core.data.time.period.PeriodValue",
+            "text" : "Period"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.time.period.PeriodValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
+        } ],
         "format" : "dropDown",
         "showNoneColumn" : false,
         "showRowKeys" : false,
@@ -428,21 +436,6 @@
           "text" : "Zoned Date Time"
         },
         "compatibleTypes" : [ "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
-      } ]
-    } ]
-  }, {
-    "scopes" : null,
-    "id" : "org.knime.time.node.manipulate.datetimeshift.DateShiftNodeSettings$PeriodColumns",
-    "values" : [ {
-      "indices" : [ ],
-      "value" : [ {
-        "id" : "periodTest",
-        "text" : "periodTest",
-        "type" : {
-          "id" : "org.knime.core.data.time.period.PeriodValue",
-          "text" : "Period"
-        },
-        "compatibleTypes" : [ "org.knime.core.data.time.period.PeriodValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
       } ]
     } ]
   }, {

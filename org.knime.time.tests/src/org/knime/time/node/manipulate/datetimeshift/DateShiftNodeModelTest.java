@@ -49,6 +49,7 @@
 package org.knime.time.node.manipulate.datetimeshift;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -67,7 +68,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.InputTableNode;
 import org.knime.InputTableNode.NamedCell;
-import org.knime.core.data.DataCell;
+import org.knime.NodeModelTestRunnerUtil;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.LongCell.LongCellFactory;
@@ -87,7 +88,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
-import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
 import org.knime.time.node.manipulate.datetimeshift.DateShiftNodeSettings.DateGranularity;
 import org.knime.time.node.manipulate.datetimeshift.DateShiftNodeSettings.ShiftMode;
@@ -103,9 +103,8 @@ final class DateShiftNodeModelTest {
 
     private static final String INPUT_COLUMN = "test_input";
 
-    private static final String NODE_NAME = "DateShiftNode";
-
-    private static final Class<? extends DefaultNodeSettings> SETTINGS_CLASS = DateShiftNodeSettings.class;
+    private static final NodeModelTestRunnerUtil RUNNER = new NodeModelTestRunnerUtil(INPUT_COLUMN, "DateShiftNode",
+        DateShiftNodeSettings.class, DateShiftNodeFactory.class);
 
     @BeforeEach
     void resetWorkflow() throws IOException {
@@ -451,10 +450,10 @@ final class DateShiftNodeModelTest {
         settings.m_shiftMode = ShiftMode.NUMERICAL_COLUMN;
         settings.m_numericalColumn = INPUT_COLUMN;
 
-        var testSetup = setupAndExecuteWorkflow(settings, DataType.getMissingCell());
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, DataType.getMissingCell());
 
-        assertTrue(testSetup.success, "Execution should have been successful");
-        assertTrue(testSetup.firstCell.isMissing(), "Output cell should be missing");
+        assertTrue(testSetup.nodeState().isExecuted(), "Execution should have been successful");
+        assertTrue(testSetup.firstCell().isMissing(), "Output cell should be missing");
     }
 
     @Test
@@ -464,10 +463,10 @@ final class DateShiftNodeModelTest {
         settings.m_shiftMode = ShiftMode.PERIOD_COLUMN;
         settings.m_periodColumn = INPUT_COLUMN;
 
-        var testSetup = setupAndExecuteWorkflow(settings, DataType.getMissingCell());
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, DataType.getMissingCell());
 
-        assertTrue(testSetup.success, "Execution should have been successful");
-        assertTrue(testSetup.firstCell.isMissing(), "Output cell should be missing");
+        assertTrue(testSetup.nodeState().isExecuted(), "Execution should have been successful");
+        assertTrue(testSetup.firstCell().isMissing(), "Output cell should be missing");
     }
 
     @Test
@@ -476,10 +475,10 @@ final class DateShiftNodeModelTest {
         settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
         settings.m_shiftMode = ShiftMode.SHIFT_VALUE;
 
-        var testSetup = setupAndExecuteWorkflow(settings, DataType.getMissingCell());
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, DataType.getMissingCell());
 
-        assertTrue(testSetup.success, "Execution should have been successful");
-        assertTrue(testSetup.firstCell.isMissing(), "Output cell should be missing");
+        assertTrue(testSetup.nodeState().isExecuted(), "Execution should have been successful");
+        assertTrue(testSetup.firstCell().isMissing(), "Output cell should be missing");
     }
 
     @Test
@@ -489,11 +488,11 @@ final class DateShiftNodeModelTest {
         settings.m_shiftMode = ShiftMode.NUMERICAL_COLUMN;
         settings.m_numericalColumn = INPUT_COLUMN;
 
-        var testSetup = setupAndExecuteWorkflow(settings, null, LongCellFactory.TYPE);
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, null, LongCellFactory.TYPE);
 
-        assertTrue(testSetup.success, "Execution should have been successful");
-        assertTrue(testSetup.firstCell == null, "Output cell should not exists");
-        assertTrue(testSetup.outputTable.size() == 0, "Ouptput table should be empty");
+        assertTrue(testSetup.nodeState().isExecuted(), "Execution should have been successful");
+        assertNull(testSetup.firstCell(), "Output cell should not exists");
+        assertEquals(0, testSetup.outputTable().size(), "Ouptput table should be empty");
     }
 
     @Test
@@ -503,11 +502,11 @@ final class DateShiftNodeModelTest {
         settings.m_shiftMode = ShiftMode.PERIOD_COLUMN;
         settings.m_periodColumn = INPUT_COLUMN;
 
-        var testSetup = setupAndExecuteWorkflow(settings, null, PeriodCellFactory.TYPE);
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, null, PeriodCellFactory.TYPE);
 
-        assertTrue(testSetup.success, "Execution should have been successful");
-        assertTrue(testSetup.firstCell == null, "Output cell should not exists");
-        assertTrue(testSetup.outputTable.size() == 0, "Ouptput table should be empty");
+        assertTrue(testSetup.nodeState().isExecuted(), "Execution should have been successful");
+        assertNull(testSetup.firstCell(), "Output cell should not exists");
+        assertEquals(0, testSetup.outputTable().size(), "Ouptput table should be empty");
     }
 
     @Test
@@ -516,11 +515,11 @@ final class DateShiftNodeModelTest {
         settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
         settings.m_shiftMode = ShiftMode.SHIFT_VALUE;
 
-        var testSetup = setupAndExecuteWorkflow(settings, null, LocalDateTimeCellFactory.TYPE);
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, null, LocalDateTimeCellFactory.TYPE);
 
-        assertTrue(testSetup.success, "Execution should have been successful");
-        assertTrue(testSetup.firstCell == null, "Output cell should not exists");
-        assertTrue(testSetup.outputTable.size() == 0, "Ouptput table should be empty");
+        assertTrue(testSetup.nodeState().isExecuted(), "Execution should have been successful");
+        assertNull(testSetup.firstCell(), "Output cell should not exists");
+        assertEquals(0, testSetup.outputTable().size(), "Ouptput table should be empty");
     }
 
     private void setSettings(final DateShiftNodeSettings settings) throws InvalidSettingsException {
@@ -529,63 +528,5 @@ final class DateShiftNodeModelTest {
         var modelSettings = nodeSettings.addNodeSettings("model");
         DefaultNodeSettings.saveSettings(DateShiftNodeSettings.class, settings, modelSettings);
         m_wfm.loadNodeSettings(m_dateShiftNode.getID(), nodeSettings);
-    }
-
-    record TestSetup(BufferedDataTable outputTable, DataCell firstCell, boolean success) {
-    }
-
-    static TestSetup setupAndExecuteWorkflow(final DateShiftNodeSettings settings, final DataCell cellToAdd)
-        throws InvalidSettingsException, IOException {
-        return setupAndExecuteWorkflow(settings, cellToAdd, LocalDateTimeCellFactory.TYPE);
-    }
-
-    static TestSetup setupAndExecuteWorkflow(final DateShiftNodeSettings settings, final DataCell cellToAdd,
-        final DataType columnDataType) throws InvalidSettingsException, IOException {
-        var workflowManager = WorkflowManagerUtil.createEmptyWorkflow();
-
-        var node = WorkflowManagerUtil.createAndAddNode(workflowManager, new DateShiftNodeFactory());
-
-        // set the settings
-        final var nodeSettings = new NodeSettings(NODE_NAME);
-        workflowManager.saveNodeSettings(node.getID(), nodeSettings);
-        var modelSettings = nodeSettings.addNodeSettings("model");
-        DefaultNodeSettings.saveSettings(SETTINGS_CLASS, settings, modelSettings);
-        workflowManager.loadNodeSettings(node.getID(), nodeSettings);
-
-        // populate the input table
-        var inputTableSpecBuilder = new TableTestUtil.SpecBuilder();
-        if (cellToAdd != null) {
-            inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMN, cellToAdd.getType());
-        } else {
-            inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMN, columnDataType);
-        }
-        var inputTableSpec = inputTableSpecBuilder.build();
-        var inputTableBuilder = new TableTestUtil.TableBuilder(inputTableSpec);
-        if (cellToAdd != null) {
-            inputTableBuilder = inputTableBuilder.addRow(cellToAdd);
-        }
-        var inputTable = inputTableBuilder.build();
-        var tableSupplierNode =
-            WorkflowManagerUtil.createAndAddNode(workflowManager, new InputTableNode.InputDataNodeFactory(inputTable));
-
-        // link the nodes
-        workflowManager.addConnection(tableSupplierNode.getID(), 1, node.getID(), 1);
-
-        // execute and wait...
-        var success = workflowManager.executeAllAndWaitUntilDone();
-
-        var outputTable = (BufferedDataTable)node.getOutPort(1).getPortObject();
-
-        if (outputTable.size() == 0) {
-            return new TestSetup(outputTable, null, success);
-        }
-        try (var it = outputTable.iterator()) {
-            return new TestSetup( //
-                outputTable, //
-                it.next().getCell(0), //
-                success //
-            );
-        }
-
     }
 }

@@ -49,6 +49,7 @@
 package org.knime.time.util;
 
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
@@ -59,6 +60,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
  *
  * @author David Hickey, TNG Technology Consulting GmbH
  */
+@SuppressWarnings("restriction")
 public enum TimeBasedGranularityUnit {
         @Label("Hours")
         HOURS(TimeUnit.HOURS), //
@@ -77,6 +79,16 @@ public enum TimeBasedGranularityUnit {
 
     TimeBasedGranularityUnit(final TimeUnit timeUnit) {
         this.m_timeUnit = timeUnit;
+    }
+
+    /**
+     * Get the granularity
+     *
+     * @return the granularity
+     */
+    public Granularity getGranularity() {
+        return Arrays.stream(Granularity.values()).filter(value -> this == value.getTimeBasedGranularityUnit())
+            .findFirst().orElseThrow();
     }
 
     /**

@@ -49,20 +49,14 @@
 package org.knime.time.node.manipulate.datetimeshift;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
-import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
-import org.knime.core.data.time.localtime.LocalTimeValue;
-import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.CompatibleColumnChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.CompatibleDataValueClassesSupplier;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
@@ -75,8 +69,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicatePr
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.time.node.manipulate.datetimeshift.DateTimeShiftSettingsUtils.NumberColumnProvider;
-import org.knime.time.util.Granularity;
+import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.ReplaceOrAppend;
+import org.knime.time.util.TimeBasedGranularityUnit;
 
 /**
  * Settings for the Time Shift WebUI node.
@@ -119,7 +114,7 @@ class TimeShiftNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Column", description = """
             Select to choose the shift value from a duration column.
             """)
-    @ChoicesWidget(choicesProvider = DurationColumns.class)
+    @ChoicesWidget(choices = DateTimeUtils.DurationColumnProvider.class)
     @Effect(predicate = ShiftModeIsDurationColumn.class, type = EffectType.SHOW)
     String m_durationColumn;
 
@@ -133,7 +128,7 @@ class TimeShiftNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Granularity", description = "The granularity (i.e. hours, seconds, etc) of the shift.")
     @Effect(predicate = ShiftModeIsNumericalColumn.class, type = EffectType.SHOW)
-    TimeGranularity m_granularity = TimeGranularity.HOURS;
+    TimeBasedGranularityUnit m_granularity = TimeBasedGranularityUnit.HOURS;
 
     @Widget(title = "Output columns", description = """
             Depending on the selection, the selected columns will be replaced \
@@ -171,11 +166,11 @@ class TimeShiftNodeSettings implements DefaultNodeSettings {
      * @param spec
      */
     public TimeShiftNodeSettings(final DataTableSpec spec) {
-        m_durationColumn = DurationColumns.getFirstDurationColumn(spec);
+        m_durationColumn = getFirstDurationColumn(spec);
         m_numericalColumn = NumberColumnProvider.getFirstNumberColumn(spec);
 
         if (spec != null) {
-            m_columnFilter = new ColumnFilter(DateTimeShiftUtils.getCompatibleColumns(spec, TIME_COLUMN_TYPES));
+            m_columnFilter = new ColumnFilter(DateTimeUtils.getCompatibleTimeColumns(spec));
         }
     }
 
@@ -184,9 +179,6 @@ class TimeShiftNodeSettings implements DefaultNodeSettings {
      * ENUMS
      * ------------------------------------------------------------------------
      */
-
-    static final List<Class<? extends DataValue>> TIME_COLUMN_TYPES =
-        List.of(LocalTimeValue.class, ZonedDateTimeValue.class, LocalDateTimeValue.class);
 
     enum ShiftMode implements CompatibleDataValueClassesSupplier {
             @Label(value = "Shift value", description = "A time-based shift value.")
@@ -200,7 +192,7 @@ class TimeShiftNodeSettings implements DefaultNodeSettings {
 
         @Override
         public Collection<Class<? extends DataValue>> getCompatibleDataValueClasses() {
-            return TIME_COLUMN_TYPES;
+            return DateTimeUtils.TIME_COLUMN_TYPES;
         }
     }
 
@@ -251,56 +243,14 @@ class TimeShiftNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    enum TimeGranularity {
-
-            @Label("Hours")
-            HOURS(Granularity.HOUR), //
-            @Label("Minutes")
-            MINUTES(Granularity.MINUTE), //
-            @Label("Seconds")
-            SECONDS(Granularity.SECOND), //
-            @Label("Milliseconds")
-            MILLISECONDS(Granularity.MILLISECOND), //
-            @Label("Microseconds")
-            MICROSECONDS(Granularity.MICROSECOND), //
-            @Label("Nanoseconds")
-            NANOSECONDS(Granularity.NANOSECOND); //
-
-        private Granularity m_granularity;
-
-        TimeGranularity(final Granularity unit) {
-            m_granularity = unit;
+    static String getFirstDurationColumn(final DataTableSpec spec) {
+        if (spec == null) {
+            return "";
         }
-
-        public Granularity getGranularity() {
-            return m_granularity;
-        }
-    }
-
-    static final class DurationColumns implements ColumnChoicesStateProvider {
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            ColumnChoicesStateProvider.super.init(initializer);
-        }
-
-        @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0) //
-                .map(DataTableSpec::stream) //
-                .orElseGet(Stream::empty) //
-                .filter(DateTimeShiftSettingsUtils::isDurationColumn) //
-                .toArray(DataColumnSpec[]::new);
-        }
-
-        static String getFirstDurationColumn(final DataTableSpec spec) {
-            if (spec == null) {
-                return "";
-            }
-            return spec.stream() //
-                .filter(DateTimeShiftSettingsUtils::isDurationColumn) //
-                .findFirst() //
-                .map(DataColumnSpec::getName) //
-                .orElse("");
-        }
+        return spec.stream() //
+            .filter(DateTimeShiftSettingsUtils::isDurationColumn) //
+            .findFirst() //
+            .map(DataColumnSpec::getName) //
+            .orElse("");
     }
 }

@@ -1,7 +1,7 @@
 {
   "data" : {
     "model" : {
-      "outputType" : "DATE",
+      "outputType" : "LOCAL_DATE",
       "localDateStart" : "2024-01-22",
       "localTimeStart" : "16:41:39",
       "localDateTimeStart" : "2024-01-22T17:41:39.521969145",
@@ -106,21 +106,21 @@
           },
           "outputType" : {
             "oneOf" : [ {
-              "const" : "DATE",
+              "const" : "LOCAL_DATE",
               "title" : "Date"
             }, {
-              "const" : "TIME",
+              "const" : "LOCAL_TIME",
               "title" : "Time"
             }, {
-              "const" : "DATE_TIME",
+              "const" : "LOCAL_DATE_TIME",
               "title" : "Date & time"
             }, {
-              "const" : "DATE_TIME_WITH_TIMEZONE",
+              "const" : "ZONED_DATE_TIME",
               "title" : "Date & time & zone"
             } ],
             "title" : "Output type",
             "description" : "The type to create can be selected. It can be either a Local Date, Local Time, Local Date Time, or Zoned Date Time.\n\n<ul>\n<li><b>Date</b>: Outputs will be of type Local Date</li>\n<li><b>Time</b>: Outputs will be of type Local Time</li>\n<li><b>Date &amp; time</b>: Outputs will be of type Local Date Time</li>\n<li><b>Date &amp; time &amp; zone</b>: Outputs will be of type Zoned Date Time</li>\n</ul>",
-            "default" : "DATE"
+            "default" : "LOCAL_DATE"
           },
           "zonedDateTimeEnd" : {
             "type" : "string",
@@ -168,7 +168,7 @@
             "scope" : "#/properties/model/properties/outputType",
             "schema" : {
               "oneOf" : [ {
-                "const" : "DATE"
+                "const" : "LOCAL_DATE"
               } ]
             }
           }
@@ -185,7 +185,7 @@
             "scope" : "#/properties/model/properties/outputType",
             "schema" : {
               "oneOf" : [ {
-                "const" : "TIME"
+                "const" : "LOCAL_TIME"
               } ]
             }
           }
@@ -202,7 +202,7 @@
             "scope" : "#/properties/model/properties/outputType",
             "schema" : {
               "oneOf" : [ {
-                "const" : "DATE_TIME"
+                "const" : "LOCAL_DATE_TIME"
               } ]
             }
           }
@@ -2029,7 +2029,7 @@
             "scope" : "#/properties/model/properties/outputType",
             "schema" : {
               "oneOf" : [ {
-                "const" : "DATE_TIME_WITH_TIMEZONE"
+                "const" : "ZONED_DATE_TIME"
               } ]
             }
           }
@@ -2113,7 +2113,7 @@
             "scope" : "#/properties/model/properties/outputType",
             "schema" : {
               "oneOf" : [ {
-                "const" : "DATE"
+                "const" : "LOCAL_DATE"
               } ]
             }
           }
@@ -2130,7 +2130,7 @@
             "scope" : "#/properties/model/properties/outputType",
             "schema" : {
               "oneOf" : [ {
-                "const" : "TIME"
+                "const" : "LOCAL_TIME"
               } ]
             }
           }
@@ -2147,7 +2147,7 @@
             "scope" : "#/properties/model/properties/outputType",
             "schema" : {
               "oneOf" : [ {
-                "const" : "DATE_TIME"
+                "const" : "LOCAL_DATE_TIME"
               } ]
             }
           }
@@ -3974,7 +3974,7 @@
             "scope" : "#/properties/model/properties/outputType",
             "schema" : {
               "oneOf" : [ {
-                "const" : "DATE_TIME_WITH_TIMEZONE"
+                "const" : "ZONED_DATE_TIME"
               } ]
             }
           }
@@ -4022,12 +4022,12 @@
   } ],
   "globalUpdates" : [ {
     "trigger" : {
-      "id" : "org.knime.time.node.create.createdatetime.CreateDateTimeNodeSettings$OutputType$ValueReference",
+      "id" : "org.knime.time.util.DateTimeType$Ref",
       "scopes" : [ "#/properties/model/properties/outputType" ]
     },
     "dependencies" : [ {
       "scopes" : [ "#/properties/model/properties/outputType" ],
-      "id" : "org.knime.time.node.create.createdatetime.CreateDateTimeNodeSettings$OutputType$ValueReference"
+      "id" : "org.knime.time.util.DateTimeType$Ref"
     } ]
   } ]
 }

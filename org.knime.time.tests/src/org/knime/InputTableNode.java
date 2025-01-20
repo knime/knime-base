@@ -59,6 +59,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.function.Supplier;
 
+import org.apache.xmlbeans.XmlException;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
@@ -76,6 +77,8 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NoDescriptionProxy;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
@@ -86,6 +89,7 @@ import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
+import org.xml.sax.SAXException;
 
 /**
  * Some helpers for providing input data to a node in a workflow, for testing purposes.
@@ -363,6 +367,7 @@ public final class InputTableNode {
      */
     public static class InputDataNodeFactory extends NodeFactory<InputDataNodeModel> {
 
+
         private final Supplier<BufferedDataTable> m_tableSupplier;
 
         /**
@@ -372,6 +377,11 @@ public final class InputTableNode {
          */
         public InputDataNodeFactory(final Supplier<BufferedDataTable> tableSupplier) {
             m_tableSupplier = tableSupplier;
+        }
+
+        @Override
+        protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
+            return new NoDescriptionProxy(this.getClass()); // Reduce logging spam for tests
         }
 
         @Override

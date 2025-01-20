@@ -48,19 +48,13 @@
  */
 package org.knime.time.node.format.durationperiodformatmanager;
 
-import java.util.List;
-
 import org.knime.base.node.viz.format.AlignmentSuggestionOption;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataValue;
-import org.knime.core.data.time.duration.DurationValue;
-import org.knime.core.data.time.period.PeriodValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.CompatibleColumnChoicesProvider;
+import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.DurationPeriodStringFormat;
 
 /**
@@ -83,16 +77,13 @@ final class DurationPeriodFormatManagerNodeSettings implements DefaultNodeSettin
         var spec = context.getDataTableSpec(0);
 
         if (spec.isPresent()) {
-            m_columnFilter = new ColumnFilter(spec.get().stream() //
-                .filter(cs -> INTERVAL_VALUE_TYPES.stream().anyMatch(cs.getType()::isCompatible)) //
-                .map(DataColumnSpec::getName) //
-                .toArray(String[]::new) //
-            );
+            m_columnFilter =
+                new ColumnFilter(DateTimeUtils.getCompatibleColumns(spec.get(), DateTimeUtils.INTERVAL_COLUMN_TYPES));
         }
     }
 
     @Widget(title = "Duration/Period columns", description = "Only the included columns will receive a formatter.")
-    @ChoicesWidget(choices = IntervalColumnProvider.class)
+    @ChoicesWidget(choices = DateTimeUtils.IntervalColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
     @Widget(title = "Duration format", description = "The format of the output string.")
@@ -103,13 +94,4 @@ final class DurationPeriodFormatManagerNodeSettings implements DefaultNodeSettin
         description = "To be considered by views like Table View, Tile View, and for Spreadsheet export.")
     @ValueSwitchWidget
     AlignmentSuggestionOption m_alignment = AlignmentSuggestionOption.RIGHT;
-
-    public static final List<Class<? extends DataValue>> INTERVAL_VALUE_TYPES =
-        List.of(DurationValue.class, PeriodValue.class);
-
-    static final class IntervalColumnProvider extends CompatibleColumnChoicesProvider {
-        IntervalColumnProvider() {
-            super(INTERVAL_VALUE_TYPES);
-        }
-    }
 }

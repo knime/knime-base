@@ -48,17 +48,9 @@
  */
 package org.knime.time.node.format.datetimeformatmanager;
 
-import java.util.List;
 import java.util.Locale;
-import java.util.function.Predicate;
 
 import org.knime.base.node.viz.format.AlignmentSuggestionOption;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataValue;
-import org.knime.core.data.time.localdate.LocalDateValue;
-import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
-import org.knime.core.data.time.localtime.LocalTimeValue;
-import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
@@ -66,7 +58,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTi
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.CompatibleColumnChoicesProvider;
+import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.LocaleStateProvider;
 
 /**
@@ -82,16 +74,13 @@ final class DateTimeFormatManagerNodeSettings implements DefaultNodeSettings {
         var spec = context.getDataTableSpec(0);
 
         if (spec.isPresent()) {
-            m_columnFilter = new ColumnFilter(spec.get().stream() //
-                .filter(IS_COMPATIBLE_TYPE) //
-                .map(DataColumnSpec::getName) //
-                .toArray(String[]::new) //
-            );
+            m_columnFilter =
+                new ColumnFilter(DateTimeUtils.getCompatibleColumns(spec.get(), DateTimeUtils.DATE_TIME_COLUMN_TYPES));
         }
     }
 
     @Widget(title = "Date&Time columns", description = "Only the included columns will be converted.")
-    @ChoicesWidget(choices = DateAndTimeColumnProvider.class)
+    @ChoicesWidget(choices = DateTimeUtils.DateTimeColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
     @Widget(title = "Locale",
@@ -125,20 +114,4 @@ final class DateTimeFormatManagerNodeSettings implements DefaultNodeSettings {
         description = "To be considered by views like Table View, Tile View, and for Spreadsheet export.")
     @ValueSwitchWidget
     AlignmentSuggestionOption m_alignmentSuggestion = AlignmentSuggestionOption.LEFT;
-
-    /**
-     * Supported column types
-     */
-    public static final List<Class<? extends DataValue>> DATE_TIME_COLUMN_TYPES =
-        List.of(LocalDateValue.class, LocalTimeValue.class, ZonedDateTimeValue.class, LocalDateTimeValue.class);
-
-    private static final Predicate<DataColumnSpec> IS_COMPATIBLE_TYPE =
-        spec -> DATE_TIME_COLUMN_TYPES.stream().anyMatch(spec.getType()::isCompatible);
-
-    static final class DateAndTimeColumnProvider extends CompatibleColumnChoicesProvider {
-        DateAndTimeColumnProvider() {
-            super(DATE_TIME_COLUMN_TYPES);
-        }
-    }
-
 }

@@ -69,11 +69,7 @@ import org.knime.core.data.def.DoubleCell.DoubleCellFactory;
 import org.knime.core.data.def.LongCell.LongCellFactory;
 import org.knime.core.data.time.duration.DurationCellFactory;
 import org.knime.core.data.time.localdate.LocalDateCellFactory;
-import org.knime.core.data.time.localdate.LocalDateValue;
-import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
-import org.knime.core.data.time.localtime.LocalTimeValue;
 import org.knime.core.data.time.period.PeriodCellFactory;
-import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
@@ -85,6 +81,7 @@ import org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSe
 import org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings.OutputNumberType;
 import org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings.SecondDateTimeValueType;
 import org.knime.time.util.Granularity;
+import org.knime.time.util.TemporalCellUtils;
 
 /**
  * The new model for the DateTimeDifference node.
@@ -196,7 +193,7 @@ public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDiffere
                 return new MissingCell(ERROR_MISSING_CELL);
             }
 
-            var firstTemporal = extractTemporalFromDataCell(firstCell);
+            var firstTemporal = TemporalCellUtils.getTemporalFromCell(firstCell);
 
             if (m_settings.m_secondDateTimeValueType == SecondDateTimeValueType.COLUMN) {
                 var secondColumnIndex = m_inSpec.findColumnIndex(m_settings.m_secondColumnSelection.m_selected);
@@ -206,7 +203,7 @@ public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDiffere
                     return new MissingCell(ERROR_MISSING_CELL);
                 }
 
-                var secondTemporal = extractTemporalFromDataCell(secondCell);
+                var secondTemporal = TemporalCellUtils.getTemporalFromCell(secondCell);
 
                 return createDifferenceCell(firstTemporal, secondTemporal, m_settings);
             } else {
@@ -315,8 +312,8 @@ public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDiffere
         }
 
         return createDifferenceCell( //
-            extractTemporalFromDataCell(firstCell), //
-            extractTemporalFromDataCell(secondCell), //
+            TemporalCellUtils.getTemporalFromCell(firstCell), //
+            TemporalCellUtils.getTemporalFromCell(secondCell), //
             settings //
         );
     }
@@ -352,19 +349,5 @@ public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDiffere
     private static DataCell doubleBetween(final Temporal start, final Temporal end, final Granularity unit,
         final boolean negate) {
         return DoubleCellFactory.create(unit.betweenExact(start, end) * (negate ? -1 : 1));
-    }
-
-    static Temporal extractTemporalFromDataCell(final DataCell cell) {
-        if (cell instanceof ZonedDateTimeValue zonedDateTimeValue) {
-            return zonedDateTimeValue.getZonedDateTime();
-        } else if (cell instanceof LocalDateTimeValue localDateTimeValue) {
-            return localDateTimeValue.getLocalDateTime();
-        } else if (cell instanceof LocalTimeValue localTimeValue) {
-            return localTimeValue.getLocalTime();
-        } else if (cell instanceof LocalDateValue localDateValue) {
-            return localDateValue.getLocalDate();
-        } else {
-            throw new IllegalArgumentException("Unsupported Temporal type: " + cell.getClass());
-        }
     }
 }

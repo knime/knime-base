@@ -76,6 +76,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.testing.util.WorkflowManagerUtil;
 import org.knime.time.node.create.createdatetime.CreateDateTimeNodeSettings.FixedSteps;
+import org.knime.time.util.DateTimeType;
 
 /**
  *
@@ -588,19 +589,19 @@ final class CreateDateTimeNodeModel2Test {
     private static void writeEndPointIntoSettings(final CreateDateTimeNodeSettings settings, final Temporal end) {
         if (end instanceof LocalDate ld) {
             settings.m_localDateEnd = ld;
-            assertEquals(settings.m_outputType, CreateDateTimeNodeSettings.OutputType.DATE,
+            assertEquals(settings.m_outputType, DateTimeType.LOCAL_DATE,
                 "End point is a LocalDate but output type is not DATE");
         } else if (end instanceof LocalTime lt) {
             settings.m_localTimeEnd = lt;
-            assertEquals(settings.m_outputType, CreateDateTimeNodeSettings.OutputType.TIME,
+            assertEquals(settings.m_outputType, DateTimeType.LOCAL_TIME,
                 "End point is a LocalTime but output type is not TIME");
         } else if (end instanceof LocalDateTime ldt) {
             settings.m_localDateTimeEnd = ldt;
-            assertEquals(settings.m_outputType, CreateDateTimeNodeSettings.OutputType.DATE_TIME,
+            assertEquals(settings.m_outputType, DateTimeType.LOCAL_DATE_TIME,
                 "End point is a LocalDateTime but output type is not DATE_TIME");
         } else if (end instanceof ZonedDateTime zdt) {
             settings.m_zonedDateTimeEnd = zdt;
-            assertEquals(settings.m_outputType, CreateDateTimeNodeSettings.OutputType.DATE_TIME_WITH_TIMEZONE,
+            assertEquals(settings.m_outputType, DateTimeType.ZONED_DATE_TIME,
                 "End point is a ZonedDateTime but output type is not DATE_TIME_WITH_TIMEZONE");
         } else {
             throw new IllegalArgumentException("Cannot determine end point from temporal value: " + end);
@@ -609,20 +610,20 @@ final class CreateDateTimeNodeModel2Test {
 
     private static void writeOutputModeIntoSettings(final CreateDateTimeNodeSettings settings, final Temporal start) {
         if (start instanceof LocalDate) {
-            settings.m_outputType = CreateDateTimeNodeSettings.OutputType.DATE;
-            assertEquals(settings.m_outputType, CreateDateTimeNodeSettings.OutputType.DATE,
+            settings.m_outputType = DateTimeType.LOCAL_DATE;
+            assertEquals(settings.m_outputType, DateTimeType.LOCAL_DATE,
                 "Start point is a LocalDate but output type is not DATE");
         } else if (start instanceof LocalTime) {
-            settings.m_outputType = CreateDateTimeNodeSettings.OutputType.TIME;
-            assertEquals(settings.m_outputType, CreateDateTimeNodeSettings.OutputType.TIME,
+            settings.m_outputType = DateTimeType.LOCAL_TIME;
+            assertEquals(settings.m_outputType, DateTimeType.LOCAL_TIME,
                 "Start point is a LocalTime but output type is not TIME");
         } else if (start instanceof LocalDateTime) {
-            settings.m_outputType = CreateDateTimeNodeSettings.OutputType.DATE_TIME;
-            assertEquals(settings.m_outputType, CreateDateTimeNodeSettings.OutputType.DATE_TIME,
+            settings.m_outputType = DateTimeType.LOCAL_DATE_TIME;
+            assertEquals(settings.m_outputType, DateTimeType.LOCAL_DATE_TIME,
                 "Start point is a LocalDateTime but output type is not DATE_TIME");
         } else if (start instanceof ZonedDateTime) {
-            settings.m_outputType = CreateDateTimeNodeSettings.OutputType.DATE_TIME_WITH_TIMEZONE;
-            assertEquals(settings.m_outputType, CreateDateTimeNodeSettings.OutputType.DATE_TIME_WITH_TIMEZONE,
+            settings.m_outputType = DateTimeType.ZONED_DATE_TIME;
+            assertEquals(settings.m_outputType, DateTimeType.ZONED_DATE_TIME,
                 "Start point is a ZonedDateTime but output type is not DATE_TIME_WITH_TIMEZONE");
         } else {
             throw new IllegalArgumentException("Cannot determine output type from temporal value: " + start);

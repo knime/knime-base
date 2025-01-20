@@ -57,6 +57,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 import org.knime.time.node.manipulate.datetimeround.DateTimeRoundModelUtils.RoundCellFactory;
+import org.knime.time.util.DateTimeUtils;
 
 /**
  *
@@ -77,7 +78,7 @@ public class TimeRoundNodeModel extends WebUISimpleStreamableFunctionNodeModel<T
         final TimeRoundNodeSettings modelSettings) throws InvalidSettingsException {
 
         String[] selectedColumns = DateTimeRoundModelUtils.getSelectedColumns(spec,
-            TimeRoundNodeSettings.TIME_COLUMN_TYPES, modelSettings.m_columnFilter);
+            DateTimeUtils.TIME_COLUMN_TYPES, modelSettings.m_columnFilter);
 
         return modelSettings.m_replaceOrAppend.createRearranger(selectedColumns, spec,
             (inputColumnSpec, newColumnName) -> createCellFactory(spec, inputColumnSpec, newColumnName, modelSettings),

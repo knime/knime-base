@@ -51,7 +51,6 @@ package org.knime.time.node.convert.datetimetostring;
 import java.time.DateTimeException;
 import java.time.chrono.Chronology;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAccessor;
 import java.util.Locale;
 
 import org.knime.core.data.DataCell;
@@ -63,16 +62,14 @@ import org.knime.core.data.MissingCell;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.data.def.StringCell.StringCellFactory;
-import org.knime.core.data.time.localdate.LocalDateValue;
-import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
-import org.knime.core.data.time.localtime.LocalTimeValue;
-import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.util.UniqueNameGenerator;
 import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
+import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.ReplaceOrAppend;
+import org.knime.time.util.TemporalCellUtils;
 
 /**
  * New node model for the "DateTimeToString" node.
@@ -111,10 +108,7 @@ final class DateTimeToStringNodeModel2 extends WebUISimpleStreamableFunctionNode
 
         var rearranger = new ColumnRearranger(spec);
 
-        var supportedColumns = spec.stream() //
-            .filter(DateTimeToStringNodeSettings.DateAndTimeColumnProvider.IS_COMPATIBLE_COLUMN) //
-            .map(DataColumnSpec::getName) //
-            .toArray(String[]::new);
+        var supportedColumns = DateTimeUtils.getCompatibleColumns(spec, DateTimeUtils.DATE_TIME_COLUMN_TYPES);
 
         var targetColumnNames = modelSettings.m_columnFilter.getSelected(supportedColumns, spec);
         var targetColumnIndices = spec.columnsToIndices(targetColumnNames);
@@ -164,7 +158,7 @@ final class DateTimeToStringNodeModel2 extends WebUISimpleStreamableFunctionNode
                 return cell;
             }
 
-            var temporalValue = extractTemporalFromDataCell(row.getCell(m_targetIndex));
+            var temporalValue = TemporalCellUtils.getTemporalFromCell(row.getCell(m_targetIndex));
 
             try {
                 return StringCellFactory.create( //
@@ -172,20 +166,6 @@ final class DateTimeToStringNodeModel2 extends WebUISimpleStreamableFunctionNode
                 );
             } catch (DateTimeException e) { // NOSONAR
                 return new MissingCell(e.getMessage());
-            }
-        }
-
-        private static TemporalAccessor extractTemporalFromDataCell(final DataCell cell) {
-            if (cell instanceof LocalDateValue ld) {
-                return ld.getLocalDate();
-            } else if (cell instanceof LocalTimeValue lt) {
-                return lt.getLocalTime();
-            } else if (cell instanceof LocalDateTimeValue ldt) {
-                return ldt.getLocalDateTime();
-            } else if (cell instanceof ZonedDateTimeValue zdt) {
-                return zdt.getZonedDateTime();
-            } else {
-                throw new IllegalArgumentException("Unsupported data cell type: " + cell.getClass().getName());
             }
         }
     }

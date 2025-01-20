@@ -56,6 +56,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 import org.knime.time.node.manipulate.datetimeshift.DateTimeShiftUtils.GenericShiftType;
+import org.knime.time.util.DateTimeUtils;
 
 /**
  * The node model of the node which shifts time columns.
@@ -114,7 +115,7 @@ final class TimeShiftNodeModel extends WebUINodeModel<TimeShiftNodeSettings> {
             .granularity(settings.m_granularity.getGranularity()) //
             .replaceOrAppend(settings.m_replaceOrAppend) //
             .outputColumnSuffix(settings.m_outputColumnSuffix) //
-            .selectedColumnNames(settings.m_columnFilter, TimeShiftNodeSettings.TIME_COLUMN_TYPES, spec) //
+            .selectedColumnNames(settings.m_columnFilter, DateTimeUtils.TIME_COLUMN_TYPES, spec) //
             .messageBuilder(createMessageBuilder()) //
             .messageConsumer(this::setWarning) //
             .build();

@@ -87,7 +87,7 @@ import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 import org.knime.testing.node.dialog.updates.DialogUpdateSimulator;
 import org.knime.testing.util.TableTestUtil;
-import org.knime.time.node.convert.stringtodatetime.StringToDateTimeNodeSettings.TemporalType;
+import org.knime.time.util.DateTimeType;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -157,7 +157,7 @@ final class StringToDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshot
             new PortObject[]{inputTable});
 
         var settings = new StringToDateTimeNodeSettings();
-        settings.m_selectedType = TemporalType.LOCAL_DATE_TIME;
+        settings.m_selectedType = DateTimeType.LOCAL_DATE_TIME;
         settings.m_format = "";
         settings.m_columnFilter = new ColumnFilter(new String[]{"datetimes"});
 
@@ -182,7 +182,7 @@ final class StringToDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshot
             new PortObject[]{inputTable});
 
         var settings = new StringToDateTimeNodeSettings();
-        settings.m_selectedType = TemporalType.LOCAL_DATE_TIME;
+        settings.m_selectedType = DateTimeType.LOCAL_DATE_TIME;
         settings.m_format = "";
         settings.m_columnFilter = new ColumnFilter();
 
@@ -210,7 +210,7 @@ final class StringToDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshot
             new PortObject[]{inputTable});
 
         var settings = new StringToDateTimeNodeSettings();
-        settings.m_selectedType = TemporalType.LOCAL_DATE_TIME;
+        settings.m_selectedType = DateTimeType.LOCAL_DATE_TIME;
         settings.m_format = "";
         settings.m_columnFilter = new ColumnFilter(new String[]{"datetimes"});
 
@@ -235,7 +235,7 @@ final class StringToDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshot
             new PortObject[]{inputTable});
 
         var settings = new StringToDateTimeNodeSettings();
-        settings.m_selectedType = TemporalType.LOCAL_DATE_TIME;
+        settings.m_selectedType = DateTimeType.LOCAL_DATE_TIME;
         settings.m_format = "";
         settings.m_columnFilter = new ColumnFilter(new String[]{"datetimes"});
 
@@ -260,7 +260,7 @@ final class StringToDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshot
             new PortObject[]{inputTable});
 
         var settings = new StringToDateTimeNodeSettings();
-        settings.m_selectedType = TemporalType.LOCAL_DATE_TIME;
+        settings.m_selectedType = DateTimeType.LOCAL_DATE_TIME;
         settings.m_format = "";
         settings.m_columnFilter = new ColumnFilter(new String[]{"datetimes"});
 

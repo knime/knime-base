@@ -44,11 +44,12 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 27, 2025 (david): created
+ *   Jan 15, 2025 (Martin Sillye): created
  */
 package org.knime.time.node.manipulate.modifydate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -59,47 +60,46 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 import org.junit.jupiter.api.Test;
-import org.knime.InputTableNode;
-import org.knime.core.data.DataCell;
+import org.knime.NodeModelTestRunnerUtil;
+import org.knime.core.data.DataType;
 import org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory;
 import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
 import org.knime.core.data.time.localtime.LocalTimeCellFactory;
 import org.knime.core.data.time.localtime.LocalTimeValue;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFactory;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
-import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.testing.util.TableTestUtil;
-import org.knime.testing.util.WorkflowManagerUtil;
+import org.knime.time.node.manipulate.modifydate.ModifyDateNodeSettings.BehaviourType;
 import org.knime.time.util.ReplaceOrAppend;
 
 /**
  *
- * @author David Hickey, TNG Technology Consulting GmbH
+ * @author Martin Sillye, TNG Technology Consulting GmbH
  */
-@SuppressWarnings({"restriction", "static-method"})
+@SuppressWarnings("restriction")
 final class ModifyDateNodeModel2Test {
+    private static final String INPUT_COLUMN = "test_input";
 
-    private final static String INPUT_COLUMN_NAME = "input_col";
+    private static final NodeModelTestRunnerUtil RUNNER = new NodeModelTestRunnerUtil(INPUT_COLUMN, "ModifyDateNode",
+        ModifyDateNodeSettings.class, ModifyDateNodeFactory2.class);
 
     @Test
     void testAppendDateWithoutTimeZone() throws InvalidSettingsException, IOException {
         var settings = new ModifyDateNodeSettings();
         settings.m_behaviourType = ModifyDateNodeSettings.BehaviourType.APPEND;
         settings.m_appendOrReplace = ReplaceOrAppend.REPLACE;
-        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN_NAME});
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
         settings.m_localDate = LocalDate.of(2021, 1, 2);
         settings.m_timeZone = null;
 
-        var testResult = setupAndExecuteWorkflow(settings, LocalTimeCellFactory.create(LocalTime.of(12, 34, 56)));
+        var testResult =
+            RUNNER.setupAndExecuteWorkflow(settings, LocalTimeCellFactory.create(LocalTime.of(12, 34, 56)));
 
-        assertTrue(testResult.firstOutputCell instanceof LocalDateTimeValue,
-            "Expected LocalDateTimeValue, got " + testResult.firstOutputCell.getClass());
+        assertTrue(testResult.firstCell() instanceof LocalDateTimeValue,
+            "Expected LocalDateTimeValue, got " + testResult.firstCell().getClass());
 
-        var value = ((LocalDateTimeValue)testResult.firstOutputCell).getLocalDateTime();
+        var value = ((LocalDateTimeValue)testResult.firstCell()).getLocalDateTime();
 
         assertEquals(LocalDateTime.of(2021, 1, 2, 12, 34, 56), value, "Expected correct output value");
     }
@@ -109,16 +109,17 @@ final class ModifyDateNodeModel2Test {
         var settings = new ModifyDateNodeSettings();
         settings.m_behaviourType = ModifyDateNodeSettings.BehaviourType.APPEND;
         settings.m_appendOrReplace = ReplaceOrAppend.REPLACE;
-        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN_NAME});
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
         settings.m_localDate = LocalDate.of(2021, 1, 2);
         settings.m_timeZone = ZoneId.of("Europe/Berlin");
 
-        var testResult = setupAndExecuteWorkflow(settings, LocalTimeCellFactory.create(LocalTime.of(12, 34, 56)));
+        var testResult =
+            RUNNER.setupAndExecuteWorkflow(settings, LocalTimeCellFactory.create(LocalTime.of(12, 34, 56)));
 
-        assertTrue(testResult.firstOutputCell instanceof ZonedDateTimeValue,
-            "Expected LocalDateTimeValue, got " + testResult.firstOutputCell.getClass());
+        assertTrue(testResult.firstCell() instanceof ZonedDateTimeValue,
+            "Expected LocalDateTimeValue, got " + testResult.firstCell().getClass());
 
-        var value = ((ZonedDateTimeValue)testResult.firstOutputCell).getZonedDateTime().toLocalDateTime();
+        var value = ((ZonedDateTimeValue)testResult.firstCell()).getZonedDateTime().toLocalDateTime();
 
         assertEquals(LocalDateTime.of(2021, 1, 2, 12, 34, 56), value, "Expected correct output value");
     }
@@ -128,15 +129,15 @@ final class ModifyDateNodeModel2Test {
         var settings = new ModifyDateNodeSettings();
         settings.m_behaviourType = ModifyDateNodeSettings.BehaviourType.REMOVE;
         settings.m_appendOrReplace = ReplaceOrAppend.REPLACE;
-        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN_NAME});
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
 
-        var testResult = setupAndExecuteWorkflow(settings,
+        var testResult = RUNNER.setupAndExecuteWorkflow(settings,
             LocalDateTimeCellFactory.create(LocalDateTime.of(2001, 3, 4, 12, 34, 56)));
 
-        assertTrue(testResult.firstOutputCell instanceof LocalTimeValue,
-            "Expected LocalTimeCell, got " + testResult.firstOutputCell.getClass());
+        assertTrue(testResult.firstCell() instanceof LocalTimeValue,
+            "Expected LocalTimeCell, got " + testResult.firstCell().getClass());
 
-        var value = ((LocalTimeValue)testResult.firstOutputCell).getLocalTime();
+        var value = ((LocalTimeValue)testResult.firstCell()).getLocalTime();
 
         assertEquals(LocalTime.of(12, 34, 56), value, "Expected correct output");
     }
@@ -146,15 +147,15 @@ final class ModifyDateNodeModel2Test {
         var settings = new ModifyDateNodeSettings();
         settings.m_behaviourType = ModifyDateNodeSettings.BehaviourType.REMOVE;
         settings.m_appendOrReplace = ReplaceOrAppend.REPLACE;
-        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN_NAME});
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
 
-        var testResult = setupAndExecuteWorkflow(settings,
+        var testResult = RUNNER.setupAndExecuteWorkflow(settings,
             ZonedDateTimeCellFactory.create(ZonedDateTime.of(2001, 3, 4, 12, 34, 56, 0, ZoneId.of("Europe/Berlin"))));
 
-        assertTrue(testResult.firstOutputCell instanceof LocalTimeValue,
-            "Expected LocalTimeCell, got " + testResult.firstOutputCell.getClass());
+        assertTrue(testResult.firstCell() instanceof LocalTimeValue,
+            "Expected LocalTimeCell, got " + testResult.firstCell().getClass());
 
-        var value = ((LocalTimeValue)testResult.firstOutputCell).getLocalTime();
+        var value = ((LocalTimeValue)testResult.firstCell()).getLocalTime();
 
         assertEquals(LocalTime.of(12, 34, 56), value, "Expected correct output");
     }
@@ -164,16 +165,16 @@ final class ModifyDateNodeModel2Test {
         var settings = new ModifyDateNodeSettings();
         settings.m_behaviourType = ModifyDateNodeSettings.BehaviourType.CHANGE;
         settings.m_appendOrReplace = ReplaceOrAppend.REPLACE;
-        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN_NAME});
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
         settings.m_localDate = LocalDate.of(2021, 1, 2);
 
-        var testResult = setupAndExecuteWorkflow(settings,
+        var testResult = RUNNER.setupAndExecuteWorkflow(settings,
             ZonedDateTimeCellFactory.create(ZonedDateTime.of(2001, 3, 4, 12, 34, 56, 0, ZoneId.of("Europe/Berlin"))));
 
-        assertTrue(testResult.firstOutputCell instanceof ZonedDateTimeValue,
-            "Expected ZonedDateTimeValue, got " + testResult.firstOutputCell.getClass());
+        assertTrue(testResult.firstCell() instanceof ZonedDateTimeValue,
+            "Expected ZonedDateTimeValue, got " + testResult.firstCell().getClass());
 
-        var value = ((ZonedDateTimeValue)testResult.firstOutputCell).getZonedDateTime().toLocalDateTime();
+        var value = ((ZonedDateTimeValue)testResult.firstCell()).getZonedDateTime().toLocalDateTime();
 
         assertEquals(LocalDateTime.of(2021, 1, 2, 12, 34, 56), value, "Expected correct output");
     }
@@ -183,63 +184,92 @@ final class ModifyDateNodeModel2Test {
         var settings = new ModifyDateNodeSettings();
         settings.m_behaviourType = ModifyDateNodeSettings.BehaviourType.CHANGE;
         settings.m_appendOrReplace = ReplaceOrAppend.REPLACE;
-        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN_NAME});
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
         settings.m_localDate = LocalDate.of(2021, 1, 2);
 
-        var testResult = setupAndExecuteWorkflow(settings,
+        var testResult = RUNNER.setupAndExecuteWorkflow(settings,
             LocalDateTimeCellFactory.create(LocalDateTime.of(2001, 3, 4, 12, 34, 56)));
 
-        assertTrue(testResult.firstOutputCell instanceof LocalDateTimeValue,
-            "Expected LocalDateTimeValue, got " + testResult.firstOutputCell.getClass());
+        assertTrue(testResult.firstCell() instanceof LocalDateTimeValue,
+            "Expected LocalDateTimeValue, got " + testResult.firstCell().getClass());
 
-        var value = ((LocalDateTimeValue)testResult.firstOutputCell).getLocalDateTime();
+        var value = ((LocalDateTimeValue)testResult.firstCell()).getLocalDateTime();
 
         assertEquals(LocalDateTime.of(2021, 1, 2, 12, 34, 56), value, "Expected correct output");
     }
 
-    private static record TestSetup(BufferedDataTable outputTable, DataCell firstOutputCell) {
+    @Test
+    void testAppendThatMissingInputGivesMissingOutput() throws InvalidSettingsException, IOException {
+        var settings = new ModifyDateNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
+        settings.m_behaviourType = BehaviourType.APPEND;
+
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, DataType.getMissingCell());
+
+        assertTrue(testSetup.nodeState().isExecuted(), "Execution should have been successful");
+        assertTrue(testSetup.firstCell().isMissing(), "Output cell should be missing");
     }
 
-    private static TestSetup setupAndExecuteWorkflow(final ModifyDateNodeSettings settings, final DataCell cellToAdd)
-        throws InvalidSettingsException, IOException {
-        var workflowManager = WorkflowManagerUtil.createEmptyWorkflow();
+    @Test
+    void testChangeThatMissingInputGivesMissingOutput() throws InvalidSettingsException, IOException {
+        var settings = new ModifyDateNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
+        settings.m_behaviourType = BehaviourType.CHANGE;
 
-        var node = WorkflowManagerUtil.createAndAddNode(workflowManager, new ModifyDateNodeFactory2());
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, DataType.getMissingCell());
 
-        // set the settings
-        final var nodeSettings = new NodeSettings("ModifyDateNode");
-        workflowManager.saveNodeSettings(node.getID(), nodeSettings);
-        var modelSettings = nodeSettings.addNodeSettings("model");
-        DefaultNodeSettings.saveSettings(ModifyDateNodeSettings.class, settings, modelSettings);
+        assertTrue(testSetup.nodeState().isExecuted(), "Execution should have been successful");
+        assertTrue(testSetup.firstCell().isMissing(), "Output cell should be missing");
+    }
 
-        workflowManager.loadNodeSettings(node.getID(), nodeSettings);
+    @Test
+    void testRemoveThatMissingInputGivesMissingOutput() throws InvalidSettingsException, IOException {
+        var settings = new ModifyDateNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
+        settings.m_behaviourType = BehaviourType.REMOVE;
 
-        // populate the input table
-        var inputTableSpec = new TableTestUtil.SpecBuilder() //
-            .addColumn(INPUT_COLUMN_NAME, cellToAdd.getType()) //
-            .build();
-        var inputTable = new TableTestUtil.TableBuilder(inputTableSpec) //
-            .addRow(cellToAdd) //
-            .build();
-        var tableSupplierNode =
-            WorkflowManagerUtil.createAndAddNode(workflowManager, new InputTableNode.InputDataNodeFactory(inputTable));
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, DataType.getMissingCell());
 
-        // link the nodes
-        workflowManager.addConnection(tableSupplierNode.getID(), 1, node.getID(), 1);
+        assertTrue(testSetup.nodeState().isExecuted(), "Execution should have been successful");
+        assertTrue(testSetup.firstCell().isMissing(), "Output cell should be missing");
+    }
 
-        workflowManager.executeAllAndWaitUntilDone();
+    @Test
+    void testAppendThatEmptyInputGivesNoError() throws InvalidSettingsException, IOException {
+        var settings = new ModifyDateNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
+        settings.m_behaviourType = BehaviourType.APPEND;
 
-        var outputTable = (BufferedDataTable)node.getOutPort(1).getPortObject();
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, null);
 
-        DataCell firstCell;
-        try (var it = outputTable.iterator()) {
-            if (settings.m_appendOrReplace == ReplaceOrAppend.REPLACE) {
-                firstCell = it.next().getCell(0);
-            } else {
-                firstCell = it.next().getCell(1);
-            }
-        }
+        assertTrue(testSetup.nodeState().isExecuted(), "Execution should have been successful");
+        assertNull(testSetup.firstCell(), "Output cell should not exists");
+        assertEquals(0, testSetup.outputTable().size(), "Ouptput table should be empty");
+    }
 
-        return new TestSetup(outputTable, firstCell);
+    @Test
+    void testChangeThatEmptyInputGivesNoError() throws InvalidSettingsException, IOException {
+        var settings = new ModifyDateNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
+        settings.m_behaviourType = BehaviourType.CHANGE;
+
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, null);
+
+        assertTrue(testSetup.nodeState().isExecuted(), "Execution should have been successful");
+        assertNull(testSetup.firstCell(), "Output cell should not exists");
+        assertEquals(0, testSetup.outputTable().size(), "Ouptput table should be empty");
+    }
+
+    @Test
+    void testRemoveThatEmptyInputGivesNoError() throws InvalidSettingsException, IOException {
+        var settings = new ModifyDateNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
+        settings.m_behaviourType = BehaviourType.REMOVE;
+
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, null);
+
+        assertTrue(testSetup.nodeState().isExecuted(), "Execution should have been successful");
+        assertNull(testSetup.firstCell(), "Output cell should not exists");
+        assertEquals(0, testSetup.outputTable().size(), "Ouptput table should be empty");
     }
 }

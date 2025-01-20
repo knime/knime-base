@@ -56,7 +56,6 @@ import java.time.LocalTime;
 import java.time.Period;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAmount;
-import java.util.Collection;
 import java.util.Locale;
 import java.util.function.Consumer;
 
@@ -65,7 +64,6 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataValue;
 import org.knime.core.data.LongValue;
 import org.knime.core.data.MissingCell;
 import org.knime.core.data.MissingValueException;
@@ -104,13 +102,6 @@ final class DateTimeShiftUtils {
      * Column rearranger - execute the operation on the cells
      * ------------------------------------------------------------------------
      */
-
-    static String[] getCompatibleColumns(final DataTableSpec spec,
-        final Collection<Class<? extends DataValue>> valueClasses) {
-        return spec.stream()
-            .filter(s -> valueClasses.stream().anyMatch(valueClass -> s.getType().isCompatible(valueClass)))
-            .map(DataColumnSpec::getName).toArray(String[]::new);
-    }
 
     static ColumnRearranger createColumnRearranger(final DataTableSpec spec, final ShiftContext context,
         final GenericShiftType type) {

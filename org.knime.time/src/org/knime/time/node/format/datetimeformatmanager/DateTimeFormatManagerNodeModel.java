@@ -49,14 +49,11 @@
 package org.knime.time.node.format.datetimeformatmanager;
 
 import java.time.format.DateTimeFormatter;
-import java.util.Collection;
 
 import org.apache.commons.lang3.LocaleUtils;
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
-import org.knime.core.data.DataValue;
 import org.knime.core.data.property.ValueFormatHandler;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
@@ -64,6 +61,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
+import org.knime.time.util.DateTimeUtils;
 
 /**
  * The node model of the node which attaches a date&time formatter to columns.
@@ -126,13 +124,12 @@ final class DateTimeFormatManagerNodeModel extends WebUINodeModel<DateTimeFormat
         );
 
         final var tableSpecCreator = new DataTableSpecCreator(spec);
-        final String[] targetColumns =
-            getCompatibleColumns(spec, DateTimeFormatManagerNodeSettings.DATE_TIME_COLUMN_TYPES);
+        final String[] targetColumns = DateTimeUtils.getCompatibleColumns(spec, DateTimeUtils.DATE_TIME_COLUMN_TYPES);
 
         for (var columnName : targetColumns) {
 
             final var columnSpec = spec.getColumnSpec(columnName);
-            if (columnSpec == null || !isDateTimeColumn(columnSpec)) {
+            if (columnSpec == null || !DateTimeUtils.DateTimeColumnProvider.isCompatibleType(columnSpec)) {
                 continue; // skip columns that do not exist anymore
             }
             final var columnSpecCreator = new DataColumnSpecCreator(columnSpec);
@@ -142,16 +139,4 @@ final class DateTimeFormatManagerNodeModel extends WebUINodeModel<DateTimeFormat
         }
         return tableSpecCreator.createSpec();
     }
-
-    static String[] getCompatibleColumns(final DataTableSpec spec,
-        final Collection<Class<? extends DataValue>> valueClasses) {
-        return spec.stream().filter(s -> valueClasses.stream().anyMatch(s.getType()::isCompatible))
-            .map(DataColumnSpec::getName).toArray(String[]::new);
-    }
-
-    static boolean isDateTimeColumn(final DataColumnSpec columnSpec) {
-        return DateTimeFormatManagerNodeSettings.DATE_TIME_COLUMN_TYPES.stream()
-            .anyMatch(columnSpec.getType()::isCompatible);
-    }
-
 }

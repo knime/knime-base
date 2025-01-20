@@ -216,13 +216,13 @@
               "title" : "Time"
             }, {
               "const" : "LOCAL_DATE_TIME",
-              "title" : "DateTime"
+              "title" : "Date & time"
             }, {
               "const" : "ZONED_DATE_TIME",
-              "title" : "DateTimeZone"
+              "title" : "Date & time & zone"
             } ],
             "title" : "Type",
-            "description" : "The type of the output column.\n<ul>\n<li><b>Date</b>: The output column will be of type LocalDate.</li>\n<li><b>Time</b>: The output column will be of type LocalTime.</li>\n<li><b>DateTime</b>: The output column will be of type LocalDateTime.</li>\n<li><b>DateTimeZone</b>: The output column will be of type ZonedDateTime.</li>\n</ul>",
+            "description" : "The type of the output column.\n<ul>\n<li><b>Date</b>: Outputs will be of type Local Date</li>\n<li><b>Time</b>: Outputs will be of type Local Time</li>\n<li><b>Date &amp; time</b>: Outputs will be of type Local Date Time</li>\n<li><b>Date &amp; time &amp; zone</b>: Outputs will be of type Zoned Date Time</li>\n</ul>",
             "default" : "LOCAL_DATE"
           }
         }
@@ -4330,7 +4330,7 @@
       "id" : "org.knime.time.node.convert.stringtodatetime.StringToDateTimeNodeSettings$ColumnFilterValueRef"
     }, {
       "scopes" : [ "#/properties/model/properties/selectedType" ],
-      "id" : "org.knime.time.node.convert.stringtodatetime.StringToDateTimeNodeSettings$TemporalType$Ref"
+      "id" : "org.knime.time.util.DateTimeType$Ref"
     } ]
   } ]
 }

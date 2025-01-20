@@ -278,7 +278,15 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/durationColumn",
       "options" : {
-        "choicesProvider" : "org.knime.time.node.manipulate.datetimeshift.TimeShiftNodeSettings$DurationColumns",
+        "possibleValues" : [ {
+          "id" : "durationTest",
+          "text" : "durationTest",
+          "type" : {
+            "id" : "org.knime.core.data.time.duration.DurationValue",
+            "text" : "Duration"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.time.duration.DurationValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
+        } ],
         "format" : "dropDown",
         "showNoneColumn" : false,
         "showRowKeys" : false,
@@ -441,21 +449,6 @@
           "text" : "Zoned Date Time"
         },
         "compatibleTypes" : [ "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
-      } ]
-    } ]
-  }, {
-    "scopes" : null,
-    "id" : "org.knime.time.node.manipulate.datetimeshift.TimeShiftNodeSettings$DurationColumns",
-    "values" : [ {
-      "indices" : [ ],
-      "value" : [ {
-        "id" : "durationTest",
-        "text" : "durationTest",
-        "type" : {
-          "id" : "org.knime.core.data.time.duration.DurationValue",
-          "text" : "Duration"
-        },
-        "compatibleTypes" : [ "org.knime.core.data.time.duration.DurationValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
       } ]
     } ]
   } ],

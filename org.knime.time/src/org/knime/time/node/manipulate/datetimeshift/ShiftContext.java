@@ -57,6 +57,7 @@ import org.knime.core.data.DataValue;
 import org.knime.core.node.message.Message;
 import org.knime.core.node.message.MessageBuilder;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.Granularity;
 import org.knime.time.util.ReplaceOrAppend;
 
@@ -174,7 +175,7 @@ record ShiftContext( // NOSONAR
         public Builder selectedColumnNames(final ColumnFilter columnFilter,
             final Collection<Class<? extends DataValue>> supportedTypes, final DataTableSpec spec) {
             this.m_selectedColumnNames =
-                columnFilter.getSelected(DateTimeShiftUtils.getCompatibleColumns(spec, supportedTypes), spec);
+                columnFilter.getSelected(DateTimeUtils.getCompatibleColumns(spec, supportedTypes), spec);
             return this;
         }
 

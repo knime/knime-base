@@ -6,7 +6,7 @@
         <entry key="memory_policy" type="xstring" value="CacheSmallInMemory"/>
     </config>
     <config key="model">
-        <entry key="outputType" type="xstring" value="DATE"/>
+        <entry key="outputType" type="xstring" value="LOCAL_DATE"/>
         <entry key="localDateStart" type="xstring" value="2024-01-22"/>
         <entry key="localTimeStart" type="xstring" value="16:41:39"/>
         <entry key="localDateTimeStart" type="xstring" value="2024-01-22T17:41:39.521969145"/>

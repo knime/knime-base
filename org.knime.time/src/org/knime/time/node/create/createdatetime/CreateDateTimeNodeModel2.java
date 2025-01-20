@@ -71,7 +71,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 import org.knime.time.node.create.createdatetime.CreateDateTimeNodeSettings.FixedSteps;
-import org.knime.time.node.create.createdatetime.CreateDateTimeNodeSettings.OutputType;
 import org.knime.time.util.DateTimeType;
 
 /**
@@ -116,7 +115,7 @@ final class CreateDateTimeNodeModel2 extends WebUINodeModel<CreateDateTimeNodeSe
     private static void assertOrderOfStartAndEnd(final CreateDateTimeNodeSettings loadedSettings)
         throws InvalidSettingsException {
         if (loadedSettings.m_fixedSteps == CreateDateTimeNodeSettings.FixedSteps.INTERVAL_AND_END
-            && loadedSettings.m_outputType != OutputType.TIME) {
+            && loadedSettings.m_outputType != DateTimeType.LOCAL_TIME) {
             var start = extractStartTimeFromSettings(loadedSettings);
             var end = extractEndTimeFromSettings(loadedSettings);
 
@@ -250,13 +249,13 @@ final class CreateDateTimeNodeModel2 extends WebUINodeModel<CreateDateTimeNodeSe
 
         // Check that the start, interval and endpoint are all mutually consistent
         if (startPoint.isAfter(endPoint) && interval.isStrictlyPositive()) {
-            if (settings.m_outputType == OutputType.TIME) {
+            if (settings.m_outputType == DateTimeType.LOCAL_TIME) {
                 endPoint = endPoint.plusDays(1);
             } else {
                 throw new IllegalArgumentException("Start time must be before end time when interval is positive.");
             }
         } else if (startPoint.isBefore(endPoint) && interval.isStrictlyNegative()) {
-            if (settings.m_outputType == OutputType.TIME) {
+            if (settings.m_outputType == DateTimeType.LOCAL_TIME) {
                 endPoint = endPoint.minusDays(1);
             } else {
                 throw new IllegalArgumentException("Start time must be after end time when interval is negative.");
@@ -272,12 +271,12 @@ final class CreateDateTimeNodeModel2 extends WebUINodeModel<CreateDateTimeNodeSe
         }
     }
 
-    private static DataRow createRow(final long index, final OutputType type, final ZonedDateTime temporal) {
+    private static DataRow createRow(final long index, final DateTimeType type, final ZonedDateTime temporal) {
         var cellToAdd = switch (type) {
-            case DATE -> LocalDateCellFactory.create(LocalDate.from(temporal));
-            case TIME -> LocalTimeCellFactory.create(LocalTime.from(temporal));
-            case DATE_TIME -> LocalDateTimeCellFactory.create(LocalDateTime.from(temporal));
-            case DATE_TIME_WITH_TIMEZONE -> ZonedDateTimeCellFactory.create(temporal);
+            case LOCAL_DATE -> LocalDateCellFactory.create(LocalDate.from(temporal));
+            case LOCAL_TIME -> LocalTimeCellFactory.create(LocalTime.from(temporal));
+            case LOCAL_DATE_TIME -> LocalDateTimeCellFactory.create(LocalDateTime.from(temporal));
+            case ZONED_DATE_TIME -> ZonedDateTimeCellFactory.create(temporal);
         };
 
         return new DefaultRow( //
@@ -288,10 +287,10 @@ final class CreateDateTimeNodeModel2 extends WebUINodeModel<CreateDateTimeNodeSe
 
     private static DataTableSpec createOutSpec(final CreateDateTimeNodeSettings settings) {
         var newDataType = (switch (settings.m_outputType) {
-            case DATE -> DateTimeType.LOCAL_DATE;
-            case TIME -> DateTimeType.LOCAL_TIME;
-            case DATE_TIME -> DateTimeType.LOCAL_DATE_TIME;
-            case DATE_TIME_WITH_TIMEZONE -> DateTimeType.ZONED_DATE_TIME;
+            case LOCAL_DATE -> DateTimeType.LOCAL_DATE;
+            case LOCAL_TIME -> DateTimeType.LOCAL_TIME;
+            case LOCAL_DATE_TIME -> DateTimeType.LOCAL_DATE_TIME;
+            case ZONED_DATE_TIME -> DateTimeType.ZONED_DATE_TIME;
         }).getDataType();
 
         return new DataTableSpec( //
@@ -307,10 +306,10 @@ final class CreateDateTimeNodeModel2 extends WebUINodeModel<CreateDateTimeNodeSe
         final var utc = ZoneId.of("UTC");
 
         return switch (settings.m_outputType) {
-            case DATE -> settings.m_localDateEnd.atTime(LocalTime.NOON).atZone(utc);
-            case TIME -> settings.m_localTimeEnd.atDate(LocalDate.EPOCH).atZone(utc);
-            case DATE_TIME -> ZonedDateTime.of(settings.m_localDateTimeEnd, utc);
-            case DATE_TIME_WITH_TIMEZONE -> settings.m_zonedDateTimeEnd;
+            case LOCAL_DATE -> settings.m_localDateEnd.atTime(LocalTime.NOON).atZone(utc);
+            case LOCAL_TIME -> settings.m_localTimeEnd.atDate(LocalDate.EPOCH).atZone(utc);
+            case LOCAL_DATE_TIME -> ZonedDateTime.of(settings.m_localDateTimeEnd, utc);
+            case ZONED_DATE_TIME -> settings.m_zonedDateTimeEnd;
         };
     }
 
@@ -322,10 +321,10 @@ final class CreateDateTimeNodeModel2 extends WebUINodeModel<CreateDateTimeNodeSe
         final var utc = ZoneId.of("UTC");
 
         return switch (settings.m_outputType) {
-            case DATE -> settings.m_localDateStart.atTime(LocalTime.NOON).atZone(utc);
-            case TIME -> settings.m_localTimeStart.atDate(LocalDate.EPOCH).atZone(utc);
-            case DATE_TIME -> ZonedDateTime.of(settings.m_localDateTimeStart, utc);
-            case DATE_TIME_WITH_TIMEZONE -> settings.m_zonedDateTimeStart;
+            case LOCAL_DATE -> settings.m_localDateStart.atTime(LocalTime.NOON).atZone(utc);
+            case LOCAL_TIME -> settings.m_localTimeStart.atDate(LocalDate.EPOCH).atZone(utc);
+            case LOCAL_DATE_TIME -> ZonedDateTime.of(settings.m_localDateTimeStart, utc);
+            case ZONED_DATE_TIME -> settings.m_zonedDateTimeStart;
         };
     }
 }

@@ -53,6 +53,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.time.temporal.Temporal;
+import java.time.temporal.TemporalAccessor;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.time.localdate.LocalDateCell;
@@ -82,7 +83,7 @@ public final class TemporalCellUtils {
      *
      * @return The new data cell
      */
-    public static DataCell createTemporalDataCell(final Temporal temporal) {
+    public static DataCell createTemporalDataCell(final TemporalAccessor temporal) {
 
         if (temporal instanceof ZonedDateTime zonedDateTime) {
             return ZonedDateTimeCellFactory.create(zonedDateTime);

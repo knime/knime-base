@@ -49,12 +49,8 @@
 package org.knime.time.node.convert.stringtodurationperiod;
 
 import java.util.Arrays;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.StringValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -66,13 +62,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.StringColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.ReplaceOrAppend;
 
 /**
@@ -87,10 +84,7 @@ final class StringToDurationPeriodNodeSettings implements DefaultNodeSettings {
         var spec = context.getDataTableSpec(0);
 
         if (spec.isPresent()) {
-            m_columnFilter = new ColumnFilter(spec.get().stream() //
-                .filter(ColumnProvider.IS_COMPATIBLE_TYPE) //
-                .map(DataColumnSpec::getName) //
-                .toArray(String[]::new));
+            m_columnFilter = new ColumnFilter(DateTimeUtils.getCompatibleColumns(spec.get(), StringValue.class));
         }
     }
 
@@ -99,7 +93,7 @@ final class StringToDurationPeriodNodeSettings implements DefaultNodeSettings {
     }
 
     @Widget(title = "String columns", description = "The string columns to convert to a duration/period.")
-    @ChoicesWidget(choicesProvider = ColumnProvider.class)
+    @ChoicesWidget(choices = StringColumnChoicesProvider.class)
     @Persistor(ColumnFilterPersistor.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
@@ -227,19 +221,6 @@ final class StringToDurationPeriodNodeSettings implements DefaultNodeSettings {
 
         ColumnFilterPersistor() {
             super("col_select");
-        }
-    }
-
-    static final class ColumnProvider implements ColumnChoicesStateProvider {
-
-        static final Predicate<DataColumnSpec> IS_COMPATIBLE_TYPE = c -> c.getType().isCompatible(StringValue.class);
-
-        @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0).map(DataTableSpec::stream) //
-                .orElseGet(Stream::empty) //
-                .filter(IS_COMPATIBLE_TYPE) //
-                .toArray(DataColumnSpec[]::new);
         }
     }
 }

@@ -64,6 +64,7 @@ import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.node.message.Message;
 import org.knime.core.node.message.MessageBuilder;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.TemporalCellUtils;
 
 /**
@@ -116,8 +117,8 @@ final class DateTimeRoundModelUtils {
             }
 
             try {
-                return TemporalCellUtils.createTemporalDataCell(
-                    m_roundingOperator.apply(TemporalCellUtils.getTemporalFromCell(cell)));
+                return TemporalCellUtils
+                    .createTemporalDataCell(m_roundingOperator.apply(TemporalCellUtils.getTemporalFromCell(cell)));
             } catch (IllegalArgumentException | DateTimeException | ArithmeticException e) { // NOSONAR - this is logging the error message
                 m_messageBuilder.addRowIssue(0, m_targetColumnIndex, rowIndex, e.getMessage());
                 return new MissingCell(e.getMessage());
@@ -144,15 +145,6 @@ final class DateTimeRoundModelUtils {
     static String[] getSelectedColumns(final DataTableSpec spec,
         final Collection<Class<? extends DataValue>> valueClasses, final ColumnFilter columnFilter) {
 
-        return columnFilter.getSelected(getCompatibleColumns(spec, valueClasses), spec);
+        return columnFilter.getSelected(DateTimeUtils.getCompatibleColumns(spec, valueClasses), spec);
     }
-
-    static String[] getCompatibleColumns(final DataTableSpec spec,
-        final Collection<Class<? extends DataValue>> valueClasses) {
-
-        return spec.stream()
-            .filter(dateColumnSpec -> valueClasses.stream().anyMatch(dateColumnSpec.getType()::isCompatible))
-            .map(DataColumnSpec::getName).toArray(String[]::new);
-    }
-
 }

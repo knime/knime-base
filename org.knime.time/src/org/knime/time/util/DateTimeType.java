@@ -48,42 +48,61 @@
  */
 package org.knime.time.util;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZonedDateTime;
+import java.time.temporal.TemporalAccessor;
+import java.time.temporal.TemporalQuery;
+
 import org.knime.core.data.DataType;
 import org.knime.core.data.time.localdate.LocalDateCellFactory;
 import org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory;
 import org.knime.core.data.time.localtime.LocalTimeCellFactory;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 
 /**
  * An enumeration that contains all different Date&Time types and holds its {@link DataType} and a representing name.
  *
  * @author Simon Schmid, KNIME.com, Konstanz, Germany
  */
+@SuppressWarnings("restriction")
 public enum DateTimeType {
         /**
          * Contains only a date.
          */
-        LOCAL_DATE("Date", LocalDateCellFactory.TYPE),
+        @Label(value = "Date", description = "Outputs will be of type Local Date")
+        LOCAL_DATE("Date", LocalDateCellFactory.TYPE, LocalDate::from),
         /**
          * Contains only a time.
          */
-        LOCAL_TIME("Time", LocalTimeCellFactory.TYPE),
+        @Label(value = "Time", description = "Outputs will be of type Local Time")
+        LOCAL_TIME("Time", LocalTimeCellFactory.TYPE, LocalTime::from),
         /**
          * Contains a date and a time.
          */
-        LOCAL_DATE_TIME("Date&time", LocalDateTimeCellFactory.TYPE),
+        @Label(value = "Date & time", description = "Outputs will be of type Local Date Time")
+        LOCAL_DATE_TIME("Date&time", LocalDateTimeCellFactory.TYPE, LocalDateTime::from),
         /**
          * Contains a date, a time and a time zone.
          */
-        ZONED_DATE_TIME("Date&time with zone", ZonedDateTimeCellFactory.TYPE);
+        @Label(value = "Date & time & zone", description = "Outputs will be of type Zoned Date Time")
+        ZONED_DATE_TIME("Date&time with zone", ZonedDateTimeCellFactory.TYPE, ZonedDateTime::from);
 
     private final String m_name;
 
     private final DataType m_dataType;
 
-    private DateTimeType(final String name, final DataType dataType) {
+    private final TemporalQuery<TemporalAccessor> m_query;
+
+    DateTimeType(final String name, final DataType dataType, final TemporalQuery<TemporalAccessor> query) {
         m_name = name;
         m_dataType = dataType;
+        m_query = query;
     }
 
     /**
@@ -101,5 +120,70 @@ public enum DateTimeType {
      */
     public DataType getDataType() {
         return m_dataType;
+    }
+
+    /**
+     * Returns the temporal query of this enum
+     *
+     * @return the temporal query
+     */
+    public TemporalQuery<TemporalAccessor> getQuery() {
+        return m_query;
+    }
+
+    /**
+     * Reference interface for the DateTimeType enum
+     *
+     * @author Martin Sillye, TNG Technology Consulting GmbH
+     */
+    public interface Ref extends Reference<DateTimeType> {
+    }
+
+    /**
+     * Predicate for the LOCAL_TIME value. Using {@link Ref}
+     *
+     * @author Martin Sillye, TNG Technology Consulting GmbH
+     */
+    public static final class IsLocalTime implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(Ref.class).isOneOf(DateTimeType.LOCAL_TIME);
+        }
+    }
+
+    /**
+     * Predicate for the LOCAL_DATE value. Using {@link Ref}
+     *
+     * @author Martin Sillye, TNG Technology Consulting GmbH
+     */
+    public static final class IsLocalDate implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(Ref.class).isOneOf(DateTimeType.LOCAL_DATE);
+        }
+    }
+
+    /**
+     * Predicate for the LOCAL_DATE_TIME value. Using {@link Ref}
+     *
+     * @author Martin Sillye, TNG Technology Consulting GmbH
+     */
+    public static final class IsLocalDateTime implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(Ref.class).isOneOf(DateTimeType.LOCAL_DATE_TIME);
+        }
+    }
+
+    /**
+     * Predicate for the ZONED_DATE_TIME value. Using {@link Ref}
+     *
+     * @author Martin Sillye, TNG Technology Consulting GmbH
+     */
+    public static final class IsZonedDateTime implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(Ref.class).isOneOf(DateTimeType.ZONED_DATE_TIME);
+        }
     }
 }

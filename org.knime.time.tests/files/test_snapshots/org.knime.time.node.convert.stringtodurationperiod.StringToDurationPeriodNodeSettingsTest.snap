@@ -213,7 +213,15 @@
       "scope" : "#/properties/model/properties/columnFilter",
       "options" : {
         "format" : "columnFilter",
-        "choicesProvider" : "org.knime.time.node.convert.stringtodurationperiod.StringToDurationPeriodNodeSettings$ColumnProvider",
+        "possibleValues" : [ {
+          "id" : "test",
+          "text" : "test",
+          "type" : {
+            "id" : "org.knime.core.data.StringValue",
+            "text" : "String"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+        } ],
         "showNoneColumn" : false,
         "showRowKeys" : false,
         "showSearch" : true,
@@ -277,21 +285,5 @@
         }
       }
     }
-  },
-  "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.time.node.convert.stringtodurationperiod.StringToDurationPeriodNodeSettings$ColumnProvider",
-    "values" : [ {
-      "indices" : [ ],
-      "value" : [ {
-        "id" : "test",
-        "text" : "test",
-        "type" : {
-          "id" : "org.knime.core.data.StringValue",
-          "text" : "String"
-        },
-        "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
-      } ]
-    } ]
-  } ]
+  }
 }

@@ -48,10 +48,6 @@
  */
 package org.knime.time.node.convert.stringtodatetime;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZonedDateTime;
 import java.time.chrono.Chronology;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -67,19 +63,16 @@ import org.knime.core.data.MissingCell;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
-import org.knime.core.data.time.localdate.LocalDateCellFactory;
-import org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory;
-import org.knime.core.data.time.localtime.LocalTimeCellFactory;
-import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFactory;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.KNIMEException;
 import org.knime.core.util.UniqueNameGenerator;
 import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
-import org.knime.time.node.convert.stringtodatetime.StringToDateTimeNodeSettings.TemporalType;
 import org.knime.time.util.ActionIfExtractionFails;
+import org.knime.time.util.DateTimeType;
 import org.knime.time.util.ReplaceOrAppend;
+import org.knime.time.util.TemporalCellUtils;
 
 /**
  * New node model for the "DateTimeToString" node.
@@ -132,14 +125,14 @@ final class StringToDateTimeNodeModel2 extends WebUISimpleStreamableFunctionNode
             for (var i = 0; i < targetColumnNames.length; ++i) {
                 var newName = uniqueNameGenerator.newName(targetColumnNames[i] + modelSettings.m_outputColumnSuffix);
                 var newSpec =
-                    new DataColumnSpecCreator(newName, modelSettings.m_selectedType.getCellType()).createSpec();
+                    new DataColumnSpecCreator(newName, modelSettings.m_selectedType.getDataType()).createSpec();
 
                 rearranger.append(new StringToDateTimeCellFactory(newSpec, modelSettings, targetColumnIndices[i]));
             }
         } else {
             for (var i = 0; i < targetColumnNames.length; ++i) {
                 var newSpec =
-                    new DataColumnSpecCreator(targetColumnNames[i], modelSettings.m_selectedType.getCellType())
+                    new DataColumnSpecCreator(targetColumnNames[i], modelSettings.m_selectedType.getDataType())
                         .createSpec();
 
                 rearranger.replace(new StringToDateTimeCellFactory(newSpec, modelSettings, targetColumnIndices[i]),
@@ -156,7 +149,7 @@ final class StringToDateTimeNodeModel2 extends WebUISimpleStreamableFunctionNode
 
         private final String m_pattern;
 
-        private final TemporalType m_targetType;
+        private final DateTimeType m_targetType;
 
         private final int m_targetIndex;
 
@@ -187,7 +180,7 @@ final class StringToDateTimeNodeModel2 extends WebUISimpleStreamableFunctionNode
             var stringValue = ((StringValue)row.getCell(m_targetIndex)).getStringValue();
 
             try {
-                return createDataCellFromTemporal( //
+                return TemporalCellUtils.createTemporalDataCell( //
                     parseString(stringValue, m_parser, m_targetType) //
                 );
             } catch (DateTimeParseException ex) { // NOSONAR
@@ -200,22 +193,8 @@ final class StringToDateTimeNodeModel2 extends WebUISimpleStreamableFunctionNode
             }
         }
 
-        private static DataCell createDataCellFromTemporal(final TemporalAccessor temporal) {
-            if (temporal instanceof LocalDate ld) {
-                return LocalDateCellFactory.create(ld);
-            } else if (temporal instanceof LocalTime lt) {
-                return LocalTimeCellFactory.create(lt);
-            } else if (temporal instanceof LocalDateTime ldt) {
-                return LocalDateTimeCellFactory.create(ldt);
-            } else if (temporal instanceof ZonedDateTime zdt) {
-                return ZonedDateTimeCellFactory.create(zdt);
-            } else {
-                throw new IllegalArgumentException("Unsupported temporal type: " + temporal.getClass().getName());
-            }
-        }
-
         private static TemporalAccessor parseString(final String str, final DateTimeFormatter formatter,
-            final TemporalType targetType) {
+            final DateTimeType targetType) {
 
             return formatter.parse(str, targetType.getQuery());
         }

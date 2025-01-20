@@ -203,7 +203,23 @@
       "scope" : "#/properties/model/properties/filter",
       "options" : {
         "format" : "columnFilter",
-        "choicesProvider" : "org.knime.time.node.convert.durationperiodtostring.DurationPeriodToStringNodeSettings$ColumnProvider",
+        "possibleValues" : [ {
+          "id" : "periodTest",
+          "text" : "periodTest",
+          "type" : {
+            "id" : "org.knime.core.data.time.period.PeriodValue",
+            "text" : "Period"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.time.period.PeriodValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
+        }, {
+          "id" : "durationTest",
+          "text" : "durationTest",
+          "type" : {
+            "id" : "org.knime.core.data.time.duration.DurationValue",
+            "text" : "Duration"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.time.duration.DurationValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
+        } ],
         "showNoneColumn" : false,
         "showRowKeys" : false,
         "showSearch" : true,
@@ -268,29 +284,6 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.time.node.convert.durationperiodtostring.DurationPeriodToStringNodeSettings$ColumnProvider",
-    "values" : [ {
-      "indices" : [ ],
-      "value" : [ {
-        "id" : "periodTest",
-        "text" : "periodTest",
-        "type" : {
-          "id" : "org.knime.core.data.time.period.PeriodValue",
-          "text" : "Period"
-        },
-        "compatibleTypes" : [ "org.knime.core.data.time.period.PeriodValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
-      }, {
-        "id" : "durationTest",
-        "text" : "durationTest",
-        "type" : {
-          "id" : "org.knime.core.data.time.duration.DurationValue",
-          "text" : "Duration"
-        },
-        "compatibleTypes" : [ "org.knime.core.data.time.duration.DurationValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
-      } ]
-    } ]
-  }, {
     "scopes" : null,
     "id" : "org.knime.time.node.convert.durationperiodtostring.DurationPeriodToStringNodeSettings$InputPreviewMessage",
     "values" : [ {

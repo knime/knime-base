@@ -108,6 +108,14 @@ public enum Granularity {
         return m_chronoUnit.isDateBased();
     }
 
+
+    /**
+     * @return the timeBasedGranularityUnit
+     */
+    public TimeBasedGranularityUnit getTimeBasedGranularityUnit() {
+        return m_timeBasedGranularityUnit;
+    }
+
     /**
      * @return true if it is possible to use {@link #betweenExact(Temporal, Temporal)} with this granularity
      */
