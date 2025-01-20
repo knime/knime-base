@@ -296,9 +296,8 @@ final class CreateDateTimeNodeModel2 extends WebUINodeModel<CreateDateTimeNodeSe
         return switch (settings.m_outputType) {
             case DATE -> settings.m_localDateEnd.atStartOfDay().atZone(utc);
             case TIME -> settings.m_localTimeEnd.atDate(LocalDate.EPOCH).atZone(utc);
-            case DATE_TIME -> ZonedDateTime.of(settings.m_localDateEnd, settings.m_localTimeEnd, utc);
-            case DATE_TIME_WITH_TIMEZONE -> ZonedDateTime.of(settings.m_localDateEnd, settings.m_localTimeEnd,
-                settings.m_timezone);
+            case DATE_TIME -> ZonedDateTime.of(settings.m_localDateTimeEnd, utc);
+            case DATE_TIME_WITH_TIMEZONE -> settings.m_zonedDateTimeEnd;
         };
     }
 
@@ -312,9 +311,8 @@ final class CreateDateTimeNodeModel2 extends WebUINodeModel<CreateDateTimeNodeSe
         return switch (settings.m_outputType) {
             case DATE -> settings.m_localDateStart.atStartOfDay().atZone(utc);
             case TIME -> settings.m_localTimeStart.atDate(LocalDate.EPOCH).atZone(utc);
-            case DATE_TIME -> ZonedDateTime.of(settings.m_localDateStart, settings.m_localTimeStart, utc);
-            case DATE_TIME_WITH_TIMEZONE -> ZonedDateTime.of(settings.m_localDateStart, settings.m_localTimeStart,
-                settings.m_timezone);
+            case DATE_TIME -> ZonedDateTime.of(settings.m_localDateTimeStart, utc);
+            case DATE_TIME_WITH_TIMEZONE -> settings.m_zonedDateTimeStart;
         };
     }
 }
