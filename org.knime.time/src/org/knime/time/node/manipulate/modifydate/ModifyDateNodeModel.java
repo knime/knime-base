@@ -138,7 +138,7 @@ final class ModifyDateNodeModel extends SimpleStreamableFunctionNodeModel {
     public static SettingsModelString createSuffixModel(final SettingsModelString replaceOrAppendModel) {
         final SettingsModelString suffixModel = new SettingsModelString("suffix", "(modified date)");
         replaceOrAppendModel.addChangeListener(
-            e -> suffixModel.setEnabled(replaceOrAppendModel.getStringValue().equals(OPTION_REPLACE)));
+            e -> suffixModel.setEnabled(replaceOrAppendModel.getStringValue().equals(OPTION_APPEND)));
         suffixModel.setEnabled(false);
         return suffixModel;
     }
