@@ -502,7 +502,9 @@
           "detail" : [ {
             "type" : "Control",
             "scope" : "#/properties/columnRename",
-            "label" : "",
+            "options" : {
+              "hideControlHeader" : true
+            },
             "rule" : {
               "effect" : "SHOW",
               "condition" : {
@@ -526,6 +528,7 @@
             "type" : "Control",
             "scope" : "#/properties/type",
             "options" : {
+              "hideControlHeader" : true,
               "choicesProvider" : "org.knime.base.node.io.filehandling.table.reader2.TableReaderTransformationSettingsStateProviders$TypeChoicesProvider",
               "format" : "dropDown",
               "showNoneColumn" : false,
@@ -533,7 +536,6 @@
               "showSearch" : true,
               "showMode" : true
             },
-            "label" : "",
             "rule" : {
               "effect" : "SHOW",
               "condition" : {

@@ -72,7 +72,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
 final class NormalizerNodeSettings implements DefaultNodeSettings {
 
     @Persist(configKey = "data-column-filter", customPersistor = LegacyColumnFilterPersistor.class)
-    @Widget(title = "Number columns", description = "Select the numerical columns to normalize.", hideTitle = true)
+    @Widget(title = "Number columns", description = "Select the numerical columns to normalize.")
     @ChoicesWidget(choices = DoubleColumnChoicesProvider.class)
     ColumnFilter m_dataColumnFilterConfig = new ColumnFilter().withIncludeUnknownColumns();
 
@@ -113,31 +113,28 @@ final class NormalizerNodeSettings implements DefaultNodeSettings {
             /**
              * Min-Max normalization.
              */
-            @Label(value = "Min-max",
-                description = """
-                        Linear transformation of all values such that the minimum and maximum in each column correspond
-                        to the values set below.
-                        """)
+            @Label(value = "Min-max", description = """
+                    Linear transformation of all values such that the minimum and maximum in each column correspond
+                    to the values set below.
+                    """)
             MINMAX,
 
             /**
              * Z-Score.
              */
-            @Label(value = "Z-score",
-                description = """
-                        Linear transformation such that the values in each column are Gaussian-(0,1)-distributed, i.e.
-                        mean is 0.0 and standard deviation is 1.0.
-                        """)
+            @Label(value = "Z-score", description = """
+                    Linear transformation such that the values in each column are Gaussian-(0,1)-distributed, i.e.
+                    mean is 0.0 and standard deviation is 1.0.
+                    """)
             Z_SCORE,
             /**
              * Decimal Scaling.
              */
-            @Label(value = "Decimal scaling",
-                description = """
-                        The maximum value in a column (both positive and negative) is divided j-times by 10 until its
-                        absolute value is smaller or equal to 1. All values in the column are then divided by 10 to the
-                        power of j.
-                        """)
+            @Label(value = "Decimal scaling", description = """
+                    The maximum value in a column (both positive and negative) is divided j-times by 10 until its
+                    absolute value is smaller or equal to 1. All values in the column are then divided by 10 to the
+                    power of j.
+                    """)
             DECIMALSCALING;
     }
 }

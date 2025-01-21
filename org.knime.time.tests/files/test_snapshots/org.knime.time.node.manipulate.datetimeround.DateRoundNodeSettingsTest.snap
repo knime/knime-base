@@ -177,7 +177,7 @@
               "const" : "WEEK",
               "title" : "Week"
             } ],
-            "title" : "precision",
+            "title" : "Rounding Precision",
             "description" : "The rounding precision. The date will be rounded to the first or last value of the chosen precision.\n",
             "default" : "MONTH"
           },
@@ -201,7 +201,7 @@
               "const" : "WEEKDAY",
               "title" : "Weekday"
             } ],
-            "title" : "target",
+            "title" : "Exclude weekends",
             "description" : "Option to exclude weekends from the rounding. A weekend is defined as Saturday and Sunday.\n",
             "default" : "DAY"
           },
@@ -234,8 +234,8 @@
               "const" : "NEXT",
               "title" : "Next"
             } ],
-            "title" : "of",
-            "description" : "Option to shift the date to the previous or next date in the chosen resolution.\n\n<ul>\n<li><b>Previous</b>: Shift to the previous value. 12.12.24 rounded to thefirst day of the 'previous' month will result in 1.11.24.</li>\n<li><b>This</b>: Shift to the this value, i.e., no shift at all.</li>\n<li><b>Next</b>: Shift to the next value. 12.12.24 rounded to the first day of the 'next' month will result in 1.1.25.</li>\n</ul>",
+            "title" : "Additional shift",
+            "description" : "Option to shift the date to the previous or next date in the chosen resolution.\n\n<ul>\n<li><b>Previous</b>: Shift to the previous value. 12.12.24 rounded to the first day of the 'previous' month will result in 1.11.24.</li>\n<li><b>This</b>: Shift to the this value, i.e., no shift at all.</li>\n<li><b>Next</b>: Shift to the next value. 12.12.24 rounded to the first day of the 'next' month will result in 1.1.25.</li>\n</ul>",
             "default" : "THIS"
           }
         }
@@ -285,16 +285,19 @@
         "scope" : "#/properties/model/properties/dateRoundingStrategy"
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/dayOrWeekDay"
+        "scope" : "#/properties/model/properties/dayOrWeekDay",
+        "label" : ""
       } ]
     }, {
       "type" : "HorizontalLayout",
       "elements" : [ {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/shiftMode"
+        "scope" : "#/properties/model/properties/shiftMode",
+        "label" : "of"
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/dateRoundingPrecision"
+        "scope" : "#/properties/model/properties/dateRoundingPrecision",
+        "label" : ""
       } ]
     }, {
       "type" : "Control",
@@ -370,9 +373,7 @@
           "dayOrWeekDay" : { },
           "shiftMode" : { },
           "dateRoundingPrecision" : { },
-          "replaceOrAppend" : {
-            "configPaths" : [ [ "replace_or_append" ] ]
-          },
+          "replaceOrAppend" : { },
           "outputColumnSuffix" : { }
         }
       }

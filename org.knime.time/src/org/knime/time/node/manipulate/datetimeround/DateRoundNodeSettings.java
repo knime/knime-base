@@ -58,13 +58,13 @@ import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.CompatibleColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.OverwriteDialogTitle;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
@@ -89,32 +89,34 @@ public class DateRoundNodeSettings implements DefaultNodeSettings {
     @Layout(DateTimeRoundNodeLayout.FirstHorizontal.class)
     DateRoundingStrategy m_dateRoundingStrategy = DateRoundingStrategy.FIRST;
 
-    @Widget(title = "target", description = """
+    @Widget(title = "Exclude weekends", description = """
             Option to exclude weekends from the rounding. A weekend is defined as \
             Saturday and Sunday.
             """)
+    @OverwriteDialogTitle("")
     @Layout(DateTimeRoundNodeLayout.FirstHorizontal.class)
     DayOrWeekday m_dayOrWeekDay = DayOrWeekday.DAY;
 
-    @Widget(title = "of", description = """
+    @Widget(title = "Additional shift", description = """
             Option to shift the date to the previous or next date in the chosen \
             resolution.
             """)
+    @OverwriteDialogTitle("of")
     @Layout(DateTimeRoundNodeLayout.SecondHorizontal.class)
     ShiftMode m_shiftMode = ShiftMode.THIS;
 
-    @Widget(title = "precision", description = """
+    @Widget(title = "Rounding Precision", description = """
             The rounding precision. The date will be rounded to the first or last \
             value of the chosen precision.
             """)
     @Layout(DateTimeRoundNodeLayout.SecondHorizontal.class)
+    @OverwriteDialogTitle("")
     RoundDatePrecision m_dateRoundingPrecision = RoundDatePrecision.MONTH;
 
     @Widget(title = "Output columns",
         description = "Depending on the selection, the selected columns will be replaced "
             + "or appended to the input table.")
     @ValueSwitchWidget
-    @Persist(customPersistor = ReplaceOrAppend.Persistor.class)
     @ValueReference(ReplaceOrAppend.ValueRef.class)
     @Layout(DateTimeRoundNodeLayout.Bottom.class)
     ReplaceOrAppend m_replaceOrAppend = ReplaceOrAppend.REPLACE;
@@ -176,7 +178,7 @@ public class DateRoundNodeSettings implements DefaultNodeSettings {
              * Shift to the previous value. 12.12.24 rounded to the first day of the 'previous' month will result in
              * 1.11.24.
              */
-            @Label(value = "Previous", description = "Shift to the previous value. 12.12.24 rounded to the"
+            @Label(value = "Previous", description = "Shift to the previous value. 12.12.24 rounded to the "
                 + "first day of the 'previous' month will result in 1.11.24.")
             PREVIOUS,
             /**

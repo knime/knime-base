@@ -1076,9 +1076,9 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/advancedSettings/properties/maxDataRowsScanned",
         "options" : {
+          "hideControlHeader" : true,
           "min" : 0.0
         },
-        "label" : "",
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
@@ -1177,7 +1177,9 @@
           "detail" : [ {
             "type" : "Control",
             "scope" : "#/properties/columnRename",
-            "label" : "",
+            "options" : {
+              "hideControlHeader" : true
+            },
             "rule" : {
               "effect" : "SHOW",
               "condition" : {
@@ -1201,6 +1203,7 @@
             "type" : "Control",
             "scope" : "#/properties/type",
             "options" : {
+              "hideControlHeader" : true,
               "choicesProvider" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders$TypeChoicesProvider",
               "format" : "dropDown",
               "showNoneColumn" : false,
@@ -1208,7 +1211,6 @@
               "showSearch" : true,
               "showMode" : true
             },
-            "label" : "",
             "rule" : {
               "effect" : "SHOW",
               "condition" : {

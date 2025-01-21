@@ -51,8 +51,6 @@ package org.knime.base.node.preproc.unpivot2;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
@@ -71,40 +69,26 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 @SuppressWarnings("restriction")
 public final class Unpivot2NodeSettings implements DefaultNodeSettings {
 
-    @Section(title = "Value columns")
-    interface ValueColumnsSection {
-    }
-
     @Persist(configKey = Unpivot2NodeModel.CFG_VALUE_COLUMNS, customPersistor = LegacyColumnFilterPersistor.class)
     @Widget(title = "Value columns",
-        description = "This list contains the columns that are rotated into one single column.", hideTitle = true)
+        description = "This list contains the columns that are rotated into one single column.")
     @ChoicesWidget(choices = AllColumns.class)
-    @Layout(ValueColumnsSection.class)
     ColumnFilter m_valueColumns = new ColumnFilter();
 
     @Persist(configKey = Unpivot2NodeModel.CFG_MISSING_VALUES, customPersistor = SettingsModelBooleanPersistor.class)
     @Widget(title = "Skip rows containing missing cells",
         description = "Skip all rows containing missing cells in the selected value column(s).")
-    @Layout(ValueColumnsSection.class)
     boolean m_missingValues;
 
-    @Section(title = "Retained columns")
-    @After(ValueColumnsSection.class)
-    @Before(PerformanceSection.class)
-    interface RetainedColumnsSection {
-    }
 
     @Persist(configKey = Unpivot2NodeModel.CFG_RETAINED_COLUMNS, customPersistor = LegacyColumnFilterPersistor.class)
     @Widget(title = "Retained columns",
         description = "This list contains the columns "
-            + "which are duplicated by the number of selected value columns.",
-        hideTitle = true)
+            + "which are duplicated by the number of selected value columns.")
     @ChoicesWidget(choices = AllColumns.class)
-    @Layout(RetainedColumnsSection.class)
     ColumnFilter m_retainedColumns = new ColumnFilter();
 
     @Section(title = "Performance", advanced = true)
-    @After(RetainedColumnsSection.class)
     interface PerformanceSection {
     }
 

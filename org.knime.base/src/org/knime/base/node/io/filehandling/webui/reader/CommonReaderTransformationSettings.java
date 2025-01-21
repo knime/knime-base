@@ -230,8 +230,9 @@ public abstract class CommonReaderTransformationSettings<I extends ConfigIdSetti
 
     static class TakeColumnsFromProvider implements StateProvider<ColumnFilterMode> {
 
-        private Supplier<CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling.HowToCombineColumnsOption>
-        m_howToCombineColumnsSup;
+        private Supplier<CommonReaderNodeSettings //
+                .AdvancedSettingsWithMultipleFileHandling //
+                .HowToCombineColumnsOption> m_howToCombineColumnsSup;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
@@ -355,13 +356,13 @@ public abstract class CommonReaderTransformationSettings<I extends ConfigIdSetti
             }
         }
 
-        @Widget(title = "Column name", description = "", hideTitle = true)
+        @Widget(title = "Column name", description = "", hideControlHeader = true)
         @ValueProvider(ColumnNameResetter.class)
         @Effect(predicate = ElementIsEditedAndColumnNameIsNotNull.class, type = EffectType.SHOW)
         @JsonInclude(Include.ALWAYS) // Necessary for comparison against m_columnName
         String m_columnRename;
 
-        @Widget(title = "Column type", description = "", hideTitle = true)
+        @Widget(title = "Column type", description = "", hideControlHeader = true)
         // for adding dynamic choices
         @Modification.WidgetReference(TransformationSettingsWidgetModification.TypeChoicesWidgetRef.class)
         @ValueProvider(TypeResetter.class)

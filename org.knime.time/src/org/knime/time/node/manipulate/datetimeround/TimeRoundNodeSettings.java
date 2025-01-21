@@ -72,6 +72,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.CompatibleColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.OverwriteDialogTitle;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
@@ -96,12 +97,13 @@ public class TimeRoundNodeSettings implements DefaultNodeSettings {
     @Layout(DateTimeRoundNodeLayout.FirstHorizontal.class)
     TimeRoundingStrategy m_timeRoundingStrategy = TimeRoundingStrategy.FIRST_POINT_IN_TIME;
 
-    @Widget(title = "of", description = """
+    @Widget(title = "Rounding Precision", description = """
             The rounding precision. The date will be rounded to the first or last \
             value of the chosen precision. Represented as a duration, i.e., PT1H for \
             one hour.
             """)
     @Persist(customPersistor = RoundTimePrecision.Persistor.class)
+    @OverwriteDialogTitle("of")
     @Layout(DateTimeRoundNodeLayout.FirstHorizontal.class)
     RoundTimePrecision m_timeRoundingPrecision = RoundTimePrecision.HOURS_1;
 
@@ -109,7 +111,6 @@ public class TimeRoundNodeSettings implements DefaultNodeSettings {
         description = "Depending on the selection, the selected columns will be replaced "
             + "or appended to the input table.")
     @ValueSwitchWidget
-    @Persist(customPersistor = ReplaceOrAppend.Persistor.class)
     @ValueReference(ReplaceOrAppend.ValueRef.class)
     @Layout(DateTimeRoundNodeLayout.Bottom.class)
     ReplaceOrAppend m_replaceOrAppend = ReplaceOrAppend.REPLACE;
@@ -119,7 +120,7 @@ public class TimeRoundNodeSettings implements DefaultNodeSettings {
             + "The suffix will be added to the original column name separated by a space.")
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
     @Layout(DateTimeRoundNodeLayout.Bottom.class)
-    String m_outputColumnSuffix = " (rounded)";
+    String m_outputColumnSuffix = " (Rounded)";
 
     TimeRoundNodeSettings() {
         this((DataTableSpec)null);

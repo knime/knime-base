@@ -405,7 +405,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         static class MaxDataRowsScannedRef extends ReferenceStateProvider<Long> {
         }
 
-        @Widget(title = "", description = "", hideTitle = true)
+        @Widget(title = "", description = "", hideControlHeader = true)
         @ValueReference(MaxDataRowsScannedRef.class)
         @NumberInputWidget(min = 0)
         @Layout(LimitScannedRows.class)
