@@ -846,6 +846,8 @@
         "scope" : "#/properties/model/properties/settings/properties/source",
         "options" : {
           "format" : "fileChooser",
+          "mountId" : "Local space",
+          "isLocal" : true,
           "fileExtensions" : [ "csv", "tsv", "txt", "gz" ]
         }
       }, {

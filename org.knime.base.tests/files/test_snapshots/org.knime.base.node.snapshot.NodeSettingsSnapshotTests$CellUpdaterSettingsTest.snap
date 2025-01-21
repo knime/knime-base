@@ -2,9 +2,11 @@
   "data" : {
     "model" : {
       "columnMode" : "BY_NAME",
-      "columnNumber" : 1,
+      "columnName" : "test2",
+      "columnNumber" : 2,
       "rowNumber" : 1,
-      "countFromEnd" : false
+      "countFromEnd" : false,
+      "flowVariableName" : "knime.workspace"
     }
   },
   "schema" : {
@@ -28,14 +30,15 @@
           "columnName" : {
             "type" : "string",
             "title" : "Column name",
-            "description" : "Select the column that contains the target cell."
+            "description" : "Select the column that contains the target cell.",
+            "default" : "test2"
           },
           "columnNumber" : {
             "type" : "integer",
             "format" : "int32",
             "title" : "Column number",
             "description" : "Provide the number of the column that contains the target cell.",
-            "default" : 1
+            "default" : 2
           },
           "countFromEnd" : {
             "type" : "boolean",
@@ -46,7 +49,8 @@
           "flowVariableName" : {
             "type" : "string",
             "title" : "New cell value",
-            "description" : "Select the flow variable containing the new cell value."
+            "description" : "Select the flow variable containing the new cell value.",
+            "default" : "knime.workspace"
           },
           "rowNumber" : {
             "type" : "integer",
@@ -137,7 +141,10 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/flowVariableName",
       "options" : {
-        "possibleValues" : [ ],
+        "possibleValues" : [ {
+          "id" : "knime.workspace",
+          "text" : "knime.workspace"
+        } ],
         "format" : "dropDown",
         "showNoneColumn" : false,
         "showRowKeys" : false,
