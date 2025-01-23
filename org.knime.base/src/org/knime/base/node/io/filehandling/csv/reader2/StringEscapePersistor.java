@@ -52,18 +52,29 @@ import org.knime.base.node.io.filehandling.csv.reader.api.EscapeUtils;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 
 @SuppressWarnings("restriction")
-final class StringEscapePersistor extends NodeSettingsPersistorWithConfigKey<String> {
+abstract class StringEscapePersistor implements NodeSettingsPersistor<String> {
+
+    private final String m_configKey;
+
+    protected StringEscapePersistor(final String configKey) {
+        m_configKey = configKey;
+    }
 
     @Override
     public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        return EscapeUtils.escape(settings.getString(getConfigKey()));
+        return EscapeUtils.escape(settings.getString(m_configKey));
     }
 
     @Override
     public void save(final String escapedString, final NodeSettingsWO settings) {
-        settings.addString(getConfigKey(), EscapeUtils.unescape(escapedString));
+        settings.addString(m_configKey, EscapeUtils.unescape(escapedString));
+    }
+
+    @Override
+    public String[][] getConfigPaths() {
+        return new String[][]{{m_configKey}};
     }
 }

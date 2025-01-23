@@ -20,10 +20,10 @@
         "prependTableIndexToRowId" : false
       },
       "advancedSettings" : {
+        "ifSchemaChangesOption" : "FAIL",
         "howToCombineColumns" : "FAIL",
         "appendPathColumn" : false,
         "filePathColumnName" : "File Path",
-        "ifSchemaChangesOption" : "FAIL",
         "skipFirstDataRows" : 0,
         "limitNumberOfRows" : false,
         "maximumNumberOfRows" : 50
@@ -123,10 +123,10 @@
               }
             },
             "default" : {
+              "ifSchemaChangesOption" : "FAIL",
               "howToCombineColumns" : "FAIL",
               "appendPathColumn" : false,
               "filePathColumnName" : "File Path",
-              "ifSchemaChangesOption" : "FAIL",
               "skipFirstDataRows" : 0,
               "limitNumberOfRows" : false,
               "maximumNumberOfRows" : 50
@@ -574,19 +574,13 @@
         "type" : "object",
         "properties" : {
           "settings" : {
-            "configKey" : "settings",
             "type" : "object",
             "properties" : {
               "authenticationManagedByPortText" : { },
               "source" : {
-                "configKey" : "file_selection",
-                "type" : "object",
-                "properties" : {
-                  "path" : { }
-                }
+                "configPaths" : [ [ "file_selection" ] ]
               },
               "fileSelectionInternal" : {
-                "configPaths" : [ ],
                 "type" : "object",
                 "properties" : {
                   "settingsModelID" : {
@@ -595,7 +589,8 @@
                   "enabledStatus" : {
                     "configKey" : "EnabledStatus"
                   }
-                }
+                },
+                "configPaths" : [ ]
               },
               "firstColumnContainsRowIds" : {
                 "configKey" : "has_row_id"
@@ -603,12 +598,15 @@
               "prependTableIndexToRowId" : {
                 "configKey" : "prepend_table_index_to_row_id"
               }
-            }
+            },
+            "configKey" : "settings"
           },
           "advancedSettings" : {
-            "configKey" : "advanced_settings",
             "type" : "object",
             "properties" : {
+              "ifSchemaChangesOption" : {
+                "configPaths" : [ [ "check_table_spec" ] ]
+              },
               "howToCombineColumns" : {
                 "configPaths" : [ [ "fail_on_differing_specs" ], [ "spec_merge_mode" ] ]
               },
@@ -617,9 +615,6 @@
               },
               "filePathColumnName" : {
                 "configPaths" : [ ]
-              },
-              "ifSchemaChangesOption" : {
-                "configPaths" : [ [ "check_table_spec" ] ]
               },
               "skipFirstDataRows" : {
                 "configPaths" : [ [ "skip_data_rows" ], [ "number_of_rows_to_skip" ] ]
@@ -630,63 +625,11 @@
               "maximumNumberOfRows" : {
                 "configKey" : "max_rows"
               }
-            }
+            },
+            "configKey" : "advanced_settings"
           },
           "tableSpecConfig" : {
-            "configPaths" : [ ],
-            "type" : "object",
-            "properties" : {
-              "persistorSettings" : {
-                "type" : "object",
-                "properties" : {
-                  "configId" : {
-                    "type" : "object",
-                    "properties" : { }
-                  },
-                  "sourceId" : { },
-                  "fsLocations" : { },
-                  "specs" : {
-                    "type" : "array",
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "sourceId" : { },
-                        "spec" : {
-                          "type" : "array",
-                          "items" : {
-                            "type" : "object",
-                            "properties" : {
-                              "name" : { },
-                              "type" : { }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  },
-                  "appendPathColumn" : { },
-                  "filePathColumnName" : { },
-                  "takeColumnsFrom" : { }
-                }
-              },
-              "enforceTypes" : { },
-              "columnTransformation" : {
-                "type" : "array",
-                "items" : {
-                  "type" : "object",
-                  "properties" : {
-                    "columnName" : {
-                      "configPaths" : [ ]
-                    },
-                    "originalType" : { },
-                    "originalTypeLabel" : { },
-                    "includeInOutput" : { },
-                    "columnRename" : { },
-                    "type" : { }
-                  }
-                }
-              }
-            }
+            "configPaths" : [ ]
           }
         }
       }

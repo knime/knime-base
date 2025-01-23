@@ -53,8 +53,8 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.settingsmodel.SettingsModelBooleanPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
@@ -69,19 +69,18 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 @SuppressWarnings("restriction")
 public final class Unpivot2NodeSettings implements DefaultNodeSettings {
 
-    @Persist(configKey = Unpivot2NodeModel.CFG_VALUE_COLUMNS, customPersistor = LegacyColumnFilterPersistor.class)
+    @Persistor(ValueColumnsPersistor.class)
     @Widget(title = "Value columns",
         description = "This list contains the columns that are rotated into one single column.")
     @ChoicesWidget(choices = AllColumns.class)
     ColumnFilter m_valueColumns = new ColumnFilter();
 
-    @Persist(configKey = Unpivot2NodeModel.CFG_MISSING_VALUES, customPersistor = SettingsModelBooleanPersistor.class)
+    @Persistor(MissingValuesPersistor.class)
     @Widget(title = "Skip rows containing missing cells",
         description = "Skip all rows containing missing cells in the selected value column(s).")
     boolean m_missingValues;
 
-
-    @Persist(configKey = Unpivot2NodeModel.CFG_RETAINED_COLUMNS, customPersistor = LegacyColumnFilterPersistor.class)
+    @Persistor(RetainedColumnsPersistor.class)
     @Widget(title = "Retained columns",
         description = "This list contains the columns "
             + "which are duplicated by the number of selected value columns.")
@@ -92,7 +91,7 @@ public final class Unpivot2NodeSettings implements DefaultNodeSettings {
     interface PerformanceSection {
     }
 
-    @Persist(configKey = Unpivot2NodeModel.CFG_HILITING, customPersistor = SettingsModelBooleanPersistor.class)
+    @Persistor(EnableHilitePersistor.class)
     @Widget(title = "Enable hiliting", description = "Select if hiliting is enabled between input and output data.")
     @Layout(PerformanceSection.class)
     boolean m_enableHilite;
@@ -108,5 +107,29 @@ public final class Unpivot2NodeSettings implements DefaultNodeSettings {
 
         }
 
+    }
+
+    static final class ValueColumnsPersistor extends LegacyColumnFilterPersistor {
+        ValueColumnsPersistor() {
+            super(Unpivot2NodeModel.CFG_VALUE_COLUMNS);
+        }
+    }
+
+    static final class MissingValuesPersistor extends SettingsModelBooleanPersistor {
+        MissingValuesPersistor() {
+            super(Unpivot2NodeModel.CFG_MISSING_VALUES);
+        }
+    }
+
+    static final class RetainedColumnsPersistor extends LegacyColumnFilterPersistor {
+        RetainedColumnsPersistor() {
+            super(Unpivot2NodeModel.CFG_RETAINED_COLUMNS);
+        }
+    }
+
+    static final class EnableHilitePersistor extends SettingsModelBooleanPersistor {
+        EnableHilitePersistor() {
+            super(Unpivot2NodeModel.CFG_HILITING);
+        }
     }
 }

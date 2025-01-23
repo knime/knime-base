@@ -52,8 +52,9 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -68,7 +69,7 @@ public final class ColumnFilterRefNodeSettings implements DefaultNodeSettings {
 
     private static final String REFERENCE_MODE_KEY = "inexclude";
 
-    @Persist(customPersistor = ColumnReferenceModePersistor.class)
+    @Persistor(ColumnReferenceModePersistor.class)
     @Widget(title = "Include or exclude columns from the reference table",
         description = "Includes or excludes columns that appear in the reference table from the first table.")
     @ValueSwitchWidget
@@ -91,7 +92,7 @@ public final class ColumnFilterRefNodeSettings implements DefaultNodeSettings {
             EXCLUDE;
     }
 
-    private static final class ColumnReferenceModePersistor implements FieldNodeSettingsPersistor<ColumnReferenceMode> {
+    private static final class ColumnReferenceModePersistor implements NodeSettingsPersistor<ColumnReferenceMode> {
 
         @Override
         public ColumnReferenceMode load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -110,8 +111,8 @@ public final class ColumnFilterRefNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{REFERENCE_MODE_KEY};
+        public String[][] getConfigPaths() {
+            return new String[][]{{REFERENCE_MODE_KEY}};
         }
     }
 

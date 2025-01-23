@@ -56,10 +56,10 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.settingsmodel.SettingsModelBooleanPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.settingsmodel.SettingsModelStringPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelStringPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -78,9 +78,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
 @SuppressWarnings("restriction")
 public final class ColumnHeaderExtractorNodeSettings implements DefaultNodeSettings {
 
-    interface DontReplaceColHeader { }
+    interface DontReplaceColHeader {
+    }
 
-    @Persist(customPersistor = OutputFormatPersistor.class)
+    @Persistor(OutputFormatPersistor.class)
     @Widget(title = "Output format for column names",
         description = "The format in which the first output table provides the extracted column names:" //
             + "<ul>"//
@@ -94,7 +95,14 @@ public final class ColumnHeaderExtractorNodeSettings implements DefaultNodeSetti
 
     }
 
-    @Persist(customPersistor = SettingsModelBooleanPersistor.class)
+    static final class ReplaceColHeaderPersistor extends SettingsModelBooleanPersistor {
+
+        ReplaceColHeaderPersistor() {
+            super("replaceColHeader");
+        }
+    }
+
+    @Persistor(ReplaceColHeaderPersistor.class)
     @Widget(title = "Generate new column names",
         description = "If selected, the column names of both output tables will be replaced "//
             + "with automatically generated names by combining the prefix provided below with the corresponding "//
@@ -103,12 +111,19 @@ public final class ColumnHeaderExtractorNodeSettings implements DefaultNodeSetti
     @ValueReference(ReplaceColHeader.class)
     boolean m_replaceColHeader;
 
-    @Persist(customPersistor = SettingsModelStringPersistor.class)
+    static final class UnifyHeaderPrefixPersistor extends SettingsModelStringPersistor {
+
+        UnifyHeaderPrefixPersistor() {
+            super("unifyHeaderPrefix");
+        }
+    }
+
+    @Persistor(UnifyHeaderPrefixPersistor.class)
     @Widget(title = "Prefix", description = "Prefix to use when generating new column names.")
     @Effect(type = EffectType.SHOW, predicate = ReplaceColHeader.class)
     String m_unifyHeaderPrefix;
 
-    @Persist(customPersistor = ColTypePersistor.class)
+    @Persistor(ColTypePersistor.class)
     @Widget(title = "Restrain column types", description = "Select the type of the columns to extract the names from:"//
         + "<ul>"//
         + "<li><b>All</b>: All columns are processed.</li>"//
@@ -117,8 +132,7 @@ public final class ColumnHeaderExtractorNodeSettings implements DefaultNodeSetti
         + "<li><b>Integer</b>: Only integer-compatible columns are processed.</li>"//
         + "<li><b>Double</b>: Only double-compatible columns are processed. "//
         + "This includes integer and long columns.</li>"//
-        + "</ul>",
-        advanced = true)
+        + "</ul>", advanced = true)
     @ValueSwitchWidget
     ColType m_colTypeFilter = ColType.ALL;
 
@@ -129,7 +143,7 @@ public final class ColumnHeaderExtractorNodeSettings implements DefaultNodeSetti
             COLUMN;
     }
 
-    private static final class OutputFormatPersistor implements FieldNodeSettingsPersistor<OutputFormat> {
+    private static final class OutputFormatPersistor implements NodeSettingsPersistor<OutputFormat> {
 
         @Override
         public OutputFormat load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -142,12 +156,12 @@ public final class ColumnHeaderExtractorNodeSettings implements DefaultNodeSetti
         }
 
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{CFG_TRANSPOSE_COL_HEADER};
+        public String[][] getConfigPaths() {
+            return new String[][]{{CFG_TRANSPOSE_COL_HEADER}};
         }
     }
 
-    private static final class ColTypePersistor implements FieldNodeSettingsPersistor<ColType> {
+    private static final class ColTypePersistor implements NodeSettingsPersistor<ColType> {
 
         @Override
         public ColType load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -160,8 +174,8 @@ public final class ColumnHeaderExtractorNodeSettings implements DefaultNodeSetti
         }
 
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{CFG_COLTYPE};
+        public String[][] getConfigPaths() {
+            return new String[][]{{CFG_COLTYPE}};
         }
     }
 }

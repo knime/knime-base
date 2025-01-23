@@ -342,50 +342,10 @@
         "type" : "object",
         "properties" : {
           "valueColumns" : {
-            "configPaths" : [ [ "column_selection", "filter-type" ], [ "column_selection", "included_names" ], [ "column_selection", "excluded_names" ], [ "column_selection", "enforce_option" ], [ "column_selection", "name_pattern", "pattern" ], [ "column_selection", "name_pattern", "type" ], [ "column_selection", "name_pattern", "caseSensitive" ], [ "column_selection", "name_pattern", "excludeMatching" ] ],
-            "type" : "object",
-            "properties" : {
-              "selected" : {
-                "configPaths" : [ ]
-              },
-              "mode" : { },
-              "patternFilter" : {
-                "type" : "object",
-                "properties" : {
-                  "pattern" : { },
-                  "isCaseSensitive" : { },
-                  "isInverted" : { }
-                }
-              },
-              "manualFilter" : {
-                "type" : "object",
-                "properties" : {
-                  "manuallySelected" : { },
-                  "manuallyDeselected" : { },
-                  "includeUnknownColumns" : { }
-                }
-              },
-              "typeFilter" : {
-                "type" : "object",
-                "properties" : {
-                  "selectedTypes" : { },
-                  "typeDisplays" : {
-                    "type" : "array",
-                    "configPaths" : [ ],
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "id" : { },
-                        "text" : { }
-                      }
-                    }
-                  }
-                }
-              }
-            }
+            "configPaths" : [ [ "column_selection", "filter-type" ], [ "column_selection", "included_names" ], [ "column_selection", "excluded_names" ], [ "column_selection", "enforce_option" ], [ "column_selection", "name_pattern", "pattern" ], [ "column_selection", "name_pattern", "type" ], [ "column_selection", "name_pattern", "caseSensitive" ], [ "column_selection", "name_pattern", "excludeMatching" ] ]
           },
           "onMissing" : {
-            "configKey" : "missing_value_policy"
+            "configPaths" : [ [ "missing_value_policy" ] ]
           },
           "defaultValueString" : {
             "configKey" : "default_value_string"

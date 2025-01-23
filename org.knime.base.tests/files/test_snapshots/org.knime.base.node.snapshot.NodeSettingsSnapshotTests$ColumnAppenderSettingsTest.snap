@@ -72,7 +72,7 @@
         "type" : "object",
         "properties" : {
           "rowIdMode" : {
-            "configKey" : "selected_rowid_mode"
+            "configPaths" : [ [ "selected_rowid_mode" ] ]
           },
           "rowIdTableSelect" : {
             "configPaths" : [ [ "selected_rowid_table" ], [ "selected_rowid_table_number" ] ]

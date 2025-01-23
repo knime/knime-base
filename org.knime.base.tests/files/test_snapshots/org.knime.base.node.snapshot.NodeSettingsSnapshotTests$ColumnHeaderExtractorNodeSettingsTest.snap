@@ -98,8 +98,12 @@
           "transposeColHeader" : {
             "configPaths" : [ [ "transposeColHeader" ] ]
           },
-          "replaceColHeader" : { },
-          "unifyHeaderPrefix" : { },
+          "replaceColHeader" : {
+            "configPaths" : [ [ "replaceColHeader" ] ]
+          },
+          "unifyHeaderPrefix" : {
+            "configPaths" : [ [ "unifyHeaderPrefix" ] ]
+          },
           "colTypeFilter" : {
             "configPaths" : [ [ "coltype" ] ]
           }

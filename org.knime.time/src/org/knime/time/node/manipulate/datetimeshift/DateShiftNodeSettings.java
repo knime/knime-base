@@ -59,9 +59,7 @@ import org.knime.core.data.time.localdate.LocalDateValue;
 import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesStateProvider;
@@ -89,7 +87,6 @@ import org.knime.time.util.ReplaceOrAppend;
 class DateShiftNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Date&time columns", description = "Only the included columns will be shifted.")
-    @Persist(customPersistor = LegacyColumnFilterPersistor.class)
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
@@ -141,7 +138,6 @@ class DateShiftNodeSettings implements DefaultNodeSettings {
             or appended to the input table.
             """)
     @ValueSwitchWidget
-    @Persist(customPersistor = ReplaceOrAppend.Persistor.class)
     @ValueReference(ReplaceOrAppend.ValueRef.class)
     ReplaceOrAppend m_replaceOrAppend = ReplaceOrAppend.REPLACE;
 

@@ -119,8 +119,7 @@ class CSVTableReaderNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
     @MethodSource
     void testIfRowHasLessColumnsOptionPersistor(final IfRowHasLessColumnsOption ifRowHasLessColumnsOption)
         throws InvalidSettingsException {
-        final var copy = saveLoad(IfRowHasLessColumnsOptionPersistor.class, IfRowHasLessColumnsOption.class,
-            ifRowHasLessColumnsOption);
+        final var copy = saveLoad(new IfRowHasLessColumnsOptionPersistor(), ifRowHasLessColumnsOption);
         assertEquals(ifRowHasLessColumnsOption, copy);
     }
 
@@ -131,7 +130,7 @@ class CSVTableReaderNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
     @ParameterizedTest
     @MethodSource
     void testRowDelimiterPersistor(final RowDelimiterOption rowDelimiterOption) throws InvalidSettingsException {
-        final var copy = saveLoad(RowDelimiterPersistor.class, RowDelimiterOption.class, rowDelimiterOption);
+        final var copy = saveLoad(new RowDelimiterPersistor(), rowDelimiterOption);
         assertEquals(rowDelimiterOption, copy);
     }
 
@@ -142,7 +141,7 @@ class CSVTableReaderNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
     @ParameterizedTest
     @MethodSource
     void testSkipFirstLinesPersistor(final Long l) throws InvalidSettingsException {
-        final var copy = saveLoad(SkipFirstLinesPersistor.class, Long.class, l);
+        final var copy = saveLoad(new SkipFirstLinesPersistor(), l);
         assertEquals(l, copy);
     }
 
@@ -153,7 +152,7 @@ class CSVTableReaderNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
     @ParameterizedTest
     @MethodSource
     void testCharsetPersistor(final Charset charset) throws InvalidSettingsException {
-        final var copy = saveLoad(CharsetPersistor.class, Charset.class, charset);
+        final var copy = saveLoad(new CharsetPersistor(), charset);
         assertEquals(charset.m_fileEncoding, copy.m_fileEncoding);
         assertEquals(charset.m_customEncoding, copy.m_customEncoding);
     }
@@ -162,6 +161,5 @@ class CSVTableReaderNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         return Stream.of(new Charset(FileEncodingOption.DEFAULT), new Charset(FileEncodingOption.UTF_8),
             new Charset(FileEncodingOption.OTHER, "foo"));
     }
-
 
 }

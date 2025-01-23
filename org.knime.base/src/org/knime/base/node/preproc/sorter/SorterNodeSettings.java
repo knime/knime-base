@@ -59,13 +59,15 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.StringValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultPersistorWithDeprecations;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
@@ -174,7 +176,7 @@ final class SorterNodeSettings implements DefaultNodeSettings {
     }
 
     static final class LoadDeprecatedSortingCriterionArraySettings
-        implements DefaultPersistorWithDeprecations<SortingCriterionSettings[]> {
+        implements NodeSettingsMigration<SortingCriterionSettings[]> {
 
         /**
          * The key for the IncludeList in the NodeSettings.
@@ -222,9 +224,9 @@ final class SorterNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public List<ConfigsDeprecation<SortingCriterionSettings[]>> getConfigsDeprecations() {
-            return List
-                .of(ConfigsDeprecation.builder(LoadDeprecatedSortingCriterionArraySettings::loadFromLegacySettings) //
+        public List<ConfigMigration<SortingCriterionSettings[]>> getConfigMigrations() {
+            return List.of(//
+                ConfigMigration.builder(LoadDeprecatedSortingCriterionArraySettings::loadFromLegacySettings) //
                     // we cannot use the default matcher here, since LEGACY_ALPHANUMCOMP_KEY was added with 4.7
                     .withMatcher(settings -> settings.containsKey(LEGACY_INCLUDELIST_KEY)) //)
                     .withDeprecatedConfigPath(LEGACY_INCLUDELIST_KEY)//
@@ -240,7 +242,7 @@ final class SorterNodeSettings implements DefaultNodeSettings {
 
     @Layout(Criteria.class)
     @Widget(title = "Sorting", description = "A list of sorting critera.")
-    @Persist(customPersistor = LoadDeprecatedSortingCriterionArraySettings.class)
+    @Migration(LoadDeprecatedSortingCriterionArraySettings.class)
     @ArrayWidget(elementTitle = "Criterion", addButtonText = "Add sorting criterion", showSortButtons = true)
     SortingCriterionSettings[] m_sortingCriteria = new SortingCriterionSettings[]{new SortingCriterionSettings()};
 
@@ -249,7 +251,8 @@ final class SorterNodeSettings implements DefaultNodeSettings {
     interface Options {
     }
 
-    @Persist(configKey = "missingToEnd", optional = true)
+    @Persist(configKey = "missingToEnd")
+    @Migrate(loadDefaultIfAbsent = true)
     @Widget(title = "Sort missing values to end of table",
         description = "If selected missing values are always placed at the end of the sorted output. This is"
             + " independent of the sort order, i.e. if sorted ascendingly they are"
@@ -258,7 +261,8 @@ final class SorterNodeSettings implements DefaultNodeSettings {
     @Layout(Options.class)
     boolean m_sortMissingCellsToEndOfList;
 
-    @Persist(configKey = "sortinmemory", optional = true)
+    @Persist(configKey = "sortinmemory")
+    @Migrate(loadDefaultIfAbsent = true)
     @Widget(title = "Sort in memory",
         description = "If selected the table is sorted in memory which requires more memory, but is faster. "
             + "In case the input table is large and memory is scarce it is recommended not to check this option.")

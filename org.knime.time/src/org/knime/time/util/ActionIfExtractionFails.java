@@ -49,10 +49,6 @@
 
 package org.knime.time.util;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 
 /**
@@ -73,21 +69,4 @@ public enum ActionIfExtractionFails {
                 """)
         FAIL;
 
-    /**
-     * Persistor for the {@link ActionIfExtractionFails} enum.
-     */
-    public static final class Persistor extends NodeSettingsPersistorWithConfigKey<ActionIfExtractionFails> {
-
-        @Override
-        public ActionIfExtractionFails load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return settings.getBoolean(getConfigKey()) //
-                ? FAIL //
-                : SET_MISSING;
-        }
-
-        @Override
-        public void save(final ActionIfExtractionFails obj, final NodeSettingsWO settings) {
-            settings.addBoolean(getConfigKey(), obj == FAIL);
-        }
-    }
 }

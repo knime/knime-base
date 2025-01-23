@@ -58,9 +58,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.settingsmodel.EnumSettingsModelStringPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.EnumSettingsModelStringPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
@@ -117,7 +118,15 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
     interface MissingValuesSection {
     }
 
-    @Persist(configKey = CFG_KEY_COLUMNS, customPersistor = LegacyColumnFilterPersistor.class)
+    static final class ValueColumnsPersistor extends LegacyColumnFilterPersistor {
+
+        ValueColumnsPersistor() {
+            super(CFG_KEY_COLUMNS);
+        }
+
+    }
+
+    @Persistor(ValueColumnsPersistor.class)
     @Widget(title = "Output as variables", description = """
             Select the columns to be converted to flow variables. For each selected column, a flow variable
             is created. The name of the flow variable corresponds to the column name and the value corresponds
@@ -143,16 +152,14 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
     static final class MissingValuePolicySettingsModelStringPersistor
         extends EnumSettingsModelStringPersistor<MissingValuePolicy> {
 
-        @Override
-        protected Class<MissingValuePolicy> enumType() {
-            return MissingValuePolicy.class;
+        MissingValuePolicySettingsModelStringPersistor() {
+            super(CFG_KEY_ON_MISSING, MissingValuePolicy.class);
         }
 
     }
 
-    @Persist(configKey = CFG_KEY_ON_MISSING, customPersistor = MissingValuePolicySettingsModelStringPersistor.class)
-    @Widget(title = "If value in cell is missing",
-        description = """
+    @Persistor(MissingValuePolicySettingsModelStringPersistor.class)
+    @Widget(title = "If value in cell is missing", description = """
             Behavior in case of missing values in the first row or an input table with no rows.
             <ul>
                 <li>
@@ -186,7 +193,7 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
     String m_defaultValueString = "missing";
 
     // used to be string, keeping it like that for the sake of backwards compatibility
-    @Persist(customPersistor = Persistor.class)
+    @Persistor(DefaultValueBooleanPersistor.class)
     @Widget(title = "Default boolean", description = """
             The default flow variable value for boolean columns in case of an empty input table
             or a missing value in the first row of the input table.
@@ -241,10 +248,10 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
         }
     }
 
-    private static final class Persistor implements FieldNodeSettingsPersistor<BooleanStringBridge> {
+    private static final class DefaultValueBooleanPersistor implements NodeSettingsPersistor<BooleanStringBridge> {
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{CFG_KEY_DEFAULT_VALUE_BOOLEAN};
+        public String[][] getConfigPaths() {
+            return new String[][]{{CFG_KEY_DEFAULT_VALUE_BOOLEAN}};
         }
 
         @Override

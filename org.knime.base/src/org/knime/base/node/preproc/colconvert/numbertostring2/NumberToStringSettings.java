@@ -55,7 +55,7 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
@@ -87,11 +87,17 @@ public final class NumberToStringSettings implements DefaultNodeSettings {
 
     }
 
-    @Persist(configKey = AbstractNumberToStringNodeModel.CFG_INCLUDED_COLUMNS,
-        customPersistor = LegacyColumnFilterPersistor.class)
+    @Persistor(ColumnsPersistor.class)
     @Widget(title = "Columns", description = "Select the columns to convert to String.")
     @ChoicesWidget(choices = NumericalColumns.class)
     ColumnFilter m_columns = new ColumnFilter();
+
+    static final class ColumnsPersistor extends LegacyColumnFilterPersistor {
+
+        ColumnsPersistor() {
+            super(AbstractNumberToStringNodeModel.CFG_INCLUDED_COLUMNS);
+        }
+    }
 
     static final class NumericalColumns implements ChoicesProvider {
 

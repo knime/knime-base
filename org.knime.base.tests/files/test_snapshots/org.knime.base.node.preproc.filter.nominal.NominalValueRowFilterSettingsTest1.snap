@@ -181,42 +181,16 @@
             "configKey" : "selected_column"
           },
           "nominalValueSelection" : {
-            "configKey" : "filter config",
+            "configPaths" : [ [ "filter config", "filter-type" ], [ "filter config", "included_names" ], [ "filter config", "excluded_names" ], [ "filter config", "enforce_option" ], [ "filter config", "name_pattern", "pattern" ], [ "filter config", "name_pattern", "type" ], [ "filter config", "name_pattern", "caseSensitive" ], [ "filter config", "name_pattern", "excludeMatching" ] ],
             "deprecatedConfigKeys" : [ {
-              "new" : [ [ ] ],
               "deprecated" : [ [ "selected attributes" ] ]
-            } ],
-            "type" : "object",
-            "properties" : {
-              "selected" : {
-                "configPaths" : [ ]
-              },
-              "mode" : { },
-              "patternFilter" : {
-                "type" : "object",
-                "properties" : {
-                  "pattern" : { },
-                  "isCaseSensitive" : { },
-                  "isInverted" : { }
-                }
-              },
-              "manualFilter" : {
-                "type" : "object",
-                "properties" : {
-                  "manuallySelected" : { },
-                  "manuallyDeselected" : { },
-                  "includeUnknownColumns" : { }
-                }
-              }
-            }
+            } ]
           },
           "missingValueHandling" : {
             "deprecatedConfigKeys" : [ {
-              "new" : [ [ ] ],
-              "deprecated" : [ ]
-            }, {
-              "new" : [ [ ] ],
               "deprecated" : [ [ "filter config", "include_missing" ] ]
+            }, {
+              "deprecated" : [ ]
             } ]
           }
         }

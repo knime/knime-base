@@ -62,9 +62,15 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "headerRowIndex" : { },
-          "discardBefore" : { },
-          "detectTypes" : { }
+          "headerRowIndex" : {
+            "configPaths" : [ [ "headerRowIndex" ] ]
+          },
+          "discardBefore" : {
+            "configPaths" : [ [ "discardBefore" ] ]
+          },
+          "detectTypes" : {
+            "configPaths" : [ [ "detectTypes" ] ]
+          }
         }
       }
     }

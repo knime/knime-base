@@ -4,8 +4,8 @@
     <entry key="replaceRowKeyMode" type="xstring" value="GENERATE_NEW"/>
     <entry key="newRowKeyColumnV2" type="xstring" isnull="true" value=""/>
     <entry key="removeRowKeyCol" type="xboolean" value="false"/>
-    <entry key="replaceMissingValues" type="xboolean" value="false"/>
-    <entry key="ensureUniqueness" type="xboolean" value="false"/>
+    <entry key="handleMissingsMode" type="xstring" value="FAIL"/>
+    <entry key="handleDuplicatesMode" type="xstring" value="FAIL"/>
     <entry key="enableHilite" type="xboolean" value="false"/>
     <entry key="appendRowKeyCol" type="xboolean" value="false"/>
     <entry key="newColumnName4RowKeyValues" type="xstring" value="appendedColumn"/>

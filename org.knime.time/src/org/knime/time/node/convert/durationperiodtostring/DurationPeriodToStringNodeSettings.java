@@ -61,7 +61,8 @@ import org.knime.core.data.DataValue;
 import org.knime.core.data.time.duration.DurationValue;
 import org.knime.core.data.time.period.PeriodValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
@@ -102,9 +103,16 @@ final class DurationPeriodToStringNodeSettings implements DefaultNodeSettings {
         }
     }
 
+    static final class FilterPersistor extends LegacyColumnFilterPersistor {
+
+        FilterPersistor() {
+            super("col_select");
+        }
+    }
+
     @Widget(title = "Duration columns", description = "The columns to convert to a string.")
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
-    @Persist(configKey = "col_select", customPersistor = LegacyColumnFilterPersistor.class)
+    @Persistor(FilterPersistor.class)
     @ValueReference(ColumnFilterRef.class)
     ColumnFilter m_filter = new ColumnFilter();
 
@@ -113,7 +121,7 @@ final class DurationPeriodToStringNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Output format", description = "The format of the output string.")
     @ValueSwitchWidget
-    @Persist(configKey = "format", customPersistor = DurationPeriodStringFormat.LegacyPersistor.class)
+    @Persistor(DurationPeriodStringFormat.LegacyPersistor.class)
     @ValueReference(DurationPeriodStringFormat.Ref.class)
     DurationPeriodStringFormat m_outputFormat = DurationPeriodStringFormat.ISO;
 
@@ -122,7 +130,7 @@ final class DurationPeriodToStringNodeSettings implements DefaultNodeSettings {
             appended to the table with a suffix.
             """)
     @ValueSwitchWidget
-    @Persist(customPersistor = ReplaceOrAppend.Persistor.class)
+    @Persistor(ReplaceOrAppend.Persistor.class)
     @ValueReference(ReplaceOrAppend.ValueRef.class)
     ReplaceOrAppend m_appendOrReplaceColumn = ReplaceOrAppend.REPLACE;
 

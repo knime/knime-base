@@ -12,41 +12,53 @@
     <entry key="includeLeftUnmatchedInOutput" type="xboolean" value="false"/>
     <entry key="includeRightUnmatchedInOutput" type="xboolean" value="false"/>
     <config key="leftColumnSelectionConfig">
-        <entry key="filter-type" type="xstring" value="STANDARD"/>
-        <config key="included_names">
+        <config key="selected_Internals">
             <entry key="array-size" type="xint" value="0"/>
         </config>
-        <config key="excluded_names">
-            <entry key="array-size" type="xint" value="0"/>
-        </config>
-        <entry key="enforce_option" type="xstring" value="EnforceInclusion"/>
-        <config key="name_pattern">
+        <entry key="mode" type="xstring" value="MANUAL"/>
+        <config key="patternFilter">
             <entry key="pattern" type="xstring" value=""/>
-            <entry key="type" type="xstring" value="Wildcard"/>
-            <entry key="caseSensitive" type="xboolean" value="false"/>
-            <entry key="excludeMatching" type="xboolean" value="false"/>
+            <entry key="isCaseSensitive" type="xboolean" value="false"/>
+            <entry key="isInverted" type="xboolean" value="false"/>
         </config>
-        <config key="datatype">
-            <config key="typelist"/>
+        <config key="manualFilter">
+            <config key="manuallySelected">
+                <entry key="array-size" type="xint" value="0"/>
+            </config>
+            <config key="manuallyDeselected">
+                <entry key="array-size" type="xint" value="0"/>
+            </config>
+            <entry key="includeUnknownColumns" type="xboolean" value="false"/>
+        </config>
+        <config key="typeFilter">
+            <config key="selectedTypes">
+                <entry key="array-size" type="xint" value="0"/>
+            </config>
         </config>
     </config>
     <config key="rightColumnSelectionConfig">
-        <entry key="filter-type" type="xstring" value="STANDARD"/>
-        <config key="included_names">
+        <config key="selected_Internals">
             <entry key="array-size" type="xint" value="0"/>
         </config>
-        <config key="excluded_names">
-            <entry key="array-size" type="xint" value="0"/>
-        </config>
-        <entry key="enforce_option" type="xstring" value="EnforceInclusion"/>
-        <config key="name_pattern">
+        <entry key="mode" type="xstring" value="MANUAL"/>
+        <config key="patternFilter">
             <entry key="pattern" type="xstring" value=""/>
-            <entry key="type" type="xstring" value="Wildcard"/>
-            <entry key="caseSensitive" type="xboolean" value="false"/>
-            <entry key="excludeMatching" type="xboolean" value="false"/>
+            <entry key="isCaseSensitive" type="xboolean" value="false"/>
+            <entry key="isInverted" type="xboolean" value="false"/>
         </config>
-        <config key="datatype">
-            <config key="typelist"/>
+        <config key="manualFilter">
+            <config key="manuallySelected">
+                <entry key="array-size" type="xint" value="0"/>
+            </config>
+            <config key="manuallyDeselected">
+                <entry key="array-size" type="xint" value="0"/>
+            </config>
+            <entry key="includeUnknownColumns" type="xboolean" value="false"/>
+        </config>
+        <config key="typeFilter">
+            <config key="selectedTypes">
+                <entry key="array-size" type="xint" value="0"/>
+            </config>
         </config>
     </config>
     <entry key="mergeJoinColumns" type="xboolean" value="false"/>

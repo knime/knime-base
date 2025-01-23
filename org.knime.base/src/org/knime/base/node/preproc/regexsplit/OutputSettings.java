@@ -51,8 +51,8 @@ package org.knime.base.node.preproc.regexsplit;
 import org.knime.base.node.preproc.regexsplit.RegexSplitNodeSettings.DialogSections;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DefaultProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
@@ -139,7 +139,7 @@ final class OutputSettings implements DefaultNodeSettings {
             </ul>
             """)
     @ValueSwitchWidget
-    @Persist(optional = true)
+    @Migrate(loadDefaultIfAbsent = true)
     @ValueReference(OutputModeRef.class)
     OutputMode m_mode = OutputMode.COLUMNS;
 
@@ -226,7 +226,7 @@ final class OutputSettings implements DefaultNodeSettings {
     @ValueSwitchWidget
     @Effect(predicate = OutputModeIsColumns.class, type = EffectType.HIDE)
     @ValueReference(SingleOutputColumnModeRef.class)
-    @Persist(optional = true)
+    @Migrate(loadDefaultIfAbsent = true)
     SingleOutputColumnMode m_singleOutputColumnMode = SingleOutputColumnMode.APPEND;
 
     //  -------------------  Output column name: only for append column  -------------------
@@ -244,7 +244,7 @@ final class OutputSettings implements DefaultNodeSettings {
     @Widget(title = "Output column name", description = "Choose a name for the output column")
     @TextInputWidget(minLength = 1)
     @Effect(predicate = OutputModeIsColumnsOrSingleOutpuModeIsReplace.class, type = EffectType.HIDE)
-    @Persist(optional = true)
+    @Migrate(loadDefaultIfAbsent = true)
     String m_columnName = "Split";
 
     //  -------------------  Group labels in output  -------------------
@@ -286,7 +286,7 @@ final class OutputSettings implements DefaultNodeSettings {
             """)
     @RadioButtonsWidget
     @ValueReference(OutputGroupLabelMode.Ref.class)
-    @Persist(optional = true)
+    @Migrate(loadDefaultIfAbsent = true)
     OutputGroupLabelMode m_groupLabels = OutputGroupLabelMode.CAPTURE_GROUP_NAMES;
 
     // -------  Remove input column: only for output as columns, for the others we have the append|replace option  --
@@ -294,7 +294,7 @@ final class OutputSettings implements DefaultNodeSettings {
     @Layout(DialogSections.Output.class)
     @Widget(title = "Remove input column", description = "Remove the input column from the output table.")
     @Effect(predicate = OutputModeIsColumns.class, type = EffectType.SHOW)
-    @Persist(optional = true)
+    @Migrate(loadDefaultIfAbsent = true)
     boolean m_removeInputColumn = false;
 
 }

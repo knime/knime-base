@@ -261,7 +261,6 @@
         "type" : "object",
         "properties" : {
           "dataColumnFilterConfig" : {
-            "configPaths" : [ [ "data-column-filter", "filter-type" ], [ "data-column-filter", "included_names" ], [ "data-column-filter", "excluded_names" ], [ "data-column-filter", "enforce_option" ], [ "data-column-filter", "name_pattern", "pattern" ], [ "data-column-filter", "name_pattern", "type" ], [ "data-column-filter", "name_pattern", "caseSensitive" ], [ "data-column-filter", "name_pattern", "excludeMatching" ] ],
             "type" : "object",
             "properties" : {
               "selected" : {
@@ -289,19 +288,14 @@
                 "properties" : {
                   "selectedTypes" : { },
                   "typeDisplays" : {
-                    "type" : "array",
-                    "configPaths" : [ ],
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "id" : { },
-                        "text" : { }
-                      }
-                    }
+                    "configPaths" : [ ]
                   }
                 }
               }
-            }
+            },
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "data-column-filter", "filter-type" ], [ "data-column-filter", "included_names" ], [ "data-column-filter", "excluded_names" ], [ "data-column-filter", "enforce_option" ], [ "data-column-filter", "name_pattern", "pattern" ], [ "data-column-filter", "name_pattern", "type" ], [ "data-column-filter", "name_pattern", "caseSensitive" ], [ "data-column-filter", "name_pattern", "excludeMatching" ] ]
+            } ]
           },
           "mode" : {
             "configKey" : "mode"

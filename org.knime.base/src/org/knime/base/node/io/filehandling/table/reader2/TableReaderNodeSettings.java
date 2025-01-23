@@ -56,7 +56,8 @@ import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout.DataA
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
@@ -75,8 +76,7 @@ public class TableReaderNodeSettings implements DefaultNodeSettings {
     @Persist(configKey = "advanced_settings")
     AdvancedSettings m_advancedSettings = new AdvancedSettings();
 
-    @Persist(configKey = "table_spec_config", hidden = true,
-        customPersistor = TableReaderTransformationSettingsPersistor.class)
+    @Persistor(TableReaderTransformationSettingsPersistor.class)
     TableReaderTransformationSettings m_tableSpecConfig = new TableReaderTransformationSettings();
 
     @Modification(SetTableReaderExtensions.class)
@@ -104,7 +104,7 @@ public class TableReaderNodeSettings implements DefaultNodeSettings {
         @Widget(title = "Skip first data rows", description = SkipFirstDataRows.DESCRIPTION)
         @NumberInputWidget(min = 0)
         @Layout(SkipFirstDataRows.class)
-        @Persist(customPersistor = CommonReaderNodeSettings.SkipFirstDataRowsPersistor.class)
+        @Persistor(CommonReaderNodeSettings.SkipFirstDataRowsPersistor.class)
         long m_skipFirstDataRows;
 
         @Widget(title = "Limit number of rows", description = LimitNumberOfRows.DESCRIPTION, advanced = true)

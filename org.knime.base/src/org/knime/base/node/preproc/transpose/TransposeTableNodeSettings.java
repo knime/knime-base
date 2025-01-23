@@ -52,8 +52,9 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -86,7 +87,7 @@ public final class TransposeTableNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    @Persist(customPersistor = ChunkingModePersistor.class)
+    @Persistor(ChunkingModePersistor.class)
     @Widget(title = "Chunk size configuration",
         description = "Select how the node should handle chunking while processing the input table:<ul>"
             + "<li><b>Automatic:</b> Use a dynamic chunk size that adapts to the "
@@ -113,7 +114,7 @@ public final class TransposeTableNodeSettings implements DefaultNodeSettings {
             SPECIFY_SIZE;
     }
 
-    private static final class ChunkingModePersistor implements FieldNodeSettingsPersistor<ChunkingMode> {
+    private static final class ChunkingModePersistor implements NodeSettingsPersistor<ChunkingMode> {
 
         @Override
         public ChunkingMode load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -137,8 +138,8 @@ public final class TransposeTableNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{CHUNKING_MODE_KEY};
+        public String[][] getConfigPaths() {
+            return new String[][]{{CHUNKING_MODE_KEY}};
         }
     }
 }

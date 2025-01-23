@@ -59,9 +59,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.Defaul
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.LegacyReaderFileSelectionPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
@@ -90,8 +91,8 @@ import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 public final class CommonReaderNodeSettings {
 
     /**
-     * Main settings for reader nodes: The file source(s). Use {@link SettingsWithRowId.SetFileReaderWidgetExtensions} to set
-     * file extensions.
+     * Main settings for reader nodes: The file source(s). Use {@link SettingsWithRowId.SetFileReaderWidgetExtensions}
+     * to set file extensions.
      */
     public static class BaseSettings implements WidgetGroup, PersistableSettings {
 
@@ -148,11 +149,19 @@ public final class CommonReaderNodeSettings {
         @Layout(CommonReaderLayout.File.Source.class)
         Void m_authenticationManagedByPortText;
 
+        static final class FileSelectionPersistor extends LegacyReaderFileSelectionPersistor {
+
+            protected FileSelectionPersistor() {
+                super("file_selection");
+            }
+
+        }
+
         @SuppressWarnings("javadoc")
         @Widget(title = "Source", description = CommonReaderLayout.File.Source.DESCRIPTION)
         @ValueReference(FileSelectionRef.class)
         @Layout(CommonReaderLayout.File.Source.class)
-        @Persist(configKey = "file_selection", customPersistor = LegacyReaderFileSelectionPersistor.class)
+        @Persistor(FileSelectionPersistor.class)
         @Modification.WidgetReference(FileSelectionRef.class)
         @FileReaderWidget()
         public FileSelection m_source = new FileSelection();
@@ -171,6 +180,7 @@ public final class CommonReaderNodeSettings {
 
     /**
      * Settings for reader nodes which allow to specify the first column to be used as RowIds
+     *
      * @see BaseSettings
      */
     public static class SettingsWithRowId extends BaseSettings {
@@ -216,7 +226,7 @@ public final class CommonReaderNodeSettings {
                 IGNORE; //
         }
 
-        static final class IfSchemaChangesPersistor implements FieldNodeSettingsPersistor<IfSchemaChangesOption> {
+        static final class IfSchemaChangesPersistor implements NodeSettingsPersistor<IfSchemaChangesOption> {
 
             private static final String CFG_SAVE_TABLE_SPEC_CONFIG =
                 "save_table_spec_config" + SettingsModel.CFGKEY_INTERNAL;
@@ -244,8 +254,8 @@ public final class CommonReaderNodeSettings {
             }
 
             @Override
-            public String[] getConfigKeys() {
-                return new String[]{CFG_SAVE_TABLE_SPEC_CONFIG, CFG_CHECK_TABLE_SPEC};
+            public String[][] getConfigPaths() {
+                return new String[][]{{CFG_SAVE_TABLE_SPEC_CONFIG, CFG_CHECK_TABLE_SPEC}};
             }
         }
 
@@ -263,7 +273,7 @@ public final class CommonReaderNodeSettings {
             description = CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.DESCRIPTION)
         @RadioButtonsWidget
         @Layout(CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.class)
-        @Persist(customPersistor = IfSchemaChangesPersistor.class)
+        @Persistor(IfSchemaChangesPersistor.class)
         @ValueReference(IfSchemaChangesOptionRef.class)
         public IfSchemaChangesOption m_ifSchemaChangesOption = IfSchemaChangesOption.FAIL;
 
@@ -305,7 +315,7 @@ public final class CommonReaderNodeSettings {
         }
 
         static final class HowToCombineColumnsOptionPersistor
-            implements FieldNodeSettingsPersistor<HowToCombineColumnsOption> {
+            implements NodeSettingsPersistor<HowToCombineColumnsOption> {
 
             private static final String CFG_FAIL_ON_DIFFERING_SPECS = "fail_on_differing_specs";
 
@@ -330,8 +340,8 @@ public final class CommonReaderNodeSettings {
             }
 
             @Override
-            public String[] getConfigKeys() {
-                return new String[]{CFG_FAIL_ON_DIFFERING_SPECS, CFG_SPEC_MERGE_MODE};
+            public String[][] getConfigPaths() {
+                return new String[][]{{CFG_FAIL_ON_DIFFERING_SPECS}, {CFG_SPEC_MERGE_MODE}};
             }
         }
 
@@ -343,7 +353,7 @@ public final class CommonReaderNodeSettings {
         @ValueSwitchWidget
         @ValueReference(HowToCombineColumnsOptionRef.class)
         @Layout(CommonReaderLayout.MultipleFileHandling.HowToCombineColumns.class)
-        @Persist(customPersistor = HowToCombineColumnsOptionPersistor.class)
+        @Persistor(HowToCombineColumnsOptionPersistor.class)
         public HowToCombineColumnsOption m_howToCombineColumns = HowToCombineColumnsOption.FAIL;
         // TODO NOSONAR this setting should be shown when reading multiple files; currently blocked by UIEXT-1805
 
@@ -383,7 +393,7 @@ public final class CommonReaderNodeSettings {
      * To be used on the respective field. The field itself is not abstracted, since it is persisted in a different
      * location for different readers.
      */
-    public static final class SkipFirstDataRowsPersistor implements FieldNodeSettingsPersistor<Long> {
+    public static final class SkipFirstDataRowsPersistor implements NodeSettingsPersistor<Long> {
 
         private static final String CFG_SKIP_DATA_ROWS = "skip_data_rows";
 
@@ -401,8 +411,8 @@ public final class CommonReaderNodeSettings {
         }
 
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{CFG_SKIP_DATA_ROWS, CFG_NUMBER_OF_DATA_ROWS_TO_SKIP};
+        public String[][] getConfigPaths() {
+            return new String[][]{{CFG_SKIP_DATA_ROWS}, {CFG_NUMBER_OF_DATA_ROWS_TO_SKIP}};
         }
     }
 

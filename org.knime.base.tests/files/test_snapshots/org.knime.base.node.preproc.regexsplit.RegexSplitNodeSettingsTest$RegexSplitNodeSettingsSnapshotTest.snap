@@ -466,10 +466,10 @@
         "type" : "object",
         "properties" : {
           "column" : {
-            "configKey" : "column"
+            "configPaths" : [ [ "column" ] ]
           },
           "pattern" : {
-            "configKey" : "pattern"
+            "configPaths" : [ [ "pattern" ] ]
           },
           "caseMatching" : {
             "configPaths" : [ [ "isCaseInsensitive" ] ]
@@ -477,24 +477,28 @@
           "requireWholeMatch" : { },
           "noMatchBehaviour" : { },
           "isUnixLines" : {
-            "configKey" : "isUnixLines"
+            "configPaths" : [ [ "isUnixLines" ] ]
           },
           "isMultiLine" : {
-            "configKey" : "isMultiLine"
+            "configPaths" : [ [ "isMultiLine" ] ]
           },
           "isDotAll" : {
-            "configKey" : "isDotAll"
+            "configPaths" : [ [ "isDotAll" ] ]
           },
           "isUnicodeCase" : {
-            "configKey" : "isUniCodeCase"
+            "configPaths" : [ [ "isUniCodeCase" ] ]
           },
           "isCanonEQ" : {
-            "configKey" : "isCanonEQ"
+            "configPaths" : [ [ "isCanonEQ" ] ]
           },
           "isUnicodeCharacterClass" : {
-            "configKey" : "isUnicodeCharacterClass"
+            "configPaths" : [ [ "isUnicodeCharacterClass" ] ]
           },
-          "decrementGroupIndexByOne" : { },
+          "decrementGroupIndexByOne" : {
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ ]
+            } ]
+          },
           "output" : {
             "type" : "object",
             "properties" : {
@@ -505,13 +509,16 @@
               "columnName" : { },
               "groupLabels" : { },
               "removeInputColumn" : { }
-            }
+            },
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ ]
+            } ]
           },
           "isLiteral" : {
-            "configKey" : "isLiteral"
+            "configPaths" : [ [ "isLiteral" ] ]
           },
           "isComments" : {
-            "configKey" : "isComments"
+            "configPaths" : [ [ "isComments" ] ]
           }
         }
       }

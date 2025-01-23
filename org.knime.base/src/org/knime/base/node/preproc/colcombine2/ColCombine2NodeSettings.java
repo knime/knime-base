@@ -48,22 +48,24 @@
  */
 package org.knime.base.node.preproc.colcombine2;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.filter.NameFilterConfiguration.EnforceOption;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.EnumFieldPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
@@ -95,29 +97,29 @@ public final class ColCombine2NodeSettings implements DefaultNodeSettings {
     }
 
     enum DelimiterInputs {
-        /**
-         * Delimiter in input data are quoted
-         */
-        @Label("Quote inputs")
-        QUOTE,
-        /**
-         * delimiters in input data are replaced
-         */
-        @Label("Replace delimiters")
-        REPLACE
+            /**
+             * Delimiter in input data are quoted
+             */
+            @Label("Quote inputs")
+            QUOTE,
+            /**
+             * delimiters in input data are replaced
+             */
+            @Label("Replace delimiters")
+            REPLACE
     }
 
     enum QuoteInputs {
-        /**
-         * Delimiter in input data are quoted
-         */
-        @Label("All")
-        ALL,
-        /**
-         * delimiters in input data are replaced
-         */
-        @Label("Only necessary")
-        ONLY_NECESSARY
+            /**
+             * Delimiter in input data are quoted
+             */
+            @Label("All")
+            ALL,
+            /**
+             * delimiters in input data are replaced
+             */
+            @Label("Only necessary")
+            ONLY_NECESSARY
     }
 
     @Section(title = "Concatenation")
@@ -138,25 +140,26 @@ public final class ColCombine2NodeSettings implements DefaultNodeSettings {
         }
     }
 
-    @Persist(configKey = "column-filter", customPersistor = LegacyColumnFilterPersistor.class)
+    @Migration(ColumnFilterMigration.class)
     @Widget(title = "Input columns", description = "Select the columns to combine in the output table.")
     @ChoicesWidget(choices = AllColumns.class)
     @Layout(Concatenation.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
-    @Persist(customPersistor = FailIfMissingPersistor.class)
+    @Migration(FailIfMissingMigration.class)
     @Widget(title = "Fail if there are missing columns",
         description = "If true the node will fail when there are missing columns selected", advanced = true)
     @Layout(Concatenation.class)
     boolean m_failIfMissingColumns;
 
-    @Widget(title = "Delimiter", description = "Enter a delimiter string here. This string is used to separate "
-        + "the different cell contents in the new, appended column.")
+    @Widget(title = "Delimiter",
+        description = "Enter a delimiter string here. This string is used to separate "
+            + "the different cell contents in the new, appended column.")
     @Layout(Concatenation.class)
     String m_delimiter = ",";
 
-    @Widget(title= "Handle delimiter inputs", description = "", advanced = true)
-    @Persist(customPersistor = DelimiterInputPersistor.class)
+    @Widget(title = "Handle delimiter inputs", description = "", advanced = true)
+    @Migration(DelimiterInputMigration.class)
     @Layout(Concatenation.class)
     @ValueReference(DelimiterInputsRef.class)
     @ValueSwitchWidget
@@ -169,13 +172,14 @@ public final class ColCombine2NodeSettings implements DefaultNodeSettings {
             + "(single quote char) the quoted string will be <i>\"some;value\"</i> "
             + "(including quotes)). You can force quotation by checking \"Quote Always\". "
             + "Alternatively, the user can also replace the delimiter  string in the cell content string (see below).")
-    @Persist(configKey = "quote_char", customPersistor = QuoteCharacterPersistor.class)
+    @Persist(configKey = "quote_char")
+    @Migrate(loadDefaultIfAbsent = true)
     @Layout(Concatenation.class)
     @Effect(predicate = IsQuote.class, type = EffectType.SHOW)
-    Character m_quoteCharacter = '"';
+    char m_quoteCharacter = '"';
 
     @Widget(title = "Quote inputs", advanced = true, description = "")
-    @Persist(configKey = "is_quoting_always", customPersistor = QuoteInputPersistor.class)
+    @Migration(QuoteInputMigration.class)
     @Layout(Concatenation.class)
     @Effect(predicate = IsQuote.class, type = EffectType.SHOW)
     @ValueSwitchWidget
@@ -185,19 +189,22 @@ public final class ColCombine2NodeSettings implements DefaultNodeSettings {
         description = "If the string representation of the cell content contains the "
             + "delimiter string, it will be replaced by the string entered here (if you entered '-' here, the output of "
             + "the above example would be <i>some-value</i>).")
-    @Persist(configKey = "replace_delimiter", customPersistor = ReplaceDelimiterPersistor.class)
+    @Persist(configKey = "replace_delimiter")
+    @Migrate(loadDefaultIfAbsent = true)
     @Layout(Concatenation.class)
     @Effect(predicate = IsQuote.class, type = EffectType.HIDE)
     String m_replacementDelimiter = "";
 
     @Widget(title = "Output column name", description = "The name of the new column.")
-    @Persist(configKey = "new_column_name", customPersistor = OutputColumnNamePersistor.class)
+    @Persist(configKey = "new_column_name")
+    @Migrate(loadDefaultIfAbsent = true)
     @Layout(Output.class)
     String m_outputColumnName = "Combined String";
 
-    @Widget(title = "Remove input columns", description = "If selected, removes the columns in the &quot;Include&quot; "
-        + "list from the output.")
-    @Persist(configKey = "remove_included_columns", customPersistor = RemoveIncludedColumnsPersitor.class)
+    @Widget(title = "Remove input columns",
+        description = "If selected, removes the columns in the &quot;Include&quot; " + "list from the output.")
+    @Persist(configKey = "remove_included_columns")
+    @Migrate(loadDefaultIfAbsent = true)
     @Layout(Output.class)
     boolean m_removeInputColumns;
 
@@ -211,146 +218,70 @@ public final class ColCombine2NodeSettings implements DefaultNodeSettings {
 
     }
 
-    static final class QuoteCharacterPersistor extends NodeSettingsPersistorWithConfigKey<Character> {
+    static final class DelimiterInputMigration implements NodeSettingsMigration<DelimiterInputs> {
 
-        @Override
-        public Character load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            if (settings.containsKey(getConfigKey())) {
-                return settings.getChar(getConfigKey());
-            }
-            if (settings.containsKey("quote_char")) {
-                return settings.getChar("quote_char");
-            }
-            return '"';
+        static final String CFG_KEY_BOOLEAN = "is_quoting";
+
+        private static DelimiterInputs loadFromBoolean(final NodeSettingsRO settings) throws InvalidSettingsException {
+            final var isQuoting = settings.getBoolean(CFG_KEY_BOOLEAN);
+            return isQuoting ? DelimiterInputs.QUOTE : DelimiterInputs.REPLACE;
         }
 
         @Override
-        public void save(final Character obj, final NodeSettingsWO settings) {
-            settings.addChar(getConfigKey(), obj);
-        }
-    }
-
-    static final class RemoveIncludedColumnsPersitor extends NodeSettingsPersistorWithConfigKey<Boolean> {
-
-        @Override
-        public Boolean load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            if (settings.containsKey(getConfigKey())) {
-                return settings.getBoolean(getConfigKey());
-            }
-            if (settings.containsKey("remove_included_columns")) {
-                return settings.getBoolean("remove_included_columns");
-            }
-            return false;
-        }
-
-        @Override
-        public void save(final Boolean obj, final NodeSettingsWO settings) {
-            settings.addBoolean(getConfigKey(), obj);
+        public List<ConfigMigration<DelimiterInputs>> getConfigMigrations() {
+            return List.of(//
+                ConfigMigration.builder(DelimiterInputMigration::loadFromBoolean)
+                    .withDeprecatedConfigPath(CFG_KEY_BOOLEAN).build(), //
+                ConfigMigration.builder(settings -> DelimiterInputs.REPLACE).build() //
+            );
         }
     }
 
-    static final class OutputColumnNamePersistor extends NodeSettingsPersistorWithConfigKey<String> {
+    static final class QuoteInputMigration implements NodeSettingsMigration<QuoteInputs> {
 
-        @Override
-        public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            if (settings.containsKey(getConfigKey())) {
-                return settings.getString(getConfigKey());
-            }
-            if (settings.containsKey("new_column_name")) {
-                return settings.getString("new_column_name");
-            }
-            return "Combined String";
+        static final String CFG_KEY_BOOLEAN = "is_quoting_always";
+
+        private static QuoteInputs loadFromBoolean(final NodeSettingsRO settings) throws InvalidSettingsException {
+            final var isQuotingAlways = settings.getBoolean(CFG_KEY_BOOLEAN);
+            return isQuotingAlways ? QuoteInputs.ALL : QuoteInputs.ONLY_NECESSARY;
         }
 
         @Override
-        public void save(final String obj, final NodeSettingsWO settings) {
-            settings.addString(getConfigKey(), obj);
-        }
-    }
-
-    static final class DelimiterInputPersistor extends NodeSettingsPersistorWithConfigKey<DelimiterInputs> {
-
-        private EnumFieldPersistor<DelimiterInputs> m_persistor;
-
-        @Override
-        public void setConfigKey(final String configKey) {
-            super.setConfigKey(configKey);
-            m_persistor = new EnumFieldPersistor<>(configKey, DelimiterInputs.class);
-        }
-
-        @Override
-        public DelimiterInputs load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            if (settings.containsKey(getConfigKey())) {
-                return m_persistor.load(settings);
-            }
-            if (settings.containsKey("is_quoting") && settings.getBoolean("is_quoting")) {
-                return DelimiterInputs.QUOTE;
-            }
-            return DelimiterInputs.REPLACE;
-        }
-
-        @Override
-        public void save(final DelimiterInputs obj, final NodeSettingsWO settings) {
-            m_persistor.save(obj, settings);
+        public List<ConfigMigration<QuoteInputs>> getConfigMigrations() {
+            return List.of(//
+                ConfigMigration.builder(QuoteInputMigration::loadFromBoolean).withDeprecatedConfigPath(CFG_KEY_BOOLEAN)
+                    .build(), //
+                ConfigMigration.builder(settings -> QuoteInputs.ONLY_NECESSARY).build() //
+            );
         }
     }
 
-    static final class QuoteInputPersistor extends NodeSettingsPersistorWithConfigKey<QuoteInputs> {
+    static final class ColumnFilterMigration extends LegacyColumnFilterMigration {
 
-        @Override
-        public QuoteInputs load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            if (settings.containsKey("is_quoting_always") && settings.getBoolean("is_quoting_always")) {
-                return QuoteInputs.ALL;
-            }
-            return QuoteInputs.ONLY_NECESSARY;
-        }
+        static final String CFG_KEY_COLUMN_FILTER = "column-filter";
 
-        @Override
-        public void save(final QuoteInputs obj, final NodeSettingsWO settings) {
-            settings.addBoolean(getConfigKey(), obj == QuoteInputs.ALL);
+        ColumnFilterMigration() {
+            super(CFG_KEY_COLUMN_FILTER);
         }
     }
 
-    static final class ReplaceDelimiterPersistor extends NodeSettingsPersistorWithConfigKey<String> {
+    static final class FailIfMissingMigration implements NodeSettingsMigration<Boolean> {
 
-        @Override
-        public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            if (settings.containsKey(getConfigKey())) {
-                return settings.getString(getConfigKey());
-            }
-            if (settings.containsKey("replace_delimiter")) {
-                return settings.getString("replace_delimiter");
-            }
-            return "";
+        private static Boolean loadFromColumnFilter(final NodeSettingsRO settings) throws InvalidSettingsException {
+            var columnFilter = settings.getNodeSettings(ColumnFilterMigration.CFG_KEY_COLUMN_FILTER);
+            var enforceOptionName = columnFilter.getString("enforce_option", "");
+            var enforceOption = EnforceOption.valueOf(enforceOptionName);
+
+            return enforceOption == EnforceOption.EnforceInclusion;
         }
 
         @Override
-        public void save(final String obj, final NodeSettingsWO settings) {
-            settings.addString(getConfigKey(), obj);
-        }
-    }
-
-    static final class FailIfMissingPersistor extends NodeSettingsPersistorWithConfigKey<Boolean> {
-
-        @Override
-        public Boolean load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            if (settings.containsKey(getConfigKey())) {
-                return settings.getBoolean(getConfigKey());
-            }
-            if (settings.containsKey("column-filter")) {
-                var columnFilter = settings.getNodeSettings("column-filter");
-                var enforceOptionName = columnFilter.getString("enforce_option", "");
-                var enforceOption = EnforceOption.valueOf(enforceOptionName);
-
-                return enforceOption == EnforceOption.EnforceInclusion;
-            }
-
-            return false;
-        }
-
-        @Override
-        public void save(final Boolean obj, final NodeSettingsWO settings) {
-            settings.addBoolean(getConfigKey(), obj);
+        public List<ConfigMigration<Boolean>> getConfigMigrations() {
+            return List.of(//
+                ConfigMigration.builder(FailIfMissingMigration::loadFromColumnFilter)
+                    .withDeprecatedConfigPath(ColumnFilterMigration.CFG_KEY_COLUMN_FILTER).build(), //
+                ConfigMigration.builder(settings -> false).build() //)
+            );
         }
     }
 }

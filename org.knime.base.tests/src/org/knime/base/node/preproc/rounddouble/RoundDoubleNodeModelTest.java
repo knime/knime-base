@@ -125,7 +125,7 @@ final class RoundDoubleNodeModelTest {
     void testExecutionAndAppend(final ExecutionContext ctx) throws Exception {
         m_settings.m_columnsToFormat =
             new ColumnFilter(new String[]{DOUBLE_COLUMN_NAME, INTEGER_COLUMN_NAME, BOOLEAN_COLUMN_NAME});
-        m_settings.m_numberMode = NumberMode.SIGNIFICANT_DIGITS;
+        m_settings.m_numberModeV2 = NumberMode.SIGNIFICANT_DIGITS;
         m_settings.m_precision = 1;
 
         final var out = execute(m_inputTable, m_model, m_settings, ctx);
@@ -154,7 +154,7 @@ final class RoundDoubleNodeModelTest {
     void testExecutionAndReplace(final ExecutionContext ctx) throws Exception {
         m_settings.m_columnsToFormat =
             new ColumnFilter(new String[]{DOUBLE_COLUMN_NAME, INTEGER_COLUMN_NAME, BOOLEAN_COLUMN_NAME});
-        m_settings.m_numberMode = NumberMode.INTEGER;
+        m_settings.m_numberModeV2 = NumberMode.INTEGER;
         m_settings.m_roundingMethod = new RoundingMethod(Advanced.TO_LARGER);
         m_settings.m_outputColumn = OutputColumn.REPLACE;
 

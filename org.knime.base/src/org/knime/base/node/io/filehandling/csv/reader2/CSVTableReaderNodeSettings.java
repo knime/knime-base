@@ -82,7 +82,6 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Values.ThousandsSeparator;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingOption;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.IfRowHasLessColumnsOption.IfRowHasLessColumnsOptionPersistor;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption.RowDelimiterPersistor;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.SetCSVExtensions;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.SetTitleAndDescriptionForUseExistingRowIds;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
@@ -97,10 +96,10 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
@@ -139,7 +138,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
     @Persist(configKey = "encoding")
     Encoding m_encoding = new Encoding();
 
-    @Persist(configKey = "table_spec_config", hidden = true, customPersistor = CSVTransformationSettingsPersistor.class)
+    @Persistor(CSVTransformationSettingsPersistor.class)
     CSVTransformationSettings m_tableSpecConfig = new CSVTransformationSettings();
 
     @Modification({SetCSVExtensions.class, SetTitleAndDescriptionForUseExistingRowIds.class})
@@ -182,17 +181,24 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
                 INSERT_MISSING; //
 
             static final class IfRowHasLessColumnsOptionPersistor
-                extends NodeSettingsPersistorWithConfigKey<IfRowHasLessColumnsOption> {
+                implements NodeSettingsPersistor<IfRowHasLessColumnsOption> {
+
+                static final String CFG_KEY = "support_short_data_rows";
 
                 @Override
                 public IfRowHasLessColumnsOption load(final NodeSettingsRO settings) throws InvalidSettingsException {
-                    return settings.getBoolean(getConfigKey()) ? INSERT_MISSING : FAIL;
+                    return settings.getBoolean(CFG_KEY) ? INSERT_MISSING : FAIL;
                 }
 
                 @Override
                 public void save(final IfRowHasLessColumnsOption ifRowHasLessColumnsOption,
                     final NodeSettingsWO settings) {
-                    settings.addBoolean(getConfigKey(), ifRowHasLessColumnsOption == INSERT_MISSING);
+                    settings.addBoolean(CFG_KEY, ifRowHasLessColumnsOption == INSERT_MISSING);
+                }
+
+                @Override
+                public String[][] getConfigPaths() {
+                    return new String[][]{{CFG_KEY}};
                 }
             }
         }
@@ -200,7 +206,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @Widget(title = "If row has fewer columns", description = IfRowHasLessColumns.DESCRIPTION)
         @ValueSwitchWidget
         @Layout(IfRowHasLessColumns.class)
-        @Persist(configKey = "support_short_data_rows", customPersistor = IfRowHasLessColumnsOptionPersistor.class)
+        @Persistor(IfRowHasLessColumnsOptionPersistor.class)
         IfRowHasLessColumnsOption m_ifRowHasLessColumnsOption = IfRowHasLessColumnsOption.FAIL;
         // TODO NOSONAR defaults are currently not applied when the node is created anew; will be addressed in UIEXT-1740
 
@@ -235,10 +241,17 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         static class ColumnDelimiterRef extends ReferenceStateProvider<String> {
         }
 
+        static final class ColumnDelimiterPersistor extends StringEscapePersistor {
+
+            ColumnDelimiterPersistor() {
+                super("column_delimiter");
+            }
+        }
+
         @Widget(title = "Column delimiter", description = ColumnDelimiter.DESCRIPTION)
         @TextInputWidget(minLength = 1)
         @Layout(ColumnDelimiter.class)
-        @Persist(configKey = "column_delimiter", customPersistor = StringEscapePersistor.class)
+        @Persistor(ColumnDelimiterPersistor.class)
         @ValueReference(ColumnDelimiterRef.class)
         @ValueProvider(ColumnDelimiterProvider.class)
         String m_columnDelimiter = ",";
@@ -285,15 +298,23 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
                 @Label(value = "Custom", description = RowDelimiter.DESCRIPTION_CUSTOM) //
                 CUSTOM; //
 
-            static final class RowDelimiterPersistor extends NodeSettingsPersistorWithConfigKey<RowDelimiterOption> {
+            static final class RowDelimiterPersistor implements NodeSettingsPersistor<RowDelimiterOption> {
+
+                static final String CFG_KEY = "use_line_break_row_delimiter";
+
                 @Override
                 public RowDelimiterOption load(final NodeSettingsRO settings) throws InvalidSettingsException {
-                    return settings.getBoolean(getConfigKey()) ? LINE_BREAK : CUSTOM;
+                    return settings.getBoolean(CFG_KEY) ? LINE_BREAK : CUSTOM;
                 }
 
                 @Override
                 public void save(final RowDelimiterOption rowDelimiteroption, final NodeSettingsWO settings) {
-                    settings.addBoolean(getConfigKey(), rowDelimiteroption == LINE_BREAK);
+                    settings.addBoolean(CFG_KEY, rowDelimiteroption == LINE_BREAK);
+                }
+
+                @Override
+                public String[][] getConfigPaths() {
+                    return new String[][]{{CFG_KEY}};
                 }
             }
         }
@@ -325,7 +346,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @Widget(title = "Row delimiter", description = RowDelimiter.DESCRIPTION)
         @ValueSwitchWidget
         @Layout(RowDelimiter.class)
-        @Persist(configKey = "use_line_break_row_delimiter", customPersistor = RowDelimiterPersistor.class)
+        @Persistor(RowDelimiterOption.RowDelimiterPersistor.class)
         @ValueReference(RowDelimiterOptionRef.class)
         @ValueProvider(RowDelimiterOptionProvider.class)
         RowDelimiterOption m_rowDelimiterOption = RowDelimiterOption.LINE_BREAK;
@@ -341,11 +362,17 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         static class CustomRowDelimiterRef extends ReferenceStateProvider<String> {
         }
 
+        static final class CustomRowDelimiterPersistor extends StringEscapePersistor {
+            CustomRowDelimiterPersistor() {
+                super("row_delimiter");
+            }
+        }
+
         @Widget(title = "Custom row delimiter", description = CustomRowDelimiter.DESCRIPTION)
         @TextInputWidget(minLength = 1, pattern = ".|[\\t\\r\\n]|\\r\\n")
         @Layout(CustomRowDelimiter.class)
         @Effect(predicate = HasCustomRowDelimiter.class, type = EffectType.SHOW)
-        @Persist(configKey = "row_delimiter", customPersistor = StringEscapePersistor.class)
+        @Persistor(CustomRowDelimiterPersistor.class)
         @ValueReference(CustomRowDelimiterRef.class)
         @ValueProvider(CustomRowDelimiterProvider.class)
         String m_customRowDelimiter = "\n";
@@ -495,7 +522,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
 
     static class LimitRows implements WidgetGroup, PersistableSettings {
 
-        static final class SkipFirstLinesPersistor implements FieldNodeSettingsPersistor<Long> {
+        static final class SkipFirstLinesPersistor implements NodeSettingsPersistor<Long> {
 
             private static final String CFG_SKIP_LINES = "skip_lines";
 
@@ -513,8 +540,8 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
             }
 
             @Override
-            public String[] getConfigKeys() {
-                return new String[]{CFG_SKIP_LINES, CFG_NUMBER_OF_LINES_TO_SKIP};
+            public String[][] getConfigPaths() {
+                return new String[][]{{CFG_SKIP_LINES}, {CFG_NUMBER_OF_LINES_TO_SKIP}};
             }
         }
 
@@ -525,7 +552,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @ValueReference(SkipFirstLinesRef.class)
         @NumberInputWidget(min = 0)
         @Layout(SkipFirstLines.class)
-        @Persist(customPersistor = SkipFirstLinesPersistor.class)
+        @Persistor(SkipFirstLinesPersistor.class)
         long m_skipFirstLines;
 
         static class SkipFirstDataRowsRef extends ReferenceStateProvider<Long> {
@@ -535,7 +562,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @ValueReference(SkipFirstDataRowsRef.class)
         @NumberInputWidget(min = 0)
         @Layout(SkipFirstDataRows.class)
-        @Persist(customPersistor = CommonReaderNodeSettings.SkipFirstDataRowsPersistor.class)
+        @Persistor(CommonReaderNodeSettings.SkipFirstDataRowsPersistor.class)
         long m_skipFirstDataRows;
 
         @Widget(title = "Limit number of rows", description = LimitNumberOfRows.DESCRIPTION, advanced = true)
@@ -663,11 +690,13 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
 
         }
 
-        static final class CharsetPersistor extends NodeSettingsPersistorWithConfigKey<Charset> {
+        static final class CharsetPersistor implements NodeSettingsPersistor<Charset> {
+
+            static final String CFG_KEY = "charset";
 
             @Override
             public Charset load(final NodeSettingsRO settings) throws InvalidSettingsException {
-                final var persistId = settings.getString(getConfigKey(), null);
+                final var persistId = settings.getString(CFG_KEY, null);
                 final var fileEncoding = FileEncodingOption.fromPersistId(persistId);
                 if (fileEncoding == FileEncodingOption.OTHER) {
                     return new Charset(fileEncoding, persistId);
@@ -677,14 +706,19 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
 
             @Override
             public void save(final Charset charset, final NodeSettingsWO settings) {
-                settings.addString(getConfigKey(), charset.toPersistString());
+                settings.addString(CFG_KEY, charset.toPersistString());
+            }
+
+            @Override
+            public String[][] getConfigPaths() {
+                return new String[][]{{CFG_KEY}};
             }
         }
 
         static final class CharsetRef implements Reference<CSVTableReaderNodeSettings.Encoding.Charset> {
         }
 
-        @Persist(configKey = "charset", customPersistor = CharsetPersistor.class)
+        @Persistor(CharsetPersistor.class)
         @ValueReference(CharsetRef.class)
         Charset m_charset = new Charset();
     }

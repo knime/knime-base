@@ -50,8 +50,8 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.util.ContextProperties;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -68,7 +68,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
  * @author Leonard Wörteler, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-@Persistor(ReadContextProperty2NodeSettings.Persistor.class)
+@Persistor(ReadContextProperty2NodeSettings.SettingsPersistor.class)
 final class ReadContextProperty2NodeSettings implements DefaultNodeSettings {
 
     private static final String[] ALL_PROP_KEYS = ContextProperties.getContextProperties().toArray(String[]::new);
@@ -104,15 +104,20 @@ final class ReadContextProperty2NodeSettings implements DefaultNodeSettings {
     }
 
     /** Custom persistor for backwards compatibility. */
-    private static final class Persistor implements NodeSettingsPersistor<ReadContextProperty2NodeSettings> {
+    private static final class SettingsPersistor implements NodeSettingsPersistor<ReadContextProperty2NodeSettings> {
+
+        static final String IS_EXTRACT_ALL_PROPS = "isExtractAllProps";
+
+        static final String SELECTED_PROPS = "selectedProps";
+
         @Override
         public ReadContextProperty2NodeSettings load(final NodeSettingsRO settings) throws InvalidSettingsException {
             final var loaded = new ReadContextProperty2NodeSettings();
-            loaded.m_isExtractAllProps = settings.getBoolean("isExtractAllProps");
+            loaded.m_isExtractAllProps = settings.getBoolean(IS_EXTRACT_ALL_PROPS);
             if (loaded.m_isExtractAllProps) {
                 loaded.m_selectedProps = ALL_PROP_KEYS;
             } else {
-                final var selected = settings.getStringArray("selectedProps");
+                final var selected = settings.getStringArray(SELECTED_PROPS);
                 loaded.m_selectedProps = selected == null ? new String[0] : selected;
             }
             return loaded;
@@ -120,10 +125,15 @@ final class ReadContextProperty2NodeSettings implements DefaultNodeSettings {
 
         @Override
         public void save(final ReadContextProperty2NodeSettings selectedProps, final NodeSettingsWO settings) {
-            settings.addBoolean("isExtractAllProps", selectedProps.m_isExtractAllProps);
+            settings.addBoolean(IS_EXTRACT_ALL_PROPS, selectedProps.m_isExtractAllProps);
             if (!selectedProps.m_isExtractAllProps) {
-                settings.addStringArray("selectedProps", selectedProps.m_selectedProps);
+                settings.addStringArray(SELECTED_PROPS, selectedProps.m_selectedProps);
             }
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{{IS_EXTRACT_ALL_PROPS}, {SELECTED_PROPS}};
         }
     }
 }

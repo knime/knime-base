@@ -278,13 +278,11 @@
           "replaceRowKey" : { },
           "replaceRowKeyMode" : {
             "deprecatedConfigKeys" : [ {
-              "new" : [ [ ] ],
               "deprecated" : [ [ "newRowKeyColumnName" ] ]
             } ]
           },
           "newRowKeyColumnV2" : {
             "deprecatedConfigKeys" : [ {
-              "new" : [ [ ] ],
               "deprecated" : [ [ "newRowKeyColumnName" ] ]
             } ]
           },
@@ -292,10 +290,14 @@
             "configKey" : "removeRowKeyCol"
           },
           "handleMissingsMode" : {
-            "configPaths" : [ [ "replaceMissingValues" ] ]
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "replaceMissingValues" ] ]
+            } ]
           },
           "handleDuplicatesMode" : {
-            "configPaths" : [ [ "ensureUniqueness" ] ]
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "ensureUniqueness" ] ]
+            } ]
           },
           "enableHilite" : {
             "configKey" : "enableHilite"

@@ -274,7 +274,6 @@
         "type" : "object",
         "properties" : {
           "columnFilter" : {
-            "configPaths" : [ [ "column-filter", "filter-type" ], [ "column-filter", "included_names" ], [ "column-filter", "excluded_names" ], [ "column-filter", "enforce_option" ], [ "column-filter", "name_pattern", "pattern" ], [ "column-filter", "name_pattern", "type" ], [ "column-filter", "name_pattern", "caseSensitive" ], [ "column-filter", "name_pattern", "excludeMatching" ] ],
             "type" : "object",
             "properties" : {
               "selected" : {
@@ -302,21 +301,20 @@
                 "properties" : {
                   "selectedTypes" : { },
                   "typeDisplays" : {
-                    "type" : "array",
-                    "configPaths" : [ ],
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "id" : { },
-                        "text" : { }
-                      }
-                    }
+                    "configPaths" : [ ]
                   }
                 }
               }
-            }
+            },
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "column-filter", "filter-type" ], [ "column-filter", "included_names" ], [ "column-filter", "excluded_names" ], [ "column-filter", "enforce_option" ], [ "column-filter", "name_pattern", "pattern" ], [ "column-filter", "name_pattern", "type" ], [ "column-filter", "name_pattern", "caseSensitive" ], [ "column-filter", "name_pattern", "excludeMatching" ] ]
+            } ]
           },
-          "removeColumnsBy" : { },
+          "removeColumnsBy" : {
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ ]
+            } ]
+          },
           "percentage" : {
             "configKey" : "missing_value_percentage"
           },

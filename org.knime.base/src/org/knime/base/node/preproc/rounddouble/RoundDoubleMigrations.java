@@ -50,6 +50,7 @@ package org.knime.base.node.preproc.rounddouble;
 
 import java.math.RoundingMode;
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -60,8 +61,8 @@ import org.knime.base.node.preproc.rounddouble.RoundDoubleNodeSettings.RoundingM
 import org.knime.base.node.preproc.rounddouble.RoundDoubleNodeSettings.RoundingMethod.Advanced;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 
 /**
  * Persistors for backwards compatibility
@@ -69,36 +70,42 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSett
  * @author Kai Franze, KNIME GmbH, Germany
  */
 @SuppressWarnings("restriction")
-final class RoundDoublePersistors {
+final class RoundDoubleMigrations {
 
-    private RoundDoublePersistors() {
+    private RoundDoubleMigrations() {
         // Utility class
     }
 
-    static final class OutputColumnPersistor extends NodeSettingsPersistorWithConfigKey<OutputColumn> {
+    static final class OutputColumnMigration implements NodeSettingsMigration<OutputColumn> {
+
+        private static final String LEGACY_CFG_KEY_BOOLEAN = "AppendColumns";
+
         @Override
-        public OutputColumn load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            final var isAppendColumns = settings.getBoolean(getConfigKey());
+        public List<ConfigMigration<OutputColumn>> getConfigMigrations() {
+            return List.of(ConfigMigration.builder(OutputColumnMigration::load)
+                .withDeprecatedConfigPath(LEGACY_CFG_KEY_BOOLEAN).build());
+        }
+
+        private static OutputColumn load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            final var isAppendColumns = settings.getBoolean(LEGACY_CFG_KEY_BOOLEAN);
             return isAppendColumns ? OutputColumn.APPEND : OutputColumn.REPLACE;
         }
 
-        @Override
-        public void save(final OutputColumn outputColumn, final NodeSettingsWO settings) {
-            settings.addBoolean(getConfigKey(), outputColumn == OutputColumn.APPEND);
-        }
     }
 
-    static final class RoundingMethodPersistor extends NodeSettingsPersistorWithConfigKey<RoundingMethod> {
-        @Override
-        public RoundingMethod load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            final var roundingModeString = settings.getString(getConfigKey());
-            return getRoundingMethodFromRoundingModeString(roundingModeString);
-        }
+    static final class RoundingMethodMigration implements NodeSettingsMigration<RoundingMethod> {
+
+        private static final String LEGACY_CFG_KEY = "RoundingMode";
 
         @Override
-        public void save(final RoundingMethod roundingMethod, final NodeSettingsWO settings) {
-            final var roundingMode = RoundDoubleNodeSettings.getRoundingModeFromMethod(roundingMethod);
-            settings.addString(getConfigKey(), roundingMode.toString());
+        public List<ConfigMigration<RoundingMethod>> getConfigMigrations() {
+            return List.of(ConfigMigration.builder(RoundingMethodMigration::loadFromLegacy)
+                .withDeprecatedConfigPath(LEGACY_CFG_KEY).build());
+        }
+
+        private static RoundingMethod loadFromLegacy(final NodeSettingsRO settings) throws InvalidSettingsException {
+            final var roundingModeString = settings.getString(LEGACY_CFG_KEY);
+            return getRoundingMethodFromRoundingModeString(roundingModeString);
         }
 
         private static RoundingMethod getRoundingMethodFromRoundingModeString(final String roundingModeString)
@@ -117,33 +124,50 @@ final class RoundDoublePersistors {
         }
     }
 
-    static final class OutputModePersistor extends NodeSettingsPersistorWithConfigKey<OutputMode> {
-        @Override
-        public OutputMode load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            // For backwards compatibility with AP versions prior to 2.8
-            if (!settings.containsKey(getConfigKey())) {
-                final var isOutputAsString = settings.getBoolean("OutputAsString", false);
-                return isOutputAsString ? OutputMode.STANDARD_STRING : OutputMode.DOUBLE;
-            }
-            return valueByT(OutputMode.class, OutputMode::getPersistKey, settings.getString(getConfigKey()));
-        }
+    static final class OutputModeMigration implements NodeSettingsMigration<OutputMode> {
+
+        private static final String CFG_KEY_OUTPUT_TYPE = "OutputType";
+
+        // Used within AP versions prior to 2.8
+        private static final String CFG_KEY_OUTPUT_AS_STRING = "OutputAsString";
 
         @Override
-        public void save(final OutputMode outputMode, final NodeSettingsWO settings) {
-            settings.addString(getConfigKey(), outputMode.getPersistKey());
+        public List<ConfigMigration<OutputMode>> getConfigMigrations() {
+            return List.of(
+                ConfigMigration.builder(OutputModeMigration::loadFromOutputType)
+                    .withDeprecatedConfigPath(CFG_KEY_OUTPUT_TYPE).build(), //
+                ConfigMigration.builder(OutputModeMigration::loadFromOutputAsString)
+                    .withDeprecatedConfigPath(CFG_KEY_OUTPUT_AS_STRING).build(), //
+                ConfigMigration.builder(settings -> OutputMode.DOUBLE).build()//
+            );
         }
+
+        private static OutputMode loadFromOutputAsString(final NodeSettingsRO settings)
+            throws InvalidSettingsException {
+            final var isOutputAsString = settings.getBoolean(CFG_KEY_OUTPUT_AS_STRING);
+            return isOutputAsString ? OutputMode.STANDARD_STRING : OutputMode.DOUBLE;
+        }
+
+        private static OutputMode loadFromOutputType(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return valueByT(OutputMode.class, OutputMode::getPersistKey, settings.getString(CFG_KEY_OUTPUT_TYPE));
+        }
+
     }
 
-    static final class NumberModePersistor extends NodeSettingsPersistorWithConfigKey<NumberMode> {
-        @Override
-        public NumberMode load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return valueByT(NumberMode.class, NumberMode::getPersistKey, settings.getString(getConfigKey()));
+    static final class NumberModeMigration implements NodeSettingsMigration<NumberMode> {
+
+        private static final String LEGACY_CONFIG_KEY = "NumberMode";
+
+        private static NumberMode loadFromLegacy(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return valueByT(NumberMode.class, NumberMode::getPersistKey, settings.getString(LEGACY_CONFIG_KEY));
         }
 
         @Override
-        public void save(final NumberMode numberMode, final NodeSettingsWO settings) {
-            settings.addString(getConfigKey(), numberMode.getPersistKey());
+        public List<ConfigMigration<NumberMode>> getConfigMigrations() {
+            return List.of(ConfigMigration.builder(NumberModeMigration::loadFromLegacy)
+                .withDeprecatedConfigPath(LEGACY_CONFIG_KEY).build());
         }
+
     }
 
     private static <T, E extends Enum<E>> E valueByT(final Class<E> enumType, final Function<E, T> func, final T t)

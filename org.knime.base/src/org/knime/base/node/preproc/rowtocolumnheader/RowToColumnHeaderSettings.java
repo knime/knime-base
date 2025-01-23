@@ -49,9 +49,9 @@
 package org.knime.base.node.preproc.rowtocolumnheader;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.settingsmodel.SettingsModelBooleanPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.settingsmodel.SettingsModelIntegerPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelIntegerPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
@@ -63,23 +63,41 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 @SuppressWarnings("restriction")
 public final class RowToColumnHeaderSettings implements DefaultNodeSettings {
 
-    @Persist(customPersistor = SettingsModelIntegerPersistor.class)
+    @Persistor(HeaderRowIndexPersistor.class)
     @Widget(title = "Number of rows before the header",
         description = "Number of rows in the input table that precede the row that should be used as new column header")
     @NumberInputWidget(min = 0)
     int m_headerRowIndex;
 
-    @Persist(customPersistor = SettingsModelBooleanPersistor.class)
+    @Persistor(DiscardBeforePersistor.class)
     @Widget(title = "Discard rows before header row",
         description = "Whether rows before the row containing the new column header should be discarded. "
             + "Otherwise they are treated as additional output rows.")
     boolean m_discardBefore;
 
-    @Persist(customPersistor = SettingsModelBooleanPersistor.class)
+    @Persistor(DetectTypesPersistor.class)
     @Widget(title = "Detect types of resulting columns",
         description = "Whether type analysis should be applied to the output table. "
             + "For each column, the most specific of the four column types <i>double</i> "
             + "(64-bit floating-point number), <i>long</i> (64-bit integral number), <i>int</i> "
             + "(32-bit integral number) and <i>String</i> is determined and the column is converted to this type.")
     boolean m_detectTypes;
+
+    static final class HeaderRowIndexPersistor extends SettingsModelIntegerPersistor {
+        HeaderRowIndexPersistor() {
+            super("headerRowIndex");
+        }
+    }
+
+    static final class DiscardBeforePersistor extends SettingsModelBooleanPersistor {
+        DiscardBeforePersistor() {
+            super("discardBefore");
+        }
+    }
+
+    static final class DetectTypesPersistor extends SettingsModelBooleanPersistor {
+        DetectTypesPersistor() {
+            super("detectTypes");
+        }
+    }
 }

@@ -68,7 +68,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
@@ -176,7 +177,7 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
     }
 
     @Widget(title = "Extracted fields", description = "Define date or time fields to extract and set column names.")
-    @Persist(customPersistor = DateTimeFieldsPersistor.class)
+    @Migration(DateTimeFieldsMigration.class)
     @ArrayWidget(addButtonText = "Add field", showSortButtons = true,
         elementDefaultValueProvider = DefaultExtractFieldProvider.class)
     @Layout(DateTimeFieldsSection.class)

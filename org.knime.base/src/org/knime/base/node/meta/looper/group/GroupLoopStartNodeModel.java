@@ -138,7 +138,7 @@ class GroupLoopStartNodeModel extends WebUINodeModel<GroupLoopStartNodeSettings>
 
         // check if all included columns are available in the spec
         List<String> includedColNames =
-            Arrays.asList(settings.m_columnFilter.getSelected(m_spec.getColumnNames(), m_spec));
+            Arrays.asList(settings.m_categoryColumns.getSelected(m_spec.getColumnNames(), m_spec));
 
         // at least one column containing double values must be specified
         if (includedColNames.size() <= 0) {
@@ -148,7 +148,7 @@ class GroupLoopStartNodeModel extends WebUINodeModel<GroupLoopStartNodeSettings>
 
         assert m_iteration == 0;
         pushFlowVariableInt("currentIteration", m_iteration);
-        initGroupColumnsAsFlowVariables(settings.m_columnFilter);
+        initGroupColumnsAsFlowVariables(settings.m_categoryColumns);
         pushFlowVariableString("groupIdentifier", "");
         return inSpecs;
     }
@@ -171,7 +171,7 @@ class GroupLoopStartNodeModel extends WebUINodeModel<GroupLoopStartNodeSettings>
         }
 
         // parameters
-        m_includedColIndices = getIncludedColIndices(table.getDataTableSpec(), settings.m_columnFilter);
+        m_includedColIndices = getIncludedColIndices(table.getDataTableSpec(), settings.m_categoryColumns);
         boolean checkDuplicates = settings.m_alreadySorted == YesOrNo.YES;
 
         // remember table and sort table if necessary
@@ -183,7 +183,7 @@ class GroupLoopStartNodeModel extends WebUINodeModel<GroupLoopStartNodeSettings>
             // sort if not already sorted
             if (settings.m_alreadySorted == YesOrNo.NO) {
                 // asc
-                final String[] includes = settings.m_columnFilter.getSelected(m_spec.getColumnNames(), m_spec);
+                final String[] includes = settings.m_categoryColumns.getSelected(m_spec.getColumnNames(), m_spec);
                 boolean[] sortAsc = new boolean[includes.length];
                 Arrays.fill(sortAsc, true);
                 BufferedDataTableSorter tableSorter =

@@ -48,18 +48,19 @@
  */
 package org.knime.base.node.meta.looper.group;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
@@ -85,23 +86,27 @@ final class GroupLoopStartNodeSettings implements DefaultNodeSettings {
      * Constructor for auto-configuration if no settings are available.
      */
     GroupLoopStartNodeSettings(final DefaultNodeSettingsContext context) {
-        m_columnFilter = ColumnFilter.createDefault(AllColumns.class, context);
+        m_categoryColumns = ColumnFilter.createDefault(AllColumns.class, context);
     }
 
-    @Persist(configKey = GroupLoopStartConfigKeys.COLUMN_NAMES, customPersistor = LegacyColumnFilterPersistor.class)
+    @Migration(CategoryColumnsMigration.class)
     @Widget(title = "Category columns", description = "The columns used to identify the groups.")
     @ChoicesWidget(choices = AllColumns.class)
-    ColumnFilter m_columnFilter = new ColumnFilter();
+    ColumnFilter m_categoryColumns = new ColumnFilter();
 
-    @Widget(title = "Sorting option",
-        description = """
-                Enhance performance by selecting 'Keep input data order' if your data is
-                already sorted by the group columns. Be cautious: if the input is not properly sorted, the node
-                will fail. If you want to make sure that this node executes, do not choose this option.
-                """,
-        advanced = true)
+    static final class CategoryColumnsMigration extends LegacyColumnFilterMigration {
+        CategoryColumnsMigration() {
+            super(GroupLoopStartConfigKeys.COLUMN_NAMES);
+        }
+    }
+
+    @Widget(title = "Sorting option", description = """
+            Enhance performance by selecting 'Keep input data order' if your data is
+            already sorted by the group columns. Be cautious: if the input is not properly sorted, the node
+            will fail. If you want to make sure that this node executes, do not choose this option.
+            """, advanced = true)
     @RadioButtonsWidget
-    @Persist(customPersistor = YesOrNoPersistor.class)
+    @Migration(YesOrNoMigration.class)
     YesOrNo m_alreadySorted = YesOrNo.NO;
 
     static final class AllColumns implements ColumnChoicesProvider {
@@ -122,20 +127,18 @@ final class GroupLoopStartNodeSettings implements DefaultNodeSettings {
             YES
     }
 
-    private static final class YesOrNoPersistor implements FieldNodeSettingsPersistor<YesOrNo> {
-        @Override
-        public YesOrNo load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return settings.getBoolean(GroupLoopStartConfigKeys.SORTED_INPUT_TABLE, false) ? YesOrNo.YES : YesOrNo.NO;
+    private static final class YesOrNoMigration implements NodeSettingsMigration<YesOrNo> {
+        private static YesOrNo loadFromBoolean(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return settings.getBoolean(GroupLoopStartConfigKeys.SORTED_INPUT_TABLE) ? YesOrNo.YES : YesOrNo.NO;
         }
 
         @Override
-        public void save(final YesOrNo yesOrNo, final NodeSettingsWO settings) {
-            settings.addBoolean(GroupLoopStartConfigKeys.SORTED_INPUT_TABLE, yesOrNo == YesOrNo.YES);
-        }
-
-        @Override
-        public String[] getConfigKeys() {
-            return new String[]{GroupLoopStartConfigKeys.SORTED_INPUT_TABLE};
+        public List<ConfigMigration<YesOrNo>> getConfigMigrations() {
+            return List.of(//
+                ConfigMigration.builder(YesOrNoMigration::loadFromBoolean)
+                    .withDeprecatedConfigPath(GroupLoopStartConfigKeys.SORTED_INPUT_TABLE).build(), //
+                ConfigMigration.builder(settings -> YesOrNo.NO).build()//
+            );
         }
     }
 

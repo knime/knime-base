@@ -48,7 +48,6 @@
  */
 package org.knime.time.node.manipulate.datetimeround;
 
-import java.time.DateTimeException;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
@@ -59,13 +58,8 @@ import org.knime.core.data.DataValue;
 import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
 import org.knime.core.data.time.localtime.LocalTimeValue;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
@@ -102,7 +96,6 @@ public class TimeRoundNodeSettings implements DefaultNodeSettings {
             value of the chosen precision. Represented as a duration, i.e., PT1H for \
             one hour.
             """)
-    @Persist(customPersistor = RoundTimePrecision.Persistor.class)
     @OverwriteDialogTitle("of")
     @Layout(DateTimeRoundNodeLayout.FirstHorizontal.class)
     RoundTimePrecision m_timeRoundingPrecision = RoundTimePrecision.HOURS_1;
@@ -259,26 +252,6 @@ public class TimeRoundNodeSettings implements DefaultNodeSettings {
                 .map(RoundTimePrecision::getDuration) //
                 .map(Duration::toString) //
                 .collect(Collectors.toList());
-        }
-
-        static final class Persistor extends NodeSettingsPersistorWithConfigKey<RoundTimePrecision> {
-
-            @Override
-            public RoundTimePrecision load(final NodeSettingsRO settings) throws InvalidSettingsException {
-                var precisionSetting = settings.getString(getConfigKey());
-                try {
-                    var parsedDurationFromSetting = Duration.parse(precisionSetting);
-                    return RoundTimePrecision.getByDuration(parsedDurationFromSetting);
-                } catch (DateTimeException e) {
-                    throw new InvalidSettingsException(
-                        "Could not parse the duration ('" + precisionSetting + "') from the settings.", e);
-                }
-            }
-
-            @Override
-            public void save(final RoundTimePrecision obj, final NodeSettingsWO settings) {
-                settings.addString(getConfigKey(), obj.getDuration().toString());
-            }
         }
 
     }

@@ -195,10 +195,6 @@
         "properties" : {
           "sortingCriteria" : {
             "type" : "array",
-            "deprecatedConfigKeys" : [ {
-              "new" : [ [ ] ],
-              "deprecated" : [ [ "incllist" ], [ "alphaNumStringComp" ], [ "sortOrder" ] ]
-            } ],
             "items" : {
               "type" : "object",
               "properties" : {
@@ -214,7 +210,10 @@
                 "sortingOrder" : { },
                 "stringComparison" : { }
               }
-            }
+            },
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "incllist" ], [ "alphaNumStringComp" ], [ "sortOrder" ] ]
+            } ]
           },
           "sortMissingCellsToEndOfList" : {
             "configKey" : "missingToEnd"

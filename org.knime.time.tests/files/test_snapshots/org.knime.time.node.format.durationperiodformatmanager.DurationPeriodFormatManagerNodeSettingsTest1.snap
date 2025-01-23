@@ -266,15 +266,7 @@
                 "properties" : {
                   "selectedTypes" : { },
                   "typeDisplays" : {
-                    "type" : "array",
-                    "configPaths" : [ ],
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "id" : { },
-                        "text" : { }
-                      }
-                    }
+                    "configPaths" : [ ]
                   }
                 }
               }

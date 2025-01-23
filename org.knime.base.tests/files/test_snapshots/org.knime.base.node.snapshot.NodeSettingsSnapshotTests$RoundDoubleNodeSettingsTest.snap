@@ -19,7 +19,7 @@
           "typeDisplays" : [ ]
         }
       },
-      "numberMode" : "DECIMALS",
+      "numberModeV2" : "DECIMALS",
       "precision" : 3,
       "roundingMethod" : {
         "standard" : "HALF_AWAY_FROM_ZERO",
@@ -163,7 +163,7 @@
               }
             }
           },
-          "numberMode" : {
+          "numberModeV2" : {
             "oneOf" : [ {
               "const" : "DECIMALS",
               "title" : "Decimals"
@@ -295,7 +295,7 @@
       }
     }, {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/numberMode",
+      "scope" : "#/properties/model/properties/numberModeV2",
       "options" : {
         "format" : "valueSwitch"
       }
@@ -309,7 +309,7 @@
       "rule" : {
         "effect" : "HIDE",
         "condition" : {
-          "scope" : "#/properties/model/properties/numberMode",
+          "scope" : "#/properties/model/properties/numberModeV2",
           "schema" : {
             "oneOf" : [ {
               "const" : "INTEGER"
@@ -379,7 +379,6 @@
         "type" : "object",
         "properties" : {
           "columnsToFormat" : {
-            "configPaths" : [ [ "StringColNames", "filter-type" ], [ "StringColNames", "included_names" ], [ "StringColNames", "excluded_names" ], [ "StringColNames", "enforce_option" ], [ "StringColNames", "name_pattern", "pattern" ], [ "StringColNames", "name_pattern", "type" ], [ "StringColNames", "name_pattern", "caseSensitive" ], [ "StringColNames", "name_pattern", "excludeMatching" ] ],
             "type" : "object",
             "properties" : {
               "selected" : {
@@ -407,42 +406,49 @@
                 "properties" : {
                   "selectedTypes" : { },
                   "typeDisplays" : {
-                    "type" : "array",
-                    "configPaths" : [ ],
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "id" : { },
-                        "text" : { }
-                      }
-                    }
+                    "configPaths" : [ ]
                   }
                 }
               }
-            }
+            },
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "StringColNames", "filter-type" ], [ "StringColNames", "included_names" ], [ "StringColNames", "excluded_names" ], [ "StringColNames", "enforce_option" ], [ "StringColNames", "name_pattern", "pattern" ], [ "StringColNames", "name_pattern", "type" ], [ "StringColNames", "name_pattern", "caseSensitive" ], [ "StringColNames", "name_pattern", "excludeMatching" ] ]
+            } ]
           },
-          "numberMode" : {
-            "configKey" : "NumberMode"
+          "numberModeV2" : {
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "NumberMode" ] ]
+            } ]
           },
           "precision" : {
             "configKey" : "PrecisionNumer"
           },
           "roundingMethod" : {
-            "configKey" : "RoundingMode",
             "type" : "object",
             "properties" : {
               "standard" : { },
               "advanced" : { }
-            }
+            },
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "RoundingMode" ] ]
+            } ]
           },
           "outputColumn" : {
-            "configKey" : "AppendColumns"
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "AppendColumns" ] ]
+            } ]
           },
           "suffix" : {
             "configKey" : "ColumnSuffix"
           },
           "outputMode" : {
-            "configKey" : "OutputType"
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "OutputType" ] ]
+            }, {
+              "deprecated" : [ [ "OutputAsString" ] ]
+            }, {
+              "deprecated" : [ ]
+            } ]
           }
         }
       }

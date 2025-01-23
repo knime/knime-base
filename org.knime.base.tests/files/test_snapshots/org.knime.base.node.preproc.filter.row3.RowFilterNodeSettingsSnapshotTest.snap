@@ -274,8 +274,7 @@
                     "values" : {
                       "type" : "array",
                       "items" : {
-                        "type" : "object",
-                        "properties" : { }
+                        "propertiesConfigPaths" : [ ]
                       }
                     },
                     "inputKind" : { }

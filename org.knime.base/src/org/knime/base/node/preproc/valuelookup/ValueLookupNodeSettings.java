@@ -59,8 +59,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
@@ -125,7 +126,8 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     /**
      * Supersedes the <code>delete lookup column</code> setting.
      *
-     * @since 5.2 */
+     * @since 5.2
+     */
     enum LookupColumnOutput {
             /** Leave the lookup column unchanged. */
             @Label("Retain")
@@ -141,16 +143,16 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
             @Label("Remove")
             REMOVE;
 
-        private static final class LookupColumnOutputPersistor
-            implements FieldNodeSettingsPersistor<LookupColumnOutput> {
+        private static final class LookupColumnOutputPersistor implements NodeSettingsPersistor<LookupColumnOutput> {
 
             private static final String CFG_LOOKUP_COLUMN_OUTPUT = "lookupColumnOutput";
+
             private static final String CFG_51_DELETE = "deleteLookupCol";
 
             @Override
             public LookupColumnOutput load(final NodeSettingsRO settings) throws InvalidSettingsException {
                 // pre 5.2, there was only boolean m_deleteLookupCol
-                if(settings.containsKey(CFG_51_DELETE)) {
+                if (settings.containsKey(CFG_51_DELETE)) {
                     final var deleteLookupCol = settings.getBoolean(CFG_51_DELETE);
                     return deleteLookupCol ? REMOVE : RETAIN;
                 } else {
@@ -165,8 +167,8 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
             }
 
             @Override
-            public String[] getConfigKeys() {
-                return new String[]{CFG_LOOKUP_COLUMN_OUTPUT};
+            public String[][] getConfigPaths() {
+                return new String[][]{{CFG_LOOKUP_COLUMN_OUTPUT}};
             }
         }
     }
@@ -305,7 +307,7 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
                 """)
     @ValueSwitchWidget
     @ValueReference(LookupColumnOutputRef.class)
-    @Persist(customPersistor = LookupColumnOutput.LookupColumnOutputPersistor.class)
+    @Persistor(LookupColumnOutput.LookupColumnOutputPersistor.class)
     @Layout(OutputSection.class)
     LookupColumnOutput m_lookupColumnOutput = LookupColumnOutput.RETAIN;
 
@@ -322,7 +324,7 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     @ChoicesWidget(choices = DictionaryTableChoices.class)
     @Effect(type = EffectType.SHOW, predicate = ShowLookupColumnReplacement.class)
     @Layout(OutputSection.class)
-    @Persist(optional = true)
+    @Migrate(loadDefaultIfAbsent = true)
     String m_lookupReplacementCol;
 
     /**
@@ -339,7 +341,7 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     @ValueSwitchWidget
     @Effect(type = EffectType.SHOW, predicate = ShowLookupColumnReplacement.class)
     @Layout(OutputSection.class)
-    @Persist(optional = true)
+    @Migrate(loadDefaultIfAbsent = true)
     LookupColumnNoMatchReplacement m_columnNoMatchReplacement = LookupColumnNoMatchReplacement.RETAIN;
 
     /** The names of the columns from the dictionary table that shall be added to the output table */
@@ -359,7 +361,7 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Enable hiliting", advanced = true,
         description = "Enable hiliting between the dictionary table and the output table.")
     @Layout(OutputSection.class)
-    @Persist(optional = true)
+    @Migrate(loadDefaultIfAbsent = true)
     boolean m_enableHiliting = false; //NOSONAR: more verbosity
 
     /**

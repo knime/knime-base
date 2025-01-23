@@ -114,16 +114,16 @@
         "type" : "object",
         "properties" : {
           "primaryColumn" : {
-            "configKey" : "primaryColumn"
+            "configPaths" : [ [ "primaryColumn" ] ]
           },
           "secondaryColumn" : {
-            "configKey" : "secondaryColumn"
+            "configPaths" : [ [ "secondaryColumn" ] ]
           },
           "outputPlacement" : {
             "configPaths" : [ [ "outputPlacement" ] ]
           },
           "outputName" : {
-            "configKey" : "outputName"
+            "configPaths" : [ [ "outputName" ] ]
           }
         }
       }

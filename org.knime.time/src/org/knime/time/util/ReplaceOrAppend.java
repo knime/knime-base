@@ -59,7 +59,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.util.UniqueNameGenerator;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
@@ -196,7 +196,7 @@ public enum ReplaceOrAppend {
      * Backwards-compatible persistor to store the value of the enum in the node settings. Since the key is hardcoded,
      * it will only work for the last usage of {@link ReplaceOrAppend} in a node settings.
      */
-    public static final class Persistor implements FieldNodeSettingsPersistor<ReplaceOrAppend> {
+    public static final class Persistor implements NodeSettingsPersistor<ReplaceOrAppend> {
 
         private static final String CONFIG_KEY = "replace_or_append";
 
@@ -211,8 +211,8 @@ public enum ReplaceOrAppend {
         }
 
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{CONFIG_KEY};
+        public String[][] getConfigPaths() {
+            return new String[][]{{CONFIG_KEY}};
         }
     }
 }

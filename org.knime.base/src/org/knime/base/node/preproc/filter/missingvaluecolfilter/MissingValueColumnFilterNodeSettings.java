@@ -51,10 +51,12 @@ package org.knime.base.node.preproc.filter.missingvaluecolfilter;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DefaultProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
@@ -76,7 +78,13 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
 @SuppressWarnings("restriction")
 final class MissingValueColumnFilterNodeSettings implements DefaultNodeSettings {
 
-    @Persist(configKey = "column-filter", customPersistor = LegacyColumnFilterPersistor.class)
+    static final class ColumnFilterMigration extends LegacyColumnFilterMigration {
+        ColumnFilterMigration() {
+            super("column-filter");
+        }
+    }
+
+    @Migration(ColumnFilterMigration.class)
     @Widget(title = "Input columns", description = "Select the columns to test for missing values.")
     @ChoicesWidget(choices = AllColumns.class, excludedLabel = "Retained columns", includedLabel = "Columns to test")
     ColumnFilter m_columnFilter;
@@ -135,7 +143,7 @@ final class MissingValueColumnFilterNodeSettings implements DefaultNodeSettings 
     @RadioButtonsWidget
     @Widget(title = "Remove columns", description = "Specify the threshold for the removal of selected columns.")
     @ValueReference(RemovalCriterionRef.class)
-    @Persist(defaultProvider = RemovalCriterionDefaultProvider.class) // added during webui transition
+    @Migration(RemovalCriterionDefaultProvider.class) // added during webui transition
     RemovalCriterion m_removeColumnsBy = RemovalCriterion.ONLY;
 
     // "more-than-or-equal" is legacy behavior
@@ -150,7 +158,7 @@ final class MissingValueColumnFilterNodeSettings implements DefaultNodeSettings 
         description = "Selected columns with at least this number of missing values are filtered out.")
     @NumberInputWidget(min = 0)
     @Effect(type = EffectType.SHOW, predicate = ByNumber.class)
-    @Persist(optional = true)
+    @Migrate(loadDefaultIfAbsent = true)
     long m_number = 1;
 
     MissingValueColumnFilterNodeSettings() {
