@@ -90,13 +90,13 @@ final class RoundDoubleNodeModel extends WebUISimpleStreamableFunctionNodeModel<
         final var numberColumnNames = getNumberColumnNames(inSpec);
         final var targetColumns = Set.of(modelSettings.m_columnsToFormat.getSelected(numberColumnNames, inSpec));
         final var isAppend = modelSettings.m_outputColumn == OutputColumn.APPEND;
-        final var newColSpecs = createNewColSpecs(inSpec, targetColumns, isAppend, modelSettings.m_numberMode,
+        final var newColSpecs = createNewColSpecs(inSpec, targetColumns, isAppend, modelSettings.m_numberModeV2,
             modelSettings.m_outputMode, modelSettings.m_suffix);
 
         // Create cell factory
         final var roundingMode = RoundDoubleNodeSettings.getRoundingModeFromMethod(modelSettings.m_roundingMethod);
         final var colIndexToRound = getColIndexToRound(inSpec, targetColumns);
-        final var cellFactory = new RoundDoubleCellFactory(modelSettings.m_precision, modelSettings.m_numberMode,
+        final var cellFactory = new RoundDoubleCellFactory(modelSettings.m_precision, modelSettings.m_numberModeV2,
             roundingMode, modelSettings.m_outputMode, colIndexToRound, newColSpecs);
 
         // Create column re-arranger

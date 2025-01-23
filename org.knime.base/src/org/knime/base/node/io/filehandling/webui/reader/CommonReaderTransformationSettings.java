@@ -57,13 +57,17 @@ import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformati
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.SourceIdProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TransformationSettingsWidgetModification;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TypeChoicesProvider;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.LatentWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
@@ -262,9 +266,28 @@ public abstract class CommonReaderTransformationSettings<I extends ConfigIdSetti
             }
         }
 
+        static final class DontPersist implements NodeSettingsPersistor<String> {
+
+            @Override
+            public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
+                return null;
+            }
+
+            @Override
+            public void save(final String obj, final NodeSettingsWO settings) {
+                // do nothing
+            }
+
+            @Override
+            public String[][] getConfigPaths() {
+                return new String[0][0];
+            }
+
+        }
+
         @ValueReference(ColumnNameRef.class)
         @JsonInclude(Include.ALWAYS) // Necessary for the ColumnNameIsNull PredicateProvider to work
-        @LatentWidget // Necessary for the ColumnNameIsNull PredicateProvider to work
+        @Persistor(DontPersist.class)
         String m_columnName;
 
         static class OriginalTypeRef implements Reference<String> {

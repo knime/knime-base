@@ -54,7 +54,7 @@ import org.knime.base.node.preproc.rowagg.RowAggregatorNodeModel.AggregationFunc
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
@@ -178,7 +178,7 @@ public final class RowAggregatorSettings implements DefaultNodeSettings {
 
     @Widget(title = "Enable Hiliting", advanced = true,
         description = "Enable hiliting between the input port and the aggregated output table.")
-    @Persist(optional = true)
+    @Migrate(loadDefaultIfAbsent = true)
     boolean m_enableHiliting;
 
     /**

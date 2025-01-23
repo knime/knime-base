@@ -411,47 +411,7 @@
         "type" : "object",
         "properties" : {
           "consideredColumns" : {
-            "configPaths" : [ [ "group_cols", "filter-type" ], [ "group_cols", "included_names" ], [ "group_cols", "excluded_names" ], [ "group_cols", "enforce_option" ], [ "group_cols", "name_pattern", "pattern" ], [ "group_cols", "name_pattern", "type" ], [ "group_cols", "name_pattern", "caseSensitive" ], [ "group_cols", "name_pattern", "excludeMatching" ] ],
-            "type" : "object",
-            "properties" : {
-              "selected" : {
-                "configPaths" : [ ]
-              },
-              "mode" : { },
-              "patternFilter" : {
-                "type" : "object",
-                "properties" : {
-                  "pattern" : { },
-                  "isCaseSensitive" : { },
-                  "isInverted" : { }
-                }
-              },
-              "manualFilter" : {
-                "type" : "object",
-                "properties" : {
-                  "manuallySelected" : { },
-                  "manuallyDeselected" : { },
-                  "includeUnknownColumns" : { }
-                }
-              },
-              "typeFilter" : {
-                "type" : "object",
-                "properties" : {
-                  "selectedTypes" : { },
-                  "typeDisplays" : {
-                    "type" : "array",
-                    "configPaths" : [ ],
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "id" : { },
-                        "text" : { }
-                      }
-                    }
-                  }
-                }
-              }
-            }
+            "configPaths" : [ [ "group_cols", "filter-type" ], [ "group_cols", "included_names" ], [ "group_cols", "excluded_names" ], [ "group_cols", "enforce_option" ], [ "group_cols", "name_pattern", "pattern" ], [ "group_cols", "name_pattern", "type" ], [ "group_cols", "name_pattern", "caseSensitive" ], [ "group_cols", "name_pattern", "excludeMatching" ] ]
           },
           "duplicateHandling" : {
             "configPaths" : [ [ "remove_duplicates" ] ]

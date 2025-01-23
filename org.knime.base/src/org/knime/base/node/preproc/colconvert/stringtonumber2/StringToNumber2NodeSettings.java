@@ -65,10 +65,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.settingsmodel.SettingsModelBooleanPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.settingsmodel.SettingsModelStringPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelStringPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
@@ -99,31 +99,29 @@ public final class StringToNumber2NodeSettings implements DefaultNodeSettings {
         m_inclCols = ColumnFilter.createDefault(StringColumns.class, context);
     }
 
-    @Section(title="Column Selection")
+    @Section(title = "Column Selection")
     interface ColumnSelectionSection {
     }
 
-    @Section(title="Parsing options")
+    @Section(title = "Parsing options")
     @After(ColumnSelectionSection.class)
     interface ParsingOptionsSection {
     }
 
     /** The decimal separator. */
-    @Persist(configKey = AbstractStringToNumberNodeModel.CFG_DECIMALSEP,
-        customPersistor = SettingsModelStringPersistor.class)
+    @Persistor(DecSepPersistor.class)
     @Widget(title = "Decimal separator",
         description = "Choose a decimal separator, which is used to mark the boundary between the integral and the "
             + " fractional parts of the decimal string.")
     String m_decimalSep = AbstractStringToNumberNodeModel.DEFAULT_DECIMAL_SEPARATOR;
 
     /** The thousands separator. */
-    @Persist(configKey = AbstractStringToNumberNodeModel.CFG_THOUSANDSSEP,
-        customPersistor = SettingsModelStringPersistor.class)
+    @Persistor(ThousSepPersistor.class)
     @Widget(title = "Thousands separator",
         description = "Choose a thousands separator used in the decimal string to group together three digits.")
     String m_thousandsSep = AbstractStringToNumberNodeModel.DEFAULT_THOUSANDS_SEPARATOR;
 
-    @Persist(customPersistor = DataTypeOptionssPersistor.class)
+    @Persistor(DataTypeOptionssPersistor.class)
     @Widget(title = "Type", description = "Choose the DataType that your string should be converted to.")
     DataTypeOptions m_parseType = DataTypeOptions.DOUBLE;
 
@@ -138,7 +136,7 @@ public final class StringToNumber2NodeSettings implements DefaultNodeSettings {
             LONG;
     }
 
-    private static final class DataTypeOptionssPersistor implements FieldNodeSettingsPersistor<DataTypeOptions> {
+    private static final class DataTypeOptionssPersistor implements NodeSettingsPersistor<DataTypeOptions> {
 
         @Override
         public DataTypeOptions load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -173,14 +171,13 @@ public final class StringToNumber2NodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{AbstractStringToNumberNodeModel.CFG_PARSETYPE};
+        public String[][] getConfigPaths() {
+            return new String[][]{{AbstractStringToNumberNodeModel.CFG_PARSETYPE}};
         }
 
     }
 
-    @Persist(configKey = AbstractStringToNumberNodeModel.CFG_GENERIC_PARSE,
-        customPersistor = SettingsModelBooleanPersistor.class)
+    @Persistor(GenericParsePersistor.class)
     @Widget(title = "Accept type suffix, e.g. 'd', 'D', 'f', 'F'",
         description = "When checked, the type suffix will be accepted, "
             + "otherwise it fails to parse input like <tt>1d</tt>. " + "These suffixes are typically used "
@@ -188,13 +185,11 @@ public final class StringToNumber2NodeSettings implements DefaultNodeSettings {
             + "Default is not checked.")
     boolean m_genericParse = AbstractStringToNumberNodeModel.DEFAULT_GENERIC_PARSE;
 
-    @Persist(configKey = AbstractStringToNumberNodeModel.CFG_FAIL_ON_ERROR,
-        customPersistor = SettingsModelBooleanPersistor.class)
+    @Persistor(FailOnErrorPersistor.class)
     @Widget(title = "Fail on error", description = "When checked, the node will fail if an error occurs.")
     boolean m_failOnError = AbstractStringToNumberNodeModel.DEFAULT_FAIL_ON_ERROR;
 
-    @Persist(configKey = AbstractStringToNumberNodeModel.CFG_INCLUDED_COLUMNS,
-        customPersistor = LegacyColumnFilterPersistor.class)
+    @Persistor(InclColsPersistor.class)
     @Widget(title = "Column selection", description = "Move the columns of interest into the &quot;Includes&quot; list")
     @ChoicesWidget(choices = StringColumns.class)
     @Layout(ColumnSelectionSection.class)
@@ -210,6 +205,37 @@ public final class StringToNumber2NodeSettings implements DefaultNodeSettings {
                 .filter(c -> c.getType().isCompatible(StringValue.class))//
                 .map(DataColumnSpec::getName)//
                 .toArray(String[]::new);
+        }
+
+    }
+
+    static final class DecSepPersistor extends SettingsModelStringPersistor {
+        DecSepPersistor() {
+            super(AbstractStringToNumberNodeModel.CFG_DECIMALSEP);
+        }
+    }
+
+    static final class ThousSepPersistor extends SettingsModelStringPersistor {
+        ThousSepPersistor() {
+            super(AbstractStringToNumberNodeModel.CFG_THOUSANDSSEP);
+        }
+    }
+
+    static final class GenericParsePersistor extends SettingsModelBooleanPersistor {
+        GenericParsePersistor() {
+            super(AbstractStringToNumberNodeModel.CFG_GENERIC_PARSE);
+        }
+    }
+
+    static final class FailOnErrorPersistor extends SettingsModelBooleanPersistor {
+        FailOnErrorPersistor() {
+            super(AbstractStringToNumberNodeModel.CFG_FAIL_ON_ERROR);
+        }
+    }
+
+    static final class InclColsPersistor extends LegacyColumnFilterPersistor {
+        InclColsPersistor() {
+            super(AbstractStringToNumberNodeModel.CFG_INCLUDED_COLUMNS);
         }
 
     }

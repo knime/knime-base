@@ -49,8 +49,10 @@
 package org.knime.base.node.util.timerinfo;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DefaultProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
@@ -84,8 +86,8 @@ public class TimerinfoNodeSettings implements DefaultNodeSettings {
     static final class IncludeComponentIONodesPolicy implements PredicateProvider {
         @Override
         public Predicate init(final PredicateInitializer i) {
-            return i.getEnum(RecursionPolicyRef.class)
-                    .isOneOf(RecursionPolicy.NO_RECURSION, RecursionPolicy.ONLY_METANODES);
+            return i.getEnum(RecursionPolicyRef.class).isOneOf(RecursionPolicy.NO_RECURSION,
+                RecursionPolicy.ONLY_METANODES);
         }
     }
 
@@ -99,11 +101,11 @@ public class TimerinfoNodeSettings implements DefaultNodeSettings {
             """)
     @ValueReference(RecursionPolicyRef.class)
     @ValueSwitchWidget
-    @Persist(defaultProvider = LegacyBehavior.class)
+    @Migration(RecursionPolicyLegacyBehavior.class)
     // new instances of the node handle components depending on the recursion policy
     RecursionPolicy m_recursionPolicy = RecursionPolicy.NO_RECURSION;
 
-    private static final class LegacyBehavior implements DefaultProvider<RecursionPolicy> {
+    private static final class RecursionPolicyLegacyBehavior implements DefaultProvider<RecursionPolicy> {
         @Override
         public RecursionPolicy getDefault() {
             // use old behavior for existing nodes -> only metanode recursion
@@ -123,14 +125,14 @@ public class TimerinfoNodeSettings implements DefaultNodeSettings {
             Includes the component input and output nodes in the output table.
             """)
     @Effect(predicate = IncludeComponentIONodesPolicy.class, type = EffectType.DISABLE)
-    @Persist(optional = true)
+    @Migrate(loadDefaultIfAbsent = true)
     // default is `true` to make it obvious that there are special nodes where time might be spent
     // this default value does not matter for old settings, since the components were opaque there
     // and no input/output nodes are encountered
     boolean m_includeComponentIO = true;
 
     @Widget(title = "Include node comments", description = "Include node comments for each node in the output table")
-    @Persist(defaultProvider = FalseProvider.class)
+    @Migration(FalseProvider.class)
     boolean m_includeNodeComments = true;
 
     private static class FalseProvider implements DefaultProvider<Boolean> {
@@ -144,23 +146,23 @@ public class TimerinfoNodeSettings implements DefaultNodeSettings {
 
     enum RecursionPolicy {
 
-        /**
-         * No recursion policy.
-         */
-        @Label(value = "No recursion")
-        NO_RECURSION,
+            /**
+             * No recursion policy.
+             */
+            @Label(value = "No recursion")
+            NO_RECURSION,
 
-        /**
-         * Only metanodes policy.
-         */
-        @Label(value = "Only metanodes")
-        ONLY_METANODES,
+            /**
+             * Only metanodes policy.
+             */
+            @Label(value = "Only metanodes")
+            ONLY_METANODES,
 
-        /**
-         * Components and metanodes policy.
-         */
-        @Label(value = "Components and metanodes")
-        COMPONENTS_AND_METANODES;
+            /**
+             * Components and metanodes policy.
+             */
+            @Label(value = "Components and metanodes")
+            COMPONENTS_AND_METANODES;
 
     }
 

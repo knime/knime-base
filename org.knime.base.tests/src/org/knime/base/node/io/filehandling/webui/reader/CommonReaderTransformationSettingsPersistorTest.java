@@ -58,7 +58,7 @@ import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformati
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TransformationElementSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
@@ -77,7 +77,7 @@ public abstract class CommonReaderTransformationSettingsPersistorTest<R extends 
 
     private final CommonReaderTransformationSettingsPersistor m_persistor;
 
-    private final Class<? extends FieldNodeSettingsPersistor<R>> m_persistorClass;
+    private final Class<? extends NodeSettingsPersistor<R>> m_persistorClass;
 
     private final Class<R> m_settingsClass;
 
@@ -88,12 +88,16 @@ public abstract class CommonReaderTransformationSettingsPersistorTest<R extends 
     protected CommonReaderTransformationSettingsPersistorTest(
         final CommonReaderTransformationSettingsPersistor persistor, final Class<R> settingsClass) {
         m_persistor = persistor;
-        m_persistorClass = (Class<? extends FieldNodeSettingsPersistor<R>>)persistor.getClass();
+        m_persistorClass = (Class<? extends NodeSettingsPersistor<R>>)persistor.getClass();
         m_settingsClass = settingsClass;
     }
 
+    /**
+     * @param settings
+     * @throws InvalidSettingsException
+     */
     protected void testSaveLoad(final R settings) throws InvalidSettingsException {
-        final R copy = CommonReaderNodeSettingsTest.saveLoad(m_persistorClass, m_settingsClass, settings);
+        final R copy = (R)CommonReaderNodeSettingsTest.saveLoad(m_persistor, settings);
         assertEquals(settings.m_persistorSettings.m_takeColumnsFrom, copy.m_persistorSettings.m_takeColumnsFrom);
         assertEquals(settings.m_columnTransformation.length, copy.m_columnTransformation.length);
         for (int i = 0; i < settings.m_columnTransformation.length; i++) {

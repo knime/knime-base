@@ -67,10 +67,11 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataType;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.util.Pair;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
 import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCellFactory;
 import org.knime.filehandling.core.node.table.reader.DefaultTableTransformation;
@@ -104,8 +105,17 @@ import org.knime.filehandling.core.node.table.reader.selector.UnknownColumnsTran
 @SuppressWarnings("restriction")
 public abstract class CommonReaderTransformationSettingsPersistor<C extends ReaderSpecificConfig<C>, //
         I extends ConfigIdSettings<C>, S, T, R extends CommonReaderTransformationSettings<I, S>>
-    extends NodeSettingsPersistorWithConfigKey<R> implements ReaderSpecific.ProductionPathProviderAndTypeHierarchy<T>,
+    implements NodeSettingsPersistor<R>, ReaderSpecific.ProductionPathProviderAndTypeHierarchy<T>,
     ExternalDataTypeSerializer<S, T>, ConfigAndReader<C, T> {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(CommonReaderTransformationSettingsPersistor.class);
+
+    static final String ROOT_CFG_KEY = "table_spec_config_Internals";
+
+    @Override
+    public String[][] getConfigPaths() {
+        return new String[0][0];
+    }
 
     /**
      * @return The result of the default constructor of the settings.
@@ -129,12 +139,12 @@ public abstract class CommonReaderTransformationSettingsPersistor<C extends Read
     @Override
     public R load(final NodeSettingsRO settings) throws InvalidSettingsException {
         final var transformationSettings = createDefaultTransformationSettings();
-        if (settings.containsKey(getConfigKey())) {
+        if (settings.containsKey(ROOT_CFG_KEY)) {
             // TODO NOSONAR We do not need to load the PersistorSettings here since they are not needed in the frontend.
             // This will change once we tackle UIEXT-1740 and this code will be used by the node model.
 
             final var tableSpecConfigSerializer = createTableSpecConfigSerializer();
-            final var tableSpecConfig = tableSpecConfigSerializer.load(settings.getNodeSettings(getConfigKey()));
+            final var tableSpecConfig = tableSpecConfigSerializer.load(settings.getNodeSettings(ROOT_CFG_KEY));
 
             final var transformationElements =
                 tableSpecConfig.getTableTransformation().stream().map(this::getTransformationElement).toList();
@@ -144,10 +154,9 @@ public abstract class CommonReaderTransformationSettingsPersistor<C extends Read
                 Stream.concat(transformationElements.stream(), Stream.of(unknownTransformationElement))
                     .sorted((t1, t2) -> t1.getFirst() - t2.getFirst()).map(Pair::getSecond)
                     .toArray(TransformationElementSettings[]::new);
-            transformationSettings.m_persistorSettings.m_takeColumnsFrom =
-                ColumnFilterMode.valueOf(settings.getNodeSettings(getConfigKey())
-                    .getNodeSettings("table_transformation").getString("column_filter_mode"));
-            transformationSettings.m_enforceTypes = settings.getNodeSettings(getConfigKey())
+            transformationSettings.m_persistorSettings.m_takeColumnsFrom = ColumnFilterMode.valueOf(settings
+                .getNodeSettings(ROOT_CFG_KEY).getNodeSettings("table_transformation").getString("column_filter_mode"));
+            transformationSettings.m_enforceTypes = settings.getNodeSettings(ROOT_CFG_KEY)
                 .getNodeSettings("table_transformation").getBoolean("enforce_types", true);
         }
         return transformationSettings;
@@ -206,7 +215,7 @@ public abstract class CommonReaderTransformationSettingsPersistor<C extends Read
         final var tableSpecConfigSerializer = createTableSpecConfigSerializer();
         final var tableSpecConfig = DefaultTableSpecConfig.createFromTransformationModel(persistorSettings.m_sourceId,
             config.getConfigID(), individualSpecs, tableTransformation, itemIdentifierColumnSpec);
-        tableSpecConfigSerializer.save(tableSpecConfig, settings.addNodeSettings(getConfigKey()));
+        tableSpecConfigSerializer.save(tableSpecConfig, settings.addNodeSettings(ROOT_CFG_KEY));
     }
 
     private Pair<ArrayList<ColumnTransformation<T>>, UnknownColumnsTransformation>

@@ -58,7 +58,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
@@ -237,7 +237,7 @@ public final class StringFormatManagerNodeSettings implements DefaultNodeSetting
 
     @Widget(title = "Alignment suggestion", description = "Specify how to align the string.")
     @ValueSwitchWidget
-    @Persist(optional = true)
+    @Migrate(loadDefaultIfAbsent = true)
     @Layout(DialogLayout.Display.class)
     AlignmentSuggestionOption m_alignmentSuggestion = AlignmentSuggestionOption.LEFT;
 

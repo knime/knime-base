@@ -231,17 +231,16 @@
           },
           "extractFields" : {
             "type" : "array",
-            "deprecatedConfigKeys" : [ {
-              "new" : [ [ ] ],
-              "deprecated" : [ [ "Year" ], [ "Year (week-based)" ], [ "Quarter" ], [ "Month (number)" ], [ "Month (name)" ], [ "Week" ], [ "Day of year" ], [ "Day of month" ], [ "Day of week (number)" ], [ "Day of week (name)" ], [ "Hour" ], [ "Minute" ], [ "Second" ], [ "Subsecond in" ], [ "Time zone name" ], [ "Time zone offset" ], [ "subsecond_units" ] ]
-            } ],
             "items" : {
               "type" : "object",
               "properties" : {
                 "field" : { },
                 "columnName" : { }
               }
-            }
+            },
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "Year" ], [ "Year (week-based)" ], [ "Quarter" ], [ "Month (number)" ], [ "Month (name)" ], [ "Week" ], [ "Day of year" ], [ "Day of month" ], [ "Day of week (number)" ], [ "Day of week (name)" ], [ "Hour" ], [ "Minute" ], [ "Second" ], [ "Subsecond in" ], [ "Time zone name" ], [ "Time zone offset" ], [ "subsecond_units" ] ]
+            } ]
           },
           "locale" : { }
         }

@@ -63,9 +63,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.settingsmodel.SettingsModelBooleanPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
@@ -105,18 +105,26 @@ public final class DoubleToIntNodeSettings implements DefaultNodeSettings {
     interface ColumnSelectionSection {
     }
 
-    @Persist(configKey = DoubleToIntNodeModel.CFG_INCLUDED_COLUMNS, customPersistor = LegacyColumnFilterPersistor.class)
+    @Persistor(InclColsPersistor.class)
     @Widget(title = "Column Selection", description = "Move the columns of interest into the &quot;Includes&quot; list")
     @ChoicesWidget(choices = NumericalColumns.class)
     @Layout(ColumnSelectionSection.class)
     ColumnFilter m_inclCols = new ColumnFilter();
+
+    static final class InclColsPersistor extends LegacyColumnFilterPersistor {
+
+        InclColsPersistor() {
+            super(DoubleToIntNodeModel.CFG_INCLUDED_COLUMNS);
+        }
+
+    }
 
     @Section(title = "Rounding Options")
     @After(ColumnSelectionSection.class)
     interface RoundingOptionsSection {
     }
 
-    @Persist(customPersistor = RoundingOptionsPersistor.class)
+    @Persistor(RoundingOptionsPersistor.class)
     @Widget(title = "Rounding type",
         description = "The type of rounding applied to the selected double cells. "
             + "(Round: standard rounding, Floor: next smaller integer, Ceil: next bigger integer")
@@ -137,12 +145,19 @@ public final class DoubleToIntNodeSettings implements DefaultNodeSettings {
 
     }
 
-    @Persist(configKey = DoubleToIntNodeModel.CFG_LONG, customPersistor = SettingsModelBooleanPersistor.class)
+    @Persistor(ProdLongPersistor.class)
     @Widget(title = "Create long values",
         description = "Use this option to generate 64bit long values instead of 32bit integer values. "
             + "This is useful if double values in the input are too big to fit into an integer.")
     @Layout(RoundingOptionsSection.class)
     boolean m_prodLong = false; //NOSONAR being explicit is desired here
+
+    static final class ProdLongPersistor extends SettingsModelBooleanPersistor {
+
+        ProdLongPersistor() {
+            super(DoubleToIntNodeModel.CFG_LONG);
+        }
+    }
 
     static final class NumericalColumns implements ChoicesProvider {
 
@@ -162,7 +177,7 @@ public final class DoubleToIntNodeSettings implements DefaultNodeSettings {
 
     }
 
-    private static final class RoundingOptionsPersistor implements FieldNodeSettingsPersistor<RoundingOptions> {
+    private static final class RoundingOptionsPersistor implements NodeSettingsPersistor<RoundingOptions> {
 
         @Override
         public RoundingOptions load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -177,8 +192,8 @@ public final class DoubleToIntNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{DoubleToIntNodeModel.CFG_TYPE_OF_ROUND};
+        public String[][] getConfigPaths() {
+            return new String[][]{{DoubleToIntNodeModel.CFG_TYPE_OF_ROUND}};
         }
     }
 

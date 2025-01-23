@@ -53,7 +53,8 @@ import java.util.stream.Stream;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
@@ -79,7 +80,15 @@ public final class ColumnFilterNodeSettings implements DefaultNodeSettings {
     ColumnFilterNodeSettings() {
     }
 
-    @Persist(configKey = "column-filter", customPersistor = LegacyColumnFilterPersistor.class, optional = true)
+    static final class ColumnFilterPersistor extends LegacyColumnFilterPersistor {
+
+        ColumnFilterPersistor() {
+            super("column-filter");
+        }
+    }
+
+    @Persistor(ColumnFilterPersistor.class)
+    @Migrate(loadDefaultIfAbsent = true)
     @Widget(title = "Column filter", description = "Select the columns to include in the output table.")
     @ChoicesWidget(choices = AllColumns.class)
     ColumnFilter m_columnFilter = new ColumnFilter();

@@ -51,7 +51,7 @@ package org.knime.base.node.preproc.stringreplacer;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 
 /**
@@ -85,7 +85,7 @@ public enum CaseMatching {
      * This is for compatibility with legacy node settings. However, newer nodes, e.g., String Replacer (Dictionary) use
      * this too for consistency.
      */
-    public static final class Persistor implements FieldNodeSettingsPersistor<CaseMatching> {
+    public static final class Persistor implements NodeSettingsPersistor<CaseMatching> {
 
         static final String CFG_CASE_SENSITIVE = "caseSensitive";
 
@@ -100,8 +100,8 @@ public enum CaseMatching {
         }
 
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{CFG_CASE_SENSITIVE};
+        public String[][] getConfigPaths() {
+            return new String[][]{{CFG_CASE_SENSITIVE}};
         }
 
     }

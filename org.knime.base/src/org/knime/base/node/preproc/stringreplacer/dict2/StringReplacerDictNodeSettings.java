@@ -57,7 +57,7 @@ import org.knime.core.data.StringValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
@@ -186,7 +186,7 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
     boolean m_enableEscaping;
 
     @Layout(DialogSections.FindAndReplace.class)
-    @Persist(customPersistor = CaseMatching.Persistor.class)
+    @Persistor(CaseMatching.Persistor.class)
     @Widget(title = CaseMatching.OPTION_NAME, description = CaseMatching.OPTION_DESCRIPTION)
     @ValueSwitchWidget
     CaseMatching m_caseMatching = CaseMatching.DEFAULT;

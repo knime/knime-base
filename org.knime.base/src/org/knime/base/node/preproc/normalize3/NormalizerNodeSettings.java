@@ -49,9 +49,10 @@
 package org.knime.base.node.preproc.normalize3;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
@@ -71,10 +72,18 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
 @SuppressWarnings("restriction")
 final class NormalizerNodeSettings implements DefaultNodeSettings {
 
-    @Persist(configKey = "data-column-filter", customPersistor = LegacyColumnFilterPersistor.class)
+    @Migration(DataColumnFilterConfigMigration.class)
     @Widget(title = "Number columns", description = "Select the numerical columns to normalize.")
     @ChoicesWidget(choices = DoubleColumnChoicesProvider.class)
     ColumnFilter m_dataColumnFilterConfig = new ColumnFilter().withIncludeUnknownColumns();
+
+    static final class DataColumnFilterConfigMigration extends LegacyColumnFilterMigration {
+
+        DataColumnFilterConfigMigration() {
+            super("data-column-filter");
+        }
+
+    }
 
     interface NormalizerModeRef extends Reference<NormalizerMode> {
     }

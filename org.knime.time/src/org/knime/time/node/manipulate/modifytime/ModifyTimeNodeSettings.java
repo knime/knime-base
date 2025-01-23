@@ -64,8 +64,9 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
@@ -117,7 +118,7 @@ class ModifyTimeNodeSettings implements DefaultNodeSettings {
             columns can only  be modified or have their time component removed.
             """)
     @ValueSwitchWidget
-    @Persist(customPersistor = BehaviourTypePersistor.class)
+    @Persistor(BehaviourTypePersistor.class)
     @ValueReference(BehaviourTypeRef.class)
     BehaviourType m_modifySelect = BehaviourType.CHANGE;
 
@@ -134,7 +135,7 @@ class ModifyTimeNodeSettings implements DefaultNodeSettings {
     ZoneId m_timeZone = ZoneId.systemDefault();
 
     @Widget(title = "Date&time columns", description = "Only the included columns will be modified.")
-    @Persist(configKey = "col_select", customPersistor = LegacyColumnFilterPersistor.class, optional = true)
+    @Persistor(ColumnFilterPersistor.class)
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
@@ -143,7 +144,7 @@ class ModifyTimeNodeSettings implements DefaultNodeSettings {
             or appended to the input table.
             """)
     @ValueSwitchWidget
-    @Persist(customPersistor = ReplaceOrAppend.Persistor.class)
+    @Persistor(ReplaceOrAppend.Persistor.class)
     @ValueReference(ReplaceOrAppend.ValueRef.class)
     ReplaceOrAppend m_appendOrReplace = ReplaceOrAppend.REPLACE;
 
@@ -206,7 +207,7 @@ class ModifyTimeNodeSettings implements DefaultNodeSettings {
      * ------------------------------------------------------------------------
      */
 
-    static final class BehaviourTypePersistor implements FieldNodeSettingsPersistor<BehaviourType> {
+    static final class BehaviourTypePersistor implements NodeSettingsPersistor<BehaviourType> {
 
         private static final String CONFIG_KEY = "modify_select";
 
@@ -221,8 +222,14 @@ class ModifyTimeNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{CONFIG_KEY};
+        public String[][] getConfigPaths() {
+            return new String[][]{{CONFIG_KEY}};
+        }
+    }
+
+    static final class ColumnFilterPersistor extends LegacyColumnFilterPersistor {
+        ColumnFilterPersistor() {
+            super("col_select");
         }
     }
 

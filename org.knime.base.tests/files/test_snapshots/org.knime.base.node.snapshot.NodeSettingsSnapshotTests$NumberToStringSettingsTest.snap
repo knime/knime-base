@@ -182,47 +182,7 @@
         "type" : "object",
         "properties" : {
           "columns" : {
-            "configPaths" : [ [ "include", "filter-type" ], [ "include", "included_names" ], [ "include", "excluded_names" ], [ "include", "enforce_option" ], [ "include", "name_pattern", "pattern" ], [ "include", "name_pattern", "type" ], [ "include", "name_pattern", "caseSensitive" ], [ "include", "name_pattern", "excludeMatching" ] ],
-            "type" : "object",
-            "properties" : {
-              "selected" : {
-                "configPaths" : [ ]
-              },
-              "mode" : { },
-              "patternFilter" : {
-                "type" : "object",
-                "properties" : {
-                  "pattern" : { },
-                  "isCaseSensitive" : { },
-                  "isInverted" : { }
-                }
-              },
-              "manualFilter" : {
-                "type" : "object",
-                "properties" : {
-                  "manuallySelected" : { },
-                  "manuallyDeselected" : { },
-                  "includeUnknownColumns" : { }
-                }
-              },
-              "typeFilter" : {
-                "type" : "object",
-                "properties" : {
-                  "selectedTypes" : { },
-                  "typeDisplays" : {
-                    "type" : "array",
-                    "configPaths" : [ ],
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "id" : { },
-                        "text" : { }
-                      }
-                    }
-                  }
-                }
-              }
-            }
+            "configPaths" : [ [ "include", "filter-type" ], [ "include", "included_names" ], [ "include", "excluded_names" ], [ "include", "enforce_option" ], [ "include", "name_pattern", "pattern" ], [ "include", "name_pattern", "type" ], [ "include", "name_pattern", "caseSensitive" ], [ "include", "name_pattern", "excludeMatching" ] ]
           }
         }
       }

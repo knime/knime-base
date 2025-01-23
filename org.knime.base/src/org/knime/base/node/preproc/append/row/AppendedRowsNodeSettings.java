@@ -53,8 +53,9 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -85,7 +86,7 @@ public final class AppendedRowsNodeSettings implements DefaultNodeSettings {
             INTERSECTION;
     }
 
-    @Persist(customPersistor = ColumnSetOperationPersistor.class)
+    @Persistor(ColumnSetOperationPersistor.class)
     @Widget(title = "How to combine input columns", description = """
             Choose the output column selection process:<ul>
             <li><b>Union</b>: Use all columns from all input tables. Fill rows with missing values if they miss cells
@@ -97,7 +98,7 @@ public final class AppendedRowsNodeSettings implements DefaultNodeSettings {
     @ValueSwitchWidget
     ColumnSetOperation m_columnSetOperation = ColumnSetOperation.UNION;
 
-    @Persist(customPersistor = RowIdResolutionPersistor.class)
+    @Persistor(RowIdResolutionPersistor.class)
     RowIdStrategySelection m_rowIdStrategy = new RowIdStrategySelection();
 
     @Persist(configKey = AppendedRowsNodeModel.CFG_HILITING)
@@ -184,7 +185,7 @@ public final class AppendedRowsNodeSettings implements DefaultNodeSettings {
 
     }
 
-    private static final class RowIdResolutionPersistor implements FieldNodeSettingsPersistor<RowIdStrategySelection> {
+    private static final class RowIdResolutionPersistor implements NodeSettingsPersistor<RowIdStrategySelection> {
 
         @Override
         public RowIdStrategySelection load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -223,13 +224,16 @@ public final class AppendedRowsNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{AppendedRowsNodeModel.CFG_NEW_ROWIDS, AppendedRowsNodeModel.CFG_APPEND_SUFFIX,
-                AppendedRowsNodeModel.CFG_FAIL_ON_DUPLICATES};
+        public String[][] getConfigPaths() {
+            return new String[][]{//
+                {AppendedRowsNodeModel.CFG_NEW_ROWIDS}, //
+                {AppendedRowsNodeModel.CFG_APPEND_SUFFIX}, //
+                {AppendedRowsNodeModel.CFG_FAIL_ON_DUPLICATES}//
+            };
         }
     }
 
-    private static final class ColumnSetOperationPersistor implements FieldNodeSettingsPersistor<ColumnSetOperation> {
+    private static final class ColumnSetOperationPersistor implements NodeSettingsPersistor<ColumnSetOperation> {
 
         @Override
         public ColumnSetOperation load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -246,8 +250,8 @@ public final class AppendedRowsNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{AppendedRowsNodeModel.CFG_INTERSECT_COLUMNS};
+        public String[][] getConfigPaths() {
+            return new String[][]{{AppendedRowsNodeModel.CFG_INTERSECT_COLUMNS}};
         }
     }
 }

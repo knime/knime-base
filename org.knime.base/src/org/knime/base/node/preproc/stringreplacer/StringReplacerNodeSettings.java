@@ -56,14 +56,15 @@ import org.knime.core.data.StringValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultPersistorWithDeprecations;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
@@ -121,8 +122,12 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
         }
     }
 
+    /**
+     * Using a migration here is ok although the mode is not a webui node model, since the load behavior is adapted in
+     * {@link StringReplacerSettings#loadSettings}
+     */
+    @Migration(PatternTypeMigration.class)
     @Layout(DialogSections.FindAndReplace.class)
-    @Persist(customPersistor = PatternTypePersistor.class)
     @Widget(title = PatternType.OPTION_NAME, description = PatternType.OPTION_DESCRIPTION)
     @ValueSwitchWidget
     @ValueReference(PatternTypeRef.class)
@@ -139,7 +144,7 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
     boolean m_enableEscaping;
 
     @Layout(DialogSections.FindAndReplace.class)
-    @Persist(customPersistor = CaseMatching.Persistor.class)
+    @Persistor(CaseMatching.Persistor.class)
     @Widget(title = CaseMatching.OPTION_NAME, description = CaseMatching.OPTION_DESCRIPTION)
     @ValueSwitchWidget
     CaseMatching m_caseMatching = CaseMatching.DEFAULT;
@@ -162,7 +167,7 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
     String m_replacement;
 
     @Layout(DialogSections.FindAndReplace.class)
-    @Persist(customPersistor = ReplacementStrategyPersistor.class)
+    @Persistor(ReplacementStrategyPersistor.class)
     @Widget(title = ReplacementStrategy.OPTION_NAME, description = ReplacementStrategy.OPTION_DESCRIPTION)
     @ValueSwitchWidget
     ReplacementStrategy m_replacementStrategy = ReplacementStrategy.DEFAULT;
@@ -188,8 +193,7 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
     // Persistors
 
     @SuppressWarnings("deprecation") // we're dealing with deprecated settings here
-    static final class PatternTypePersistor extends NodeSettingsPersistorWithConfigKey<PatternType>
-        implements DefaultPersistorWithDeprecations<PatternType> {
+    static final class PatternTypeMigration implements NodeSettingsMigration<PatternType> {
 
         private static PatternType loadLegazy(final NodeSettingsRO settings) throws InvalidSettingsException {
             if (settings.getBoolean(StringReplacerSettings.CFG_FIND_PATTERN, true)) {
@@ -201,22 +205,19 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public List<ConfigsDeprecation<PatternType>> getConfigsDeprecations() {
+        public List<ConfigMigration<PatternType>> getConfigMigrations() {
 
             return List.of(
                 // backwards-compatibility for 5.1 <= version < 5.4:
-                ConfigsDeprecation.builder(PatternTypePersistor::loadLegazy)//
-                    .withMatcher(settings ->
-                    !settings.containsKey(getConfigKey())
-                    )
-
+                ConfigMigration.builder(PatternTypeMigration::loadLegazy)//
+                    .withMatcher(settings -> !settings.containsKey(StringReplacerSettings.CFG_PATTERN_TYPE))
                     .withDeprecatedConfigPath(StringReplacerSettings.CFG_FIND_PATTERN)//
                     .withDeprecatedConfigPath(StringReplacerSettings.CFG_PATTERN_IS_REGEX)//
                     .build());//
         }
     }
 
-    private static final class ReplacementStrategyPersistor implements FieldNodeSettingsPersistor<ReplacementStrategy> {
+    private static final class ReplacementStrategyPersistor implements NodeSettingsPersistor<ReplacementStrategy> {
         @Override
         public ReplacementStrategy load(final NodeSettingsRO settings) throws InvalidSettingsException {
             if (settings.getBoolean(StringReplacerSettings.CFG_REPLACE_ALL_OCCURENCES)) {
@@ -233,8 +234,8 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{StringReplacerSettings.CFG_REPLACE_ALL_OCCURENCES};
+        public String[][] getConfigPaths() {
+            return new String[][]{{StringReplacerSettings.CFG_REPLACE_ALL_OCCURENCES}};
         }
     }
 

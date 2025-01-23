@@ -112,7 +112,9 @@
           "inexclude" : {
             "configPaths" : [ [ "inexclude" ] ]
           },
-          "updateDomains" : { }
+          "updateDomains" : {
+            "configPaths" : [ [ "updateDomains" ] ]
+          }
         }
       }
     }

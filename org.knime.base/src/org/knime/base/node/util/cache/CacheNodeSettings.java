@@ -49,8 +49,9 @@
 package org.knime.base.node.util.cache;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DefaultProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -68,8 +69,7 @@ final class CacheNodeSettings implements DefaultNodeSettings {
             @Label(value = "Automatic",
                 description = "Determines the algorithm automatically based on the table backend "
                     + "used by the current workflow")
-            AUTO,
-            @Label(value = "Columnar (Full Row)", description = "Uses the Columnar Table API, best used when the "
+            AUTO, @Label(value = "Columnar (Full Row)", description = "Uses the Columnar Table API, best used when the "
                 + "workflow configuration is set to use the Columnar Table Backend.")
             COLUMNAR_BY_ROW,
             @Label(value = "Columnar (Cell By Cell)", description = "Uses the new Columnar Table API, in addition"
@@ -82,10 +82,9 @@ final class CacheNodeSettings implements DefaultNodeSettings {
     }
 
     enum ColumnDomains {
-        @Label("Retain")
-        RETAIN,
-        @Label("Compute")
-        COMPUTE
+            @Label("Retain")
+            RETAIN, @Label("Compute")
+            COMPUTE
     }
 
     @Widget(title = "Column domains", description = """
@@ -109,13 +108,15 @@ final class CacheNodeSettings implements DefaultNodeSettings {
             </p>
             """)
     @ValueSwitchWidget
-    @Persist(optional = true)
+    @Migrate(loadDefaultIfAbsent = true)
     ColumnDomains m_domains = ColumnDomains.RETAIN;
 
-    @Widget(title = "Copy Implementation", description = "Select the copy implementation to use when copying. "
-        + "In most cases leave it as automatic unless you are running performance tests or similar. For backward "
-        + "compatibility reasons, the value for existing nodes is kept as 'Row-based'.", advanced = true)
-    @Persist(defaultProvider = DefaultCopyImplementationProvider.class)
+    @Widget(title = "Copy Implementation",
+        description = "Select the copy implementation to use when copying. "
+            + "In most cases leave it as automatic unless you are running performance tests or similar. For backward "
+            + "compatibility reasons, the value for existing nodes is kept as 'Row-based'.",
+        advanced = true)
+    @Migration(DefaultCopyImplementationProvider.class)
     CopyImplementation m_implementation = CopyImplementation.AUTO;
 
     /** provider for backward compatibility. */

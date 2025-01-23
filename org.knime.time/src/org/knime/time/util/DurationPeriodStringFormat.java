@@ -55,7 +55,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
@@ -111,11 +111,13 @@ public enum DurationPeriodStringFormat {
      * and can load legacy settings in a backwards-compatible way. Not recommended unless you actually need the
      * backwards compatibility.
      */
-    public static final class LegacyPersistor extends NodeSettingsPersistorWithConfigKey<DurationPeriodStringFormat> {
+    public static final class LegacyPersistor implements NodeSettingsPersistor<DurationPeriodStringFormat> {
+
+        private static final String CONFIG_KEY = "format";
 
         @Override
         public DurationPeriodStringFormat load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            var oldConfigValue = settings.getString(getConfigKey());
+            var oldConfigValue = settings.getString(CONFIG_KEY);
 
             try {
                 return DurationPeriodStringFormat.getByOldConfigValue(oldConfigValue);
@@ -131,7 +133,12 @@ public enum DurationPeriodStringFormat {
 
         @Override
         public void save(final DurationPeriodStringFormat obj, final NodeSettingsWO settings) {
-            settings.addString(getConfigKey(), obj.m_oldConfigValue);
+            settings.addString(CONFIG_KEY, obj.m_oldConfigValue);
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{{CONFIG_KEY}};
         }
     }
 }

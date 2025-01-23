@@ -53,10 +53,10 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.settingsmodel.SettingsModelBooleanPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.settingsmodel.SettingsModelColumnNamePersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelColumnNamePersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
@@ -73,27 +73,26 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 @SuppressWarnings("restriction")
 public final class RowFilterRefNodeSettings implements DefaultNodeSettings {
 
-
-    @Persist(customPersistor = SettingsModelColumnNamePersistor.class, configKey = "dataTableColumn")
+    @Persistor(DataColumnPersistor.class)
     @Widget(title = "Data column",
         description = "The column from the table to be filtered that should be used for comparison.")
     @ChoicesWidget(choices = DataColumnChoices.class, showRowKeysColumn = true)
     String m_dataColumn = "<row-keys>";
 
-    @Persist(customPersistor = SettingsModelColumnNamePersistor.class, configKey = "referenceTableColumn")
+    @Persistor(ReferenceColumnPersistor.class)
     @Widget(title = "Reference column",
         description = "The column from the filter table that should be used for comparison.")
     @ChoicesWidget(choices = ReferenceColumnChoices.class, showRowKeysColumn = true)
     String m_referenceColumn = "<row-keys>";
 
-    @Persist(customPersistor = IncludeOrExcludeRowsPersistor.class)
+    @Persistor(IncludeOrExcludeRowsPersistor.class)
     @Widget(title = "Include or exclude rows from the reference table",
         description = "Includes or excludes all rows from the reference table in the resulting table from the first "
             + "input.")
     @ValueSwitchWidget
     IncludeOrExcludeRows m_inexclude = IncludeOrExcludeRows.INCLUDE;
 
-    @Persist(customPersistor = SettingsModelBooleanPersistor.class)
+    @Persistor(UpdateDomainsPersistor.class)
     @Widget( //
         title = "Update domains of all columns", //
         description = "Advanced setting to enable recomputation of the domains of all columns in the output table " //
@@ -136,8 +135,25 @@ public final class RowFilterRefNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    private static final class IncludeOrExcludeRowsPersistor
-        implements FieldNodeSettingsPersistor<IncludeOrExcludeRows> {
+    static final class DataColumnPersistor extends SettingsModelColumnNamePersistor {
+        DataColumnPersistor() {
+            super("dataTableColumn");
+        }
+    }
+
+    static final class ReferenceColumnPersistor extends SettingsModelColumnNamePersistor {
+        ReferenceColumnPersistor() {
+            super("referenceTableColumn");
+        }
+    }
+
+    static final class UpdateDomainsPersistor extends SettingsModelBooleanPersistor {
+        UpdateDomainsPersistor() {
+            super("updateDomains");
+        }
+    }
+
+    private static final class IncludeOrExcludeRowsPersistor implements NodeSettingsPersistor<IncludeOrExcludeRows> {
 
         private static final String KEY_INCLUDE_EXCLUDE = "inexclude";
 
@@ -158,8 +174,8 @@ public final class RowFilterRefNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{KEY_INCLUDE_EXCLUDE};
+        public String[][] getConfigPaths() {
+            return new String[][]{{KEY_INCLUDE_EXCLUDE}};
         }
     }
 }

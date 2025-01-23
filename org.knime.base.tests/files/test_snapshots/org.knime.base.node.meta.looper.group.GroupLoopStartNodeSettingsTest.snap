@@ -1,7 +1,7 @@
 {
   "data" : {
     "model" : {
-      "columnFilter" : {
+      "categoryColumns" : {
         "selected" : [ "test1", "test2" ],
         "mode" : "MANUAL",
         "patternFilter" : {
@@ -40,7 +40,7 @@
             "description" : "Enhance performance by selecting 'Keep input data order' if your data is\nalready sorted by the group columns. Be cautious: if the input is not properly sorted, the node\nwill fail. If you want to make sure that this node executes, do not choose this option.\n",
             "default" : "NO"
           },
-          "columnFilter" : {
+          "categoryColumns" : {
             "type" : "object",
             "properties" : {
               "manualFilter" : {
@@ -174,7 +174,7 @@
   "ui_schema" : {
     "elements" : [ {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/columnFilter",
+      "scope" : "#/properties/model/properties/categoryColumns",
       "options" : {
         "format" : "columnFilter",
         "possibleValues" : [ {
@@ -215,8 +215,7 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "columnFilter" : {
-            "configPaths" : [ [ "GroupColNames", "filter-type" ], [ "GroupColNames", "included_names" ], [ "GroupColNames", "excluded_names" ], [ "GroupColNames", "enforce_option" ], [ "GroupColNames", "name_pattern", "pattern" ], [ "GroupColNames", "name_pattern", "type" ], [ "GroupColNames", "name_pattern", "caseSensitive" ], [ "GroupColNames", "name_pattern", "excludeMatching" ] ],
+          "categoryColumns" : {
             "type" : "object",
             "properties" : {
               "selected" : {
@@ -244,22 +243,21 @@
                 "properties" : {
                   "selectedTypes" : { },
                   "typeDisplays" : {
-                    "type" : "array",
-                    "configPaths" : [ ],
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "id" : { },
-                        "text" : { }
-                      }
-                    }
+                    "configPaths" : [ ]
                   }
                 }
               }
-            }
+            },
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "GroupColNames", "filter-type" ], [ "GroupColNames", "included_names" ], [ "GroupColNames", "excluded_names" ], [ "GroupColNames", "enforce_option" ], [ "GroupColNames", "name_pattern", "pattern" ], [ "GroupColNames", "name_pattern", "type" ], [ "GroupColNames", "name_pattern", "caseSensitive" ], [ "GroupColNames", "name_pattern", "excludeMatching" ] ]
+            } ]
           },
           "alreadySorted" : {
-            "configPaths" : [ [ "SortedInput" ] ]
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "SortedInput" ] ]
+            }, {
+              "deprecated" : [ ]
+            } ]
           }
         }
       }

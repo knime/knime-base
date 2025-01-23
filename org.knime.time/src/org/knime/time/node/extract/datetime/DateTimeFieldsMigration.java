@@ -54,8 +54,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultPersistorWithDeprecations;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings.DateTimeField;
 import org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings.ExtractField;
 
@@ -64,7 +64,7 @@ import org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings.Extrac
  * @author Christian Albrecht, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public class DateTimeFieldsPersistor implements DefaultPersistorWithDeprecations<ExtractField[]> {
+public class DateTimeFieldsMigration implements NodeSettingsMigration<ExtractField[]> {
 
     // used legacy keys (and subsecond values)
     static final String YEAR = "Year";
@@ -166,9 +166,9 @@ public class DateTimeFieldsPersistor implements DefaultPersistorWithDeprecations
     }
 
     @Override
-    public List<ConfigsDeprecation<ExtractField[]>> getConfigsDeprecations() {
-        final var builder = ConfigsDeprecation.builder(DateTimeFieldsPersistor::constructExtractFieldsFromLegacy)
-            .withMatcher(DateTimeFieldsPersistor::oldSettingsUsed);
+    public List<ConfigMigration<ExtractField[]>> getConfigMigrations() {
+        final var builder = ConfigMigration.builder(DateTimeFieldsMigration::constructExtractFieldsFromLegacy)
+            .withMatcher(DateTimeFieldsMigration::oldSettingsUsed);
         for (String settingKey : topLevelKeys) {
             builder.withDeprecatedConfigPath(settingKey);
         }

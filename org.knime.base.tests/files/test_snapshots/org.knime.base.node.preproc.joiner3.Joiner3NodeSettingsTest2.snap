@@ -656,24 +656,22 @@
           "compositionMode" : { },
           "matchingCriteria" : {
             "type" : "array",
-            "deprecatedConfigKeys" : [ {
-              "new" : [ [ ] ],
-              "deprecated" : [ [ "leftTableJoinPredicate" ], [ "rightTableJoinPredicate" ] ]
-            } ],
             "items" : {
               "type" : "object",
               "properties" : {
                 "leftTableColumn" : { },
                 "rightTableColumn" : { }
               }
-            }
+            },
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "leftTableJoinPredicate" ], [ "rightTableJoinPredicate" ] ]
+            } ]
           },
           "dataCellComparisonMode" : { },
           "includeMatchesInOutput" : { },
           "includeLeftUnmatchedInOutput" : { },
           "includeRightUnmatchedInOutput" : { },
           "leftColumnSelectionConfig" : {
-            "configPaths" : [ [ "leftColumnSelectionConfig", "filter-type" ], [ "leftColumnSelectionConfig", "included_names" ], [ "leftColumnSelectionConfig", "excluded_names" ], [ "leftColumnSelectionConfig", "enforce_option" ], [ "leftColumnSelectionConfig", "name_pattern", "pattern" ], [ "leftColumnSelectionConfig", "name_pattern", "type" ], [ "leftColumnSelectionConfig", "name_pattern", "caseSensitive" ], [ "leftColumnSelectionConfig", "name_pattern", "excludeMatching" ] ],
             "type" : "object",
             "properties" : {
               "selected" : {
@@ -701,22 +699,16 @@
                 "properties" : {
                   "selectedTypes" : { },
                   "typeDisplays" : {
-                    "type" : "array",
-                    "configPaths" : [ ],
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "id" : { },
-                        "text" : { }
-                      }
-                    }
+                    "configPaths" : [ ]
                   }
                 }
               }
-            }
+            },
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "leftColumnSelectionConfig", "filter-type" ], [ "leftColumnSelectionConfig", "included_names" ], [ "leftColumnSelectionConfig", "excluded_names" ], [ "leftColumnSelectionConfig", "enforce_option" ], [ "leftColumnSelectionConfig", "name_pattern", "pattern" ], [ "leftColumnSelectionConfig", "name_pattern", "type" ], [ "leftColumnSelectionConfig", "name_pattern", "caseSensitive" ], [ "leftColumnSelectionConfig", "name_pattern", "excludeMatching" ] ]
+            } ]
           },
           "rightColumnSelectionConfig" : {
-            "configPaths" : [ [ "rightColumnSelectionConfig", "filter-type" ], [ "rightColumnSelectionConfig", "included_names" ], [ "rightColumnSelectionConfig", "excluded_names" ], [ "rightColumnSelectionConfig", "enforce_option" ], [ "rightColumnSelectionConfig", "name_pattern", "pattern" ], [ "rightColumnSelectionConfig", "name_pattern", "type" ], [ "rightColumnSelectionConfig", "name_pattern", "caseSensitive" ], [ "rightColumnSelectionConfig", "name_pattern", "excludeMatching" ] ],
             "type" : "object",
             "properties" : {
               "selected" : {
@@ -744,19 +736,14 @@
                 "properties" : {
                   "selectedTypes" : { },
                   "typeDisplays" : {
-                    "type" : "array",
-                    "configPaths" : [ ],
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "id" : { },
-                        "text" : { }
-                      }
-                    }
+                    "configPaths" : [ ]
                   }
                 }
               }
-            }
+            },
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "rightColumnSelectionConfig", "filter-type" ], [ "rightColumnSelectionConfig", "included_names" ], [ "rightColumnSelectionConfig", "excluded_names" ], [ "rightColumnSelectionConfig", "enforce_option" ], [ "rightColumnSelectionConfig", "name_pattern", "pattern" ], [ "rightColumnSelectionConfig", "name_pattern", "type" ], [ "rightColumnSelectionConfig", "name_pattern", "caseSensitive" ], [ "rightColumnSelectionConfig", "name_pattern", "excludeMatching" ] ]
+            } ]
           },
           "mergeJoinColumns" : { },
           "duplicateHandling" : { },

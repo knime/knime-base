@@ -60,8 +60,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
@@ -91,13 +93,19 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
     interface DuplicateDetectionSection {
     }
 
-    @Persist(configKey = DuplicateRowFilterSettings.GROUP_COLS_KEY, customPersistor = LegacyColumnFilterPersistor.class)
+    @Persistor(ConsidererdColumnsPersistor.class)
     @Widget(title = "Choose columns for duplicates detection",
         description = "Allows the selection of columns identifying the duplicates. "
             + "Columns not selected are handled under \"Row selection\" in the \"Advanced\" settings.")
     @ChoicesWidget(choices = AllColumns.class)
     @Layout(DuplicateDetectionSection.class)
     ColumnFilter m_consideredColumns;
+
+    static final class ConsidererdColumnsPersistor extends LegacyColumnFilterPersistor {
+        ConsidererdColumnsPersistor() {
+            super(DuplicateRowFilterSettings.GROUP_COLS_KEY);
+        }
+    }
 
     @Section(title = "Duplicate handling")
     @After(DuplicateDetectionSection.class)
@@ -108,7 +116,7 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
     interface DuplicateRowHandlingRef extends Reference<DuplicateRowHandling> {
     }
 
-    @Persist(customPersistor = DuplicateRowHandlingPersistor.class)
+    @Persistor(DuplicateRowHandlingPersistor.class)
     @Widget(title = "Duplicate rows", description = "Choose how duplicate rows should be handled." //
         + "<ul>" //
         + "<li><b>Remove duplicate rows:</b> Removes duplicate rows and keeps only unique and chosen rows.</li>" //
@@ -160,7 +168,8 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
     @ValueReference(AddUniqueLabel.class)
     boolean m_addUniqueLabel = true;
 
-    @Persist(configKey = DuplicateRowFilterSettings.UNIQUE_FLAG_COLUMN_NAME_KEY, optional = true)
+    @Persist(configKey = DuplicateRowFilterSettings.UNIQUE_FLAG_COLUMN_NAME_KEY)
+    @Migrate(loadDefaultIfAbsent = true)
     @Widget(title = "Column name of row status",
         description = "Choose the column name to which the row status "
             + "('unique', 'chosen', 'duplicate') should be outputted.")
@@ -177,7 +186,8 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
     @ValueReference(AddChosenRowIdsColumn.class)
     boolean m_addRowIdLabel;
 
-    @Persist(configKey = DuplicateRowFilterSettings.ROW_ID_FLAG_COLUMN_NAME_KEY, optional = true)
+    @Persist(configKey = DuplicateRowFilterSettings.ROW_ID_FLAG_COLUMN_NAME_KEY)
+    @Migrate(loadDefaultIfAbsent = true)
     @Widget(title = "Column name of chosen RowIDs",
         description = "Choose the column name to which the RowID "
             + "of the chosen row for each duplicate row should be outputted.")
@@ -240,7 +250,8 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
     @Layout(PerformanceSection.class)
     boolean m_retainOrder = true;
 
-    @Persist(configKey = DuplicateRowFilterSettings.UPDATE_DOMAINS_KEY, optional = true)
+    @Persist(configKey = DuplicateRowFilterSettings.UPDATE_DOMAINS_KEY)
+    @Migrate(loadDefaultIfAbsent = true)
     @Widget( //
         title = "Update domains of all columns", //
         description = "Recompute the domains of all columns in the output tables such that the domains'" //
@@ -303,8 +314,7 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
     }
 
     /** Custom persistor for the duplicate row handling: true for REMOVE, false for KEEP */
-    private static final class DuplicateRowHandlingPersistor
-        implements FieldNodeSettingsPersistor<DuplicateRowHandling> {
+    private static final class DuplicateRowHandlingPersistor implements NodeSettingsPersistor<DuplicateRowHandling> {
 
         @Override
         public DuplicateRowHandling load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -322,8 +332,8 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
         }
 
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{DuplicateRowFilterSettings.REMOVE_DUPLICATE_ROWS_KEY};
+        public String[][] getConfigPaths() {
+            return new String[][]{{DuplicateRowFilterSettings.REMOVE_DUPLICATE_ROWS_KEY}};
         }
     }
 

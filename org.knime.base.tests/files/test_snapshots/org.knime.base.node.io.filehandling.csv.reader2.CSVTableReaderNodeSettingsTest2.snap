@@ -31,10 +31,10 @@
         "numberOfCharactersForAutodetection" : 1048576
       },
       "advancedSettings" : {
+        "ifSchemaChangesOption" : "IGNORE",
         "howToCombineColumns" : "FAIL",
         "appendPathColumn" : false,
         "filePathColumnName" : "Path",
-        "ifSchemaChangesOption" : "IGNORE",
         "limitScannedRows" : true,
         "maxDataRowsScanned" : 10000,
         "limitMemoryPerColumn" : true,
@@ -233,10 +233,10 @@
               }
             },
             "default" : {
+              "ifSchemaChangesOption" : "FAIL",
               "howToCombineColumns" : "FAIL",
               "appendPathColumn" : false,
               "filePathColumnName" : "File Path",
-              "ifSchemaChangesOption" : "FAIL",
               "limitScannedRows" : true,
               "maxDataRowsScanned" : 10000,
               "limitMemoryPerColumn" : true,
@@ -1257,19 +1257,13 @@
         "type" : "object",
         "properties" : {
           "settings" : {
-            "configKey" : "settings",
             "type" : "object",
             "properties" : {
               "authenticationManagedByPortText" : { },
               "source" : {
-                "configKey" : "file_selection",
-                "type" : "object",
-                "properties" : {
-                  "path" : { }
-                }
+                "configPaths" : [ [ "file_selection" ] ]
               },
               "fileSelectionInternal" : {
-                "configPaths" : [ ],
                 "type" : "object",
                 "properties" : {
                   "settingsModelID" : {
@@ -1278,7 +1272,8 @@
                   "enabledStatus" : {
                     "configKey" : "EnabledStatus"
                   }
-                }
+                },
+                "configPaths" : [ ]
               },
               "firstColumnContainsRowIds" : {
                 "configKey" : "has_row_id"
@@ -1287,7 +1282,7 @@
                 "configKey" : "has_column_header"
               },
               "ifRowHasLessColumnsOption" : {
-                "configKey" : "support_short_data_rows"
+                "configPaths" : [ [ "support_short_data_rows" ] ]
               },
               "skipEmptyDataRows" : {
                 "configKey" : "skip_empty_data_rows"
@@ -1299,7 +1294,7 @@
                 "configKey" : "comment_char"
               },
               "columnDelimiter" : {
-                "configKey" : "column_delimiter"
+                "configPaths" : [ [ "column_delimiter" ] ]
               },
               "quoteCharacter" : {
                 "configKey" : "quote_char"
@@ -1308,21 +1303,24 @@
                 "configKey" : "quote_escape_char"
               },
               "rowDelimiterOption" : {
-                "configKey" : "use_line_break_row_delimiter"
+                "configPaths" : [ [ "use_line_break_row_delimiter" ] ]
               },
               "customRowDelimiter" : {
-                "configKey" : "row_delimiter"
+                "configPaths" : [ [ "row_delimiter" ] ]
               },
               "numberOfCharactersForAutodetection" : {
                 "configKey" : "autodetect_buffer_size"
               },
               "autoDetectButton" : { }
-            }
+            },
+            "configKey" : "settings"
           },
           "advancedSettings" : {
-            "configKey" : "advanced_settings",
             "type" : "object",
             "properties" : {
+              "ifSchemaChangesOption" : {
+                "configPaths" : [ [ "check_table_spec" ] ]
+              },
               "howToCombineColumns" : {
                 "configPaths" : [ [ "fail_on_differing_specs" ], [ "spec_merge_mode" ] ]
               },
@@ -1331,9 +1329,6 @@
               },
               "filePathColumnName" : {
                 "configPaths" : [ ]
-              },
-              "ifSchemaChangesOption" : {
-                "configPaths" : [ [ "check_table_spec" ] ]
               },
               "limitScannedRows" : {
                 "configKey" : "limit_data_rows_scanned"
@@ -1368,10 +1363,10 @@
               "decimalSeparator" : {
                 "configKey" : "decimal_separator"
               }
-            }
+            },
+            "configKey" : "advanced_settings"
           },
           "limitRows" : {
-            "configKey" : "limit_rows",
             "type" : "object",
             "properties" : {
               "skipFirstLines" : {
@@ -1386,98 +1381,20 @@
               "maximumNumberOfRows" : {
                 "configKey" : "max_rows"
               }
-            }
+            },
+            "configKey" : "limit_rows"
           },
           "encoding" : {
-            "configKey" : "encoding",
             "type" : "object",
             "properties" : {
               "charset" : {
-                "configKey" : "charset",
-                "type" : "object",
-                "properties" : {
-                  "fileEncoding" : { },
-                  "customEncoding" : { }
-                }
+                "configPaths" : [ [ "charset" ] ]
               }
-            }
+            },
+            "configKey" : "encoding"
           },
           "tableSpecConfig" : {
-            "configPaths" : [ ],
-            "type" : "object",
-            "properties" : {
-              "persistorSettings" : {
-                "type" : "object",
-                "properties" : {
-                  "configId" : {
-                    "type" : "object",
-                    "properties" : {
-                      "firstRowContainsColumnNames" : { },
-                      "firstColumnContainsRowIds" : { },
-                      "commentLineCharacter" : { },
-                      "columnDelimiter" : { },
-                      "quoteCharacter" : { },
-                      "quoteEscapeCharacter" : { },
-                      "rowDelimiterOption" : { },
-                      "customRowDelimiter" : { },
-                      "quotedStringsOption" : { },
-                      "replaceEmptyQuotedStringsByMissingValues" : { },
-                      "limitScannedRows" : { },
-                      "maxDataRowsScanned" : { },
-                      "thousandsSeparator" : { },
-                      "decimalSeparator" : { },
-                      "fileEncoding" : { },
-                      "customEncoding" : { },
-                      "skipFirstLines" : { },
-                      "skipFirstDataRows" : { },
-                      "limitMemoryPerColumn" : { },
-                      "maximumNumberOfColumns" : { }
-                    }
-                  },
-                  "sourceId" : { },
-                  "fsLocations" : { },
-                  "specs" : {
-                    "type" : "array",
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "sourceId" : { },
-                        "spec" : {
-                          "type" : "array",
-                          "items" : {
-                            "type" : "object",
-                            "properties" : {
-                              "name" : { },
-                              "type" : { }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  },
-                  "appendPathColumn" : { },
-                  "filePathColumnName" : { },
-                  "takeColumnsFrom" : { }
-                }
-              },
-              "enforceTypes" : { },
-              "columnTransformation" : {
-                "type" : "array",
-                "items" : {
-                  "type" : "object",
-                  "properties" : {
-                    "columnName" : {
-                      "configPaths" : [ ]
-                    },
-                    "originalType" : { },
-                    "originalTypeLabel" : { },
-                    "includeInOutput" : { },
-                    "columnRename" : { },
-                    "type" : { }
-                  }
-                }
-              }
-            }
+            "configPaths" : [ ]
           }
         }
       }

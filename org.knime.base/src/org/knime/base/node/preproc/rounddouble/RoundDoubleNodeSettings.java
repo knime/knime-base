@@ -52,18 +52,19 @@ import java.math.RoundingMode;
 import java.util.stream.Stream;
 
 import org.knime.base.node.preproc.rounddouble.RoundDoubleNodeSettings.RoundingMethod.Standard;
-import org.knime.base.node.preproc.rounddouble.RoundDoublePersistors.NumberModePersistor;
-import org.knime.base.node.preproc.rounddouble.RoundDoublePersistors.OutputColumnPersistor;
-import org.knime.base.node.preproc.rounddouble.RoundDoublePersistors.OutputModePersistor;
-import org.knime.base.node.preproc.rounddouble.RoundDoublePersistors.RoundingMethodPersistor;
+import org.knime.base.node.preproc.rounddouble.RoundDoubleMigrations.NumberModeMigration;
+import org.knime.base.node.preproc.rounddouble.RoundDoubleMigrations.OutputColumnMigration;
+import org.knime.base.node.preproc.rounddouble.RoundDoubleMigrations.OutputModeMigration;
+import org.knime.base.node.preproc.rounddouble.RoundDoubleMigrations.RoundingMethodMigration;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
@@ -252,8 +253,14 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
     // Settings
     @Widget(title = "Columns to round", description = "Select the numeric input columns to round.")
     @ChoicesWidget(choices = NumberColumns.class)
-    @Persist(configKey = "StringColNames", customPersistor = LegacyColumnFilterPersistor.class)
+    @Migration(ColumnsToFormatMigration.class)
     ColumnFilter m_columnsToFormat;
+
+    static final class ColumnsToFormatMigration extends LegacyColumnFilterMigration {
+        ColumnsToFormatMigration() {
+            super("StringColNames");
+        }
+    }
 
     interface NumberModeRef extends Reference<NumberMode> {
     }
@@ -268,8 +275,8 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Rounding mode", description = "Select the rounding mode to apply.")
     @ValueSwitchWidget
     @ValueReference(NumberModeRef.class)
-    @Persist(configKey = "NumberMode", customPersistor = NumberModePersistor.class)
-    NumberMode m_numberMode = NumberMode.DECIMALS;
+    @Migration(NumberModeMigration.class)
+    NumberMode m_numberModeV2 = NumberMode.DECIMALS;
 
     @Widget(title = "Rounding to digits", description = """
             When rounding to <b>Decimals</b>, this sets the number of decimal places to keep.<br/>
@@ -280,8 +287,7 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
     @Persist(configKey = "PrecisionNumer")
     int m_precision = 3;
 
-    // TODO Currently does not work with flow variables until UIEXT-1745 is resolved
-    @Persist(configKey = "RoundingMode", customPersistor = RoundingMethodPersistor.class)
+    @Migration(RoundingMethodMigration.class)
     RoundingMethod m_roundingMethod = new RoundingMethod();
 
     interface OutputColumnRef extends Reference<OutputColumn> {
@@ -297,7 +303,7 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Output columns", description = "Configure output column behavior.")
     @ValueSwitchWidget
     @ValueReference(OutputColumnRef.class)
-    @Persist(configKey = "AppendColumns", customPersistor = OutputColumnPersistor.class)
+    @Migration(OutputColumnMigration.class)
     OutputColumn m_outputColumn = OutputColumn.APPEND;
 
     @Widget(title = "Output column suffix", description = "Set the suffix to append to the new column names.")
@@ -309,7 +315,7 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Output mode (legacy)", advanced = true, description = """
             Determines the formatting of the output columns.
             """)
-    @Persist(configKey = "OutputType", customPersistor = OutputModePersistor.class)
+    @Migration(OutputModeMigration.class)
     OutputMode m_outputMode = OutputMode.AUTO;
 
     // Utilities

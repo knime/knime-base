@@ -61,7 +61,7 @@ import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.SkipFirstDataRowsPersistor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 
 /**
  * @author Paul Bärnreuther
@@ -73,8 +73,7 @@ public class CommonReaderNodeSettingsTest {
     @MethodSource
     void testHowToCombineColumnsOptionPersistor(final HowToCombineColumnsOption howToCombineColumnsOption)
         throws InvalidSettingsException {
-        final var copy = saveLoad(HowToCombineColumnsOptionPersistor.class, HowToCombineColumnsOption.class,
-            howToCombineColumnsOption);
+        final var copy = saveLoad(new HowToCombineColumnsOptionPersistor(), howToCombineColumnsOption);
         assertEquals(howToCombineColumnsOption, copy);
     }
 
@@ -87,7 +86,7 @@ public class CommonReaderNodeSettingsTest {
     @MethodSource
     void testIfSchemaChangesPersistor(final IfSchemaChangesOption ifSchemaChangesOption)
         throws InvalidSettingsException {
-        final var copy = saveLoad(IfSchemaChangesPersistor.class, IfSchemaChangesOption.class, ifSchemaChangesOption);
+        final var copy = saveLoad(new IfSchemaChangesPersistor(), ifSchemaChangesOption);
         assertEquals(ifSchemaChangesOption, copy);
     }
 
@@ -99,7 +98,7 @@ public class CommonReaderNodeSettingsTest {
     @ParameterizedTest
     @MethodSource
     void testSkipFirstDataRowsPersistor(final Long l) throws InvalidSettingsException {
-        final var copy = saveLoad(SkipFirstDataRowsPersistor.class, Long.class, l);
+        final var copy = saveLoad(new SkipFirstDataRowsPersistor(), l);
         assertEquals(l, copy);
     }
 
@@ -109,15 +108,13 @@ public class CommonReaderNodeSettingsTest {
 
     /**
      * @param <S>
-     * @param persistorType
-     * @param settingsType
+     * @param persistor
      * @param value
      * @return the loaded saved value
      * @throws InvalidSettingsException
      */
-    public static <S> S saveLoad(final Class<? extends FieldNodeSettingsPersistor<S>> persistorType,
-        final Class<S> settingsType, final S value) throws InvalidSettingsException {
-        var persistor = FieldNodeSettingsPersistor.createInstance(persistorType, settingsType, "key");
+    public static <S> S saveLoad(final NodeSettingsPersistor<S> persistor, final S value)
+        throws InvalidSettingsException {
         var nodeSettings = new NodeSettings("settings");
         persistor.save(value, nodeSettings);
         return persistor.load(nodeSettings);

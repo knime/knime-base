@@ -54,8 +54,9 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
@@ -88,9 +89,8 @@ public final class LagColumnNodeSettings implements DefaultNodeSettings {
 
     private static final String ROW_KEYS = "<row-keys>";
 
-    // TODO: UIEXT-1007 migrate String to ColumnSelection
 
-    @Persist(customPersistor = ColumnNodeSettingsPersistor.class)
+    @Persistor(ColumnNodeSettingsPersistor.class)
     @Widget(title = "Column to lag", description = "The column to be lagged.")
     @ChoicesWidget(choices = AllColumns.class, showRowKeysColumn = true)
     String m_column = ROW_KEYS;
@@ -120,7 +120,7 @@ public final class LagColumnNodeSettings implements DefaultNodeSettings {
             + "which contain missing values in all columns but the new lag output.")
     boolean m_skipLastIncompleteRows = true;
 
-    private static final class ColumnNodeSettingsPersistor implements FieldNodeSettingsPersistor<String> {
+    private static final class ColumnNodeSettingsPersistor implements NodeSettingsPersistor<String> {
 
         @Override
         public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -135,8 +135,8 @@ public final class LagColumnNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{LagColumnConfiguration.CFG_COLUMN};
+        public String[][] getConfigPaths() {
+            return new String[][]{{LagColumnConfiguration.CFG_COLUMN}};
         }
     }
 

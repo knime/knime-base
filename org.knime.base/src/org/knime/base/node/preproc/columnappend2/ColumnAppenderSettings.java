@@ -55,9 +55,9 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.settingsmodel.EnumSettingsModelStringPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.EnumSettingsModelStringPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget.DoubleProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
@@ -79,15 +79,13 @@ public final class ColumnAppenderSettings implements DefaultNodeSettings {
 
     static final class RowKeyModeSettingsModelStringPersistor extends EnumSettingsModelStringPersistor<RowKeyMode> {
 
-        @Override
-        protected Class<RowKeyMode> enumType() {
-            return RowKeyMode.class;
+        RowKeyModeSettingsModelStringPersistor() {
+            super(ColumnAppender2NodeModel.KEY_SELECTED_ROWID_MODE, RowKeyMode.class);
         }
 
     }
 
-    @Persist(configKey = ColumnAppender2NodeModel.KEY_SELECTED_ROWID_MODE,
-        customPersistor = RowKeyModeSettingsModelStringPersistor.class)
+    @Persistor(RowKeyModeSettingsModelStringPersistor.class)
     @Widget(title = "RowID mode", description = "Determines the RowIDs of the output table:" + "<ul>"//
         + "<li><b>Identical RowIDs and table lengths</b>: If the RowIDs in both input tables exactly match "
         + "(i.e. the RowID names, their order, and their number have to match) this option can "//
@@ -124,7 +122,7 @@ public final class ColumnAppenderSettings implements DefaultNodeSettings {
 
     }
 
-    @Persist(customPersistor = RowIdTableSelectPersistor.class)
+    @Persistor(RowIdTableSelectPersistor.class)
     @Widget(title = "RowID table number",
         description = "Select the table whose RowIDs should be used for the output table.")
     @NumberInputWidget(min = 1, maxProvider = NumTables.class)
@@ -141,7 +139,7 @@ public final class ColumnAppenderSettings implements DefaultNodeSettings {
         }
     }
 
-    private static final class RowIdTableSelectPersistor implements FieldNodeSettingsPersistor<Integer> {
+    private static final class RowIdTableSelectPersistor implements NodeSettingsPersistor<Integer> {
 
         @Override
         public Integer load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -164,10 +162,10 @@ public final class ColumnAppenderSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{ //
-                ColumnAppender2NodeModel.KEY_SELECTED_ROWID_TABLE, //
-                ColumnAppender2NodeModel.KEY_SELECTED_ROWID_TABLE_NUMBER //
+        public String[][] getConfigPaths() {
+            return new String[][]{ //
+                {ColumnAppender2NodeModel.KEY_SELECTED_ROWID_TABLE}, //
+                {ColumnAppender2NodeModel.KEY_SELECTED_ROWID_TABLE_NUMBER} //
             };
         }
     }

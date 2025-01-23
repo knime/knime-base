@@ -109,12 +109,20 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "recursionPolicy" : { },
+          "recursionPolicy" : {
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ ]
+            } ]
+          },
           "maxDepth" : {
             "configKey" : "MaxDepth"
           },
           "includeComponentIO" : { },
-          "includeNodeComments" : { }
+          "includeNodeComments" : {
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ ]
+            } ]
+          }
         }
       }
     }

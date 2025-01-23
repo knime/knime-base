@@ -53,15 +53,15 @@ import java.util.List;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultPersistorWithDeprecations;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
@@ -99,7 +99,7 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
 
     }
 
-    @Persist(customPersistor = ReplacementModePersistor.class)
+    @Migration(ReplacementModeMigration.class)
     @ValueSwitchWidget
     @Widget(title = "Replacement mode",
         description = "Replace the RowID by a newly generated one or the values of a column.")
@@ -117,7 +117,7 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    @Persist(customPersistor = NewRowKeyColumnPersistor.class)
+    @Migration(NewRowKeyColumnMigration.class)
     @Widget(title = "ID column", description = "The column to replace the current RowID.")
     @ChoicesWidget(choices = AllColumns.class)
     @Effect(predicate = ReplaceByColumn.class, type = EffectType.SHOW)
@@ -127,14 +127,15 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
     /**
      * Optional, as this setting is not available in older releases.
      */
-    @Persist(configKey = "removeRowKeyCol", optional = true)
+    @Persist(configKey = "removeRowKeyCol")
+    @Migrate(loadDefaultIfAbsent = true)
     @Widget(title = "Remove selected ID column",
         description = "If selected, the column replacing the current RowID is removed from the table.")
     @Effect(predicate = ReplaceByColumn.class, type = EffectType.SHOW)
     @Layout(ReplaceRowIdsSection.class)
     boolean m_removeRowKeyColumn;
 
-    @Persist(customPersistor = HandleMissingValuesModePersistor.class)
+    @Migration(HandleMissingValuesModeMigration.class)
     @ValueSwitchWidget
     @Widget(title = "If ID column contains missing values",
         description = "Fail if encountering missing values, or replace them.")
@@ -142,7 +143,7 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
     @Layout(ReplaceRowIdsSection.class)
     HandleMissingValuesMode m_handleMissingsMode = HandleMissingValuesMode.FAIL;
 
-    @Persist(customPersistor = HandleDuplicateValuesModePersistor.class)
+    @Migration(HandleDuplicateValuesModeMigration.class)
     @ValueSwitchWidget
     @Widget(title = "If ID column contains duplicates",
         description = "Fail if encountering duplicate values, or make them unique.")
@@ -153,7 +154,8 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
     /**
      * Optional, as this option is not available in releases prior to 2.0.3.
      */
-    @Persist(configKey = "enableHilite", optional = true)
+    @Persist(configKey = "enableHilite")
+    @Migrate(loadDefaultIfAbsent = true)
     @Widget(title = "Enable hiliting", description = """
             If selected, a map is maintained joining the old with the new RowID. Depending on the number of rows,
             enabling this feature might consume a lot of memory.""", advanced = true)
@@ -231,11 +233,11 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
             APPEND_COUNTER
     }
 
-    private static final class NewRowKeyColumnPersistor implements DefaultPersistorWithDeprecations<String> {
+    private static final class NewRowKeyColumnMigration implements NodeSettingsMigration<String> {
 
         @Override
-        public List<ConfigsDeprecation<String>> getConfigsDeprecations() {
-            return List.of(ConfigsDeprecation.builder(NewRowKeyColumnPersistor::loadLegazy) //
+        public List<ConfigMigration<String>> getConfigMigrations() {
+            return List.of(ConfigMigration.builder(NewRowKeyColumnMigration::loadLegazy) //
                 .withDeprecatedConfigPath(LEGACY_NEW_ROW_KEY_COLUMN_CONFIG_KEY).build());
         }
 
@@ -244,11 +246,11 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    private static final class ReplacementModePersistor implements DefaultPersistorWithDeprecations<ReplacementMode> {
+    private static final class ReplacementModeMigration implements NodeSettingsMigration<ReplacementMode> {
 
         @Override
-        public List<ConfigsDeprecation<ReplacementMode>> getConfigsDeprecations() {
-            return List.of(ConfigsDeprecation.builder(ReplacementModePersistor::loadLegazy)
+        public List<ConfigMigration<ReplacementMode>> getConfigMigrations() {
+            return List.of(ConfigMigration.builder(ReplacementModeMigration::loadLegazy)
                 .withDeprecatedConfigPath(LEGACY_NEW_ROW_KEY_COLUMN_CONFIG_KEY).build());
         }
 
@@ -262,53 +264,46 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
 
     }
 
-    private static final class HandleMissingValuesModePersistor
-        implements FieldNodeSettingsPersistor<HandleMissingValuesMode> {
+    private static final class HandleMissingValuesModeMigration
+        implements NodeSettingsMigration<HandleMissingValuesMode> {
 
-        private static final String CONFIG_KEY = "replaceMissingValues";
+        private static final String CONFIG_KEY_BOOLEAN = "replaceMissingValues";
 
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{CONFIG_KEY};
+        public List<ConfigMigration<HandleMissingValuesMode>> getConfigMigrations() {
+            return List.of(ConfigMigration.builder(HandleMissingValuesModeMigration::loadFromBoolean)
+                .withDeprecatedConfigPath(CONFIG_KEY_BOOLEAN).build());
         }
 
-        @Override
-        public HandleMissingValuesMode load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            if (settings.getBoolean(CONFIG_KEY)) {
+        private static HandleMissingValuesMode loadFromBoolean(final NodeSettingsRO settings)
+            throws InvalidSettingsException {
+            if (settings.getBoolean(CONFIG_KEY_BOOLEAN)) {
                 return HandleMissingValuesMode.REPLACE;
             } else {
                 return HandleMissingValuesMode.FAIL;
             }
         }
 
-        @Override
-        public void save(final HandleMissingValuesMode obj, final NodeSettingsWO settings) {
-            settings.addBoolean(CONFIG_KEY, obj == HandleMissingValuesMode.REPLACE);
-        }
     }
 
-    private static final class HandleDuplicateValuesModePersistor
-        implements FieldNodeSettingsPersistor<HandleDuplicateValuesMode> {
+    private static final class HandleDuplicateValuesModeMigration
+        implements NodeSettingsMigration<HandleDuplicateValuesMode> {
 
-        private static final String CONFIG_KEY = "ensureUniqueness";
+        private static final String CONFIG_KEY_BOOLEAN = "ensureUniqueness";
 
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{CONFIG_KEY};
+        public List<ConfigMigration<HandleDuplicateValuesMode>> getConfigMigrations() {
+            return List.of(ConfigMigration.builder(HandleDuplicateValuesModeMigration::loadFromBoolean)
+                .withDeprecatedConfigPath(CONFIG_KEY_BOOLEAN).build());
         }
 
-        @Override
-        public HandleDuplicateValuesMode load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            if (settings.getBoolean(CONFIG_KEY)) {
+        private static HandleDuplicateValuesMode loadFromBoolean(final NodeSettingsRO settings)
+            throws InvalidSettingsException {
+            if (settings.getBoolean(CONFIG_KEY_BOOLEAN)) {
                 return HandleDuplicateValuesMode.APPEND_COUNTER;
             } else {
                 return HandleDuplicateValuesMode.FAIL;
             }
-        }
-
-        @Override
-        public void save(final HandleDuplicateValuesMode obj, final NodeSettingsWO settings) {
-            settings.addBoolean(CONFIG_KEY, obj == HandleDuplicateValuesMode.APPEND_COUNTER);
         }
     }
 

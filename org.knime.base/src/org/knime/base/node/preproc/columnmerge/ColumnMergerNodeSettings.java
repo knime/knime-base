@@ -53,9 +53,9 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.settingsmodel.SettingsModelStringPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelStringPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
@@ -72,19 +72,31 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
 @SuppressWarnings("restriction")
 public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
 
-    @Persist(configKey = ColumnMergerConfiguration.CFG_PRIMARY, customPersistor = SettingsModelStringPersistor.class)
+    @Persistor(PrimaryColumnPersistor.class)
     @Widget(title = "Primary column",
         description = "The column with the value that will be used, unless it is missing.")
     @ChoicesWidget(choices = AllColumns.class)
     String m_primaryColumn = "";
 
-    @Persist(configKey = ColumnMergerConfiguration.CFG_SECONDARY, customPersistor = SettingsModelStringPersistor.class)
+    static final class PrimaryColumnPersistor extends SettingsModelStringPersistor {
+        PrimaryColumnPersistor() {
+            super(ColumnMergerConfiguration.CFG_PRIMARY);
+        }
+    }
+
+    @Persistor(SecondaryColumnPersistor.class)
     @Widget(title = "Secondary column", description = "The column with the value that will be used if it is missing "//
         + "in the primary column.")
     @ChoicesWidget(choices = AllColumns.class)
     String m_secondaryColumn = "";
 
-    @Persist(customPersistor = OutputPlacementOptionsPersistor.class)
+    static final class SecondaryColumnPersistor extends SettingsModelStringPersistor {
+        SecondaryColumnPersistor() {
+            super(ColumnMergerConfiguration.CFG_SECONDARY);
+        }
+    }
+
+    @Persistor(OutputPlacementOptionsPersistor.class)
     @Widget(title = "Replace/append columns", description = "Choose where to put the result column:"//
         + "<ul>"//
         + "<li><b>Replace primary and delete secondary</b>: Replace the primary column with the merge "
@@ -99,8 +111,13 @@ public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
     @ValueReference(OutputPlacement.Ref.class)
     OutputPlacement m_outputPlacement;
 
-    @Persist(configKey = ColumnMergerConfiguration.CFG_OUTPUT_NAME,
-        customPersistor = SettingsModelStringPersistor.class)
+    static final class OutputNamePersisor extends SettingsModelStringPersistor {
+        OutputNamePersisor() {
+            super(ColumnMergerConfiguration.CFG_OUTPUT_NAME);
+        }
+    }
+
+    @Persistor(OutputNamePersisor.class)
     @Widget(title = "New column name", description = "The name for the new column.")
     @Effect(predicate = OutputPlacement.IsAppendAsNewColumn.class, type = EffectType.SHOW)
     String m_outputName;
@@ -114,7 +131,7 @@ public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
 
     }
 
-    private static final class OutputPlacementOptionsPersistor implements FieldNodeSettingsPersistor<OutputPlacement> {
+    private static final class OutputPlacementOptionsPersistor implements NodeSettingsPersistor<OutputPlacement> {
 
         @Override
         public OutputPlacement load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -137,8 +154,8 @@ public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{ColumnMergerConfiguration.CFG_OUTPUT_PLACEMENT};
+        public String[][] getConfigPaths() {
+            return new String[][]{{ColumnMergerConfiguration.CFG_OUTPUT_PLACEMENT}};
         }
     }
 }

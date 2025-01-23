@@ -355,7 +355,6 @@
         "type" : "object",
         "properties" : {
           "columnFilter" : {
-            "configPaths" : [ [ "columnFilter", "filter-type" ], [ "columnFilter", "included_names" ], [ "columnFilter", "excluded_names" ], [ "columnFilter", "enforce_option" ], [ "columnFilter", "name_pattern", "pattern" ], [ "columnFilter", "name_pattern", "type" ], [ "columnFilter", "name_pattern", "caseSensitive" ], [ "columnFilter", "name_pattern", "excludeMatching" ] ],
             "type" : "object",
             "properties" : {
               "selected" : {
@@ -383,15 +382,7 @@
                 "properties" : {
                   "selectedTypes" : { },
                   "typeDisplays" : {
-                    "type" : "array",
-                    "configPaths" : [ ],
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "id" : { },
-                        "text" : { }
-                      }
-                    }
+                    "configPaths" : [ ]
                   }
                 }
               }
@@ -402,9 +393,7 @@
           "periodColumn" : { },
           "numericalColumn" : { },
           "granularity" : { },
-          "replaceOrAppend" : {
-            "configPaths" : [ [ "replace_or_append" ] ]
-          },
+          "replaceOrAppend" : { },
           "outputColumnSuffix" : { }
         }
       }

@@ -260,53 +260,13 @@
         "type" : "object",
         "properties" : {
           "columnFilter" : {
-            "configPaths" : [ [ "col_select", "filter-type" ], [ "col_select", "included_names" ], [ "col_select", "excluded_names" ], [ "col_select", "enforce_option" ], [ "col_select", "name_pattern", "pattern" ], [ "col_select", "name_pattern", "type" ], [ "col_select", "name_pattern", "caseSensitive" ], [ "col_select", "name_pattern", "excludeMatching" ] ],
-            "type" : "object",
-            "properties" : {
-              "selected" : {
-                "configPaths" : [ ]
-              },
-              "mode" : { },
-              "patternFilter" : {
-                "type" : "object",
-                "properties" : {
-                  "pattern" : { },
-                  "isCaseSensitive" : { },
-                  "isInverted" : { }
-                }
-              },
-              "manualFilter" : {
-                "type" : "object",
-                "properties" : {
-                  "manuallySelected" : { },
-                  "manuallyDeselected" : { },
-                  "includeUnknownColumns" : { }
-                }
-              },
-              "typeFilter" : {
-                "type" : "object",
-                "properties" : {
-                  "selectedTypes" : { },
-                  "typeDisplays" : {
-                    "type" : "array",
-                    "configPaths" : [ ],
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "id" : { },
-                        "text" : { }
-                      }
-                    }
-                  }
-                }
-              }
-            }
+            "configPaths" : [ [ "col_select", "filter-type" ], [ "col_select", "included_names" ], [ "col_select", "excluded_names" ], [ "col_select", "enforce_option" ], [ "col_select", "name_pattern", "pattern" ], [ "col_select", "name_pattern", "type" ], [ "col_select", "name_pattern", "caseSensitive" ], [ "col_select", "name_pattern", "excludeMatching" ] ]
           },
           "durationType" : {
-            "configKey" : "duration_or_period"
+            "configPaths" : [ [ "duration_or_period" ] ]
           },
           "actionIfExtractionFails" : {
-            "configKey" : "cancel_on_fail"
+            "configPaths" : [ [ "cancel_on_fail" ] ]
           },
           "replaceOrAppend" : {
             "configPaths" : [ [ "replace_or_append" ] ]

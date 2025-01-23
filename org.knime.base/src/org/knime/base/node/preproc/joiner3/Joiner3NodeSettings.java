@@ -54,8 +54,7 @@ import java.util.stream.IntStream;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.CheckboxesWithVennDiagram;
@@ -63,12 +62,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultPersistorWithDeprecations;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
@@ -212,7 +211,12 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
 
     }
 
-    static class MatchingCriteriaPersistor implements DefaultPersistorWithDeprecations<MatchingCriterion[]> {
+    /**
+     * Previously, the matching criteria were stored in separate arrays of equal length.
+     *
+     * @author Paul Bärnreuther
+     */
+    static class MatchingCriteriaMigration implements NodeSettingsMigration<MatchingCriterion[]> {
 
         static final String LEGACY_LEFT_TABLE_JOIN_PREDICATE_KEY = "leftTableJoinPredicate";
 
@@ -220,11 +224,9 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
 
         static final String LEGACY_ROW_ID_COLUMN_ID = "$RowID$";
 
-        private NodeSettingsPersistor<MatchingCriterion[]> m_defaultPersistor;
-
         @Override
-        public List<ConfigsDeprecation<MatchingCriterion[]>> getConfigsDeprecations() {
-            return List.of(ConfigsDeprecation.builder(MatchingCriteriaPersistor::loadFromLegacyLeftTableJoinPredicate) //
+        public List<ConfigMigration<MatchingCriterion[]>> getConfigMigrations() {
+            return List.of(ConfigMigration.builder(MatchingCriteriaMigration::loadFromLegacyLeftTableJoinPredicate) //
                 .withDeprecatedConfigPath(LEGACY_LEFT_TABLE_JOIN_PREDICATE_KEY) //
                 .withDeprecatedConfigPath(LEGACY_RIGHT_TABLE_JOIN_PREDICATE_KEY) //
                 .build());
@@ -256,12 +258,6 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
             return column;
         }
 
-        @Override
-        public void save(final MatchingCriterion[] obj, final NodeSettingsWO settings) {
-            m_defaultPersistor.save(obj, settings);
-
-        }
-
     }
 
     @Widget(title = "Join columns",
@@ -273,7 +269,7 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
                     """)
     @Layout(MatchingCriteriaSection.class)
     @ArrayWidget(addButtonText = "Add matching criterion")
-    @Persist(customPersistor = MatchingCriteriaPersistor.class)
+    @Migration(MatchingCriteriaMigration.class)
     MatchingCriterion[] m_matchingCriteria = new MatchingCriterion[]{new MatchingCriterion()};
 
     enum DataCellComparisonMode {
@@ -294,7 +290,7 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
     @Widget(title = "Compare values in join columns by",
         description = "Defines how to compare the values in the join columns:")
     @Layout(MatchingCriteriaSection.class)
-    @Persist(/* Introduced with KNIME 4.4*/ optional = true)
+    @Migrate(/* Introduced with KNIME 4.4*/ loadDefaultIfAbsent = true)
     DataCellComparisonMode m_dataCellComparisonMode = DataCellComparisonMode.STRICT;
 
     @Widget(title = "Matching rows", description = "Include rows that match on the selected column pairs.")
@@ -326,19 +322,33 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
 
     }
 
+    static final class LeftColumnSelectionMigration extends LegacyColumnFilterMigration {
+
+        LeftColumnSelectionMigration() {
+            super("leftColumnSelectionConfig");
+        }
+    }
+
     @Widget(title = "Top input ('left' table)",
         description = "Select columns from top input ('left' table) that should be included or excluded in the output table.")
     @Layout(OutputColumnsSection.class)
-    @Persist(customPersistor = LegacyColumnFilterPersistor.class)
+    @Migration(LeftColumnSelectionMigration.class)
     @ChoicesWidget(choicesProvider = LeftTableChoices.class)
-    ColumnFilter m_leftColumnSelectionConfig;
+    ColumnFilter m_leftColumnSelectionConfig = new ColumnFilter();
+
+    static final class RightColumnSelectionMigration extends LegacyColumnFilterMigration {
+
+        RightColumnSelectionMigration() {
+            super("rightColumnSelectionConfig");
+        }
+    }
 
     @Widget(title = "Bottom input ('right' table)",
         description = "Select columns from bottom input ('right' table) that should be included or excluded in the output table.")
     @Layout(OutputColumnsSection.class)
-    @Persist(customPersistor = LegacyColumnFilterPersistor.class)
+    @Migration(RightColumnSelectionMigration.class)
     @ChoicesWidget(choicesProvider = RightTableChoices.class)
-    ColumnFilter m_rightColumnSelectionConfig;
+    ColumnFilter m_rightColumnSelectionConfig = new ColumnFilter();
 
     @Widget(title = "Merge join columns",
         description = """
