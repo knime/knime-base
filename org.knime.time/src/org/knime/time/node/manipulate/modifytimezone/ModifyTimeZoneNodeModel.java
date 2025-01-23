@@ -48,7 +48,6 @@
  */
 package org.knime.time.node.manipulate.modifytimezone;
 
-import java.time.DateTimeException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -62,7 +61,6 @@ import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.data.MissingCell;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory;
@@ -297,20 +295,8 @@ final class ModifyTimeZoneNodeModel extends SimpleStreamableFunctionNodeModel {
                 return cell;
             }
 
-            // This should always be possible and potential errors do not need to be handled here.
-            var currentCellDateTimeInstant = ((ZonedDateTimeValue)cell).getZonedDateTime().toInstant();
-
-            try {
-                // This will throw an exception if the date goes out of range
-                var newZonedDateTimeContent = currentCellDateTimeInstant.atZone(m_zone);
-                return ZonedDateTimeCellFactory.create(newZonedDateTimeContent);
-            } catch (DateTimeException e) { // NOSONAR setWarningMessage is logging
-
-                final var missingReason = "Could not shift time zone: " + e.getMessage();
-                m_messageBuilder.addRowIssue(0, m_targetColumnIndex, rowIndex, missingReason);
-                return new MissingCell(missingReason);
-
-            }
+            return ZonedDateTimeCellFactory
+                .create(((ZonedDateTimeValue)cell).getZonedDateTime().toInstant().atZone(m_zone));
         }
 
         @Override
