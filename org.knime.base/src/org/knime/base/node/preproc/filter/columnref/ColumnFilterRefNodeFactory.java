@@ -44,6 +44,8 @@
  */
 package org.knime.base.node.preproc.filter.columnref;
 
+import java.util.Map;
+
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
@@ -51,7 +53,10 @@ import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 
 /**
  * Factory to create a Reference Column Filter node.
@@ -60,7 +65,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
  */
 @SuppressWarnings("restriction")
 public class ColumnFilterRefNodeFactory
-        extends NodeFactory<ColumnFilterRefNodeModel> implements NodeDialogFactory{
+        extends NodeFactory<ColumnFilterRefNodeModel> implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     @Override
     protected NodeDialogPane createNodeDialogPane() {
@@ -94,6 +99,14 @@ public class ColumnFilterRefNodeFactory
     @Override
     public NodeDialog createNodeDialog() {
         return new DefaultNodeDialog(SettingsType.MODEL, ColumnFilterRefNodeSettings.class);
+    }
+
+    /**
+     * @since 5.5
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, ColumnFilterRefNodeSettings.class));
     }
 
 }

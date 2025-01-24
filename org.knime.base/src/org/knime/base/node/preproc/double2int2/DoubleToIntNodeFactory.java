@@ -46,6 +46,8 @@
  *   01.09.2009
  */
 package org.knime.base.node.preproc.double2int2;
+import java.util.Map;
+
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
@@ -53,7 +55,10 @@ import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 
 /**
  * NodeFactory for the Number to String Node that converts double
@@ -62,7 +67,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
  * @author adae, University of Konstanz
  */
 @SuppressWarnings("restriction")
-public class DoubleToIntNodeFactory extends NodeFactory<DoubleToIntNodeModel> implements NodeDialogFactory{
+public class DoubleToIntNodeFactory extends NodeFactory<DoubleToIntNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     /**
      * {@inheritDoc}
@@ -111,6 +117,11 @@ public class DoubleToIntNodeFactory extends NodeFactory<DoubleToIntNodeModel> im
     @Override
     public NodeDialog createNodeDialog() {
         return new DefaultNodeDialog(SettingsType.MODEL, DoubleToIntNodeSettings.class);
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, DoubleToIntNodeSettings.class));
     }
 
 }

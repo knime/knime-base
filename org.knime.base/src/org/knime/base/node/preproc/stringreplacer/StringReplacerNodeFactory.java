@@ -47,6 +47,8 @@
  */
 package org.knime.base.node.preproc.stringreplacer;
 
+import java.util.Map;
+
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
@@ -54,7 +56,10 @@ import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 
 /**
  * This is the factory for the string replacer node that creates all necessary
@@ -64,7 +69,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
  * @author Carsten Haubold, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public class StringReplacerNodeFactory extends NodeFactory<StringReplacerNodeModel> implements NodeDialogFactory {
+public class StringReplacerNodeFactory extends NodeFactory<StringReplacerNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     @Override
     protected NodeDialogPane createNodeDialogPane() {
@@ -104,5 +110,13 @@ public class StringReplacerNodeFactory extends NodeFactory<StringReplacerNodeMod
     @Override
     public NodeDialog createNodeDialog() {
         return new DefaultNodeDialog(SettingsType.MODEL, StringReplacerNodeSettings.class);
+    }
+
+    /**
+     * @since 5.5
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, StringReplacerNodeSettings.class));
     }
 }

@@ -45,6 +45,7 @@
  */
 package org.knime.base.node.preproc.append.row;
 
+import java.util.Map;
 import java.util.Optional;
 
 import org.knime.core.node.BufferedDataTable;
@@ -57,7 +58,10 @@ import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 
 /**
  * Factory to create nodes that concatenate input tables to one output table.
@@ -67,7 +71,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
  */
 @SuppressWarnings("restriction")
 public class AppendedRowsNodeFactory extends ConfigurableNodeFactory<AppendedRowsNodeModel>
-    implements NodeDialogFactory {
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     @Override
     public int getNrNodeViews() {
@@ -113,5 +117,13 @@ public class AppendedRowsNodeFactory extends ConfigurableNodeFactory<AppendedRow
     @Override
     public NodeDialog createNodeDialog() {
         return new DefaultNodeDialog(SettingsType.MODEL, AppendedRowsNodeSettings.class);
+    }
+
+    /**
+     * @since 5.5
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, AppendedRowsNodeSettings.class));
     }
 }

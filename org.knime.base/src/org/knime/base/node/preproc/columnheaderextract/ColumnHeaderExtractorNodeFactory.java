@@ -47,6 +47,8 @@
  */
 package org.knime.base.node.preproc.columnheaderextract;
 
+import java.util.Map;
+
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
@@ -54,7 +56,10 @@ import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 
 /**
  * <code>NodeFactory</code> for the "ColumnHeaderExtractor" Node.
@@ -64,7 +69,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
  */
 @SuppressWarnings("restriction")
 public class ColumnHeaderExtractorNodeFactory extends NodeFactory<ColumnHeaderExtractorNodeModel>
-    implements NodeDialogFactory {
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     @Override
     public ColumnHeaderExtractorNodeModel createNodeModel() {
@@ -98,6 +103,14 @@ public class ColumnHeaderExtractorNodeFactory extends NodeFactory<ColumnHeaderEx
     @Override
     public NodeDialog createNodeDialog() {
         return new DefaultNodeDialog(SettingsType.MODEL, ColumnHeaderExtractorNodeSettings.class);
+    }
+
+    /**
+     * @since 5.5
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, ColumnHeaderExtractorNodeSettings.class));
     }
 
 }

@@ -47,6 +47,7 @@
  */
 package org.knime.base.node.preproc.columnappend2;
 
+import java.util.Map;
 import java.util.Optional;
 
 import org.knime.core.node.BufferedDataTable;
@@ -59,7 +60,10 @@ import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 
 /**
  * <code>NodeFactory</code> for the "ColumnAppender" Node.
@@ -68,7 +72,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
  */
 @SuppressWarnings("restriction")
 public final class ColumnAppender2NodeFactory extends ConfigurableNodeFactory<ColumnAppender2NodeModel>
-    implements NodeDialogFactory {
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     @Override
     public int getNrNodeViews() {
@@ -108,6 +112,11 @@ public final class ColumnAppender2NodeFactory extends ConfigurableNodeFactory<Co
     @Override
     public NodeDialog createNodeDialog() {
         return new DefaultNodeDialog(SettingsType.MODEL, ColumnAppenderSettings.class);
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, ColumnAppenderSettings.class));
     }
 
 }

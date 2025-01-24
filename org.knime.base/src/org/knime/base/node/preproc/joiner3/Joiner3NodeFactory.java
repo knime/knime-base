@@ -45,6 +45,7 @@
 package org.knime.base.node.preproc.joiner3;
 
 import java.io.IOException;
+import java.util.Map;
 
 import org.apache.xmlbeans.XmlException;
 import org.knime.core.node.BufferedDataTable;
@@ -56,7 +57,10 @@ import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeFactory;
 import org.xml.sax.SAXException;
@@ -70,7 +74,8 @@ import org.xml.sax.SAXException;
  *
  */
 @SuppressWarnings("restriction")
-public class Joiner3NodeFactory extends NodeFactory<Joiner3NodeModel> implements NodeDialogFactory {
+public class Joiner3NodeFactory extends NodeFactory<Joiner3NodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
         .name("Joiner") //
@@ -136,6 +141,14 @@ public class Joiner3NodeFactory extends NodeFactory<Joiner3NodeModel> implements
     @Override
     public NodeDialog createNodeDialog() {
         return new DefaultNodeDialog(SettingsType.MODEL, Joiner3NodeSettings.class);
+    }
+
+    /**
+     * @since 5.5
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, Joiner3NodeSettings.class));
     }
 
 }
