@@ -1,0 +1,4 @@
+@org.knime.workbench.core=2.10.0.0043156
+\!/=
+file_export_version=3.0
+/instance/org.knime.workbench.core/logging.loglevel.logfile=DEBUG
