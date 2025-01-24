@@ -54,6 +54,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
  * Used by Format manager nodes to determine a preferred alignment.
  *
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
+ * @since 5.5
  */
 public enum AlignmentSuggestionOption {
 
