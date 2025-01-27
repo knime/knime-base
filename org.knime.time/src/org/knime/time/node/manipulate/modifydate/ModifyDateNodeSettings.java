@@ -50,7 +50,6 @@ package org.knime.time.node.manipulate.modifydate;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -60,14 +59,8 @@ import org.knime.core.data.DataValue;
 import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
 import org.knime.core.data.time.localtime.LocalTimeValue;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.CompatibleColumnChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.CompatibleDataValueClassesSupplier;
@@ -92,7 +85,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  * @author Tobias Kampmann, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public class ModifyDateNodeSettings implements DefaultNodeSettings {
+final class ModifyDateNodeSettings implements DefaultNodeSettings {
 
     ModifyDateNodeSettings() {
     }
@@ -102,7 +95,7 @@ public class ModifyDateNodeSettings implements DefaultNodeSettings {
 
         if (spec.isPresent()) {
             m_columnFilter = new ColumnFilter(spec.get().stream() //
-                .filter(cspec -> m_behaviourType.isCompatibleType(cspec.getType())) //
+                .filter(m_behaviourType::isCompatibleType) //
                 .map(DataColumnSpec::getName) //
                 .toArray(String[]::new) //
             );
@@ -117,24 +110,20 @@ public class ModifyDateNodeSettings implements DefaultNodeSettings {
             columns can only be modified or have their date component removed.
             """)
     @ValueSwitchWidget
-    @Persist(configKey = "modify_select", customPersistor = BehaviourTypePersistor.class)
     @ValueReference(BehaviourTypeRef.class)
     BehaviourType m_behaviourType = BehaviourType.CHANGE;
 
     @Widget(title = "Date", description = "A date value.")
-    @Persist(configKey = "date")
     @Effect(predicate = BehaviourTypeIsRemove.class, type = EffectType.HIDE)
     LocalDate m_localDate = LocalDate.now();
 
     @Widget(title = "Time zone", description = "A timezone to be used when saving the date.")
-    @Persist(configKey = "time_zone")
     @ChoicesWidget(optional = true)
     @Effect(predicate = BehaviourTypeIsAppend.class, type = EffectType.SHOW)
     @JsonInclude(Include.ALWAYS)
     ZoneId m_timeZone = ZoneId.systemDefault();
 
     @Widget(title = "Date&time columns", description = "Only the included columns will be modified.")
-    @Persist(configKey = "col_select", customPersistor = LegacyColumnFilterPersistor.class)
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
@@ -143,13 +132,11 @@ public class ModifyDateNodeSettings implements DefaultNodeSettings {
             or appended to the input table.
             """)
     @ValueSwitchWidget
-    @Persist(customPersistor = ReplaceOrAppend.Persistor.class)
     @ValueReference(ReplaceOrAppend.ValueRef.class)
     ReplaceOrAppend m_appendOrReplace = ReplaceOrAppend.REPLACE;
 
     @Widget(title = "Output column suffix", description = "The suffix that is appended to the column name.")
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
-    @Persist(configKey = "suffix")
     String m_outputColumnSuffix = " (Modified date)";
 
     /*
@@ -159,35 +146,26 @@ public class ModifyDateNodeSettings implements DefaultNodeSettings {
      */
 
     enum BehaviourType implements CompatibleDataValueClassesSupplier {
-            @Label(value = "Change", //
-                description = "Changes the date of a date-time column, leaving the timezone unchanged.")
-            CHANGE("Change date", List.of(ZonedDateTimeValue.class, LocalDateTimeValue.class)), //
-            @Label(value = "Append", description = "Appends a date to a time column, resulting in a date-time column. "
-                + "A time zone can optionally be set.")
-            APPEND("Append date", List.of(LocalTimeValue.class)), //
-            @Label(value = "Remove", description = "Removes the date and timezone information from date-time columns, "
-                + "leaving only the time.")
-            REMOVE("Remove date", List.of(ZonedDateTimeValue.class, LocalDateTimeValue.class));
-
-        private String m_oldConfigValue;
+            @Label(value = "Change", description = """
+                    Change the date of a date-time column, leaving the timezone \
+                    unchanged.
+                    """)
+            CHANGE(List.of(ZonedDateTimeValue.class, LocalDateTimeValue.class)), //
+            @Label(value = "Append", description = """
+                    Append a date to a time column, resulting in a date-time column. \
+                    A time zone can optionally be set.
+                    """)
+            APPEND(List.of(LocalTimeValue.class)), //
+            @Label(value = "Remove", description = """
+                    Removes the date and timezone information from date-time columns, \
+                    leaving only the time.
+                    """)
+            REMOVE(List.of(ZonedDateTimeValue.class, LocalDateTimeValue.class));
 
         private List<Class<? extends DataValue>> m_compatibleDataValues;
 
-        BehaviourType(final String oldConfigValue, final List<Class<? extends DataValue>> compatibleDataValues) {
-            this.m_oldConfigValue = oldConfigValue;
+        BehaviourType(final List<Class<? extends DataValue>> compatibleDataValues) {
             this.m_compatibleDataValues = compatibleDataValues;
-        }
-
-        static BehaviourType getByOldConfigValue(final String oldValue) throws InvalidSettingsException {
-            return Arrays.stream(values()) //
-                .filter(v -> v.m_oldConfigValue.equals(oldValue)) //
-                .findFirst() //
-                .orElseThrow(() -> new InvalidSettingsException(
-                    String.format("Invalid value '%s'. Possible values: %s", oldValue, getOldConfigValues())));
-        }
-
-        static String[] getOldConfigValues() {
-            return Arrays.stream(values()).map(v -> v.m_oldConfigValue).toArray(String[]::new);
         }
 
         @Override
@@ -198,26 +176,10 @@ public class ModifyDateNodeSettings implements DefaultNodeSettings {
         boolean isCompatibleType(final DataType type) {
             return m_compatibleDataValues.stream().anyMatch(type::isCompatible);
         }
-    }
 
-    /*
-     * ------------------------------------------------------------------------
-     * PERSISTORS
-     * ------------------------------------------------------------------------
-     */
-
-    static final class BehaviourTypePersistor extends NodeSettingsPersistorWithConfigKey<BehaviourType> {
-
-        @Override
-        public BehaviourType load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return BehaviourType.getByOldConfigValue(settings.getString(getConfigKey()));
+        boolean isCompatibleType(final DataColumnSpec columnSpec) {
+            return isCompatibleType(columnSpec.getType());
         }
-
-        @Override
-        public void save(final BehaviourType obj, final NodeSettingsWO settings) {
-            settings.addString(getConfigKey(), obj.m_oldConfigValue);
-        }
-
     }
 
     /*
@@ -255,7 +217,5 @@ public class ModifyDateNodeSettings implements DefaultNodeSettings {
         protected Class<? extends Reference<BehaviourType>> getReferenceClass() {
             return BehaviourTypeRef.class;
         }
-
     }
-
 }

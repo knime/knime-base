@@ -57,11 +57,11 @@ import org.knime.core.webui.node.impl.WebUINodeFactory;
  * @author David Hickey, TNG Technology Consulting
  */
 @SuppressWarnings("restriction")
-public final class ModifyDateNodeFactory2 extends WebUINodeFactory<ModifyDateNodeModel> {
+public final class ModifyDateNodeFactory2 extends WebUINodeFactory<ModifyDateNodeModel2> {
 
     @Override
-    public ModifyDateNodeModel createNodeModel() {
-        return new ModifyDateNodeModel();
+    public ModifyDateNodeModel2 createNodeModel() {
+        return new ModifyDateNodeModel2(CONFIGURATION);
     }
 
     private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //

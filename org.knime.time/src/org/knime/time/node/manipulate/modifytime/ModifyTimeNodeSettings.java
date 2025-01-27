@@ -50,7 +50,6 @@ package org.knime.time.node.manipulate.modifytime;
 
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -60,14 +59,8 @@ import org.knime.core.data.DataValue;
 import org.knime.core.data.time.localdate.LocalDateValue;
 import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.CompatibleColumnChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.CompatibleDataValueClassesSupplier;
@@ -92,7 +85,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-class ModifyTimeNodeSettings implements DefaultNodeSettings {
+final class ModifyTimeNodeSettings implements DefaultNodeSettings {
 
     ModifyTimeNodeSettings() {
     }
@@ -102,7 +95,7 @@ class ModifyTimeNodeSettings implements DefaultNodeSettings {
 
         if (spec.isPresent()) {
             m_columnFilter = new ColumnFilter(spec.get().stream() //
-                .filter(cspec -> m_modifySelect.isCompatibleType(cspec.getType())) //
+                .filter(m_behaviourType::isCompatibleType) //
                 .map(DataColumnSpec::getName) //
                 .toArray(String[]::new) //
             );
@@ -117,24 +110,20 @@ class ModifyTimeNodeSettings implements DefaultNodeSettings {
             columns can only  be modified or have their time component removed.
             """)
     @ValueSwitchWidget
-    @Persist(customPersistor = BehaviourTypePersistor.class)
     @ValueReference(BehaviourTypeRef.class)
-    BehaviourType m_modifySelect = BehaviourType.CHANGE;
+    BehaviourType m_behaviourType = BehaviourType.CHANGE;
 
     @Widget(title = "Time", description = "A time value.")
     @Effect(predicate = BehaviourTypeIsRemove.class, type = EffectType.HIDE)
-    @Persist(configKey = "time")
     LocalTime m_localTime = LocalTime.now();
 
     @Widget(title = "Time zone", description = "If checked, the user can choose a time zone to append.")
-    @Persist(configKey = "time_zone")
     @ChoicesWidget(optional = true)
     @Effect(predicate = BehaviourTypeIsAppend.class, type = EffectType.SHOW)
     @JsonInclude(Include.ALWAYS)
     ZoneId m_timeZone = ZoneId.systemDefault();
 
     @Widget(title = "Date&time columns", description = "Only the included columns will be modified.")
-    @Persist(configKey = "col_select", customPersistor = LegacyColumnFilterPersistor.class, optional = true)
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
@@ -143,13 +132,11 @@ class ModifyTimeNodeSettings implements DefaultNodeSettings {
             or appended to the input table.
             """)
     @ValueSwitchWidget
-    @Persist(customPersistor = ReplaceOrAppend.Persistor.class)
     @ValueReference(ReplaceOrAppend.ValueRef.class)
     ReplaceOrAppend m_appendOrReplace = ReplaceOrAppend.REPLACE;
 
     @Widget(title = "Output column suffix", description = "The suffix that is appended to the column name.")
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
-    @Persist(configKey = "suffix")
     String m_outputColumnSuffix = " (Modified time)";
 
     /*
@@ -159,35 +146,27 @@ class ModifyTimeNodeSettings implements DefaultNodeSettings {
      */
     enum BehaviourType implements CompatibleDataValueClassesSupplier {
             @Label(value = "Change", //
-                description = "Changes the time of local or zoned date&amp;time columns. The time zone "
-                    + "will not be changed. The <i>Modify Time Zone</i> node can be used to change it.")
-            CHANGE("Change time", List.of(ZonedDateTimeValue.class, LocalDateTimeValue.class)), //
-            @Label(value = "Append",
-                description = "Appends a time to local date columns. Optionally a time zone can be appended too.")
-            APPEND("Append time", List.of(LocalDateValue.class)), //
-            @Label(value = "Remove", description = "Removes the time from local or zoned date&amp;time columns. "
-                + "Time zones will be removed, too.")
-            REMOVE("Remove time", List.of(ZonedDateTimeValue.class, LocalDateTimeValue.class));
-
-        private String m_oldConfigValue;
+                description = """
+                        Changes the time of local or zoned date&amp;time columns. \
+                        The time zone will not be changed. The <i>Modify Time Zone</i> \
+                        node can be used to change it.
+                        """)
+            CHANGE(List.of(ZonedDateTimeValue.class, LocalDateTimeValue.class)), //
+            @Label(value = "Append", description = """
+                    Appends a time to local date columns. Optionally a time zone can be \
+                    appended too.
+                    """)
+            APPEND(List.of(LocalDateValue.class)), //
+            @Label(value = "Remove", description = """
+                    Removes the time from local or zoned date&amp;time columns. \
+                    Time zones will be removed, too.
+                    """)
+            REMOVE(List.of(ZonedDateTimeValue.class, LocalDateTimeValue.class));
 
         private List<Class<? extends DataValue>> m_compatibleDataValues;
 
-        BehaviourType(final String oldConfigValue, final List<Class<? extends DataValue>> compatibleDataValues) {
-            this.m_oldConfigValue = oldConfigValue;
+        BehaviourType(final List<Class<? extends DataValue>> compatibleDataValues) {
             this.m_compatibleDataValues = compatibleDataValues;
-        }
-
-        static BehaviourType getByOldConfigValue(final String oldValue) throws InvalidSettingsException {
-            return Arrays.stream(values()) //
-                .filter(v -> v.m_oldConfigValue.equals(oldValue)) //
-                .findFirst() //
-                .orElseThrow(() -> new InvalidSettingsException(
-                    String.format("Invalid value '%s'. Possible values: %s", oldValue, getOldConfigValues())));
-        }
-
-        static String[] getOldConfigValues() {
-            return Arrays.stream(values()).map(v -> v.m_oldConfigValue).toArray(String[]::new);
         }
 
         @Override
@@ -198,31 +177,9 @@ class ModifyTimeNodeSettings implements DefaultNodeSettings {
         boolean isCompatibleType(final DataType type) {
             return m_compatibleDataValues.stream().anyMatch(type::isCompatible);
         }
-    }
 
-    /*
-     * ------------------------------------------------------------------------
-     * PERSISTORS
-     * ------------------------------------------------------------------------
-     */
-
-    static final class BehaviourTypePersistor implements FieldNodeSettingsPersistor<BehaviourType> {
-
-        private static final String CONFIG_KEY = "modify_select";
-
-        @Override
-        public BehaviourType load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return BehaviourType.getByOldConfigValue(settings.getString(CONFIG_KEY));
-        }
-
-        @Override
-        public void save(final BehaviourType obj, final NodeSettingsWO settings) {
-            settings.addString(CONFIG_KEY, obj.m_oldConfigValue);
-        }
-
-        @Override
-        public String[] getConfigKeys() {
-            return new String[]{CONFIG_KEY};
+        boolean isCompatibleType(final DataColumnSpec spec) {
+            return isCompatibleType(spec.getType());
         }
     }
 

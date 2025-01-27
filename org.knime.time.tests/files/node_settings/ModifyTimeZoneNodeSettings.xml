@@ -6,94 +6,60 @@
         <entry key="memory_policy" type="xstring" value="CacheSmallInMemory"/>
     </config>
     <config key="model">
-        <config key="col_select">
-            <entry key="filter-type" type="xstring" value="STANDARD"/>
-            <config key="included_names">
-                <entry key="array-size" type="xint" value="1"/>
-                <entry key="0" type="xstring" value="Zoned Date Time"/>
-            </config>
-            <config key="excluded_names">
+        <entry key="behaviourType" type="xstring" value="SET"/>
+        <entry key="timeZone" type="xstring" value="Europe/Berlin"/>
+        <config key="columnFilter">
+            <config key="selected_Internals">
                 <entry key="array-size" type="xint" value="0"/>
             </config>
-            <entry key="enforce_option" type="xstring" value="EnforceExclusion"/>
-            <config key="name_pattern">
+            <entry key="mode" type="xstring" value="MANUAL"/>
+            <config key="patternFilter">
                 <entry key="pattern" type="xstring" value=""/>
-                <entry key="type" type="xstring" value="Wildcard"/>
-                <entry key="caseSensitive" type="xboolean" value="true"/>
-                <entry key="excludeMatching" type="xboolean" value="false"/>
+                <entry key="isCaseSensitive" type="xboolean" value="false"/>
+                <entry key="isInverted" type="xboolean" value="false"/>
             </config>
-            <config key="datatype">
-                <config key="typelist">
-                    <entry key="org.knime.core.data.StringValue" type="xboolean" value="false"/>
-                    <entry key="org.knime.core.data.collection.ListDataValue" type="xboolean" value="false"/>
-                    <entry key="org.knime.core.data.collection.SetDataValue" type="xboolean" value="false"/>
-                    <entry key="org.knime.core.data.IntValue" type="xboolean" value="false"/>
-                    <entry key="org.knime.core.data.LongValue" type="xboolean" value="false"/>
-                    <entry key="org.knime.core.data.DoubleValue" type="xboolean" value="false"/>
-                    <entry key="org.knime.core.data.date.DateAndTimeValue" type="xboolean" value="false"/>
-                    <entry key="org.knime.core.data.BooleanValue" type="xboolean" value="false"/>
-                    <entry key="org.knime.core.data.uri.URIDataValue" type="xboolean" value="false"/>
-                    <entry key="org.knime.core.data.time.localdate.LocalDateValue" type="xboolean" value="false"/>
-                    <entry key="org.knime.core.data.time.localtime.LocalTimeValue" type="xboolean" value="false"/>
-                    <entry key="org.knime.core.data.time.localdatetime.LocalDateTimeValue" type="xboolean" value="false"/>
-                    <entry key="org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue" type="xboolean" value="false"/>
-                    <entry key="org.knime.core.data.time.period.PeriodValue" type="xboolean" value="false"/>
-                    <entry key="org.knime.core.data.time.duration.DurationValue" type="xboolean" value="false"/>
+            <config key="manualFilter">
+                <config key="manuallySelected">
+                    <entry key="array-size" type="xint" value="0"/>
+                </config>
+                <config key="manuallyDeselected">
+                    <entry key="array-size" type="xint" value="0"/>
+                </config>
+                <entry key="includeUnknownColumns" type="xboolean" value="false"/>
+            </config>
+            <config key="typeFilter">
+                <config key="selectedTypes">
+                    <entry key="array-size" type="xint" value="0"/>
                 </config>
             </config>
         </config>
-        <config key="replace_or_append_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_string"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="replace_or_append" type="xstring" value="Append selected columns"/>
-        <config key="suffix_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_string"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="suffix" type="xstring" value="(modified time zone)"/>
-        <config key="time_zone_select_Internals">
-            <entry key="SettingsModelID" type="xstring" value="settingsmodel.date&amp;time"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="time_zone_select" type="xstring" value="Iran"/>
-        <config key="modify_select_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_string"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="modify_select" type="xstring" value="Shift time zone"/>
+        <entry key="appendOrReplace" type="xstring" value="REPLACE"/>
+        <entry key="outputColumnSuffix" type="xstring" value=" (Modified time zone)"/>
     </config>
     <entry key="customDescription" type="xstring" isnull="true" value=""/>
-    <entry key="state" type="xstring" value="EXECUTED"/>
-    <config key="nodecontainer_message">
-        <entry key="type" type="xstring" value="WARNING"/>
-        <entry key="message" type="xstring" value="Could not shift time zone. The time zone is not valid for the given date time."/>
-    </config>
-    <entry key="factory" type="xstring" value="org.knime.time.node.manipulate.modifytimezone.ModifyTimeZoneNodeFactory"/>
-    <entry key="node-name" type="xstring" value="Modify Time Zone (deprecated)"/>
+    <entry key="state" type="xstring" value="IDLE"/>
+    <entry key="factory" type="xstring" value="org.knime.time.node.manipulate.modifytimezone.ModifyTimeZoneNodeFactory2"/>
+    <entry key="node-name" type="xstring" value="Time Zone Modifier"/>
     <entry key="node-bundle-name" type="xstring" value="KNIME Date and Time Handling"/>
     <entry key="node-bundle-symbolic-name" type="xstring" value="org.knime.time"/>
     <entry key="node-bundle-vendor" type="xstring" value="KNIME AG, Zurich, Switzerland"/>
-    <entry key="node-bundle-version" type="xstring" value="5.4.0.qualifier"/>
+    <entry key="node-bundle-version" type="xstring" value="5.5.0.qualifier"/>
     <entry key="node-feature-name" type="xstring" isnull="true" value=""/>
     <entry key="node-feature-symbolic-name" type="xstring" isnull="true" value=""/>
     <entry key="node-feature-vendor" type="xstring" isnull="true" value=""/>
     <entry key="node-feature-version" type="xstring" value="0.0.0"/>
     <config key="factory_settings"/>
-    <entry key="name" type="xstring" value="Modify Time Zone (deprecated)"/>
-    <entry key="hasContent" type="xboolean" value="true"/>
+    <entry key="name" type="xstring" value="Time Zone Modifier"/>
+    <entry key="hasContent" type="xboolean" value="false"/>
     <entry key="isInactive" type="xboolean" value="false"/>
     <config key="ports">
         <config key="port_1">
             <entry key="index" type="xint" value="1"/>
-            <entry key="port_spec_class" type="xstring" value="org.knime.core.data.DataTableSpec"/>
-            <entry key="port_object_class" type="xstring" value="org.knime.core.node.BufferedDataTable"/>
-            <entry key="port_object_summary" type="xstring" value="Rows: 100, Cols: 33"/>
-            <entry key="port_dir_location" type="xstring" value="port_1"/>
+            <entry key="port_dir_location" type="xstring" isnull="true" value=""/>
         </config>
     </config>
     <config key="filestores">
         <entry key="file_store_location" type="xstring" isnull="true" value=""/>
-        <entry key="file_store_id" type="xstring" value="ce3fa7e9-4997-44bd-897a-da5fb6bd0f97"/>
+        <entry key="file_store_id" type="xstring" isnull="true" value=""/>
     </config>
 </config>

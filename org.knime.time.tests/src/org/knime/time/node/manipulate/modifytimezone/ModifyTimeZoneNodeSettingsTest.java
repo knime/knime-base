@@ -74,7 +74,7 @@ import org.mockito.Mockito;
  * @author Tobias Kampmann, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public class ModifyTimeZoneNodeSettingsTest extends DefaultNodeSettingsSnapshotTest { // NOSONAR
+final class ModifyTimeZoneNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
     private Locale m_defaultLocale;
 

@@ -74,14 +74,14 @@ import org.mockito.Mockito;
  * @author Tobias Kampmann, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public class ModifyTimeSettingsTest extends DefaultNodeSettingsSnapshotTest { // NOSONAR
+final class ModifyTimeNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
     private Locale m_defaultLocale;
 
     static final PortObjectSpec[] TEST_TABLE_SPECS = new PortObjectSpec[]{
         new DataTableSpec(new String[]{"test"}, new DataType[]{DataType.getType(LocalDateTimeCell.class)})};
 
-    protected ModifyTimeSettingsTest() {
+    protected ModifyTimeNodeSettingsTest() {
         super(getConfig());
     }
 

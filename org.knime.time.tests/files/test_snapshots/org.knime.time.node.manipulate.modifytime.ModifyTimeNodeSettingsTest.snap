@@ -1,7 +1,7 @@
 {
   "data" : {
     "model" : {
-      "modifySelect" : "CHANGE",
+      "behaviourType" : "CHANGE",
       "localTime" : "14:00:00",
       "timeZone" : "Europe/Berlin",
       "columnFilter" : {
@@ -43,6 +43,21 @@
             "title" : "Output columns",
             "description" : "Depending on the selection, the selected columns will be replaced or appended to the input table.\n\n<ul>\n<li><b>Replace</b>: The selected columns will be replaced by the new columns.</li>\n<li><b>Append with suffix</b>: The selected columns will be appended to the input table with a new name that is the previous name plus the provided suffix.\n</li>\n</ul>",
             "default" : "REPLACE"
+          },
+          "behaviourType" : {
+            "oneOf" : [ {
+              "const" : "CHANGE",
+              "title" : "Change"
+            }, {
+              "const" : "APPEND",
+              "title" : "Append"
+            }, {
+              "const" : "REMOVE",
+              "title" : "Remove"
+            } ],
+            "title" : "Modification",
+            "description" : "Defines the action to be performed on the selected columns. The time can be changed, appended, or removed, with different columns being eligible for each action. For example, only local date columns can have time appended, while local date-time columns can only  be modified or have their time component removed.\n\n<ul>\n<li><b>Change</b>: Changes the time of local or zoned date&amp;time columns. The time zone will not be changed. The <i>Modify Time Zone</i> node can be used to change it.\n</li>\n<li><b>Append</b>: Appends a time to local date columns. Optionally a time zone can be appended too.\n</li>\n<li><b>Remove</b>: Removes the time from local or zoned date&amp;time columns. Time zones will be removed, too.\n</li>\n</ul>",
+            "default" : "CHANGE"
           },
           "columnFilter" : {
             "type" : "object",
@@ -178,21 +193,6 @@
             "description" : "A time value.",
             "default" : "14:00:00"
           },
-          "modifySelect" : {
-            "oneOf" : [ {
-              "const" : "CHANGE",
-              "title" : "Change"
-            }, {
-              "const" : "APPEND",
-              "title" : "Append"
-            }, {
-              "const" : "REMOVE",
-              "title" : "Remove"
-            } ],
-            "title" : "Modification",
-            "description" : "Defines the action to be performed on the selected columns. The time can be changed, appended, or removed, with different columns being eligible for each action. For example, only local date columns can have time appended, while local date-time columns can only  be modified or have their time component removed.\n\n<ul>\n<li><b>Change</b>: Changes the time of local or zoned date&amp;time columns. The time zone will not be changed. The <i>Modify Time Zone</i> node can be used to change it.</li>\n<li><b>Append</b>: Appends a time to local date columns. Optionally a time zone can be appended too.</li>\n<li><b>Remove</b>: Removes the time from local or zoned date&amp;time columns. Time zones will be removed, too.</li>\n</ul>",
-            "default" : "CHANGE"
-          },
           "outputColumnSuffix" : {
             "type" : "string",
             "title" : "Output column suffix",
@@ -212,7 +212,7 @@
   "ui_schema" : {
     "elements" : [ {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/modifySelect",
+      "scope" : "#/properties/model/properties/behaviourType",
       "options" : {
         "format" : "valueSwitch"
       }
@@ -225,7 +225,7 @@
       "rule" : {
         "effect" : "HIDE",
         "condition" : {
-          "scope" : "#/properties/model/properties/modifySelect",
+          "scope" : "#/properties/model/properties/behaviourType",
           "schema" : {
             "oneOf" : [ {
               "const" : "REMOVE"
@@ -2057,7 +2057,7 @@
       "rule" : {
         "effect" : "SHOW",
         "condition" : {
-          "scope" : "#/properties/model/properties/modifySelect",
+          "scope" : "#/properties/model/properties/behaviourType",
           "schema" : {
             "oneOf" : [ {
               "const" : "APPEND"
@@ -2104,17 +2104,10 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "modifySelect" : {
-            "configPaths" : [ [ "modify_select" ] ]
-          },
-          "localTime" : {
-            "configKey" : "time"
-          },
-          "timeZone" : {
-            "configKey" : "time_zone"
-          },
+          "behaviourType" : { },
+          "localTime" : { },
+          "timeZone" : { },
           "columnFilter" : {
-            "configPaths" : [ [ "col_select", "filter-type" ], [ "col_select", "included_names" ], [ "col_select", "excluded_names" ], [ "col_select", "enforce_option" ], [ "col_select", "name_pattern", "pattern" ], [ "col_select", "name_pattern", "type" ], [ "col_select", "name_pattern", "caseSensitive" ], [ "col_select", "name_pattern", "excludeMatching" ] ],
             "type" : "object",
             "properties" : {
               "selected" : {
@@ -2156,12 +2149,8 @@
               }
             }
           },
-          "appendOrReplace" : {
-            "configPaths" : [ [ "replace_or_append" ] ]
-          },
-          "outputColumnSuffix" : {
-            "configKey" : "suffix"
-          }
+          "appendOrReplace" : { },
+          "outputColumnSuffix" : { }
         }
       }
     }
@@ -2185,10 +2174,10 @@
   "globalUpdates" : [ {
     "trigger" : {
       "id" : "org.knime.time.node.manipulate.modifytime.ModifyTimeNodeSettings$BehaviourTypeRef",
-      "scopes" : [ "#/properties/model/properties/modifySelect" ]
+      "scopes" : [ "#/properties/model/properties/behaviourType" ]
     },
     "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/modifySelect" ],
+      "scopes" : [ "#/properties/model/properties/behaviourType" ],
       "id" : "org.knime.time.node.manipulate.modifytime.ModifyTimeNodeSettings$BehaviourTypeRef"
     } ]
   } ]

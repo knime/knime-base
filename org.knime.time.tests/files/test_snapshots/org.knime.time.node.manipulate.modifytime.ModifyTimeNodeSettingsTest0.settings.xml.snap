@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
     <entry key="behaviourType" type="xstring" value="CHANGE"/>
-    <entry key="localDate" type="xstring" value="2025-01-27"/>
+    <entry key="localTime" type="xstring" value="16:30:04.759224719"/>
     <entry key="timeZone" type="xstring" value="Europe/Berlin"/>
     <config key="columnFilter">
         <config key="selected_Internals">
@@ -29,5 +29,5 @@
         </config>
     </config>
     <entry key="appendOrReplace" type="xstring" value="REPLACE"/>
-    <entry key="outputColumnSuffix" type="xstring" value=" (Modified date)"/>
+    <entry key="outputColumnSuffix" type="xstring" value=" (Modified time)"/>
 </config>
