@@ -181,16 +181,29 @@ final class CreateDateTimeNodeModel2 extends WebUINodeModel<CreateDateTimeNodeSe
         final CreateDateTimeNodeSettings settings) {
 
         final var startPoint = extractStartTimeFromSettings(settings);
+
+        // If the number of rows is 0, return an empty table. If 1, return a table with just the start time.
+        if (settings.m_numberOfRows == 0) {
+            return;
+        } else if (settings.m_numberOfRows == 1) {
+            container.addRowToTable(createRow(0, settings.m_outputType, extractStartTimeFromSettings(settings)));
+            return;
+        }
+
         final var endPoint = extractEndTimeFromSettings(settings);
 
         var stepSize = Duration.between(startPoint, endPoint).dividedBy(Math.max(1, settings.m_numberOfRows - 1));
 
-        // Create the cells
-        for (long i = 0; i < settings.m_numberOfRows; ++i) {
+        // Create the cells. Skip the last row for now
+        for (long i = 0; i < settings.m_numberOfRows - 1; ++i) {
             var next = startPoint.plus(stepSize.multipliedBy(i));
 
             container.addRowToTable(createRow(i, settings.m_outputType, next));
         }
+
+        // Now add the last row. We do this so that there are no rounding errors
+        // that would mean the exact end point specified by the user is not included.
+        container.addRowToTable(createRow(settings.m_numberOfRows - 1, settings.m_outputType, endPoint));
     }
 
     private static void executeForFixedNumberOfStepsAndInterval(final BufferedDataContainer container,
@@ -294,7 +307,7 @@ final class CreateDateTimeNodeModel2 extends WebUINodeModel<CreateDateTimeNodeSe
         final var utc = ZoneId.of("UTC");
 
         return switch (settings.m_outputType) {
-            case DATE -> settings.m_localDateEnd.atStartOfDay().atZone(utc);
+            case DATE -> settings.m_localDateEnd.atTime(LocalTime.NOON).atZone(utc);
             case TIME -> settings.m_localTimeEnd.atDate(LocalDate.EPOCH).atZone(utc);
             case DATE_TIME -> ZonedDateTime.of(settings.m_localDateEnd, settings.m_localTimeEnd, utc);
             case DATE_TIME_WITH_TIMEZONE -> ZonedDateTime.of(settings.m_localDateEnd, settings.m_localTimeEnd,
@@ -310,7 +323,7 @@ final class CreateDateTimeNodeModel2 extends WebUINodeModel<CreateDateTimeNodeSe
         final var utc = ZoneId.of("UTC");
 
         return switch (settings.m_outputType) {
-            case DATE -> settings.m_localDateStart.atStartOfDay().atZone(utc);
+            case DATE -> settings.m_localDateStart.atTime(LocalTime.NOON).atZone(utc);
             case TIME -> settings.m_localTimeStart.atDate(LocalDate.EPOCH).atZone(utc);
             case DATE_TIME -> ZonedDateTime.of(settings.m_localDateStart, settings.m_localTimeStart, utc);
             case DATE_TIME_WITH_TIMEZONE -> ZonedDateTime.of(settings.m_localDateStart, settings.m_localTimeStart,

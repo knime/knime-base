@@ -338,7 +338,7 @@ public class CreateDateTimeNodeModel2Test {
             LocalDate.of(2025, 2, 28), LocalDate.of(2025, 3, 1)), //
         NumberAndEndTestCase.of("Interval isn't a multiple of end-start", LocalDate.of(2024, 1, 1),
             LocalDate.of(2024, 1, 2), LocalDate.of(2024, 1, 1), //
-            LocalDate.of(2024, 1, 1), LocalDate.of(2024, 1, 1), LocalDate.of(2024, 1, 2)), //
+            LocalDate.of(2024, 1, 1), LocalDate.of(2024, 1, 2), LocalDate.of(2024, 1, 2)), //
         NumberAndEndTestCase.of("Same start and end date", LocalDate.of(2024, 1, 1), LocalDate.of(2024, 1, 1),
             LocalDate.of(2024, 1, 1), LocalDate.of(2024, 1, 1)) //
     );
