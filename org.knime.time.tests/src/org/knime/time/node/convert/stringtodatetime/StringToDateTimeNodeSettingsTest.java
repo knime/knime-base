@@ -48,6 +48,10 @@
  */
 package org.knime.time.node.convert.stringtodatetime;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.time.LocalDate;
@@ -57,28 +61,41 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.data.def.StringCell.StringCellFactory;
+import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
+import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.PortType;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 import org.knime.testing.node.dialog.SnapshotTestConfiguration;
+import org.knime.testing.node.dialog.updates.DialogUpdateSimulator;
+import org.knime.testing.util.TableTestUtil;
+import org.knime.time.node.convert.stringtodatetime.StringToDateTimeNodeSettings.TemporalType;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 /**
- *
  * @author Tobias Kampmann, TNG Technology Consulting GmbH
+ * @author David Hickey, TNG Technology Consulting GmbH
  */
-@SuppressWarnings("restriction")
+@SuppressWarnings({"restriction", "static-method"})
 final class StringToDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshotTest { // NOSONAR
 
     private Locale m_defaultLocale;
@@ -128,6 +145,134 @@ final class StringToDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshot
         m_mockedStaticDateTimeFormatStringHistoryManager.close();
     }
 
+    @Test
+    void testThatGuessButtonWorks() {
+        var inputSpec = new TableTestUtil.SpecBuilder().addColumn("datetimes", StringCellFactory.TYPE).build();
+        var inputTable = new TableTestUtil.TableBuilder(inputSpec).addRow("2024-01-25 14:00").build().get();
+        var fakeContext = DefaultNodeSettingsContext.createDefaultNodeSettingsContext( //
+            new PortType[]{BufferedDataTable.TYPE}, //
+            new PortObjectSpec[]{inputSpec}, //
+            null, //
+            null, //
+            new PortObject[]{inputTable});
+
+        var settings = new StringToDateTimeNodeSettings();
+        settings.m_selectedType = TemporalType.LOCAL_DATE_TIME;
+        settings.m_format = "";
+        settings.m_columnFilter = new ColumnFilter(new String[]{"datetimes"});
+
+        var sim = new DialogUpdateSimulator(Map.of( //
+            SettingsType.MODEL, settings //
+        ), fakeContext);
+
+        var result = sim.simulateButtonClick(StringToDateTimeNodeSettings.AutoGuessFormatButtonRef.class);
+
+        assertEquals("yyyy-MM-dd HH:mm", result.getValueUpdateAt("format"));
+    }
+
+    @Test
+    void testThatGuessButtonFailsWhenNoColSelected() {
+        var inputSpec = new TableTestUtil.SpecBuilder().addColumn("datetimes", StringCellFactory.TYPE).build();
+        var inputTable = new TableTestUtil.TableBuilder(inputSpec).addRow("2024-01-25 14:00").build().get();
+        var fakeContext = DefaultNodeSettingsContext.createDefaultNodeSettingsContext( //
+            new PortType[]{BufferedDataTable.TYPE}, //
+            new PortObjectSpec[]{inputSpec}, //
+            null, //
+            null, //
+            new PortObject[]{inputTable});
+
+        var settings = new StringToDateTimeNodeSettings();
+        settings.m_selectedType = TemporalType.LOCAL_DATE_TIME;
+        settings.m_format = "";
+        settings.m_columnFilter = new ColumnFilter();
+
+        var sim = new DialogUpdateSimulator(Map.of( //
+            SettingsType.MODEL, settings //
+        ), fakeContext);
+
+        var thrown = assertThrows(WidgetHandlerException.class,
+            () -> sim.simulateButtonClick(StringToDateTimeNodeSettings.AutoGuessFormatButtonRef.class));
+        assertTrue(thrown.getMessage().contains("no selected"));
+    }
+
+    @Test
+    void testThatGuessButtonFailsWhenNoCommonFormat() {
+        var inputSpec = new TableTestUtil.SpecBuilder().addColumn("datetimes", StringCellFactory.TYPE).build();
+        var inputTable = new TableTestUtil.TableBuilder(inputSpec) //
+            .addRow("2024-01-25") //
+            .addRow("14:00") //
+            .build().get();
+        var fakeContext = DefaultNodeSettingsContext.createDefaultNodeSettingsContext( //
+            new PortType[]{BufferedDataTable.TYPE}, //
+            new PortObjectSpec[]{inputSpec}, //
+            null, //
+            null, //
+            new PortObject[]{inputTable});
+
+        var settings = new StringToDateTimeNodeSettings();
+        settings.m_selectedType = TemporalType.LOCAL_DATE_TIME;
+        settings.m_format = "";
+        settings.m_columnFilter = new ColumnFilter(new String[]{"datetimes"});
+
+        var sim = new DialogUpdateSimulator(Map.of( //
+            SettingsType.MODEL, settings //
+        ), fakeContext);
+
+        assertThrowsWithMessageContaining(WidgetHandlerException.class,
+            () -> sim.simulateButtonClick(StringToDateTimeNodeSettings.AutoGuessFormatButtonRef.class),
+            "Expected exception to be thrown", "no common format");
+    }
+
+    @Test
+    void testThatGuessButtonFailsOnEmptyColumn() {
+        var inputSpec = new TableTestUtil.SpecBuilder().addColumn("datetimes", StringCellFactory.TYPE).build();
+        var inputTable = new TableTestUtil.TableBuilder(inputSpec).build().get();
+        var fakeContext = DefaultNodeSettingsContext.createDefaultNodeSettingsContext( //
+            new PortType[]{BufferedDataTable.TYPE}, //
+            new PortObjectSpec[]{inputSpec}, //
+            null, //
+            null, //
+            new PortObject[]{inputTable});
+
+        var settings = new StringToDateTimeNodeSettings();
+        settings.m_selectedType = TemporalType.LOCAL_DATE_TIME;
+        settings.m_format = "";
+        settings.m_columnFilter = new ColumnFilter(new String[]{"datetimes"});
+
+        var sim = new DialogUpdateSimulator(Map.of( //
+            SettingsType.MODEL, settings //
+        ), fakeContext);
+
+        assertThrowsWithMessageContaining(WidgetHandlerException.class,
+            () -> sim.simulateButtonClick(StringToDateTimeNodeSettings.AutoGuessFormatButtonRef.class),
+            "Expected exception to be thrown", "no non-missing rows");
+    }
+
+    @Test
+    void testThatGuessButtonFailsOnMissingValueColumn() {
+        var inputSpec = new TableTestUtil.SpecBuilder().addColumn("datetimes", StringCellFactory.TYPE).build();
+        var inputTable = new TableTestUtil.TableBuilder(inputSpec).addRow(DataType.getMissingCell()).build().get();
+        var fakeContext = DefaultNodeSettingsContext.createDefaultNodeSettingsContext( //
+            new PortType[]{BufferedDataTable.TYPE}, //
+            new PortObjectSpec[]{inputSpec}, //
+            null, //
+            null, //
+            new PortObject[]{inputTable});
+
+        var settings = new StringToDateTimeNodeSettings();
+        settings.m_selectedType = TemporalType.LOCAL_DATE_TIME;
+        settings.m_format = "";
+        settings.m_columnFilter = new ColumnFilter(new String[]{"datetimes"});
+
+        var sim = new DialogUpdateSimulator(Map.of( //
+            SettingsType.MODEL, settings //
+        ), fakeContext);
+
+        assertThrowsWithMessageContaining(WidgetHandlerException.class,
+            () -> sim.simulateButtonClick(StringToDateTimeNodeSettings.AutoGuessFormatButtonRef.class),
+            "Expected exception to be thrown", "no non-missing rows");
+    }
+
     private static SnapshotTestConfiguration getConfig() {
         return SnapshotTestConfiguration.builder() //
             .withInputPortObjectSpecs(TEST_TABLE_SPECS) //
@@ -149,6 +294,16 @@ final class StringToDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshot
         } catch (IOException | InvalidSettingsException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    static <T extends Throwable> T assertThrowsWithMessageContaining(final Class<T> thrownClass,
+        final Executable runnable, final String assertionMessage, final String... contains) {
+        T thrown = assertThrows(thrownClass, runnable, assertionMessage);
+        for (String contain : contains) {
+            assertTrue(thrown.getMessage().contains(contain),
+                "Expected message to contain '%s' but was '%s'".formatted(contain, thrown.getMessage()));
+        }
+        return thrown;
     }
 
 }

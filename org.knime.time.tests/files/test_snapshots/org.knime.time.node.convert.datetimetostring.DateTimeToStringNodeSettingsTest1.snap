@@ -173,7 +173,7 @@
           "format" : {
             "type" : "string",
             "title" : "DateTime format",
-            "description" : "A format string (defined by <a href=\"\nhttps://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html\n\">DateTimeFormatter</a>).\n<br />\n<b>Examples:</b>\n<ul>\n    <li>\"yyyy.MM.dd HH:mm:ss.SSS\" produces dates such as \"2001.07.04 12:08:56.000\"\n    </li>\n    <li>\"yyyy-MM-dd'T'HH:mm:ss.SSSZ\" produces dates such as \"2001-07-04T12:08:56.235-0700\"\n    </li>\n    <li>\"yyyy-MM-dd'T'HH:mm:ss.SSSXXX'['VV']'\" produces dates such as\n    \"2001-07-04T12:08:56.235+02:00[Europe/Berlin]\"\n    </li>\n</ul>\n<b>Supported placeholders in the pattern are:</b>\n<ul>\n    <li>G: era</li>\n    <li>u: year</li>\n    <li>y: year of era</li>\n    <li>D: day of year</li>\n    <li>M: month in year (context sensitive)</li>\n    <li>L: month in year (standalone form)</li>\n    <li>d: day of month</li>\n    <li>Q: quarter of year</li>\n    <li>q: quarter of year</li>\n    <li>Y: week based year</li>\n    <li>w: week of week based year</li>\n    <li>W: week of month</li>\n    <li>E: day of week</li>\n    <li>e: localized day of week</li>\n    <li>c: localized day of week</li>\n    <li>F: week of month</li>\n    <li>a: am/pm of day</li>\n    <li>h: clock hour of am/pm (1-12)</li>\n    <li>K: hour of am/pm (0-11)</li>\n    <li>k: clock hour of am/pm (1-24)</li>\n    <li>H: hour of day (0-23)</li>\n    <li>m: minute of hour</li>\n    <li>s: second of minute</li>\n    <li>S: fraction of second</li>\n    <li>A: milli of day</li>\n    <li>n: nano of second</li>\n    <li>N: nano of second</li>\n    <li>V: time zone ID</li>\n    <li>z: time zone name</li>\n    <li>O: localized zone offset</li>\n    <li>X zone offset ('Z' for zero)</li>\n    <li>x: zone offset</li>\n    <li>Z: zone offset</li>\n    <li>p: pad next</li>\n    <li>' : escape for text</li>\n    <li>'': single quote</li>\n    <li>[: optional section start</li>\n    <li>]: optional section end</li>\n</ul>\n",
+            "description" : "A format string (defined by <a href=\"\nhttps://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html\n\">DateTimeFormatter</a>).\n<br />\n<b>Examples:</b>\n<ul>\n    <li>\"yyyy.MM.dd HH:mm:ss.SSS\" produces dates such as \"2001.07.04 12:08:56.000\"\n    </li>\n    <li>\"yyyy-MM-dd'T'HH:mm:ss.SSSZ\" produces dates such as \"2001-07-04T12:08:56.235-0700\"\n    </li>\n    <li>\"yyyy-MM-dd'T'HH:mm:ss.SSSXXX'['VV']'\" produces dates such as\n    \"2001-07-04T12:08:56.235+02:00[Europe/Berlin]\"\n    </li>\n</ul>\n<b>Supported placeholders in the pattern are:</b>\n<ul>\n    <li>G: era</li>\n    <li>u: year</li>\n    <li>y: year of era</li>\n    <li>D: day of year</li>\n    <li>M: month in year (context sensitive)</li>\n    <li>L: month in year (standalone form)</li>\n    <li>d: day of month</li>\n    <li>Q/q: quarter of year</li>\n    <li>Y: week based year (you probably want to use y instead)</li>\n    <li>w: week of week based year</li>\n    <li>W: week of month</li>\n    <li>E: day of week</li>\n    <li>e: localized day of week\n        <ul>\n            <li>e: 4</li>\n            <li>ee: 04</li>\n            <li>eee: Wed</li>\n            <li>eeee: Wednesday</li>\n            <li>eeeee: W</li>\n        </ul>\n    </li>\n    <li>c: day of week</li>\n    <li>F: day-of-week in month</li>\n    <li>a: am/pm of day</li>\n    <li>h: clock hour of am/pm (1-12)</li>\n    <li>K: hour of am/pm (0-11)</li>\n    <li>k: clock hour of am/pm (1-24)</li>\n    <li>H: hour of day (0-23)</li>\n    <li>m: minute of hour</li>\n    <li>s: second of minute</li>\n    <li>S: fraction of second</li>\n    <li>A: milli of day</li>\n    <li>n: nano of second</li>\n    <li>N: nano of day</li>\n    <li>V: time zone ID</li>\n    <li>z: time zone name</li>\n    <li>O: localized zone offset</li>\n    <li>x: zone offset (ISO8601)\n          <ul>\n              <li>X: +08 or +0830</li>\n              <li>XX: +0800 or +0830 (no colons)</li>\n              <li>XXX: +08:00 or +08:30 (with colons)</li>\n              <li>XXXX: +0800 or +083015 (i.e. including offset seconds, no colons)</li>\n              <li>XXXXX: +08:00 or +08:30:15 (i.e. including offset seconds, with colons)</li>\n          </ul>\n    </li>\n    <li>X: same as x, but outputs Z when offset is 0</li>\n    <li>Z: zone offset (RFC822)\n        <ul>\n            <li>Z, ZZ, ZZZ: +0800 or +0830</li>\n            <li>ZZZZ: GMT+08:00 or GMT+08:30</li>\n            <li>ZZZZZ: +08:00 or +08:30:15</li>\n        </ul>\n    </li>\n    <li>p: pad next</li>\n    <li>' : escape for text</li>\n    <li>'': single quote</li>\n    <li>[: optional section start</li>\n    <li>]: optional section end</li>\n</ul>\n",
             "default" : "yyyy-MM-dd HH:mm:ss"
           },
           "locale" : {
@@ -385,11 +385,6 @@
         "category" : "STANDARD",
         "example" : "0001-1-1"
       }, {
-        "format" : "yyyy-MM-'01'",
-        "temporalType" : "DATE",
-        "category" : "STANDARD",
-        "example" : "0001-01-01"
-      }, {
         "format" : "yyyy-MMMM-dd",
         "temporalType" : "DATE",
         "category" : "STANDARD",
@@ -425,20 +420,10 @@
         "category" : "STANDARD",
         "example" : "0001-Q1"
       }, {
-        "format" : "yyyy-QQ-dd",
-        "temporalType" : "DATE",
-        "category" : "STANDARD",
-        "example" : "0001-01-01"
-      }, {
         "format" : "yyyy-'W'ww",
         "temporalType" : "DATE",
         "category" : "STANDARD",
         "example" : "0001-W01"
-      }, {
-        "format" : "yyyy-M[M]-d[d]",
-        "temporalType" : "DATE",
-        "category" : "STANDARD",
-        "example" : "0001-11-11"
       }, {
         "format" : "dd/MM/yyyy",
         "temporalType" : "DATE",
@@ -555,12 +540,12 @@
         "category" : "EUROPEAN",
         "example" : "0001 Jan 01"
       }, {
-        "format" : "'Q'Q/yyyy",
+        "format" : "QQQ/yyyy",
         "temporalType" : "DATE",
         "category" : "EUROPEAN",
         "example" : "Q1/0001"
       }, {
-        "format" : "yyyy/'Q'Q",
+        "format" : "yyyy/QQQ",
         "temporalType" : "DATE",
         "category" : "EUROPEAN",
         "example" : "0001/Q1"
@@ -650,10 +635,10 @@
         "category" : "AMERICAN",
         "example" : "1/0001"
       }, {
-        "format" : "'Q'Q/yyyy",
+        "format" : "QQ/yyyy",
         "temporalType" : "DATE",
         "category" : "AMERICAN",
-        "example" : "Q1/0001"
+        "example" : "01/0001"
       }, {
         "format" : "HH:mm",
         "temporalType" : "TIME",
@@ -685,11 +670,6 @@
         "category" : "STANDARD",
         "example" : "14:00:00.000"
       }, {
-        "format" : "HH:mm:ss[.SSS][.SS][.S]",
-        "temporalType" : "TIME",
-        "category" : "STANDARD",
-        "example" : "14:00:00.000.00.0"
-      }, {
         "format" : "HH:mm:ss.nnn",
         "temporalType" : "TIME",
         "category" : "STANDARD",
@@ -704,11 +684,6 @@
         "temporalType" : "TIME",
         "category" : "STANDARD",
         "example" : "14:00:00.000"
-      }, {
-        "format" : "HH:mm[:ss[.SSS][.SS][.S]]",
-        "temporalType" : "TIME",
-        "category" : "STANDARD",
-        "example" : "14:00:00.000.00.0"
       }, {
         "format" : "hh:mma",
         "temporalType" : "TIME",
@@ -755,11 +730,6 @@
         "category" : "EUROPEAN",
         "example" : "14:00:00.000"
       }, {
-        "format" : "HH:mm:ss[.SSS][.SS][.S]",
-        "temporalType" : "TIME",
-        "category" : "EUROPEAN",
-        "example" : "14:00:00.000.00.0"
-      }, {
         "format" : "HH:mm:ss.nnn",
         "temporalType" : "TIME",
         "category" : "EUROPEAN",
@@ -774,11 +744,6 @@
         "temporalType" : "TIME",
         "category" : "EUROPEAN",
         "example" : "14:00:00.000"
-      }, {
-        "format" : "HH:mm[:ss[.SSS][.SS][.S]]",
-        "temporalType" : "TIME",
-        "category" : "EUROPEAN",
-        "example" : "14:00:00.000.00.0"
       }, {
         "format" : "hh:mma",
         "temporalType" : "TIME",
@@ -825,11 +790,6 @@
         "category" : "AMERICAN",
         "example" : "14:00:00.000"
       }, {
-        "format" : "HH:mm:ss[.SSS][.SS][.S]",
-        "temporalType" : "TIME",
-        "category" : "AMERICAN",
-        "example" : "14:00:00.000.00.0"
-      }, {
         "format" : "HH:mm:ss.nnn",
         "temporalType" : "TIME",
         "category" : "AMERICAN",
@@ -844,11 +804,6 @@
         "temporalType" : "TIME",
         "category" : "AMERICAN",
         "example" : "14:00:00.000"
-      }, {
-        "format" : "HH:mm[:ss[.SSS][.SS][.S]]",
-        "temporalType" : "TIME",
-        "category" : "AMERICAN",
-        "example" : "14:00:00.000.00.0"
       }, {
         "format" : "hh:mma",
         "temporalType" : "TIME",
@@ -905,11 +860,6 @@
         "category" : "STANDARD",
         "example" : "0001-01-01 14:00:00"
       }, {
-        "format" : "yyyy-MM-dd;HH:mm:ss[.SSS][.SS][.S]",
-        "temporalType" : "DATE_TIME",
-        "category" : "STANDARD",
-        "example" : "0001-01-01;14:00:00.000.00.0"
-      }, {
         "format" : "yyyy-MM-dd'T'HH:mm",
         "temporalType" : "DATE_TIME",
         "category" : "STANDARD",
@@ -925,11 +875,6 @@
         "category" : "STANDARD",
         "example" : "0001-01-01T14:00:00.000"
       }, {
-        "format" : "yyyy-MM-dd'T'HH:mm:ss[.SSS][.SS][.S]",
-        "temporalType" : "DATE_TIME",
-        "category" : "STANDARD",
-        "example" : "0001-01-01T14:00:00.000.00.0"
-      }, {
         "format" : "yyyy-MM-dd'T'HH:mm:ss.SSS",
         "temporalType" : "DATE_TIME",
         "category" : "STANDARD",
@@ -944,11 +889,6 @@
         "temporalType" : "DATE_TIME",
         "category" : "STANDARD",
         "example" : "0001-01-01T14:00:00"
-      }, {
-        "format" : "yyyy-MM-dd'T'HH:mm:ss[.S[S[S]]]",
-        "temporalType" : "DATE_TIME",
-        "category" : "STANDARD",
-        "example" : "0001-01-01T14:00:00.000"
       }, {
         "format" : "yyyy-MM-dd HH:mm",
         "temporalType" : "DATE_TIME",
@@ -1200,11 +1140,6 @@
         "category" : "EUROPEAN",
         "example" : "0001-01-01T14:00:00Europe/Berlin"
       }, {
-        "format" : "yyyy-MM-dd'T'HH:mm:ssXXX",
-        "temporalType" : "ZONED_DATE_TIME",
-        "category" : "EUROPEAN",
-        "example" : "0001-01-01T14:00:00+00:53"
-      }, {
         "format" : "yyyy-MM-dd HH:mm:ss VV",
         "temporalType" : "ZONED_DATE_TIME",
         "category" : "EUROPEAN",
@@ -1239,11 +1174,6 @@
         "temporalType" : "ZONED_DATE_TIME",
         "category" : "AMERICAN",
         "example" : "0001-01-01T14:00:00.000+0053"
-      }, {
-        "format" : "yyyy-MM-dd'T'HH:mm:ssXXX",
-        "temporalType" : "ZONED_DATE_TIME",
-        "category" : "AMERICAN",
-        "example" : "0001-01-01T14:00:00+00:53"
       }, {
         "format" : "yyyy-MM-dd'T'HH:mm:ss'['VV']'",
         "temporalType" : "ZONED_DATE_TIME",
