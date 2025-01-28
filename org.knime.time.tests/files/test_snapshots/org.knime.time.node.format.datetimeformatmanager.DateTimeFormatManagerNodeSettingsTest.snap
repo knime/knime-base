@@ -1189,11 +1189,6 @@
         "category" : "EUROPEAN",
         "example" : "0001-01-01T14:00:00Europe/Berlin"
       }, {
-        "format" : "yyyy-MM-dd'T'HH:mm:ssXXX",
-        "temporalType" : "ZONED_DATE_TIME",
-        "category" : "EUROPEAN",
-        "example" : "0001-01-01T14:00:00+00:53"
-      }, {
         "format" : "yyyy-MM-dd HH:mm:ss VV",
         "temporalType" : "ZONED_DATE_TIME",
         "category" : "EUROPEAN",
@@ -1228,11 +1223,6 @@
         "temporalType" : "ZONED_DATE_TIME",
         "category" : "AMERICAN",
         "example" : "0001-01-01T14:00:00.000+0053"
-      }, {
-        "format" : "yyyy-MM-dd'T'HH:mm:ssXXX",
-        "temporalType" : "ZONED_DATE_TIME",
-        "category" : "AMERICAN",
-        "example" : "0001-01-01T14:00:00+00:53"
       }, {
         "format" : "yyyy-MM-dd'T'HH:mm:ss'['VV']'",
         "temporalType" : "ZONED_DATE_TIME",

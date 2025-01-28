@@ -42,8 +42,13 @@
               "title" : "Append with suffix"
             } ],
             "title" : "Output columns",
-            "description" : "Depending on the selection, the selected columns will be replaced or appended to the input table.\n<ul>\n<li><b>Replace</b>: The selected columns will be replaced by the new columns.</li>\n<li><b>Append with suffix</b>: The selected columns will be appended to the input table with a new name that is the previous name plus the provided suffix.\n</li>\n</ul>",
+            "description" : "Depending on the selection, the selected columns will be replaced or appended to the input table.\n\n<ul>\n<li><b>Replace</b>: The selected columns will be replaced by the new columns.</li>\n<li><b>Append with suffix</b>: The selected columns will be appended to the input table with a new name that is the previous name plus the provided suffix.\n</li>\n</ul>",
             "default" : "REPLACE"
+          },
+          "autoGuessFormat" : {
+            "type" : "object",
+            "title" : "Auto-guess format",
+            "description" : "<p>\n  Try to guess the format of the selected column and set the format accordingly.\n</p>\n<p>\n  This is done by checking the first\n1000  non-missing rows of the first selected   column and trying to find a suitable format that can parse every entry. If no   suitable format is found, the format will be set to an empty string.\n</p>\n"
           },
           "columnFilter" : {
             "type" : "object",
@@ -151,7 +156,7 @@
                 }
               }
             },
-            "title" : "DateTime columns",
+            "title" : "Date & Time columns",
             "description" : "Only the included columns will be converted.",
             "default" : {
               "selected" : [ "test" ],
@@ -181,7 +186,7 @@
           "locale" : {
             "type" : "string",
             "title" : "Locale",
-            "description" : "A <i>locale</i> can be chosen, which determines the language and geographic region for terms such as months or weekdays.",
+            "description" : "A locale can be chosen, which determines the language and geographic region for terms such as months or weekdays.\n",
             "default" : "de-DE"
           },
           "onError" : {
@@ -193,7 +198,7 @@
               "title" : "Fail"
             } ],
             "title" : "If extraction fails",
-            "description" : "If set to 'Fail', the node will abort the execution and fail on errors. If unchecked, missing values will be generated instead.\n<ul>\n<li><b>Set to missing</b>: Set the cell to missing if the string column cannot be converted to the specified type.\n</li>\n<li><b>Fail</b>: Fail with an error if the string column cannot be converted to the specified type.\n</li>\n</ul>",
+            "description" : "If set to 'Fail', the node will abort the execution and fail on errors. If unchecked, missing values will be generated instead.\n\n<ul>\n<li><b>Set to missing</b>: Set the cell to missing if the string column cannot be converted to the specified type.\n</li>\n<li><b>Fail</b>: Fail with an error if the string column cannot be converted to the specified type.\n</li>\n</ul>",
             "default" : "SET_MISSING"
           },
           "outputColumnSuffix" : {
@@ -245,7 +250,7 @@
         "showMode" : true
       }
     }, {
-      "label" : "Type&Format",
+      "label" : "Type & Format",
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
@@ -270,6 +275,21 @@
         "options" : {
           "format" : "dateTimeFormat",
           "formatProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/autoGuessFormat",
+        "options" : {
+          "format" : "simpleButton",
+          "triggerId" : "org.knime.time.node.convert.stringtodatetime.StringToDateTimeNodeSettings$AutoGuessFormatButtonRef"
+        },
+        "rule" : {
+          "effect" : "ENABLE",
+          "condition" : {
+            "schema" : {
+              "not" : { }
+            }
+          }
         }
       } ]
     }, {
@@ -355,6 +375,7 @@
           "selectedType" : { },
           "locale" : { },
           "format" : { },
+          "autoGuessFormat" : { },
           "appendOrReplace" : { },
           "outputColumnSuffix" : { },
           "onError" : { }
@@ -1238,11 +1259,6 @@
         "category" : "EUROPEAN",
         "example" : "0001-01-01T14:00:00Europe/Berlin"
       }, {
-        "format" : "yyyy-MM-dd'T'HH:mm:ssXXX",
-        "temporalType" : "ZONED_DATE_TIME",
-        "category" : "EUROPEAN",
-        "example" : "0001-01-01T14:00:00+00:53"
-      }, {
         "format" : "yyyy-MM-dd HH:mm:ss VV",
         "temporalType" : "ZONED_DATE_TIME",
         "category" : "EUROPEAN",
@@ -1277,11 +1293,6 @@
         "temporalType" : "ZONED_DATE_TIME",
         "category" : "AMERICAN",
         "example" : "0001-01-01T14:00:00.000+0053"
-      }, {
-        "format" : "yyyy-MM-dd'T'HH:mm:ssXXX",
-        "temporalType" : "ZONED_DATE_TIME",
-        "category" : "AMERICAN",
-        "example" : "0001-01-01T14:00:00+00:53"
       }, {
         "format" : "yyyy-MM-dd'T'HH:mm:ss'['VV']'",
         "temporalType" : "ZONED_DATE_TIME",
@@ -4376,6 +4387,18 @@
         "id" : "zu-ZA",
         "text" : "Zulu (South Africa)"
       } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "org.knime.time.node.convert.stringtodatetime.StringToDateTimeNodeSettings$AutoGuessFormatButtonRef"
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/columnFilter" ],
+      "id" : "org.knime.time.node.convert.stringtodatetime.StringToDateTimeNodeSettings$ColumnFilterValueRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/selectedType" ],
+      "id" : "org.knime.time.node.convert.stringtodatetime.StringToDateTimeNodeSettings$TemporalType$Ref"
     } ]
   } ]
 }
