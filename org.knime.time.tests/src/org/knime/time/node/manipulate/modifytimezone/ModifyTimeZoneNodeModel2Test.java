@@ -158,6 +158,28 @@ final class ModifyTimeZoneNodeModel2Test {
         assertEquals(ZonedDateTime.of(2025, 1, 2, 6, 4, 5, 0, ZoneId.of("GMT+3")), value, "Expected correct value");
     }
 
+    @Test
+    void testShiftOnZonedDateTimeThatExceedsValidRange() throws InvalidSettingsException, IOException {
+        var settings = new ModifyTimeZoneNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN_NAME});
+        settings.m_appendOrReplace = ReplaceOrAppend.REPLACE;
+        settings.m_behaviourType = ModifyTimeZoneNodeSettings.BehaviourType.SHIFT;
+
+        // first we check with the maximum date
+        settings.m_timeZone = ZoneId.of("GMT+3");
+        var testResult = setupAndExecuteWorkflow(settings,
+            ZonedDateTimeCellFactory.create(ZonedDateTime.of(LocalDateTime.MAX.minusHours(1), ZoneId.of("GMT"))));
+
+        assertTrue(testResult.firstOutputCell.isMissing(), "Expected missing cell when shifting above maximum date");
+
+        // then also check with the minimum date
+        settings.m_timeZone = ZoneId.of("GMT-3");
+        testResult = setupAndExecuteWorkflow(settings,
+            ZonedDateTimeCellFactory.create(ZonedDateTime.of(LocalDateTime.MIN.plusHours(1), ZoneId.of("GMT"))));
+
+        assertTrue(testResult.firstOutputCell.isMissing(), "Expected missing cell when shifting below minimum date");
+    }
+
     private static record TestSetup(BufferedDataTable outputTable, DataCell firstOutputCell) {
     }
 

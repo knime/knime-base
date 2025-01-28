@@ -48,6 +48,7 @@
  */
 package org.knime.time.node.manipulate.modifytimezone;
 
+import java.time.DateTimeException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
@@ -56,6 +57,7 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.MissingCell;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory;
@@ -153,8 +155,14 @@ final class ModifyTimeZoneNodeModel2 extends WebUISimpleStreamableFunctionNodeMo
                 return cell;
             }
 
-            return ZonedDateTimeCellFactory
-                .create(((ZonedDateTimeValue)cell).getZonedDateTime().toInstant().atZone(m_zone));
+            try {
+                return ZonedDateTimeCellFactory
+                    .create(((ZonedDateTimeValue)cell).getZonedDateTime().toInstant().atZone(m_zone));
+            } catch (DateTimeException ex) { // NOSONAR we don't need to relog this exception
+                // if this is thrown, it means that the time zone shift is not possible, because
+                // the resulting time exeeded the range of times that java can represent.
+                return new MissingCell("Time zone shift was not possible: " + ex.getMessage());
+            }
         }
     }
 
