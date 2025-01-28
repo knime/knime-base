@@ -275,7 +275,7 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
     enum DataCellComparisonMode {
             @Label(value = "Value and type",
                 description = "Two rows match only if their values in the join columns selected have the same value and type, "
-                    + "e.g. Number (integer) values will never match Number (long) values because they have two different types.")
+                    + "e.g. Number (Integer) values will never match Number (Long Integer) values because they have two different types.")
             STRICT, //
             @Label(value = "String representation",
                 description = "Use this option if you want the values to be converted to string before comparing them. "
@@ -283,7 +283,7 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
             STRING,
 
             @Label(value = "Make integer types compatible",
-                description = "Use this option to ignore type differences between Number (integer) and Number (long) types.")
+                description = "Use this option to ignore type differences between Number (Integer) and Number (Long Integer) types.")
             NUMERIC
     }
 
