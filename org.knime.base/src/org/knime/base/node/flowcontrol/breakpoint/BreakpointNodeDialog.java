@@ -67,6 +67,9 @@ public class BreakpointNodeDialog extends DefaultNodeSettingsPane {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(BreakpointNodeDialog.class);
 
+    /** break on table with at least one row. */
+    static final String NONEMPTYTABLE = "non-empty table";
+
     /** break on table with zero rows. */
     static final String EMTPYTABLE = "empty table";
 
@@ -104,7 +107,7 @@ public class BreakpointNodeDialog extends DefaultNodeSettingsPane {
         final DialogComponentBoolean enable = new DialogComponentBoolean(m_enableModel, "Breakpoint Enabled");
         addDialogComponent(enable);
         final DialogComponentButtonGroup choices = new DialogComponentButtonGroup(m_choicesModel, false,
-            "Breakpoint active for:", EMTPYTABLE, ACTIVEBRANCH, INACTIVEBRANCH, VARIABLEMATCH);
+            "Breakpoint active for:", EMTPYTABLE, NONEMPTYTABLE, ACTIVEBRANCH, INACTIVEBRANCH, VARIABLEMATCH);
         addDialogComponent(choices);
         m_variableName =
             new DialogComponentStringSelection(m_varNameModel, "Select Variable: ", "no variables available");

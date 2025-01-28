@@ -129,6 +129,12 @@ public class BreakpointNodeModel extends NodeModel implements InactiveBranchCons
         String message = null;
         boolean throwException = false;
 
+        // non-empty table
+        if (m_choice.getStringValue().equals(BreakpointNodeDialog.NONEMPTYTABLE)
+            && (inData[0] instanceof BufferedDataTable) && (((BufferedDataTable)inData[0]).size() > 0)) {
+            message = "Breakpoint halted execution (table is not empty)";
+            throwException = true;
+        }
         if (m_choice.getStringValue().equals(BreakpointNodeDialog.EMTPYTABLE)
             && (inData[0] instanceof BufferedDataTable) && (((BufferedDataTable)inData[0]).size() == 0)) {
             message = "Breakpoint halted execution (table is empty)";
