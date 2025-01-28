@@ -53,16 +53,37 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 
 import java.util.OptionalInt;
 
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.knime.base.data.filter.row.v2.RowFilter;
+import org.knime.core.data.BooleanValue;
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.LongValue;
+import org.knime.core.data.RowKey;
 import org.knime.core.data.def.BooleanCell;
+import org.knime.core.data.def.DefaultRow;
+import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.data.v2.RowRead;
+import org.knime.core.data.v2.RowWriteCursor;
+import org.knime.core.node.BufferedDataContainer;
+import org.knime.core.node.CanceledExecutionException;
+import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
+import org.knime.testing.core.ExecutionContextExtension;
 
 /**
  * Tests for the boolean predicate factory.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
+@ExtendWith(ExecutionContextExtension.class)
 final class BooleanPredicateFactoryTest {
 
     @SuppressWarnings("static-method")
@@ -90,5 +111,95 @@ final class BooleanPredicateFactoryTest {
         assertThat(BooleanPredicateFactory.create(StringCell.TYPE, matchTrue))
             .as("Boolean predicate operates only on BooleanCells") //
             .isEmpty();
+    }
+
+    @Test
+    void testBooleanValueFiltering(final ExecutionContext exec) throws InvalidSettingsException, CanceledExecutionException {
+        final var dts = new DataTableSpec( //
+            new DataColumnSpecCreator("isEven", BooleanDummy.TYPE).createSpec(), //
+            new DataColumnSpecCreator("longColumn", LongCell.TYPE).createSpec() //
+        );
+        final BufferedDataContainer container = exec.createDataContainer(dts);
+        for (long i = 0; i < 50; i++) {
+            container.addRowToTable( //
+                new DefaultRow(RowKey.createRowKey(i), new BooleanDummy(i % 2 == 0), new LongCell(i)));
+        }
+        container.close();
+        final var table = container.getTable();
+        final var factory = BooleanPredicateFactory.create(BooleanDummy.TYPE, true).orElseThrow();
+
+        // include only even numbers
+        final var predicate = factory.createPredicate(OptionalInt.of(0),
+            // actual reference value is ignored for Booleans, because we only have IS_TRUE and IS_FALSE operators
+            // that don't compare with a reference value
+            DynamicValuesInput.singleValueWithInitialValue(BooleanDummy.TYPE, new BooleanDummy(true)));
+        try (final var cursor = table.cursor(); final var included = new RowWriteCursor() {
+
+            @Override
+            public void commit(final RowRead row) {
+                assertThat(row.<LongValue> getValue(1).getLongValue() % 2).as("Only even numbers are included")
+                    .isZero();
+                assertThat(row.<BooleanValue> getValue(0).getBooleanValue()).as("Only TRUE values are included")
+                    .isTrue();
+            }
+
+            @Override
+            public void close() {
+                // noop
+            }
+        }; final var excluded = new RowWriteCursor() {
+
+            @Override
+            public void commit(final RowRead row) {
+                assertThat(row.<LongValue> getValue(1).getLongValue() % 2).as("Only odd numbers are excluded")
+                    .isEqualTo(1);
+                assertThat(row.<BooleanValue> getValue(0).getBooleanValue()).as("Only FALSE values are excluded")
+                    .isFalse();
+            }
+
+            @Override
+            public void close() {
+                // noop
+            }
+        }) {
+            RowFilter.filterOnPredicate(exec, cursor, table.size(), included, excluded, predicate, true);
+        }
+    }
+
+    /**
+     * A boolean dummy that should be usable in place of a real BooleanCell. For example, the Columnar Backend
+     * does not supply XCell implementations, so casts to XCells fail.
+     */
+    @SuppressWarnings("serial")
+    final class BooleanDummy extends DataCell implements BooleanValue {
+
+        public static final DataType TYPE = DataType.getType(BooleanDummy.class);
+
+        final boolean m_value;
+
+        BooleanDummy(final boolean value) {
+            m_value = value;
+        }
+
+        @Override
+        public boolean getBooleanValue() {
+            return m_value;
+        }
+
+        @Override
+        public String toString() {
+            throw new UnsupportedOperationException("Not expected to be called during test.");
+        }
+
+        @Override
+        protected boolean equalsDataCell(final DataCell dc) {
+            throw new UnsupportedOperationException("Not expected to be called during test.");
+        }
+
+        @Override
+        public int hashCode() {
+            throw new UnsupportedOperationException("Not expected to be called during test.");
+        }
+
     }
 }

@@ -52,13 +52,14 @@ import java.util.Optional;
 import java.util.OptionalInt;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
+import org.knime.core.data.BooleanValue;
 import org.knime.core.data.DataType;
-import org.knime.core.data.def.BooleanCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 
 /**
- * Predicate factory for boolean columns.
+ * Predicate factory for {@link BooleanValue} columns, i.e. column data types that have
+ * {@link BooleanValue} as preferred value class.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
@@ -71,14 +72,14 @@ final class BooleanPredicateFactory extends AbstractPredicateFactory {
     }
 
     /**
-     * Creates a factory for boolean predicates, if applicable to the column data type.
+     * Creates a factory for boolean predicates, if the column data type prefers {@link BooleanValue}.
      *
      * @param columnDataType the data type of the column
      * @param matchTrue whether to match true or false
      * @return an optional predicate factory
      */
     static Optional<PredicateFactory> create(final DataType columnDataType, final boolean matchTrue) {
-        if (columnDataType.equals(BooleanCell.TYPE)) {
+        if (BooleanValue.class.equals(columnDataType.getPreferredValueClass())) {
             return Optional.of(new BooleanPredicateFactory(matchTrue));
         }
         return Optional.empty();
@@ -89,7 +90,7 @@ final class BooleanPredicateFactory extends AbstractPredicateFactory {
         throws InvalidSettingsException {
         final var columnIndex = colIdx.orElseThrow(
             () -> new IllegalStateException("Boolean predicate operates on column but did not get a column index"));
-        return (i, rowRead) -> rowRead.<BooleanCell> getValue(columnIndex).getBooleanValue() == m_matchTrue;
+        return (i, rowRead) -> rowRead.<BooleanValue> getValue(columnIndex).getBooleanValue() == m_matchTrue;
     }
 
 }
