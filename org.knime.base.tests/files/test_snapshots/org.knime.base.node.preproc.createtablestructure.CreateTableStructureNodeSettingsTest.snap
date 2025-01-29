@@ -1,0 +1,269 @@
+{
+  "data" : {
+    "model" : {
+      "createMode" : "BASIC",
+      "basicModeSettings" : {
+        "numberOfColumns" : 5,
+        "columnPrefix" : "Column ",
+        "colType" : "String"
+      },
+      "customModeSettings" : [ {
+        "columnName" : "Column ",
+        "colType" : "String"
+      } ]
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "basicModeSettings" : {
+            "type" : "object",
+            "properties" : {
+              "colType" : {
+                "oneOf" : [ {
+                  "const" : "String",
+                  "title" : "String"
+                }, {
+                  "const" : "Integer",
+                  "title" : "Integer"
+                }, {
+                  "const" : "Double",
+                  "title" : "Double"
+                } ],
+                "title" : "Data type",
+                "description" : "Data type of the columns\n",
+                "default" : "String"
+              },
+              "columnPrefix" : {
+                "type" : "string",
+                "title" : "Column name prefix",
+                "description" : "Prefix used to create columns\n",
+                "default" : "Column ",
+                "minLength" : 1
+              },
+              "numberOfColumns" : {
+                "type" : "integer",
+                "format" : "int32",
+                "title" : "Number of columns",
+                "description" : "Number of columns to create\n",
+                "default" : 5
+              }
+            },
+            "default" : {
+              "numberOfColumns" : 5,
+              "columnPrefix" : "Column ",
+              "colType" : "String"
+            }
+          },
+          "createMode" : {
+            "oneOf" : [ {
+              "const" : "CUSTOM",
+              "title" : "Custom"
+            }, {
+              "const" : "BASIC",
+              "title" : "Basic"
+            } ],
+            "title" : "Mode of creating columns",
+            "description" : "Select how to create columns:\n<ul>\n    <li><strong>Custom</strong>: Select column name and type for each column separatly</li>\n    <li><strong>Basic</strong>: Legacy mode: Create a number of columns with the prefix name and the     same type</li>\n</ul>\n\n<ul>\n<li><b>Custom</b>: Select column name and type for each column separatly</li>\n<li><b>Basic</b>: Create a number of columns with the prefix name and the same type</li>\n</ul>",
+            "default" : "BASIC"
+          },
+          "customModeSettings" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "colType" : {
+                  "oneOf" : [ {
+                    "const" : "String",
+                    "title" : "String"
+                  }, {
+                    "const" : "Integer",
+                    "title" : "Integer"
+                  }, {
+                    "const" : "Double",
+                    "title" : "Double"
+                  } ],
+                  "title" : "Data type",
+                  "description" : "Data type of the column\n",
+                  "default" : "String"
+                },
+                "columnName" : {
+                  "type" : "string",
+                  "title" : "Column name ",
+                  "description" : "Name of the column\n",
+                  "default" : "Column ",
+                  "minLength" : 1
+                }
+              }
+            },
+            "title" : "Columns",
+            "default" : [ {
+              "columnName" : "Column ",
+              "colType" : "String"
+            } ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/createMode",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      } ]
+    }, {
+      "label" : "Settings",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/basicModeSettings/properties/numberOfColumns",
+        "options" : {
+          "min" : 1.0,
+          "max" : 100000.0
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/createMode",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "BASIC"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/basicModeSettings/properties/columnPrefix",
+        "options" : {
+          "hideOnNull" : false
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/createMode",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "BASIC"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/basicModeSettings/properties/colType",
+        "options" : {
+          "possibleValues" : [ {
+            "id" : "String",
+            "text" : "String"
+          }, {
+            "id" : "Integer",
+            "text" : "Integer"
+          }, {
+            "id" : "Double",
+            "text" : "Double"
+          } ],
+          "format" : "dropDown",
+          "showNoneColumn" : false,
+          "showRowKeys" : false,
+          "showSearch" : true,
+          "showMode" : true
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/createMode",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "BASIC"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/customModeSettings",
+        "options" : {
+          "detail" : [ {
+            "type" : "Control",
+            "scope" : "#/properties/columnName",
+            "options" : {
+              "hideOnNull" : false
+            }
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/colType",
+            "options" : {
+              "possibleValues" : [ {
+                "id" : "String",
+                "text" : "String"
+              }, {
+                "id" : "Integer",
+                "text" : "Integer"
+              }, {
+                "id" : "Double",
+                "text" : "Double"
+              } ],
+              "format" : "dropDown",
+              "showNoneColumn" : false,
+              "showRowKeys" : false,
+              "showSearch" : true,
+              "showMode" : true
+            }
+          } ],
+          "addButtonText" : "Add new column",
+          "arrayElementTitle" : "Column"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/createMode",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "CUSTOM"
+              } ]
+            }
+          }
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "createMode" : { },
+          "basicModeSettings" : {
+            "type" : "object",
+            "properties" : {
+              "numberOfColumns" : { },
+              "columnPrefix" : { },
+              "colType" : { }
+            }
+          },
+          "customModeSettings" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "columnName" : { },
+                "colType" : { }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

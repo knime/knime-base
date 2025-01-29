@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <entry key="createMode" type="xstring" value="CUSTOM"/>
+    <config key="basicModeSettings">
+        <entry key="numberOfColumns" type="xint" value="5"/>
+        <entry key="columnPrefix" type="xstring" value="Column "/>
+        <entry key="colType" type="xstring" value="String"/>
+    </config>
+    <config key="customModeSettings">
+        <config key="0">
+            <entry key="columnName" type="xstring" value="Column"/>
+            <entry key="colType" type="xstring" value="Double"/>
+        </config>
+        <config key="1">
+            <entry key="columnName" type="xstring" value="Column2"/>
+            <entry key="colType" type="xstring" value="String"/>
+        </config>
+    </config>
+</config>

@@ -1719,6 +1719,12 @@
             factory-class="org.knime.base.node.preproc.createtablestructure.CreateTableStructureNodeFactory"
             />
       <node
+            after="org.knime.base.node.util.sampledata.SampleDataNodeFactory"
+            category-path="/io/io-other"
+            hidden="true"
+            factory-class="org.knime.base.node.preproc.createtablestructure.CreateTableStructureNodeFactory2"
+            />
+      <node
             category-path="/io/filehandling/remote"
             factory-class="org.knime.base.node.util.createtempdir.CreateTempDirectoryNodeFactory"
             />
