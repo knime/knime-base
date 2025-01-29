@@ -1,0 +1,185 @@
+{
+  "data" : {
+    "model" : {
+      "columnSettings" : [ {
+        "columnName" : "Column 0",
+        "colType" : "Number (integer)"
+      }, {
+        "columnName" : "Column 1",
+        "colType" : "Number (integer)"
+      }, {
+        "columnName" : "Column 2",
+        "colType" : "Number (integer)"
+      }, {
+        "columnName" : "Column 3",
+        "colType" : "Number (integer)"
+      }, {
+        "columnName" : "Column 4",
+        "colType" : "Number (integer)"
+      } ]
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnSettings" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "colType" : {
+                  "type" : "string",
+                  "title" : "Data type",
+                  "default" : "String"
+                },
+                "columnName" : {
+                  "type" : "string",
+                  "title" : "Column name ",
+                  "description" : "Name of the column\n",
+                  "default" : "Column ",
+                  "minLength" : 1
+                }
+              }
+            },
+            "title" : "Columns",
+            "default" : [ {
+              "columnName" : "Column ",
+              "colType" : "String"
+            } ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Settings",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/columnSettings",
+        "options" : {
+          "detail" : [ {
+            "type" : "Control",
+            "scope" : "#/properties/columnName",
+            "options" : {
+              "hideOnNull" : false
+            }
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/colType",
+            "options" : {
+              "possibleValues" : [ {
+                "id" : "Number (integer)",
+                "text" : "Number (integer)"
+              }, {
+                "id" : "Number (double)",
+                "text" : "Number (double)"
+              }, {
+                "id" : "Double Vector",
+                "text" : "Double Vector"
+              }, {
+                "id" : "String Vector",
+                "text" : "String Vector"
+              }, {
+                "id" : "Boolean value",
+                "text" : "Boolean value"
+              }, {
+                "id" : "Number (long)",
+                "text" : "Number (long)"
+              }, {
+                "id" : "Bit vector (sparse)",
+                "text" : "Bit vector (sparse)"
+              }, {
+                "id" : "Bit vector",
+                "text" : "Bit vector"
+              }, {
+                "id" : "XML",
+                "text" : "XML"
+              }, {
+                "id" : "PNG Image",
+                "text" : "PNG Image"
+              }, {
+                "id" : "Binary object",
+                "text" : "Binary object"
+              }, {
+                "id" : "PMML",
+                "text" : "PMML"
+              }, {
+                "id" : "Byte vector",
+                "text" : "Byte vector"
+              }, {
+                "id" : "String",
+                "text" : "String"
+              }, {
+                "id" : "URI",
+                "text" : "URI"
+              }, {
+                "id" : "SVG image",
+                "text" : "SVG image"
+              }, {
+                "id" : "Path",
+                "text" : "Path"
+              }, {
+                "id" : "JSON",
+                "text" : "JSON"
+              }, {
+                "id" : "Local Time",
+                "text" : "Local Time"
+              }, {
+                "id" : "Local Date",
+                "text" : "Local Date"
+              }, {
+                "id" : "Local Date Time",
+                "text" : "Local Date Time"
+              }, {
+                "id" : "Zoned Date Time",
+                "text" : "Zoned Date Time"
+              }, {
+                "id" : "Duration",
+                "text" : "Duration"
+              }, {
+                "id" : "Period",
+                "text" : "Period"
+              } ],
+              "format" : "dropDown",
+              "showNoneColumn" : false,
+              "showRowKeys" : false,
+              "showSearch" : true,
+              "showMode" : true
+            }
+          } ],
+          "addButtonText" : "Add new column",
+          "arrayElementTitle" : "Column",
+          "showSortButtons" : true
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnSettings" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "columnName" : { },
+                "colType" : { }
+              }
+            },
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "colCount" ], [ "colPrefix" ], [ "colType" ] ]
+            } ]
+          }
+        }
+      }
+    }
+  }
+}
