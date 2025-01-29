@@ -48,7 +48,6 @@
  */
 package org.knime.time.node.convert.stringtodatetime;
 
-import java.util.List;
 import java.util.Locale;
 import java.util.function.Supplier;
 import java.util.stream.StreamSupport;
@@ -67,7 +66,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPicke
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.CompatibleColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.StringColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
@@ -85,7 +84,7 @@ import org.knime.time.util.LocaleStateProvider;
 import org.knime.time.util.ReplaceOrAppend;
 
 /**
- * @author Tobias Kampmann
+ * @author Tobias Kampmann, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
 final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
@@ -101,12 +100,12 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    @Widget(title = "Date & Time columns", description = "Only the included columns will be converted.")
-    @ChoicesWidget(choices = StringColumnProvider.class)
+    @Widget(title = "Date&time columns", description = "Only the included columns will be converted.")
+    @ChoicesWidget(choices = StringColumnChoicesProvider.class)
     @ValueReference(ColumnFilterValueRef.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
-    @Section(title = "Type & Format")
+    @Section(title = "Type and format")
     interface TypeFormatSection {
     }
 
@@ -124,9 +123,9 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
     @Layout(TypeFormatSection.class)
     String m_locale = Locale.getDefault().toLanguageTag();
 
-    @Widget(title = "DateTime format", description = """
+    @Widget(title = "Input format", description = """
             A format string (defined by <a href="
-            https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html
+            """ + ComprehensiveDateTimeFormatProvider.LINK_TO_FORMAT_JAVADOC + """
             ">DateTimeFormatter</a>).
             <br />
             <b>Examples:</b>
@@ -180,22 +179,15 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Output column suffix", description = "The selected columns will be appended to the input table.")
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
     @Layout(OutputSection.class)
-    String m_outputColumnSuffix = " (Date&Time)";
+    String m_outputColumnSuffix = " (Date&time)";
 
     @Widget(title = "If extraction fails", description = """
             If set to 'Fail', the node will abort the execution and fail on errors. \
-            If unchecked, missing values will be generated instead.
+            Otherwise, missing values will be generated instead.
             """)
     @ValueSwitchWidget
     @Layout(OutputSection.class)
     ActionIfExtractionFails m_onError = ActionIfExtractionFails.SET_MISSING;
-
-    static final class StringColumnProvider extends CompatibleColumnChoicesProvider {
-
-        StringColumnProvider() {
-            super(List.of(StringValue.class));
-        }
-    }
 
     static final class ColumnFilterValueRef implements Reference<ColumnFilter> {
     }

@@ -25,8 +25,8 @@
             </config>
         </config>
     </config>
-    <entry key="appendOrReplace" type="xstring" value="REPLACE"/>
-    <entry key="outputColumnSuffix" type="xstring" value=" (String)"/>
     <entry key="locale" type="xstring" value="en-US"/>
     <entry key="format" type="xstring" value="yyyy-MM-dd HH:mm:ss"/>
+    <entry key="appendOrReplace" type="xstring" value="REPLACE"/>
+    <entry key="outputColumnSuffix" type="xstring" value=" (String)"/>
 </config>

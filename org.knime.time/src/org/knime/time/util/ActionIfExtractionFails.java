@@ -54,13 +54,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 /**
  * Type for an option to choose between failing with an error or setting the cell to missing
  *
- * @author David Hickey, TNG
+ * @author David Hickey, TNG Technology Consulting GmbH
+ * @author Tobias Kampmann, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
 public enum ActionIfExtractionFails {
-        @Label(value = "Set to missing", description = """
-                Set the cell to missing if the string column cannot be converted to the specified \
-                type.
+        @Label(value = "Insert missing", description = """
+                Set the output cell to missing if the string column cannot be converted to the \
+                specified type.
                 """)
         SET_MISSING, //
         @Label(value = "Fail", description = """

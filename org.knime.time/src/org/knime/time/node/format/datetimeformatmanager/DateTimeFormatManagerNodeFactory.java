@@ -48,6 +48,7 @@
  */
 package org.knime.time.node.format.datetimeformatmanager;
 
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeFactory;
 
@@ -69,10 +70,18 @@ public final class DateTimeFormatManagerNodeFactory extends WebUINodeFactory<Dat
         .icon("date-time-format-manager.png") //
         .shortDescription("Attach formatter to Date&amp;Time cells.") //
         .fullDescription("""
-                This node attaches formatting information to date&amp;time in a table. \
-                This does not change the data, only the way the strings in the \
-                selected columns are displayed in views, e.g., the Table View. \
-                """) //
+                <p>
+                    This node attaches formatting information to date&amp;time in a table. \
+                    This does not change the data, only the way the strings in the \
+                    selected columns are displayed in views, e.g., the Table View. \
+                    For more information about possible formats, see <a href="%s">the \
+                    Java documentation</a>.
+                </p>
+                <p>
+                    Since dates may contain localized terms such as month or weekday
+                    names, you can additionally specify a locale.
+                </p>
+                """.formatted(ComprehensiveDateTimeFormatProvider.LINK_TO_FORMAT_JAVADOC)) //
         .modelSettingsClass(DateTimeFormatManagerNodeSettings.class) //
         .nodeType(NodeType.Visualizer)//
         .addInputTable("Input table", "Input table.") //

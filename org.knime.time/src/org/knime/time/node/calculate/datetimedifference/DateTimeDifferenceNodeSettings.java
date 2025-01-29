@@ -52,13 +52,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
-import java.util.List;
+import java.util.Arrays;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataValue;
 import org.knime.core.data.time.localdate.LocalDateValue;
 import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
 import org.knime.core.data.time.localtime.LocalTimeValue;
@@ -79,6 +78,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.Granularity;
 
 /**
@@ -99,22 +99,22 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
     interface OutputSettingsSection {
     }
 
-    @Widget(title = "First Date Time column", description = """
+    @Widget(title = "First date&time column", description = """
             The first date&amp;time column. The first and second column will be subtracted \
             from each other, with the direction depending on the 'mode' option.
             """)
     @ValueReference(FirstColumnSelectionRef.class)
     @Layout(DifferencingSettingsSection.class)
-    @ChoicesWidget(choicesProvider = FirstColumnProvider.class)
+    @ChoicesWidget(choices = DateTimeUtils.DateTimeColumnProvider.class)
     ColumnSelection m_firstColumnSelection = new ColumnSelection();
 
-    @Widget(title = "Second Date Time value", description = "The source of the second date&amp;time value.")
+    @Widget(title = "Second date&time value", description = "The source of the second date&amp;time value.")
     @ValueReference(SecondDateTimeValueRef.class)
     @Layout(DifferencingSettingsSection.class)
     @ValueSwitchWidget
     SecondDateTimeValueType m_secondDateTimeValueType = SecondDateTimeValueType.COLUMN;
 
-    @Widget(title = "Second date time column", description = """
+    @Widget(title = "Second date&time column", description = """
             The date&amp;time column that is subtracted from the first column, or vice versa, \
             with the direction depending on the 'mode' option.
             """)
@@ -133,7 +133,7 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
     @Layout(DifferencingSettingsSection.class)
     LocalTime m_localTimeFixed = LocalTime.now();
 
-    @Widget(title = "Date time", description = "The fixed date&amp;time to calculate the difference to.")
+    @Widget(title = "Date&time", description = "The fixed date&amp;time to calculate the difference to.")
     @Effect(predicate = FirstColumnIsDateTimeAndFixedDateTime.class, type = EffectType.SHOW)
     @Layout(DifferencingSettingsSection.class)
     LocalDateTime m_localDateTimeFixed = LocalDateTime.now();
@@ -186,16 +186,19 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
             return;
         }
 
-        var availableColumns = FirstColumnProvider.getCompatibleColumns(spec);
+        var availableColumns =
+            Arrays.stream(DateTimeUtils.getCompatibleColumns(spec, DateTimeUtils.DATE_TIME_COLUMN_TYPES)) //
+                .map(spec::getColumnSpec) //
+                .toList();
 
-        if (availableColumns.length == 0) {
+        if (availableColumns.isEmpty()) {
             return;
         }
 
-        m_firstColumnSelection = new ColumnSelection(availableColumns[0]);
+        m_firstColumnSelection = new ColumnSelection(availableColumns.get(0));
 
         var compatibleSecondColumns = spec.stream() //
-            .filter(c -> availableColumns[0].getType().equals(c.getType())) //
+            .filter(c -> availableColumns.get(0).getType().equals(c.getType())) //
             .toArray(DataColumnSpec[]::new);
 
         if (compatibleSecondColumns.length > 1) {
@@ -296,6 +299,9 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
         }
     }
 
+    /**
+     * Provides columns that have the same type as the currently selected first column.
+     */
     static final class SecondColumnProvider implements ColumnChoicesStateProvider {
 
         private Supplier<ColumnSelection> m_firstColumnSelection;
@@ -334,27 +340,6 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    static final class FirstColumnProvider implements ColumnChoicesStateProvider {
-
-        @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
-            return getCompatibleColumns(context.getDataTableSpec(0).orElse(null));
-        }
-
-        static DataColumnSpec[] getCompatibleColumns(final DataTableSpec spec) {
-            if (spec == null) {
-                return new DataColumnSpec[0];
-            }
-            return spec //
-                .stream() //
-                .filter(IS_COMPATIBLE_COLUMN) //
-                .toArray(DataColumnSpec[]::new);
-        }
-
-        static final java.util.function.Predicate<DataColumnSpec> IS_COMPATIBLE_COLUMN =
-            c -> TIME_COLUMN_TYPES.stream().anyMatch(c.getType()::isCompatible);
-    }
-
     enum SecondDateTimeValueType {
             @Label(value = "Column", description = """
                     Calculates the difference between the selected second column and the first \
@@ -363,17 +348,17 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
                     Time Zone</i> nodes you can adjust the date&amp;time formats beforehand.
                     """)
             COLUMN, //
-            @Label(value = "Fixed Date&Time", description = """
+            @Label(value = "Fixed date&time", description = """
                     Calculates the difference between the selected fixed date&amp;time and the \
                     first column.
                     """)
             FIXED_DATE_TIME, //
-            @Label(value = "Execution Date&Time", description = """
+            @Label(value = "Execution date&time", description = """
                     Calculates the difference between the execution date&amp;time and the chosen \
                     first column.
                     """)
             EXECUTION_DATE_TIME, //
-            @Label(value = "Previous Row", description = """
+            @Label(value = "Previous row", description = """
                     Calculates the difference between the date&amp;time in row <i>n</i> and \
                     row <i>n-1</i> in the chosen row. Note that the first row in the output will \
                     be MISSING as there is no previous row to calculate the difference with.
@@ -412,8 +397,4 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
             @Label("Decimals")
             DECIMALS; //
     }
-
-    static final List<Class<? extends DataValue>> TIME_COLUMN_TYPES =
-        List.of(LocalTimeValue.class, LocalDateValue.class, ZonedDateTimeValue.class, LocalDateTimeValue.class);
-
 }

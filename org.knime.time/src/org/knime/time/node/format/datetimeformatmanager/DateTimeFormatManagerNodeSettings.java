@@ -83,15 +83,17 @@ final class DateTimeFormatManagerNodeSettings implements DefaultNodeSettings {
     @ChoicesWidget(choices = DateTimeUtils.DateTimeColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
-    @Widget(title = "Locale",
-        description = "The locale to use for formatting the date and time. "
-            + "Names of months and days of the week will be translated according to the selected locale.")
+    @Widget(title = "Locale", description = """
+            The locale to use for formatting the date and time. \
+            Names of months and days of the week will be translated \
+            according to the selected locale.
+            """)
     @ChoicesWidget(choicesProvider = LocaleStateProvider.class)
     String m_locale = Locale.ENGLISH.toLanguageTag();
 
     @Widget(title = "Date&Time format", description = """
             A format string (defined by <a href="
-            https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html
+            """ + ComprehensiveDateTimeFormatProvider.LINK_TO_FORMAT_JAVADOC + """
             ">DateTimeFormatter</a>).
             <br />
             <b>Examples:</b>
@@ -110,8 +112,10 @@ final class DateTimeFormatManagerNodeSettings implements DefaultNodeSettings {
     @DateTimeFormatPickerWidget(formatProvider = ComprehensiveDateTimeFormatProvider.class)
     String m_format = "yyyy-MM-dd HH:mm:ss";
 
-    @Widget(title = "Alignment suggestion",
-        description = "To be considered by views like Table View, Tile View, and for Spreadsheet export.")
+    @Widget(title = "Alignment suggestion", description = """
+            To be considered by views like the Table View and Tile View, \
+            and for Spreadsheet export.
+            """)
     @ValueSwitchWidget
     AlignmentSuggestionOption m_alignmentSuggestion = AlignmentSuggestionOption.LEFT;
 }

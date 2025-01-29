@@ -48,6 +48,7 @@
  */
 package org.knime.time.node.convert.stringtodatetime;
 
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeFactory;
 
@@ -64,29 +65,27 @@ public final class StringToDateTimeNodeFactory2 extends WebUINodeFactory<StringT
         return new StringToDateTimeNodeModel2(CONFIGURATION);
     }
 
-    private static final String DATE_TIME_FORMATTER_URL =
-        "https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html";
-
     static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
         .name("String to Date&Time") //
         .icon("stringtotime.png") //
         .shortDescription("Parses date and/or time strings into Date&amp;Time cells.") //
         .fullDescription("""
-                 <p>
-                    Parses the strings in the selected columns and converts them into
-                    Date&amp;Time cells. The expected format can be selected from a number
-                    of commonly used formats or specified manually. See %s for more details.
+                <p>
+                    Parses the strings in the selected columns and converts them into \
+                    Date&amp;Time cells. The expected format can be selected from a number \
+                    of commonly used formats or specified manually. See the <a href="%s"> \
+                    Java documentation</a> for more details about possible formats.
                 </p>
                 <p>
                     Since dates may contain localized terms such as month or weekday
                     names, you can additionally specify a locale.
                 </p>
-                """.formatted(DATE_TIME_FORMATTER_URL)) //
+                """.formatted(ComprehensiveDateTimeFormatProvider.LINK_TO_FORMAT_JAVADOC)) //
         .modelSettingsClass(StringToDateTimeNodeSettings.class) //
         .addInputTable("Input table", "Input table.") //
         .addOutputTable("Output table", "Output table containing the parsed columns.") //
         .keywords("covert", "date-time", "string", "local", "parse", "hour", "minute", "second", "millisecond", "year",
-            "month", "day", "week")//
+            "month", "day", "week") //
         .build();
 
     /**

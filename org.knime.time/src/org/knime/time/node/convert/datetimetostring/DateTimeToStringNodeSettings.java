@@ -77,18 +77,6 @@ final class DateTimeToStringNodeSettings implements DefaultNodeSettings {
     @ChoicesWidget(choices = DateTimeUtils.DateTimeColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
-    @Widget(title = "Output columns", description = """
-            Depending on the selection, the selected columns will be \
-            replaced or appended to the input table.
-            """)
-    @ValueSwitchWidget
-    @ValueReference(ReplaceOrAppend.ValueRef.class)
-    ReplaceOrAppend m_appendOrReplace = ReplaceOrAppend.REPLACE;
-
-    @Widget(title = "Output column suffix", description = "The selected columns will be appended to the input table.")
-    @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
-    String m_outputColumnSuffix = " (String)";
-
     @Widget(title = "Locale", description = """
             The locale to use for formatting the date and time. \
             Names of months and days of the week will be translated \
@@ -97,9 +85,9 @@ final class DateTimeToStringNodeSettings implements DefaultNodeSettings {
     @ChoicesWidget(choicesProvider = LocaleStateProvider.class)
     String m_locale = Locale.getDefault().toLanguageTag();
 
-    @Widget(title = "DateTime format", description = """
+    @Widget(title = "Output format", description = """
             A format string (defined by <a href="
-            https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html
+            """ + ComprehensiveDateTimeFormatProvider.LINK_TO_FORMAT_JAVADOC + """
             ">DateTimeFormatter</a>).
             <br />
             <b>Examples:</b>
@@ -116,6 +104,18 @@ final class DateTimeToStringNodeSettings implements DefaultNodeSettings {
             """ + ComprehensiveDateTimeFormatProvider.DATE_FORMAT_LIST_FOR_DOCS)
     @DateTimeFormatPickerWidget()
     String m_format = "yyyy-MM-dd HH:mm:ss";
+
+    @Widget(title = "Output columns", description = """
+            Depending on the selection, the selected columns will be \
+            replaced or appended to the input table.
+            """)
+    @ValueSwitchWidget
+    @ValueReference(ReplaceOrAppend.ValueRef.class)
+    ReplaceOrAppend m_appendOrReplace = ReplaceOrAppend.REPLACE;
+
+    @Widget(title = "Output column suffix", description = "The selected columns will be appended to the input table.")
+    @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
+    String m_outputColumnSuffix = " (String)";
 
     DateTimeToStringNodeSettings() {
         this((DataTableSpec)null);
