@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,66 +41,50 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
  * History
- *   Aug 7, 2010 (wiswedel): created
+ *   Jan 29, 2025 (Martin Sillye, TNG Technology Consulting GmbH): created
  */
 package org.knime.base.node.preproc.createtablestructure;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
- * <code>NodeFactory</code> for the "CreateTableStructure" Node. Creates empty
- * table (no rows) with a predefined structure (columns)
+ * WebUI node factory for the "Table Structure Creator" node.
  *
- * @author Bernd.Wiswedel
+ * @author Martin Sillye, TNG Technology Consulting GmbH
  */
-public class CreateTableStructureNodeFactory extends
-        NodeFactory<CreateTableStructureNodeModel> {
+@SuppressWarnings("restriction")
+public class CreateTableStructureNodeFactory extends WebUINodeFactory<CreateTableStructureNodeModel> {
 
     /**
-     * {@inheritDoc}
+     *
      */
+    public CreateTableStructureNodeFactory() {
+        super(CONFIGURATION);
+    }
+
     @Override
     public CreateTableStructureNodeModel createNodeModel() {
-        return new CreateTableStructureNodeModel();
+        return new CreateTableStructureNodeModel(CONFIGURATION);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<CreateTableStructureNodeModel> createNodeView(
-            final int viewIndex,
-            final CreateTableStructureNodeModel nodeModel) {
-        throw new IllegalStateException("No view");
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return new CreateTableStructureNodeDialog();
-    }
-
+    private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
+        .name("Table Structure Creator") //
+        .icon("create_empty_table.png") //
+        .shortDescription("Creates an empty table (no rows) with a predefined structure (columns).") //
+        .fullDescription("""
+                Creates an empty table with a defined schema.
+                This node allows you to specify column names and data types, generating a table structure without \
+                any data rows. It is useful for initializing workflows or ensuring that specific columns exist in a \
+                table. For example, you can use it in combination with the Concatenate node to guarantee that a \
+                table contains required columns for KNIME reports or for processing by other nodes that depend on \
+                certain columns being present.
+                """) //
+        .modelSettingsClass(CreateTableStructureNodeSettings.class) //
+        .addOutputTable("Empty table", "Table with 0 rows and certain columns as set in the configuration dialog.") //
+        .keywords("table", "create", "Create Table Structure", "new") //
+        .build();
 }

@@ -1,0 +1,127 @@
+{
+  "data" : {
+    "model" : {
+      "columnSettings" : [ {
+        "columnName" : "Column 1",
+        "colType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
+      } ]
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnSettings" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "colType" : {
+                  "type" : "string",
+                  "title" : "Column type",
+                  "description" : "Type of the created column",
+                  "default" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
+                },
+                "columnName" : {
+                  "type" : "string",
+                  "title" : "Column name ",
+                  "description" : "Name of the created column",
+                  "default" : "Column ",
+                  "minLength" : 1
+                }
+              }
+            },
+            "title" : "Columns",
+            "default" : [ {
+              "columnName" : "Column 1",
+              "colType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
+            } ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/columnSettings",
+      "options" : {
+        "detail" : [ {
+          "type" : "Control",
+          "scope" : "#/properties/columnName",
+          "options" : {
+            "hideOnNull" : false
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/colType",
+          "options" : {
+            "format" : "dropDown",
+            "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DefaultDataTypeChoicesProvider"
+          }
+        } ],
+        "addButtonText" : "Add new column",
+        "arrayElementTitle" : "Column",
+        "showSortButtons" : true,
+        "elementDefaultValueProvider" : "org.knime.base.node.preproc.createtablestructure.CreateTableStructureNodeSettings$DefaultColumnSettingsProvider"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnSettings" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "columnName" : { },
+                "colType" : {
+                  "configPaths" : [ [ "colType", "cell_class" ] ]
+                }
+              }
+            },
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "colCount" ], [ "colPrefix" ], [ "colType" ] ]
+            } ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DefaultDataTypeChoicesProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Boolean"
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Number (Floating Decimal)"
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.IntCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Number (Integer)"
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "String"
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "org.knime.base.node.preproc.createtablestructure.CreateTableStructureNodeSettings$Ref",
+      "scopes" : [ "#/properties/model/properties/columnSettings" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/columnSettings" ],
+      "id" : "org.knime.base.node.preproc.createtablestructure.CreateTableStructureNodeSettings$Ref"
+    } ]
+  } ]
+}

@@ -48,55 +48,76 @@
  */
 package org.knime.base.node.preproc.createtablestructure;
 
-import java.util.Arrays;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataColumnSpecCreator;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.node.BufferedDataContainer;
-import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.ExecutionContext;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.knime.core.data.DataType;
+import org.knime.core.data.DataTypeRegistry;
+import org.knime.core.data.def.BooleanCell;
+import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.IntCell;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.impl.WebUINodeModel;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 /**
- * The model for the "Table Structure Creator" node.
  *
  * @author Martin Sillye, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-final class CreateTableStructureNodeModel extends WebUINodeModel<CreateTableStructureNodeSettings> {
+final class CreateTableStructureNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
-    protected CreateTableStructureNodeModel(final WebUINodeConfiguration configuration) {
-        super(configuration, CreateTableStructureNodeSettings.class);
+    CreateTableStructureNodeSettingsTest() {
+        super(getConfig());
     }
 
-    @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs,
-        final CreateTableStructureNodeSettings modelSettings) throws InvalidSettingsException {
-
-        return new DataTableSpec[]{createSpec(modelSettings)};
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .testJsonFormsForModel(CreateTableStructureNodeSettings.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
     }
 
-    @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec,
-        final CreateTableStructureNodeSettings modelSettings) throws Exception {
-        BufferedDataContainer cont = exec.createDataContainer(createSpec(modelSettings));
-        cont.close();
-        return new BufferedDataTable[]{cont.getTable()};
+    private MockedStatic<DataTypeRegistry> m_mockedStaticRegistry;
+
+    private static final Collection<DataType> DATATYPES =
+        List.of(StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE, BooleanCell.TYPE);
+
+    @BeforeEach
+    void setDataTypes() {
+        m_mockedStaticRegistry = Mockito.mockStatic(DataTypeRegistry.class, Mockito.CALLS_REAL_METHODS);
+        final var mockedRegistry = Mockito.mock(DataTypeRegistry.class);
+        Mockito.when(mockedRegistry.availableDataTypes()).thenReturn(DATATYPES);
+        m_mockedStaticRegistry.when(DataTypeRegistry::getInstance).thenReturn(mockedRegistry);
     }
 
-    private static DataTableSpec createSpec(final CreateTableStructureNodeSettings modelSettings)
-        throws InvalidSettingsException {
-        final long distinct =
-            Arrays.stream(modelSettings.m_columnSettings).map(setting -> setting.m_columnName).distinct().count();
-        if (distinct != modelSettings.m_columnSettings.length) {
-            throw new InvalidSettingsException("Duplicate column name found");
+    @AfterEach
+    void resetDataTypes() {
+        m_mockedStaticRegistry.close();
+    }
+
+    private static CreateTableStructureNodeSettings readSettings() {
+        try {
+            var path = getSnapshotPath(CreateTableStructureNodeSettings.class).getParent().resolve("node_settings")
+                .resolve("CreateTableStructureNodeSettings.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return DefaultNodeSettings.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    CreateTableStructureNodeSettings.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
         }
-        final var specs = Arrays.stream(modelSettings.m_columnSettings)
-            .map(setting -> (new DataColumnSpecCreator(setting.m_columnName, setting.m_colType)).createSpec())
-            .toArray(DataColumnSpec[]::new);
-        return new DataTableSpec("Table Structure", specs);
     }
 }

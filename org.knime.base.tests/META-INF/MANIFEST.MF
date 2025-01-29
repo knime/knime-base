@@ -26,8 +26,6 @@ Export-Package: org.knime.base,
   org.knime.core.data.container.blobs
 Require-Bundle: org.junit;bundle-version="[4.13.2,5.0.0)",
  org.knime.testing;bundle-version="[5.5.0,6.0.0)",
- org.mockito.mockito-core;bundle-version="[2.18.3,3.0.0)",
- org.mockito.inline;bundle-version="[2.28.2,3.0.0)",
  junit-jupiter-api;bundle-version="[5.9.2,6.0.0)",
  junit-platform-suite-api;bundle-version="[1.9.2,2.0.0)",
  junit-jupiter-params;bundle-version="[5.9.2,6.0.0)",
@@ -37,5 +35,9 @@ Require-Bundle: org.junit;bundle-version="[4.13.2,5.0.0)",
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Automatic-Module-Name: org.knime.base.tests
 Bundle-ClassPath: .,
+ lib/byte-buddy-1.11.12.jar,
+ lib/byte-buddy-agent-1.11.12.jar,
  lib/greenmail-1.6.5.jar,
- lib/jakarta.mail-1.6.7.jar
+ lib/jakarta.mail-1.6.7.jar,
+ lib/mockito-core-3.12.0.jar,
+ lib/mockito-inline-3.12.0.jar

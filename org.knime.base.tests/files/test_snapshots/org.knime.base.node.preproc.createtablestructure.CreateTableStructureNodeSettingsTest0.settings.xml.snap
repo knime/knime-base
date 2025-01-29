@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <config key="columnSettings">
+        <config key="0">
+            <entry key="columnName" type="xstring" value="Column 0"/>
+            <config key="colType">
+                <entry key="cell_class" type="xstring" value="org.knime.core.data.def.IntCell"/>
+                <entry key="is_null" type="xboolean" value="false"/>
+            </config>
+        </config>
+        <config key="1">
+            <entry key="columnName" type="xstring" value="Column 1"/>
+            <config key="colType">
+                <entry key="cell_class" type="xstring" value="org.knime.core.data.def.IntCell"/>
+                <entry key="is_null" type="xboolean" value="false"/>
+            </config>
+        </config>
+        <config key="2">
+            <entry key="columnName" type="xstring" value="Column 2"/>
+            <config key="colType">
+                <entry key="cell_class" type="xstring" value="org.knime.core.data.def.IntCell"/>
+                <entry key="is_null" type="xboolean" value="false"/>
+            </config>
+        </config>
+        <config key="3">
+            <entry key="columnName" type="xstring" value="Column 3"/>
+            <config key="colType">
+                <entry key="cell_class" type="xstring" value="org.knime.core.data.def.IntCell"/>
+                <entry key="is_null" type="xboolean" value="false"/>
+            </config>
+        </config>
+        <config key="4">
+            <entry key="columnName" type="xstring" value="Column 4"/>
+            <config key="colType">
+                <entry key="cell_class" type="xstring" value="org.knime.core.data.def.IntCell"/>
+                <entry key="is_null" type="xboolean" value="false"/>
+            </config>
+        </config>
+    </config>
+</config>
