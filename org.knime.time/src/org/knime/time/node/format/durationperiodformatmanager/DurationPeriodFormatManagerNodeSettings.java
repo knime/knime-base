@@ -102,7 +102,7 @@ final class DurationPeriodFormatManagerNodeSettings implements DefaultNodeSettin
     @Widget(title = "Alignment suggestion",
         description = "To be considered by views like Table View, Tile View, and for Spreadsheet export.")
     @ValueSwitchWidget
-    AlignmentSuggestionOption m_alignment = AlignmentSuggestionOption.RIGHT;
+    AlignmentSuggestionOption m_alignment = AlignmentSuggestionOption.LEFT;
 
     public static final List<Class<? extends DataValue>> INTERVAL_VALUE_TYPES =
         List.of(DurationValue.class, PeriodValue.class);

@@ -62,9 +62,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
  */
 @SuppressWarnings("restriction")
 public enum ActionIfExtractionFails {
-        @Label(value = "Set to missing", description = """
-                Set the cell to missing if the string column cannot be converted to the specified \
-                type.
+        @Label(value = "Insert missing", description = """
+                Set the output cell to missing if the string column cannot be converted to the \
+                specified type.
                 """)
         SET_MISSING, //
         @Label(value = "Fail", description = """

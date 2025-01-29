@@ -48,6 +48,7 @@
  */
 package org.knime.time.node.convert.datetimetostring;
 
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeFactory;
 
@@ -64,19 +65,22 @@ public final class DateTimeToStringNodeFactory2 extends WebUINodeFactory<DateTim
         return new DateTimeToStringNodeModel2(CONFIGURATION);
     }
 
-    static final String DATE_TIME_FORMATTER_URL =
-        "https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html";
-
     static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
         .name("Date&Time to String") //
         .icon("timetostring.png") //
         .shortDescription("Converts Date&amp;Time cells into cells holding strings.") //
         .fullDescription("""
-                Converts the time values in Date&amp;Time columns into strings
-                using a user-provided format pattern as defined by
-                <a href="%s">DateTimeFormatter</a>
-                .
-                """.formatted(DATE_TIME_FORMATTER_URL)) //
+                <p>
+                    Converts the time values in Date&amp;Time columns into strings
+                    using a user-provided format pattern. See <a href="%s">the
+                    Java documentation</a> for more details about possible format
+                    patterns.
+                </p>
+                <p>
+                    Since dates may contain localized terms such as month or weekday
+                    names, you can additionally specify a locale.
+                </p>
+                """.formatted(ComprehensiveDateTimeFormatProvider.LINK_TO_FORMAT_JAVADOC)) //
         .modelSettingsClass(DateTimeToStringNodeSettings.class) //
         .addInputTable("Input table", "Input table.") //
         .addOutputTable("Output table", "Output table containing columns converted to a string.") //

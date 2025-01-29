@@ -99,7 +99,7 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
     interface OutputSettingsSection {
     }
 
-    @Widget(title = "First Date Time column", description = """
+    @Widget(title = "First date&time column", description = """
             The first date&amp;time column. The first and second column will be subtracted \
             from each other, with the direction depending on the 'mode' option.
             """)
@@ -108,13 +108,13 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
     @ChoicesWidget(choicesProvider = FirstColumnProvider.class)
     ColumnSelection m_firstColumnSelection = new ColumnSelection();
 
-    @Widget(title = "Second Date Time value", description = "The source of the second date&amp;time value.")
+    @Widget(title = "Second date&time value", description = "The source of the second date&amp;time value.")
     @ValueReference(SecondDateTimeValueRef.class)
     @Layout(DifferencingSettingsSection.class)
     @ValueSwitchWidget
     SecondDateTimeValueType m_secondDateTimeValueType = SecondDateTimeValueType.COLUMN;
 
-    @Widget(title = "Second date time column", description = """
+    @Widget(title = "Second date&time column", description = """
             The date&amp;time column that is subtracted from the first column, or vice versa, \
             with the direction depending on the 'mode' option.
             """)
@@ -133,7 +133,7 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
     @Layout(DifferencingSettingsSection.class)
     LocalTime m_localTimeFixed = LocalTime.now();
 
-    @Widget(title = "Date time", description = "The fixed date&amp;time to calculate the difference to.")
+    @Widget(title = "Date&time", description = "The fixed date&amp;time to calculate the difference to.")
     @Effect(predicate = FirstColumnIsDateTimeAndFixedDateTime.class, type = EffectType.SHOW)
     @Layout(DifferencingSettingsSection.class)
     LocalDateTime m_localDateTimeFixed = LocalDateTime.now();
@@ -363,17 +363,17 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
                     Time Zone</i> nodes you can adjust the date&amp;time formats beforehand.
                     """)
             COLUMN, //
-            @Label(value = "Fixed Date&Time", description = """
+            @Label(value = "Fixed date&time", description = """
                     Calculates the difference between the selected fixed date&amp;time and the \
                     first column.
                     """)
             FIXED_DATE_TIME, //
-            @Label(value = "Execution Date&Time", description = """
+            @Label(value = "Execution Date&time", description = """
                     Calculates the difference between the execution date&amp;time and the chosen \
                     first column.
                     """)
             EXECUTION_DATE_TIME, //
-            @Label(value = "Previous Row", description = """
+            @Label(value = "Previous row", description = """
                     Calculates the difference between the date&amp;time in row <i>n</i> and \
                     row <i>n-1</i> in the chosen row. Note that the first row in the output will \
                     be MISSING as there is no previous row to calculate the difference with.

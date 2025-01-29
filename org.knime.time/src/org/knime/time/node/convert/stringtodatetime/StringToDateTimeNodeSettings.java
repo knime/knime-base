@@ -84,7 +84,7 @@ import org.knime.time.util.LocaleStateProvider;
 import org.knime.time.util.ReplaceOrAppend;
 
 /**
- * @author Tobias Kampmann
+ * @author Tobias Kampmann, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
 public class StringToDateTimeNodeSettings implements DefaultNodeSettings {
@@ -104,11 +104,11 @@ public class StringToDateTimeNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    @Widget(title = "DateTime columns", description = "Only the included columns will be converted.")
+    @Widget(title = "Date&time columns", description = "Only the included columns will be converted.")
     @ChoicesWidget(choices = StringColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
-    @Section(title = "Type&Format")
+    @Section(title = "Type and format")
     interface TypeFormatSection {
     }
 
@@ -124,9 +124,9 @@ public class StringToDateTimeNodeSettings implements DefaultNodeSettings {
     @Layout(TypeFormatSection.class)
     String m_locale = Locale.getDefault().toLanguageTag();
 
-    @Widget(title = "DateTime format", description = """
+    @Widget(title = "Input format", description = """
             A format string (defined by <a href="
-            https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html
+            """ + ComprehensiveDateTimeFormatProvider.LINK_TO_FORMAT_JAVADOC + """
             ">DateTimeFormatter</a>).
             <br />
             <b>Examples:</b>
@@ -145,6 +145,13 @@ public class StringToDateTimeNodeSettings implements DefaultNodeSettings {
     @DateTimeFormatPickerWidget
     String m_format = "yyyy-MM-dd";
 
+    @Widget(title = "If extraction fails",
+        description = "If set to 'Fail', the node will abort the execution and fail on errors. "
+            + "Otherwise, missing values will be inserted instead.")
+    @ValueSwitchWidget
+    @Layout(TypeFormatSection.class)
+    ActionIfExtractionFails m_onError = ActionIfExtractionFails.SET_MISSING;
+
     @Section(title = "Output")
     @After(TypeFormatSection.class)
     interface OutputSection {
@@ -161,23 +168,16 @@ public class StringToDateTimeNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Output column suffix", description = "The selected columns will be appended to the input table.")
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
     @Layout(OutputSection.class)
-    String m_outputColumnSuffix = " (Date&Time)";
-
-    @Widget(title = "If extraction fails",
-        description = "If set to 'Fail', the node will abort the execution and fail on errors. "
-            + "If unchecked, missing values will be generated instead.")
-    @ValueSwitchWidget
-    @Layout(OutputSection.class)
-    ActionIfExtractionFails m_onError = ActionIfExtractionFails.SET_MISSING;
+    String m_outputColumnSuffix = " (Date&time)";
 
     enum TemporalType {
             @Label(value = "Date", description = "The output column will be of type LocalDate.")
             LOCAL_DATE(LocalDate::from, LocalDateCellFactory.TYPE), //
             @Label(value = "Time", description = "The output column will be of type LocalTime.")
             LOCAL_TIME(LocalTime::from, LocalTimeCellFactory.TYPE), //
-            @Label(value = "DateTime", description = "The output column will be of type LocalDateTime.")
+            @Label(value = "Date&time", description = "The output column will be of type LocalDateTime.")
             LOCAL_DATE_TIME(LocalDateTime::from, LocalDateTimeCellFactory.TYPE), //
-            @Label(value = "DateTimeZone", description = "The output column will be of type ZonedDateTime.")
+            @Label(value = "Zoned date&time", description = "The output column will be of type ZonedDateTime.")
             ZONED_DATE_TIME(ZonedDateTime::from, ZonedDateTimeCellFactory.TYPE);
 
         private final TemporalQuery<? extends TemporalAccessor> m_query;
