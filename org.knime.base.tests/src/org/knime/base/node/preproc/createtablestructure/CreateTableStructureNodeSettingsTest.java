@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,56 +41,53 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
  * History
- *   Aug 7, 2010 (wiswedel): created
+ *   Jan 29, 2025 (Martin Sillye, TNG Technology Consulting GmbH): created
  */
 package org.knime.base.node.preproc.createtablestructure;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.FileInputStream;
+import java.io.IOException;
 
-import org.knime.base.node.preproc.createtablestructure.CreateTableStructureNodeModel.ColType;
-import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
-import org.knime.core.node.defaultnodesettings.DialogComponentString;
-import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
-import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * <code>NodeDialog</code> for the "CreateTableStructure" Node. Creates empty
- * table (no rows) with a predefined structure (columns)
  *
- * @author Bernd.Wiswedel
+ * @author Martin Sillye, TNG Technology Consulting GmbH
  */
-public class CreateTableStructureNodeDialog extends DefaultNodeSettingsPane {
+@SuppressWarnings("restriction")
+final class CreateTableStructureNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
-    /**
-     * New pane for configuring the CreateTableStructure node.
-     */
-    protected CreateTableStructureNodeDialog() {
-        SettingsModelIntegerBounded colCountModel =
-                CreateTableStructureNodeModel.createColCountModel();
-        SettingsModelString colPrefixModel =
-                CreateTableStructureNodeModel.createColPrefixModel();
-        SettingsModelString colTypeModel =
-                CreateTableStructureNodeModel.createColTypeModel();
+    CreateTableStructureNodeSettingsTest() {
+        super(getConfig());
+    }
 
-        addDialogComponent(new DialogComponentNumber(colCountModel,
-                "Column Count", 1));
-        addDialogComponent(new DialogComponentString(colPrefixModel,
-                "Column Prefix"));
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .testJsonFormsForModel(CreateTableStructureNodeSettings.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
+    }
 
-        List<String> availTypes = new ArrayList<String>();
-        for (ColType colType : ColType.values()) {
-            availTypes.add(colType.toString());
+    private static CreateTableStructureNodeSettings readSettings() {
+        try {
+            var path = getSnapshotPath(CreateTableStructureNodeSettings.class).getParent().resolve("node_settings")
+                .resolve("CreateTableStructureNodeSettings.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return DefaultNodeSettings.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    CreateTableStructureNodeSettings.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
         }
-
-        addDialogComponent(new DialogComponentStringSelection(colTypeModel,
-                "Column Type", availTypes
-                        .toArray(new String[availTypes.size()])));
-
     }
 }
