@@ -108,7 +108,7 @@ public final class LocalDateTimeMedianOperator extends AbstractMedianOperator {
      */
     public LocalDateTimeMedianOperator(final GlobalSettings globalSettings,
         final OperatorColumnSettings opColSettings) {
-        super(formatId(LocalDateTimeValue.UTILITY), true, LocalDateTimeValue.class, createCustomMeanMedianMetod(),
+        super(formatId("Local Date Time"), true, LocalDateTimeValue.class, createCustomMeanMedianMetod(),
             globalSettings, opColSettings);
     }
 

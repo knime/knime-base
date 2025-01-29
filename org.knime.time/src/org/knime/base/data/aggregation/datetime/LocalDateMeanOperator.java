@@ -88,7 +88,7 @@ public final class LocalDateMeanOperator extends AggregationOperator {
      * @param opColSettings the operator column specific settings
      */
     public LocalDateMeanOperator(final GlobalSettings globalSettings, final OperatorColumnSettings opColSettings) {
-        super(new OperatorData("Mean " + LocalDateValue.UTILITY.getName(), "Mean", "Mean", false, true,
+        super(new OperatorData("Mean Local Date", "Mean", "Mean", false, true,
             LocalDateValue.class, false), globalSettings, opColSettings);
     }
 

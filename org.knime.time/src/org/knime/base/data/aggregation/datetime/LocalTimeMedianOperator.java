@@ -101,8 +101,8 @@ public final class LocalTimeMedianOperator extends AbstractMedianOperator {
      * @param opColSettings the operator column specific settings
      */
     public LocalTimeMedianOperator(final GlobalSettings globalSettings, final OperatorColumnSettings opColSettings) {
-        super(formatId(LocalTimeValue.UTILITY), true, LocalTimeValue.class, createCustomMeanMedianMethod(),
-            globalSettings, opColSettings);
+        super(formatId("Local Time"), true, LocalTimeValue.class, createCustomMeanMedianMethod(), globalSettings,
+            opColSettings);
     }
 
     private LocalTimeMedianOperator(final EvenListMedianMethodDescription[] methodDescs,
