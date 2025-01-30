@@ -1434,6 +1434,13 @@
              >
        </node>
        <node
+             after="org.knime.base.node.flowvariable.appendvariabletotable4.AppendVariableToTable4NodeFactory"
+             category-path="/flowcontrol/variables"
+             hidden="true"
+             factory-class="org.knime.base.node.flowvariable.variabletotablerow4.VariableToTable4NodeFactory2"
+             >
+       </node>
+       <node
              after="org.knime.base.node.flowvariable.tablecoltovariable.TableColumnToVariableNodeFactory"
              category-path="/flowcontrol/variables"
              deprecated="true"
