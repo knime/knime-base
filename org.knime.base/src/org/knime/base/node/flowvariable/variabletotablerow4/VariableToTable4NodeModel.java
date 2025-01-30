@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -43,85 +44,84 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 1, 2008 (wiswedel): created
+ *   Jan 29, 2025 (Martin Sillye, TNG Technology Consulting GmbH): created
  */
 package org.knime.base.node.flowvariable.variabletotablerow4;
 
+import java.util.Collection;
+
+import org.knime.base.node.flowvariable.converter.variabletocell.VariableToCellConverterFactory;
 import org.knime.base.node.flowvariable.converter.variabletocell.VariableToDataColumnConverter;
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataRow;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.def.DefaultRow;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.workflow.FlowVariable;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeModel;
 
 /**
- * NodeModel for the "Variable To TableRow" node which converts variables into a single row values with the variable
- * names as column headers.
+ * The model for the "Variable to Table Row" node.
  *
- * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
- * @author Patrick Winter, KNIME AG, Zurich, Switzerland
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
- * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @author Martin Sillye, TNG Technology Consulting GmbH
  */
-final class VariableToTable4NodeModel extends AbstractVariableToTableNodeModel {
+@SuppressWarnings("restriction")
+public class VariableToTable4NodeModel extends WebUINodeModel<VariableToTable4NodeSettings> {
 
-    private final SettingsModelString m_rowID = createSettingsModelRowID();
-
-    static SettingsModelString createSettingsModelRowID() {
-        return new SettingsModelString("row_id", "values");
-    }
-
-    /**
-     * Constructor.
-     */
-    VariableToTable4NodeModel() {
-        super(FlowVariablePortObject.TYPE_OPTIONAL);
+    VariableToTable4NodeModel(final WebUINodeConfiguration configuration) {
+        super(configuration, VariableToTable4NodeSettings.class);
     }
 
     @Override
-    protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
-        final BufferedDataContainer cont = exec.createDataContainer(createOutSpec(false));
-        try (final VariableToDataColumnConverter conv = new VariableToDataColumnConverter()) {
-            cont.addRowToTable(createTableRow(exec, conv, m_rowID.getStringValue()));
+    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs,
+        final VariableToTable4NodeSettings modelSettings) throws InvalidSettingsException {
+        CheckUtils.checkSetting(modelSettings.m_rowName != null && !modelSettings.m_rowName.trim().isEmpty(),
+            "Please specify a row name.");
+        final var variables =
+            getAvailableInputFlowVariables(VariableToCellConverterFactory.getSupportedTypes()).values();
+        try (final var converter = new VariableToDataColumnConverter()) {
+            final var selectedVariables = modelSettings.m_filter.filter(variables);
+            if (selectedVariables.isEmpty()) {
+                setWarningMessage("No variables selected");
+            }
+            return new DataTableSpec[]{createTableSpec(selectedVariables, converter)};
+        }
+    }
+
+    @Override
+    protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec,
+        final VariableToTable4NodeSettings modelSettings) throws Exception {
+        final var variables =
+            getAvailableInputFlowVariables(VariableToCellConverterFactory.getSupportedTypes()).values();
+        try (final var converter = new VariableToDataColumnConverter()) {
+            final var selectedVariables = modelSettings.m_filter.filter(variables);
+            final BufferedDataContainer cont = exec.createDataContainer(createTableSpec(selectedVariables, converter));
+            cont.addRowToTable(createTableRow(converter, modelSettings.m_rowName, selectedVariables));
             cont.close();
             return new BufferedDataTable[]{cont.getTable()};
         }
     }
 
-    @Override
-    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        CheckUtils.checkSetting(m_rowID.getStringValue() != null && !m_rowID.getStringValue().trim().isEmpty(),
-            "Please specify a row name.");
-        return super.configure(inSpecs);
+    private static final DataRow createTableRow(final VariableToDataColumnConverter conv, final String rowId,
+        final Collection<FlowVariable> variables) {
+        final DataCell[] cells = variables.stream()//
+            .map(variable -> conv.getDataCell(variable.getName(), variable))//
+            .toArray(DataCell[]::new);
+        return new DefaultRow(rowId, cells);
     }
 
-    @Override
-    protected void reset() {
-        // nothing to do
+    private static final DataTableSpec createTableSpec(final Collection<FlowVariable> variables,
+        final VariableToDataColumnConverter converter) {
+        final var colSpecs = variables.stream().map(variable -> converter.createSpec(variable.getName(), variable))
+            .toArray(DataColumnSpec[]::new);
+        return new DataTableSpec(colSpecs);
     }
-
-    @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_rowID.loadSettingsFrom(settings);
-        super.loadValidatedSettingsFrom(settings);
-    }
-
-    @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
-        m_rowID.saveSettingsTo(settings);
-        super.saveSettingsTo(settings);
-    }
-
-    @Override
-    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_rowID.validateSettings(settings);
-        super.validateSettings(settings);
-    }
-
 }

@@ -44,50 +44,55 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 29, 2025 (Martin Sillye, TNG Technology Consulting GmbH): created
+ *   Jan 30, 2025 (Martin Sillye, TNG Technology Consulting GmbH): created
  */
 package org.knime.base.node.flowvariable.variabletotablerow4;
 
-import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.impl.WebUINodeFactory;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * WebUI node factory for the "Variable to Table Row" node.
  *
  * @author Martin Sillye, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public class VariableToTable4NodeFactory extends WebUINodeFactory<VariableToTable4NodeModel> {
+final class VariableToTable4NodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
-    /**
-     * Default constructor.
-     */
-    public VariableToTable4NodeFactory() {
-        super(CONFIGURATION);
+    VariableToTable4NodeSettingsTest() {
+        super(getConfig());
     }
 
-    @Override
-    public VariableToTable4NodeModel createNodeModel() {
-        return new VariableToTable4NodeModel(CONFIGURATION);
+    private static final PortObjectSpec[] INPUT_PORT_SPECS = new PortObjectSpec[]{FlowVariablePortObjectSpec.INSTANCE};
+
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .withInputPortObjectSpecs(INPUT_PORT_SPECS) //
+            .testJsonFormsForModel(VariableToTable4NodeSettings.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
     }
 
-    private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
-        .name("Variable to Table Row") //
-        .icon("variable2table.png") //
-        .shortDescription("Extracts variables and puts them into a single row table.") //
-        .fullDescription("""
-                Extracts scope variables and puts them into a single row table.
-                """) //
-        .modelSettingsClass(VariableToTable4NodeSettings.class) //
-        .addExternalResource("""
-                https://www.knime.com/self-paced-course/l2-ds-knime-analytics-platform-for-data-scientists\
-                -advanced/lesson2
-                """, //
-            "KNIME Analytics Platform for Data Scientists (Advanced): Lesson 2. Flow Variables and Components") //
-        .nodeType(NodeType.Other) //
-        .addInputPort("Variables input", FlowVariablePortObject.TYPE_OPTIONAL, "Variables Connection")
-        .addOutputTable("Variable table", "Table containing single row with current values of flow variables") //
-        .keywords("variable", "variables", "convert", "row", "row") //
-        .build();
+    private static VariableToTable4NodeSettings readSettings() {
+        try {
+            var path = getSnapshotPath(VariableToTable4NodeSettings.class).getParent().resolve("node_settings")
+                .resolve("VariableToTable4NodeSettings.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return DefaultNodeSettings.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    VariableToTable4NodeSettings.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 }

@@ -48,46 +48,42 @@
  */
 package org.knime.base.node.flowvariable.variabletotablerow4;
 
-import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.impl.WebUINodeFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.LegacyNameFilterToFlowVariableFilterMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.AllFlowVariablesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableFilterWidget;
 
 /**
- * WebUI node factory for the "Variable to Table Row" node.
+ * The settings for the "Variable to Table Row" node.
  *
  * @author Martin Sillye, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public class VariableToTable4NodeFactory extends WebUINodeFactory<VariableToTable4NodeModel> {
+final class VariableToTable4NodeSettings implements DefaultNodeSettings {
 
-    /**
-     * Default constructor.
-     */
-    public VariableToTable4NodeFactory() {
-        super(CONFIGURATION);
+    @Widget(title = "Output as columns", description = """
+            Include list contains all variables that are converted into a column of the resulting row, excluded \
+            variables are not used. All variables remain on the variable stack.
+            """)
+    @FlowVariableFilterWidget(choicesProvider = AllFlowVariablesProvider.class)
+    @Migration(NameFilterMigration.class)
+    FlowVariableFilter m_filter = new FlowVariableFilter();
+
+    @Widget(title = "RowID value", description = "The name of the RowID used for the resulting row.", advanced = true)
+    @Persist(configKey = "row_id")
+    String m_rowName = "Row0";
+
+    static final class NameFilterMigration extends LegacyNameFilterToFlowVariableFilterMigration {
+
+        NameFilterMigration() {
+            super(KEY);
+        }
+
+        static final String KEY = "variable_filter";
     }
 
-    @Override
-    public VariableToTable4NodeModel createNodeModel() {
-        return new VariableToTable4NodeModel(CONFIGURATION);
-    }
-
-    private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
-        .name("Variable to Table Row") //
-        .icon("variable2table.png") //
-        .shortDescription("Extracts variables and puts them into a single row table.") //
-        .fullDescription("""
-                Extracts scope variables and puts them into a single row table.
-                """) //
-        .modelSettingsClass(VariableToTable4NodeSettings.class) //
-        .addExternalResource("""
-                https://www.knime.com/self-paced-course/l2-ds-knime-analytics-platform-for-data-scientists\
-                -advanced/lesson2
-                """, //
-            "KNIME Analytics Platform for Data Scientists (Advanced): Lesson 2. Flow Variables and Components") //
-        .nodeType(NodeType.Other) //
-        .addInputPort("Variables input", FlowVariablePortObject.TYPE_OPTIONAL, "Variables Connection")
-        .addOutputTable("Variable table", "Table containing single row with current values of flow variables") //
-        .keywords("variable", "variables", "convert", "row", "row") //
-        .build();
 }
