@@ -410,6 +410,9 @@ public final class CommonReaderNodeSettings {
             settings.addLong(CFG_NUMBER_OF_DATA_ROWS_TO_SKIP, skipFirstDataRows);
         }
 
+        /**
+         * @since 5.5
+         */
         @Override
         public String[][] getConfigPaths() {
             return new String[][]{{CFG_SKIP_DATA_ROWS}, {CFG_NUMBER_OF_DATA_ROWS_TO_SKIP}};

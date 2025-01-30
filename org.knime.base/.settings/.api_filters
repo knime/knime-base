@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<component id="org.knime.base" version="2">
+    <resource path="src/org/knime/base/node/io/filehandling/webui/reader/CommonReaderNodeSettings.java" type="org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$SkipFirstDataRowsPersistor">
+        <filter id="338792546">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.SkipFirstDataRowsPersistor"/>
+                <message_argument value="getConfigKeys()"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/stringreplacer/CaseMatching.java" type="org.knime.base.node.preproc.stringreplacer.CaseMatching$Persistor">
+        <filter id="338792546">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.stringreplacer.CaseMatching.Persistor"/>
+                <message_argument value="getConfigKeys()"/>
+            </message_arguments>
+        </filter>
+    </resource>
+</component>

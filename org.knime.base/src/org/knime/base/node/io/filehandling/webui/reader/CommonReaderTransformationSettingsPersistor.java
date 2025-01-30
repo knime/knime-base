@@ -112,6 +112,9 @@ public abstract class CommonReaderTransformationSettingsPersistor<C extends Read
 
     static final String ROOT_CFG_KEY = "table_spec_config_Internals";
 
+    /**
+     * @since 5.5
+     */
     @Override
     public String[][] getConfigPaths() {
         return new String[0][0];

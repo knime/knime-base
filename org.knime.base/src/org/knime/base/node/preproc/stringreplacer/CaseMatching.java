@@ -99,6 +99,9 @@ public enum CaseMatching {
             settings.addBoolean(CFG_CASE_SENSITIVE, matchingStrategy == CaseMatching.CASESENSITIVE);
         }
 
+        /**
+         * @since 5.5
+         */
         @Override
         public String[][] getConfigPaths() {
             return new String[][]{{CFG_CASE_SENSITIVE}};
