@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <entry key="rowName" type="xstring" value="Row0"/>
+    <config key="filter">
+        <config key="selected_Internals">
+            <entry key="array-size" type="xint" value="5"/>
+            <entry key="0" type="xstring" value="variable_1"/>
+            <entry key="1" type="xstring" value="variable_2"/>
+            <entry key="2" type="xstring" value="variable_3"/>
+            <entry key="3" type="xstring" value="variable_4"/>
+            <entry key="4" type="xstring" value="knime.workspace"/>
+        </config>
+        <entry key="mode" type="xstring" value="MANUAL"/>
+        <config key="patternFilter">
+            <entry key="pattern" type="xstring" value=""/>
+            <entry key="isCaseSensitive" type="xboolean" value="false"/>
+            <entry key="isInverted" type="xboolean" value="false"/>
+        </config>
+        <config key="manualFilter">
+            <config key="manuallySelected">
+                <entry key="array-size" type="xint" value="5"/>
+                <entry key="0" type="xstring" value="variable_1"/>
+                <entry key="1" type="xstring" value="variable_2"/>
+                <entry key="2" type="xstring" value="variable_3"/>
+                <entry key="3" type="xstring" value="variable_4"/>
+                <entry key="4" type="xstring" value="knime.workspace"/>
+            </config>
+            <config key="manuallyDeselected">
+                <entry key="array-size" type="xint" value="0"/>
+            </config>
+            <entry key="includeUnknownColumns" type="xboolean" value="true"/>
+        </config>
+        <config key="typeFilter">
+            <config key="selectedTypes">
+                <entry key="array-size" type="xint" value="0"/>
+            </config>
+        </config>
+    </config>
+</config>
