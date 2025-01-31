@@ -48,49 +48,69 @@
  */
 package org.knime.base.node.flowvariable.tablecoltovariable4;
 
-import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.impl.WebUINodeFactory;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.AllColumnChoicesProvider;
 
 /**
- * WebUI node factory for the "Table Column to Variable" node.
+ * The settings for the "Table Column to Variable" node.
  *
  * @author Martin Sillye, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public class TableColumnToVariable4NodeFactory extends WebUINodeFactory<TableColumnToVariable4NodeModel> {
+public class TableColumnToVariable4NodeSettings implements DefaultNodeSettings {
 
-    /**
-     *
-     */
-    public TableColumnToVariable4NodeFactory() {
-        super(CONFIGURATION);
+    enum MissingOperation {
+            @Label("Ignore")
+            IGNORE, //
+            @Label("Fail")
+            FAIL
     }
 
-    @Override
-    public TableColumnToVariable4NodeModel createNodeModel() {
-        return new TableColumnToVariable4NodeModel();
-    }
+    @Widget(title = "Column name", description = """
+            Name of the column for the values.
+            """)
+    @ChoicesWidget(choices = AllColumnChoicesProvider.class)
+    @Persist(configKey = "column")
+    String m_column = "";
 
-    private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
-        .name("Table Column to Variable") //
-        .icon("../tablecoltovariable2/tablecol2variable.png") //
-        .shortDescription(
-            "Converts the values from a table column to flow variables with the RowIDs as their variable name.") //
-        .fullDescription("""
-                Converts the values from a table column to flow variables with the RowIDs as their variable name and \
-                the values in the selected column as the variable values.
-                """) //
-        .modelSettingsClass(TableColumnToVariable4NodeSettings.class) //
-        .addExternalResource("""
-                https://www.knime.com/self-paced-course/l2-ds-knime-analytics-platform-for-data-scientists-advanced\
-                /lesson2
-                """, //
-            "KNIME Analytics Platform for Data Scientists (Advanced): Lesson 2. Flow Variables and Components") //
-        .nodeType(NodeType.Other) //
-        .addInputTable("table", "A table") //
-        .addOutputPort("flow variables", FlowVariablePortObject.TYPE, //
-            "New flow variables with names from the RowIDs.") //
-        .keywords("table", "column", "flow", "variable") //
-        .build();
+    @Widget(title = "Skip missing values", description = """
+            <ul>
+                <li><strong>Ignore</strong>: rows with a missing value in the selected column will be skipped</li>
+                <li><strong>Fail</strong>: the node execution will fail if a row contains a missing value in the \
+                selected column.</li>
+            </ul>
+            """)
+    @ValueSwitchWidget
+    @Persistor(MissingOperationPersistor.class)
+    MissingOperation m_missingOperation = MissingOperation.IGNORE;
+
+    static final class MissingOperationPersistor implements NodeSettingsPersistor<MissingOperation> {
+
+        private static final String KEY = "skip_missing";
+
+        @Override
+        public MissingOperation load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return settings.getBoolean(KEY, true) ? MissingOperation.IGNORE : MissingOperation.FAIL;
+        }
+
+        @Override
+        public void save(final MissingOperation obj, final NodeSettingsWO settings) {
+            settings.addBoolean(KEY, obj == MissingOperation.IGNORE);
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{{KEY}};
+        }
+    }
 }
