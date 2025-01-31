@@ -340,7 +340,7 @@
       "indices" : [ ],
       "value" : {
         "title" : "Content of the first cell",
-        "description" : "Connect a table to see a preview",
+        "description" : "No input data available. Execute upstream nodes.",
         "type" : "INFO"
       }
     } ]
