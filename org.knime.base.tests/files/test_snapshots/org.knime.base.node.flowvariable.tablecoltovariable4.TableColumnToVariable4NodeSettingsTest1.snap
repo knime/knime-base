@@ -1,0 +1,87 @@
+{
+  "data" : {
+    "model" : {
+      "missingOperation" : "IGNORE"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "column" : {
+            "type" : "string",
+            "title" : "Column name",
+            "description" : "Name of the column for the values.",
+            "default" : "Column 1"
+          },
+          "missingOperation" : {
+            "oneOf" : [ {
+              "const" : "IGNORE",
+              "title" : "Ignore"
+            }, {
+              "const" : "FAIL",
+              "title" : "Fail"
+            } ],
+            "title" : "If value in cell is missing",
+            "description" : "Action to take if the value in cell is missing.\n<ul>\n<li><b>Ignore</b>: Rows with a missing value in the selected column will be skipped.</li>\n<li><b>Fail</b>: The node execution will fail if a row contains a missing value in the selected column.</li>\n</ul>",
+            "default" : "IGNORE"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/column",
+      "options" : {
+        "possibleValues" : [ {
+          "id" : "Column 1",
+          "text" : "Column 1",
+          "type" : {
+            "id" : "org.knime.core.data.StringValue",
+            "text" : "String"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+        }, {
+          "id" : "Column 2",
+          "text" : "Column 2",
+          "type" : {
+            "id" : "org.knime.core.data.DoubleValue",
+            "text" : "Number (Floating Decimal)"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+        } ],
+        "format" : "dropDown",
+        "showNoneColumn" : false,
+        "showRowKeys" : false,
+        "showSearch" : true,
+        "showMode" : true
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/missingOperation",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "column" : { },
+          "missingOperation" : {
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "skip_missing" ] ]
+            } ]
+          }
+        }
+      }
+    }
+  }
+}

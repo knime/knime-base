@@ -48,49 +48,55 @@
  */
 package org.knime.base.node.flowvariable.tablecoltovariable4;
 
-import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.impl.WebUINodeFactory;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.StringCell;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * WebUI node factory for the "Table Column to Variable" node.
  *
  * @author Martin Sillye, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public final class TableColumnToVariable4NodeFactory extends WebUINodeFactory<TableColumnToVariable4NodeModel> {
+final class TableColumnToVariable4NodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
-    /**
-     *
-     */
-    public TableColumnToVariable4NodeFactory() {
-        super(CONFIGURATION);
+    TableColumnToVariable4NodeSettingsTest() {
+        super(getConfig());
     }
 
-    @Override
-    public TableColumnToVariable4NodeModel createNodeModel() {
-        return new TableColumnToVariable4NodeModel(CONFIGURATION);
+    final static DataTableSpec[] INPUT_PORT_SPECS =
+        new DataTableSpec[]{new DataTableSpec(new DataColumnSpecCreator("Column 1", StringCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("Column 2", DoubleCell.TYPE).createSpec())};
+
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .withInputPortObjectSpecs(INPUT_PORT_SPECS) //
+            .testJsonFormsForModel(TableColumnToVariable4NodeSettings.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
     }
 
-    private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
-        .name("Table Column to Variable") //
-        .icon("../tablecoltovariable2/tablecol2variable.png") //
-        .shortDescription(
-            "Converts the values from a table column to flow variables with the RowIDs as their variable name.") //
-        .fullDescription("""
-                Converts the values from a table column to flow variables with the RowIDs as their variable name and \
-                the values in the selected column as the variable values.
-                """) //
-        .modelSettingsClass(TableColumnToVariable4NodeSettings.class) //
-        .addExternalResource("""
-                https://www.knime.com/self-paced-course/l2-ds-knime-analytics-platform-for-data-scientists-advanced\
-                /lesson2
-                """, //
-            "KNIME Analytics Platform for Data Scientists (Advanced): Lesson 2. Flow Variables and Components") //
-        .nodeType(NodeType.Other) //
-        .addInputTable("table", "A table") //
-        .addOutputPort("flow variables", FlowVariablePortObject.TYPE, //
-            "New flow variables with names from the RowIDs.") //
-        .keywords("table", "column", "flow", "variable") //
-        .build();
+    private static TableColumnToVariable4NodeSettings readSettings() {
+        try {
+            var path = getSnapshotPath(TableColumnToVariable4NodeSettings.class).getParent().resolve("node_settings")
+                .resolve("TableColumnToVariable4NodeSettings.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return DefaultNodeSettings.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    TableColumnToVariable4NodeSettings.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 }

@@ -44,17 +44,17 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 16, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ *   Feb 21, 2025 (Martin Sillye, TNG Technology Consulting GmbH): created
  */
 package org.knime.base.node.flowvariable.tablecoltovariable4;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
 import org.knime.base.node.flowvariable.converter.celltovariable.CellToVariableConverter;
 import org.knime.base.node.flowvariable.converter.celltovariable.CellToVariableConverterFactory;
 import org.knime.base.node.flowvariable.converter.celltovariable.MissingValueHandler;
+import org.knime.base.node.flowvariable.tablecoltovariable4.TableColumnToVariable4NodeSettings.MissingOperation;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
@@ -62,66 +62,60 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.MissingValueException;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.VariableType;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeModel;
 
 /**
- * This node model allows to convert the values from a table column to flow variables. The flow variable names are
- * derived from the row IDs,
+ * The model for the "Tabke Column to Variable" node.
  *
- * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @author Martin Sillye, TNG Technology Consulting GmbH
  */
-final class TableColumnToVariable4NodeModel extends NodeModel {
+@SuppressWarnings("restriction")
+final class TableColumnToVariable4NodeModel extends WebUINodeModel<TableColumnToVariable4NodeSettings> {
 
-    private static final String CFGKEY_IGNORE_MISSING = "skip_missing";
-
-    private static final boolean DEFAULT_IGNORE_MISSING = true;
-
-    private static final String CFGKEY_COLUMN = "column";
-
-    static final SettingsModelBoolean createIgnoreMissing() {
-        return new SettingsModelBoolean(CFGKEY_IGNORE_MISSING, DEFAULT_IGNORE_MISSING);
-    }
-
-    static final SettingsModelString createColumnSettings() {
-        return new SettingsModelString(CFGKEY_COLUMN, null);
-    }
-
-    private final SettingsModelBoolean m_ignoreMissing = createIgnoreMissing();
-
-    private final SettingsModelString m_column = createColumnSettings();
-
-    /**
-     * Constructor for the node model.
-     */
-    TableColumnToVariable4NodeModel() {
-        super(new PortType[]{BufferedDataTable.TYPE}, new PortType[]{FlowVariablePortObject.TYPE});
+    TableColumnToVariable4NodeModel(final WebUINodeConfiguration configuration) {
+        super(configuration, TableColumnToVariable4NodeSettings.class);
     }
 
     @Override
-    protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
-        if (inData[0] instanceof BufferedDataTable) {
-            final BufferedDataTable table = (BufferedDataTable)inData[0];
+    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs,
+        final TableColumnToVariable4NodeSettings modelSettings) throws InvalidSettingsException {
+        final DataTableSpec spec = (DataTableSpec)inSpecs[0];
+        // validation
+        final int colIndex = spec.findColumnIndex(modelSettings.m_column);
+        if (colIndex < 0) {
+            throw new InvalidSettingsException(
+                String.format("The selected column '%s' is not part of the input", modelSettings.m_column));
+        }
+        if (applicableColumns(spec).stream()//
+            .map(DataColumnSpec::getName)//
+            .noneMatch(cName -> cName.equals(modelSettings.m_column))) {
+            throw new InvalidSettingsException(String
+                .format("The selected column '%s' cannot be converted to a flow variable", modelSettings.m_column));
+        }
+        return new PortObjectSpec[]{FlowVariablePortObjectSpec.INSTANCE};
+    }
+
+    @Override
+    protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec,
+        final TableColumnToVariable4NodeSettings modelSettings) throws Exception {
+        if (inObjects[0] instanceof BufferedDataTable) {
+            final BufferedDataTable table = (BufferedDataTable)inObjects[0];
             final DataTableSpec spec = table.getSpec();
-            final int colIndex = spec.findColumnIndex(m_column.getStringValue());
+            final int colIndex = spec.findColumnIndex(modelSettings.m_column);
             assert colIndex >= 0 : colIndex;
             try {
                 final CellToVariableConverter<?> cell2VarConverter =
                     CellToVariableConverterFactory.createConverter(spec.getColumnSpec(colIndex).getType());
                 if (table.size() > 0) {
-                    convertColToVar(table, colIndex, cell2VarConverter);
+                    convertColToVar(table, colIndex, cell2VarConverter, modelSettings);
                 } else {
                     setWarningMessage("Node created no variables since the input data table is empty.");
                 }
@@ -135,18 +129,20 @@ final class TableColumnToVariable4NodeModel extends NodeModel {
     }
 
     private void convertColToVar(final BufferedDataTable table, final int colIndex,
-        final CellToVariableConverter<?> cell2VarConverter) {
+        final CellToVariableConverter<?> cell2VarConverter, final TableColumnToVariable4NodeSettings modelSettings) {
         for (final DataRow row : table) {
             final DataCell cell = row.getCell(colIndex);
             final String name = row.getKey().getString();
             cell2VarConverter.createFlowVariable(name, cell, //
-                getHandler(m_column.getStringValue(), colIndex, row.getKey().toString()))//
+                getHandler(modelSettings.m_column, colIndex, row.getKey().toString(),
+                    modelSettings.m_missingOperation == MissingOperation.IGNORE))//
                 .ifPresent(this::pushVariable);
         }
     }
 
-    private MissingValueHandler getHandler(final String columnName, final int columnIndex, final String rowName) {
-        if (m_ignoreMissing.getBooleanValue()) {
+    private static MissingValueHandler getHandler(final String columnName, final int columnIndex, final String rowName,
+        final boolean ignoreMissing) {
+        if (ignoreMissing) {
             return (v, t) -> null;
         } else {
             return (v, t) -> {
@@ -163,73 +159,10 @@ final class TableColumnToVariable4NodeModel extends NodeModel {
         pushFlowVariable(fv.getName(), (VariableType<T>)fv.getVariableType(), (T)fv.getValue(fv.getVariableType()));
     }
 
-    @Override
-    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        final DataTableSpec spec = (DataTableSpec)inSpecs[0];
-        if (m_column.getStringValue() == null) {
-            autoGuess(spec);
-        }
-        // validation
-        final int colIndex = spec.findColumnIndex(m_column.getStringValue());
-        if (colIndex < 0) {
-            throw new InvalidSettingsException(
-                String.format("The selected column '%s' is not part of the input", m_column.getStringValue()));
-        }
-        if (applicableColumns(spec).stream()//
-            .map(DataColumnSpec::getName)//
-            .noneMatch(cName -> cName.equals(m_column.getStringValue()))) {
-            throw new InvalidSettingsException(String
-                .format("The selected column '%s' cannot be converted to a flow variable", m_column.getStringValue()));
-        }
-        return new PortObjectSpec[]{FlowVariablePortObjectSpec.INSTANCE};
-    }
-
-    private void autoGuess(final DataTableSpec spec) throws InvalidSettingsException {
-        final Collection<DataColumnSpec> applicableColumns = applicableColumns(spec);
-        if (applicableColumns.isEmpty()) {
-            throw new InvalidSettingsException("Input contains no column that can be converted to a flow variable");
-        }
-        final DataColumnSpec column = applicableColumns.iterator().next();
-        m_column.setStringValue(column.getName());
-        setWarningMessage(String.format("Auto-guessing: Selected column '%s'", column.getName()));
-    }
-
     private static Collection<DataColumnSpec> applicableColumns(final DataTableSpec spec) {
         return spec.stream()//
             .filter(s -> CellToVariableConverterFactory.isSupported(s.getType()))//
             .collect(Collectors.toList());
     }
 
-    @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
-        m_column.saveSettingsTo(settings);
-        m_ignoreMissing.saveSettingsTo(settings);
-    }
-
-    @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_column.loadSettingsFrom(settings);
-        m_ignoreMissing.loadSettingsFrom(settings);
-    }
-
-    @Override
-    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_column.validateSettings(settings);
-        m_ignoreMissing.validateSettings(settings);
-    }
-
-    @Override
-    protected void loadInternals(final File internDir, final ExecutionMonitor exec) {
-        //No internal state
-    }
-
-    @Override
-    protected void saveInternals(final File internDir, final ExecutionMonitor exec) {
-        //No internal state
-    }
-
-    @Override
-    protected void reset() {
-        // Do nothing, no internal state
-    }
 }
