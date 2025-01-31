@@ -1913,6 +1913,12 @@
             factory-class="org.knime.base.node.flowvariable.tablecoltovariable4.TableColumnToVariable4NodeFactory">
       </node>
       <node
+            after="org.knime.base.node.flowvariable.extractvariables.ExtractVariablesDBNodeFactory"
+            category-path="/flowcontrol/variables"
+            hidden="true"
+            factory-class="org.knime.base.node.flowvariable.tablecoltovariable4.TableColumnToVariable4NodeFactory2">
+      </node>
+      <node
             category-path="/flowcontrol/automation"
             factory-class="org.knime.base.node.flowcontrol.sleep.SleepNodeFactory"
             >
