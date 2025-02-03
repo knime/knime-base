@@ -27,6 +27,12 @@
             If checked, the possible values of each columns are extracted as 
             possible values, otherwise not.
         </option>
+        <option name="Use legacy type names">
+			If checked, the old names of columny types are used, otherwise an
+			identifier string is used.
+			It is recommended to leave this unchecked, but for backwards
+			compatibility it is enabled by default in existing nodes.
+        </option>
 	</fullDescription>
 		
 	<ports>

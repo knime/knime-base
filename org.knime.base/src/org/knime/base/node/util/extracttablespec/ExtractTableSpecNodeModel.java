@@ -84,11 +84,20 @@ class ExtractTableSpecNodeModel extends NodeModel {
      */
     public static final boolean DEF_POSSIBLE_VALUES_AS_COLLECTION = false;
 
+    /**
+     * Do not use the legacy type names by default. However, in old nodes, the default is true (see
+     * {@link #loadValidatedSettingsFrom(NodeSettingsRO)}).
+     */
+    static final boolean DEF_USE_LEGACY_TYPE_NAMES = false;
+
     private final SettingsModelBoolean m_extractPropertyHandlersModel =
         ExtractTableSpecNodeDialog.getExtractPropertyHandlersModel();
 
     private final SettingsModelBoolean m_possibleValuesAsCollection =
         ExtractTableSpecNodeDialog.getPossibleValuesAsCollectionModel();
+
+    private final SettingsModelBoolean m_useLegacyTypeNames =
+            ExtractTableSpecNodeDialog.getUseLegacyTypeNamesModel();
 
     /**
      * Constructor of <code>ExtractTableSpecNodeModel</code>.
@@ -128,11 +137,14 @@ class ExtractTableSpecNodeModel extends NodeModel {
      * spec.
      */
     private CloseableTable getExtractedDataTable(final DataTableSpec spec) {
-        DataTableSpecExtractor extractor = new DataTableSpecExtractor();
+        final var extractor = new DataTableSpecExtractor();
         extractor.setPossibleValueOutputFormat(m_possibleValuesAsCollection.getBooleanValue()
-                       ? PossibleValueOutputFormat.Collection : PossibleValueOutputFormat.Hide);
+            ? PossibleValueOutputFormat.Collection : PossibleValueOutputFormat.Hide);
         extractor.setPropertyHandlerOutputFormat(m_extractPropertyHandlersModel.getBooleanValue()
-                       ? PropertyHandlerOutputFormat.Boolean : PropertyHandlerOutputFormat.Hide);
+            ? PropertyHandlerOutputFormat.Boolean : PropertyHandlerOutputFormat.Hide);
+        extractor.setTypeNameFormat(
+            m_useLegacyTypeNames.getBooleanValue() ? DataTableSpecExtractor.TypeNameFormat.LEGACY_DISPLAY_NAME
+                : DataTableSpecExtractor.TypeNameFormat.IDENTIFIER);
         return extractor.extract(spec);
     }
 
@@ -143,6 +155,7 @@ class ExtractTableSpecNodeModel extends NodeModel {
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_extractPropertyHandlersModel.saveSettingsTo(settings);
         m_possibleValuesAsCollection.saveSettingsTo(settings);
+        m_useLegacyTypeNames.saveSettingsTo(settings);
     }
 
     /**
@@ -153,6 +166,9 @@ class ExtractTableSpecNodeModel extends NodeModel {
             throws InvalidSettingsException {
         m_extractPropertyHandlersModel.validateSettings(settings);
         m_possibleValuesAsCollection.validateSettings(settings);
+        if (settings.containsKey(m_useLegacyTypeNames.getConfigName())) {
+            m_useLegacyTypeNames.validateSettings(settings);
+        }
     }
 
     /**
@@ -163,6 +179,12 @@ class ExtractTableSpecNodeModel extends NodeModel {
             throws InvalidSettingsException {
         m_extractPropertyHandlersModel.loadSettingsFrom(settings);
         m_possibleValuesAsCollection.loadSettingsFrom(settings);
+        if (settings.containsKey(m_useLegacyTypeNames.getConfigName())) {
+            m_useLegacyTypeNames.loadSettingsFrom(settings);
+        } else {
+            // Backwards compatibility: if the setting is not present, i.e. old node, use legacy type names
+            m_useLegacyTypeNames.setBooleanValue(true);
+        }
     }
 
     /**

@@ -41,7 +41,7 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------------
- * 
+ *
  * History
  *   03.06.2012 (kilian): created
  */
@@ -52,9 +52,9 @@ import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 
 /**
- * The dialog of the extract table spec node, providing all of its dialog 
+ * The dialog of the extract table spec node, providing all of its dialog
  * components.
- * 
+ *
  * @author Kilian Thiel, KNIME.com, Berlin, Germany
  */
 class ExtractTableSpecNodeDialog extends DefaultNodeSettingsPane {
@@ -80,15 +80,22 @@ class ExtractTableSpecNodeDialog extends DefaultNodeSettingsPane {
     }
 
     /**
+     * @return Creates and returns the settings model in which is specified whether the legacy type names will be used.
+     */
+    public static SettingsModelBoolean getUseLegacyTypeNamesModel() {
+        return new SettingsModelBoolean(ExtractTableSpecConfigKeys.USE_LEGACY_TYPE_NAMES,
+            ExtractTableSpecNodeModel.DEF_USE_LEGACY_TYPE_NAMES);
+    }
+
+    /**
      * Constructor of the <code>ExtractTableSpecNodeDialog</code>.
      */
     ExtractTableSpecNodeDialog() {
-        addDialogComponent(new DialogComponentBoolean(
-                getExtractPropertyHandlersModel(), 
-                "Extract property handlers"));
-        
-        addDialogComponent(new DialogComponentBoolean(
-                getPossibleValuesAsCollectionModel(), 
-                "Possible values as collection"));
+        addDialogComponent(new DialogComponentBoolean(getExtractPropertyHandlersModel(), "Extract property handlers"));
+
+        addDialogComponent(
+            new DialogComponentBoolean(getPossibleValuesAsCollectionModel(), "Possible values as collection"));
+
+        addDialogComponent(new DialogComponentBoolean(getUseLegacyTypeNamesModel(), "Use legacy type names"));
     }
 }
