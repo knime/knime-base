@@ -123,7 +123,8 @@ public final class DataTypeProducerRegistry extends ProducerRegistry<DataType, D
             String producerKey = key + "_producer";
             return SerializeUtil.loadConverterFactory(config, INSTANCE, producerKey)//
                 .orElseThrow(() -> new InvalidSettingsException(
-                    String.format("Can't load CellValueProducer with key '%s'.", producerKey)));
+                    String.format("Can't load CellValueProducer with key '%s' and key '%s'.", producerKey,
+                        config.getString(producerKey, "unknown"))));
         }
 
         private static JavaToDataCellConverterFactory<?> loadConverterFactory(final NodeSettingsRO settings,
@@ -396,12 +397,11 @@ public final class DataTypeProducerRegistry extends ProducerRegistry<DataType, D
         final Collection<DataCellToJavaConverterFactory<?, ?>> factoriesForSourceType =
             DataCellToJavaConverterRegistry.getInstance().getFactoriesForSourceType(sourceType);
         for (DataCellToJavaConverterFactory<?, ?> factory : factoriesForSourceType) {
-            final var identifier = factory.getIdentifier();
+            final var destinationType = factory.getDestinationType();
+            final var identifier = sourceType.getIdentifier() + "->" + destinationType.getName();
             if (registered.add(identifier)) {
-                final var destinationType = factory.getDestinationType();
-                final var aliases = SerializeUtil.historicToStringOutputsForNamedTypes(sourceType, false).stream()
-                    .map(name -> name + "->" + destinationType.getName()).toList();
-
+                final var aliases =
+                    List.of(sourceType.getLegacyStringRepresentation() + "->" + destinationType.getName());
                 @SuppressWarnings({"rawtypes", "unchecked"})
                 final CellValueProducerFactoryImplementation<?> converter = new CellValueProducerFactoryImplementation(
                     destinationType, identifier, aliases, sourceType, factory.create());
