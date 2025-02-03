@@ -1,0 +1,156 @@
+{
+  "data" : {
+    "model" : {
+      "newFlowVariables" : [ {
+        "name" : "variable_1",
+        "type" : "STRING",
+        "value" : ""
+      } ]
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "newFlowVariables" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "name" : {
+                  "type" : "string",
+                  "title" : "Name",
+                  "description" : "The name of the new flow variable.",
+                  "default" : "variable_1"
+                },
+                "type" : {
+                  "oneOf" : [ {
+                    "const" : "STRING",
+                    "title" : "String"
+                  }, {
+                    "const" : "INTEGER",
+                    "title" : "Integer"
+                  }, {
+                    "const" : "LONG",
+                    "title" : "Long"
+                  }, {
+                    "const" : "DOUBLE",
+                    "title" : "Double"
+                  }, {
+                    "const" : "BOOLEAN",
+                    "title" : "Boolean"
+                  } ],
+                  "title" : "Type",
+                  "description" : "The data type of the new flow variable. See the node description for more information about the available types.\n",
+                  "default" : "STRING"
+                },
+                "value" : {
+                  "type" : "string",
+                  "title" : "Value",
+                  "description" : "The value of the new flow variable.",
+                  "default" : ""
+                }
+              }
+            },
+            "title" : "New flow variables",
+            "description" : "The new flow variables to create.",
+            "default" : [ {
+              "name" : "variable_1",
+              "type" : "STRING",
+              "value" : ""
+            } ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/newFlowVariables",
+      "options" : {
+        "detail" : [ {
+          "type" : "HorizontalLayout",
+          "elements" : [ {
+            "type" : "Control",
+            "scope" : "#/properties/name"
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/type",
+            "options" : {
+              "possibleValues" : [ {
+                "id" : "STRING",
+                "text" : "String"
+              }, {
+                "id" : "INTEGER",
+                "text" : "Integer"
+              }, {
+                "id" : "LONG",
+                "text" : "Long"
+              }, {
+                "id" : "DOUBLE",
+                "text" : "Double"
+              }, {
+                "id" : "BOOLEAN",
+                "text" : "Boolean"
+              } ],
+              "format" : "dropDown",
+              "showNoneColumn" : false,
+              "showRowKeys" : false,
+              "showSearch" : true,
+              "showMode" : true
+            }
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/value"
+          } ]
+        } ],
+        "addButtonText" : "Add variable",
+        "elementDefaultValueProvider" : "org.knime.base.node.io.variablecreator.VariableCreatorNodeSettings$NewFlowVariableSettings$DefaultNewFlowVariableSettingsProvider"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "newFlowVariables" : {
+            "configPaths" : [ [ "variables", "types" ], [ "variables", "names" ], [ "variables", "values" ] ]
+          }
+        }
+      }
+    }
+  },
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog",
+      "triggerInitially" : true
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/newFlowVariables" ],
+      "id" : "org.knime.base.node.io.variablecreator.VariableCreatorNodeSettings$NewFlowVariablesRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.variablecreator.VariableCreatorNodeSettings$NewFlowVariableSettings$NewFlowVariablesTypeRef",
+      "scopes" : [ "#/properties/model/properties/newFlowVariables", "#/properties/type" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/newFlowVariables", "#/properties/type" ],
+      "id" : "org.knime.base.node.io.variablecreator.VariableCreatorNodeSettings$NewFlowVariableSettings$NewFlowVariablesTypeRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.variablecreator.VariableCreatorNodeSettings$NewFlowVariablesRef",
+      "scopes" : [ "#/properties/model/properties/newFlowVariables" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/newFlowVariables" ],
+      "id" : "org.knime.base.node.io.variablecreator.VariableCreatorNodeSettings$NewFlowVariablesRef"
+    } ]
+  } ]
+}

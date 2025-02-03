@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <config key="variables">
+        <config key="types">
+            <entry key="array-size" type="xint" value="5"/>
+            <entry key="0" type="xstring" value="str"/>
+            <entry key="1" type="xstring" value="int"/>
+            <entry key="2" type="xstring" value="bool"/>
+            <entry key="3" type="xstring" value="long"/>
+            <entry key="4" type="xstring" value="double"/>
+        </config>
+        <config key="names">
+            <entry key="array-size" type="xint" value="5"/>
+            <entry key="0" type="xstring" value="fakelocale"/>
+            <entry key="1" type="xstring" value="intvar"/>
+            <entry key="2" type="xstring" value="variable_3"/>
+            <entry key="3" type="xstring" value="variable_4"/>
+            <entry key="4" type="xstring" value="variable_5"/>
+        </config>
+        <config key="values">
+            <entry key="array-size" type="xint" value="5"/>
+            <entry key="0" type="xstring" value="Europe/Nowhereville"/>
+            <entry key="1" type="xstring" value="26"/>
+            <entry key="2" type="xstring" value="false"/>
+            <entry key="3" type="xstring" value="4"/>
+            <entry key="4" type="xstring" value="0.0"/>
+        </config>
+    </config>
+</config>

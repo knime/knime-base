@@ -1710,6 +1710,13 @@
             >
       </node>
       <node
+            category-path="/io/io-other"
+            factory-class="org.knime.base.node.io.variablecreator.VariableCreatorNodeFactory2"
+            after="org.knime.base.node.io.tablecreator.TableCreator2NodeFactory"
+            hidden="true"
+            >
+      </node>
+      <node
             factory-class="org.knime.base.node.util.sampledata.SampleDataNodeFactory"
             category-path="/io/io-other"
             />
