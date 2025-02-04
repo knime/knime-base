@@ -1,0 +1,282 @@
+{
+  "data" : {
+    "model" : {
+      "sortingCriteria" : [ {
+        "column" : {
+          "selected" : "column1",
+          "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+        },
+        "sortingOrder" : "ASCENDING",
+        "stringComparison" : "NATURAL"
+      } ],
+      "filterMode" : "ROWS",
+      "amount" : 5,
+      "missingsToEnd" : false,
+      "rowOrder" : "ARBITRARY"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "amount" : {
+            "type" : "integer",
+            "format" : "int64",
+            "title" : "Number of rows / unique values",
+            "description" : "The number of rows to select from the input table based on the specified mode.",
+            "default" : 5
+          },
+          "filterMode" : {
+            "oneOf" : [ {
+              "const" : "ROWS",
+              "title" : "Rows"
+            }, {
+              "const" : "UNIQUE_VALUES",
+              "title" : "Unique values"
+            } ],
+            "title" : "Filter mode",
+            "description" : "Specifies the mode for the top k selection of the output\n<ul>\n<li><b>Rows</b>: Returns the top k rows based on their first occurrence in the input table.</li>\n<li><b>Unique values</b>: Returns all rows associated with the top k unique values.</li>\n</ul>",
+            "default" : "ROWS"
+          },
+          "missingsToEnd" : {
+            "type" : "boolean",
+            "title" : "Sort missing values to end of table",
+            "description" : "If selected, missing values are always considered to be inferior to present cells.",
+            "default" : false
+          },
+          "rowOrder" : {
+            "oneOf" : [ {
+              "const" : "ARBITRARY",
+              "title" : "Arbitrary"
+            }, {
+              "const" : "INPUT_ORDER",
+              "title" : "Input order"
+            }, {
+              "const" : "SORTED",
+              "title" : "Sorted"
+            } ],
+            "title" : "Row order",
+            "description" : "Depending on the settings of the algorithm the order might change in the output and this option allows you to specify constraints on the order.\n\n<ul>\n<li><b>Arbitrary</b>: The rows are directly output in the order they are returned in by the algorithm. This option doesn't incur any additional runtime costs. Note: It is possible but not guaranteed that the output order is the same as the input order\n</li>\n<li><b>Input order</b>: The input order is reestablished for the rows returned by the algorithm. This requires sorting the output table.\n</li>\n<li><b>Sorted</b>: The rows in the output are sorted according to the specified selection criteria.</li>\n</ul>",
+            "default" : "ARBITRARY"
+          },
+          "sortingCriteria" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "column" : {
+                  "type" : "object",
+                  "properties" : {
+                    "compatibleTypes" : {
+                      "type" : "array",
+                      "items" : {
+                        "type" : "string"
+                      }
+                    },
+                    "selected" : {
+                      "type" : "string"
+                    }
+                  },
+                  "title" : "Column",
+                  "description" : "Sort rows by the values in this column. If you set multiple sorting criteria, the table is sorted by the first criterion. The following criteria are only considered, if the comparison by all previous criteria results in a tie.",
+                  "default" : {
+                    "selected" : "column1",
+                    "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+                  }
+                },
+                "sortingOrder" : {
+                  "oneOf" : [ {
+                    "const" : "ASCENDING",
+                    "title" : "Ascending"
+                  }, {
+                    "const" : "DESCENDING",
+                    "title" : "Descending"
+                  } ],
+                  "title" : "Order",
+                  "description" : "Specifies the sorting order:\n<ul>\n<li><b>Ascending</b>: The smallest or earliest in the order will appear at the top of the list. E.g., for numbers the sort is smallest to largest, for dates the sort will be oldest dates to most recent.</li>\n<li><b>Descending</b>: The largest or latest in the order will appear at the top of the list. E.g., for numbers the sort is largest to smallest, for dates the sort will be most recent dates to oldest.</li>\n</ul>",
+                  "default" : "ASCENDING"
+                },
+                "stringComparison" : {
+                  "oneOf" : [ {
+                    "const" : "NATURAL",
+                    "title" : "Natural"
+                  }, {
+                    "const" : "LEXICOGRAPHIC",
+                    "title" : "Lexicographic"
+                  } ],
+                  "title" : "String comparison",
+                  "description" : "Specifies which type of sorting to apply to the strings:\n<ul>\n<li><b>Natural</b>: Sorts strings by treating the numeric parts of a string as one character. For example, results in sort order “'Row1', 'Row2', 'Row10'”.</li>\n<li><b>Lexicographic</b>: Sorts strings so that each digit is treated as a separated character. For example, results in sort order “'Row1', 'Row10', 'Row2'”.</li>\n</ul>",
+                  "default" : "NATURAL"
+                }
+              }
+            },
+            "title" : "Sorting",
+            "description" : "A list of sorting critera.",
+            "default" : [ {
+              "column" : {
+                "selected" : "column1",
+                "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+              },
+              "sortingOrder" : "ASCENDING",
+              "stringComparison" : "NATURAL"
+            } ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Sorting",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/sortingCriteria",
+        "options" : {
+          "detail" : [ {
+            "type" : "Control",
+            "scope" : "#/properties/column",
+            "options" : {
+              "format" : "columnSelection",
+              "possibleValues" : [ {
+                "id" : "column1",
+                "text" : "column1",
+                "type" : {
+                  "id" : "org.knime.core.data.StringValue",
+                  "text" : "String"
+                },
+                "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+              } ],
+              "showNoneColumn" : false,
+              "showRowKeys" : true,
+              "showSearch" : true,
+              "showMode" : true
+            }
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/sortingOrder",
+            "options" : {
+              "format" : "valueSwitch"
+            }
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/stringComparison",
+            "options" : {
+              "isAdvanced" : true,
+              "format" : "valueSwitch"
+            },
+            "rule" : {
+              "effect" : "SHOW",
+              "condition" : {
+                "scope" : "#/properties/column",
+                "schema" : {
+                  "properties" : {
+                    "compatibleTypes" : {
+                      "contains" : {
+                        "const" : "org.knime.core.data.StringValue"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          } ],
+          "addButtonText" : "Add sorting criterion",
+          "arrayElementTitle" : "Criterion",
+          "showSortButtons" : true
+        }
+      } ]
+    }, {
+      "label" : "Filter",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/filterMode",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/amount",
+        "options" : {
+          "min" : 1.0
+        }
+      } ]
+    }, {
+      "label" : "Special Values and Performance",
+      "type" : "Section",
+      "options" : {
+        "isAdvanced" : true
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/missingsToEnd",
+        "options" : {
+          "format" : "checkbox",
+          "isAdvanced" : true
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/rowOrder",
+        "options" : {
+          "isAdvanced" : true,
+          "format" : "valueSwitch"
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "sortingCriteria" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "column" : {
+                  "type" : "object",
+                  "properties" : {
+                    "selected" : { },
+                    "compatibleTypes" : {
+                      "configPaths" : [ ]
+                    }
+                  }
+                },
+                "sortingOrder" : { },
+                "stringComparison" : { }
+              }
+            },
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "columns" ], [ "order" ], [ "alphaNumStringComp" ] ]
+            }, {
+              "deprecated" : [ [ "columns" ], [ "order" ] ]
+            } ]
+          },
+          "filterMode" : {
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "selectionMode" ] ]
+            }, {
+              "deprecated" : [ ]
+            } ]
+          },
+          "amount" : {
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "k" ] ]
+            } ]
+          },
+          "missingsToEnd" : { },
+          "rowOrder" : {
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "outputOrder" ] ]
+            } ]
+          }
+        }
+      }
+    }
+  }
+}
