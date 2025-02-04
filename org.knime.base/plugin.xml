@@ -2121,6 +2121,13 @@
             >
       </node>
       <node
+            category-path="/manipulation/column/column-filter"
+            factory-class="org.knime.base.node.preproc.filter.columnref.ColumnSplitRefNodeFactory2"
+            deprecated="false"
+            hidden="true"
+            >
+      </node>
+      <node
             category-path="/manipulation/row/row-transform"
             deprecated="false"
             factory-class="org.knime.base.node.preproc.rank.RankNodeFactory"
