@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,62 +41,52 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   Feb 4, 2025 (david): created
  */
 package org.knime.base.node.preproc.filter.columnref;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
- * Factory to create a Reference Column Splitter node.
+ * Factory for the new Web UI for the "Reference Column Splitter" node.
  *
- * @author Christian Dietz, University of Konstanz
- * @since 3.1
+ * @author David Hickey, TNG Technology Consulting GmbH
  */
-public class ColumnSplitRefNodeFactory
-        extends NodeFactory<ColumnSplitRefNodeModel> {
+@SuppressWarnings("restriction")
+public final class ColumnSplitRefNodeFactory extends WebUINodeFactory<ColumnSplitRefNodeModel> {
 
     /**
-     * {@inheritDoc}
+     *
      */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new ColumnSplitRefNodeDialogPane();
+    public ColumnSplitRefNodeFactory() {
+        super(CONFIGURATION);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public ColumnSplitRefNodeModel createNodeModel() {
         return new ColumnSplitRefNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<ColumnSplitRefNodeModel> createNodeView(
-            final int index, final ColumnSplitRefNodeModel model) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
+    private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
+        .name("Reference Column Splitter") //
+        .icon("refcolumnsplit.png") //
+        .shortDescription("""
+                The Reference Column Splitter allows columns to be split from the first \
+                table using the second table as reference.
+                """) //
+        .fullDescription("""
+                This node allows columns to be split from the first table using \
+                the second table as reference table.
+                """) //
+        .modelSettingsClass(ColumnSplitRefNodeSettings.class) //
+        .addInputTable("Table to filter", "Table from which columns are to be split.") //
+        .addInputTable("Reference table", "Table to use as reference for splitting.") //
+        .addOutputTable("Table with included columns", "Output table with included columns.") //
+        .addOutputTable("Table with excluded columns", "Output table with excluded columns.") //
+        .keywords("table", "filter") //
+        .build();
 }

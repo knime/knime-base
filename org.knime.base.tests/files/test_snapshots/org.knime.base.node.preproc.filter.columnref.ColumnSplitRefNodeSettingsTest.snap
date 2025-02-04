@@ -1,7 +1,6 @@
 {
   "data" : {
     "model" : {
-      "columnReferenceMode" : "INCLUDE",
       "typeCompatibility" : "MATCH"
     }
   },
@@ -11,18 +10,6 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "columnReferenceMode" : {
-            "oneOf" : [ {
-              "const" : "INCLUDE",
-              "title" : "Include"
-            }, {
-              "const" : "EXCLUDE",
-              "title" : "Exclude"
-            } ],
-            "title" : "Include or exclude columns from the reference table",
-            "description" : "Includes or excludes columns that appear in the reference table from the first table.",
-            "default" : "INCLUDE"
-          },
           "typeCompatibility" : {
             "oneOf" : [ {
               "const" : "MATCH",
@@ -42,12 +29,6 @@
   "ui_schema" : {
     "elements" : [ {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/columnReferenceMode",
-      "options" : {
-        "format" : "valueSwitch"
-      }
-    }, {
-      "type" : "Control",
       "scope" : "#/properties/model/properties/typeCompatibility",
       "options" : {
         "format" : "valueSwitch"
@@ -60,9 +41,6 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "columnReferenceMode" : {
-            "configPaths" : [ [ "inexclude" ] ]
-          },
           "typeCompatibility" : {
             "configPaths" : [ [ "type_compatibility" ] ]
           }

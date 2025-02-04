@@ -44,71 +44,25 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   10 Jan 2023 (ivan.prigarin): created
+ *   Feb 4, 2025 (david): created
  */
 package org.knime.base.node.preproc.filter.columnref;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
+ * The web UI settings for the "Reference Column Splitter" node.
  *
- * @author Ivan Prigarin, KNIME GbmH, Konstanz, Germany
- * @since 5.1
+ * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public final class ColumnFilterRefNodeSettings implements DefaultNodeSettings {
-
-    private static final String REFERENCE_MODE_KEY = "inexclude";
-
-    @Persistor(ColumnReferenceModePersistor.class)
-    @Widget(title = "Include or exclude columns from the reference table",
-        description = "Includes or excludes columns that appear in the reference table from the first table.")
-    @ValueSwitchWidget
-    ColumnReferenceMode m_columnReferenceMode = ColumnReferenceMode.INCLUDE;
+final class ColumnSplitRefNodeSettings implements DefaultNodeSettings {
 
     @Persistor(EnforceTypeCompatibility.Persistor.class)
     @Widget(title = EnforceTypeCompatibility.TITLE, description = EnforceTypeCompatibility.DESCRIPTION)
     @ValueSwitchWidget
     EnforceTypeCompatibility m_typeCompatibility = EnforceTypeCompatibility.MATCH;
-
-    enum ColumnReferenceMode {
-            @Label("Include")
-            INCLUDE,
-
-            @Label("Exclude")
-            EXCLUDE;
-    }
-
-    private static final class ColumnReferenceModePersistor implements NodeSettingsPersistor<ColumnReferenceMode> {
-
-        @Override
-        public ColumnReferenceMode load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            if (settings.getString(REFERENCE_MODE_KEY).equals(ColumnFilterRefNodeModel.INCLUDE)) {
-                return ColumnReferenceMode.INCLUDE;
-            } else {
-                return ColumnReferenceMode.EXCLUDE;
-            }
-        }
-
-        @Override
-        public void save(final ColumnReferenceMode obj, final NodeSettingsWO settings) {
-            var value = obj == ColumnReferenceMode.INCLUDE ? ColumnFilterRefNodeModel.INCLUDE
-                : ColumnFilterRefNodeModel.EXCLUDE;
-            settings.addString(REFERENCE_MODE_KEY, value);
-        }
-
-        @Override
-        public String[][] getConfigPaths() {
-            return new String[][]{{REFERENCE_MODE_KEY}};
-        }
-    }
-
 }

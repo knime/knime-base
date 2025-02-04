@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,30 +41,59 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   Mar 6, 2025 (david): created
  */
 package org.knime.base.node.preproc.filter.columnref;
 
-import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 
 /**
- * The dialog pane to split columns which offers the option
- * to check column type compatibility.
  *
- * @author Thomas Gabriel, University of Konstanz
- * @author Christian Dietz, University of Konstanz
- * @since 3.1
+ * @author David Hickey, TNG Technology Consulting GmbH
  */
-public class ColumnSplitRefNodeDialogPane extends DefaultNodeSettingsPane {
+@SuppressWarnings("restriction")
+enum EnforceTypeCompatibility {
 
+        @Label("Match")
+        MATCH, //
+        @Label("Don't match")
+        NO_MATCH;
 
-    /**
-     * Creates a new dialog pane with the option to include or exclude column
-     * and to optionally check to column compatibility.
-     */
-    public ColumnSplitRefNodeDialogPane() {
-        addDialogComponent(new DialogComponentBoolean(AbstractColumnRefNodeModel.createTypeModel(),
-                "Ensure compatibility of column types"));
+    /** Pass this as the description of the widget */
+    public static final String DESCRIPTION = """
+            Ensures that the matching columns don't only have the \
+            same name but also the same type. Columns are only included or \
+            excluded if the column type of the first table is a super-type \
+            of the column type from the second table. If this option is not \
+            selected, only the column names need to match.
+            """;
+
+    public static final String TITLE = "If column names match, but types are incompatible";
+
+    static final class Persistor implements NodeSettingsPersistor<EnforceTypeCompatibility> {
+
+        private static final String CFG_KEY = "type_compatibility";
+
+        @Override
+        public EnforceTypeCompatibility load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return settings.getBoolean(CFG_KEY) ? NO_MATCH : MATCH;
+        }
+
+        @Override
+        public void save(final EnforceTypeCompatibility obj, final NodeSettingsWO settings) {
+            settings.addBoolean(CFG_KEY, obj == NO_MATCH);
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{new String[]{CFG_KEY}};
+        }
     }
 }
