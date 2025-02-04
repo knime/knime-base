@@ -49,14 +49,12 @@
 package org.knime.base.node.preproc.sorter;
 
 import java.util.List;
-import java.util.Optional;
 
-import org.knime.base.node.preproc.sorter.SorterNodeSettings.SortingCriterionSettings.SortingOrder;
-import org.knime.base.node.preproc.sorter.SorterNodeSettings.SortingCriterionSettings.StringComparison;
 import org.knime.base.node.preproc.sorter.dialog.DynamicSorterPanel;
 import org.knime.base.node.util.SortKeyItem;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.StringValue;
+import org.knime.base.node.util.preproc.SortingUtils.SortingCriterionSettings;
+import org.knime.base.node.util.preproc.SortingUtils.SortingOrder;
+import org.knime.base.node.util.preproc.SortingUtils.StringComparison;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
@@ -70,18 +68,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettin
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.AllColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  * @author Paul Bärnreuther
@@ -95,84 +83,6 @@ final class SorterNodeSettings implements DefaultNodeSettings {
 
     SorterNodeSettings(final DefaultNodeSettingsContext context) {
         m_sortingCriteria = new SortingCriterionSettings[]{new SortingCriterionSettings(context)};
-    }
-
-    static final class SortingCriterionSettings implements DefaultNodeSettings {
-
-        private SortingCriterionSettings(final ColumnSelection column, final SortingOrder sortingOrder,
-            final StringComparison stringComparison) {
-            m_column = column;
-            m_sortingOrder = sortingOrder;
-            m_stringComparison = stringComparison;
-        }
-
-        SortingCriterionSettings() {
-            this((DataColumnSpec)null);
-        }
-
-        SortingCriterionSettings(final DefaultNodeSettingsContext context) {
-            this(context.getDataTableSpec(0).flatMap(Optional::ofNullable)
-                .map(spec -> spec.getNumColumns() == 0 ? null : spec.getColumnSpec(0)).flatMap(Optional::ofNullable)
-                .orElse(null));
-        }
-
-        SortingCriterionSettings(final DataColumnSpec colSpec) {
-            m_column = colSpec == null ? SpecialColumns.ROWID.toColumnSelection() : new ColumnSelection(colSpec);
-        }
-
-        interface ColumnRef extends Reference<ColumnSelection> {
-        }
-
-        static final class IsStringColumn implements PredicateProvider {
-            @Override
-            public Predicate init(final PredicateInitializer i) {
-                return i.getColumnSelection(ColumnRef.class).hasColumnType(StringValue.class);
-            }
-        }
-
-        @Widget(title = "Column",
-            description = "Sort rows by the values in this column. "
-                + "If you set multiple sorting criteria, the table is sorted by the first criterion. "
-                + "The following criteria are only considered, if the comparison by all previous "
-                + "criteria results in a tie.")
-        @ChoicesWidget(choices = AllColumnChoicesProvider.class, showRowKeysColumn = true)
-        @ValueReference(ColumnRef.class)
-        ColumnSelection m_column;
-
-        enum SortingOrder {
-                @Label(value = "Ascending",
-                    description = "The smallest or earliest in the order will appear at the top of the list. "
-                        + "E.g., for numbers the sort is smallest to largest, "
-                        + "for dates the sort will be oldest dates to most recent.")
-                ASCENDING,
-                @Label(value = "Descending",
-                    description = "The largest or latest in the order will appear at the top of the list. "
-                        + "E.g., for numbers the sort is largest to smallest, "
-                        + "for dates the sort will be most recent dates to oldest.")
-                DESCENDING;
-        }
-
-        @Widget(title = "Order", description = "Specifies the sorting order:")
-        @ValueSwitchWidget
-        SortingOrder m_sortingOrder = SortingOrder.ASCENDING;
-
-        enum StringComparison {
-                @Label(value = "Natural",
-                    description = "Sorts strings by treating the numeric parts of a string as one character. "
-                        + "For example, results in sort order “'Row1', 'Row2', 'Row10'”.")
-                NATURAL,
-                @Label(value = "Lexicographic",
-                    description = "Sorts strings so that each digit is treated as a separated character. "
-                        + "For example, results in sort order “'Row1', 'Row10', 'Row2'”.")
-                LEXICOGRAPHIC;
-        }
-
-        @Widget(title = "String comparison", description = "Specifies which type of sorting to apply to the strings:",
-            advanced = true)
-        @Effect(predicate = IsStringColumn.class, type = EffectType.SHOW)
-        @ValueSwitchWidget
-        StringComparison m_stringComparison = StringComparison.NATURAL;
-
     }
 
     static final class LoadDeprecatedSortingCriterionArraySettings

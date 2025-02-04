@@ -44,60 +44,49 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 16, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Feb 3, 2025 (Martin Sillye, TNG Technology Consulting GmbH): created
  */
 package org.knime.base.node.preproc.topk;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
- * Factory class for the Top K Selector node.
+ * WebUI node factory for the "Top k Row Filter" node.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Martin Sillye, TNG Technology Consulting GmbH
  */
-public final class TopKSelectorNodeFactory extends NodeFactory<TopKSelectorNodeModel> {
+@SuppressWarnings("restriction")
+public final class TopKSelectorNodeFactory extends WebUINodeFactory<TopKSelectorNodeModel> {
 
     /**
-     * {@inheritDoc}
+     * Default constructor
      */
+    public TopKSelectorNodeFactory() {
+        super(CONFIGURATION);
+    }
+
     @Override
     public TopKSelectorNodeModel createNodeModel() {
-        return new TopKSelectorNodeModel();
+        return new TopKSelectorNodeModel(CONFIGURATION);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<TopKSelectorNodeModel> createNodeView(final int viewIndex,
-        final TopKSelectorNodeModel nodeModel) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new TopKSelectorNodeDialog();
-    }
-
+    private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
+        .name("Top k Row Filter") //
+        .icon("elementselector.png") //
+        .shortDescription("Selects the top k rows according to user-defined criteria.") //
+        .fullDescription("""
+                The node behaves the same as a combination of the <b>Sorter</b> node followed by a <b>Row Filter</b> \
+                that only keeps the first k rows of the table except for the order of the rows which depends on the \
+                <i>Output order</i> settings.
+                Note, however, that the implementation of this node is more efficient then the node combination \
+                above. In the dialog, select the columns according to which the data should be selected. For each \
+                column you can also specify whether a larger or smaller value is considered as superior.
+                    """) //
+        .modelSettingsClass(TopKSelectorNodeSettings.class) //
+        .nodeType(NodeType.Manipulator) //
+        .addInputTable("Input Table", "Table to select rows from.") //
+        .addOutputTable("Top k Table", "A table containing the top k rows.") //
+        .keywords("top", "table", "k", "row", "ascending", "descending", "sort", "filter") //
+        .build();
 }
