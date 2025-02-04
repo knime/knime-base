@@ -48,43 +48,46 @@
  */
 package org.knime.base.node.preproc.filter.columnref;
 
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.impl.WebUINodeFactory;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * Factory for the new Web UI for the "Reference Column Splitter" node.
  *
  * @author David Hickey, TNG Technology Consulting GmbH
- * @since 5.5
  */
 @SuppressWarnings("restriction")
-public class ColumnSplitRefNodeFactory extends WebUINodeFactory<ColumnSplitRefNodeModel> {
+final class ColumnSplitRefNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
-    public ColumnSplitRefNodeFactory() {
-        super(CONFIGURATION);
+    ColumnSplitRefNodeSettingsTest() {
+        super(getConfig());
     }
 
-    @Override
-    public ColumnSplitRefNodeModel createNodeModel() {
-        return new ColumnSplitRefNodeModel();
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .testJsonFormsForModel(ColumnSplitRefNodeSettings.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
     }
 
-    private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
-        .name("Reference Column Splitter") //
-        .icon("refcolumnsplit.png") //
-        .shortDescription("""
-                The Reference Column Splitter allows columns to be split from the first \
-                table using the second table as reference.
-                """) //
-        .fullDescription("""
-                This node allows columns to be split from the first table using \
-                the second table as reference table.
-                """) //
-        .modelSettingsClass(ColumnSplitRefNodeSettings.class) //
-        .addInputTable("Table to filter", "Table from which columns are to be split.") //
-        .addInputTable("Reference table", "Table to use as reference for splitting.") //
-        .addOutputTable("Table with included columns", "Output table with included columns.") //
-        .addOutputTable("Table with excluded columns", "Output table with excluded columns.") //
-        .keywords("table", "filter") //
-        .build();
+    private static ColumnSplitRefNodeSettings readSettings() {
+        try {
+            var path = getSnapshotPath(ColumnSplitRefNodeSettings.class).getParent().resolve("node_settings")
+                .resolve("ColumnSplitRefNodeSettings.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return DefaultNodeSettings.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    ColumnSplitRefNodeSettings.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 }
