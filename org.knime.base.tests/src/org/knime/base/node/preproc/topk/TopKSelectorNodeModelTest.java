@@ -44,167 +44,184 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   28 Nov 2022 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   Feb 4, 2025 (Martin Sillye, TNG Technology Consulting GmbH): created
  */
 package org.knime.base.node.preproc.topk;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.knime.core.data.DataTable;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataType;
+import java.io.IOException;
+import java.util.Arrays;
+
+import org.junit.jupiter.api.Test;
+import org.knime.base.node.preproc.topk.TopKSelectorNodeSettings.FilterMode;
+import org.knime.base.node.preproc.topk.TopKSelectorNodeSettings.RowOrder;
+import org.knime.base.node.util.InputTableNode;
+import org.knime.base.node.util.preproc.SortingUtils.SortingCriterionSettings;
+import org.knime.base.node.util.preproc.SortingUtils.SortingOrder;
+import org.knime.base.node.util.preproc.SortingUtils.StringComparison;
+import org.knime.core.data.DataCell;
 import org.knime.core.data.RowKey;
-import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.data.filestore.internal.NotInWorkflowDataRepository;
-import org.knime.core.node.DefaultNodeProgressMonitor;
-import org.knime.core.node.ExecutionContext;
+import org.knime.core.data.def.StringCell.StringCellFactory;
+import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.Node;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeProgressMonitor;
 import org.knime.core.node.NodeSettings;
-import org.knime.core.node.port.PortType;
-import org.knime.core.node.workflow.SingleNodeContainer;
-import org.knime.core.node.workflow.virtual.parchunk.VirtualParallelizedChunkPortObjectInNodeFactory;
+import org.knime.core.node.workflow.NodeContainerState;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
+import org.knime.testing.util.TableTestUtil;
+import org.knime.testing.util.WorkflowManagerUtil;
 
 /**
- * Tests settings for {@link TopKSelectorNodeModel}.
- * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ *
+ * @author Martin Sillye, TNG Technology Consulting GmbH
  */
+@SuppressWarnings("restriction")
 public class TopKSelectorNodeModelTest {
 
-    private static ExecutionContext execContext;
+    private static final String NODE_NAME = "TopKSelectorNode";
 
-    private TopKSelectorNodeModel m_tsnm;
-    private NodeSettings m_settings;
+    private static final String[] INPUT_COLUMNS = new String[]{"column1", "column2"};
 
-    private static final NotInWorkflowDataRepository REPO = NotInWorkflowDataRepository.newInstance();
+    private static final Class<? extends DefaultNodeSettings> SETTINGS_CLASS = TopKSelectorNodeSettings.class;
 
-    private static final NodeProgressMonitor PROGRESS = new DefaultNodeProgressMonitor();
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private static final ExecutionContext exec() {
-        return new ExecutionContext(PROGRESS,
-            new Node((NodeFactory)new VirtualParallelizedChunkPortObjectInNodeFactory(new PortType[0])),
-            SingleNodeContainer.MemoryPolicy.CacheSmallInMemory, REPO);
-    }
-
-    /**
-     * Configure shared execution context.
-     */
-    @BeforeClass
-    public static void setUpBeforeClass() {
-        execContext = exec();
-    }
-
-    /**
-     * Remove the shared execution context.
-     */
-    @AfterClass
-    public static void tearDownAfterClass() {
-        execContext = null;
-    }
-
-    /**
-     * Set up the model and settings.
-     */
-    @Before
-    public void setUp() {
-        m_tsnm = new TopKSelectorNodeModel();
-        m_settings = new NodeSettings("TopKSelector");
-    }
-
-    /**
-     * Clear the model and settings.
-     */
-    @After
-    public void tearDown() {
-        m_tsnm = null;
-        m_settings = null;
-    }
-
-    /**
-     * Test saving settings in model to settings object.
-     * @throws InvalidSettingsException invalid settings for model
-     */
     @Test
-    public final void testSaveSettingsTo() throws InvalidSettingsException {
-        assertFalse(m_settings.containsKey(
-            TopKSelectorNodeModel.INCLUDELIST_KEY));
-        assertFalse(m_settings.containsKey(
-            TopKSelectorNodeModel.SORTORDER_KEY));
-        assertFalse(m_settings.containsKey(
-            TopKSelectorNodeModel.ALPHANUMCOMP_KEY));
-        // save empty
-        m_tsnm.saveSettingsTo(m_settings);
+    void testExecute() throws InvalidSettingsException, IOException {
+        final var settings = new TopKSelectorNodeSettings();
+        settings.m_sortingCriteria =
+            new SortingCriterionSettings[]{new SortingCriterionSettings(new ColumnSelection(INPUT_COLUMNS[0], null),
+                SortingOrder.ASCENDING, StringComparison.NATURAL)};
+        settings.m_amount = 2;
+        settings.m_filterMode = FilterMode.UNIQUE_VALUES;
+        settings.m_rowOrder = RowOrder.INPUT_ORDER;
 
-        // populate settings
-        final boolean[] sortOrder = {true, false, true};
-        final String[] inclCols = {"TestCol1", "TestCol2", "-ROWKEY -"};
-        final boolean[] alphanum = {true, false, true};
-        m_settings.addBooleanArray(TopKSelectorNodeModel.SORTORDER_KEY, sortOrder);
-        m_settings.addStringArray(TopKSelectorNodeModel.INCLUDELIST_KEY, inclCols);
-        m_settings.addBooleanArray(TopKSelectorNodeModel.ALPHANUMCOMP_KEY, alphanum);
+        var output = setupAndExecuteWorkflow(settings, new StringCell("Test1"), new StringCell("Test2"),
+            new StringCell("Test1"), new StringCell("Test10"));
 
-        m_tsnm.validateSettings(m_settings);
-        m_tsnm.loadValidatedSettingsFrom(m_settings);
-        m_tsnm.configure(new DataTableSpec[] { new DataTableSpec(new String[] {"TestCol1", "TestCol2"},
-            new DataType[] {StringCell.TYPE, DoubleCell.TYPE})
-            });
-
-        final var newsettings = new NodeSettings("TopKSelector");
-        m_tsnm.saveSettingsTo(newsettings);
-
-        final boolean[] sortOrderTest = newsettings.getBooleanArray(TopKSelectorNodeModel.SORTORDER_KEY);
-        assertArrayEquals(sortOrder, sortOrderTest);
-        final boolean[] alphanumTest = newsettings.getBooleanArray(TopKSelectorNodeModel.ALPHANUMCOMP_KEY);
-        assertArrayEquals(alphanum, alphanumTest);
-        final String[] inclColsTest = newsettings.getStringArray(TopKSelectorNodeModel.INCLUDELIST_KEY);
-        assertArrayEquals(inclCols, inclColsTest);
+        assertTrue(output.status().isExecuted(), "Should run successfully");
+        assertNotNull(output.outputTable(), "Output should not be null");
+        assertEquals(3, output.outputTable().size(), "Should contain 3 rows");
+        assertEquals("Test1", output.firstCell().toString(), "The first cell should be Test1");
     }
 
-    /**
-     * Tests execution of correctly configured node model.
-     * @throws Exception invalid settings, node execution exception, or creating buffered data tables canceled
-     */
     @Test
-    public final void testExecute() throws Exception {
-        m_tsnm.saveSettingsTo(m_settings);
+    void testMigrationAndExecute() throws InvalidSettingsException, IOException {
+        final var settings = new NodeSettings("model");
         final boolean[] ascending = {false};
-        m_settings.addBooleanArray(TopKSelectorNodeModel.SORTORDER_KEY, ascending);
-        m_settings.addString("outputOrder", OutputOrder.SORT.name());
-        m_settings.addInt("k", 2);
+        settings.addBooleanArray("order", ascending);
+        settings.addString("outputOrder", OutputOrder.SORT.name());
+        settings.addInt("k", 2);
         final String[] inclCols = {"-ROWKEY -"};
-        m_settings.addStringArray(TopKSelectorNodeModel.INCLUDELIST_KEY, inclCols);
-        m_settings.addBooleanArray(TopKSelectorNodeModel.ALPHANUMCOMP_KEY, true);
+        settings.addStringArray("columns", inclCols);
+        settings.addBooleanArray("alphaNumStringComp", true);
+        settings.addBoolean("missingsToEnd", false);
+        settings.addString("selectionMode", TopKMode.TOP_K_ROWS.getText());
 
-        m_tsnm.validateSettings(m_settings);
-        m_tsnm.loadValidatedSettingsFrom(m_settings);
-        final var dts = new DataTableSpec(new String[] {"Strings", "Doubles"},
-            new DataType[] {StringCell.TYPE, DoubleCell.TYPE});
-        m_tsnm.configure(new DataTableSpec[] { dts });
+        final var nodeSettings = DefaultNodeSettings.loadSettings(settings, TopKSelectorNodeSettings.class);
 
-        final var cont = execContext.createDataContainer(dts);
-        cont.addRowToTable(new DefaultRow(RowKey.createRowKey(1L), new StringCell("MyRow1"), new DoubleCell(1.0d)));
-        cont.addRowToTable(new DefaultRow(RowKey.createRowKey(2L), new StringCell("MyRow2"), new DoubleCell(2.0d)));
-        cont.addRowToTable(new DefaultRow(RowKey.createRowKey(10L), new StringCell("MyRow10"), new DoubleCell(10.0d)));
-        cont.close();
-        final var input = cont.getTable();
-        final var top2 = m_tsnm.execute(execContext.createBufferedDataTables(
-            new DataTable[] { input }, execContext), execContext)[0];
-        try (final var it = top2.iterator()) {
-            assertEquals(RowKey.createRowKey(10L), it.next().getKey());
-            assertEquals(RowKey.createRowKey(2L), it.next().getKey());
-            assertFalse(it.hasNext());
+        var output = setupAndExecuteWorkflow(nodeSettings,
+            new String[]{RowKey.createRowKey(1L).getString(), RowKey.createRowKey(2L).getString(),
+                RowKey.createRowKey(10L).getString()},
+            new DataCell[]{new StringCell("MyRow1"), new DoubleCell(1.0d)},
+            new DataCell[]{new StringCell("MyRow2"), new DoubleCell(2.0d)},
+            new DataCell[]{new StringCell("MyRow10"), new DoubleCell(10.0d)});
+
+        assertTrue(output.status.isExecuted(), "Should execute");
+        try (final var it = output.outputTable.iterator()) {
+            assertEquals(RowKey.createRowKey(10L), it.next().getKey(), "Should have the correct first item");
+            assertEquals(RowKey.createRowKey(2L), it.next().getKey(), "Should have the correct second item");
+            assertFalse(it.hasNext(), "Shouldn't have more than 2 items");
         }
+    }
+
+    @Test
+    void testEmptyCriterionFails() throws InvalidSettingsException, IOException {
+        final var settings = new TopKSelectorNodeSettings();
+        settings.m_sortingCriteria = new SortingCriterionSettings[0];
+        settings.m_amount = 2;
+        settings.m_filterMode = FilterMode.UNIQUE_VALUES;
+        settings.m_rowOrder = RowOrder.INPUT_ORDER;
+
+        var output = setupAndExecuteWorkflow(settings, new StringCell("Test1"), new StringCell("Test2"),
+            new StringCell("Test1"), new StringCell("Test10"));
+
+        assertFalse(output.status().isExecuted(), "Should fail");
+        assertNull(output.outputTable(), "Output should be null");
+    }
+
+    record TestSetup(BufferedDataTable outputTable, DataCell firstCell, NodeContainerState status) {
+    }
+
+    static TestSetup setupAndExecuteWorkflow(final TopKSelectorNodeSettings settings, final DataCell... cellToAdd)
+        throws InvalidSettingsException, IOException {
+        return setupAndExecuteWorkflow(settings, null,
+            Arrays.stream(cellToAdd).map(cell -> new DataCell[]{cell}).toArray(DataCell[][]::new));
+    }
+
+    static TestSetup setupAndExecuteWorkflow(final TopKSelectorNodeSettings settings, final String[] rowKeys,
+        final DataCell[]... cellToAdd) throws InvalidSettingsException, IOException {
+        var workflowManager = WorkflowManagerUtil.createEmptyWorkflow();
+
+        var node = WorkflowManagerUtil.createAndAddNode(workflowManager, new TopKSelectorNodeFactory());
+
+        // set the settings
+        final var nodeSettings = new NodeSettings(NODE_NAME);
+        workflowManager.saveNodeSettings(node.getID(), nodeSettings);
+        var modelSettings = nodeSettings.addNodeSettings("model");
+        DefaultNodeSettings.saveSettings(SETTINGS_CLASS, settings, modelSettings);
+        workflowManager.loadNodeSettings(node.getID(), nodeSettings);
+
+        // populate the input table
+        var inputTableSpecBuilder = new TableTestUtil.SpecBuilder();
+        if (cellToAdd != null && cellToAdd.length > 0) {
+            for (int i = 0; i < cellToAdd[0].length; i++) {
+                inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMNS[i], cellToAdd[0][i].getType());
+            }
+        } else {
+            inputTableSpecBuilder = inputTableSpecBuilder.addColumn(INPUT_COLUMNS[0], StringCellFactory.TYPE);
+        }
+        var inputTableSpec = inputTableSpecBuilder.build();
+        var inputTableBuilder = new TableTestUtil.TableBuilder(inputTableSpec);
+        if (cellToAdd != null) {
+            for (int i = 0; i < cellToAdd.length; i++) {
+                if (rowKeys != null && rowKeys.length > i) {
+                    inputTableBuilder = inputTableBuilder.addRowWithId(rowKeys[i], cellToAdd[i]);
+                } else {
+                    inputTableBuilder = inputTableBuilder.addRow(cellToAdd[i]);
+                }
+            }
+        }
+
+        var inputTable = inputTableBuilder.build();
+        var tableSupplierNode =
+            WorkflowManagerUtil.createAndAddNode(workflowManager, new InputTableNode.InputDataNodeFactory(inputTable));
+
+        // link the nodes
+        workflowManager.addConnection(tableSupplierNode.getID(), 1, node.getID(), 1);
+
+        // execute and wait...
+        workflowManager.executeAllAndWaitUntilDone();
+
+        var status = workflowManager.getNodeContainerState();
+
+        var outputTable = (BufferedDataTable)node.getOutPort(1).getPortObject();
+
+        if (outputTable == null || outputTable.size() == 0) {
+            return new TestSetup(outputTable, null, status);
+        }
+        try (var it = outputTable.iterator()) {
+            return new TestSetup( //
+                outputTable, //
+                it.next().getCell(0), //
+                status //
+            );
+        }
+
     }
 }

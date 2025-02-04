@@ -44,68 +44,59 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   9 Dec 2019 (Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany): created
+ *   Feb 4, 2025 (Martin Sillye, TNG Technology Consulting GmbH): created
  */
 package org.knime.base.node.preproc.topk;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
+import java.io.FileInputStream;
+import java.io.IOException;
 
-import javax.swing.Box;
-import javax.swing.JPanel;
-
-import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
-import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
+import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.def.StringCell.StringCellFactory;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * NodeDialog tab for the Top K Selector Node.
  *
- * @author Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany
- * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
+ * @author Martin Sillye, TNG Technology Consulting GmbH
  */
-final class AdvancedSettingsNodeDialog {
+@SuppressWarnings("restriction")
+public class TopKSelectorNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
-    private final TopKSelectorSettings m_settings;
-
-    private final DialogComponentBoolean m_missingsToEnd;
-
-    private final DialogComponentButtonGroup m_outputOrder;
-
-    /**
-     * Creates a new Panel with a checkBox for "Move missing cells to end of the list" and a GroupBox for choosing the
-     * output order
-     *
-     * @param settings TopKSelectorSettings object to load and save settings
-     */
-    public AdvancedSettingsNodeDialog(final TopKSelectorSettings settings) {
-        m_settings = settings;
-        m_missingsToEnd =
-            new DialogComponentBoolean(m_settings.getMissingToEndModel(), "Move missing cells to end of sorted list");
-        m_outputOrder = new DialogComponentButtonGroup(m_settings.getOutputOrderModel(), "Output order", true,
-            OutputOrder.values());
+    TopKSelectorNodeSettingsTest() {
+        super(getConfig());
     }
 
-    /**
-     * Creates the {@link JPanel} for the tab.
-     *
-     * @return the JPanel
-     */
-    public JPanel getPanel() {
-        final JPanel panel = new JPanel(new GridBagLayout());
-        final GridBagConstraints gbc = new GridBagConstraints();
-        gbc.anchor = GridBagConstraints.FIRST_LINE_START;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.weightx = 0;
-        gbc.weighty = 0;
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        panel.add(m_outputOrder.getComponentPanel(), gbc);
-        ++gbc.gridy;
-        panel.add(m_missingsToEnd.getComponentPanel(), gbc);
-        gbc.weightx = 1;
-        gbc.weighty = 1;
-        gbc.fill = GridBagConstraints.BOTH;
-        panel.add(Box.createHorizontalBox(), gbc);
-        return panel;
+    private static final DataColumnSpecCreator SPEC = new DataColumnSpecCreator("column1", StringCellFactory.TYPE);
+
+    private static final PortObjectSpec[] INPUT_PORT_SPECS = new PortObjectSpec[]{new DataTableSpec(SPEC.createSpec())};
+
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .withInputPortObjectSpecs(INPUT_PORT_SPECS) //
+            .testJsonFormsForModel(TopKSelectorNodeSettings.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
+    }
+
+    private static TopKSelectorNodeSettings readSettings() {
+        try {
+            var path = getSnapshotPath(TopKSelectorNodeSettings.class).getParent().resolve("node_settings")
+                .resolve("TopKSelectorNodeSettings.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return DefaultNodeSettings.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    TopKSelectorNodeSettings.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

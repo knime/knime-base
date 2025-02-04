@@ -53,8 +53,8 @@ import java.util.List;
 import java.util.OptionalInt;
 import java.util.function.Predicate;
 
-import org.knime.base.node.preproc.sorter.SorterNodeSettings.SortingCriterionSettings.SortingOrder;
-import org.knime.base.node.preproc.sorter.SorterNodeSettings.SortingCriterionSettings.StringComparison;
+import org.knime.base.node.util.preproc.SortingUtils.SortingOrder;
+import org.knime.base.node.util.preproc.SortingUtils.StringComparison;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.sort.BufferedDataTableSorter;
@@ -168,9 +168,9 @@ public class SorterNodeModel extends WebUINodeModel<SorterNodeSettings> {
     private static RowComparator toRowComparator(final DataTableSpec spec, final SorterNodeSettings modelSettings) {
         final var rc = RowComparator.on(spec);
         Arrays.stream(modelSettings.m_sortingCriteria).forEach(criterion -> {
-            final var ascending = criterion.m_sortingOrder == SortingOrder.ASCENDING;
-            final var alphaNum = criterion.m_stringComparison == StringComparison.NATURAL;
-            resolveColumnName(spec, criterion.m_column.getSelected(), SorterNodeModel::isRowKey).ifPresentOrElse(
+            final var ascending = criterion.getSortingOrder() == SortingOrder.ASCENDING;
+            final var alphaNum = criterion.getStringComparison() == StringComparison.NATURAL;
+            resolveColumnName(spec, criterion.getColumn().getSelected(), SorterNodeModel::isRowKey).ifPresentOrElse(
                 col -> rc.thenComparingColumn(col,
                     c -> configureColumnComparatorBuilder(spec, modelSettings, ascending, alphaNum, col, c)),
                 () -> rc.thenComparingRowKey(
@@ -226,7 +226,7 @@ public class SorterNodeModel extends WebUINodeModel<SorterNodeSettings> {
         final List<String> notAvailableCols = new ArrayList<>();
         final var spec = inSpecs[INPORT];
         for (var ic : modelSettings.m_sortingCriteria) {
-            final var id = ic.m_column.getSelected();
+            final var id = ic.getColumn().getSelected();
             if (!isRowKey(id)) {
                 final var idx = spec.findColumnIndex(id);
                 if (idx == -1) {

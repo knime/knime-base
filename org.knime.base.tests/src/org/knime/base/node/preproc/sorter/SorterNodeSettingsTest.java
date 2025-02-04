@@ -51,7 +51,9 @@ package org.knime.base.node.preproc.sorter;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-import org.knime.base.node.preproc.sorter.SorterNodeSettings.SortingCriterionSettings;
+import org.knime.base.node.util.preproc.SortingUtils.SortingCriterionSettings;
+import org.knime.base.node.util.preproc.SortingUtils.SortingOrder;
+import org.knime.base.node.util.preproc.SortingUtils.StringComparison;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.DoubleCell;
@@ -105,8 +107,8 @@ public class SorterNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
     }
 
     private static SortingCriterionSettings createCriterion() {
-        final var criterion = new SortingCriterionSettings();
-        criterion.m_column = new ColumnSelection(SPEC.getColumnSpec(0));
+        final var criterion = new SortingCriterionSettings(new ColumnSelection(SPEC.getColumnSpec(0)),
+            SortingOrder.ASCENDING, StringComparison.NATURAL);
         return criterion;
     }
 
