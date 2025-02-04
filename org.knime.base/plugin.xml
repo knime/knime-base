@@ -2244,6 +2244,12 @@
             factory-class="org.knime.base.node.preproc.topk.TopKSelectorNodeFactory">
       </node>
       <node
+            category-path="/manipulation/row/row-transform"
+            deprecated="false"
+            hidden="true"
+            factory-class="org.knime.base.node.preproc.topk.TopKSelectorNodeFactory2">
+      </node>
+      <node
             after="org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderNodeFactory"
             category-path="/io/read"
             deprecated="true"
