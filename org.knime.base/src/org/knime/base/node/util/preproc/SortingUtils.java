@@ -46,47 +46,52 @@
  * History
  *   Feb 3, 2025 (Martin Sillye, TNG Technology Consulting GmbH): created
  */
-package org.knime.base.node.preproc.topk;
+package org.knime.base.node.util.preproc;
 
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.impl.WebUINodeFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 
 /**
- * WebUI node factory for the "Top k Row Filter" node.
  *
  * @author Martin Sillye, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public final class TopKSelectorNodeFactory extends WebUINodeFactory<TopKSelectorNodeModel> {
+public final class SortingUtils {
+
+    private SortingUtils() {
+        // Utility class
+    }
 
     /**
+     * The order of the sorting
      *
+     * @author Martin Sillye, TNG Technology Consulting GmbH
      */
-    public TopKSelectorNodeFactory() {
-        super(CONFIGURATION);
+    public enum SortingOrder {
+            @Label(value = "Ascending",
+                description = "The smallest or earliest in the order will appear at the top of the list. "
+                    + "E.g., for numbers the sort is smallest to largest, "
+                    + "for dates the sort will be oldest dates to most recent.")
+            ASCENDING,
+            @Label(value = "Descending",
+                description = "The largest or latest in the order will appear at the top of the list. "
+                    + "E.g., for numbers the sort is largest to smallest, "
+                    + "for dates the sort will be most recent dates to oldest.")
+            DESCENDING;
     }
 
-    @Override
-    public TopKSelectorNodeModel createNodeModel() {
-        return new TopKSelectorNodeModel(CONFIGURATION);
+    /**
+     * Comparison method for strings
+     *
+     * @author Martin Sillye, TNG Technology Consulting GmbH
+     */
+    public enum StringComparison {
+            @Label(value = "Natural",
+                description = "Sorts strings by treating the numeric parts of a string as one character. "
+                    + "For example, results in sort order “'Row1', 'Row2', 'Row10'”.")
+            NATURAL,
+            @Label(value = "Lexicographic",
+                description = "Sorts strings so that each digit is treated as a separated character. "
+                    + "For example, results in sort order “'Row1', 'Row10', 'Row2'”.")
+            LEXICOGRAPHIC;
     }
-
-    private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
-        .name("Top k Row Filter") //
-        .icon("elementselector.png") //
-        .shortDescription("Selects the top k rows according to user-defined criteria.") //
-        .fullDescription("""
-                The node behaves the same as a combination of the <b>Sorter</b> node followed by a <b>Row Filter</b> \
-                that only keeps the first k rows of the table except for the order of the rows which depends on the \
-                <i>Output order</i> settings.
-                Note, however, that the implementation of this node is more efficient then the node combination \
-                above. In the dialog, select the columns according to which the data should be selected. For each \
-                column you can also specify whether a larger or smaller value is considered as superior.
-                    """) //
-        .modelSettingsClass(TopKSelectorNodeSettings.class) //
-        .nodeType(NodeType.Manipulator) //
-        .addInputTable("Input Table", "Table to select rows from.") //
-        .addOutputTable("Top k Table", "A table containing the top k rows.") //
-        .keywords("top", "table", "k", "row", "ascending", "descending", "sort", "filter") //
-        .build();
 }
