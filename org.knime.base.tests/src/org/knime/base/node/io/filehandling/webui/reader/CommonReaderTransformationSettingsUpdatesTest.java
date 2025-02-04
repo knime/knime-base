@@ -452,7 +452,7 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
         assertThat(titles.get(0).value()).isEqualTo("intCol");
         assertThat(titles.get(1).value()).isEqualTo("stringCol");
         assertThat(titles.get(2).value()).isEqualTo("Any unknown column");
-        assertThat(subTitles.get(0).value()).isEqualTo("Number (Integer)");
+        assertThat(subTitles.get(0).value()).isEqualTo("Number (integer)");
         assertThat(subTitles.get(1).value()).isEqualTo("String");
         assertThat(subTitles.get(2).value()).isEqualTo("Default columntype");
     }

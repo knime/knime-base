@@ -129,10 +129,10 @@ public final class StringToNumber2NodeSettings implements DefaultNodeSettings {
             @Label("Number (Integer)")
             INT,
 
-            @Label("Number (Floating Decimal)")
+            @Label("Number (Double)")
             DOUBLE,
 
-            @Label("Number (Long Integer)")
+            @Label("Number (Long)")
             LONG;
     }
 
