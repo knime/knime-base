@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,30 +41,32 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   Feb 4, 2025 (david): created
  */
 package org.knime.base.node.preproc.filter.columnref;
 
-import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
- * The dialog pane to split columns which offers the option
- * to check column type compatibility.
+ * The web UI settings for the "Reference Column Splitter" node.
  *
- * @author Thomas Gabriel, University of Konstanz
- * @author Christian Dietz, University of Konstanz
- * @since 3.1
+ * @author David Hickey, TNG Technology Consulting GmbH
  */
-public class ColumnSplitRefNodeDialogPane extends DefaultNodeSettingsPane {
+@SuppressWarnings("restriction")
+final class ColumnSplitRefNodeSettings implements DefaultNodeSettings {
 
-
-    /**
-     * Creates a new dialog pane with the option to include or exclude column
-     * and to optionally check to column compatibility.
-     */
-    public ColumnSplitRefNodeDialogPane() {
-        addDialogComponent(new DialogComponentBoolean(AbstractColumnRefNodeModel.createTypeModel(),
-                "Ensure compatibility of column types"));
-    }
+    @Persist(configKey = "type_compatibility")
+    @Widget(title = "Ensure type compatibility", description = """
+            Ensures that the matching columns don't only have the \
+            same name but also the same type. Columns are only included or \
+            excluded if the column type of the first table is a super-type \
+            of the column type from the second table. If this option is not \
+            selected, only the column names need to match.
+            """)
+    boolean m_typeCompatibility;
 }
