@@ -44,71 +44,59 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 16, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Feb 4, 2025 (Martin Sillye, TNG Technology Consulting GmbH): created
  */
 package org.knime.base.node.preproc.topk;
 
-import java.io.File;
-import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
-import org.knime.base.node.preproc.sorter.dialog.DynamicSorterPanel;
 import org.knime.base.node.util.SortKeyItem;
+import org.knime.base.node.util.preproc.SortingUtils.SortingOrder;
+import org.knime.base.node.util.preproc.SortingUtils.StringComparison;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.StringValue;
 import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.ConvenienceMethods;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeModel;
 
 /**
- * Node model for the Top K Selector node.
+ * The model for the "Top k Row Filter" node.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Martin Sillye, TNG Technology Consulting GmbH
  */
-final class TopKSelectorNodeModel extends NodeModel {
+@SuppressWarnings("restriction")
+final class TopKSelectorNodeModel extends WebUINodeModel<TopKSelectorNodeSettings> {
 
-    static final int IN_DATA = 0;
-
-    /**
-     * The key for the IncludeList in the NodeSettings.
-     */
-    public static final String INCLUDELIST_KEY = "columns";
-
-    /**
-     * The key for the Sort Order Array in the NodeSettings.
-     */
-    public static final String SORTORDER_KEY = "order";
-
-    /**
-     * The key for the Alphanumeric Comparison in the node settings.
-     * @since 4.7
-     */
-    static final String ALPHANUMCOMP_KEY = "alphaNumStringComp";
-
-    private final TopKSelectorSettings m_settings = new TopKSelectorSettings();
-
-    TopKSelectorNodeModel() {
-        super(1, 1);
+    protected TopKSelectorNodeModel(final WebUINodeConfiguration configuration) {
+        super(configuration, TopKSelectorNodeSettings.class);
     }
 
     @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
-        final var sk = m_settings.getSortKey();
-        CheckUtils.checkSetting(sk != null && !sk.isEmpty(),
+    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final TopKSelectorNodeSettings modelSettings)
+        throws InvalidSettingsException {
+        CheckUtils.checkSetting(modelSettings.m_sortingCriteria != null && modelSettings.m_sortingCriteria.length != 0,
             "No columns have been specified to select the top rows of. Set in the node configuration.");
-        final DataTableSpec dts = inSpecs[IN_DATA];
+        CheckUtils.checkSetting(
+            modelSettings.m_amount <= Integer.MAX_VALUE && modelSettings.m_amount >= Integer.MIN_VALUE,
+            "Amount value needs to be in the Integer range");
+        final var sk = Arrays.stream(modelSettings.m_sortingCriteria)
+            .map(crit -> new SortKeyItem(crit.getColumn().m_selected, crit.getSortingOrder() == SortingOrder.ASCENDING,
+                crit.getStringComparison() == StringComparison.NATURAL))
+            .toList();
+        final DataTableSpec dts = inSpecs[0];
         final List<String> missing = SortKeyItem.getMissing(sk, dts, TopKSelectorNodeModel::isRowKey);
         CheckUtils.checkSetting(missing.isEmpty(), String.format("The columns %s are configured but no longer exist.",
             ConvenienceMethods.getShortStringFrom(missing, 3)));
@@ -116,23 +104,31 @@ final class TopKSelectorNodeModel extends NodeModel {
     }
 
     @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
-            throws Exception {
-        final var sortKey = m_settings.getSortKey();
-        CheckUtils.checkSetting(sortKey != null && !sortKey.isEmpty(),
+    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec,
+        final TopKSelectorNodeSettings modelSettings) throws Exception {
+        CheckUtils.checkSetting(modelSettings.m_sortingCriteria != null && modelSettings.m_sortingCriteria.length != 0,
             "No columns have been specified to select the top rows of. Set in the node configuration.");
+        CheckUtils.checkSetting(
+            modelSettings.m_amount <= Integer.MAX_VALUE && modelSettings.m_amount >= Integer.MIN_VALUE,
+            "Amount value needs to be in the Integer range");
+        final var sortKey = Arrays.stream(modelSettings.m_sortingCriteria)
+            .map(crit -> new SortKeyItem(crit.getColumn().m_selected, crit.getSortingOrder() == SortingOrder.ASCENDING,
+                Arrays.stream(crit.getColumn().m_compatibleTypes)
+                    .anyMatch(type -> StringValue.class.getName().equals(type))
+                    && crit.getStringComparison() == StringComparison.NATURAL))
+            .toList();
 
-        final BufferedDataTable table = inData[IN_DATA];
-        if (table.size() < m_settings.getK()) {
+        final BufferedDataTable table = inData[0];
+        if (table.size() < modelSettings.m_amount) {
             setWarningMessage(String.format(
                 "The input table has fewer rows (%s) than the specified k. Make sure the input has at least %s rows.",
-                table.size(), m_settings.getK()));
+                table.size(), modelSettings.m_amount));
         }
-        final boolean missingsLast = m_settings.isMissingToEnd();
+        final boolean missingsLast = modelSettings.m_missingsToEnd;
         final var dts = table.getDataTableSpec();
         final var rc = SortKeyItem.toRowComparator(dts, sortKey, missingsLast, TopKSelectorNodeModel::isRowKey);
-        final TopKSelector elementSelector = createElementSelector(rc);
-        final var outputOrder = m_settings.getOutputOrder();
+        final TopKSelector elementSelector = createElementSelector(rc, modelSettings);
+        final var outputOrder = modelSettings.m_rowOrder.m_outputOrder;
         final OrderPreprocessor preprocessor = outputOrder.getPreprocessor();
         final BufferedDataTable execTable = preprocessor.preprocessSelectionTable(table,
             exec.createSubExecutionContext(preprocessor.getProgressRequired()));
@@ -145,24 +141,20 @@ final class TopKSelectorNodeModel extends NodeModel {
     }
 
     private static boolean isRowKey(final String colName) {
-        return DynamicSorterPanel.ROWKEY.getName().equals(colName);
+        return SpecialColumns.ROWID.getId().equals(colName);
     }
 
-    private static BufferedDataTable createOutputTable(final Collection<DataRow> topK, final DataTableSpec spec,
-        final ExecutionContext exec) throws CanceledExecutionException {
-        final BufferedDataContainer container = exec.createDataContainer(spec);
-        final double nrElements = topK.size();
-        final Iterator<DataRow> iterator = topK.iterator();
-        for (long i = 1; iterator.hasNext(); i++) {
-            exec.checkCanceled();
-            final DataRow row = iterator.next();
-            final long iFinal = i;
-            exec.setProgress(i / nrElements,
-                () -> String.format("Writing row %s to output (%s of %s)", row.getKey(), iFinal, (long)nrElements));
-            container.addRowToTable(row);
+    private static TopKSelector createElementSelector(final Comparator<DataRow> comparator,
+        final TopKSelectorNodeSettings modelSettings) {
+        final Comparator<DataRow> inverted = (i, j) -> -comparator.compare(i, j);
+        final TopKMode topKMode = modelSettings.m_filterMode.m_topkMode;
+        if (modelSettings.m_amount == 1 && topKMode == TopKMode.TOP_K_ROWS) {
+            return new TopSelector(inverted);
+        } else if (topKMode == TopKMode.TOP_K_ALL_ROWS_W_UNIQUE) {
+            return new HeapTopKUniqueRowsSelector(inverted, (int)modelSettings.m_amount);
+        } else {
+            return new HeapTopKSelector(inverted, (int)modelSettings.m_amount);
         }
-        container.close();
-        return container.getTable();
     }
 
     private static void fillElementSelector(final ExecutionContext exec, final BufferedDataTable table,
@@ -180,66 +172,21 @@ final class TopKSelectorNodeModel extends NodeModel {
         }
     }
 
-    private TopKSelector createElementSelector(final Comparator<DataRow> comparator) {
-        final Comparator<DataRow> inverted = (i, j) -> -comparator.compare(i, j);
-        final TopKMode topKMode = TopKMode.getTopKModeByText(m_settings.getTopKMode());
-        if (m_settings.getK() == 1 && topKMode == TopKMode.TOP_K_ROWS) {
-            return new TopSelector(inverted);
-        } else if (topKMode == TopKMode.TOP_K_ALL_ROWS_W_UNIQUE) {
-            return new HeapTopKUniqueRowsSelector(inverted, m_settings.getK());
-        } else {
-            return new HeapTopKSelector(inverted, m_settings.getK());
+    private static BufferedDataTable createOutputTable(final Collection<DataRow> topK, final DataTableSpec spec,
+        final ExecutionContext exec) throws CanceledExecutionException {
+        final BufferedDataContainer container = exec.createDataContainer(spec);
+        final double nrElements = topK.size();
+        final Iterator<DataRow> iterator = topK.iterator();
+        for (long i = 1; iterator.hasNext(); i++) {
+            exec.checkCanceled();
+            final DataRow row = iterator.next();
+            final long iFinal = i;
+            exec.setProgress(i / nrElements,
+                () -> String.format("Writing row %s to output (%s of %s)", row.getKey(), iFinal, (long)nrElements));
+            container.addRowToTable(row);
         }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
-        // no internals
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
-        // no internals
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
-        m_settings.saveSettingsTo(settings);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_settings.validateSettings(settings);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_settings.loadValidatedSettingsFrom(settings);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void reset() {
-        // nothing to reset
+        container.close();
+        return container.getTable();
     }
 
 }
