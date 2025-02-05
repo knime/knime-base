@@ -183,7 +183,7 @@ class ExtractTableSpecNodeModel extends NodeModel {
             m_typeNameFormat.loadSettingsFrom(settings);
         } else {
             // Backwards compatibility: if the setting is not present, i.e. old node, use legacy type names
-            m_typeNameFormat.setStringValue(TypeNameFormat.LEGACY_DISPLAY_NAME.toString());
+            m_typeNameFormat.setStringValue(TypeNameFormat.LEGACY_DISPLAY_NAME.name());
         }
     }
 
