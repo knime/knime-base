@@ -47,9 +47,19 @@
  */
 package org.knime.base.node.util.extracttablespec;
 
+import java.util.Arrays;
+
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.util.DataTableSpecExtractor.TypeNameFormat;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
+import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 /**
  * The dialog of the extract table spec node, providing all of its dialog
@@ -79,13 +89,15 @@ class ExtractTableSpecNodeDialog extends DefaultNodeSettingsPane {
                 ExtractTableSpecNodeModel.DEF_POSSIBLE_VALUES_AS_COLLECTION);
     }
 
-    /**
-     * @return Creates and returns the settings model in which is specified whether the legacy type names will be used.
-     */
-    public static SettingsModelBoolean getUseLegacyTypeNamesModel() {
-        return new SettingsModelBoolean(ExtractTableSpecConfigKeys.USE_LEGACY_TYPE_NAMES,
-            ExtractTableSpecNodeModel.DEF_USE_LEGACY_TYPE_NAMES);
+    static SettingsModelString getTypeNameModel() {
+        return new SettingsModelString(ExtractTableSpecConfigKeys.TYPE_NAME_FORMAT,
+            ExtractTableSpecNodeModel.DEF_TYPE_NAME_FORMAT.toString());
     }
+
+    /**
+     * The settings model in which is specified how to output type names.
+     */
+    SettingsModelString m_typeNameModel = getTypeNameModel();
 
     /**
      * Constructor of the <code>ExtractTableSpecNodeDialog</code>.
@@ -96,6 +108,23 @@ class ExtractTableSpecNodeDialog extends DefaultNodeSettingsPane {
         addDialogComponent(
             new DialogComponentBoolean(getPossibleValuesAsCollectionModel(), "Possible values as collection"));
 
-        addDialogComponent(new DialogComponentBoolean(getUseLegacyTypeNamesModel(), "Use legacy type names"));
+        addDialogComponent(new DialogComponentStringSelection(m_typeNameModel, "Format of Type Names",
+            Arrays.stream(TypeNameFormat.values()).map(TypeNameFormat::toString).toArray(String[]::new)));
+    }
+
+    @Override
+    public void saveAdditionalSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+        final var fmtPrettyString = m_typeNameModel.getStringValue();
+        final var fmt = TypeNameFormat.fromString(fmtPrettyString);
+        settings.addString(m_typeNameModel.getKey(), fmt.name());
+    }
+
+    @Override
+    public void loadAdditionalSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
+        throws NotConfigurableException {
+        final var fmtEnumString =
+            settings.getString(m_typeNameModel.getKey(), ExtractTableSpecNodeModel.DEF_TYPE_NAME_FORMAT.name());
+        final var fmt = TypeNameFormat.valueOf(fmtEnumString);
+        m_typeNameModel.setStringValue(fmt.toString());
     }
 }

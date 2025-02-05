@@ -72,5 +72,5 @@ public final class ExtractTableSpecConfigKeys {
      *
      * @since 5.5
      */
-    static final String USE_LEGACY_TYPE_NAMES = "UseLegacyTypeNames";
+    static final String TYPE_NAME_FORMAT = "TypeNameFormat";
 }

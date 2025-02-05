@@ -55,6 +55,7 @@ import org.knime.core.data.container.CloseableTable;
 import org.knime.core.data.util.DataTableSpecExtractor;
 import org.knime.core.data.util.DataTableSpecExtractor.PossibleValueOutputFormat;
 import org.knime.core.data.util.DataTableSpecExtractor.PropertyHandlerOutputFormat;
+import org.knime.core.data.util.DataTableSpecExtractor.TypeNameFormat;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -64,6 +65,7 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 /**
  * The node model of the extract table spec node. The node extracts information
@@ -88,7 +90,7 @@ class ExtractTableSpecNodeModel extends NodeModel {
      * Do not use the legacy type names by default. However, in old nodes, the default is true (see
      * {@link #loadValidatedSettingsFrom(NodeSettingsRO)}).
      */
-    static final boolean DEF_USE_LEGACY_TYPE_NAMES = false;
+    static final DataTableSpecExtractor.TypeNameFormat DEF_TYPE_NAME_FORMAT = TypeNameFormat.IDENTIFIER;
 
     private final SettingsModelBoolean m_extractPropertyHandlersModel =
         ExtractTableSpecNodeDialog.getExtractPropertyHandlersModel();
@@ -96,8 +98,7 @@ class ExtractTableSpecNodeModel extends NodeModel {
     private final SettingsModelBoolean m_possibleValuesAsCollection =
         ExtractTableSpecNodeDialog.getPossibleValuesAsCollectionModel();
 
-    private final SettingsModelBoolean m_useLegacyTypeNames =
-            ExtractTableSpecNodeDialog.getUseLegacyTypeNamesModel();
+    final SettingsModelString m_typeNameFormat = ExtractTableSpecNodeDialog.getTypeNameModel();
 
     /**
      * Constructor of <code>ExtractTableSpecNodeModel</code>.
@@ -142,9 +143,7 @@ class ExtractTableSpecNodeModel extends NodeModel {
             ? PossibleValueOutputFormat.Collection : PossibleValueOutputFormat.Hide);
         extractor.setPropertyHandlerOutputFormat(m_extractPropertyHandlersModel.getBooleanValue()
             ? PropertyHandlerOutputFormat.Boolean : PropertyHandlerOutputFormat.Hide);
-        extractor.setTypeNameFormat(
-            m_useLegacyTypeNames.getBooleanValue() ? DataTableSpecExtractor.TypeNameFormat.LEGACY_DISPLAY_NAME
-                : DataTableSpecExtractor.TypeNameFormat.IDENTIFIER);
+        extractor.setTypeNameFormat(TypeNameFormat.valueOf(m_typeNameFormat.getStringValue()));
         return extractor.extract(spec);
     }
 
@@ -155,7 +154,7 @@ class ExtractTableSpecNodeModel extends NodeModel {
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_extractPropertyHandlersModel.saveSettingsTo(settings);
         m_possibleValuesAsCollection.saveSettingsTo(settings);
-        m_useLegacyTypeNames.saveSettingsTo(settings);
+        m_typeNameFormat.saveSettingsTo(settings);
     }
 
     /**
@@ -166,24 +165,25 @@ class ExtractTableSpecNodeModel extends NodeModel {
             throws InvalidSettingsException {
         m_extractPropertyHandlersModel.validateSettings(settings);
         m_possibleValuesAsCollection.validateSettings(settings);
-        if (settings.containsKey(m_useLegacyTypeNames.getConfigName())) {
-            m_useLegacyTypeNames.validateSettings(settings);
+        if (settings.containsKey(m_typeNameFormat.getKey())) {
+            m_typeNameFormat.validateSettings(settings);
         }
     }
 
     /**
      * {@inheritDoc}
      */
+    @SuppressWarnings("deprecation") // use backwards compatibility for old nodes
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
         m_extractPropertyHandlersModel.loadSettingsFrom(settings);
         m_possibleValuesAsCollection.loadSettingsFrom(settings);
-        if (settings.containsKey(m_useLegacyTypeNames.getConfigName())) {
-            m_useLegacyTypeNames.loadSettingsFrom(settings);
+        if (settings.containsKey(m_typeNameFormat.getKey())) {
+            m_typeNameFormat.loadSettingsFrom(settings);
         } else {
             // Backwards compatibility: if the setting is not present, i.e. old node, use legacy type names
-            m_useLegacyTypeNames.setBooleanValue(true);
+            m_typeNameFormat.setStringValue(TypeNameFormat.LEGACY_DISPLAY_NAME.toString());
         }
     }
 
