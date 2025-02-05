@@ -1,5 +1,3 @@
-
-
 /*
  * ------------------------------------------------------------------------
  *
@@ -46,65 +44,56 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   14.10.2015 (Adrian Nembach): created
+ *   Feb 5, 2025 (Martin Sillye, TNG Technology Consulting GmbH): created
  */
-
 package org.knime.base.node.preproc.rank;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
-
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
- * <code>NodeFactory</code> for the "Rank" Node.
- * This node ranks the input data based on the selected ranking field and ranking mode
+ * WebUI node factory for the "Rank" node.
  *
- * @author Adrian Nembach, Ferry Abt
+ * @author Martin Sillye, TNG Technology Consulting GmbH
  */
-public class RankNodeFactory
-        extends NodeFactory<RankNodeModel> {
+@SuppressWarnings("restriction")
+public final class RankNodeFactory extends WebUINodeFactory<RankNodeModel> {
 
     /**
-     * {@inheritDoc}
+     * Default constructor
      */
+    public RankNodeFactory() {
+        super(CONFIGURATION);
+    }
+
     @Override
     public RankNodeModel createNodeModel() {
-        return new RankNodeModel();
+        return new RankNodeModel(CONFIGURATION);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<RankNodeModel> createNodeView(final int viewIndex,
-            final RankNodeModel nodeModel) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return new RankNodeDialog();
-    }
-
+    private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
+        .name("Rank") //
+        .icon("rank.png") //
+        .shortDescription("""
+                Calculates rankings for the selected groups based on the selected ranking attribute(s) and \
+                ranking mode.
+                """) //
+        .fullDescription("""
+                    <p>
+                        This node assigns ranks to rows based on user-defined ordering criteria. The ranking is \
+                        determined by selecting one or more columns, with the option to specify ascending or \
+                        descending order. If multiple criteria are set, the table is first sorted by the primary \
+                        criterion, and subsequent criteria are used only in the case of ties.
+                    </p>
+                    <p>
+                        Additionally, ranking can be performed within groups by selecting one or more category \
+                        columns, where each unique combination of category values defines a separate ranking group.
+                    </p>
+                """) //
+        .modelSettingsClass(RankNodeSettings.class) //
+        .nodeType(NodeType.Manipulator) //
+        .addInputTable("Data", "Data that is to be ranked") //
+        .addOutputTable("Ranked Data", "Table containing an additional rank column") //
+        .keywords("rank", "ranking", "attributes", "group", "grouping") //
+        .build();
 }
-

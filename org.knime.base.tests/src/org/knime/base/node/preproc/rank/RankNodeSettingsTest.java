@@ -44,47 +44,59 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   14.10.2015 (Adrian Nembach): created
+ *   Feb 5, 2025 (Martin Sillye, TNG Technology Consulting GmbH): created
  */
-
 package org.knime.base.node.preproc.rank;
 
-import org.knime.core.data.DataRow;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.def.StringCell.StringCellFactory;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * Assigns ranks in dense mode, that rows with the same values receive the same rank, the next different row receives a
- * rank increased by 1
  *
- * @author Adrian Nembach, KNIME GmbH Konstanz
+ * @author Martin Sillye, TNG Technology Consulting GmbH
  */
-class DenseRankAssigner implements RankAssigner {
-    private long m_currRank;
+@SuppressWarnings("restriction")
+final class RankNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
-    private DataCellTuple m_currVals;
-
-    private int[] m_rankColIndices;
-
-    public DenseRankAssigner(final int[] rankColIndices) {
-        m_rankColIndices = rankColIndices;
-        m_currVals = new DataCellTuple(m_rankColIndices);
-        m_currRank = 0;
+    RankNodeSettingsTest() {
+        super(getConfig());
     }
 
-    @Override
-    public long getRank(final DataRow row) {
-        DataCellTuple rowVals = new DataCellTuple(row, m_rankColIndices);
-        if (!rowVals.equals(m_currVals)) {
-            m_currRank++;
-            m_currVals = rowVals;
+    private static final DataColumnSpecCreator SPEC = new DataColumnSpecCreator("column1", StringCellFactory.TYPE);
+
+    private static final PortObjectSpec[] INPUT_PORT_SPECS = new PortObjectSpec[]{new DataTableSpec(SPEC.createSpec())};
+
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .withInputPortObjectSpecs(INPUT_PORT_SPECS) //
+            .testJsonFormsForModel(RankNodeSettings.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
+    }
+
+    private static RankNodeSettings readSettings() {
+        try {
+            var path = getSnapshotPath(RankNodeSettings.class).getParent().resolve("node_settings")
+                .resolve("RankNodeSettings.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return DefaultNodeSettings.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    RankNodeSettings.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
         }
-
-        return m_currRank;
     }
-
-    @Override
-    public void reset() {
-        m_currVals = new DataCellTuple(m_rankColIndices);
-        m_currRank = 0;
-    }
-
 }

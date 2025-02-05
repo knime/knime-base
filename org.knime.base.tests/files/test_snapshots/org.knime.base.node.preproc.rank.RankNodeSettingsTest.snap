@@ -1,0 +1,542 @@
+{
+  "data" : {
+    "model" : {
+      "sortingCriteria" : [ {
+        "column" : {
+          "regularChoice" : "column1"
+        },
+        "isStringColumn" : false,
+        "sortingOrder" : "ASCENDING",
+        "stringComparison" : "NATURAL"
+      } ],
+      "categoryColumns" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : false
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "rankMode" : "STANDARD",
+      "rankOutFieldName" : "Rank",
+      "rankDataType" : "LONG",
+      "missingToEnd" : false,
+      "rowOrder" : "RANK"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "categoryColumns" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Category columns",
+            "description" : "Defines how ranking should be grouped. If one or more columns are selected, ranking is computed separately within each unique group defined by the selected columns. If no category columns are specified, ranking is applied to the entire dataset.",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "missingToEnd" : {
+            "type" : "boolean",
+            "title" : "Sort missing values to end of table",
+            "description" : "If selected, missing values are always placed at the end of the ranked output, regardless of the ranking order. This means that in ascending order, missing values are considered larger than any non-missing value, while in descending order, they are considered smaller than any non-missing value. If left unchecked (default), missing values follow the defined ranking behavior and are treated as the smallest possible value.\n",
+            "default" : false
+          },
+          "rankDataType" : {
+            "oneOf" : [ {
+              "const" : "LONG",
+              "title" : "Long integer"
+            }, {
+              "const" : "INTEGER",
+              "title" : "Integer"
+            } ],
+            "title" : "Rank data type",
+            "description" : "Specifies the data type for the ranking column\n<ul>\n<li><b>Long integer</b>: Recommended for most use cases, especially for large datasets. The long integer type ensures that very large tables can be ranked without exceeding data type limitations.\n</li>\n<li><b>Integer</b>:  Can be used if the dataset is small and rank values will not exceed the maximum allowed  integer size. However, long integer is recommended as the default to prevent potential  overflow issues in large datasets.\n</li>\n</ul>",
+            "default" : "LONG"
+          },
+          "rankMode" : {
+            "oneOf" : [ {
+              "const" : "STANDARD",
+              "title" : "Standard"
+            }, {
+              "const" : "DENSE",
+              "title" : "Dense"
+            }, {
+              "const" : "ORDINAL",
+              "title" : "Ordinal"
+            } ],
+            "title" : "Rank mode",
+            "description" : "Defines how tied values are handled in the ranking:\n<ul>\n<li><b>Standard</b>: Rows with the same value receive the same rank, and the next distinct value receives a rank incremented by the count of tied rows (i.e., ranking has gaps).\n</li>\n<li><b>Dense</b>: Rows with the same value receive the same rank, but the next distinct value receives a rank incremented by only one (i.e., ranking has no gaps).\n</li>\n<li><b>Ordinal</b>: Each row receives a unique rank, even if values are tied. This means ranking follows the row order, ensuring no duplicate ranks.\n</li>\n</ul>",
+            "default" : "STANDARD"
+          },
+          "rankOutFieldName" : {
+            "type" : "string",
+            "title" : "Rank column name",
+            "description" : "Defines the name of the appended ranking column. This field cannot be left empty.",
+            "default" : "Rank"
+          },
+          "rowOrder" : {
+            "oneOf" : [ {
+              "const" : "RANK",
+              "title" : "Rank"
+            }, {
+              "const" : "INPUT_ORDER",
+              "title" : "Input order"
+            } ],
+            "title" : "Row order",
+            "description" : "Defines how the output table is ordered after ranking:\n<ul>\n<li><b>Rank</b>: The table is sorted by the computed ranks.</li>\n<li><b>Input order</b>: This option should only be selected if necessary, as restoring the original order can be computationally expensive.\n</li>\n</ul>",
+            "default" : "RANK"
+          },
+          "sortingCriteria" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "column" : {
+                  "type" : "object",
+                  "properties" : {
+                    "regularChoice" : {
+                      "type" : "string"
+                    },
+                    "specialChoice" : {
+                      "oneOf" : [ {
+                        "const" : "ROW_ID",
+                        "title" : "RowID"
+                      } ]
+                    }
+                  },
+                  "title" : "Column",
+                  "description" : "Specifies the column by which rows should be ranked. If multiple criteria are defined, ranking is first applied to the primary column. Additional criteria are only considered in the event of a tie in the previous criteria.",
+                  "default" : {
+                    "regularChoice" : "column1"
+                  }
+                },
+                "isStringColumn" : {
+                  "type" : "boolean",
+                  "default" : false
+                },
+                "sortingOrder" : {
+                  "oneOf" : [ {
+                    "const" : "ASCENDING",
+                    "title" : "Ascending"
+                  }, {
+                    "const" : "DESCENDING",
+                    "title" : "Descending"
+                  } ],
+                  "title" : "Order",
+                  "description" : "Determines whether ranking is done in ascending or descending order:\n<ul>\n<li><b>Ascending</b>: The smallest or earliest in the order will appear at the top of the list. E.g., for numbers the sort is smallest to largest, for dates the sort will be oldest dates to most recent.</li>\n<li><b>Descending</b>: The largest or latest in the order will appear at the top of the list. E.g., for numbers the sort is largest to smallest, for dates the sort will be most recent dates to oldest.</li>\n</ul>",
+                  "default" : "ASCENDING"
+                },
+                "stringComparison" : {
+                  "oneOf" : [ {
+                    "const" : "NATURAL",
+                    "title" : "Natural"
+                  }, {
+                    "const" : "LEXICOGRAPHIC",
+                    "title" : "Lexicographic"
+                  } ],
+                  "title" : "String comparison",
+                  "description" : "Specifies which type of sorting to apply to the strings:\n<ul>\n<li><b>Natural</b>: Sorts strings by treating the numeric parts of a string as one character. For example, results in sort order “'Row1', 'Row2', 'Row10'”.</li>\n<li><b>Lexicographic</b>: Sorts strings so that each digit is treated as a separated character. For example, results in sort order “'Row1', 'Row10', 'Row2'”.</li>\n</ul>",
+                  "default" : "NATURAL"
+                }
+              }
+            },
+            "title" : "Rank Ordering",
+            "description" : "A list of ordering criteria to assign ranks.",
+            "default" : [ {
+              "column" : {
+                "regularChoice" : "column1"
+              },
+              "isStringColumn" : false,
+              "sortingOrder" : "ASCENDING",
+              "stringComparison" : "NATURAL"
+            } ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Rank Ordering",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/sortingCriteria",
+        "options" : {
+          "detail" : [ {
+            "type" : "Control",
+            "scope" : "#/properties/column",
+            "options" : {
+              "format" : "singleSelection",
+              "specialChoices" : [ {
+                "id" : "ROW_ID",
+                "text" : "RowID"
+              } ],
+              "choicesProvider" : "org.knime.base.node.preproc.rank.RankNodeSettings$CriterionColumnChoicesProvider"
+            }
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/sortingOrder",
+            "options" : {
+              "format" : "valueSwitch"
+            }
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/stringComparison",
+            "options" : {
+              "isAdvanced" : true,
+              "format" : "valueSwitch"
+            },
+            "rule" : {
+              "effect" : "SHOW",
+              "condition" : {
+                "scope" : "#/properties/isStringColumn",
+                "schema" : {
+                  "const" : true
+                }
+              }
+            }
+          } ],
+          "addButtonText" : "Add ordering criterion",
+          "arrayElementTitle" : "Criterion",
+          "showSortButtons" : true,
+          "elementDefaultValueProvider" : "org.knime.base.node.preproc.rank.RankNodeSettings$DefaultCriterionProvider"
+        }
+      } ]
+    }, {
+      "label" : "Ranking",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/categoryColumns",
+        "options" : {
+          "format" : "typedStringFilter",
+          "unknownValuesText" : "Any unknown column",
+          "emptyStateLabel" : "No columns in this list.",
+          "choicesProvider" : "org.knime.base.node.preproc.rank.RankNodeSettings$CategoryColumnChoiceProvider"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/rankMode",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/rankOutFieldName",
+        "options" : {
+          "validations" : [ {
+            "errorMessage" : "The string must be at least 1 character long.",
+            "id" : "minLength",
+            "parameters" : {
+              "minLength" : 1
+            }
+          } ]
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/rankDataType",
+        "options" : {
+          "isAdvanced" : true,
+          "format" : "valueSwitch"
+        }
+      } ]
+    }, {
+      "label" : "Special Values and Performance",
+      "type" : "Section",
+      "options" : {
+        "isAdvanced" : true
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/missingToEnd",
+        "options" : {
+          "format" : "checkbox",
+          "isAdvanced" : true
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/rowOrder",
+        "options" : {
+          "isAdvanced" : true,
+          "format" : "valueSwitch"
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "sortingCriteria" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "column" : {
+                  "type" : "object",
+                  "properties" : {
+                    "regularChoice" : { },
+                    "specialChoice" : {
+                      "configPaths" : [ ]
+                    }
+                  },
+                  "configKey" : "columnV2",
+                  "deprecatedConfigKeys" : [ {
+                    "deprecated" : [ [ "column" ] ]
+                  } ]
+                },
+                "isStringColumn" : {
+                  "configPaths" : [ ]
+                },
+                "sortingOrder" : { },
+                "stringComparison" : { }
+              }
+            },
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "RankingColumns" ], [ "RankOrder" ] ]
+            } ]
+          },
+          "categoryColumns" : {
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : { }
+                }
+              }
+            },
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "GroupColumns" ] ]
+            } ]
+          },
+          "rankMode" : {
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "RankMode" ] ]
+            } ]
+          },
+          "rankOutFieldName" : {
+            "configKey" : "RankOutFieldName"
+          },
+          "rankDataType" : {
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "RankAsLong" ] ]
+            } ]
+          },
+          "missingToEnd" : { },
+          "rowOrder" : {
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "RetainRowOrder" ] ]
+            } ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scopes" : [ "#/properties/model/properties/sortingCriteria", "#/properties/isStringColumn" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ 0 ],
+      "value" : true
+    } ]
+  }, {
+    "scopes" : null,
+    "id" : "org.knime.base.node.preproc.rank.RankNodeSettings$CategoryColumnChoiceProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ ]
+    } ]
+  }, {
+    "scopes" : null,
+    "id" : "org.knime.base.node.preproc.rank.RankNodeSettings$CriterionColumnChoicesProvider",
+    "values" : [ {
+      "indices" : [ 0 ],
+      "value" : [ {
+        "id" : "column1",
+        "text" : "column1",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "org.knime.base.node.preproc.rank.RankNodeSettings$CategoryColumnsRef",
+      "scopes" : [ "#/properties/model/properties/categoryColumns" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/categoryColumns" ],
+      "id" : "org.knime.base.node.preproc.rank.RankNodeSettings$CategoryColumnsRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/sortingCriteria" ],
+      "id" : "org.knime.base.node.preproc.rank.RankNodeSettings$SortingCriteriaRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/sortingCriteria", "#/properties/column" ],
+      "id" : "org.knime.base.node.util.preproc.SortingUtils$SortingCriterionSettings$ColumnRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.preproc.rank.RankNodeSettings$SortingCriteriaRef",
+      "scopes" : [ "#/properties/model/properties/sortingCriteria" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/categoryColumns" ],
+      "id" : "org.knime.base.node.preproc.rank.RankNodeSettings$CategoryColumnsRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/sortingCriteria" ],
+      "id" : "org.knime.base.node.preproc.rank.RankNodeSettings$SortingCriteriaRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/sortingCriteria", "#/properties/column" ],
+      "id" : "org.knime.base.node.util.preproc.SortingUtils$SortingCriterionSettings$ColumnRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.util.preproc.SortingUtils$SortingCriterionSettings$ColumnRef",
+      "scopes" : [ "#/properties/model/properties/sortingCriteria", "#/properties/column" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/sortingCriteria", "#/properties/column" ],
+      "id" : "org.knime.base.node.util.preproc.SortingUtils$SortingCriterionSettings$ColumnRef"
+    } ]
+  } ]
+}
