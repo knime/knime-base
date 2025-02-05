@@ -198,4 +198,66 @@ public final class SortingUtils {
             return m_stringComparison;
         }
     }
+
+    /**
+     *
+     * @author Martin Sillye, TNG Technology Consulting GmbH
+     */
+    public static final class RankingCriterionSettings implements DefaultNodeSettings {
+
+        /**
+         * @param column
+         * @param sortingOrder
+         */
+        public RankingCriterionSettings(final String column, final SortingOrder sortingOrder) {
+            m_column = column;
+            m_sortingOrder = sortingOrder;
+        }
+
+        /**
+         *
+         */
+        public RankingCriterionSettings() {
+            this((DataColumnSpec)null);
+        }
+
+        /**
+         * @param context
+         */
+        public RankingCriterionSettings(final DefaultNodeSettingsContext context) {
+            this(context.getDataTableSpec(0).flatMap(Optional::ofNullable)
+                .map(spec -> spec.getNumColumns() == 0 ? null : spec.getColumnSpec(0)).flatMap(Optional::ofNullable)
+                .orElse(null));
+        }
+
+        RankingCriterionSettings(final DataColumnSpec colSpec) {
+            m_column = colSpec == null ? SpecialColumns.ROWID.getId() : colSpec.getName();
+        }
+
+        @Widget(title = "Column", description = """
+                Specifies the column by which rows should be ranked. If multiple criteria are defined, ranking is \
+                first applied to the primary column. Additional criteria are only considered in the event of a tie \
+                in the previous criteria.""")
+        @ChoicesWidget(choices = AllColumnChoicesProvider.class, showRowKeysColumn = true)
+        String m_column;
+
+        @Widget(title = "Order", description = "Determines whether ranking is done in ascending or descending order:")
+        @ValueSwitchWidget
+        SortingOrder m_sortingOrder = SortingOrder.ASCENDING;
+
+        /**
+         * @return the column
+         */
+        public String getColumn() {
+            return m_column;
+        }
+
+        /**
+         * @return the sortingOrder
+         */
+        public SortingOrder getSortingOrder() {
+            return m_sortingOrder;
+        }
+
+    }
 }

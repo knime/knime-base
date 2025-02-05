@@ -50,7 +50,7 @@ package org.knime.base.node.preproc.rank;
 
 import java.util.HashMap;
 
-import org.knime.base.node.preproc.rank.RankNodeModel.RankMode;
+import org.knime.base.node.preproc.rank.RankNodeSettings.RankMode;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;

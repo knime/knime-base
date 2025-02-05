@@ -53,6 +53,7 @@ import java.util.stream.IntStream;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
+import org.knime.core.data.def.StringCell.StringCellFactory;
 
 /**
  * This class wraps an array of DataCells and provides equals and hashCode for the array
@@ -64,8 +65,8 @@ final class DataCellTuple {
 
     public DataCellTuple(final DataRow row, final int[] colIndices) {
         m_elements = IntStream.of(colIndices)//
-                .mapToObj(row::getCell)//
-                .toArray(DataCell[]::new);
+            .mapToObj(i -> i == -1 ? StringCellFactory.create(row.getKey().getString()) : row.getCell(i))//
+            .toArray(DataCell[]::new);
     }
 
     public DataCellTuple(final int[] colIndices) {
