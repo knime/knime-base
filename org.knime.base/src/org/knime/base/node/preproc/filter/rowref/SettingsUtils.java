@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,66 +41,81 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   Feb 6, 2025 (david): created
  */
 package org.knime.base.node.preproc.filter.rowref;
 
-import org.knime.core.data.DataValue;
-import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponent;
-import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
-import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
-import org.knime.core.node.util.DataValueColumnFilter;
+import java.util.Optional;
+
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelColumnNamePersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 
 /**
- * The abstract dialog pane for nodes using Reference Row handling.
+ * Common utilities for settings for row splitter nodes.
  *
- * @author Thomas Gabriel, University of Konstanz
- * @author Christian Dietz, University of Konstanz
- * @since 3.1
+ * @author David Hickey, TNG Technology Consulting GmbH
  */
-public class RowRefNodeDialogPane extends DefaultNodeSettingsPane {
+@SuppressWarnings("restriction")
+final class SettingsUtils {
 
-    /**
-     * Creates a new dialog pane with a radio button group to shows between
-     * include or exclude mode.
-     */
-    public RowRefNodeDialogPane() {
-        @SuppressWarnings("unchecked")
-        final DataValueColumnFilter colFilter =
-            new DataValueColumnFilter(DataValue.class);
-        final DialogComponent dataTableCol =
-            new DialogComponentColumnNameSelection(
-                    createDataTableColModel(), "Data table column: ", 0,
-                    false, colFilter);
-        final DialogComponent referenceTableCol =
-            new DialogComponentColumnNameSelection(
-                    createReferenceTableColModel(), "Reference table column: ",
-                    1, false, colFilter);
+    /** Value saved in settings to indicate we should include selected rows. */
+    static final String INCLUDE = "Include rows from reference table";
 
-        createNewGroup(" Reference columns ");
-        addDialogComponent(dataTableCol);
-        addDialogComponent(referenceTableCol);
-        closeCurrentGroup();
+    /** Value saved in settings to indicate we should exclude selected rows. */
+    static final String EXCLUDE = "Exclude rows from reference table";
+
+    private SettingsUtils() {
+        // no instantiation
     }
 
-    /**
-     * @return setting model for for the column of the table to filter
-     */
-   static SettingsModelColumnName createDataTableColModel() {
-        final SettingsModelColumnName col =
-            new SettingsModelColumnName("dataTableColumn", null);
-        col.setSelection(null, true);
-        return col;
+    abstract static class AllColumnChoices implements ChoicesProvider {
+
+        private final int m_portIdx;
+
+        public AllColumnChoices(final int portIdx) {
+            m_portIdx = portIdx;
+        }
+
+        @Override
+        public String[] choices(final DefaultNodeSettingsContext context) {
+            // This check is needed for the settings tests, which creates a dummy node
+            // with no ports.
+            Optional<DataTableSpec> specs = context.getDataTableSpecs().length > 0 //
+                ? context.getDataTableSpec(m_portIdx) //
+                : Optional.empty();
+
+            return specs //
+                .map(DataTableSpec::getColumnNames) //
+                .orElse(new String[0]);
+        }
     }
 
-    /**
-     * @return setting model for the column of the reference table
-     */
-    static SettingsModelColumnName createReferenceTableColModel() {
-        final SettingsModelColumnName col =
-            new SettingsModelColumnName("referenceTableColumn", null);
-        col.setSelection(null, true);
-        return col;
+    static final class DataColumnChoices extends AllColumnChoices {
+        public DataColumnChoices() {
+            super(0);
+        }
+    }
+
+    static final class ReferenceColumnChoices extends AllColumnChoices {
+        public ReferenceColumnChoices() {
+            super(1);
+        }
+    }
+
+    static final class DataColumnPersistor extends SettingsModelColumnNamePersistor {
+        DataColumnPersistor() {
+            super("dataTableColumn");
+        }
+    }
+
+    static final class ReferenceColumnPersistor extends SettingsModelColumnNamePersistor {
+        ReferenceColumnPersistor() {
+            super("referenceTableColumn");
+        }
     }
 }

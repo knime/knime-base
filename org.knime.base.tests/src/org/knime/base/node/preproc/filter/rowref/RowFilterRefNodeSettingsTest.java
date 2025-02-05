@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,48 +41,53 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   Feb 6, 2025 (david): created
  */
 package org.knime.base.node.preproc.filter.rowref;
 
-import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * The dialog pane for the Reference Row Filter node which offers an
- * include and exclude option.
  *
- * @author Thomas Gabriel, University of Konstanz
- * @author Christian Dietz, University of Konstanz
+ * @author David Hickey, TNG Technology Consulting GmbH
  */
-public class RowFilterRefNodeDialogPane extends RowRefNodeDialogPane {
+@SuppressWarnings("restriction")
+final class RowFilterRefNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
-    /** Include rows. */
-    static final String INCLUDE = "Include rows from reference table";
-    /** Exclude rows. */
-    static final String EXCLUDE = "Exclude rows from reference table";
-
-    /**
-     * Creates a new dialog pane with a radio button group to shows between
-     * include or exclude mode.
-     */
-    public RowFilterRefNodeDialogPane() {
-        super();
-
-        final DialogComponentButtonGroup group = new DialogComponentButtonGroup(
-                createInExcludeModel(), true, INCLUDE,
-                new String[]{INCLUDE, EXCLUDE});
-        group.setToolTipText("Include or exclude rows in first table "
-                + "according to the second reference table.");
-
-        addDialogComponent(group);
+    RowFilterRefNodeSettingsTest() {
+        super(getConfig());
     }
 
-    /**
-     * @return setting model for include/exclude row IDs
-     */
-    static SettingsModelString createInExcludeModel() {
-        return new SettingsModelString("inexclude", INCLUDE);
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .testJsonFormsForModel(RowFilterRefNodeSettings.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
     }
 
+    private static RowFilterRefNodeSettings readSettings() {
+        try {
+            var path = getSnapshotPath(RowFilterRefNodeSettings.class).getParent().resolve("node_settings")
+                .resolve("RowFilterRefNodeSettings.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return DefaultNodeSettings.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    RowFilterRefNodeSettings.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 }

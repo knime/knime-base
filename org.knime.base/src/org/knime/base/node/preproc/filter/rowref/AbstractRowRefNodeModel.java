@@ -81,10 +81,10 @@ public abstract class AbstractRowRefNodeModel extends NodeModel {
     private static final long MIN_ELEMENTS_READ = 128;
 
     /** Settings model for the reference column of the data table to filter. */
-    private final SettingsModelColumnName m_dataTableCol = RowRefNodeDialogPane.createDataTableColModel();
+    private final SettingsModelColumnName m_dataTableCol = createDataTableColModel();
 
     /** Settings model for the reference column of the reference table. */
-    private final SettingsModelColumnName m_referenceTableCol = RowRefNodeDialogPane.createReferenceTableColModel();
+    private final SettingsModelColumnName m_referenceTableCol = createReferenceTableColModel();
 
     /** If domains should be updated. This element is only shown in the modern UI, defaults to "false" otherwise. */
     private final SettingsModelBoolean m_updateDomains = new SettingsModelBoolean(CFG_UPDATE_DOMAINS, false);
@@ -371,4 +371,23 @@ public abstract class AbstractRowRefNodeModel extends NodeModel {
         var specWithNewDomain = domainCalculator.createSpec();
         return exec.createSpecReplacerTable(table, specWithNewDomain);
     }
+
+    /**
+     * @return setting model for for the column of the table to filter
+     */
+    private static SettingsModelColumnName createDataTableColModel() {
+        final SettingsModelColumnName col = new SettingsModelColumnName("dataTableColumn", null);
+        col.setSelection(null, true);
+        return col;
+    }
+
+    /**
+     * @return setting model for the column of the reference table
+     */
+    private static SettingsModelColumnName createReferenceTableColModel() {
+        final SettingsModelColumnName col = new SettingsModelColumnName("referenceTableColumn", null);
+        col.setSelection(null, true);
+        return col;
+    }
+
 }

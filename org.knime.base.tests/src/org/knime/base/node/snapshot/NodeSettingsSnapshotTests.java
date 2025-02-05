@@ -68,7 +68,6 @@ import org.knime.base.node.preproc.double2int2.DoubleToIntNodeSettings;
 import org.knime.base.node.preproc.duplicates.DuplicateRowFilterDialogSettings;
 import org.knime.base.node.preproc.filter.column.ColumnFilterNodeSettings;
 import org.knime.base.node.preproc.filter.columnref.ColumnFilterRefNodeSettings;
-import org.knime.base.node.preproc.filter.rowref.RowFilterRefNodeSettings;
 import org.knime.base.node.preproc.rounddouble.RoundDoubleNodeSettings;
 import org.knime.base.node.preproc.rowagg.RowAggregatorSettings;
 import org.knime.base.node.preproc.rowtocolumnheader.RowToColumnHeaderSettings;
@@ -209,20 +208,11 @@ class NodeSettingsSnapshotTests { // NOSONAR
     }
 
     @Nested
-    class RowFilterRefNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
-        protected RowFilterRefNodeSettingsTest() {
-            super(Map.of(SettingsType.MODEL, RowFilterRefNodeSettings.class), createDefaultTestTableSpec(),
-                createDefaultTestTableSpec());
-        }
-    }
-
-    @Nested
     class RowToColumnHeaderSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected RowToColumnHeaderSettingsTest() {
             super(Map.of(SettingsType.MODEL, RowToColumnHeaderSettings.class), createDefaultTestTableSpec());
         }
     }
-
 
     @Nested
     class StringFormatManagerNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {

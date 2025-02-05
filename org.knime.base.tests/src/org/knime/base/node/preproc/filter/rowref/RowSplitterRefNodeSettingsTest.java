@@ -44,52 +44,50 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 5, 2025 (david): created
+ *   Feb 6, 2025 (david): created
  */
 package org.knime.base.node.preproc.filter.rowref;
 
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.impl.WebUINodeFactory;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
  *
  * @author David Hickey, TNG Technology Consulting GmbH
- * @since 5.5
  */
 @SuppressWarnings("restriction")
-public final class RowSplitRefNodeFactory extends WebUINodeFactory<RowSplitRefNodeModel> {
+final class RowSplitRefNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
-    /**
-     *
-     */
-    public RowSplitRefNodeFactory() {
-        super(CONFIGURATION);
+    RowSplitRefNodeSettingsTest() {
+        super(getConfig());
     }
 
-    @Override
-    public RowSplitRefNodeModel createNodeModel() {
-        return new RowSplitRefNodeModel();
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .testJsonFormsForModel(RowSplitRefNodeSettings.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
     }
 
-    static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
-        .name("Reference Row Splitter") //
-        .icon("refrowsplit.png") //
-        .shortDescription("""
-                The Reference Row Splitter allows rows to be split from the first \
-                table using the second table as reference.
-                """) //
-        .fullDescription("""
-                This node allows rows to be split from the first table using \
-                the second table as reference. Rows which are available in \
-                both the input table and the reference table will be written \
-                into the table of the first output port. All others in the second one.
-                """) //
-        .modelSettingsClass(RowSplitRefNodeSettings.class) //
-        .addInputTable("Input table", "The input table") //
-        .addInputTable("Reference table", "The reference table") //
-        .addOutputTable("Matching rows", "The rows that match the reference table") //
-        .addOutputTable("Non-matching rows", "The rows that do not match the reference table") //
-        .keywords("filter") //
-        .build();
-
+    private static RowSplitRefNodeSettings readSettings() {
+        try {
+            var path = getSnapshotPath(RowSplitRefNodeSettings.class).getParent().resolve("node_settings")
+                .resolve("RowSplitRefNodeSettings.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return DefaultNodeSettings.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    RowSplitRefNodeSettings.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 }
