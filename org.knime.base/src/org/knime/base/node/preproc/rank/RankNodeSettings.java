@@ -1,0 +1,320 @@
+/*
+ * ------------------------------------------------------------------------
+ *
+ *  Copyright by KNIME AG, Zurich, Switzerland
+ *  Website: http://www.knime.com; Email: contact@knime.com
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License, Version 3, as
+ *  published by the Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful, but
+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, see <http://www.gnu.org/licenses>.
+ *
+ *  Additional permission under GNU GPL version 3 section 7:
+ *
+ *  KNIME interoperates with ECLIPSE solely via ECLIPSE's plug-in APIs.
+ *  Hence, KNIME and ECLIPSE are both independent programs and are not
+ *  derived from each other. Should, however, the interpretation of the
+ *  GNU GPL Version 3 ("License") under any applicable laws result in
+ *  KNIME and ECLIPSE being a combined program, KNIME AG herewith grants
+ *  you the additional permission to use and propagate KNIME together with
+ *  ECLIPSE with only the license terms in place for ECLIPSE applying to
+ *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
+ *  license terms of ECLIPSE themselves allow for the respective use and
+ *  propagation of ECLIPSE together with KNIME.
+ *
+ *  Additional permission relating to nodes for KNIME that extend the Node
+ *  Extension (and in particular that are based on subclasses of NodeModel,
+ *  NodeDialog, and NodeView) and that only interoperate with KNIME through
+ *  standard APIs ("Nodes"):
+ *  Nodes are deemed to be separate and independent programs and to not be
+ *  covered works.  Notwithstanding anything to the contrary in the
+ *  License, the License does not apply to Nodes, you are not required to
+ *  license Nodes under the License, and you are granted a license to
+ *  prepare and propagate Nodes, in each case even if such Nodes are
+ *  propagated with or for interoperation with KNIME.  The owner of a Node
+ *  may freely choose the license terms applicable to such Node, including
+ *  when such Node is propagated with or for interoperation with KNIME.
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   Feb 5, 2025 (Martin Sillye, TNG Technology Consulting GmbH): created
+ */
+package org.knime.base.node.preproc.rank;
+
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
+import org.knime.base.node.util.preproc.SortingUtils.RankingCriterionSettings;
+import org.knime.base.node.util.preproc.SortingUtils.SortingOrder;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.AllColumnChoicesProvider;
+
+/**
+ * The settings for the "Rank" node.
+ *
+ * @author Martin Sillye, TNG Technology Consulting GmbH
+ */
+@SuppressWarnings("restriction")
+final class RankNodeSettings implements DefaultNodeSettings {
+
+    RankNodeSettings() {
+
+    }
+
+    RankNodeSettings(final DefaultNodeSettingsContext context) {
+        this.m_sortingCriteria = new RankingCriterionSettings[]{new RankingCriterionSettings(context)};
+    }
+
+    enum RankMode {
+            @Label(value = "Standard", description = """
+                    Rows with the same value receive the same rank, and the next distinct value receives a rank \
+                    incremented by the count of tied rows (i.e., ranking has gaps).
+                    """)
+            STANDARD(StandardRankAssigner::new, "Standard"), //
+            @Label(value = "Dense", description = """
+                    Rows with the same value receive the same rank, but the next distinct value receives a rank \
+                    incremented by only one (i.e., ranking has no gaps).
+                    """)
+            DENSE(DenseRankAssigner::new, "Dense"), //
+            @Label(value = "Ordinal", description = """
+                    Each row receives a unique rank, even if values are tied. This means ranking follows the row \
+                    order, ensuring no duplicate ranks.
+                    """)
+            ORDINAL(i -> new OrdinalRankAssigner(), "Ordinal");
+
+        private final Function<int[], RankAssigner> m_rankAssignerFactory;
+
+        private final String m_legacyName;
+
+        RankMode(final Function<int[], RankAssigner> rankAssignerFactory, final String legacyName) {
+            m_rankAssignerFactory = rankAssignerFactory;
+            m_legacyName = legacyName;
+        }
+
+        RankAssigner createRankAssigner(final int[] rankColumnIndices) {
+            return m_rankAssignerFactory.apply(rankColumnIndices);
+        }
+
+        static RankMode fromLegacyRankMode(final String legacyName) throws InvalidSettingsException {
+            return Stream.of(RankMode.values())//
+                .filter(m -> m.m_legacyName.equals(legacyName))//
+                .findFirst()//
+                .orElseThrow(() -> new InvalidSettingsException(
+                    String.format("Unknown RankMode '%s' encountered.", legacyName)));
+        }
+    }
+
+    enum RankDataType {
+            @Label(value = "Long integer", description = """
+                    Recommended for most use cases, especially for large datasets. The long integer type ensures \
+                    that very large tables can be ranked without exceeding data type limitations.
+                    """)
+            LONG, //
+            @Label(value = "Integer", description = """
+                     Can be used if the dataset is small and rank values will not exceed the maximum allowed \
+                     integer size. However, long integer is recommended as the default to prevent potential \
+                     overflow issues in large datasets.
+                    """)
+            INTEGER
+
+    }
+
+    enum RowOrder {
+            @Label(value = "Rank", description = "The table is sorted by the computed ranks.")
+            RANK, //
+            @Label(value = "Input order", description = """
+                    This option should only be selected if necessary, as restoring the original order can be \
+                    computationally expensive.
+                    """)
+            INPUT_ORDER
+    }
+
+    @Section(title = "Rank Ordering")
+    interface SortingSection {
+    }
+
+    @Section(title = "Grouping")
+    @After(SortingSection.class)
+    interface RankingSection {
+    }
+
+    @Section(title = "Special Values and Performance", advanced = true)
+    @After(RankingSection.class)
+    interface AdvancedSection {
+    }
+
+    @Layout(SortingSection.class)
+    @Widget(title = "Rank Ordering", description = "A list of ordering criteria to assign ranks.")
+    @Migration(LegacySortingSettingsMigration.class)
+    @ArrayWidget(elementTitle = "Criterion", addButtonText = "Add ordering criterion", showSortButtons = true)
+    RankingCriterionSettings[] m_sortingCriteria = new RankingCriterionSettings[]{new RankingCriterionSettings()};
+
+    @Widget(title = "Category columns", description = """
+            Defines how ranking should be grouped. If one or more columns are selected, ranking is computed \
+            separately within each unique group defined by the selected columns. If no category columns are \
+            specified, ranking is applied to the entire dataset.""")
+    @Layout(RankingSection.class)
+    @ChoicesWidget(choices = AllColumnChoicesProvider.class)
+    @Migration(CategoryColumnSettingsMigration.class)
+    ColumnFilter m_categoryColumns = new ColumnFilter();
+
+    @Widget(title = "Rank mode", description = "Defines how tied values are handled in the ranking:")
+    @ValueSwitchWidget
+    @Layout(RankingSection.class)
+    @Migration(RankModeSettingsMigration.class)
+    RankMode m_rankMode = RankMode.STANDARD;
+
+    @Widget(title = "Rank column name",
+        description = "Defines the name of the appended ranking column. This field cannot be left empty.")
+    @TextInputWidget(minLength = 1)
+    @Layout(RankingSection.class)
+    @Persist(configKey = "RankOutFieldName")
+    String m_rankOutFieldName = "Rank";
+
+    @Widget(title = "Rank data type", description = "Specifies the data type for the ranking column", advanced = true)
+    @ValueSwitchWidget
+    @Layout(RankingSection.class)
+    @Migration(RankDataTypeSettingsMigration.class)
+    RankDataType m_rankDataType = RankDataType.LONG;
+
+    @Widget(title = "Sort missing values to end of table", description = """
+            If selected, missing values are always placed at the end of the ranked output, regardless of the ranking \
+            order. This means that in ascending order, missing values are considered larger than any non-missing \
+            value, while in descending order, they are considered smaller than any non-missing value. If left \
+            unchecked (default), missing values follow the defined ranking behavior and are treated as the smallest \
+            possible value.
+            """, advanced = true)
+    @Layout(AdvancedSection.class)
+    @Migrate(loadDefaultIfAbsent = true)
+    boolean m_missingtoEnd;
+
+    @Widget(title = "Row order", description = "Defines how the output table is ordered after ranking:",
+        advanced = true)
+    @Layout(AdvancedSection.class)
+    @ValueSwitchWidget
+    @Migration(RowOrderSettingsMigration.class)
+    RowOrder m_rowOrder = RowOrder.RANK;
+
+    static final class CategoryColumnSettingsMigration implements NodeSettingsMigration<ColumnFilter> {
+
+        private static final String KEY = "GroupColumns";
+
+        private static ColumnFilter load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            final var columns = settings.getStringArray(KEY);
+            return new ColumnFilter(columns);
+        }
+
+        @Override
+        public List<ConfigMigration<ColumnFilter>> getConfigMigrations() {
+            return List.of(//
+                ConfigMigration.builder(CategoryColumnSettingsMigration::load) //
+                    .withDeprecatedConfigPath(KEY)//
+                    .build());
+        }
+    }
+
+    static final class RankModeSettingsMigration implements NodeSettingsMigration<RankMode> {
+
+        private static final String KEY = "RankMode";
+
+        private static RankMode load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            final var rankMode = settings.getString(KEY);
+            return RankMode.fromLegacyRankMode(rankMode);
+        }
+
+        @Override
+        public List<ConfigMigration<RankMode>> getConfigMigrations() {
+            return List.of(//
+                ConfigMigration.builder(RankModeSettingsMigration::load) //
+                    .withDeprecatedConfigPath(KEY)//
+                    .build());
+        }
+    }
+
+    static final class RankDataTypeSettingsMigration implements NodeSettingsMigration<RankDataType> {
+
+        private static final String KEY = "RankAsLong";
+
+        private static RankDataType load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            final var rankAsLong = settings.getBoolean(KEY);
+            return rankAsLong ? RankDataType.LONG : RankDataType.INTEGER;
+        }
+
+        @Override
+        public List<ConfigMigration<RankDataType>> getConfigMigrations() {
+            return List.of(//
+                ConfigMigration.builder(RankDataTypeSettingsMigration::load) //
+                    .withDeprecatedConfigPath(KEY)//
+                    .build());
+        }
+    }
+
+    static final class RowOrderSettingsMigration implements NodeSettingsMigration<RowOrder> {
+
+        private static final String KEY = "RetainRowOrder";
+
+        private static RowOrder load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            final var retainOrder = settings.getBoolean(KEY);
+            return retainOrder ? RowOrder.INPUT_ORDER : RowOrder.RANK;
+        }
+
+        @Override
+        public List<ConfigMigration<RowOrder>> getConfigMigrations() {
+            return List.of(//
+                ConfigMigration.builder(RowOrderSettingsMigration::load) //
+                    .withDeprecatedConfigPath(KEY)//
+                    .build());
+        }
+    }
+
+    static final class LegacySortingSettingsMigration implements NodeSettingsMigration<RankingCriterionSettings[]> {
+
+        private static final String COL_KEY = "RankingColumns";
+
+        private static final String COL_ORDER_KEY = "RankOrder";
+
+        private static RankingCriterionSettings[] load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            final var columns = settings.getStringArray(COL_KEY);
+            final var sortKeys = settings.getStringArray(COL_ORDER_KEY);
+            return IntStream.range(0, columns.length)
+                .mapToObj(i -> new RankingCriterionSettings(columns[i],
+                    "Ascending".equals(sortKeys[i]) ? SortingOrder.ASCENDING : SortingOrder.DESCENDING))
+                .toArray(RankingCriterionSettings[]::new);
+        }
+
+        @Override
+        public List<ConfigMigration<RankingCriterionSettings[]>> getConfigMigrations() {
+            return List.of(//
+                ConfigMigration.builder(LegacySortingSettingsMigration::load) //
+                    .withDeprecatedConfigPath(COL_KEY)//
+                    .withDeprecatedConfigPath(COL_ORDER_KEY) //
+                    .build());
+        }
+    }
+}
