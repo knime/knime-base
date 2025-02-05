@@ -401,7 +401,7 @@ public final class DataTypeProducerRegistry extends ProducerRegistry<DataType, D
             final var identifier = sourceType.getIdentifier() + "->" + destinationType.getName();
             if (registered.add(identifier)) {
                 final var aliases =
-                    List.of(sourceType.getLegacyStringRepresentation() + "->" + destinationType.getName());
+                    List.of(sourceType.toLegacyPrettyString() + "->" + destinationType.getName());
                 @SuppressWarnings({"rawtypes", "unchecked"})
                 final CellValueProducerFactoryImplementation<?> converter = new CellValueProducerFactoryImplementation(
                     destinationType, identifier, aliases, sourceType, factory.create());
