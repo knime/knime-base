@@ -3,7 +3,6 @@
     "model" : {
       "dataColumn" : "<row-keys>",
       "referenceColumn" : "<row-keys>",
-      "inexclude" : "INCLUDE",
       "updateDomains" : false
     }
   },
@@ -15,25 +14,13 @@
         "properties" : {
           "dataColumn" : {
             "type" : "string",
-            "title" : "Data column",
+            "title" : "Data column (in table 1)",
             "description" : "The column from the table to be filtered that should be used for comparison.",
             "default" : "<row-keys>"
           },
-          "inexclude" : {
-            "oneOf" : [ {
-              "const" : "INCLUDE",
-              "title" : "Include"
-            }, {
-              "const" : "EXCLUDE",
-              "title" : "Exclude"
-            } ],
-            "title" : "Include or exclude rows from the reference table",
-            "description" : "Includes or excludes all rows from the reference table in the resulting table from the first input.",
-            "default" : "INCLUDE"
-          },
           "referenceColumn" : {
             "type" : "string",
-            "title" : "Reference column",
+            "title" : "Reference column (in table 2)",
             "description" : "The column from the filter table that should be used for comparison.",
             "default" : "<row-keys>"
           },
@@ -52,13 +39,7 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/dataColumn",
       "options" : {
-        "possibleValues" : [ {
-          "id" : "test1",
-          "text" : "test1"
-        }, {
-          "id" : "test2",
-          "text" : "test2"
-        } ],
+        "possibleValues" : [ ],
         "format" : "dropDown",
         "showNoneColumn" : false,
         "showRowKeys" : true,
@@ -69,24 +50,12 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/referenceColumn",
       "options" : {
-        "possibleValues" : [ {
-          "id" : "test1",
-          "text" : "test1"
-        }, {
-          "id" : "test2",
-          "text" : "test2"
-        } ],
+        "possibleValues" : [ ],
         "format" : "dropDown",
         "showNoneColumn" : false,
         "showRowKeys" : true,
         "showSearch" : true,
         "showMode" : true
-      }
-    }, {
-      "type" : "Control",
-      "scope" : "#/properties/model/properties/inexclude",
-      "options" : {
-        "format" : "valueSwitch"
       }
     }, {
       "type" : "Control",
@@ -109,11 +78,8 @@
           "referenceColumn" : {
             "configPaths" : [ [ "referenceTableColumn", "columnName" ], [ "referenceTableColumn", "useRowID" ] ]
           },
-          "inexclude" : {
-            "configPaths" : [ [ "inexclude" ] ]
-          },
           "updateDomains" : {
-            "configPaths" : [ [ "updateDomains" ] ]
+            "configKey" : "updateDomains"
           }
         }
       }
