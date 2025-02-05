@@ -48,48 +48,42 @@
  */
 package org.knime.base.node.preproc.filter.rowref;
 
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.impl.WebUINodeFactory;
+import org.knime.base.node.preproc.filter.rowref.SettingsUtils.DataColumnChoices;
+import org.knime.base.node.preproc.filter.rowref.SettingsUtils.DataColumnPersistor;
+import org.knime.base.node.preproc.filter.rowref.SettingsUtils.ReferenceColumnChoices;
+import org.knime.base.node.preproc.filter.rowref.SettingsUtils.ReferenceColumnPersistor;
+import org.knime.base.node.preproc.filter.rowref.SettingsUtils.UpdateDomainsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
 
 /**
- *
  * @author David Hickey, TNG Technology Consulting GmbH
- * @since 5.5
  */
 @SuppressWarnings("restriction")
-public final class RowSplitRefNodeFactory extends WebUINodeFactory<RowSplitRefNodeModel> {
+final class RowSplitRefNodeSettings implements DefaultNodeSettings {
 
-    /**
-     *
-     */
-    public RowSplitRefNodeFactory() {
-        super(CONFIGURATION);
-    }
+    @Persistor(DataColumnPersistor.class)
+    @Widget(title = "Data column (in table 1)",
+        description = "The column from the table to be filtered that should be used for comparison.")
+    @ChoicesWidget(choices = DataColumnChoices.class, showRowKeysColumn = true)
+    String m_dataColumn = SpecialColumns.ROWID.getId();
 
-    @Override
-    public RowSplitRefNodeModel createNodeModel() {
-        return new RowSplitRefNodeModel();
-    }
+    @Persistor(ReferenceColumnPersistor.class)
+    @Widget(title = "Reference column (in table 2)",
+        description = "The column from the filter table that should be used for comparison.")
+    @ChoicesWidget(choices = ReferenceColumnChoices.class, showRowKeysColumn = true)
+    String m_referenceColumn = SpecialColumns.ROWID.getId();
 
-    static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
-        .name("Reference Row Splitter") //
-        .icon("refrowsplit.png") //
-        .shortDescription("""
-                The Reference Row Splitter allows rows to be split from the first \
-                table using the second table as reference.
-                """) //
-        .fullDescription("""
-                This node allows rows to be split from the first table using \
-                the second table as reference. Rows which are available in \
-                both the input table and the reference table will be written \
-                into the table of the first output port. All others in the second one.
-                """) //
-        .modelSettingsClass(RowSplitRefNodeSettings.class) //
-        .addInputTable("Input table", "The input table") //
-        .addInputTable("Reference table", "The reference table") //
-        .addOutputTable("Matching rows", "The rows that match the reference table") //
-        .addOutputTable("Non-matching rows", "The rows that do not match the reference table") //
-        .keywords("filter") //
-        .build();
-
+    @Widget( //
+        title = "Update domains of all columns", //
+        description = "Advanced setting to enable recomputation of the domains of all columns in the output table " //
+            + "such that the domains' bounds exactly match the bounds of the data in the output table.", //
+        advanced = true)
+    @Migrate(loadDefaultIfAbsent = true)
+    @Persistor(UpdateDomainsPersistor.class)
+    boolean m_updateDomains;
 }

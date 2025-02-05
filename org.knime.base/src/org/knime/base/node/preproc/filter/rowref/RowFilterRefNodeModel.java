@@ -62,7 +62,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 public class RowFilterRefNodeModel extends AbstractRowRefNodeModel {
 
     /** Settings model for include/exclude option. */
-    private final SettingsModelString m_inexcludeRows = RowFilterRefNodeDialogPane.createInExcludeModel();
+    private final SettingsModelString m_inexcludeRows = createInExcludeModel();
 
     /**
      * Creates a new reference row filter node model with two inputs and one filtered output.
@@ -76,7 +76,7 @@ public class RowFilterRefNodeModel extends AbstractRowRefNodeModel {
      */
     @Override
     protected boolean isInvertInclusion() {
-        return m_inexcludeRows.getStringValue().equals(RowFilterRefNodeDialogPane.EXCLUDE);
+        return m_inexcludeRows.getStringValue().equals(SettingsUtils.EXCLUDE);
     }
 
     /**
@@ -133,5 +133,12 @@ public class RowFilterRefNodeModel extends AbstractRowRefNodeModel {
          * m_dataTableCol.validateSettings(settings);
          * m_referenceTableCol.validateSettings(settings);
          * */
+    }
+
+    /**
+     * @return setting model for include/exclude row IDs
+     */
+    static SettingsModelString createInExcludeModel() {
+        return new SettingsModelString("inexclude", SettingsUtils.INCLUDE);
     }
 }

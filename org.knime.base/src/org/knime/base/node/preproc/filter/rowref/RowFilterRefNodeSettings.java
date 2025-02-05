@@ -48,20 +48,23 @@
  */
 package org.knime.base.node.preproc.filter.rowref;
 
-import org.knime.core.data.DataTableSpec;
+import org.knime.base.node.preproc.filter.rowref.SettingsUtils.DataColumnChoices;
+import org.knime.base.node.preproc.filter.rowref.SettingsUtils.DataColumnPersistor;
+import org.knime.base.node.preproc.filter.rowref.SettingsUtils.ReferenceColumnChoices;
+import org.knime.base.node.preproc.filter.rowref.SettingsUtils.ReferenceColumnPersistor;
+import org.knime.base.node.preproc.filter.rowref.SettingsUtils.UpdateDomainsPersistor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelColumnNamePersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
 
 /**
  * {@link DefaultNodeSettings} implementation for the Reference Row Filter to auto-generate a Web-UI based dialog. Note
@@ -71,19 +74,19 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * @since 5.1
  */
 @SuppressWarnings("restriction")
-public final class RowFilterRefNodeSettings implements DefaultNodeSettings {
+final class RowFilterRefNodeSettings implements DefaultNodeSettings {
 
     @Persistor(DataColumnPersistor.class)
-    @Widget(title = "Data column",
+    @Widget(title = "Data column (in table 1)",
         description = "The column from the table to be filtered that should be used for comparison.")
     @ChoicesWidget(choices = DataColumnChoices.class, showRowKeysColumn = true)
-    String m_dataColumn = "<row-keys>";
+    String m_dataColumn = SpecialColumns.ROWID.getId();
 
     @Persistor(ReferenceColumnPersistor.class)
-    @Widget(title = "Reference column",
+    @Widget(title = "Reference column (in table 2)",
         description = "The column from the filter table that should be used for comparison.")
     @ChoicesWidget(choices = ReferenceColumnChoices.class, showRowKeysColumn = true)
-    String m_referenceColumn = "<row-keys>";
+    String m_referenceColumn = SpecialColumns.ROWID.getId();
 
     @Persistor(IncludeOrExcludeRowsPersistor.class)
     @Widget(title = "Include or exclude rows from the reference table",
@@ -92,12 +95,13 @@ public final class RowFilterRefNodeSettings implements DefaultNodeSettings {
     @ValueSwitchWidget
     IncludeOrExcludeRows m_inexclude = IncludeOrExcludeRows.INCLUDE;
 
-    @Persistor(UpdateDomainsPersistor.class)
     @Widget( //
         title = "Update domains of all columns", //
         description = "Advanced setting to enable recomputation of the domains of all columns in the output table " //
             + "such that the domains' bounds exactly match the bounds of the data in the output table.", //
         advanced = true)
+    @Migrate(loadDefaultIfAbsent = true)
+    @Persistor(UpdateDomainsPersistor.class)
     boolean m_updateDomains;
 
     enum IncludeOrExcludeRows {
@@ -108,58 +112,13 @@ public final class RowFilterRefNodeSettings implements DefaultNodeSettings {
             EXCLUDE;
     }
 
-    private abstract static class AllColumnChoices implements ChoicesProvider {
-
-        private final int m_portIdx;
-
-        public AllColumnChoices(final int portIdx) {
-            m_portIdx = portIdx;
-        }
-
-        @Override
-        public String[] choices(final DefaultNodeSettingsContext context) {
-            final DataTableSpec specs = context.getDataTableSpecs()[m_portIdx];
-            return specs != null ? specs.getColumnNames() : new String[0];
-        }
-    }
-
-    private static final class DataColumnChoices extends AllColumnChoices {
-        public DataColumnChoices() {
-            super(0);
-        }
-    }
-
-    private static final class ReferenceColumnChoices extends AllColumnChoices {
-        public ReferenceColumnChoices() {
-            super(1);
-        }
-    }
-
-    static final class DataColumnPersistor extends SettingsModelColumnNamePersistor {
-        DataColumnPersistor() {
-            super("dataTableColumn");
-        }
-    }
-
-    static final class ReferenceColumnPersistor extends SettingsModelColumnNamePersistor {
-        ReferenceColumnPersistor() {
-            super("referenceTableColumn");
-        }
-    }
-
-    static final class UpdateDomainsPersistor extends SettingsModelBooleanPersistor {
-        UpdateDomainsPersistor() {
-            super("updateDomains");
-        }
-    }
-
-    private static final class IncludeOrExcludeRowsPersistor implements NodeSettingsPersistor<IncludeOrExcludeRows> {
+    static final class IncludeOrExcludeRowsPersistor implements NodeSettingsPersistor<IncludeOrExcludeRows> {
 
         private static final String KEY_INCLUDE_EXCLUDE = "inexclude";
 
         @Override
         public IncludeOrExcludeRows load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return RowFilterRefNodeDialogPane.INCLUDE.equals(settings.getString(KEY_INCLUDE_EXCLUDE)) //
+            return SettingsUtils.INCLUDE.equals(settings.getString(KEY_INCLUDE_EXCLUDE)) //
                 ? IncludeOrExcludeRows.INCLUDE //
                 : IncludeOrExcludeRows.EXCLUDE;
         }
@@ -168,8 +127,8 @@ public final class RowFilterRefNodeSettings implements DefaultNodeSettings {
         public void save(final IncludeOrExcludeRows obj, final NodeSettingsWO settings) {
             settings.addString(KEY_INCLUDE_EXCLUDE, //
                 obj == IncludeOrExcludeRows.INCLUDE //
-                    ? RowFilterRefNodeDialogPane.INCLUDE //
-                    : RowFilterRefNodeDialogPane.EXCLUDE //
+                    ? SettingsUtils.INCLUDE //
+                    : SettingsUtils.EXCLUDE //
             );
         }
 

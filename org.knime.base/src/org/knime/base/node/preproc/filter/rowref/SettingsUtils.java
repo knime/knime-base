@@ -44,52 +44,88 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 5, 2025 (david): created
+ *   Feb 6, 2025 (david): created
  */
 package org.knime.base.node.preproc.filter.rowref;
 
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.impl.WebUINodeFactory;
+import java.util.Optional;
+
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelColumnNamePersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 
 /**
+ * Common utilities for settings for row splitter nodes.
  *
  * @author David Hickey, TNG Technology Consulting GmbH
- * @since 5.5
  */
 @SuppressWarnings("restriction")
-public final class RowSplitRefNodeFactory extends WebUINodeFactory<RowSplitRefNodeModel> {
+final class SettingsUtils {
 
-    /**
-     *
-     */
-    public RowSplitRefNodeFactory() {
-        super(CONFIGURATION);
+    /** Value saved in settings to indicate we should include selected rows. */
+    static final String INCLUDE = "Include rows from reference table";
+
+    /** Value saved in settings to indicate we should exclude selected rows. */
+    static final String EXCLUDE = "Exclude rows from reference table";
+
+    private SettingsUtils() {
+        // no instantiation
     }
 
-    @Override
-    public RowSplitRefNodeModel createNodeModel() {
-        return new RowSplitRefNodeModel();
+    abstract static class AllColumnChoices implements ChoicesProvider {
+
+        private final int m_portIdx;
+
+        AllColumnChoices(final int portIdx) {
+            m_portIdx = portIdx;
+        }
+
+        @Override
+        public String[] choices(final DefaultNodeSettingsContext context) {
+            // This check is needed for the settings tests, which creates a dummy node
+            // with no ports.
+            Optional<DataTableSpec> specs = context.getDataTableSpecs().length > 0 //
+                ? context.getDataTableSpec(m_portIdx) //
+                : Optional.empty();
+
+            return specs //
+                .map(DataTableSpec::getColumnNames) //
+                .orElse(new String[0]);
+        }
     }
 
-    static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
-        .name("Reference Row Splitter") //
-        .icon("refrowsplit.png") //
-        .shortDescription("""
-                The Reference Row Splitter allows rows to be split from the first \
-                table using the second table as reference.
-                """) //
-        .fullDescription("""
-                This node allows rows to be split from the first table using \
-                the second table as reference. Rows which are available in \
-                both the input table and the reference table will be written \
-                into the table of the first output port. All others in the second one.
-                """) //
-        .modelSettingsClass(RowSplitRefNodeSettings.class) //
-        .addInputTable("Input table", "The input table") //
-        .addInputTable("Reference table", "The reference table") //
-        .addOutputTable("Matching rows", "The rows that match the reference table") //
-        .addOutputTable("Non-matching rows", "The rows that do not match the reference table") //
-        .keywords("filter") //
-        .build();
+    static final class DataColumnChoices extends AllColumnChoices {
+        public DataColumnChoices() {
+            super(0);
+        }
+    }
 
+    static final class ReferenceColumnChoices extends AllColumnChoices {
+        public ReferenceColumnChoices() {
+            super(1);
+        }
+    }
+
+    static final class DataColumnPersistor extends SettingsModelColumnNamePersistor {
+        DataColumnPersistor() {
+            super("dataTableColumn");
+        }
+    }
+
+    static final class ReferenceColumnPersistor extends SettingsModelColumnNamePersistor {
+        ReferenceColumnPersistor() {
+            super("referenceTableColumn");
+        }
+    }
+
+    static final class UpdateDomainsPersistor extends SettingsModelBooleanPersistor {
+
+        private static final String KEY_UPDATE_DOMAINS = "updateDomains";
+
+        UpdateDomainsPersistor() {
+            super(KEY_UPDATE_DOMAINS);
+        }
+    }
 }

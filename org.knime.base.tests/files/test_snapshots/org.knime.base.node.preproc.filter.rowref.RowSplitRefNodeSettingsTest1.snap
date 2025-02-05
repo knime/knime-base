@@ -1,0 +1,88 @@
+{
+  "data" : {
+    "model" : {
+      "dataColumn" : "<row-keys>",
+      "referenceColumn" : "<row-keys>",
+      "updateDomains" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "dataColumn" : {
+            "type" : "string",
+            "title" : "Data column (in table 1)",
+            "description" : "The column from the table to be filtered that should be used for comparison.",
+            "default" : "<row-keys>"
+          },
+          "referenceColumn" : {
+            "type" : "string",
+            "title" : "Reference column (in table 2)",
+            "description" : "The column from the filter table that should be used for comparison.",
+            "default" : "<row-keys>"
+          },
+          "updateDomains" : {
+            "type" : "boolean",
+            "title" : "Update domains of all columns",
+            "description" : "Advanced setting to enable recomputation of the domains of all columns in the output table such that the domains' bounds exactly match the bounds of the data in the output table.",
+            "default" : false
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/dataColumn",
+      "options" : {
+        "possibleValues" : [ ],
+        "format" : "dropDown",
+        "showNoneColumn" : false,
+        "showRowKeys" : true,
+        "showSearch" : true,
+        "showMode" : true
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/referenceColumn",
+      "options" : {
+        "possibleValues" : [ ],
+        "format" : "dropDown",
+        "showNoneColumn" : false,
+        "showRowKeys" : true,
+        "showSearch" : true,
+        "showMode" : true
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/updateDomains",
+      "options" : {
+        "format" : "checkbox",
+        "isAdvanced" : true
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "dataColumn" : {
+            "configPaths" : [ [ "dataTableColumn", "columnName" ], [ "dataTableColumn", "useRowID" ] ]
+          },
+          "referenceColumn" : {
+            "configPaths" : [ [ "referenceTableColumn", "columnName" ], [ "referenceTableColumn", "useRowID" ] ]
+          },
+          "updateDomains" : {
+            "configPaths" : [ [ "updateDomains" ] ]
+          }
+        }
+      }
+    }
+  }
+}

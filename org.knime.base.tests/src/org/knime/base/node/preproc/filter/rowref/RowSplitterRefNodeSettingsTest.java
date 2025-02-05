@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,66 +41,53 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   Feb 6, 2025 (david): created
  */
 package org.knime.base.node.preproc.filter.rowref;
 
-import org.knime.core.data.DataValue;
-import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponent;
-import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
-import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
-import org.knime.core.node.util.DataValueColumnFilter;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * The abstract dialog pane for nodes using Reference Row handling.
  *
- * @author Thomas Gabriel, University of Konstanz
- * @author Christian Dietz, University of Konstanz
- * @since 3.1
+ * @author David Hickey, TNG Technology Consulting GmbH
  */
-public class RowRefNodeDialogPane extends DefaultNodeSettingsPane {
+@SuppressWarnings("restriction")
+final class RowSplitRefNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
-    /**
-     * Creates a new dialog pane with a radio button group to shows between
-     * include or exclude mode.
-     */
-    public RowRefNodeDialogPane() {
-        @SuppressWarnings("unchecked")
-        final DataValueColumnFilter colFilter =
-            new DataValueColumnFilter(DataValue.class);
-        final DialogComponent dataTableCol =
-            new DialogComponentColumnNameSelection(
-                    createDataTableColModel(), "Data table column: ", 0,
-                    false, colFilter);
-        final DialogComponent referenceTableCol =
-            new DialogComponentColumnNameSelection(
-                    createReferenceTableColModel(), "Reference table column: ",
-                    1, false, colFilter);
-
-        createNewGroup(" Reference columns ");
-        addDialogComponent(dataTableCol);
-        addDialogComponent(referenceTableCol);
-        closeCurrentGroup();
+    RowSplitRefNodeSettingsTest() {
+        super(getConfig());
     }
 
-    /**
-     * @return setting model for for the column of the table to filter
-     */
-   static SettingsModelColumnName createDataTableColModel() {
-        final SettingsModelColumnName col =
-            new SettingsModelColumnName("dataTableColumn", null);
-        col.setSelection(null, true);
-        return col;
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .testJsonFormsForModel(RowSplitRefNodeSettings.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
     }
 
-    /**
-     * @return setting model for the column of the reference table
-     */
-    static SettingsModelColumnName createReferenceTableColModel() {
-        final SettingsModelColumnName col =
-            new SettingsModelColumnName("referenceTableColumn", null);
-        col.setSelection(null, true);
-        return col;
+    private static RowSplitRefNodeSettings readSettings() {
+        try {
+            var path = getSnapshotPath(RowSplitRefNodeSettings.class).getParent().resolve("node_settings")
+                .resolve("RowSplitRefNodeSettings.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return DefaultNodeSettings.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    RowSplitRefNodeSettings.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

@@ -15,7 +15,7 @@
         "properties" : {
           "dataColumn" : {
             "type" : "string",
-            "title" : "Data column",
+            "title" : "Data column (in table 1)",
             "description" : "The column from the table to be filtered that should be used for comparison.",
             "default" : "<row-keys>"
           },
@@ -33,7 +33,7 @@
           },
           "referenceColumn" : {
             "type" : "string",
-            "title" : "Reference column",
+            "title" : "Reference column (in table 2)",
             "description" : "The column from the filter table that should be used for comparison.",
             "default" : "<row-keys>"
           },
@@ -52,13 +52,7 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/dataColumn",
       "options" : {
-        "possibleValues" : [ {
-          "id" : "test1",
-          "text" : "test1"
-        }, {
-          "id" : "test2",
-          "text" : "test2"
-        } ],
+        "possibleValues" : [ ],
         "format" : "dropDown",
         "showNoneColumn" : false,
         "showRowKeys" : true,
@@ -69,13 +63,7 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/referenceColumn",
       "options" : {
-        "possibleValues" : [ {
-          "id" : "test1",
-          "text" : "test1"
-        }, {
-          "id" : "test2",
-          "text" : "test2"
-        } ],
+        "possibleValues" : [ ],
         "format" : "dropDown",
         "showNoneColumn" : false,
         "showRowKeys" : true,
