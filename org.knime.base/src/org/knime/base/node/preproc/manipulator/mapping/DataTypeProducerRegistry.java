@@ -123,7 +123,7 @@ public final class DataTypeProducerRegistry extends ProducerRegistry<DataType, D
             String producerKey = key + "_producer";
             return SerializeUtil.loadConverterFactory(config, INSTANCE, producerKey)//
                 .orElseThrow(() -> new InvalidSettingsException(
-                    String.format("Can't load CellValueProducer with key '%s' and key '%s'.", producerKey,
+                    String.format("Can't load CellValueProducer with key '%s' and id '%s'.", producerKey,
                         config.getString(producerKey, "unknown"))));
         }
 
@@ -400,8 +400,7 @@ public final class DataTypeProducerRegistry extends ProducerRegistry<DataType, D
             final var destinationType = factory.getDestinationType();
             final var identifier = sourceType.getIdentifier() + "->" + destinationType.getName();
             if (registered.add(identifier)) {
-                final var aliases =
-                    List.of(sourceType.toLegacyPrettyString() + "->" + destinationType.getName());
+                final var aliases = List.of(sourceType.toLegacyPrettyString() + "->" + destinationType.getName());
                 @SuppressWarnings({"rawtypes", "unchecked"})
                 final CellValueProducerFactoryImplementation<?> converter = new CellValueProducerFactoryImplementation(
                     destinationType, identifier, aliases, sourceType, factory.create());
