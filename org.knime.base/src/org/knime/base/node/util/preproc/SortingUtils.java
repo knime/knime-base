@@ -53,6 +53,7 @@ import java.util.Optional;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.StringValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
@@ -86,10 +87,17 @@ public final class SortingUtils {
      * @author Martin Sillye, TNG Technology Consulting GmbH
      */
     public enum SortingOrder {
+            /**
+             * Ascending order
+             */
             @Label(value = "Ascending", description = """
                     The smallest or earliest in the order will appear at the top of the list. E.g., for numbers \
                     the sort is smallest to largest, for dates the sort will be oldest dates to most recent.""")
-            ASCENDING, @Label(value = "Descending", description = """
+            ASCENDING, //
+            /**
+             * Descending order
+             */
+            @Label(value = "Descending", description = """
                     The largest or latest in the order will appear at the top of the list. E.g., for numbers the \
                     sort is largest to smallest, for dates the sort will be most recent dates to oldest.""")
             DESCENDING;
@@ -101,10 +109,17 @@ public final class SortingUtils {
      * @author Martin Sillye, TNG Technology Consulting GmbH
      */
     public enum StringComparison {
+            /**
+             * Natural comparison
+             */
             @Label(value = "Natural", description = """
                     Sorts strings by treating the numeric parts of a string as one character. For example, \
                     results in sort order “'Row1', 'Row2', 'Row10'”.""")
-            NATURAL, @Label(value = "Lexicographic", description = """
+            NATURAL, //
+            /**
+             * Lexicographic comparison
+             */
+            @Label(value = "Lexicographic", description = """
                     Sorts strings so that each digit is treated as a separated character. For example, results \
                     in sort order “'Row1', 'Row10', 'Row2'”.""")
             LEXICOGRAPHIC;
@@ -116,7 +131,7 @@ public final class SortingUtils {
      *
      * @author Martin Sillye, TNG Technology Consulting GmbH
      */
-    public static final class SortingCriterionSettings implements DefaultNodeSettings {
+    public static class SortingCriterionSettings implements DefaultNodeSettings {
 
         /**
          * Constructor to set each field.
@@ -160,14 +175,60 @@ public final class SortingUtils {
             m_column = colSpec == null ? SpecialColumns.ROWID.toColumnSelection() : new ColumnSelection(colSpec);
         }
 
-        interface ColumnRef extends Reference<ColumnSelection> {
-        }
-
         static final class IsStringColumn implements PredicateProvider {
+
             @Override
             public Predicate init(final PredicateInitializer i) {
                 return i.getColumnSelection(ColumnRef.class).hasColumnType(StringValue.class);
             }
+        }
+
+        interface ColumnRef extends Reference<ColumnSelection>, Modification.Reference {
+        }
+
+        interface SortingOrderRef extends Reference<SortingOrder>, Modification.Reference {
+        }
+
+        interface StringComparisonRef extends Reference<StringComparison>, Modification.Reference {
+        }
+
+        /**
+         * Modifier base class to use for Sorting
+         *
+         * @author Martin Sillye, TNG Technology Consulting GmbH
+         */
+        public abstract static class SortingModification implements WidgetGroup.Modifier {
+
+            /**
+             * Get a modifier for the column field.
+             *
+             * @param group of widget
+             * @return the {@link WidgetModifier} of the column field
+             */
+            protected WidgetModifier getColumnModifier(final WidgetGroupModifier group) {
+                return group.find(ColumnRef.class);
+            }
+
+            /**
+             * Get a modifier for the sorting order field.
+             *
+             * @param group of widget
+             * @return the {@link WidgetModifier} of the sorting order field
+             */
+            protected WidgetModifier getSortingOrderModifier(final WidgetGroupModifier group) {
+                return group.find(SortingOrderRef.class);
+            }
+
+            /**
+             * Get a modifier for the string comparison field.
+             *
+             * @param group of widget
+             * @return the {@link WidgetModifier} of the string comparison field
+             */
+            protected WidgetModifier getStringComparisonModifier(final WidgetGroupModifier group) {
+                return group.find(StringComparisonRef.class);
+            }
+
         }
 
         @Widget(title = "Column", description = """
@@ -176,16 +237,19 @@ public final class SortingUtils {
                 by all previous criteria results in a tie.""")
         @ChoicesWidget(choices = AllColumnChoicesProvider.class, showRowKeysColumn = true)
         @ValueReference(ColumnRef.class)
+        @Modification.WidgetReference(ColumnRef.class)
         ColumnSelection m_column;
 
         @Widget(title = "Order", description = "Specifies the sorting order:")
         @ValueSwitchWidget
+        @Modification.WidgetReference(SortingOrderRef.class)
         SortingOrder m_sortingOrder = SortingOrder.ASCENDING;
 
         @Widget(title = "String comparison", description = "Specifies which type of sorting to apply to the strings:",
             advanced = true)
         @Effect(predicate = IsStringColumn.class, type = EffectType.SHOW)
         @ValueSwitchWidget
+        @Modification.WidgetReference(StringComparisonRef.class)
         StringComparison m_stringComparison = StringComparison.NATURAL;
 
         /**
