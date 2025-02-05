@@ -1,0 +1,429 @@
+{
+  "data" : {
+    "model" : {
+      "sortingCriteria" : [ ],
+      "categoryColumns" : {
+        "selected" : [ ],
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : false
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "rankMode" : "STANDARD",
+      "rankColumnName" : "Rank",
+      "rankDataType" : "INTEGER",
+      "missingtoEnd" : false,
+      "rowOrder" : "RANK"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "categoryColumns" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "default" : [ ],
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "typeDisplays" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : {
+                          "type" : "string"
+                        },
+                        "text" : {
+                          "type" : "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Category columns",
+            "description" : "\n",
+            "default" : {
+              "selected" : [ ],
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "missingtoEnd" : {
+            "type" : "boolean",
+            "title" : "Sort missing values to end of table",
+            "description" : "If selected, missing values are always considered to be inferior to present cells.\n",
+            "default" : false
+          },
+          "rankColumnName" : {
+            "type" : "string",
+            "title" : "Rank column name",
+            "description" : "The name that the appended ranking column should have. An empty name is not permitted.\n",
+            "default" : "Rank"
+          },
+          "rankDataType" : {
+            "oneOf" : [ {
+              "const" : "INTEGER",
+              "title" : "Integer"
+            }, {
+              "const" : "LONG",
+              "title" : "Long"
+            } ],
+            "title" : "Rank data type",
+            "description" : "Decides if the appended rank attribute should be of type Long or Integer\n<ul>\n<li><b>Integer</b></li>\n<li><b>Long</b>: It is recommended to use this option only if the input table is very large.</li>\n</ul>",
+            "default" : "INTEGER"
+          },
+          "rankMode" : {
+            "oneOf" : [ {
+              "const" : "STANDARD",
+              "title" : "Standard"
+            }, {
+              "const" : "DENSE",
+              "title" : "Dense"
+            }, {
+              "const" : "ORDINAL",
+              "title" : "Ordinal"
+            } ],
+            "title" : "Rank mode",
+            "description" : "There are three possible ranking modes:\n<ul>\n<li><b>Standard</b>: Rows with the same values in the ranking attributes receive the same rank and the next row with a different value receives a rank that is increased by the number of rows that had the same rank. Therefore the ranking has gaps.\n</li>\n<li><b>Dense</b>: Rows with the same values in the ranking attributes receive the same rank but the row with the next different value receives a rank that is only incremented by one.\n</li>\n<li><b>Ordinal</b>: The ranking is consecutive, even rows with the same values in the ranking attributes receive unique ranks.\n</li>\n</ul>",
+            "default" : "STANDARD"
+          },
+          "rowOrder" : {
+            "oneOf" : [ {
+              "const" : "RANK",
+              "title" : "Rank"
+            }, {
+              "const" : "INPUT_ORDER",
+              "title" : "Input order"
+            } ],
+            "title" : "Row order",
+            "description" : "Order of the output\n<ul>\n<li><b>Rank</b></li>\n<li><b>Input order</b>: The original row order is retained. This option should only be checked if really necessary because the restoration of the row order is runtime intensive.\n</li>\n</ul>",
+            "default" : "RANK"
+          },
+          "sortingCriteria" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "column" : {
+                  "type" : "string",
+                  "title" : "Column",
+                  "description" : "Sort rows by the values in this column. If you set multiple sorting criteria, the table is sorted by the first criterion. The following criteria are only considered, if the comparison by all previous criteria results in a tie.",
+                  "default" : "column1"
+                },
+                "sortingOrder" : {
+                  "oneOf" : [ {
+                    "const" : "ASCENDING",
+                    "title" : "Ascending"
+                  }, {
+                    "const" : "DESCENDING",
+                    "title" : "Descending"
+                  } ],
+                  "title" : "Order",
+                  "description" : "Specifies the sorting order:\n<ul>\n<li><b>Ascending</b>: The smallest or earliest in the order will appear at the top of the list. E.g., for numbers the sort is smallest to largest, for dates the sort will be oldest dates to most recent.</li>\n<li><b>Descending</b>: The largest or latest in the order will appear at the top of the list. E.g., for numbers the sort is largest to smallest, for dates the sort will be most recent dates to oldest.</li>\n</ul>",
+                  "default" : "ASCENDING"
+                }
+              }
+            },
+            "title" : "Sorting",
+            "description" : "A list of sorting critera.",
+            "default" : [ ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Sorting",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/sortingCriteria",
+        "options" : {
+          "detail" : [ {
+            "type" : "Control",
+            "scope" : "#/properties/column",
+            "options" : {
+              "possibleValues" : [ {
+                "id" : "column1",
+                "text" : "column1",
+                "type" : {
+                  "id" : "org.knime.core.data.StringValue",
+                  "text" : "String"
+                },
+                "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+              } ],
+              "format" : "dropDown",
+              "showNoneColumn" : false,
+              "showRowKeys" : true,
+              "showSearch" : true,
+              "showMode" : true
+            }
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/sortingOrder",
+            "options" : {
+              "format" : "valueSwitch"
+            }
+          } ],
+          "addButtonText" : "Add sorting criterion",
+          "arrayElementTitle" : "Criterion",
+          "showSortButtons" : true
+        }
+      } ]
+    }, {
+      "label" : "Ranking",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/categoryColumns",
+        "options" : {
+          "format" : "columnFilter",
+          "possibleValues" : [ {
+            "id" : "column1",
+            "text" : "column1",
+            "type" : {
+              "id" : "org.knime.core.data.StringValue",
+              "text" : "String"
+            },
+            "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+          } ],
+          "showNoneColumn" : false,
+          "showRowKeys" : false,
+          "showSearch" : true,
+          "showMode" : true
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/rankMode",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/rankColumnName",
+        "options" : {
+          "hideOnNull" : false
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/rankDataType",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      } ]
+    }, {
+      "label" : "Ranking",
+      "type" : "Section",
+      "options" : {
+        "isAdvanced" : true
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/missingtoEnd",
+        "options" : {
+          "format" : "checkbox",
+          "isAdvanced" : true
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/rowOrder",
+        "options" : {
+          "isAdvanced" : true,
+          "format" : "valueSwitch"
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "sortingCriteria" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "column" : { },
+                "sortingOrder" : { }
+              }
+            },
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "RankingColumns" ], [ "RankOrder" ] ]
+            } ]
+          },
+          "categoryColumns" : {
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : { },
+                  "typeDisplays" : {
+                    "configPaths" : [ ]
+                  }
+                }
+              }
+            },
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "GroupColumns" ] ]
+            } ]
+          },
+          "rankMode" : {
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "RankMode" ] ]
+            } ]
+          },
+          "rankColumnName" : {
+            "configKey" : "RankOutFieldName"
+          },
+          "rankDataType" : {
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "RankAsLong" ] ]
+            } ]
+          },
+          "missingtoEnd" : { },
+          "rowOrder" : {
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "RetainRowOrder" ] ]
+            } ]
+          }
+        }
+      }
+    }
+  }
+}

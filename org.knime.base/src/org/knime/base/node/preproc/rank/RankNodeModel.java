@@ -90,9 +90,8 @@ import org.knime.core.util.UniqueNameGenerator;
 public class RankNodeModel extends NodeModel {
 
     enum RankMode {
-        STANDARD("Standard", StandardRankAssigner::new),
-        DENSE("Dense", DenseRankAssigner::new),
-        ORDINAL("Ordinal", i -> new OrdinalRankAssigner());
+            STANDARD("Standard", StandardRankAssigner::new), DENSE("Dense", DenseRankAssigner::new),
+            ORDINAL("Ordinal", i -> new OrdinalRankAssigner());
 
         private final String m_string;
 
@@ -240,8 +239,7 @@ public class RankNodeModel extends NodeModel {
     private static BufferedDataTable retainRowOrder(final ExecutionContext exec, final String rowOrderColumn,
         BufferedDataTable out) throws CanceledExecutionException {
         // recover row order
-        out = new BufferedDataTableSorter(out, toList(rowOrderColumn), new boolean[]{true})
-            .sort(exec);
+        out = new BufferedDataTableSorter(out, toList(rowOrderColumn), new boolean[]{true}).sort(exec);
         // remove order column
         var cr = new ColumnRearranger(out.getDataTableSpec());
         cr.remove(rowOrderColumn);
@@ -283,8 +281,8 @@ public class RankNodeModel extends NodeModel {
 
     private static int[] getIndicesFromColNameList(final String[] colNames, final DataTableSpec inSpec) {
         return Stream.of(colNames)//
-                .mapToInt(inSpec::findColumnIndex)//
-                .toArray();
+            .mapToInt(inSpec::findColumnIndex)//
+            .toArray();
     }
 
     @Override
