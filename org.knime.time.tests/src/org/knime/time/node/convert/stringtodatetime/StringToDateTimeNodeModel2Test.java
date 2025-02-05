@@ -69,7 +69,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.knime.InputTableNode;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.MissingCell;
 import org.knime.core.data.def.StringCell.StringCellFactory;
@@ -83,6 +82,7 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.testing.util.InputTableNode.InputDataNodeFactory;
 import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
 import org.knime.time.node.convert.stringtodatetime.StringToDateTimeNodeSettings.TemporalType;
@@ -189,7 +189,7 @@ final class StringToDateTimeNodeModel2Test {
         var inputTable = new TableTestUtil.TableBuilder(inputTableSpec) //
             .build();
         var tableSupplierNode =
-            WorkflowManagerUtil.createAndAddNode(workflowManager, new InputTableNode.InputDataNodeFactory(inputTable));
+            WorkflowManagerUtil.createAndAddNode(workflowManager, new InputDataNodeFactory(inputTable));
 
         // link the nodes
         workflowManager.addConnection(tableSupplierNode.getID(), 1, node.getID(), 1);
@@ -336,7 +336,7 @@ final class StringToDateTimeNodeModel2Test {
             .addRow(cellToAdd) //
             .build();
         var tableSupplierNode =
-            WorkflowManagerUtil.createAndAddNode(workflowManager, new InputTableNode.InputDataNodeFactory(inputTable));
+            WorkflowManagerUtil.createAndAddNode(workflowManager, new InputDataNodeFactory(inputTable));
 
         // link the nodes
         workflowManager.addConnection(tableSupplierNode.getID(), 1, node.getID(), 1);

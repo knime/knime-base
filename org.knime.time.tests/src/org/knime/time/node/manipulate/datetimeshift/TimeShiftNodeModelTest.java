@@ -65,8 +65,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.knime.InputTableNode;
-import org.knime.InputTableNode.NamedCell;
+import org.knime.DateTimeTestingUtil;
+import org.knime.DateTimeTestingUtil.NamedCell;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.LongCell;
@@ -87,6 +87,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
+import org.knime.testing.util.InputTableNode.InputDataNodeFactory;
 import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
 import org.knime.time.node.manipulate.datetimeshift.TimeShiftNodeSettings.ShiftMode;
@@ -118,7 +119,7 @@ final class TimeShiftNodeModelTest {
         final var settings = new TimeShiftNodeSettings();
         setSettings(settings);
 
-        InputTableNode.addDefaultTableToNodeInputPort(m_wfm, m_timeShiftNode, 1);
+        DateTimeTestingUtil.addDefaultTableToNodeInputPort(m_wfm, m_timeShiftNode, 1);
 
         m_wfm.executeAllAndWaitUntilDone();
         assertTrue(m_timeShiftNode.getNodeContainerState().isExecuted());
@@ -132,19 +133,21 @@ final class TimeShiftNodeModelTest {
         final var settings = new TimeShiftNodeSettings();
         settings.m_replaceOrAppend = ReplaceOrAppend.APPEND;
         settings.m_outputColumnSuffix = suffixToAdd;
-        settings.m_columnFilter = new ColumnFilter(new String[]{InputTableNode.COLUMN_LOCAL_TIME,
-            InputTableNode.COLUMN_LOCAL_DATE_TIME, InputTableNode.COLUMN_ZONED_DATE_TIME});
+        settings.m_columnFilter = new ColumnFilter(new String[]{DateTimeTestingUtil.COLUMN_LOCAL_TIME,
+            DateTimeTestingUtil.COLUMN_LOCAL_DATE_TIME, DateTimeTestingUtil.COLUMN_ZONED_DATE_TIME});
         setSettings(settings);
 
-        InputTableNode.addDefaultTableToNodeInputPort(m_wfm, m_timeShiftNode, 1);
+        DateTimeTestingUtil.addDefaultTableToNodeInputPort(m_wfm, m_timeShiftNode, 1);
 
         m_wfm.executeAllAndWaitUntilDone();
 
         var outputTable = (BufferedDataTable)m_timeShiftNode.getOutPort(1).getPortObject();
 
-        assertTrue(outputTable.getDataTableSpec().containsName(InputTableNode.COLUMN_LOCAL_TIME + suffixToAdd));
-        assertTrue(outputTable.getDataTableSpec().containsName(InputTableNode.COLUMN_LOCAL_DATE_TIME + suffixToAdd));
-        assertTrue(outputTable.getDataTableSpec().containsName(InputTableNode.COLUMN_ZONED_DATE_TIME + suffixToAdd));
+        assertTrue(outputTable.getDataTableSpec().containsName(DateTimeTestingUtil.COLUMN_LOCAL_TIME + suffixToAdd));
+        assertTrue(
+            outputTable.getDataTableSpec().containsName(DateTimeTestingUtil.COLUMN_LOCAL_DATE_TIME + suffixToAdd));
+        assertTrue(
+            outputTable.getDataTableSpec().containsName(DateTimeTestingUtil.COLUMN_ZONED_DATE_TIME + suffixToAdd));
     }
 
     // Define the method to supply parameters
@@ -201,25 +204,29 @@ final class TimeShiftNodeModelTest {
         }
         settings.m_shiftDurationValue = (TimeInterval)interval;
 
-        settings.m_columnFilter = new ColumnFilter(new String[]{InputTableNode.COLUMN_LOCAL_TIME,
-            InputTableNode.COLUMN_LOCAL_DATE_TIME, InputTableNode.COLUMN_ZONED_DATE_TIME});
+        settings.m_columnFilter = new ColumnFilter(new String[]{DateTimeTestingUtil.COLUMN_LOCAL_TIME,
+            DateTimeTestingUtil.COLUMN_LOCAL_DATE_TIME, DateTimeTestingUtil.COLUMN_ZONED_DATE_TIME});
 
         setSettings(settings);
 
         // input table generation
         NamedCell[] cells = { //
-            new NamedCell(InputTableNode.COLUMN_DURATION, DurationCellFactory.create(durationValue)), //
-            new NamedCell(InputTableNode.COLUMN_LOCAL_TIME, LocalTimeCellFactory.create(localTimeBefore)),
-            new NamedCell(InputTableNode.COLUMN_LOCAL_DATE_TIME, LocalDateTimeCellFactory.create(localDateTimeBefore)),
-            new NamedCell(InputTableNode.COLUMN_ZONED_DATE_TIME, ZonedDateTimeCellFactory.create(zonedDateTimeBefore))};
+            new NamedCell(DateTimeTestingUtil.COLUMN_DURATION, DurationCellFactory.create(durationValue)), //
+            new NamedCell(DateTimeTestingUtil.COLUMN_LOCAL_TIME, LocalTimeCellFactory.create(localTimeBefore)),
+            new NamedCell(DateTimeTestingUtil.COLUMN_LOCAL_DATE_TIME,
+                LocalDateTimeCellFactory.create(localDateTimeBefore)),
+            new NamedCell(DateTimeTestingUtil.COLUMN_ZONED_DATE_TIME,
+                ZonedDateTimeCellFactory.create(zonedDateTimeBefore))};
 
-        var inputTableSupplier = InputTableNode.createTestTableSupplier(cells);
-        InputTableNode.addTableToNodeInputPort(m_wfm, inputTableSupplier, m_timeShiftNode, 1);
+        var inputTableSupplier = DateTimeTestingUtil.createTestTableSupplier(cells);
+        DateTimeTestingUtil.addTableToNodeInputPort(m_wfm, inputTableSupplier, m_timeShiftNode, 1);
 
         var inputTable = inputTableSupplier.get();
-        var localTimeIndex = inputTable.getDataTableSpec().findColumnIndex(InputTableNode.COLUMN_LOCAL_TIME);
-        var localDateTimeIndex = inputTable.getDataTableSpec().findColumnIndex(InputTableNode.COLUMN_LOCAL_DATE_TIME);
-        var zonedDateTimeIndex = inputTable.getDataTableSpec().findColumnIndex(InputTableNode.COLUMN_ZONED_DATE_TIME);
+        var localTimeIndex = inputTable.getDataTableSpec().findColumnIndex(DateTimeTestingUtil.COLUMN_LOCAL_TIME);
+        var localDateTimeIndex =
+            inputTable.getDataTableSpec().findColumnIndex(DateTimeTestingUtil.COLUMN_LOCAL_DATE_TIME);
+        var zonedDateTimeIndex =
+            inputTable.getDataTableSpec().findColumnIndex(DateTimeTestingUtil.COLUMN_ZONED_DATE_TIME);
 
         // execute node
         assertTrue(m_wfm.executeAllAndWaitUntilDone());
@@ -227,7 +234,7 @@ final class TimeShiftNodeModelTest {
         // output table and assertion
         var outputTable = (BufferedDataTable)m_timeShiftNode.getOutPort(1).getPortObject();
 
-        var row = InputTableNode.getFirstRow(outputTable);
+        var row = DateTimeTestingUtil.getFirstRow(outputTable);
 
         var localTimeAfter = ((LocalTimeCell)row.getCell(localTimeIndex).materializeDataCell()).getLocalTime();
         var localDateTimeAfter =
@@ -288,26 +295,30 @@ final class TimeShiftNodeModelTest {
         final var settings = new TimeShiftNodeSettings();
 
         settings.m_shiftMode = TimeShiftNodeSettings.ShiftMode.DURATION_COLUMN;
-        settings.m_durationColumn = InputTableNode.COLUMN_DURATION;
-        settings.m_columnFilter = new ColumnFilter(new String[]{InputTableNode.COLUMN_LOCAL_TIME,
-            InputTableNode.COLUMN_LOCAL_DATE_TIME, InputTableNode.COLUMN_ZONED_DATE_TIME});
+        settings.m_durationColumn = DateTimeTestingUtil.COLUMN_DURATION;
+        settings.m_columnFilter = new ColumnFilter(new String[]{DateTimeTestingUtil.COLUMN_LOCAL_TIME,
+            DateTimeTestingUtil.COLUMN_LOCAL_DATE_TIME, DateTimeTestingUtil.COLUMN_ZONED_DATE_TIME});
 
         setSettings(settings);
 
         // input table generation
         NamedCell[] cells = { //
-            new NamedCell(InputTableNode.COLUMN_DURATION, DurationCellFactory.create(durationToShift)), //
-            new NamedCell(InputTableNode.COLUMN_LOCAL_TIME, LocalTimeCellFactory.create(localTimeBefore)),
-            new NamedCell(InputTableNode.COLUMN_LOCAL_DATE_TIME, LocalDateTimeCellFactory.create(localDateTimeBefore)),
-            new NamedCell(InputTableNode.COLUMN_ZONED_DATE_TIME, ZonedDateTimeCellFactory.create(zonedDateTimeBefore))};
+            new NamedCell(DateTimeTestingUtil.COLUMN_DURATION, DurationCellFactory.create(durationToShift)), //
+            new NamedCell(DateTimeTestingUtil.COLUMN_LOCAL_TIME, LocalTimeCellFactory.create(localTimeBefore)),
+            new NamedCell(DateTimeTestingUtil.COLUMN_LOCAL_DATE_TIME,
+                LocalDateTimeCellFactory.create(localDateTimeBefore)),
+            new NamedCell(DateTimeTestingUtil.COLUMN_ZONED_DATE_TIME,
+                ZonedDateTimeCellFactory.create(zonedDateTimeBefore))};
 
-        var inputTableSupplier = InputTableNode.createTestTableSupplier(cells);
-        InputTableNode.addTableToNodeInputPort(m_wfm, inputTableSupplier, m_timeShiftNode, 1);
+        var inputTableSupplier = DateTimeTestingUtil.createTestTableSupplier(cells);
+        DateTimeTestingUtil.addTableToNodeInputPort(m_wfm, inputTableSupplier, m_timeShiftNode, 1);
 
         var inputTable = inputTableSupplier.get();
-        var localTimeIndex = inputTable.getDataTableSpec().findColumnIndex(InputTableNode.COLUMN_LOCAL_TIME);
-        var localDateTimeIndex = inputTable.getDataTableSpec().findColumnIndex(InputTableNode.COLUMN_LOCAL_DATE_TIME);
-        var zonedDateTimeIndex = inputTable.getDataTableSpec().findColumnIndex(InputTableNode.COLUMN_ZONED_DATE_TIME);
+        var localTimeIndex = inputTable.getDataTableSpec().findColumnIndex(DateTimeTestingUtil.COLUMN_LOCAL_TIME);
+        var localDateTimeIndex =
+            inputTable.getDataTableSpec().findColumnIndex(DateTimeTestingUtil.COLUMN_LOCAL_DATE_TIME);
+        var zonedDateTimeIndex =
+            inputTable.getDataTableSpec().findColumnIndex(DateTimeTestingUtil.COLUMN_ZONED_DATE_TIME);
 
         // execute node
         m_wfm.executeAllAndWaitUntilDone();
@@ -315,7 +326,7 @@ final class TimeShiftNodeModelTest {
         // output table and assertion
         var outputTable = (BufferedDataTable)m_timeShiftNode.getOutPort(1).getPortObject();
 
-        var row = InputTableNode.getFirstRow(outputTable);
+        var row = DateTimeTestingUtil.getFirstRow(outputTable);
 
         var localTimeAfter = ((LocalTimeCell)row.getCell(localTimeIndex).materializeDataCell()).getLocalTime();
         var localDateTimeAfter =
@@ -379,27 +390,31 @@ final class TimeShiftNodeModelTest {
         final var settings = new TimeShiftNodeSettings();
 
         settings.m_shiftMode = TimeShiftNodeSettings.ShiftMode.NUMERICAL_COLUMN;
-        settings.m_numericalColumn = InputTableNode.COLUMN_LONG;
+        settings.m_numericalColumn = DateTimeTestingUtil.COLUMN_LONG;
         settings.m_granularity = timeGranularity;
-        settings.m_columnFilter = new ColumnFilter(new String[]{InputTableNode.COLUMN_LOCAL_TIME,
-            InputTableNode.COLUMN_LOCAL_DATE_TIME, InputTableNode.COLUMN_ZONED_DATE_TIME});
+        settings.m_columnFilter = new ColumnFilter(new String[]{DateTimeTestingUtil.COLUMN_LOCAL_TIME,
+            DateTimeTestingUtil.COLUMN_LOCAL_DATE_TIME, DateTimeTestingUtil.COLUMN_ZONED_DATE_TIME});
 
         setSettings(settings);
 
         // input table generation
         NamedCell[] cells = { //
-            new NamedCell(InputTableNode.COLUMN_LONG, new LongCell(numericalValueToShift)), //
-            new NamedCell(InputTableNode.COLUMN_LOCAL_TIME, LocalTimeCellFactory.create(localTimeBefore)),
-            new NamedCell(InputTableNode.COLUMN_LOCAL_DATE_TIME, LocalDateTimeCellFactory.create(localDateTimeBefore)),
-            new NamedCell(InputTableNode.COLUMN_ZONED_DATE_TIME, ZonedDateTimeCellFactory.create(zonedDateTimeBefore))};
+            new NamedCell(DateTimeTestingUtil.COLUMN_LONG, new LongCell(numericalValueToShift)), //
+            new NamedCell(DateTimeTestingUtil.COLUMN_LOCAL_TIME, LocalTimeCellFactory.create(localTimeBefore)),
+            new NamedCell(DateTimeTestingUtil.COLUMN_LOCAL_DATE_TIME,
+                LocalDateTimeCellFactory.create(localDateTimeBefore)),
+            new NamedCell(DateTimeTestingUtil.COLUMN_ZONED_DATE_TIME,
+                ZonedDateTimeCellFactory.create(zonedDateTimeBefore))};
 
-        var inputTableSupplier = InputTableNode.createTestTableSupplier(cells);
-        InputTableNode.addTableToNodeInputPort(m_wfm, inputTableSupplier, m_timeShiftNode, 1);
+        var inputTableSupplier = DateTimeTestingUtil.createTestTableSupplier(cells);
+        DateTimeTestingUtil.addTableToNodeInputPort(m_wfm, inputTableSupplier, m_timeShiftNode, 1);
 
         var inputTable = inputTableSupplier.get();
-        var localTimeIndex = inputTable.getDataTableSpec().findColumnIndex(InputTableNode.COLUMN_LOCAL_TIME);
-        var localDateTimeIndex = inputTable.getDataTableSpec().findColumnIndex(InputTableNode.COLUMN_LOCAL_DATE_TIME);
-        var zonedDateTimeIndex = inputTable.getDataTableSpec().findColumnIndex(InputTableNode.COLUMN_ZONED_DATE_TIME);
+        var localTimeIndex = inputTable.getDataTableSpec().findColumnIndex(DateTimeTestingUtil.COLUMN_LOCAL_TIME);
+        var localDateTimeIndex =
+            inputTable.getDataTableSpec().findColumnIndex(DateTimeTestingUtil.COLUMN_LOCAL_DATE_TIME);
+        var zonedDateTimeIndex =
+            inputTable.getDataTableSpec().findColumnIndex(DateTimeTestingUtil.COLUMN_ZONED_DATE_TIME);
 
         // execute node
         m_wfm.executeAllAndWaitUntilDone();
@@ -407,7 +422,7 @@ final class TimeShiftNodeModelTest {
         // output table and assertion
         var outputTable = (BufferedDataTable)m_timeShiftNode.getOutPort(1).getPortObject();
 
-        var row = InputTableNode.getFirstRow(outputTable);
+        var row = DateTimeTestingUtil.getFirstRow(outputTable);
 
         var localTimeAfter = ((LocalTimeCell)row.getCell(localTimeIndex).materializeDataCell()).getLocalTime();
         var localDateTimeAfter =
@@ -542,7 +557,7 @@ final class TimeShiftNodeModelTest {
         }
         var inputTable = inputTableBuilder.build();
         var tableSupplierNode =
-            WorkflowManagerUtil.createAndAddNode(workflowManager, new InputTableNode.InputDataNodeFactory(inputTable));
+            WorkflowManagerUtil.createAndAddNode(workflowManager, new InputDataNodeFactory(inputTable));
 
         // link the nodes
         workflowManager.addConnection(tableSupplierNode.getID(), 1, node.getID(), 1);
