@@ -155,7 +155,7 @@
         "format" : "typedStringFilter",
         "unknownValuesText" : "Any unknown variable",
         "emptyStateLabel" : "No variables in this list.",
-        "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.AllFlowVariablesProvider"
+        "choicesProvider" : "org.knime.base.node.flowvariable.converter.variabletocell.VariableToCellConverterFactory$ConvertibleFlowVariablesProvider"
       }
     }, {
       "type" : "Control",
@@ -214,7 +214,7 @@
   },
   "initialUpdates" : [ {
     "scopes" : null,
-    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.AllFlowVariablesProvider",
+    "id" : "org.knime.base.node.flowvariable.converter.variabletocell.VariableToCellConverterFactory$ConvertibleFlowVariablesProvider",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
