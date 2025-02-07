@@ -48,50 +48,52 @@
  */
 package org.knime.base.node.flowvariable.appendvariabletotable4;
 
-import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.impl.WebUINodeFactory;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * WebUI node factory for the "Variable to Table Column" node.
  *
  * @author Martin Sillye, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public class AppendVariableToTable4NodeFactory extends WebUINodeFactory<AppendVariableToTable4NodeModel> {
-
-    /**
-    * Default constructor.
-    */
-    public AppendVariableToTable4NodeFactory() {
-        super(CONFIGURATION);
+public class AppendVariableToTable4NodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    AppendVariableToTable4NodeSettingsTest() {
+        super(getConfig());
     }
 
-    @Override
-    public AppendVariableToTable4NodeModel createNodeModel() {
-        return new AppendVariableToTable4NodeModel(CONFIGURATION);
+    private static final PortObjectSpec[] INPUT_PORT_SPECS =
+        new PortObjectSpec[]{FlowVariablePortObjectSpec.INSTANCE, new DataTableSpec()};
+
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .withInputPortObjectSpecs(INPUT_PORT_SPECS) //
+            .testJsonFormsForModel(AppendVariableToTable4NodeSettings.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
     }
 
-    private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
-        .name("Variable to Table Column") //
-        .icon("append_variable.png") //
-        .shortDescription("Appends one or more variables as new column(s) to the data table.") //
-        .fullDescription("""
-                Extracts variables that are carried along the flow and appends them to an input table.
-                """) //
-        .modelSettingsClass(AppendVariableToTable4NodeSettings.class) //
-        .addExternalResource("""
-                https://www.knime.com/self-paced-course/l2-ds-knime-analytics-platform-for-data-scientists\
-                -advanced/lesson2
-                """, //
-            "KNIME Analytics Platform for Data Scientists (Advanced): Lesson 2. Flow Variables and Components") //
-        .nodeType(NodeType.Other) //
-        .addInputPort("Flow variables", FlowVariablePortObject.TYPE_OPTIONAL, "One or more flow variables (optional)")
-        .addInputTable("Data table", "Data table to which the flow variables are appended as columns")
-        .addOutputTable("Input table with additional columns", """
-                The input table with additional columns, one for each selected variable. All values in the new \
-                column will be the same.
-                """) //
-        .keywords("variable", "variables", "convert", "column") //
-        .build();
+    private static AppendVariableToTable4NodeSettings readSettings() {
+        try {
+            var path = getSnapshotPath(AppendVariableToTable4NodeSettings.class).getParent().resolve("node_settings")
+                .resolve("AppendVariableToTable4NodeSettings.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return DefaultNodeSettings.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    AppendVariableToTable4NodeSettings.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 }

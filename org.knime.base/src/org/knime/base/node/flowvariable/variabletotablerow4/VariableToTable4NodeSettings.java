@@ -48,13 +48,13 @@
  */
 package org.knime.base.node.flowvariable.variabletotablerow4;
 
+import org.knime.base.node.flowvariable.converter.variabletocell.VariableToCellConverterFactory.ConvertibleFlowVariablesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.LegacyNameFilterToFlowVariableFilterMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.AllFlowVariablesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableFilterWidget;
 
 /**
@@ -69,7 +69,7 @@ final class VariableToTable4NodeSettings implements DefaultNodeSettings {
             Include list contains all variables that are converted into a column of the resulting row, excluded \
             variables are not used. All variables remain on the variable stack.
             """)
-    @FlowVariableFilterWidget(choicesProvider = AllFlowVariablesProvider.class)
+    @FlowVariableFilterWidget(choicesProvider = ConvertibleFlowVariablesProvider.class)
     @Migration(NameFilterMigration.class)
     FlowVariableFilter m_filter = new FlowVariableFilter();
 

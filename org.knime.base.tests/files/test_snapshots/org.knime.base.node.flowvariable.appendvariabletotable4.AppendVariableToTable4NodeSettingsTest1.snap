@@ -5,20 +5,19 @@
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
-          "isCaseSensitive" : false,
+          "isCaseSensitive" : true,
           "isInverted" : false
         },
         "manualFilter" : {
-          "manuallySelected" : [ ],
-          "manuallyDeselected" : [ ],
+          "manuallySelected" : [ "variable_1", "variable_2" ],
+          "manuallyDeselected" : [ "knime.workspace" ],
           "includeUnknownColumns" : false
         },
         "typeFilter" : {
           "selectedTypes" : [ ],
           "typeDisplays" : [ ]
         }
-      },
-      "rowName" : "Row0"
+      }
     }
   },
   "schema" : {
@@ -117,8 +116,8 @@
                 }
               }
             },
-            "title" : "Output as columns",
-            "description" : "Include list contains all variables that are converted into a column of the resulting row, excluded variables are not used. All variables remain on the variable stack.\n",
+            "title" : "Output as rows",
+            "description" : "Include list contains all variables that are converted into new columns in the resulting table, excluded variables are not used. All variables remain on the variable stack. Enforce exclusion and inclusion options can be used to force all new variables to be included or excluded, resp.\n",
             "default" : {
               "mode" : "MANUAL",
               "patternFilter" : {
@@ -136,12 +135,6 @@
                 "typeDisplays" : [ ]
               }
             }
-          },
-          "rowName" : {
-            "type" : "string",
-            "title" : "RowID value",
-            "description" : "The name of the RowID used for the resulting row.",
-            "default" : "Row0"
           }
         }
       }
@@ -156,12 +149,6 @@
         "unknownValuesText" : "Any unknown variable",
         "emptyStateLabel" : "No variables in this list.",
         "choicesProvider" : "org.knime.base.node.flowvariable.converter.variabletocell.VariableToCellConverterFactory$ConvertibleFlowVariablesProvider"
-      }
-    }, {
-      "type" : "Control",
-      "scope" : "#/properties/model/properties/rowName",
-      "options" : {
-        "isAdvanced" : true
       }
     } ]
   },
@@ -204,9 +191,6 @@
             "deprecatedConfigKeys" : [ {
               "deprecated" : [ [ "variable_filter" ] ]
             } ]
-          },
-          "rowName" : {
-            "configKey" : "row_id"
           }
         }
       }

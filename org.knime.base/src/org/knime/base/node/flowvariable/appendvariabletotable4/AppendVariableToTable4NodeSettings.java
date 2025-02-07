@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -43,58 +44,39 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 1, 2008 (wiswedel): created
+ *   Feb 7, 2025 (Martin Sillye, TNG Technology Consulting GmbH): created
  */
 package org.knime.base.node.flowvariable.appendvariabletotable4;
 
-import javax.swing.JScrollPane;
-
-import org.knime.base.node.flowvariable.converter.variabletocell.VariableToCellConverterFactory;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.util.filter.variable.FlowVariableFilterConfiguration;
-import org.knime.core.node.util.filter.variable.FlowVariableFilterPanel;
-import org.knime.core.node.util.filter.variable.VariableTypeFilter;
-import org.knime.core.node.workflow.VariableType;
+import org.knime.base.node.flowvariable.converter.variabletocell.VariableToCellConverterFactory.ConvertibleFlowVariablesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.LegacyNameFilterToFlowVariableFilterMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableFilterWidget;
 
 /**
- * Dialog for the "Variable To TableColumn" node.
+ * The settings for the "Variable to Table Column" node.
  *
- * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
- * @author Patrick Winter, KNIME AG, Zurich, Switzerland
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @author Martin Sillye, TNG Technology Consulting GmbH
  */
-final class AppendVariableToTable4NodeDialog extends NodeDialogPane {
+@SuppressWarnings("restriction")
+public class AppendVariableToTable4NodeSettings implements DefaultNodeSettings {
 
-    private final FlowVariableFilterPanel m_filter;
+    @Widget(title = "Output as rows", description = """
+            Include list contains all variables that are converted into new columns in the resulting table, \
+            excluded variables are not used. All variables remain on the variable stack. Enforce exclusion and \
+            inclusion options can be used to force all new variables to be included or excluded, resp.
+            """)
+    @FlowVariableFilterWidget(choicesProvider = ConvertibleFlowVariablesProvider.class)
+    @Migration(FilterMigration.class)
+    FlowVariableFilter m_filter = new FlowVariableFilter();
 
-    /** Inits components. */
-    AppendVariableToTable4NodeDialog() {
-        m_filter = new FlowVariableFilterPanel(
-            new VariableTypeFilter(VariableToCellConverterFactory.getSupportedTypes()));
-        addTab("Variable Selection", new JScrollPane(m_filter));
-    }
-
-    @Override
-    protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
-        throws NotConfigurableException {
-        final FlowVariableFilterConfiguration config =
-            new FlowVariableFilterConfiguration(AppendVariableToTable4NodeModel.CFG_KEY_FILTER);
-        final VariableType<?>[] types = VariableToCellConverterFactory.getSupportedTypes();
-        config.loadConfigurationInDialog(settings, getAvailableFlowVariables(types));
-        m_filter.loadConfiguration(config, getAvailableFlowVariables(types));
-    }
-
-    @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        final FlowVariableFilterConfiguration config =
-            new FlowVariableFilterConfiguration(AppendVariableToTable4NodeModel.CFG_KEY_FILTER);
-        m_filter.saveConfiguration(config);
-        config.saveConfiguration(settings);
+    static final class FilterMigration extends LegacyNameFilterToFlowVariableFilterMigration {
+        FilterMigration() {
+            super("variable_filter");
+        }
     }
 
 }

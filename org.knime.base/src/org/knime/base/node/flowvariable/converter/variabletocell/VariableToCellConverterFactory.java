@@ -49,6 +49,7 @@
 package org.knime.base.node.flowvariable.converter.variabletocell;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -75,6 +76,8 @@ import org.knime.core.node.workflow.VariableType.LongArrayType;
 import org.knime.core.node.workflow.VariableType.LongType;
 import org.knime.core.node.workflow.VariableType.StringArrayType;
 import org.knime.core.node.workflow.VariableType.StringType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableChoicesProvider;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 
 /**
@@ -140,6 +143,21 @@ public final class VariableToCellConverterFactory {
     public static VariableType<?>[] getSupportedTypes() { //NOSONAR
         return SUPPORTED_TYPES.keySet().stream()//
             .toArray(VariableType<?>[]::new);
+    }
+
+    /**
+     * A {@link FlowVariableChoicesProvider} that provides a list of flow variables that are convertible.
+     *
+     * @author Martin Sillye, TNG Technology Consulting GmbH
+     */
+    @SuppressWarnings("restriction")
+    public static final class ConvertibleFlowVariablesProvider implements FlowVariableChoicesProvider {
+
+        @Override
+        public List<FlowVariable> flowVariableChoices(final DefaultNodeSettingsContext context) {
+            return context.getAvailableInputFlowVariables(VariableToCellConverterFactory.getSupportedTypes()) //
+                .values().stream().toList();
+        }
     }
 
 }
