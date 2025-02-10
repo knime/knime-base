@@ -2,17 +2,17 @@
   "data" : {
     "model" : {
       "columnFilter" : {
-        "selected" : [ ],
+        "selected" : [ "column1", "column2", "column3", "column4", "column5", "p", "d" ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
-          "isCaseSensitive" : true,
+          "isCaseSensitive" : false,
           "isInverted" : false
         },
         "manualFilter" : {
-          "manuallySelected" : [ ],
+          "manuallySelected" : [ "column1", "column2", "column3", "column4", "column5", "p", "d" ],
           "manuallyDeselected" : [ ],
-          "includeUnknownColumns" : true
+          "includeUnknownColumns" : false
         },
         "typeFilter" : {
           "selectedTypes" : [ ],
@@ -20,9 +20,9 @@
         }
       },
       "durationType" : "AUTO_DETECT",
-      "actionIfExtractionFails" : "FAIL",
+      "actionIfExtractionFails" : "SET_MISSING",
       "replaceOrAppend" : "REPLACE",
-      "appendedSuffix" : "(Duration)"
+      "appendedSuffix" : " (Duration)"
     }
   },
   "schema" : {
@@ -268,20 +268,43 @@
         "type" : "object",
         "properties" : {
           "columnFilter" : {
-            "configPaths" : [ [ "col_select", "filter-type" ], [ "col_select", "included_names" ], [ "col_select", "excluded_names" ], [ "col_select", "enforce_option" ], [ "col_select", "name_pattern", "pattern" ], [ "col_select", "name_pattern", "type" ], [ "col_select", "name_pattern", "caseSensitive" ], [ "col_select", "name_pattern", "excludeMatching" ] ]
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : { },
+                  "typeDisplays" : {
+                    "configPaths" : [ ]
+                  }
+                }
+              }
+            }
           },
-          "durationType" : {
-            "configPaths" : [ [ "duration_or_period" ] ]
-          },
-          "actionIfExtractionFails" : {
-            "configPaths" : [ [ "cancel_on_fail" ] ]
-          },
-          "replaceOrAppend" : {
-            "configPaths" : [ [ "replace_or_append" ] ]
-          },
-          "appendedSuffix" : {
-            "configKey" : "suffix"
-          }
+          "durationType" : { },
+          "actionIfExtractionFails" : { },
+          "replaceOrAppend" : { },
+          "appendedSuffix" : { }
         }
       }
     }

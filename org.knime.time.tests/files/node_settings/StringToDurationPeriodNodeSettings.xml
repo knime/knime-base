@@ -6,64 +6,64 @@
         <entry key="memory_policy" type="xstring" value="CacheSmallInMemory"/>
     </config>
     <config key="model">
-        <config key="col_select_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_columnfilter"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <config key="col_select">
-            <entry key="filter-type" type="xstring" value="STANDARD"/>
-            <config key="included_names">
-                <entry key="array-size" type="xint" value="0"/>
+        <config key="columnFilter">
+            <config key="selected_Internals">
+                <entry key="array-size" type="xint" value="7"/>
+                <entry key="0" type="xstring" value="column1"/>
+                <entry key="1" type="xstring" value="column2"/>
+                <entry key="2" type="xstring" value="column3"/>
+                <entry key="3" type="xstring" value="column4"/>
+                <entry key="4" type="xstring" value="column5"/>
+                <entry key="5" type="xstring" value="p"/>
+                <entry key="6" type="xstring" value="d"/>
             </config>
-            <config key="excluded_names">
-                <entry key="array-size" type="xint" value="0"/>
-            </config>
-            <entry key="enforce_option" type="xstring" value="EnforceExclusion"/>
-            <config key="name_pattern">
+            <entry key="mode" type="xstring" value="MANUAL"/>
+            <config key="patternFilter">
                 <entry key="pattern" type="xstring" value=""/>
-                <entry key="type" type="xstring" value="Wildcard"/>
-                <entry key="caseSensitive" type="xboolean" value="true"/>
-                <entry key="excludeMatching" type="xboolean" value="false"/>
+                <entry key="isCaseSensitive" type="xboolean" value="false"/>
+                <entry key="isInverted" type="xboolean" value="false"/>
             </config>
-            <config key="datatype">
-                <config key="typelist"/>
+            <config key="manualFilter">
+                <config key="manuallySelected">
+                    <entry key="array-size" type="xint" value="7"/>
+                    <entry key="0" type="xstring" value="column1"/>
+                    <entry key="1" type="xstring" value="column2"/>
+                    <entry key="2" type="xstring" value="column3"/>
+                    <entry key="3" type="xstring" value="column4"/>
+                    <entry key="4" type="xstring" value="column5"/>
+                    <entry key="5" type="xstring" value="p"/>
+                    <entry key="6" type="xstring" value="d"/>
+                </config>
+                <config key="manuallyDeselected">
+                    <entry key="array-size" type="xint" value="0"/>
+                </config>
+                <entry key="includeUnknownColumns" type="xboolean" value="false"/>
+            </config>
+            <config key="typeFilter">
+                <config key="selectedTypes">
+                    <entry key="array-size" type="xint" value="0"/>
+                </config>
             </config>
         </config>
-        <config key="replace_or_append_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_string"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="replace_or_append" type="xstring" value="Replace selected columns"/>
-        <config key="suffix_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_string"/>
-            <entry key="EnabledStatus" type="xboolean" value="false"/>
-        </config>
-        <entry key="suffix" type="xstring" value="(Duration)"/>
-        <config key="duration_or_period_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_string"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="duration_or_period" type="xstring" value="Automatic"/>
-        <config key="cancel_on_fail_Internals">
-            <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-            <entry key="EnabledStatus" type="xboolean" value="true"/>
-        </config>
-        <entry key="cancel_on_fail" type="xboolean" value="true"/>
+        <entry key="durationType" type="xstring" value="AUTO_DETECT"/>
+        <entry key="actionIfExtractionFails" type="xstring" value="SET_MISSING"/>
+        <entry key="replaceOrAppend" type="xstring" value="REPLACE"/>
+        <entry key="appendedSuffix" type="xstring" value=" (Duration)"/>
     </config>
     <entry key="customDescription" type="xstring" isnull="true" value=""/>
-    <entry key="state" type="xstring" value="IDLE"/>
-    <entry key="factory" type="xstring" value="org.knime.time.node.convert.stringtodurationperiod.StringToDurationPeriodNodeFactory"/>
-    <entry key="node-name" type="xstring" value="String to Duration"/>
+    <entry key="state" type="xstring" value="CONFIGURED"/>
+    <entry key="factory" type="xstring" value="org.knime.time.node.convert.stringtodurationperiod.StringToDurationPeriodNodeFactory2"/>
+    <entry key="node-name" type="xstring" value="String to Duration (Labs)"/>
     <entry key="node-bundle-name" type="xstring" value="KNIME Date and Time Handling"/>
     <entry key="node-bundle-symbolic-name" type="xstring" value="org.knime.time"/>
     <entry key="node-bundle-vendor" type="xstring" value="KNIME AG, Zurich, Switzerland"/>
-    <entry key="node-bundle-version" type="xstring" value="5.4.0.qualifier"/>
+    <entry key="node-bundle-version" type="xstring" value="5.5.0.qualifier"/>
     <entry key="node-feature-name" type="xstring" isnull="true" value=""/>
     <entry key="node-feature-symbolic-name" type="xstring" isnull="true" value=""/>
     <entry key="node-feature-vendor" type="xstring" isnull="true" value=""/>
     <entry key="node-feature-version" type="xstring" value="0.0.0"/>
     <config key="factory_settings"/>
-    <entry key="name" type="xstring" value="String to Duration"/>
+    <entry key="name" type="xstring" value="String to Duration (Labs)"/>
     <entry key="hasContent" type="xboolean" value="false"/>
     <entry key="isInactive" type="xboolean" value="false"/>
     <config key="ports">
