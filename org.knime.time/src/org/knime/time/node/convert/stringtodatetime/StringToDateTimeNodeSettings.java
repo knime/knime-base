@@ -55,6 +55,7 @@ import java.util.stream.StreamSupport;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.StringValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
@@ -252,7 +253,7 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
                     case LOCAL_TIME -> FormatTemporalType.TIME;
                     case LOCAL_DATE_TIME -> FormatTemporalType.DATE_TIME;
                     case ZONED_DATE_TIME -> FormatTemporalType.ZONED_DATE_TIME;
-                });
+                }, DateTimeFormatStringHistoryManager.getRecentFormats());
 
             return bestGuessFormat.orElseThrow(() -> new WidgetHandlerException("""
                     Could not guess a format because no common format matched the first \
