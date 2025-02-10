@@ -71,6 +71,7 @@ import org.knime.NodeModelTestRunnerUtil;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.data.time.duration.DurationCell;
+import org.knime.core.data.time.duration.DurationCellFactory;
 import org.knime.core.data.time.period.PeriodCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
@@ -82,8 +83,8 @@ import org.knime.time.util.ReplaceOrAppend;
  *
  * @author David Hickey, TNG Technology Consulting GmbH
  */
-@SuppressWarnings("restriction")
-final class StringToDurationPeriodNodeModelTest {
+@SuppressWarnings({"restriction", "static-method"})
+final class StringToDurationPeriodNodeModel2Test {
 
     private static final String INPUT_COLUMN = "test_input";
 
@@ -194,24 +195,58 @@ final class StringToDurationPeriodNodeModelTest {
     }
 
     @Test
-    void testOutputSettingMissingOnFail() throws InvalidSettingsException, IOException {
+    void testOutputSettingMissingOnParseFail() throws InvalidSettingsException, IOException {
         var settings = new StringToDurationPeriodNodeSettings();
         settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
         settings.m_replaceOrAppend = ReplaceOrAppend.REPLACE;
         settings.m_actionIfExtractionFails = ActionIfExtractionFails.SET_MISSING;
+        settings.m_durationType = DurationPeriodType.DURATION;
 
         var testSetup = RUNNER.setupAndExecuteWorkflow(settings, StringCellFactory.create("not parseable"));
 
         assertTrue(testSetup.nodeState().isExecuted(), "Execution should have been successful");
         assertTrue(testSetup.firstCell().isMissing(), "Output cell should be missing");
+        assertEquals(DurationCellFactory.TYPE,
+            testSetup.outputTable().getDataTableSpec().getColumnSpec(INPUT_COLUMN).getType(),
+            "Expected duration output column");
     }
 
     @Test
-    void testOutputSettingFailOnFail() throws InvalidSettingsException, IOException {
+    void testOutputSettingMissingOnAutoGuessFail() throws InvalidSettingsException, IOException {
+        var settings = new StringToDurationPeriodNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
+        settings.m_actionIfExtractionFails = ActionIfExtractionFails.SET_MISSING;
+        settings.m_replaceOrAppend = ReplaceOrAppend.REPLACE;
+        settings.m_durationType = DurationPeriodType.AUTO_DETECT;
+
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, StringCellFactory.create("not parseable"));
+
+        assertTrue(testSetup.nodeState().isExecuted(), "Execution should have been successful");
+        assertTrue(testSetup.firstCell().isMissing(), "Output cell should be missing");
+        assertEquals(DataType.getMissingCell().getType(),
+            testSetup.outputTable().getDataTableSpec().getColumnSpec(INPUT_COLUMN).getType(),
+            "Expected missing output column");
+    }
+
+    @Test
+    void testOutputSettingFailOnAutoGuessFail() throws InvalidSettingsException, IOException {
         var settings = new StringToDurationPeriodNodeSettings();
         settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
         settings.m_replaceOrAppend = ReplaceOrAppend.REPLACE;
         settings.m_actionIfExtractionFails = ActionIfExtractionFails.FAIL;
+
+        var testSetup = RUNNER.setupAndExecuteWorkflow(settings, StringCellFactory.create("not parseable"));
+
+        assertFalse(testSetup.nodeState().isExecuted(), "Execution should have failed");
+    }
+
+    @Test
+    void testOutputSettingFailOnParseFail() throws InvalidSettingsException, IOException {
+        var settings = new StringToDurationPeriodNodeSettings();
+        settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
+        settings.m_replaceOrAppend = ReplaceOrAppend.REPLACE;
+        settings.m_actionIfExtractionFails = ActionIfExtractionFails.FAIL;
+        settings.m_durationType = DurationPeriodType.DURATION;
 
         var testSetup = RUNNER.setupAndExecuteWorkflow(settings, StringCellFactory.create("not parseable"));
 
