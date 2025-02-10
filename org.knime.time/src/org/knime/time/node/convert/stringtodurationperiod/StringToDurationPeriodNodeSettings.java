@@ -48,19 +48,12 @@
  */
 package org.knime.time.node.convert.stringtodurationperiod;
 
-import java.util.Arrays;
-import java.util.stream.Collectors;
-
+import org.knime.core.data.DataType;
 import org.knime.core.data.StringValue;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.data.time.duration.DurationCellFactory;
+import org.knime.core.data.time.period.PeriodCellFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
@@ -95,28 +88,23 @@ final class StringToDurationPeriodNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "String columns", description = "The string columns to convert to a duration/period.")
     @ChoicesWidget(choices = StringColumnChoicesProvider.class)
-    @Persistor(ColumnFilterPersistor.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
     @Widget(title = "Duration type", description = "The type of the duration/period to parse.")
-    @Persistor(DurationPeriodType.Persistor.class)
     @ValueSwitchWidget
     DurationPeriodType m_durationType = DurationPeriodType.AUTO_DETECT;
 
     @Widget(title = "If extraction fails", description = "Action to take if the extraction fails.")
-    @Persistor(ActionIfExtractionFailsPersistor.class)
     @ValueSwitchWidget
     ActionIfExtractionFails m_actionIfExtractionFails = ActionIfExtractionFails.SET_MISSING;
 
     @Widget(title = "Output columns",
         description = "Whether to append a new output column, or replace the input column.")
     @ValueSwitchWidget
-    @Persistor(ReplaceOrAppend.Persistor.class)
     @ValueReference(ReplaceOrAppend.ValueRef.class)
     ReplaceOrAppend m_replaceOrAppend = ReplaceOrAppend.REPLACE;
 
     @Widget(title = "Output column suffix", description = "The suffix to append to the output column name.")
-    @Persist(configKey = "suffix")
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
     String m_appendedSuffix = " (Duration)";
 
@@ -127,88 +115,22 @@ final class StringToDurationPeriodNodeSettings implements DefaultNodeSettings {
                     which can be successfully parsed. Automatically detect whether the input is \
                     date-based or time-based.
                     """)
-            AUTO_DETECT("Automatic"), //
+            AUTO_DETECT(null), //
             @Label(value = "Date-based", description = """
                     All included columns will be converted to date-based duration columns, with \
                     data type "Period".
                     """)
-            PERIOD("Period"), //
+            PERIOD(PeriodCellFactory.TYPE), //
             @Label(value = "Time-based", description = """
                     All included columns will be converted to time-based duration columns, with \
                     data type "Duration".
                     """)
-            DURATION("Duration");
+            DURATION(DurationCellFactory.TYPE);
 
-        private final String m_oldConfigValue;
+        final DataType m_associatedDataTypeIfApplicable;
 
-        DurationPeriodType(final String oldConfigValue) {
-            m_oldConfigValue = oldConfigValue;
-        }
-
-        private static DurationPeriodType getByOldConfigValue(final String oldConfigValue) {
-            return Arrays.stream(values()) //
-                .filter(v -> v.m_oldConfigValue.equals(oldConfigValue)) //
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unknown duration type: " + oldConfigValue));
-        }
-
-        static final class Persistor implements NodeSettingsPersistor<DurationPeriodType> {
-
-            private static final String CONFIG_KEY = "duration_or_period";
-
-            @Override
-            public DurationPeriodType load(final NodeSettingsRO settings) throws InvalidSettingsException {
-                var oldConfigValue = settings.getString(CONFIG_KEY);
-                try {
-                    return DurationPeriodType.getByOldConfigValue(oldConfigValue);
-                } catch (final IllegalArgumentException e) {
-                    var allowedValuesJoinedByComma = Arrays.stream(DurationPeriodType.values()) //
-                        .map(v -> v.m_oldConfigValue) //
-                        .collect(Collectors.joining(", "));
-
-                    throw new InvalidSettingsException("Invalid duration type '%s'. Allowed values are: %s"
-                        .formatted(oldConfigValue, allowedValuesJoinedByComma), e);
-                }
-            }
-
-            @Override
-            public void save(final DurationPeriodType obj, final NodeSettingsWO settings) {
-                settings.addString(CONFIG_KEY, obj.m_oldConfigValue);
-            }
-
-            @Override
-            public String[][] getConfigPaths() {
-                return new String[][]{{CONFIG_KEY}};
-            }
-        }
-    }
-
-    static final class ActionIfExtractionFailsPersistor implements NodeSettingsPersistor<ActionIfExtractionFails> {
-
-        private static final String CONFIG_KEY = "cancel_on_fail";
-
-        @Override
-        public ActionIfExtractionFails load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return settings.getBoolean(CONFIG_KEY) //
-                ? ActionIfExtractionFails.FAIL //
-                : ActionIfExtractionFails.SET_MISSING;
-        }
-
-        @Override
-        public void save(final ActionIfExtractionFails obj, final NodeSettingsWO settings) {
-            settings.addBoolean(CONFIG_KEY, obj == ActionIfExtractionFails.FAIL);
-        }
-
-        @Override
-        public String[][] getConfigPaths() {
-            return new String[][]{{CONFIG_KEY}};
-        }
-    }
-
-    static final class ColumnFilterPersistor extends LegacyColumnFilterPersistor {
-
-        ColumnFilterPersistor() {
-            super("col_select");
+        DurationPeriodType(final DataType associatedDataTypeIfApplicable) {
+            m_associatedDataTypeIfApplicable = associatedDataTypeIfApplicable;
         }
     }
 }

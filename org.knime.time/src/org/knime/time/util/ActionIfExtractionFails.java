@@ -57,7 +57,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
  * @author David Hickey, TNG Technology Consulting GmbH
  * @author Tobias Kampmann, TNG Technology Consulting GmbH
  */
-@SuppressWarnings("restriction")
+@SuppressWarnings({"restriction", "javadoc"})
 public enum ActionIfExtractionFails {
         @Label(value = "Insert missing", description = """
                 Set the output cell to missing if the string column cannot be converted to the \
@@ -69,5 +69,4 @@ public enum ActionIfExtractionFails {
                 type.
                 """)
         FAIL;
-
 }

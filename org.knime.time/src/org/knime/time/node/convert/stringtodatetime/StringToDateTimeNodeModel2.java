@@ -65,6 +65,7 @@ import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.KNIMEException;
+import org.knime.core.node.message.MessageBuilder;
 import org.knime.core.util.UniqueNameGenerator;
 import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
@@ -79,11 +80,11 @@ import org.knime.time.util.TemporalCellUtils;
  *
  * @author David Hickey, TNG Technology Consulting GmbH
  */
+@SuppressWarnings("restriction")
 final class StringToDateTimeNodeModel2 extends WebUISimpleStreamableFunctionNodeModel<StringToDateTimeNodeSettings> {
 
     /**
      * @param configuration
-     * @param modelSettingsClass
      */
     protected StringToDateTimeNodeModel2(final WebUINodeConfiguration configuration) {
         super(configuration, StringToDateTimeNodeSettings.class);
@@ -119,6 +120,8 @@ final class StringToDateTimeNodeModel2 extends WebUISimpleStreamableFunctionNode
         var targetColumnNames = modelSettings.m_columnFilter.getSelected(supportedColumns, spec);
         var targetColumnIndices = spec.columnsToIndices(targetColumnNames);
 
+        var warnings = createMessageBuilder();
+
         if (modelSettings.m_appendOrReplace == ReplaceOrAppend.APPEND) {
             var uniqueNameGenerator = new UniqueNameGenerator(spec);
 
@@ -127,7 +130,8 @@ final class StringToDateTimeNodeModel2 extends WebUISimpleStreamableFunctionNode
                 var newSpec =
                     new DataColumnSpecCreator(newName, modelSettings.m_selectedType.getDataType()).createSpec();
 
-                rearranger.append(new StringToDateTimeCellFactory(newSpec, modelSettings, targetColumnIndices[i]));
+                rearranger
+                    .append(new StringToDateTimeCellFactory(newSpec, modelSettings, targetColumnIndices[i], warnings));
             }
         } else {
             for (var i = 0; i < targetColumnNames.length; ++i) {
@@ -135,7 +139,8 @@ final class StringToDateTimeNodeModel2 extends WebUISimpleStreamableFunctionNode
                     new DataColumnSpecCreator(targetColumnNames[i], modelSettings.m_selectedType.getDataType())
                         .createSpec();
 
-                rearranger.replace(new StringToDateTimeCellFactory(newSpec, modelSettings, targetColumnIndices[i]),
+                rearranger.replace(
+                    new StringToDateTimeCellFactory(newSpec, modelSettings, targetColumnIndices[i], warnings),
                     targetColumnIndices[i]);
             }
         }
@@ -143,7 +148,7 @@ final class StringToDateTimeNodeModel2 extends WebUISimpleStreamableFunctionNode
         return rearranger;
     }
 
-    static final class StringToDateTimeCellFactory extends SingleCellFactory {
+    final class StringToDateTimeCellFactory extends SingleCellFactory {
 
         private final DateTimeFormatter m_parser;
 
@@ -155,8 +160,10 @@ final class StringToDateTimeNodeModel2 extends WebUISimpleStreamableFunctionNode
 
         private final boolean m_failOnParseError;
 
+        private final MessageBuilder m_warningListener;
+
         StringToDateTimeCellFactory(final DataColumnSpec newColSpec, final StringToDateTimeNodeSettings settings,
-            final int targetIndex) {
+            final int targetIndex, final MessageBuilder warninglistener) {
             super(newColSpec);
 
             var locale = Locale.forLanguageTag(settings.m_locale);
@@ -167,6 +174,8 @@ final class StringToDateTimeNodeModel2 extends WebUISimpleStreamableFunctionNode
             m_targetIndex = targetIndex;
 
             m_failOnParseError = settings.m_onError == ActionIfExtractionFails.FAIL;
+
+            m_warningListener = warninglistener;
         }
 
         @Override
@@ -184,12 +193,16 @@ final class StringToDateTimeNodeModel2 extends WebUISimpleStreamableFunctionNode
                     parseString(stringValue, m_parser, m_targetType) //
                 );
             } catch (DateTimeParseException ex) { // NOSONAR
+                var message = "Failed to parse string '%s' with format '%s' at row %d" //
+                    .formatted(stringValue, m_pattern, rowIndex);
+
                 if (m_failOnParseError) {
-                    var message = "Failed to parse string '%s' with format '%s' at row %d" //
-                        .formatted(stringValue, m_pattern, rowIndex);
                     throw new KNIMEException(message, ex).toUnchecked();
                 }
-                return new MissingCell(ex.getMessage());
+
+                // emit warning and return missing cell
+                m_warningListener.addRowIssue(0, m_targetIndex, rowIndex, message);
+                return new MissingCell(message);
             }
         }
 
@@ -197,6 +210,17 @@ final class StringToDateTimeNodeModel2 extends WebUISimpleStreamableFunctionNode
             final DateTimeType targetType) {
 
             return formatter.parse(str, targetType.getQuery());
+        }
+
+        @Override
+        public void afterProcessing() {
+            if (m_warningListener.getIssueCount() > 0) {
+                m_warningListener //
+                    .withSummary("%s warning%s encountered.".formatted(m_warningListener.getIssueCount(),
+                        m_warningListener.getIssueCount() == 1 ? "" : "s")) //
+                    .build() //
+                    .ifPresent(StringToDateTimeNodeModel2.this::setWarning);
+            }
         }
     }
 }

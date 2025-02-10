@@ -57,11 +57,11 @@ import org.knime.core.webui.node.impl.WebUINodeFactory;
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public final class StringToDurationPeriodNodeFactory2 extends WebUINodeFactory<StringToDurationPeriodNodeModel> {
+public final class StringToDurationPeriodNodeFactory2 extends WebUINodeFactory<StringToDurationPeriodNodeModel2> {
 
     @Override
-    public StringToDurationPeriodNodeModel createNodeModel() {
-        return new StringToDurationPeriodNodeModel();
+    public StringToDurationPeriodNodeModel2 createNodeModel() {
+        return new StringToDurationPeriodNodeModel2(CONFIGURATION);
     }
 
     private static final String DURATION_PARSE_URL =
