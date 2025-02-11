@@ -69,6 +69,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoic
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.time.util.ActionIfExtractionFails;
 import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.ReplaceOrAppend;
 
@@ -103,7 +104,7 @@ final class StringToDurationPeriodNodeSettings implements DefaultNodeSettings {
     DurationPeriodType m_durationType = DurationPeriodType.AUTO_DETECT;
 
     @Widget(title = "If extraction fails", description = "Action to take if the extraction fails.")
-    @Persistor(ActionIfExtractionFails.Persistor.class)
+    @Persistor(ActionIfExtractionFailsPersistor.class)
     @ValueSwitchWidget
     ActionIfExtractionFails m_actionIfExtractionFails = ActionIfExtractionFails.SET_MISSING;
 
@@ -182,38 +183,25 @@ final class StringToDurationPeriodNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    enum ActionIfExtractionFails {
-            @Label(value = "Fail", description = """
-                    Fail with an error if the string column cannot be converted to the specified \
-                    type.
-                    """)
-            FAIL, //
-            @Label(value = "Insert missing", description = """
-                    Set the cell to missing if the string column cannot be converted to the specified \
-                    type.
-                    """)
-            SET_MISSING; //
+    static final class ActionIfExtractionFailsPersistor implements NodeSettingsPersistor<ActionIfExtractionFails> {
 
-        static final class Persistor implements NodeSettingsPersistor<ActionIfExtractionFails> {
+        private static final String CONFIG_KEY = "cancel_on_fail";
 
-            private static final String CONFIG_KEY = "cancel_on_fail";
+        @Override
+        public ActionIfExtractionFails load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return settings.getBoolean(CONFIG_KEY) //
+                ? ActionIfExtractionFails.FAIL //
+                : ActionIfExtractionFails.SET_MISSING;
+        }
 
-            @Override
-            public ActionIfExtractionFails load(final NodeSettingsRO settings) throws InvalidSettingsException {
-                return settings.getBoolean(CONFIG_KEY) //
-                    ? FAIL //
-                    : SET_MISSING;
-            }
+        @Override
+        public void save(final ActionIfExtractionFails obj, final NodeSettingsWO settings) {
+            settings.addBoolean(CONFIG_KEY, obj == ActionIfExtractionFails.FAIL);
+        }
 
-            @Override
-            public void save(final ActionIfExtractionFails obj, final NodeSettingsWO settings) {
-                settings.addBoolean(CONFIG_KEY, obj == FAIL);
-            }
-
-            @Override
-            public String[][] getConfigPaths() {
-                return new String[][]{{CONFIG_KEY}};
-            }
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{{CONFIG_KEY}};
         }
     }
 

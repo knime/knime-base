@@ -74,8 +74,8 @@ import org.knime.core.data.time.duration.DurationCell;
 import org.knime.core.data.time.period.PeriodCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.time.node.convert.stringtodurationperiod.StringToDurationPeriodNodeSettings.ActionIfExtractionFails;
 import org.knime.time.node.convert.stringtodurationperiod.StringToDurationPeriodNodeSettings.DurationPeriodType;
+import org.knime.time.util.ActionIfExtractionFails;
 import org.knime.time.util.ReplaceOrAppend;
 
 /**
