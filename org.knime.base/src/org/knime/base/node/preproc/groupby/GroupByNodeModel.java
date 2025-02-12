@@ -487,8 +487,12 @@ public class GroupByNodeModel extends NodeModel {
             m_oldNumerical = null;
             m_oldNominal = null;
         } catch (final InvalidSettingsException e) {
-            m_oldNumerical = settings.getString(OLD_CFG_NUMERIC_COL_METHOD);
-            m_oldNominal = settings.getString(OLD_CFG_NOMINAL_COL_METHOD);
+            if (settings.containsKey(OLD_CFG_NUMERIC_COL_METHOD)) {
+                m_oldNumerical = settings.getString(OLD_CFG_NUMERIC_COL_METHOD);
+                m_oldNominal = settings.getString(OLD_CFG_NOMINAL_COL_METHOD);
+            } else {
+                throw e;
+            }
         }
         m_patternAggregators.clear();
         m_dataTypeAggregators.clear();
