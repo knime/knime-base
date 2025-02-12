@@ -890,6 +890,36 @@
         "category" : "STANDARD",
         "example" : "0001-01-01T14:00:00"
       }, {
+        "format" : "yyyy-MMM-dd HH:mm",
+        "temporalType" : "DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-Jan-01 14:00"
+      }, {
+        "format" : "yyyy-MMM-dd HH:mm:ss",
+        "temporalType" : "DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-Jan-01 14:00:00"
+      }, {
+        "format" : "yyyy-MMM-dd'T'HH:mm",
+        "temporalType" : "DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-Jan-01T14:00"
+      }, {
+        "format" : "yyyy-MMM-dd'T'HH:mm:ss",
+        "temporalType" : "DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-Jan-01T14:00:00"
+      }, {
+        "format" : "yyyy-MMM-dd;HH:mm",
+        "temporalType" : "DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-Jan-01;14:00"
+      }, {
+        "format" : "yyyy-MMM-dd;HH:mm:ss",
+        "temporalType" : "DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-Jan-01;14:00:00"
+      }, {
         "format" : "yyyy-MM-dd HH:mm",
         "temporalType" : "DATE_TIME",
         "category" : "EUROPEAN",
@@ -904,6 +934,36 @@
         "temporalType" : "DATE_TIME",
         "category" : "EUROPEAN",
         "example" : "0001-01-01 14:00:00.000"
+      }, {
+        "format" : "yyyy-MMM-dd HH:mm",
+        "temporalType" : "DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "0001-Jan-01 14:00"
+      }, {
+        "format" : "yyyy-MMM-dd HH:mm:ss",
+        "temporalType" : "DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "0001-Jan-01 14:00:00"
+      }, {
+        "format" : "yyyy-MMM-dd'T'HH:mm",
+        "temporalType" : "DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "0001-Jan-01T14:00"
+      }, {
+        "format" : "yyyy-MMM-dd'T'HH:mm:ss",
+        "temporalType" : "DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "0001-Jan-01T14:00:00"
+      }, {
+        "format" : "yyyy-MMM-dd;HH:mm",
+        "temporalType" : "DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "0001-Jan-01;14:00"
+      }, {
+        "format" : "yyyy-MMM-dd;HH:mm:ss",
+        "temporalType" : "DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "0001-Jan-01;14:00:00"
       }, {
         "format" : "dd/MM/yyyy HH:mm",
         "temporalType" : "DATE_TIME",
