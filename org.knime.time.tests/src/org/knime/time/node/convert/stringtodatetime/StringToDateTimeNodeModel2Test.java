@@ -77,8 +77,9 @@ import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat.FormatTemporalType;
 import org.knime.time.util.ActionIfExtractionFails;
-import org.knime.time.util.DateTimeType;
 import org.knime.time.util.ReplaceOrAppend;
 import org.knime.time.util.TemporalCellUtils;
 import org.mockito.Mockito;
@@ -87,13 +88,13 @@ import org.mockito.Mockito;
  *
  * @author David Hickey, TNG Technology Consulting GmbH
  */
-@SuppressWarnings("static-method")
+@SuppressWarnings({"static-method", "restriction"})
 final class StringToDateTimeNodeModel2Test {
 
     private static final String INPUT_COLUMN = "input_column";
 
-    private static final NodeModelTestRunnerUtil RUNNER = new NodeModelTestRunnerUtil(INPUT_COLUMN, "StringToDateTimeNode",
-        StringToDateTimeNodeSettings.class, StringToDateTimeNodeFactory2.class);
+    private static final NodeModelTestRunnerUtil RUNNER = new NodeModelTestRunnerUtil(INPUT_COLUMN,
+        "StringToDateTimeNode", StringToDateTimeNodeSettings.class, StringToDateTimeNodeFactory2.class);
 
     private static record TestCase<T extends TemporalAccessor>(String input, String pattern, T expected,
         Locale locale) {
@@ -121,11 +122,10 @@ final class StringToDateTimeNodeModel2Test {
     @MethodSource("provideTestCases")
     void testConvertWithReplace(final TestCase<?> testCase) throws InvalidSettingsException, IOException {
         var settings = new StringToDateTimeNodeSettings();
-        settings.m_format = testCase.pattern;
+        settings.m_format = new TemporalFormat(testCase.pattern, inferFormatTypeFromAccessor(testCase.expected));
         settings.m_appendOrReplace = ReplaceOrAppend.REPLACE;
         settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
         settings.m_locale = testCase.locale.toLanguageTag();
-        settings.m_selectedType = inferTemporalTypeFromAccessor(testCase.expected);
 
         var cellToAdd = StringCellFactory.create(testCase.input);
 
@@ -141,16 +141,14 @@ final class StringToDateTimeNodeModel2Test {
     @MethodSource("provideTestCases")
     void testConvertWithAppend(final TestCase<?> testCase) throws InvalidSettingsException, IOException {
         var settings = new StringToDateTimeNodeSettings();
-        settings.m_format = testCase.pattern;
+        settings.m_format = new TemporalFormat(testCase.pattern, inferFormatTypeFromAccessor(testCase.expected));
         settings.m_appendOrReplace = ReplaceOrAppend.APPEND;
         settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
         settings.m_locale = testCase.locale.toLanguageTag();
-        settings.m_selectedType = inferTemporalTypeFromAccessor(testCase.expected);
 
         var cellToAdd = StringCellFactory.create(testCase.input);
 
         var setup = RUNNER.setupAndExecuteWorkflow(settings, cellToAdd);
-
 
         DataCell firstCell;
         try (var it = setup.outputTable().iterator()) {
@@ -169,10 +167,9 @@ final class StringToDateTimeNodeModel2Test {
     @Test
     void checkThatZeroLengthTableReturnsZeroLengthTable() throws InvalidSettingsException, IOException {
         var settings = new StringToDateTimeNodeSettings();
-        settings.m_format = "yyyy-MM-dd";
+        settings.m_format = new TemporalFormat("yyyy-MM-dd", FormatTemporalType.DATE);
         settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
         settings.m_locale = Locale.ENGLISH.toLanguageTag();
-        settings.m_selectedType = DateTimeType.LOCAL_DATE;
 
         var testSetup = RUNNER.setupAndExecuteWorkflow(settings, null, StringCellFactory.TYPE);
 
@@ -187,8 +184,7 @@ final class StringToDateTimeNodeModel2Test {
         settings.m_appendOrReplace = ReplaceOrAppend.APPEND;
         settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
         settings.m_locale = Locale.ENGLISH.toLanguageTag();
-        settings.m_format = "X";
-        settings.m_selectedType = DateTimeType.ZONED_DATE_TIME;
+        settings.m_format = new TemporalFormat("X", FormatTemporalType.ZONED_DATE_TIME);
 
         var cellToAdd = StringCellFactory.create("-083015");
 
@@ -199,13 +195,12 @@ final class StringToDateTimeNodeModel2Test {
             staticStringHistoryManagerMock
                 .verify(() -> DateTimeFormatStringHistoryManager.addFormatToStringHistoryIfNotPresent("X"));
         }
-
     }
 
     @Test
     void checkThatInvalidFormatsFailValidation() {
         var settings = new StringToDateTimeNodeSettings();
-        settings.m_format = "invalid format";
+        settings.m_format = new TemporalFormat("invalid format", FormatTemporalType.DATE);
 
         assertThrows(InvalidSettingsException.class, () -> {
             new StringToDateTimeNodeModel2(StringToDateTimeNodeFactory2.CONFIGURATION).validateSettings(settings);
@@ -216,11 +211,10 @@ final class StringToDateTimeNodeModel2Test {
     void checkThatIncompatibleFormatsGiveMissingCellWhenFailSettingIsNotSet()
         throws InvalidSettingsException, IOException {
         var settings = new StringToDateTimeNodeSettings();
-        settings.m_format = "HH:mm:ss";
+        settings.m_format = new TemporalFormat("HH:mm:ss", FormatTemporalType.TIME);
         settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
         settings.m_locale = Locale.ENGLISH.toLanguageTag();
         settings.m_onError = ActionIfExtractionFails.SET_MISSING;
-        settings.m_selectedType = DateTimeType.LOCAL_TIME;
 
         var cellToAdd = StringCellFactory.create("2024-12-18");
         var setup = RUNNER.setupAndExecuteWorkflow(settings, cellToAdd);
@@ -234,10 +228,9 @@ final class StringToDateTimeNodeModel2Test {
     @Test
     void checkThatMissingInputGivesMissingOutput() throws InvalidSettingsException, IOException {
         var settings = new StringToDateTimeNodeSettings();
-        settings.m_format = "yyyy-MM-dd";
+        settings.m_format = new TemporalFormat("yyyy-MM-dd", FormatTemporalType.DATE);
         settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
         settings.m_locale = Locale.ENGLISH.toLanguageTag();
-        settings.m_selectedType = DateTimeType.LOCAL_DATE;
 
         var cellToAdd = new MissingCell("test error");
         var outputCell = RUNNER.setupAndExecuteWorkflow(settings, cellToAdd).firstCell();
@@ -248,7 +241,7 @@ final class StringToDateTimeNodeModel2Test {
     @Test
     void checkThatIncompatibleFormatsGiveErrorWhenFailSettingIsSet() throws InvalidSettingsException, IOException {
         var settings = new StringToDateTimeNodeSettings();
-        settings.m_format = "yyyy";
+        settings.m_format = new TemporalFormat("yyyy", FormatTemporalType.DATE);
         settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
         settings.m_locale = Locale.ENGLISH.toLanguageTag();
         settings.m_onError = ActionIfExtractionFails.FAIL;
@@ -261,15 +254,15 @@ final class StringToDateTimeNodeModel2Test {
             "Format 'yyyy' should be incompatible with provided string and give no output at all");
     }
 
-    private static DateTimeType inferTemporalTypeFromAccessor(final TemporalAccessor a) {
+    private static FormatTemporalType inferFormatTypeFromAccessor(final TemporalAccessor a) {
         if (a instanceof LocalDate) {
-            return DateTimeType.LOCAL_DATE;
+            return FormatTemporalType.DATE;
         } else if (a instanceof LocalTime) {
-            return DateTimeType.LOCAL_TIME;
+            return FormatTemporalType.TIME;
         } else if (a instanceof LocalDateTime) {
-            return DateTimeType.LOCAL_DATE_TIME;
+            return FormatTemporalType.DATE_TIME;
         } else if (a instanceof ZonedDateTime) {
-            return DateTimeType.ZONED_DATE_TIME;
+            return FormatTemporalType.ZONED_DATE_TIME;
         } else {
             throw new IllegalArgumentException("TemporalAccessor of class '%s' does not have a matching TemporalType"
                 .formatted(a.getClass().getSimpleName()));

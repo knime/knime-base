@@ -70,6 +70,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.Co
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
@@ -111,7 +112,7 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Second date&time value", description = "The source of the second date&amp;time value.")
     @ValueReference(SecondDateTimeValueRef.class)
     @Layout(DifferencingSettingsSection.class)
-    @ValueSwitchWidget
+    @RadioButtonsWidget
     SecondDateTimeValueType m_secondDateTimeValueType = SecondDateTimeValueType.COLUMN;
 
     @Widget(title = "Second date&time column", description = """

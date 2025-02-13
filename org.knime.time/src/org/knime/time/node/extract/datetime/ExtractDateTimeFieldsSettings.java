@@ -64,7 +64,6 @@ import org.knime.core.data.time.localtime.LocalTimeValue;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
@@ -110,10 +109,6 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
             .orElse(null);
     }
 
-    @Section(title = "Column selection")
-    interface ColumnSection {
-    }
-
     static final class SelectedColumnRef implements Reference<String> {
     }
 
@@ -121,18 +116,12 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
 
         private Supplier<String> m_valueSupplier;
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public void init(final StateProviderInitializer initializer) {
             initializer.computeAfterOpenDialog();
             m_valueSupplier = initializer.getValueSupplier(SelectedColumnRef.class);
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public String computeState(final DefaultNodeSettingsContext context) {
             if (m_valueSupplier.get() == null || m_valueSupplier.get().isEmpty()) {
@@ -142,20 +131,16 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
         }
     }
 
-    @Widget(title = "Date&Time column",
+    @Widget(title = "Date&time column",
         description = "A Local Date, Local Time, Local Date Time or "
             + "Zoned Date Time column whose fields to extract.")
     @Persist(configKey = "col_select")
     @ChoicesWidget(choices = DateTimeColumnChoices.class)
-    @Layout(ColumnSection.class)
     @ValueReference(SelectedColumnRef.class)
     @ValueProvider(AutoGuessColumnValueProvider.class)
     public String m_selectedColumn;
 
     @Section(title = "Date and time fields")
-    @After(ColumnSection.class)
-    interface DateTimeFieldsSection {
-    }
 
     static final class DefaultExtractFieldProvider implements StateProvider<ExtractField> {
 
@@ -180,20 +165,13 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
     @Migration(DateTimeFieldsMigration.class)
     @ArrayWidget(addButtonText = "Add field", showSortButtons = true,
         elementDefaultValueProvider = DefaultExtractFieldProvider.class)
-    @Layout(DateTimeFieldsSection.class)
     public ExtractField[] m_extractFields = new ExtractField[0];
-
-    @Section(title = "Localization (month and day names, etc.)")
-    @After(DateTimeFieldsSection.class)
-    interface LocaleSection {
-    }
 
     @Widget(title = "Locale",
         description = "The locale that governs the localization of output strings "
             + "(month, day of week, time zone offset) and takes care of local calendrical characteristics "
             + "(week and day of week numbering).")
     @ChoicesWidget(choices = LocaleChoices.class)
-    @Layout(LocaleSection.class)
     public String m_locale = getDefaultLocale().toLanguageTag();
 
     /**

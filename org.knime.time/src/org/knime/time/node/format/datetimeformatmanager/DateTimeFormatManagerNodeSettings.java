@@ -79,7 +79,7 @@ final class DateTimeFormatManagerNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    @Widget(title = "Date&Time columns", description = "Only the included columns will be converted.")
+    @Widget(title = "Date&time columns", description = "Only the included columns will be converted.")
     @ChoicesWidget(choices = DateTimeUtils.DateTimeColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
@@ -91,7 +91,7 @@ final class DateTimeFormatManagerNodeSettings implements DefaultNodeSettings {
     @ChoicesWidget(choicesProvider = LocaleStateProvider.class)
     String m_locale = Locale.ENGLISH.toLanguageTag();
 
-    @Widget(title = "Date&Time format", description = """
+    @Widget(title = "Date&time format", description = """
             A format string (defined by <a href="
             """ + ComprehensiveDateTimeFormatProvider.LINK_TO_FORMAT_JAVADOC + """
             ">DateTimeFormatter</a>).
@@ -113,8 +113,8 @@ final class DateTimeFormatManagerNodeSettings implements DefaultNodeSettings {
     String m_format = "yyyy-MM-dd HH:mm:ss";
 
     @Widget(title = "Alignment suggestion", description = """
-            To be considered by views like the Table View and Tile View, \
-            and for Spreadsheet export.
+            Position value horizontally in compatible views like the \
+            Table View.
             """)
     @ValueSwitchWidget
     AlignmentSuggestionOption m_alignmentSuggestion = AlignmentSuggestionOption.LEFT;

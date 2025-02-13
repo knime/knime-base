@@ -56,14 +56,12 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.StringValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat.FormatTemporalType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatTemporalType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
@@ -79,7 +77,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.time.util.ActionIfExtractionFails;
-import org.knime.time.util.DateTimeType;
 import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.LocaleStateProvider;
 import org.knime.time.util.ReplaceOrAppend;
@@ -101,27 +98,16 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    @Widget(title = "Date&time columns", description = "Only the included columns will be converted.")
+    @Widget(title = "String columns", description = "Only the included columns will be converted.")
     @ChoicesWidget(choices = StringColumnChoicesProvider.class)
     @ValueReference(ColumnFilterValueRef.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
-
-    @Section(title = "Type and format")
-    interface TypeFormatSection {
-    }
-
-    @Widget(title = "Type", description = "The type of the output column.")
-    @Layout(TypeFormatSection.class)
-    @ValueSwitchWidget
-    @ValueReference(DateTimeType.Ref.class)
-    DateTimeType m_selectedType = DateTimeType.LOCAL_DATE;
 
     @Widget(title = "Locale", description = """
             A locale can be chosen, which determines the language \
             and geographic region for terms such as months or weekdays.
             """)
     @ChoicesWidget(choicesProvider = LocaleStateProvider.class)
-    @Layout(TypeFormatSection.class)
     String m_locale = Locale.getDefault().toLanguageTag();
 
     @Widget(title = "Input format", description = """
@@ -141,19 +127,17 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
             </ul>
             <b>Supported placeholders in the pattern are:</b>
             """ + ComprehensiveDateTimeFormatProvider.DATE_FORMAT_LIST_FOR_DOCS)
-    @Layout(TypeFormatSection.class)
     @DateTimeFormatPickerWidget
     @ValueProvider(FormatStateProvider.class)
-    String m_format = "yyyy-MM-dd";
+    TemporalFormat m_format = new TemporalFormat("yyyy-MM-dd", FormatTemporalType.DATE);
 
-    @Layout(TypeFormatSection.class)
     @Widget(title = "Auto-guess format", description = """
             <p>
               Try to guess the format of the selected column and set the format accordingly.
             </p>
             <p>
               This is done by checking the first
-            """ + FormatStateProvider.NUMBER_OF_ROWS_TO_CHECK + """
+            """ + NUMBER_OF_ROWS_TO_CHECK + """
               non-missing rows of the first selected \
               column and trying to find a suitable format that can parse every entry. If no \
               suitable format is found, the format will be set to an empty string.
@@ -163,10 +147,12 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
     @Effect(predicate = InputTableIsAvailable.class, type = EffectType.ENABLE)
     Void m_autoGuessFormat;
 
-    @Section(title = "Output")
-    @After(TypeFormatSection.class)
-    interface OutputSection {
-    }
+    @Widget(title = "If extraction fails", description = """
+            If set to 'Fail', the node will abort the execution and fail on errors. \
+            Otherwise, missing values will be generated instead.
+            """)
+    @ValueSwitchWidget
+    ActionIfExtractionFails m_onError = ActionIfExtractionFails.SET_MISSING;
 
     @Widget(title = "Output columns", description = """
             Depending on the selection, the selected columns will be replaced \
@@ -174,21 +160,11 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
             """)
     @ValueSwitchWidget
     @ValueReference(ReplaceOrAppend.ValueRef.class)
-    @Layout(OutputSection.class)
     ReplaceOrAppend m_appendOrReplace = ReplaceOrAppend.REPLACE;
 
     @Widget(title = "Output column suffix", description = "The selected columns will be appended to the input table.")
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
-    @Layout(OutputSection.class)
     String m_outputColumnSuffix = " (Date&time)";
-
-    @Widget(title = "If extraction fails", description = """
-            If set to 'Fail', the node will abort the execution and fail on errors. \
-            Otherwise, missing values will be generated instead.
-            """)
-    @ValueSwitchWidget
-    @Layout(OutputSection.class)
-    ActionIfExtractionFails m_onError = ActionIfExtractionFails.SET_MISSING;
 
     static final class ColumnFilterValueRef implements Reference<ColumnFilter> {
     }
@@ -196,74 +172,22 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
     static final class AutoGuessFormatButtonRef implements ButtonReference {
     }
 
-    static final class FormatStateProvider implements StateProvider<String> {
-
-        private static final int NUMBER_OF_ROWS_TO_CHECK = 1000;
+    static final class FormatStateProvider implements StateProvider<TemporalFormat> {
 
         private Supplier<ColumnFilter> m_selectedColumns;
-
-        private Supplier<DateTimeType> m_currentlySelectedType;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
             initializer.computeOnButtonClick(AutoGuessFormatButtonRef.class);
 
             m_selectedColumns = initializer.getValueSupplier(ColumnFilterValueRef.class);
-            m_currentlySelectedType = initializer.getValueSupplier(DateTimeType.Ref.class);
         }
 
         @Override
-        public String computeState(final DefaultNodeSettingsContext context) {
-            var inputTable = context.getDataTable(0);
-            var inputTableSpec = context.getDataTableSpec(0);
+        public TemporalFormat computeState(final DefaultNodeSettingsContext context) {
+            var guessedFormat = autoGuessFormat(context, m_selectedColumns);
 
-            if (inputTable.isEmpty() || inputTableSpec.isEmpty()) {
-                // This shouldn't happen because we disable the button in this case.
-                throw new WidgetHandlerException("Could not guess a format because there is no available input table.");
-            }
-
-            // now get the first selected col
-            var selectedCols = m_selectedColumns.get().getSelected(inputTableSpec.get().stream() //
-                .filter(FormatStateProvider::isStringCompatible) //
-                .map(DataColumnSpec::getName) //
-                .toArray(String[]::new), inputTableSpec.get());
-
-            if (selectedCols.length == 0) {
-                throw new WidgetHandlerException("Could not guess a format because there are no selected columns.");
-            }
-
-            // now let's get the first few non-missing rows from the first selected column
-            var columnIndex = inputTableSpec.get().findColumnIndex(selectedCols[0]);
-            var rowData = StreamSupport.stream(inputTable.get().spliterator(), false) //
-                .map(row -> row.getCell(columnIndex)) //
-                .filter(cell -> !cell.isMissing()) //
-                .limit(NUMBER_OF_ROWS_TO_CHECK) //
-                .map(StringValue.class::cast) //
-                .map(StringValue::getStringValue) //
-                .toList();
-
-            if (rowData.isEmpty()) {
-                throw new WidgetHandlerException(
-                    "Could not guess a format because there are no non-missing rows in the first selected column.");
-            }
-
-            var bestGuessFormat =
-                ComprehensiveDateTimeFormatProvider.bestFormatGuess(rowData, switch (m_currentlySelectedType.get()) {
-                    case LOCAL_DATE -> FormatTemporalType.DATE;
-                    case LOCAL_TIME -> FormatTemporalType.TIME;
-                    case LOCAL_DATE_TIME -> FormatTemporalType.DATE_TIME;
-                    case ZONED_DATE_TIME -> FormatTemporalType.ZONED_DATE_TIME;
-                }, DateTimeFormatStringHistoryManager.getRecentFormats());
-
-            return bestGuessFormat.orElseThrow(() -> new WidgetHandlerException("""
-                    Could not guess a format because no common format matched the first \
-                    %s non-missing rows of the first selected column. Try selecting a different \
-                    type or column, or input a format manually.
-                    """.formatted(NUMBER_OF_ROWS_TO_CHECK)));
-        }
-
-        private static boolean isStringCompatible(final DataColumnSpec cspec) {
-            return cspec.getType().isCompatible(StringValue.class);
+            return new TemporalFormat(guessedFormat.format(), guessedFormat.temporalType());
         }
     }
 
@@ -274,5 +198,58 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
             return i.getConstant(
                 context -> context.getInputPortObjects().length > 0 && context.getDataTable(0).isPresent());
         }
+    }
+
+    private static final int NUMBER_OF_ROWS_TO_CHECK = 1000;
+
+    static TemporalFormat autoGuessFormat(final DefaultNodeSettingsContext context,
+        final Supplier<ColumnFilter> selectedColumns) {
+        var inputTable = context.getDataTable(0);
+        var inputTableSpec = context.getDataTableSpec(0);
+
+        if (inputTable.isEmpty() || inputTableSpec.isEmpty()) {
+            // This shouldn't happen because we disable the button in this case.
+            throw new WidgetHandlerException("Could not guess a format because there is no available input table.");
+        }
+
+        // now get the first selected col
+        var selectedCols = selectedColumns.get().getSelected(inputTableSpec.get().stream() //
+            .filter(StringToDateTimeNodeSettings::isStringCompatible) //
+            .map(DataColumnSpec::getName) //
+            .toArray(String[]::new), inputTableSpec.get());
+
+        if (selectedCols.length == 0) {
+            throw new WidgetHandlerException("Could not guess a format because there are no selected columns.");
+        }
+
+        // now let's get the first few non-missing rows from the first selected column
+        var columnIndex = inputTableSpec.get().findColumnIndex(selectedCols[0]);
+        var rowData = StreamSupport.stream(inputTable.get().spliterator(), false) //
+            .map(row -> row.getCell(columnIndex)) //
+            .filter(cell -> !cell.isMissing()) //
+            .limit(NUMBER_OF_ROWS_TO_CHECK) //
+            .map(StringValue.class::cast) //
+            .map(StringValue::getStringValue) //
+            .toList();
+
+        if (rowData.isEmpty()) {
+            throw new WidgetHandlerException(
+                "Could not guess a format because there are no non-missing rows in the first selected column.");
+        }
+
+        var bestGuessFormat = ComprehensiveDateTimeFormatProvider.bestFormatGuess(rowData, null,
+            DateTimeFormatStringHistoryManager.getRecentFormats());
+
+        var guess = bestGuessFormat.orElseThrow(() -> new WidgetHandlerException("""
+                Could not guess a format because no common format matched the first \
+                %s non-missing rows of the first selected column. Try selecting a different \
+                type or column, or input a format manually.
+                """.formatted(NUMBER_OF_ROWS_TO_CHECK)));
+
+        return new TemporalFormat(guess.format(), guess.temporalType());
+    }
+
+    private static boolean isStringCompatible(final DataColumnSpec cspec) {
+        return cspec.getType().isCompatible(StringValue.class);
     }
 }

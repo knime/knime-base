@@ -59,19 +59,24 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
 import org.knime.core.data.MissingCell;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
+import org.knime.core.data.time.localdate.LocalDateCellFactory;
+import org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory;
+import org.knime.core.data.time.localtime.LocalTimeCellFactory;
+import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFactory;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.KNIMEException;
 import org.knime.core.node.message.MessageBuilder;
 import org.knime.core.util.UniqueNameGenerator;
 import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat.FormatTemporalType;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 import org.knime.time.util.ActionIfExtractionFails;
-import org.knime.time.util.DateTimeType;
 import org.knime.time.util.ReplaceOrAppend;
 import org.knime.time.util.TemporalCellUtils;
 
@@ -92,12 +97,12 @@ final class StringToDateTimeNodeModel2 extends WebUISimpleStreamableFunctionNode
 
     @Override
     protected void validateSettings(final StringToDateTimeNodeSettings settings) throws InvalidSettingsException {
-        if (settings.m_format == null || settings.m_format.isBlank()) {
+        if (settings.m_format == null || settings.m_format.format().isBlank()) {
             throw new InvalidSettingsException("Date&Time format must not be empty.");
         }
 
         try {
-            DateTimeFormatter.ofPattern(settings.m_format);
+            DateTimeFormatter.ofPattern(settings.m_format.format());
         } catch (IllegalArgumentException ex) {
             throw new InvalidSettingsException(
                 "Invalid date time format '%s'. Reason: %s".formatted(settings.m_format, ex.getMessage()), ex);
@@ -108,7 +113,7 @@ final class StringToDateTimeNodeModel2 extends WebUISimpleStreamableFunctionNode
     protected ColumnRearranger createColumnRearranger(final DataTableSpec spec,
         final StringToDateTimeNodeSettings modelSettings) throws InvalidSettingsException {
 
-        DateTimeFormatStringHistoryManager.addFormatToStringHistoryIfNotPresent(modelSettings.m_format);
+        DateTimeFormatStringHistoryManager.addFormatToStringHistoryIfNotPresent(modelSettings.m_format.format());
 
         var rearranger = new ColumnRearranger(spec);
 
@@ -128,16 +133,16 @@ final class StringToDateTimeNodeModel2 extends WebUISimpleStreamableFunctionNode
             for (var i = 0; i < targetColumnNames.length; ++i) {
                 var newName = uniqueNameGenerator.newName(targetColumnNames[i] + modelSettings.m_outputColumnSuffix);
                 var newSpec =
-                    new DataColumnSpecCreator(newName, modelSettings.m_selectedType.getDataType()).createSpec();
+                    new DataColumnSpecCreator(newName, fromFormatTemporalType(modelSettings.m_format.temporalType()))
+                        .createSpec();
 
                 rearranger
                     .append(new StringToDateTimeCellFactory(newSpec, modelSettings, targetColumnIndices[i], warnings));
             }
         } else {
             for (var i = 0; i < targetColumnNames.length; ++i) {
-                var newSpec =
-                    new DataColumnSpecCreator(targetColumnNames[i], modelSettings.m_selectedType.getDataType())
-                        .createSpec();
+                var newSpec = new DataColumnSpecCreator(targetColumnNames[i],
+                    fromFormatTemporalType(modelSettings.m_format.temporalType())).createSpec();
 
                 rearranger.replace(
                     new StringToDateTimeCellFactory(newSpec, modelSettings, targetColumnIndices[i], warnings),
@@ -154,7 +159,7 @@ final class StringToDateTimeNodeModel2 extends WebUISimpleStreamableFunctionNode
 
         private final String m_pattern;
 
-        private final DateTimeType m_targetType;
+        private final FormatTemporalType m_targetType;
 
         private final int m_targetIndex;
 
@@ -167,10 +172,10 @@ final class StringToDateTimeNodeModel2 extends WebUISimpleStreamableFunctionNode
             super(newColSpec);
 
             var locale = Locale.forLanguageTag(settings.m_locale);
-            m_parser = DateTimeFormatter.ofPattern(settings.m_format, locale) //
+            m_parser = DateTimeFormatter.ofPattern(settings.m_format.format(), locale) //
                 .withChronology((Chronology.ofLocale(locale)));
-            m_pattern = settings.m_format;
-            m_targetType = settings.m_selectedType;
+            m_pattern = settings.m_format.format();
+            m_targetType = settings.m_format.temporalType();
             m_targetIndex = targetIndex;
 
             m_failOnParseError = settings.m_onError == ActionIfExtractionFails.FAIL;
@@ -207,9 +212,9 @@ final class StringToDateTimeNodeModel2 extends WebUISimpleStreamableFunctionNode
         }
 
         private static TemporalAccessor parseString(final String str, final DateTimeFormatter formatter,
-            final DateTimeType targetType) {
+            final FormatTemporalType targetType) {
 
-            return formatter.parse(str, targetType.getQuery());
+            return formatter.parse(str, targetType.associatedQuery());
         }
 
         @Override
@@ -222,5 +227,14 @@ final class StringToDateTimeNodeModel2 extends WebUISimpleStreamableFunctionNode
                     .ifPresent(StringToDateTimeNodeModel2.this::setWarning);
             }
         }
+    }
+
+    private static DataType fromFormatTemporalType(final FormatTemporalType t) {
+        return switch (t) {
+            case DATE -> LocalDateCellFactory.TYPE;
+            case TIME -> LocalTimeCellFactory.TYPE;
+            case DATE_TIME -> LocalDateTimeCellFactory.TYPE;
+            case ZONED_DATE_TIME -> ZonedDateTimeCellFactory.TYPE;
+        };
     }
 }
