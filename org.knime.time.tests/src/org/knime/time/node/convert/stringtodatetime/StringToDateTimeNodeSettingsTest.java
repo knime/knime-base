@@ -82,12 +82,13 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat.FormatTemporalType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 import org.knime.testing.node.dialog.updates.DialogUpdateSimulator;
 import org.knime.testing.util.TableTestUtil;
-import org.knime.time.util.DateTimeType;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -157,8 +158,7 @@ final class StringToDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshot
             new PortObject[]{inputTable});
 
         var settings = new StringToDateTimeNodeSettings();
-        settings.m_selectedType = DateTimeType.LOCAL_DATE_TIME;
-        settings.m_format = "";
+        settings.m_format = new TemporalFormat("", FormatTemporalType.DATE_TIME);
         settings.m_columnFilter = new ColumnFilter(new String[]{"datetimes"});
 
         var sim = new DialogUpdateSimulator(Map.of( //
@@ -167,7 +167,7 @@ final class StringToDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshot
 
         var result = sim.simulateButtonClick(StringToDateTimeNodeSettings.AutoGuessFormatButtonRef.class);
 
-        assertEquals("yyyy-MM-dd HH:mm", result.getValueUpdateAt("format"));
+        assertEqualFormats("yyyy-MM-dd HH:mm", result.getValueUpdateAt("format"));
     }
 
     @Test
@@ -182,8 +182,7 @@ final class StringToDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshot
             new PortObject[]{inputTable});
 
         var settings = new StringToDateTimeNodeSettings();
-        settings.m_selectedType = DateTimeType.LOCAL_DATE_TIME;
-        settings.m_format = "";
+        settings.m_format = new TemporalFormat("", FormatTemporalType.DATE_TIME);
         settings.m_columnFilter = new ColumnFilter();
 
         var sim = new DialogUpdateSimulator(Map.of( //
@@ -210,8 +209,7 @@ final class StringToDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshot
             new PortObject[]{inputTable});
 
         var settings = new StringToDateTimeNodeSettings();
-        settings.m_selectedType = DateTimeType.LOCAL_DATE_TIME;
-        settings.m_format = "";
+        settings.m_format = new TemporalFormat("", FormatTemporalType.DATE_TIME);
         settings.m_columnFilter = new ColumnFilter(new String[]{"datetimes"});
 
         var sim = new DialogUpdateSimulator(Map.of( //
@@ -235,8 +233,7 @@ final class StringToDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshot
             new PortObject[]{inputTable});
 
         var settings = new StringToDateTimeNodeSettings();
-        settings.m_selectedType = DateTimeType.LOCAL_DATE_TIME;
-        settings.m_format = "";
+        settings.m_format = new TemporalFormat("", FormatTemporalType.DATE_TIME);
         settings.m_columnFilter = new ColumnFilter(new String[]{"datetimes"});
 
         var sim = new DialogUpdateSimulator(Map.of( //
@@ -260,8 +257,7 @@ final class StringToDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshot
             new PortObject[]{inputTable});
 
         var settings = new StringToDateTimeNodeSettings();
-        settings.m_selectedType = DateTimeType.LOCAL_DATE_TIME;
-        settings.m_format = "";
+        settings.m_format = new TemporalFormat("", FormatTemporalType.DATE_TIME);
         settings.m_columnFilter = new ColumnFilter(new String[]{"datetimes"});
 
         var sim = new DialogUpdateSimulator(Map.of( //
@@ -306,4 +302,8 @@ final class StringToDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshot
         return thrown;
     }
 
+    static void assertEqualFormats(final String expectedFormat, final Object actual) {
+        assertTrue(actual instanceof TemporalFormat, "Expected TemporalFormat but was %s".formatted(actual.getClass()));
+        assertEquals(expectedFormat, ((TemporalFormat)actual).format());
+    }
 }

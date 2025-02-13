@@ -107,7 +107,9 @@ public class ExtractDurationPeriodFieldsNodeModel2
         String selectedColumnName = modelSettings.m_selectedColumn;
         int selectedColumnIndex = spec.findColumnIndex(selectedColumnName);
 
-        if (selectedColumnIndex == -1) {
+        // on initial configure, before dialogue first opens, the selected column will probably not exist,
+        // so only warn if the column is selected but does not exist.
+        if (selectedColumnIndex == -1 && selectedColumnName != null) {
             throw new InvalidSettingsException("The selected input column '%s' does not exist in the input table." //
                 .formatted(selectedColumnName));
         }

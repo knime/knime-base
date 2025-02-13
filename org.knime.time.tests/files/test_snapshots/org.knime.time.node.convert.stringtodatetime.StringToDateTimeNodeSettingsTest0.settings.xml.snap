@@ -2,7 +2,8 @@
 <config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
     <config key="columnFilter">
         <config key="selected_Internals">
-            <entry key="array-size" type="xint" value="0"/>
+            <entry key="array-size" type="xint" value="1"/>
+            <entry key="0" type="xstring" value="column5"/>
         </config>
         <entry key="mode" type="xstring" value="MANUAL"/>
         <config key="patternFilter">
@@ -12,10 +13,15 @@
         </config>
         <config key="manualFilter">
             <config key="manuallySelected">
-                <entry key="array-size" type="xint" value="0"/>
+                <entry key="array-size" type="xint" value="1"/>
+                <entry key="0" type="xstring" value="column5"/>
             </config>
             <config key="manuallyDeselected">
-                <entry key="array-size" type="xint" value="0"/>
+                <entry key="array-size" type="xint" value="4"/>
+                <entry key="0" type="xstring" value="column1"/>
+                <entry key="1" type="xstring" value="column2"/>
+                <entry key="2" type="xstring" value="column3"/>
+                <entry key="3" type="xstring" value="column4"/>
             </config>
             <entry key="includeUnknownColumns" type="xboolean" value="false"/>
         </config>
@@ -25,10 +31,12 @@
             </config>
         </config>
     </config>
-    <entry key="selectedType" type="xstring" value="LOCAL_DATE"/>
     <entry key="locale" type="xstring" value="en-US"/>
-    <entry key="format" type="xstring" value="yyyy-MM-dd HH:mm:ss"/>
-    <entry key="appendOrReplace" type="xstring" value="REPLACE"/>
-    <entry key="outputColumnSuffix" type="xstring" value=" (Date&amp;Time)"/>
+    <config key="format">
+        <entry key="format" type="xstring" value="yyyy-MM-dd"/>
+        <entry key="temporalType" type="xstring" value="DATE"/>
+    </config>
     <entry key="onError" type="xstring" value="SET_MISSING"/>
+    <entry key="appendOrReplace" type="xstring" value="REPLACE"/>
+    <entry key="outputColumnSuffix" type="xstring" value=" (Date&amp;time)"/>
 </config>
