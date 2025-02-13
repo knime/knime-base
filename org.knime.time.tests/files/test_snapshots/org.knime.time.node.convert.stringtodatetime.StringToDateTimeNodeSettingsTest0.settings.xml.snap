@@ -28,7 +28,7 @@
     <entry key="selectedType" type="xstring" value="LOCAL_DATE"/>
     <entry key="locale" type="xstring" value="en-US"/>
     <entry key="format" type="xstring" value="yyyy-MM-dd HH:mm:ss"/>
+    <entry key="onError" type="xstring" value="SET_MISSING"/>
     <entry key="appendOrReplace" type="xstring" value="REPLACE"/>
     <entry key="outputColumnSuffix" type="xstring" value=" (Date&amp;Time)"/>
-    <entry key="onError" type="xstring" value="SET_MISSING"/>
 </config>

@@ -22,9 +22,9 @@
       "selectedType" : "LOCAL_DATE",
       "locale" : "en-US",
       "format" : "yyyy-MM-dd HH:mm:ss",
+      "onError" : "SET_MISSING",
       "appendOrReplace" : "REPLACE",
-      "outputColumnSuffix" : " (Date&Time)",
-      "onError" : "SET_MISSING"
+      "outputColumnSuffix" : " (Date&Time)"
     }
   },
   "schema" : {
@@ -156,7 +156,7 @@
                 }
               }
             },
-            "title" : "Date&time columns",
+            "title" : "String columns",
             "description" : "Only the included columns will be converted.",
             "default" : {
               "selected" : [ "test" ],
@@ -250,78 +250,70 @@
         "showMode" : true
       }
     }, {
-      "label" : "Type and format",
-      "type" : "Section",
-      "elements" : [ {
-        "type" : "Control",
-        "scope" : "#/properties/model/properties/selectedType",
-        "options" : {
-          "format" : "valueSwitch"
-        }
-      }, {
-        "type" : "Control",
-        "scope" : "#/properties/model/properties/locale",
-        "options" : {
-          "choicesProvider" : "org.knime.time.util.LocaleStateProvider",
-          "format" : "dropDown",
-          "showNoneColumn" : false,
-          "showRowKeys" : false,
-          "showSearch" : true,
-          "showMode" : true
-        }
-      }, {
-        "type" : "Control",
-        "scope" : "#/properties/model/properties/format",
-        "options" : {
-          "format" : "dateTimeFormat",
-          "formatProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider"
-        }
-      }, {
-        "type" : "Control",
-        "scope" : "#/properties/model/properties/autoGuessFormat",
-        "options" : {
-          "format" : "simpleButton",
-          "triggerId" : "org.knime.time.node.convert.stringtodatetime.StringToDateTimeNodeSettings$AutoGuessFormatButtonRef"
-        },
-        "rule" : {
-          "effect" : "ENABLE",
-          "condition" : {
-            "schema" : {
-              "not" : { }
-            }
-          }
-        }
-      } ]
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/selectedType",
+      "options" : {
+        "format" : "valueSwitch"
+      }
     }, {
-      "label" : "Output",
-      "type" : "Section",
-      "elements" : [ {
-        "type" : "Control",
-        "scope" : "#/properties/model/properties/appendOrReplace",
-        "options" : {
-          "format" : "valueSwitch"
-        }
-      }, {
-        "type" : "Control",
-        "scope" : "#/properties/model/properties/outputColumnSuffix",
-        "rule" : {
-          "effect" : "SHOW",
-          "condition" : {
-            "scope" : "#/properties/model/properties/appendOrReplace",
-            "schema" : {
-              "oneOf" : [ {
-                "const" : "APPEND"
-              } ]
-            }
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/locale",
+      "options" : {
+        "choicesProvider" : "org.knime.time.util.LocaleStateProvider",
+        "format" : "dropDown",
+        "showNoneColumn" : false,
+        "showRowKeys" : false,
+        "showSearch" : true,
+        "showMode" : true
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/format",
+      "options" : {
+        "format" : "dateTimeFormat",
+        "formatProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/autoGuessFormat",
+      "options" : {
+        "format" : "simpleButton",
+        "triggerId" : "org.knime.time.node.convert.stringtodatetime.StringToDateTimeNodeSettings$AutoGuessFormatButtonRef"
+      },
+      "rule" : {
+        "effect" : "ENABLE",
+        "condition" : {
+          "schema" : {
+            "not" : { }
           }
         }
-      }, {
-        "type" : "Control",
-        "scope" : "#/properties/model/properties/onError",
-        "options" : {
-          "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/onError",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/appendOrReplace",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/outputColumnSuffix",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/appendOrReplace",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "APPEND"
+            } ]
+          }
         }
-      } ]
+      }
     } ]
   },
   "persist" : {
@@ -368,9 +360,9 @@
           "locale" : { },
           "format" : { },
           "autoGuessFormat" : { },
+          "onError" : { },
           "appendOrReplace" : { },
-          "outputColumnSuffix" : { },
-          "onError" : { }
+          "outputColumnSuffix" : { }
         }
       }
     }
