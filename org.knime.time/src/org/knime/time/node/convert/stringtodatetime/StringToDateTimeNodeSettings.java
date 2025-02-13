@@ -56,9 +56,6 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.StringValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider;
@@ -101,17 +98,12 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    @Widget(title = "Date&time columns", description = "Only the included columns will be converted.")
+    @Widget(title = "String columns", description = "Only the included columns will be converted.")
     @ChoicesWidget(choices = StringColumnChoicesProvider.class)
     @ValueReference(ColumnFilterValueRef.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
-    @Section(title = "Type and format")
-    interface TypeFormatSection {
-    }
-
     @Widget(title = "Type", description = "The type of the output column.")
-    @Layout(TypeFormatSection.class)
     @ValueSwitchWidget
     @ValueReference(DateTimeType.Ref.class)
     DateTimeType m_selectedType = DateTimeType.LOCAL_DATE;
@@ -121,7 +113,6 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
             and geographic region for terms such as months or weekdays.
             """)
     @ChoicesWidget(choicesProvider = LocaleStateProvider.class)
-    @Layout(TypeFormatSection.class)
     String m_locale = Locale.getDefault().toLanguageTag();
 
     @Widget(title = "Input format", description = """
@@ -141,12 +132,10 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
             </ul>
             <b>Supported placeholders in the pattern are:</b>
             """ + ComprehensiveDateTimeFormatProvider.DATE_FORMAT_LIST_FOR_DOCS)
-    @Layout(TypeFormatSection.class)
     @DateTimeFormatPickerWidget
     @ValueProvider(FormatStateProvider.class)
     String m_format = "yyyy-MM-dd";
 
-    @Layout(TypeFormatSection.class)
     @Widget(title = "Auto-guess format", description = """
             <p>
               Try to guess the format of the selected column and set the format accordingly.
@@ -163,10 +152,12 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
     @Effect(predicate = InputTableIsAvailable.class, type = EffectType.ENABLE)
     Void m_autoGuessFormat;
 
-    @Section(title = "Output")
-    @After(TypeFormatSection.class)
-    interface OutputSection {
-    }
+    @Widget(title = "If extraction fails", description = """
+            If set to 'Fail', the node will abort the execution and fail on errors. \
+            Otherwise, missing values will be generated instead.
+            """)
+    @ValueSwitchWidget
+    ActionIfExtractionFails m_onError = ActionIfExtractionFails.SET_MISSING;
 
     @Widget(title = "Output columns", description = """
             Depending on the selection, the selected columns will be replaced \
@@ -174,21 +165,11 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
             """)
     @ValueSwitchWidget
     @ValueReference(ReplaceOrAppend.ValueRef.class)
-    @Layout(OutputSection.class)
     ReplaceOrAppend m_appendOrReplace = ReplaceOrAppend.REPLACE;
 
     @Widget(title = "Output column suffix", description = "The selected columns will be appended to the input table.")
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
-    @Layout(OutputSection.class)
     String m_outputColumnSuffix = " (Date&time)";
-
-    @Widget(title = "If extraction fails", description = """
-            If set to 'Fail', the node will abort the execution and fail on errors. \
-            Otherwise, missing values will be generated instead.
-            """)
-    @ValueSwitchWidget
-    @Layout(OutputSection.class)
-    ActionIfExtractionFails m_onError = ActionIfExtractionFails.SET_MISSING;
 
     static final class ColumnFilterValueRef implements Reference<ColumnFilter> {
     }
