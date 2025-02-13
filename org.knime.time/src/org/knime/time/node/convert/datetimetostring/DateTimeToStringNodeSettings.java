@@ -102,7 +102,7 @@ final class DateTimeToStringNodeSettings implements DefaultNodeSettings {
             </ul>
             <b>Supported placeholders in the pattern are:</b>
             """ + ComprehensiveDateTimeFormatProvider.DATE_FORMAT_LIST_FOR_DOCS)
-    @DateTimeFormatPickerWidget()
+    @DateTimeFormatPickerWidget
     String m_format = "yyyy-MM-dd HH:mm:ss";
 
     @Widget(title = "Output columns", description = """

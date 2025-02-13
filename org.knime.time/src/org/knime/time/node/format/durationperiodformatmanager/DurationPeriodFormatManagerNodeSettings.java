@@ -82,7 +82,7 @@ final class DurationPeriodFormatManagerNodeSettings implements DefaultNodeSettin
         }
     }
 
-    @Widget(title = "Duration/Period columns", description = "Only the included columns will receive a formatter.")
+    @Widget(title = "Duration columns", description = "Only the included columns will receive a formatter.")
     @ChoicesWidget(choices = DateTimeUtils.IntervalColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
@@ -91,7 +91,7 @@ final class DurationPeriodFormatManagerNodeSettings implements DefaultNodeSettin
     DurationPeriodStringFormat m_format = DurationPeriodStringFormat.ISO;
 
     @Widget(title = "Alignment suggestion",
-        description = "To be considered by views like Table View, Tile View, and for Spreadsheet export.")
+        description = "Position value horizontally in compatible views like the Table View.")
     @ValueSwitchWidget
     AlignmentSuggestionOption m_alignment = AlignmentSuggestionOption.RIGHT;
 }
