@@ -44,254 +44,120 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   06.04.2021 (jl): created
+ *   Feb 17, 2025 (david): created
  */
 package org.knime.base.node.io.variablecreator;
 
-import java.io.File;
-import java.util.Optional;
+import java.util.Arrays;
+import java.util.function.Predicate;
 
-import org.knime.base.node.io.variablecreator.SettingsModelVariables.Type;
 import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
 import org.knime.core.node.workflow.VariableType;
-import org.knime.core.util.Pair;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeModel;
 
 /**
- * The {@link NodeModel} for the “Create Variables” node
+ * Node model for the new webUI version of the variable creator node.
  *
- * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
+ * @author David Hickey, TNG Technology Consulting GmbH
  */
-final class VariableCreatorNodeModel extends NodeModel {
-
-    static final String SETTINGS_MODEL_CONFIG_NAME = "variableCreationTable";
-
-    /** A table containing the settings of this model, i.e. the variables, their name and value. */
-    private final SettingsModelVariables m_table;
+@SuppressWarnings("restriction")
+final class VariableCreatorNodeModel extends WebUINodeModel<VariableCreatorNodeSettings> {
 
     /**
-     * Create the node model for the "Variable Creator" node
+     * @param config the configuration of the node
      */
-    VariableCreatorNodeModel() {
-        super(new PortType[0], new PortType[]{FlowVariablePortObject.TYPE});
-        m_table = new SettingsModelVariables(SETTINGS_MODEL_CONFIG_NAME, Type.values(),
-            getAvailableFlowVariables(Type.getAllTypes()));
-        addDefaultValue();
+    public VariableCreatorNodeModel(final WebUINodeConfiguration config) {
+        super(config, VariableCreatorNodeSettings.class);
     }
 
-    /**
-     * Adds a default value
-     */
-    private void addDefaultValue() {
-        m_table.addRow();
-        final var resultType = m_table.setType(0, Type.STRING);
-        final var resultName = m_table.setName(0, SettingsModelVariables.DEFAULT_NAME_PREFIX + '_' + 1);
-        final var resultValue = m_table.setValue(0, Type.STRING.getDefaultStringValue());
-
-        if (!resultType.getFirst().booleanValue()) {
-            throw new IllegalStateException(
-                "Could not initialize default variable type: " + resultType.getSecond().orElse("(Unknown error!)"));
-        }
-        if (!resultName.getFirst().booleanValue()) {
-            throw new IllegalStateException(
-                "Could not initialize default variable name: " + resultName.getSecond().orElse("(Unknown error!)"));
-        }
-        if (!resultValue.getFirst().booleanValue()) {
-            throw new IllegalStateException(
-                "Could not initialize default variable value: " + resultValue.getSecond().orElse("(Unknown error!)"));
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        pushVariablesAndSetWarning();
+    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs,
+        final VariableCreatorNodeSettings modelSettings) throws InvalidSettingsException {
+
         return new PortObjectSpec[]{FlowVariablePortObjectSpec.INSTANCE};
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
-        pushVariablesAndSetWarning();
+    protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec,
+        final VariableCreatorNodeSettings modelSettings) throws Exception {
+
+        var allSupportedFlowVariableTypes = Arrays.stream(VariableCreatorNodeSettings.FlowVariableType.values()) //
+            .map(fvt -> fvt.m_knimeVariableType) //
+            .toArray(VariableType<?>[]::new);
+        var preExistingFlowVariableNames = getAvailableInputFlowVariables(allSupportedFlowVariableTypes).keySet();
+
+        if (modelSettings.m_newFlowVariables.length == 0) {
+            setWarningMessage("No flow variables created. The output will be empty.");
+        }
+
+        for (var i = modelSettings.m_newFlowVariables.length - 1; i >= 0; --i) {
+            var newFlowVariable = modelSettings.m_newFlowVariables[i];
+
+            if (!newFlowVariable.m_type.canConvert(newFlowVariable.m_value)) {
+                // this shouldn't happen because we already validated this in validateSettings
+                throw new IllegalArgumentException("Implementation error: the value '" + newFlowVariable.m_value
+                    + "' cannot be converted to " + newFlowVariable.m_type);
+            }
+
+            // should also warn if we are overwriting existing flow variables
+            var flowVariableOverwritten = preExistingFlowVariableNames.contains(newFlowVariable.m_name);
+            if (flowVariableOverwritten) {
+                setWarningMessage("The flow variable '" + newFlowVariable.m_name + "' is being overwritten.");
+            }
+
+            // only for doubles: if it's a double, we should warn if it's too big or too small so it parses to
+            // ±infinity. But not if they actually typed "Infinity" or "-Infinity".
+            if (newFlowVariable.m_type == VariableCreatorNodeSettings.FlowVariableType.DOUBLE) {
+                var value = Double.parseDouble(newFlowVariable.m_value);
+                if (Double.isInfinite(value) && !newFlowVariable.m_value.endsWith("Infinity")) {
+                    setWarningMessage("The value '" + newFlowVariable.m_value
+                        + "' is too large or too small to be represented as a double.");
+                }
+            }
+
+            newFlowVariable.m_type.createFromStringAndPush(this::pushFlowVariable, newFlowVariable.m_name,
+                newFlowVariable.m_value);
+        }
+
         return new PortObject[]{FlowVariablePortObject.INSTANCE};
     }
 
-    private void pushVariablesAndSetWarning() {
-        if (m_table.getRowCount() == 0) {
-            setWarningMessage("No new variables defined");
-        } else {
-            pushVariables();
-            setWarningMessage(getNameWarningMessage());
-        }
-    }
-
-    /**
-     * Generate the warning message for this node. Currently, only name overrides and same names are respected.
-     *
-     * @return the warning message. <code>null</code> if there is no warning.
-     */
-    private String getNameWarningMessage() {
-        m_table.setExternalVariables(getAvailableInputFlowVariables(Type.getAllTypes()));
-        // the name cannot be empty in this case
-        boolean foundOverride = false;
-        boolean foundConflict = false;
-        for (int i = m_table.getRowCount() - 1; i >= 0 && (!foundOverride || !foundConflict); i--) {
-            final Pair<Boolean, Optional<String>> result = m_table.checkVariableNameExternal(i, m_table.getName(i));
-            final Optional<String> hintMsg = result.getSecond();
-
-            if (!result.getFirst().booleanValue()) {
-                throw new IllegalStateException(
-                    "Name should be valid!: " + result.getSecond().orElse("(Unknown Error)"));
-            }
-
-            if (hintMsg.isPresent()) {
-                switch (hintMsg.get()) {
-                    case SettingsModelVariables.MSG_NAME_EXTERNAL_CONFLICT:
-                        foundConflict = true;
-                        break;
-                    case SettingsModelVariables.MSG_NAME_EXTERNAL_OVERRIDES:
-                        foundOverride = true;
-                        break;
-                    default:
-                        // we are ignoring other hints
-                        break;
-                }
-            }
-        }
-        return buildWarningMessage(foundOverride, foundConflict);
-    }
-
-    /**
-     * Builds a warning message from this node depending on whether errors indicated by the parameters were found.
-     *
-     * @param foundOverride whether a variable override was found
-     * @param foundConflict whether a variable with the same name was found
-     * @return the warning message or <code>null</code> if there is no warning.
-     */
-    private static String buildWarningMessage(final boolean foundOverride, final boolean foundConflict) {
-
-        if (!foundConflict && !foundOverride) {
-            return null;
-        }
-
-        final StringBuilder result = new StringBuilder("Some defined variables ");
-
-        if (foundOverride) {
-            result.append("override");
-        }
-
-        if (foundConflict && foundOverride) {
-            result.append(" or ");
-        }
-
-        if (foundConflict) {
-            result.append("have the same name as");
-        }
-
-        result.append(" upstream variables.");
-
-        return result.toString();
-    }
-
-    /**
-     * Push a variable from the <code>m_table</code> table.
-     *
-     * @param row the row of the variable to push
-     */
-    private void pushVariables() {
-        // it is a stack so we have to push  the variables in opposite order
-        for (int row = m_table.getRowCount() - 1; row >= 0; row--) {
-            final Type type = m_table.getType(row);
-            switch (type) {
-                case STRING:
-                    pushFlowVariable(m_table.getName(row), VariableType.StringType.INSTANCE,
-                        (String)m_table.getValue(row));
-                    break;
-                case INTEGER:
-                    pushFlowVariable(m_table.getName(row), VariableType.IntType.INSTANCE,
-                        (Integer)m_table.getValue(row));
-                    break;
-                case LONG:
-                    pushFlowVariable(m_table.getName(row), VariableType.LongType.INSTANCE, (Long)m_table.getValue(row));
-                    break;
-                case DOUBLE:
-                    pushFlowVariable(m_table.getName(row), VariableType.DoubleType.INSTANCE,
-                        (Double)m_table.getValue(row));
-                    break;
-                case BOOLEAN:
-                    pushFlowVariable(m_table.getName(row), VariableType.BooleanType.INSTANCE,
-                        (Boolean)m_table.getValue(row));
-                    break;
-                default:
-                    throw new IllegalStateException("Unknown variable type: " + type);
-            }
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
-        m_table.saveSettingsTo(settings);
+    protected void validateSettings(final VariableCreatorNodeSettings settings) throws InvalidSettingsException {
+        var anyVariableNamesAreBlank = Arrays.stream(settings.m_newFlowVariables) //
+            .anyMatch(variable -> variable.m_name.isBlank());
+        if (anyVariableNamesAreBlank) {
+            throw new InvalidSettingsException("Variable names must not be blank.");
+        }
+
+        Predicate<String> isInListMultipleTimes = name -> Arrays.stream(settings.m_newFlowVariables) //
+            .map(variable -> variable.m_name) //
+            .filter(name::equals) //
+            .count() > 1;
+
+        var firstDuplicateVariableName = Arrays.stream(settings.m_newFlowVariables) //
+            .map(variable -> variable.m_name) //
+            .distinct() //
+            .filter(isInListMultipleTimes) //
+            .findFirst();
+        if (firstDuplicateVariableName.isPresent()) {
+            throw new InvalidSettingsException(
+                "The variable name '" + firstDuplicateVariableName.get() + "' is used more than once.");
+        }
+
+        var firstVariableNameThatCouldNotBeParsed = Arrays.stream(settings.m_newFlowVariables) //
+            .filter(variable -> !variable.m_type.canConvert(variable.m_value)) //
+            .findFirst();
+        if (firstVariableNameThatCouldNotBeParsed.isPresent()) {
+            var variable = firstVariableNameThatCouldNotBeParsed.get();
+            throw new InvalidSettingsException("The value of the variable '" + variable.m_name
+                + "' could not be parsed as a " + variable.m_type.niceName() + ".");
+        }
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_table.validateSettings(settings);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_table.loadSettingsFrom(settings);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void reset() {
-        // nothing to do here
-
-    }
-
-    /**
-     * Unused.<br>
-     * <br>
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec) {
-        // nothing to do here
-    }
-
-    /**
-     * Unused.<br>
-     * <br>
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec) {
-        // nothing to do here
-    }
-
 }
