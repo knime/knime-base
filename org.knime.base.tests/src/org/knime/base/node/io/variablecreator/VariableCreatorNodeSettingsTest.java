@@ -44,75 +44,49 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   06.04.2021 (jl): created
+ *   Feb 3, 2025 (david): created
  */
 package org.knime.base.node.io.variablecreator;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import java.io.FileInputStream;
+import java.io.IOException;
 
-import javax.swing.Box;
-import javax.swing.JPanel;
-
-import org.knime.base.node.io.variablecreator.SettingsModelVariables.Type;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * Represents the dialog that is opened to edit the create variable node.
  *
- * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
+ * @author David Hickey, TNG Technology Consulting GmbH
  */
-final class VariableCreatorNodeDialog extends NodeDialogPane {
+final class VariableCreatorNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
-    private final DialogComponentVariables m_variableTable;
-
-    /**
-     * Creates a new dialogue for the node.
-     */
-    VariableCreatorNodeDialog() {
-        m_variableTable =
-            new DialogComponentVariables(new SettingsModelVariables(VariableCreatorNodeModel.SETTINGS_MODEL_CONFIG_NAME,
-                Type.values(), getAvailableFlowVariables(Type.getAllTypes())));
-
-        // align table at the top in a hacky way
-        final var outerPanel = new JPanel(new GridBagLayout());
-        final var constraints = new GridBagConstraints();
-        constraints.gridx = constraints.gridy = 0;
-        constraints.fill = GridBagConstraints.BOTH;
-        outerPanel.add(m_variableTable.getComponentPanel(), constraints);
-
-        constraints.insets = new Insets(0, 0, 0, 0);
-        constraints.gridy++;
-        constraints.weightx = constraints.weighty = 1.0;
-        outerPanel.add(Box.createGlue(), constraints);
-
-        addTab("Create and Define Variables", outerPanel);
+    VariableCreatorNodeSettingsTest() {
+        super(getConfig());
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        m_variableTable.saveSettingsTo(settings);
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .testJsonFormsForModel(VariableCreatorNodeSettings.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NotConfigurableException if the dialog could not be configured
-     */
-    @Override
-    protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
-        throws NotConfigurableException {
-        m_variableTable.loadSettingsFrom(settings, specs);
-        m_variableTable.getVariableTable().setExternalVariables(getAvailableFlowVariables(Type.getAllTypes()));
+    private static VariableCreatorNodeSettings readSettings() {
+        try {
+            var path = getSnapshotPath(VariableCreatorNodeSettings.class).getParent().resolve("node_settings")
+                .resolve("VariableCreatorNodeSettings.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return DefaultNodeSettings.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    VariableCreatorNodeSettings.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
+        }
     }
-
 }

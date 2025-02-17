@@ -1,0 +1,151 @@
+{
+  "data" : {
+    "model" : {
+      "newFlowVariables" : [ {
+        "name" : "fakelocale",
+        "type" : "STRING",
+        "value" : "Europe/Nowhereville"
+      }, {
+        "name" : "intvar",
+        "type" : "INTEGER",
+        "value" : "26"
+      }, {
+        "name" : "variable_3",
+        "type" : "BOOLEAN",
+        "value" : "false"
+      }, {
+        "name" : "variable_4",
+        "type" : "LONG",
+        "value" : "4"
+      }, {
+        "name" : "variable_5",
+        "type" : "DOUBLE",
+        "value" : "0.0"
+      } ]
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "newFlowVariables" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "name" : {
+                  "type" : "string",
+                  "title" : "Name",
+                  "description" : "The name of the new flow variable.",
+                  "default" : "variable_1"
+                },
+                "type" : {
+                  "oneOf" : [ {
+                    "const" : "STRING",
+                    "title" : "String"
+                  }, {
+                    "const" : "INTEGER",
+                    "title" : "Integer"
+                  }, {
+                    "const" : "LONG",
+                    "title" : "Long"
+                  }, {
+                    "const" : "DOUBLE",
+                    "title" : "Double"
+                  }, {
+                    "const" : "BOOLEAN",
+                    "title" : "Boolean"
+                  } ],
+                  "title" : "Type",
+                  "description" : "The data type of the new flow variable. See the node description for more information about the available types.\n\n<ul>\n<li><b>String</b>: A string of characters. This is the default when a new variable is created. The default value is an empty string.\n</li>\n<li><b>Integer</b>: An integer number with possible values from 2&#179;&#185;-1 to -2&#179;&#185;. The value must be a valid number (consisting only of an optional sign (&#8220;+&#8221;/&#8220;-&#8221;) or &#8220;0&#8221;-&#8220;9&#8221;) and be in the range above. If the size of your value exceeds the limits above, you can try to use a <i>Long</i> or <i>Double</i> value instead.\n</li>\n<li><b>Long</b>: An integer number with possible values from 2&#8310;&#170;-1 to -2&#8310;&#170;. The value must be a valid number (consisting only of an optional sign (&#8220;+&#8221;/&#8220;-&#8221;) or &#8220;0&#8221;-&#8220;9&#8221;) and be in the range above.\n</li>\n<li><b>Double</b>: A floating point decimal number with possible values from around 4.9&#183;10&#8315;&#179;&#178;&#8308; to 1.8&#183;10&#179;&#8304;&#8312; in both the positive and negative range. The value must be a valid number (consisting only of an optional sign (&#8220;+&#8221;/&#8220;-&#8221;) or &#8220;0&#8221;-&#8220;9&#8221;). You can specify an exponent by appending &#8220;e&#8221; followed by the exponent. Apart from a numeric value you can also specify one of the following three (case-sensitive) special values: <ul>\n    <li><i>Infinity</i> for positive infinity</li>\n    <li><i>-Infinity</i> for negative infinity</li>\n    <li><i>NaN</i> for &#8220;Not a Number&#8221;</li>\n</ul>\nIf the number is too big or too small, it may be converted into one of these special values. (You will be warned if this happens). You should keep in mind that you may lose some precision for big values or values that are very close to zero.\n</li>\n<li><b>Boolean</b>: A boolean value, either &#8220;true&#8221; or &#8220;false&#8221;. Any value that is not equal (ignoring case) to 'true' will be treated as false.\n</li>\n</ul>",
+                  "default" : "STRING"
+                },
+                "value" : {
+                  "type" : "string",
+                  "title" : "Value",
+                  "description" : "The value of the new flow variable.",
+                  "default" : ""
+                }
+              }
+            },
+            "title" : "New flow variables",
+            "description" : "The new flow variables to create.",
+            "default" : [ {
+              "name" : "variable_1",
+              "type" : "STRING",
+              "value" : ""
+            } ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/newFlowVariables",
+      "options" : {
+        "detail" : [ {
+          "type" : "HorizontalLayout",
+          "elements" : [ {
+            "type" : "Control",
+            "scope" : "#/properties/name"
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/type"
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/value"
+          } ]
+        } ],
+        "addButtonText" : "Add variable",
+        "elementDefaultValueProvider" : "org.knime.base.node.io.variablecreator.VariableCreatorNodeSettings$NewFlowVariableSettings$DefaultNewFlowVariableSettingsProvider"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "newFlowVariables" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "name" : { },
+                "type" : { },
+                "value" : { }
+              }
+            },
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "variables", "names" ], [ "variables", "types" ], [ "variables", "values" ] ]
+            } ]
+          }
+        }
+      }
+    }
+  },
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog",
+      "triggerInitially" : true
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/newFlowVariables" ],
+      "id" : "org.knime.base.node.io.variablecreator.VariableCreatorNodeSettings$NewFlowVariablesRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.variablecreator.VariableCreatorNodeSettings$NewFlowVariablesRef",
+      "scopes" : [ "#/properties/model/properties/newFlowVariables" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/newFlowVariables" ],
+      "id" : "org.knime.base.node.io.variablecreator.VariableCreatorNodeSettings$NewFlowVariablesRef"
+    } ]
+  } ]
+}

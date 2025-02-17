@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <config key="newFlowVariables">
+        <config key="0">
+            <entry key="name" type="xstring" value="fakelocale"/>
+            <entry key="type" type="xstring" value="STRING"/>
+            <entry key="value" type="xstring" value="Europe/Nowhereville"/>
+        </config>
+        <config key="1">
+            <entry key="name" type="xstring" value="intvar"/>
+            <entry key="type" type="xstring" value="INTEGER"/>
+            <entry key="value" type="xstring" value="26"/>
+        </config>
+        <config key="2">
+            <entry key="name" type="xstring" value="variable_3"/>
+            <entry key="type" type="xstring" value="BOOLEAN"/>
+            <entry key="value" type="xstring" value="false"/>
+        </config>
+        <config key="3">
+            <entry key="name" type="xstring" value="variable_4"/>
+            <entry key="type" type="xstring" value="LONG"/>
+            <entry key="value" type="xstring" value="4"/>
+        </config>
+        <config key="4">
+            <entry key="name" type="xstring" value="variable_5"/>
+            <entry key="type" type="xstring" value="DOUBLE"/>
+            <entry key="value" type="xstring" value="0.0"/>
+        </config>
+    </config>
+</config>

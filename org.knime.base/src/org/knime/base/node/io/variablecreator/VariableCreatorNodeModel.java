@@ -48,121 +48,103 @@
  */
 package org.knime.base.node.io.variablecreator;
 
-import java.io.File;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
-import org.knime.base.node.io.variablecreator.SettingsModelVariables.Type;
+import org.knime.base.node.io.variablecreator.VariableCreatorNodeSettings.FlowVariableType;
+import org.knime.base.node.io.variablecreator.VariableCreatorNodeSettings.NewFlowVariableSettings;
 import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
-import org.knime.core.node.workflow.VariableType;
+import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.util.Pair;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeModel;
 
 /**
  * The {@link NodeModel} for the “Create Variables” node
  *
  * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
+ * @author David Hickey, TNG Technology Consulting GmbH
  */
-final class VariableCreatorNodeModel extends NodeModel {
+@SuppressWarnings("restriction")
+final class VariableCreatorNodeModel extends WebUINodeModel<VariableCreatorNodeSettings> {
+
+    // TODO(UIEXT-2611): this node has a lot of potential warnings, which should be displayed in the dialogue
+
+    /** Message set if a variable overrides an external variable. */
+    static final String MSG_NAME_EXTERNAL_OVERRIDES = "Name overrides upstream variable";
+
+    /** Message set if a variable has the same name as an external variable. */
+    static final String MSG_NAME_EXTERNAL_CONFLICT = "Upstream name conflict; may lead to unexpected behavior";
 
     static final String SETTINGS_MODEL_CONFIG_NAME = "variableCreationTable";
-
-    /** A table containing the settings of this model, i.e. the variables, their name and value. */
-    private final SettingsModelVariables m_table;
 
     /**
      * Create the node model for the "Variable Creator" node
      */
-    VariableCreatorNodeModel() {
-        super(new PortType[0], new PortType[]{FlowVariablePortObject.TYPE});
-        m_table = new SettingsModelVariables(SETTINGS_MODEL_CONFIG_NAME, Type.values(),
-            getAvailableFlowVariables(Type.getAllTypes()));
-        addDefaultValue();
+    VariableCreatorNodeModel(final WebUINodeConfiguration config) {
+        super(config, VariableCreatorNodeSettings.class);
     }
 
-    /**
-     * Adds a default value
-     */
-    private void addDefaultValue() {
-        m_table.addRow();
-        final var resultType = m_table.setType(0, Type.STRING);
-        final var resultName = m_table.setName(0, SettingsModelVariables.DEFAULT_NAME_PREFIX + '_' + 1);
-        final var resultValue = m_table.setValue(0, Type.STRING.getDefaultStringValue());
-
-        if (!resultType.getFirst().booleanValue()) {
-            throw new IllegalStateException(
-                "Could not initialize default variable type: " + resultType.getSecond().orElse("(Unknown error!)"));
-        }
-        if (!resultName.getFirst().booleanValue()) {
-            throw new IllegalStateException(
-                "Could not initialize default variable name: " + resultName.getSecond().orElse("(Unknown error!)"));
-        }
-        if (!resultValue.getFirst().booleanValue()) {
-            throw new IllegalStateException(
-                "Could not initialize default variable value: " + resultValue.getSecond().orElse("(Unknown error!)"));
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        pushVariablesAndSetWarning();
+    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecsWebUINodeModel,
+        final VariableCreatorNodeSettings settings) throws InvalidSettingsException {
+        pushVariablesAndSetWarning(settings);
         return new PortObjectSpec[]{FlowVariablePortObjectSpec.INSTANCE};
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
-        pushVariablesAndSetWarning();
+    protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec,
+        final VariableCreatorNodeSettings settings) throws Exception {
+        pushVariablesAndSetWarning(settings);
         return new PortObject[]{FlowVariablePortObject.INSTANCE};
     }
 
-    private void pushVariablesAndSetWarning() {
-        if (m_table.getRowCount() == 0) {
+    private void pushVariablesAndSetWarning(final VariableCreatorNodeSettings settings) {
+        if (settings.m_newFlowVariables.length == 0) {
             setWarningMessage("No new variables defined");
         } else {
-            pushVariables();
-            setWarningMessage(getNameWarningMessage());
+            getNameWarningMessage(settings).ifPresent(this::setWarningMessage);
+            pushVariables(settings);
         }
     }
 
     /**
      * Generate the warning message for this node. Currently, only name overrides and same names are respected.
      *
-     * @return the warning message. <code>null</code> if there is no warning.
+     * @return the warning message. Empty optional if there is no warning.
      */
-    private String getNameWarningMessage() {
-        m_table.setExternalVariables(getAvailableInputFlowVariables(Type.getAllTypes()));
+    private Optional<String> getNameWarningMessage(final VariableCreatorNodeSettings settings) {
+        var availableInputFlowVars = getAvailableInputFlowVariables(FlowVariableType.knimeTypes());
         // the name cannot be empty in this case
-        boolean foundOverride = false;
-        boolean foundConflict = false;
-        for (int i = m_table.getRowCount() - 1; i >= 0 && (!foundOverride || !foundConflict); i--) {
-            final Pair<Boolean, Optional<String>> result = m_table.checkVariableNameExternal(i, m_table.getName(i));
+        var foundOverride = false;
+        var foundConflict = false;
+        for (int i = settings.m_newFlowVariables.length - 1; i >= 0 && (!foundOverride || !foundConflict); i--) {
+            var flowVarName = settings.m_newFlowVariables[i].m_name;
+
+            final Pair<Boolean, Optional<String>> result =
+                checkVariableNameExternal(availableInputFlowVars, i, flowVarName, settings.m_newFlowVariables);
             final Optional<String> hintMsg = result.getSecond();
 
-            if (!result.getFirst().booleanValue()) {
+            if (!result.getFirst()) { // NOSONAR the boolean isn't null
                 throw new IllegalStateException(
                     "Name should be valid!: " + result.getSecond().orElse("(Unknown Error)"));
             }
 
             if (hintMsg.isPresent()) {
                 switch (hintMsg.get()) {
-                    case SettingsModelVariables.MSG_NAME_EXTERNAL_CONFLICT:
+                    case MSG_NAME_EXTERNAL_CONFLICT:
                         foundConflict = true;
                         break;
-                    case SettingsModelVariables.MSG_NAME_EXTERNAL_OVERRIDES:
+                    case MSG_NAME_EXTERNAL_OVERRIDES:
                         foundOverride = true;
                         break;
                     default:
@@ -171,7 +153,27 @@ final class VariableCreatorNodeModel extends NodeModel {
                 }
             }
         }
-        return buildWarningMessage(foundOverride, foundConflict);
+        return Optional.ofNullable(buildWarningMessage(foundOverride, foundConflict));
+    }
+
+    private static Pair<Boolean, Optional<String>> checkVariableNameExternal(
+        final Map<String, FlowVariable> externalVariables, final int row, final String name,
+        final NewFlowVariableSettings[] newFlowVariableSettings) {
+        if (name.trim().isEmpty()) {
+            return new Pair<>(Boolean.FALSE, Optional.of("Name is empty"));
+        } else {
+            final var externalVariable = externalVariables.get(name);
+            if (externalVariable != null) {
+                // Will only get overridden if the name and the type are the same
+                if (externalVariable.getVariableType()
+                    .equals(newFlowVariableSettings[row].m_type.getKnimeVariableType())) {
+                    return new Pair<>(Boolean.TRUE, Optional.of(MSG_NAME_EXTERNAL_OVERRIDES));
+                } else {
+                    return new Pair<>(Boolean.TRUE, Optional.of(MSG_NAME_EXTERNAL_CONFLICT));
+                }
+            }
+        }
+        return new Pair<>(Boolean.TRUE, Optional.empty());
     }
 
     /**
@@ -182,7 +184,6 @@ final class VariableCreatorNodeModel extends NodeModel {
      * @return the warning message or <code>null</code> if there is no warning.
      */
     private static String buildWarningMessage(final boolean foundOverride, final boolean foundConflict) {
-
         if (!foundConflict && !foundOverride) {
             return null;
         }
@@ -211,87 +212,52 @@ final class VariableCreatorNodeModel extends NodeModel {
      *
      * @param row the row of the variable to push
      */
-    private void pushVariables() {
+    private void pushVariables(final VariableCreatorNodeSettings settings) {
         // it is a stack so we have to push  the variables in opposite order
-        for (int row = m_table.getRowCount() - 1; row >= 0; row--) {
-            final Type type = m_table.getType(row);
-            switch (type) {
-                case STRING:
-                    pushFlowVariable(m_table.getName(row), VariableType.StringType.INSTANCE,
-                        (String)m_table.getValue(row));
-                    break;
-                case INTEGER:
-                    pushFlowVariable(m_table.getName(row), VariableType.IntType.INSTANCE,
-                        (Integer)m_table.getValue(row));
-                    break;
-                case LONG:
-                    pushFlowVariable(m_table.getName(row), VariableType.LongType.INSTANCE, (Long)m_table.getValue(row));
-                    break;
-                case DOUBLE:
-                    pushFlowVariable(m_table.getName(row), VariableType.DoubleType.INSTANCE,
-                        (Double)m_table.getValue(row));
-                    break;
-                case BOOLEAN:
-                    pushFlowVariable(m_table.getName(row), VariableType.BooleanType.INSTANCE,
-                        (Boolean)m_table.getValue(row));
-                    break;
-                default:
-                    throw new IllegalStateException("Unknown variable type: " + type);
+        for (int row = settings.m_newFlowVariables.length - 1; row >= 0; row--) {
+            var type = settings.m_newFlowVariables[row].m_type;
+            var name = settings.m_newFlowVariables[row].m_name;
+            var valueAsString = settings.m_newFlowVariables[row].m_value;
+
+            var parseResult =
+                type.convertAndPush(valueAsString, (knimeType, value) -> pushFlowVariable(name, knimeType, value));
+
+            if (parseResult.parsedValue().isEmpty()) {
+                throw new IllegalStateException("Variable should be valid since we already checked in validate: "
+                    + parseResult.errorOrWarningMessage().orElse("(Unknown Error)"));
+            }
+
+            if (parseResult.errorOrWarningMessage().isPresent()) {
+                setWarningMessage("Error in variable " + name + ": " + parseResult.errorOrWarningMessage().orElseThrow(
+                    () -> new IllegalStateException("Error message should be present if value could not be parsed")));
             }
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
-        m_table.saveSettingsTo(settings);
+    protected void validateSettings(final VariableCreatorNodeSettings settings) throws InvalidSettingsException {
+        Set<String> usedNames = new HashSet<>();
+        for (int i = 0; i < settings.m_newFlowVariables.length; i++) {
+            var type = settings.m_newFlowVariables[i].m_type;
+            var name = settings.m_newFlowVariables[i].m_name;
+            var valueString = settings.m_newFlowVariables[i].m_value;
+
+            CheckUtils.checkSetting(!name.isEmpty(), "Please use a (non-empty) name for variable %d!", i + 1);
+            CheckUtils.checkSetting(!usedNames.contains(name),
+                "Please use a name that is not already used by another variable (%s) for variable %d!", name, i + 1);
+            usedNames.add(name);
+
+            final Pair<Optional<Object>, Optional<String>> checked = checkVariableValueString(type, valueString);
+            CheckUtils.checkSetting(checked.getFirst().isPresent(), "Please check variable %d (%s) for errors: %s",
+                i + 1, name, checked.getSecond().orElse("(Unknown error)"));
+        }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_table.validateSettings(settings);
+    private static Pair<Optional<Object>, Optional<String>> checkVariableValueString(final FlowVariableType type,
+        final String valueString) {
+
+        var parseResult = type.tryParse(valueString);
+        Optional<Object> parsedValue = parseResult.parsedValue().map(Object.class::cast);
+        return new Pair<>(parsedValue, parseResult.errorOrWarningMessage());
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_table.loadSettingsFrom(settings);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void reset() {
-        // nothing to do here
-
-    }
-
-    /**
-     * Unused.<br>
-     * <br>
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec) {
-        // nothing to do here
-    }
-
-    /**
-     * Unused.<br>
-     * <br>
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec) {
-        // nothing to do here
-    }
-
 }
