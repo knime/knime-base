@@ -123,7 +123,8 @@ public final class DataTypeProducerRegistry extends ProducerRegistry<DataType, D
             String producerKey = key + "_producer";
             return SerializeUtil.loadConverterFactory(config, INSTANCE, producerKey)//
                 .orElseThrow(() -> new InvalidSettingsException(
-                    String.format("Can't load CellValueProducer with key '%s'.", producerKey)));
+                    String.format("Can't load CellValueProducer with key '%s' and id '%s'.", producerKey,
+                        config.getString(producerKey, "unknown"))));
         }
 
         private static JavaToDataCellConverterFactory<?> loadConverterFactory(final NodeSettingsRO settings,
@@ -323,14 +324,18 @@ public final class DataTypeProducerRegistry extends ProducerRegistry<DataType, D
 
         private final String m_identifier;
 
+        private final Collection<String> m_aliases;
+
         private final DataType m_sourceType;
 
         private DataCellToJavaConverter<DataValue, D> m_converter;
 
         private CellValueProducerFactoryImplementation(final Class<?> destinationType, final String identifier,
-            final DataType sourceType, final DataCellToJavaConverter<DataValue, D> converter) {
+            final Collection<String> aliases, final DataType sourceType,
+            final DataCellToJavaConverter<DataValue, D> converter) {
             m_destinationType = destinationType;
             m_identifier = identifier;
+            m_aliases = aliases;
             m_sourceType = sourceType;
             m_converter = converter;
         }
@@ -348,6 +353,11 @@ public final class DataTypeProducerRegistry extends ProducerRegistry<DataType, D
         @Override
         public String getIdentifier() {
             return m_identifier;
+        }
+
+        @Override
+        public Iterable<String> getIdentifierAliases() {
+            return m_aliases;
         }
 
         @Override
@@ -387,13 +397,14 @@ public final class DataTypeProducerRegistry extends ProducerRegistry<DataType, D
         final Collection<DataCellToJavaConverterFactory<?, ?>> factoriesForSourceType =
             DataCellToJavaConverterRegistry.getInstance().getFactoriesForSourceType(sourceType);
         for (DataCellToJavaConverterFactory<?, ?> factory : factoriesForSourceType) {
-            final Class<?> destinationType = factory.getDestinationType();
-            final String sourceTypeName = sourceType.toPrettyString();
-            final String identifier = sourceTypeName + "->" + destinationType.getName();
+            final var destinationType = factory.getDestinationType();
+            final var identifier = sourceType.getIdentifier() + "->" + destinationType.getName();
             if (registered.add(identifier)) {
+                // Aliases added as part of AP-23571
+                final var aliases = List.of(sourceType.toLegacyPrettyString() + "->" + destinationType.getName());
                 @SuppressWarnings({"rawtypes", "unchecked"})
                 final CellValueProducerFactoryImplementation<?> converter = new CellValueProducerFactoryImplementation(
-                    destinationType, identifier, sourceType, factory.create());
+                    destinationType, identifier, aliases, sourceType, factory.create());
                 INSTANCE.register(converter);
             }
         }
