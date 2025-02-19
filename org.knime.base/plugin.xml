@@ -835,6 +835,10 @@
             category-path="/manipulation/column/column-convert+replace"
             factory-class="org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeFactory"/>
       <node
+            category-path="/manipulation/column/column-convert+replace"
+            hidden="true"
+            factory-class="org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeFactory2"/>
+      <node
             category-path="/analytics/mining/subgroup"
             factory-class="org.knime.base.node.mine.subgroupminer.SubgroupMinerFactory2"/>
        <node
