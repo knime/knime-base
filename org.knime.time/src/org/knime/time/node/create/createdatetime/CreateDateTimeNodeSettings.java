@@ -130,7 +130,7 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
             """)
     @Effect(predicate = DateTimeType.IsLocalDateTime.class, type = EffectType.SHOW)
     @Layout(StartingPointSettingsSection.class)
-    LocalDateTime m_localDateTimeStart = LocalDateTime.now().minusYears(1);
+    LocalDateTime m_localDateTimeStart = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS).minusYears(1);
 
     @Widget(title = "Start zoned date time", description = """
             The date&amp;time&amp;zone at which the date time creation should start, \
@@ -138,7 +138,7 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
             """)
     @Effect(predicate = DateTimeType.IsZonedDateTime.class, type = EffectType.SHOW)
     @Layout(StartingPointSettingsSection.class)
-    ZonedDateTime m_zonedDateTimeStart = ZonedDateTime.now().minusYears(1);
+    ZonedDateTime m_zonedDateTimeStart = ZonedDateTime.now().truncatedTo(ChronoUnit.SECONDS).minusYears(1);
 
     @Layout(RangeSettingsSection.class)
     @Widget(title = "Fixed steps", description = "How the rows are created.")
@@ -184,19 +184,12 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
             The date and time at which the date time creation should stop. The end date&amp;time is inclusive, \
             except if the output mode is 'Number and Duration' and the provided interval does not divide \
             evenly between the start and end date&amp;time.
+            If the output type is 'Date &amp; time &amp; zone', the zone of the end date&amp;time will be \
+            the same as for the start date&amp;time.
             """)
-    @Effect(predicate = DateTimeType.IsLocalDateTime.class, type = EffectType.SHOW)
+    @Effect(predicate = DateTimeType.IsDateTime.class, type = EffectType.SHOW)
     @Layout(value = EndSettingsSection.class)
-    LocalDateTime m_localDateTimeEnd = LocalDateTime.now();
-
-    @Widget(title = "End zoned date time", description = """
-            The date and time and zone at which the date time creation should stop. The end date&amp;time \
-            is inclusive,  except if the output mode is 'Number and Duration' and the provided interval \
-            does not divide evenly between the start and end date&amp;time.
-            """)
-    @Effect(predicate = DateTimeType.IsZonedDateTime.class, type = EffectType.SHOW)
-    @Layout(value = EndSettingsSection.class)
-    ZonedDateTime m_zonedDateTimeEnd = ZonedDateTime.now();
+    LocalDateTime m_localDateTimeEnd = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
 
     @Layout(value = OutputSettingsSection.class)
     @Widget(title = "Output column name", description = "The name of the output column.")

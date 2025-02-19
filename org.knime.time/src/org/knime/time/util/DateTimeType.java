@@ -186,4 +186,18 @@ public enum DateTimeType {
             return i.getEnum(Ref.class).isOneOf(DateTimeType.ZONED_DATE_TIME);
         }
     }
+
+    /**
+     * Predicate for the LOCAL_DATE_TIME and ZONED_DATE_TIME values. Using {@link Ref}
+     *
+     * @author Martin Sillye, TNG Technology Consulting GmbH
+     */
+    public static final class IsDateTime implements PredicateProvider {
+
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(Ref.class).isOneOf(DateTimeType.LOCAL_DATE_TIME, DateTimeType.ZONED_DATE_TIME);
+        }
+
+    }
 }

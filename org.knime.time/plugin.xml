@@ -448,5 +448,11 @@
             deprecated="false">
       </AggregationOperator>
    </extension>
+  <extension
+         point="org.knime.workflow.migration.NodeMigrationRule">
+      <Rule
+            class="org.knime.time.node.create.createdatetime.CreateDateTimeNodeMigrationRule">
+      </Rule>
+   </extension>
    
 </plugin>
