@@ -190,5 +190,4 @@ final class ExtractDateTimeFieldsNodeModel2Test {
         assertNull(testSetup.firstCell(), "Output cell should not exists");
         assertEquals(0, testSetup.outputTable().size(), "Ouptput table should be empty");
     }
-
 }

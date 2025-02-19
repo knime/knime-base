@@ -57,7 +57,7 @@ import java.util.Arrays;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.knime.InputTableNode;
+import org.knime.DateTimeTestingUtil;
 import org.knime.NodeModelTestRunnerUtil;
 import org.knime.core.data.DataType;
 import org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory;
@@ -95,7 +95,7 @@ final class TimeRoundNodeModelTest {
         final var settings = new TimeRoundNodeSettings();
         setSettings(settings);
 
-        InputTableNode.addDefaultTableToNodeInputPort(m_wfm, m_dateTimeRoundNode, 1);
+        DateTimeTestingUtil.addDefaultTableToNodeInputPort(m_wfm, m_dateTimeRoundNode, 1);
 
         assertTrue(m_wfm.executeAllAndWaitUntilDone());
         assertTrue(m_dateTimeRoundNode.getNodeContainerState().isExecuted());
@@ -104,8 +104,8 @@ final class TimeRoundNodeModelTest {
     @Test
     void appendReplaceTimeBasedRounding() throws InvalidSettingsException {
 
-        String[] columnNamesToRound = {InputTableNode.COLUMN_LOCAL_TIME, InputTableNode.COLUMN_LOCAL_DATE_TIME,
-            InputTableNode.COLUMN_ZONED_DATE_TIME};
+        String[] columnNamesToRound = {DateTimeTestingUtil.COLUMN_LOCAL_TIME,
+            DateTimeTestingUtil.COLUMN_LOCAL_DATE_TIME, DateTimeTestingUtil.COLUMN_ZONED_DATE_TIME};
 
         final var settings = new TimeRoundNodeSettings();
         settings.m_columnFilter = new ColumnFilter(columnNamesToRound);
@@ -144,7 +144,7 @@ final class TimeRoundNodeModelTest {
         settings.m_outputColumnSuffix = "TheSuffixToAppend";
         setSettings(settings);
 
-        InputTableNode.addDefaultTableToNodeInputPort(m_wfm, m_dateTimeRoundNode, 1);
+        DateTimeTestingUtil.addDefaultTableToNodeInputPort(m_wfm, m_dateTimeRoundNode, 1);
         assertTrue(m_wfm.executeAllAndWaitUntilDone());
 
         var outputTable = (BufferedDataTable)m_dateTimeRoundNode.getOutPort(1).getPortObject();
@@ -158,9 +158,9 @@ final class TimeRoundNodeModelTest {
         settings.m_replaceOrAppend = ReplaceOrAppend.REPLACE;
         setSettings(settings);
 
-        var inputTable = InputTableNode.createDefaultTestTable();
+        var inputTable = DateTimeTestingUtil.createDefaultTestTable();
 
-        InputTableNode.addTableToNodeInputPort(m_wfm, inputTable, m_dateTimeRoundNode, 1);
+        DateTimeTestingUtil.addTableToNodeInputPort(m_wfm, inputTable, m_dateTimeRoundNode, 1);
         assertTrue(m_wfm.executeAllAndWaitUntilDone());
 
         var outputTable = (BufferedDataTable)m_dateTimeRoundNode.getOutPort(1).getPortObject();

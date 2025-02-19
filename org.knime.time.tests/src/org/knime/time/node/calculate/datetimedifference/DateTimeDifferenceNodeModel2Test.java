@@ -72,7 +72,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.knime.InputTableNode;
+import org.knime.DateTimeTestingUtil;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DoubleValue;
@@ -89,6 +89,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
+import org.knime.testing.util.InputTableNode.InputDataNodeFactory;
 import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
 import org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings.Mode;
@@ -739,7 +740,7 @@ final class DateTimeDifferenceNodeModel2Test {
 
         // populate the input table
         var tableSupplierNode =
-            WorkflowManagerUtil.createAndAddNode(workflowManager, new InputTableNode.InputDataNodeFactory(table));
+            WorkflowManagerUtil.createAndAddNode(workflowManager, new InputDataNodeFactory(table));
 
         // link the nodes
         workflowManager.addConnection(tableSupplierNode.getID(), 1, node.getID(), 1);
@@ -754,7 +755,7 @@ final class DateTimeDifferenceNodeModel2Test {
         if (outputTable.size() == 0) {
             return new TestSetup(outputTable, null);
         }
-        var lastRow = InputTableNode.getLastRow(outputTable);
+        var lastRow = DateTimeTestingUtil.getLastRow(outputTable);
 
         return new TestSetup(outputTable, lastRow.getCell(outputColumnIndex));
     }

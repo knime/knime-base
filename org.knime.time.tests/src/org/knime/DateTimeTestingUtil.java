@@ -48,8 +48,6 @@
  */
 package org.knime;
 
-import java.io.File;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -62,7 +60,6 @@ import java.util.function.Supplier;
 import org.apache.xmlbeans.XmlException;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
@@ -87,6 +84,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.WorkflowManager;
+import org.knime.testing.util.InputTableNode.InputDataNodeFactory;
 import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
 import org.xml.sax.SAXException;
@@ -96,7 +94,7 @@ import org.xml.sax.SAXException;
  *
  * @author Tobias Kampmann
  */
-public final class InputTableNode {
+public final class DateTimeTestingUtil {
 
     /**
      * The name of the column containing integer values in the test table. See {@link #createDefaultTestTable()}.
@@ -199,8 +197,8 @@ public final class InputTableNode {
      * @param portIndex the index of the input port of the node to connect the table to
      * @return
      */
-    public static Supplier<BufferedDataTable> addDefaultTableToNodeInputPort(final WorkflowManager wfm, final NodeContainer nodeToConnectTo,
-        final int portIndex) {
+    public static Supplier<BufferedDataTable> addDefaultTableToNodeInputPort(final WorkflowManager wfm,
+        final NodeContainer nodeToConnectTo, final int portIndex) {
 
         var table = createDefaultTestTable();
 
@@ -288,125 +286,5 @@ public final class InputTableNode {
      * @param cell the value that should be in the column
      */
     public record NamedCell(String columnName, DataCell cell) {
-    }
-
-    /**
-     * A simple node that provides a table to its output port. The table is provided by a supplier that is passed to the
-     * constructor.
-     */
-    public static class InputDataNodeModel extends NodeModel {
-
-        Supplier<BufferedDataTable> m_tableSupplier;
-
-        /**
-         * Creates a new InputDataNodeModel that will provide the table from the given supplier.
-         *
-         * @param tableSupplier the supplier that will provide the table.
-         */
-        public InputDataNodeModel(final Supplier<BufferedDataTable> tableSupplier) {
-            super(0, 1);
-
-            m_tableSupplier = tableSupplier;
-        }
-
-        @Override
-        protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
-            var table = m_tableSupplier.get();
-            if (table == null) {
-                throw new IllegalStateException("Table supplier returned null");
-            }
-            return new DataTableSpec[]{m_tableSupplier.get().getSpec()};
-        }
-
-        @Override
-        protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec) {
-            var table = m_tableSupplier.get();
-            if (table == null) {
-                throw new IllegalStateException("Table supplier returned null");
-            }
-            return new BufferedDataTable[]{m_tableSupplier.get()};
-        }
-
-        @Override
-        protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
-            throws IOException, CanceledExecutionException {
-            // does nothing
-        }
-
-        @Override
-        protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
-            throws IOException, CanceledExecutionException {
-            // does nothing
-        }
-
-        @Override
-        protected void saveSettingsTo(final NodeSettingsWO settings) {
-            // does nothing
-        }
-
-        @Override
-        protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-            // does nothing
-        }
-
-        @Override
-        protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-            // does nothing
-        }
-
-        @Override
-        protected void reset() {
-            // does nothing
-        }
-    }
-
-    /**
-     * A simple factory to create the node with the model {@link InputDataNodeModel}. You might pass this to
-     * {@link WorkflowManagerUtil#createAndAddNode(WorkflowManager, NodeFactory)} to add a general input node to a test
-     * workflow.
-     */
-    public static class InputDataNodeFactory extends NodeFactory<InputDataNodeModel> {
-
-
-        private final Supplier<BufferedDataTable> m_tableSupplier;
-
-        /**
-         * Creates a new factory that will create a node with the given table supplier.
-         *
-         * @param tableSupplier the supplier that will provide the table.
-         */
-        public InputDataNodeFactory(final Supplier<BufferedDataTable> tableSupplier) {
-            m_tableSupplier = tableSupplier;
-        }
-
-        @Override
-        protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
-            return new NoDescriptionProxy(this.getClass()); // Reduce logging spam for tests
-        }
-
-        @Override
-        public InputDataNodeModel createNodeModel() {
-            return new InputDataNodeModel(m_tableSupplier);
-        }
-
-        @Override
-        protected int getNrNodeViews() {
-            return 0;
-        }
-
-        @Override
-        public NodeView<InputDataNodeModel> createNodeView(final int viewIndex, final InputDataNodeModel nodeModel) {
-            return null;
-        }
-
-        @Override
-        protected boolean hasDialog() {
-            return false;
-        }
-
-        @Override
-        protected NodeDialogPane createNodeDialogPane() {
-            return null;
-        }
     }
 }

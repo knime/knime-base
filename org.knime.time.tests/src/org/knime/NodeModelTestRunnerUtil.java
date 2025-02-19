@@ -62,6 +62,7 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.workflow.NodeContainerState;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.testing.util.InputTableNode;
 import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
 
@@ -105,7 +106,8 @@ final public class NodeModelTestRunnerUtil {
      * @param lastCell Last cell of output
      * @param nodeState The status of the test node
      */
-    public record TestOutput(BufferedDataTable outputTable, DataCell firstCell, DataCell lastCell, NodeContainerState nodeState) {
+    public record TestOutput(BufferedDataTable outputTable, DataCell firstCell, DataCell lastCell,
+        NodeContainerState nodeState) {
     }
 
     /**
@@ -173,14 +175,13 @@ final public class NodeModelTestRunnerUtil {
         // execute and wait...
         var executed = workflowManager.executeAllAndWaitUntilDone();
 
-
         var outputTable = (BufferedDataTable)node.getOutPort(1).getPortObject();
 
         if (outputTable == null || outputTable.size() == 0) {
             return new TestOutput(outputTable, null, null, workflowManager.getNodeContainerState());
         }
-        var firstCell = InputTableNode.getFirstRow(outputTable).getCell(0);
-        var lastCell = InputTableNode.getLastRow(outputTable).getCell(0);
+        var firstCell = DateTimeTestingUtil.getFirstRow(outputTable).getCell(0);
+        var lastCell = DateTimeTestingUtil.getLastRow(outputTable).getCell(0);
         return new TestOutput(outputTable, firstCell, lastCell, workflowManager.getNodeContainerState());
     }
 
