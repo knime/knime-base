@@ -52,25 +52,28 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
+import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
+import org.knime.base.node.io.filehandling.webui.reader.DataTypeStringSerializer;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataCellFactory.FromString;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.data.def.BooleanCell.BooleanCellFactory;
-import org.knime.core.data.def.DoubleCell.DoubleCellFactory;
-import org.knime.core.data.def.IntCell.IntCellFactory;
-import org.knime.core.data.def.LongCell.LongCellFactory;
-import org.knime.core.data.def.StringCell.StringCellFactory;
+import org.knime.core.data.def.StringCell;
+import org.knime.core.node.ExecutionContext;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
@@ -78,6 +81,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicatePr
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 
 /**
  * Settings for the Constant Value Column WebUI node.
@@ -112,7 +116,8 @@ final class ConstantValueColumnNodeSettings implements DefaultNodeSettings {
         }
 
         @Widget(title = "Column type", description = "The type of the new column.")
-        SupportedColumnType m_type = SupportedColumnType.STRING;
+        @ChoicesWidget(choicesProvider = SupportedDataTypeChoicesProvider.class)
+        String m_type = SupportedDataTypeChoicesProvider.getDataTypeId(DataType.getType(StringCell.class));
 
         @Widget(title = "Fill value", description = """
                 Whether to use a custom value for the new column, or fill it with \
@@ -170,50 +175,51 @@ final class ConstantValueColumnNodeSettings implements DefaultNodeSettings {
             }
         }
 
-        enum SupportedColumnType {
-                @Label(value = "String")
-                STRING(StringCellFactory.TYPE, StringCellFactory::create), //
-                @Label(value = "Number (integer)")
-                INTEGER(IntCellFactory.TYPE, IntCellFactory::create), //
-                @Label(value = "Number (long)")
-                LONG(LongCellFactory.TYPE, LongCellFactory::create), //
-                @Label(value = "Number (double)")
-                DOUBLE(DoubleCellFactory.TYPE, DoubleCellFactory::create), //
-                @Label(value = "Boolean")
-                BOOLEAN(BooleanCellFactory.TYPE, BooleanCellFactory::create);
-
-            final DataType m_correspondingKnimeType;
-
-            Function<String, DataCell> m_cellFactory;
-
-            SupportedColumnType( //
-                final DataType correspondingKnimeType, //
-                final Function<String, DataCell> cellFactory //
-            ) {
-                m_correspondingKnimeType = correspondingKnimeType;
-                m_cellFactory = cellFactory;
-            }
-
-            Optional<DataCell> createCellFromString(final String value) {
-                try {
-                    return Optional.of(m_cellFactory.apply(value));
-                } catch (NumberFormatException ex) {
-                    return Optional.empty();
-                }
-            }
-
-            boolean isValidData(final String value) {
-                return createCellFromString(value).isPresent();
-            }
-
-            static SupportedColumnType fromDataType(final DataType type) {
-                return Arrays.stream(values()) //
-                    .filter(v -> v.m_correspondingKnimeType.equals(type)) //
-                    .findFirst() //
-                    .orElseThrow(() -> new IllegalArgumentException("Unsupported data type: " + type));
-            }
-        }
-
+        //
+        //        enum SupportedColumnType {
+        //                @Label(value = "String")
+        //                STRING(StringCellFactory.TYPE, StringCellFactory::create), //
+        //                @Label(value = "Number (integer)")
+        //                INTEGER(IntCellFactory.TYPE, IntCellFactory::create), //
+        //                @Label(value = "Number (long)")
+        //                LONG(LongCellFactory.TYPE, LongCellFactory::create), //
+        //                @Label(value = "Number (double)")
+        //                DOUBLE(DoubleCellFactory.TYPE, DoubleCellFactory::create), //
+        //                @Label(value = "Boolean")
+        //                BOOLEAN(BooleanCellFactory.TYPE, BooleanCellFactory::create);
+        //
+        //            final DataType m_correspondingKnimeType;
+        //
+        //            Function<String, DataCell> m_cellFactory;
+        //
+        //            SupportedColumnType( //
+        //                final DataType correspondingKnimeType, //
+        //                final Function<String, DataCell> cellFactory //
+        //            ) {
+        //                m_correspondingKnimeType = correspondingKnimeType;
+        //                m_cellFactory = cellFactory;
+        //            }
+        //
+        //            Optional<DataCell> createCellFromString(final String value) {
+        //                try {
+        //                    return Optional.of(m_cellFactory.apply(value));
+        //                } catch (NumberFormatException ex) {
+        //                    return Optional.empty();
+        //                }
+        //            }
+        //
+        //            boolean isValidData(final String value) {
+        //                return createCellFromString(value).isPresent();
+        //            }
+        //
+        //            static SupportedColumnType fromDataType(final DataType type) {
+        //                return Arrays.stream(values()) //
+        //                    .filter(v -> v.m_correspondingKnimeType.equals(type)) //
+        //                    .findFirst() //
+        //                    .orElseThrow(() -> new IllegalArgumentException("Unsupported data type: " + type));
+        //            }
+        //        }
+        //
         enum CustomOrMissingValue {
 
                 @Label(value = "Custom value", description = "Use a custom value to fill the new constant column")
@@ -238,8 +244,14 @@ final class ConstantValueColumnNodeSettings implements DefaultNodeSettings {
 
             @Override
             public NewColumnSettings computeState(final DefaultNodeSettingsContext context) {
-                var newSettings = new NewColumnSettings();
-                newSettings.m_columnNameToAppend = "New column " + (m_currentNewColumnSettings.get().length + 1);
+                var newSettings = new NewColumnSettings(context);
+
+                var existingNewColumns = m_currentNewColumnSettings.get();
+                var numberOfAppendedColumns = Arrays.stream(existingNewColumns) //
+                    .filter(s -> s.m_replaceOrAppend == AppendOrReplace.APPEND) //
+                    .count();
+
+                newSettings.m_columnNameToAppend = "New column " + (numberOfAppendedColumns + 1);
                 return newSettings;
             }
 
@@ -252,5 +264,58 @@ final class ConstantValueColumnNodeSettings implements DefaultNodeSettings {
     }
 
     static final class NewColumnSettingsArrayRef implements Reference<NewColumnSettings[]> {
+    }
+
+    static final class SupportedDataTypeChoicesProvider implements StringChoicesStateProvider {
+
+        static final String DEFAULT_COLUMNTYPE_ID = "<default-columntype>";
+
+        static final String DEFAULT_COLUMNTYPE_TEXT = "Default columntype";
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            initializer.computeBeforeOpenDialog();
+        }
+
+        @Override
+        public IdAndText[] computeState(final DefaultNodeSettingsContext context) {
+            final var defaultChoice = new IdAndText(DEFAULT_COLUMNTYPE_ID, DEFAULT_COLUMNTYPE_TEXT);
+            final var dataTypeChoices = getProductionPathProvider().getAvailableDataTypes().stream()
+                .sorted((t1, t2) -> t1.toPrettyString().compareTo(t2.toPrettyString()))
+                .map(type -> new IdAndText(getDataTypeId(type), type.toPrettyString())).toList();
+
+            System.out.println("dataTypeChoices: " + dataTypeChoices);
+
+            return Stream.concat(Stream.of(defaultChoice), dataTypeChoices.stream()).toArray(IdAndText[]::new);
+        }
+
+        static String getDataTypeId(final DataType type) {
+            return DataTypeStringSerializer.typeToString(type);
+        }
+
+        static DataType getDataType(final String id) {
+            System.out.println("id: " + id);
+            return DataTypeStringSerializer.stringToType(id);
+        }
+
+        static Optional<DataCell> createDataCellFromString(final String value, final DataType type,
+            final ExecutionContext ctx) {
+
+            var factory = type.getCellFactory(ctx).orElseThrow();
+            try {
+                return Optional.of(FromString.class.cast(factory).createCell(value));
+            } catch (RuntimeException ex) { // NOSONAR some classes break the contract of createCell, so we need to catch everything
+                return Optional.empty();
+            }
+        }
+
+        static Optional<DataCell> createDataCellFromString(final String value, final String type,
+            final ExecutionContext ctx) {
+            return createDataCellFromString(value, getDataType(type), ctx);
+        }
+
+        private static ProductionPathProvider<Class<?>> getProductionPathProvider() {
+            return StringReadAdapterFactory.INSTANCE.createProductionPathProvider();
+        }
     }
 }

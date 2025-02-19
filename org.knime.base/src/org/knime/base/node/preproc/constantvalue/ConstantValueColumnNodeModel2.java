@@ -54,6 +54,7 @@ import java.util.function.Predicate;
 import org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings.NewColumnSettings;
 import org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings.NewColumnSettings.AppendOrReplace;
 import org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings.NewColumnSettings.CustomOrMissingValue;
+import org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings.SupportedDataTypeChoicesProvider;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -62,6 +63,7 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.MissingCell;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
+import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.util.UniqueNameGenerator;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
@@ -87,11 +89,13 @@ final class ConstantValueColumnNodeModel2
     protected void validateSettings(final ConstantValueColumnNodeSettings settings) throws InvalidSettingsException {
         var firstInvalidCustomValue = Arrays.stream(settings.m_newColumnSettings) //
             .filter(s -> s.m_customOrMissingValue == CustomOrMissingValue.CUSTOM //
-                && !s.m_type.isValidData(s.m_value)) //
+                && SupportedDataTypeChoicesProvider.createDataCellFromString(s.m_value, s.m_type, null).isEmpty()) //
             .findFirst();
         if (firstInvalidCustomValue.isPresent()) {
             throw new InvalidSettingsException("The value '" + firstInvalidCustomValue.get().m_value
-                + "' is not a valid value for the selected type " + firstInvalidCustomValue.get().m_type + ".");
+                + "' is not a valid value for the selected type "
+                + SupportedDataTypeChoicesProvider.getDataType(firstInvalidCustomValue.get().m_type).toPrettyString()
+                + ".");
         }
 
         var firstUsedEmptyAppendedColumnName = Arrays.stream(settings.m_newColumnSettings) //
@@ -132,12 +136,17 @@ final class ConstantValueColumnNodeModel2
             var outputColumnName = newColumnSettings.m_replaceOrAppend == AppendOrReplace.APPEND //
                 ? uniqueNameGenerator.newName(newColumnSettings.m_columnNameToAppend) //
                 : newColumnSettings.m_columnNameToReplace;
+
+            System.out.println("The type we are about to try to conver is: " + newColumnSettings.m_type);
+
             var outputColumnSpec = new DataColumnSpecCreator( //
                 outputColumnName, //
-                newColumnSettings.m_type.m_correspondingKnimeType //
+                SupportedDataTypeChoicesProvider.getDataType(newColumnSettings.m_type) //
             ).createSpec();
 
-            var newColumnCellFactory = new ConstantColumnCellFactory(outputColumnSpec, newColumnSettings);
+            System.out.println("REsulting spec is: " + outputColumnSpec);
+
+            var newColumnCellFactory = new ConstantColumnCellFactory(outputColumnSpec, newColumnSettings, null);
 
             if (newColumnSettings.m_replaceOrAppend == AppendOrReplace.APPEND) {
                 rearranger.append(newColumnCellFactory);
@@ -153,11 +162,14 @@ final class ConstantValueColumnNodeModel2
 
         private final NewColumnSettings m_singleColumnSettings;
 
+        private final ExecutionContext m_ctx;
+
         public ConstantColumnCellFactory(final DataColumnSpec newColSpec,
-            final ConstantValueColumnNodeSettings.NewColumnSettings singleColumnSettings) {
+            final ConstantValueColumnNodeSettings.NewColumnSettings singleColumnSettings, final ExecutionContext ctx) {
             super(newColSpec);
 
             m_singleColumnSettings = singleColumnSettings;
+            m_ctx = ctx;
         }
 
         @Override
@@ -166,7 +178,8 @@ final class ConstantValueColumnNodeModel2
                 return new MissingCell("Missing cell from 'Constant Value Column'");
             }
 
-            var dataCell = m_singleColumnSettings.m_type.createCellFromString(m_singleColumnSettings.m_value);
+            var dataCell = SupportedDataTypeChoicesProvider.createDataCellFromString(m_singleColumnSettings.m_value,
+                m_singleColumnSettings.m_type, m_ctx);
 
             return dataCell.orElseThrow(() -> new IllegalStateException("Could not create cell of type "
                 + m_singleColumnSettings.m_type + " from string '" + m_singleColumnSettings.m_value + "'."));
