@@ -27,6 +27,21 @@
             If checked, the possible values of each columns are extracted as 
             possible values, otherwise not.
         </option>
+	<option name="Format of Type Names">
+		Determines how the types of columns are represented in the output
+		table.
+		The following options are available:
+		<ul>
+			<li>Identifier: The type names are represented with a unique
+				identifier. This is the recommended option.</li>
+			<li>Legacy Display Name: The type names are represented by their old
+				display name. This option is intended to be used purely for
+				backwards-compatibility for workflows created in version 5.4 or before.</li>
+			<li>Display Name: The type names are represented by their display
+				name. This name may change at any point with an update, so it is
+				highly discouraged to match against this output in any way.</li>
+		</ul>
+	</option>
 	</fullDescription>
 		
 	<ports>

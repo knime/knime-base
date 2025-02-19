@@ -41,7 +41,7 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------------
- * 
+ *
  * History
  *   03.06.2012 (kilian): created
  */
@@ -49,21 +49,28 @@ package org.knime.base.node.util.extracttablespec;
 
 /**
  * Configuration keys for the extract table spec node.
- * 
+ *
  * @author Kilian Thiel, KNIME.com, Berlin, Germany
  */
 public final class ExtractTableSpecConfigKeys {
 
     private ExtractTableSpecConfigKeys() { /* empty constructor */ }
-    
+
     /**
      * The configuration key for the extraction of the property handlers.
      */
     static final String EXTRACT_PROPERTY_HANDLERS = "ExtractPropertyHandlers";
-    
+
     /**
      * The configuration key to extract possible values as collection.
      */
-    static final String POSSIBBLE_VALUES_AS_COLLECTION = 
+    static final String POSSIBBLE_VALUES_AS_COLLECTION =
         "PossibleValuesAsCollection";
+
+    /**
+     * Whether to use legacy names for the data types. Only exists for backwards-compatibility reasons.
+     *
+     * @since 5.5
+     */
+    static final String TYPE_NAME_FORMAT = "TypeNameFormat";
 }
