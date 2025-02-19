@@ -450,9 +450,21 @@
    </extension>
   <extension
          point="org.knime.workflow.migration.NodeMigrationRule">
-      <Rule
+      <!-- <Rule
             class="org.knime.time.node.create.createdatetime.CreateDateTimeNodeMigrationRule">
+      </Rule> -->
+      <!-- <Rule
+            class="org.knime.time.node.convert.stringtodurationperiod.StringToDurationPeriodNodeMigrationRule">
       </Rule>
+      <Rule
+            class="org.knime.time.node.convert.durationperiodtostring.DurationPeriodToStringNodeMigrationRule">
+      </Rule> -->
+      <!-- <Rule
+            class="org.knime.time.node.extract.durationperiod.ExtractDurationPeriodFieldsNodeMigrationRule">
+      </Rule> -->
+      <!-- <Rule
+            class="org.knime.time.node.convert.durationtonumber.DurationToNumberNodeMigrationRule">
+      </Rule> -->
    </extension>
    
 </plugin>
