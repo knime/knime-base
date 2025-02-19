@@ -1,0 +1,274 @@
+{
+  "data" : {
+    "model" : {
+      "newColumnSettings" : [ {
+        "replaceOrAppend" : "APPEND",
+        "columnNameToAppend" : "New column",
+        "type" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "customOrMissingValue" : "MISSING",
+        "value" : ""
+      } ]
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "newColumnSettings" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "columnNameToAppend" : {
+                  "type" : "string",
+                  "title" : "New column",
+                  "description" : "The name of the new column.",
+                  "default" : "New column",
+                  "pattern" : "^\\s*\\S.*$"
+                },
+                "columnNameToReplace" : {
+                  "type" : "string",
+                  "title" : "Replace column",
+                  "description" : "The name of the column to replace.",
+                  "default" : "test"
+                },
+                "customOrMissingValue" : {
+                  "oneOf" : [ {
+                    "const" : "MISSING",
+                    "title" : "Missing"
+                  }, {
+                    "const" : "CUSTOM",
+                    "title" : "Custom value"
+                  } ],
+                  "title" : "Fill value",
+                  "description" : "Whether to use a custom value for the new column, or fill it with missing cells.\n\n<ul>\n<li><b>Missing</b>: Fill the new constant column with missing cells</li>\n<li><b>Custom value</b>: Use a custom value to fill the new constant column</li>\n</ul>",
+                  "default" : "MISSING"
+                },
+                "replaceOrAppend" : {
+                  "oneOf" : [ {
+                    "const" : "APPEND",
+                    "title" : "Append"
+                  }, {
+                    "const" : "REPLACE",
+                    "title" : "Replace"
+                  } ],
+                  "title" : "Output column",
+                  "description" : "Whether to replace an existing column or append a new one.\n<ul>\n<li><b>Append</b>: Append a new column</li>\n<li><b>Replace</b>: Replace an existing column</li>\n</ul>",
+                  "default" : "APPEND"
+                },
+                "type" : {
+                  "type" : "string",
+                  "title" : "Column type",
+                  "description" : "The type of the new column.",
+                  "default" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
+                },
+                "value" : {
+                  "type" : "string",
+                  "title" : "Custom value",
+                  "description" : "The value to be used when filling the output column.",
+                  "default" : ""
+                }
+              }
+            },
+            "default" : [ {
+              "replaceOrAppend" : "APPEND",
+              "columnNameToAppend" : "New column",
+              "type" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+              "customOrMissingValue" : "MISSING",
+              "value" : ""
+            } ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/newColumnSettings",
+      "options" : {
+        "detail" : [ {
+          "type" : "Control",
+          "scope" : "#/properties/replaceOrAppend",
+          "options" : {
+            "format" : "valueSwitch"
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/columnNameToAppend",
+          "options" : {
+            "hideOnNull" : false,
+            "placeholder" : "New column name"
+          },
+          "rule" : {
+            "effect" : "HIDE",
+            "condition" : {
+              "scope" : "#/properties/replaceOrAppend",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "REPLACE"
+                } ]
+              }
+            }
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/columnNameToReplace",
+          "options" : {
+            "possibleValues" : [ {
+              "id" : "test",
+              "text" : "test",
+              "type" : {
+                "id" : "org.knime.core.data.StringValue",
+                "text" : "String"
+              },
+              "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+            } ],
+            "format" : "dropDown",
+            "showNoneColumn" : false,
+            "showRowKeys" : false,
+            "showSearch" : true,
+            "showMode" : true
+          },
+          "rule" : {
+            "effect" : "SHOW",
+            "condition" : {
+              "scope" : "#/properties/replaceOrAppend",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "REPLACE"
+                } ]
+              }
+            }
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/type",
+          "options" : {
+            "format" : "dropDown",
+            "choicesProvider" : "org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings$SupportedDataTypeChoicesProvider",
+            "showNoneColumn" : false,
+            "showRowKeys" : false,
+            "showSearch" : true,
+            "showMode" : true
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/customOrMissingValue",
+          "options" : {
+            "format" : "valueSwitch"
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/value",
+          "rule" : {
+            "effect" : "HIDE",
+            "condition" : {
+              "scope" : "#/properties/customOrMissingValue",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "MISSING"
+                } ]
+              }
+            }
+          }
+        } ],
+        "addButtonText" : "Add column",
+        "arrayElementTitle" : "Constant column",
+        "elementDefaultValueProvider" : "org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings$NewColumnSettings$InitialNewColumnSettingsValueProvider"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "newColumnSettings" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "replaceOrAppend" : { },
+                "columnNameToAppend" : { },
+                "columnNameToReplace" : { },
+                "type" : {
+                  "configPaths" : [ [ "type", "cell_class" ] ]
+                },
+                "customOrMissingValue" : { },
+                "value" : { }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings$SupportedDataTypeChoicesProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Boolean"
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Number (Floating Decimal)"
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.IntCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Number (Integer)"
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.LongCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Number (Long Integer)"
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "String"
+      } ]
+    } ]
+  }, {
+    "scopes" : null,
+    "id" : "org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DefaultDataTypeChoicesProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Boolean"
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Number (Floating Decimal)"
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.IntCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Number (Integer)"
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.LongCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Number (Long Integer)"
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "String"
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog",
+      "triggerInitially" : true
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/newColumnSettings" ],
+      "id" : "org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings$NewColumnSettingsArrayRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings$NewColumnSettingsArrayRef",
+      "scopes" : [ "#/properties/model/properties/newColumnSettings" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/newColumnSettings" ],
+      "id" : "org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings$NewColumnSettingsArrayRef"
+    } ]
+  } ]
+}
