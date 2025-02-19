@@ -162,8 +162,8 @@ final class EqualityPredicateFactoryTest {
             .as("Comparing Int column with String reference via equality") //
             .isInstanceOf(InvalidSettingsException.class) //
             .hasMessageContaining(
-                "Cannot compare input column of type \"Number (integer)\" "
-                + "with a value of type \"String\" for %sequality".formatted(matchEqual ? "" : "in"));
+                "Cannot compare input column of type \"" + IntCell.TYPE.getName() + "\" with a value of type \""
+                    + StringCell.TYPE.getName() + "\" for %sequality".formatted(matchEqual ? "" : "in"));
     }
 
     @SuppressWarnings("static-method")
@@ -184,8 +184,9 @@ final class EqualityPredicateFactoryTest {
         assertThatCode(() -> createPredicate("Long1", new DoubleCell(1.0), matchEqual)) //
             .as("Comparing Long column with Double reference via equality") //
             .isInstanceOf(InvalidSettingsException.class) //
-            .hasMessageContaining("Cannot compare input column of type \"Number (long)\" "
-                + "with a value of type \"Number (double)\" for %sequality".formatted(matchEqual ? "" : "in"));
+            .hasMessageContaining(
+                "Cannot compare input column of type \"" + LongCell.TYPE.getName() + "\" with a value of type \""
+                    + DoubleCell.TYPE.getName() + "\" for %sequality".formatted(matchEqual ? "" : "in"));
     }
 
     @SuppressWarnings("static-method")
@@ -206,8 +207,9 @@ final class EqualityPredicateFactoryTest {
         assertThatCode(() -> createPredicate("Double1", new LongCell(1), matchEqual)) //
             .as("Comparing Double column with Long reference via equality") //
             .isInstanceOf(InvalidSettingsException.class) //
-            .hasMessageContaining("Cannot compare input column of type \"Number (double)\" "
-                + "with a value of type \"Number (long)\" for %sequality".formatted(matchEqual ? "" : "in"));
+            .hasMessageContaining(
+                "Cannot compare input column of type \"" + DoubleCell.TYPE.getName() + "\" with a value of type \""
+                    + LongCell.TYPE.getName() + "\" for %sequality".formatted(matchEqual ? "" : "in"));
     }
 
     @SuppressWarnings("static-method")

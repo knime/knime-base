@@ -332,7 +332,7 @@
           "text" : "localTimeTest",
           "type" : {
             "id" : "org.knime.core.data.time.localtime.LocalTimeValue",
-            "text" : "Local Time"
+            "text" : "Time"
           },
           "compatibleTypes" : [ "org.knime.core.data.time.localtime.LocalTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
         }, {
@@ -340,7 +340,7 @@
           "text" : "localDateTimeTest",
           "type" : {
             "id" : "org.knime.core.data.time.localdatetime.LocalDateTimeValue",
-            "text" : "Local Date Time"
+            "text" : "Date&time (Local)"
           },
           "compatibleTypes" : [ "org.knime.core.data.time.localdatetime.LocalDateTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
         }, {
@@ -348,7 +348,7 @@
           "text" : "zonedDateTimeTest",
           "type" : {
             "id" : "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue",
-            "text" : "Zoned Date Time"
+            "text" : "Date&time (Zoned)"
           },
           "compatibleTypes" : [ "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
         } ],

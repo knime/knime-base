@@ -81,6 +81,7 @@ import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformati
 import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.ExternalDataTypeSerializer;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.xml.XMLCell;
 import org.knime.core.util.Pair;
@@ -452,8 +453,8 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
         assertThat(titles.get(0).value()).isEqualTo("intCol");
         assertThat(titles.get(1).value()).isEqualTo("stringCol");
         assertThat(titles.get(2).value()).isEqualTo("Any unknown column");
-        assertThat(subTitles.get(0).value()).isEqualTo("Number (integer)");
-        assertThat(subTitles.get(1).value()).isEqualTo("String");
+        assertThat(subTitles.get(0).value()).isEqualTo(IntCell.TYPE.toPrettyString());
+        assertThat(subTitles.get(1).value()).isEqualTo(StringCell.TYPE.toPrettyString());
         assertThat(subTitles.get(2).value()).isEqualTo("Default columntype");
     }
 

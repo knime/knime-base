@@ -208,7 +208,7 @@
           "text" : "periodTest",
           "type" : {
             "id" : "org.knime.core.data.time.period.PeriodValue",
-            "text" : "Period"
+            "text" : "Duration (Date-based)"
           },
           "compatibleTypes" : [ "org.knime.core.data.time.period.PeriodValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
         }, {
@@ -216,7 +216,7 @@
           "text" : "durationTest",
           "type" : {
             "id" : "org.knime.core.data.time.duration.DurationValue",
-            "text" : "Duration"
+            "text" : "Duration (Time-based)"
           },
           "compatibleTypes" : [ "org.knime.core.data.time.duration.DurationValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
         } ],

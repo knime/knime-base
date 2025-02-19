@@ -322,7 +322,7 @@
         "text" : "DoubleCol",
         "type" : {
           "id" : "org.knime.core.data.DoubleValue",
-          "text" : "Number (double)"
+          "text" : "Number (Floating Decimal)"
         },
         "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
       }, {
@@ -338,7 +338,7 @@
         "text" : "IntCol",
         "type" : {
           "id" : "org.knime.core.data.IntValue",
-          "text" : "Number (integer)"
+          "text" : "Number (Integer)"
         },
         "compatibleTypes" : [ "org.knime.core.data.IntValue", "org.knime.core.data.DataValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
       }, {
@@ -346,7 +346,7 @@
         "text" : "BoolCol",
         "type" : {
           "id" : "org.knime.core.data.BooleanValue",
-          "text" : "Boolean value"
+          "text" : "Boolean"
         },
         "compatibleTypes" : [ "org.knime.core.data.BooleanValue", "org.knime.core.data.DataValue", "org.knime.core.data.IntValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.NominalValue" ]
       } ]

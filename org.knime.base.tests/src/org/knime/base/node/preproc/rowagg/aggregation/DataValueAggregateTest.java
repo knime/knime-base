@@ -134,11 +134,13 @@ final class DataValueAggregateTest {
 
         // let (weighted) combiner overflow
 
+        final var intName = IntCell.TYPE.getName();
+        final var longName = LongCell.TYPE.getName();
         var inner = outer.createInstance(gs, ocs);
         inner.compute(new DefaultRow(RowKey.createRowKey(1L), new IntCell(Integer.MAX_VALUE)), 0);
-        assertEquals("Numeric overflow multiplying values for column of type "
-            + "\"Number (integer)\" and column of type \"Number (integer)\"."
-            + " Consider converting the input column(s) to \"Number (long)\".",
+        assertEquals(
+            "Numeric overflow multiplying values for column of type " + "\"" + intName + "\" and column of type \""
+                + intName + "\"." + " Consider converting the input column(s) to \"" + longName + "\".",
             inner.getSkipMessage(), "Skip message should inform user about numeric overflow");
         assertEquals(DataType.getMissingCell(), inner.getResult(), "Expected missing cell after numeric overflow");
 
@@ -152,8 +154,8 @@ final class DataValueAggregateTest {
         final var rowVal = (int) Math.sqrt(remaining);
         inner.compute(new DefaultRow(RowKey.createRowKey(2L), new IntCell(rowVal + 1)), 0);
         assertEquals(DataType.getMissingCell(), inner.getResult(), "Expected missing cell after numeric overflow");
-        assertEquals("Numeric overflow of aggregation result for input type \"Number (integer)\"."
-            + " Consider converting the input column to \"Number (long)\".",
+        assertEquals("Numeric overflow of aggregation result for input type \"" + intName + "\"."
+            + " Consider converting the input column to \"" + longName + "\".",
                 inner.getSkipMessage(), "Skip message should inform user about numeric overflow");
 
 
@@ -174,7 +176,7 @@ final class DataValueAggregateTest {
         final var longRowVal = (long)Math.sqrt(longRemaining);
         inner.compute(new DefaultRow(RowKey.createRowKey(2L), new LongCell(longRowVal + 1)), 0);
         assertEquals(DataType.getMissingCell(), inner.getResult(), "Expected missing cell after numeric overflow");
-        assertEquals("Numeric overflow aggregating values for column of type \"Number (long)\".",
+        assertEquals("Numeric overflow aggregating values for column of type \"" + longName + "\".",
                 inner.getSkipMessage(), "Skip message should inform user about aggregation overflow");
     }
 

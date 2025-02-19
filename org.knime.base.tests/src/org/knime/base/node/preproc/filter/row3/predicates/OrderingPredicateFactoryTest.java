@@ -143,9 +143,8 @@ final class OrderingPredicateFactoryTest {
         assertThatCode(() -> createPredicate("Int1", new StringCell("foo"), operator)) //
             .as("Comparing Int column with String reference via " + operator) //
             .isInstanceOf(InvalidSettingsException.class) //
-            .hasMessageContaining(
-                "Cannot apply ordering comparison to input column of type \"Number (integer)\" and reference value of "
-                    + "type \"String\"");
+            .hasMessageContaining("Cannot apply ordering comparison to input column of type \"" + IntCell.TYPE.getName()
+                + "\" and reference value of type \"" + StringCell.TYPE.getName() + "\"");
     }
 
     @SuppressWarnings("static-method")
@@ -167,17 +166,15 @@ final class OrderingPredicateFactoryTest {
         assertThatCode(() -> createPredicate("Long1", new DoubleCell(1.0), operator)) //
             .as("Comparing Long column with Double reference via " + operator) //
             .isInstanceOf(InvalidSettingsException.class) //
-            .hasMessageContaining(
-                "Cannot apply ordering comparison to input column of type \"Number (long)\" and reference value of "
-                    + "type \"Number (double)\"");
+            .hasMessageContaining("Cannot apply ordering comparison to input column of type \""
+                + LongCell.TYPE.getName() + "\" and reference value of type \"" + DoubleCell.TYPE.getName() + "\"");
 
         // Long column with String reference should throw exception
         assertThatCode(() -> createPredicate("Long1", new StringCell("foo"), operator)) //
             .as("Comparing Long column with String reference via " + operator) //
             .isInstanceOf(InvalidSettingsException.class) //
-            .hasMessageContaining(
-                "Cannot apply ordering comparison to input column of type \"Number (long)\" and reference value of "
-                    + "type \"String\"");
+            .hasMessageContaining("Cannot apply ordering comparison to input column of type \""
+                + LongCell.TYPE.getName() + "\" and reference value of type \"" + StringCell.TYPE.getName() + "\"");
     }
 
     @SuppressWarnings("static-method")
@@ -194,9 +191,8 @@ final class OrderingPredicateFactoryTest {
         assertThatCode(() -> createPredicate("Double1", new LongCell(1), operator)) //
             .as("Comparing Double column with Long reference via " + operator) //
             .isInstanceOf(InvalidSettingsException.class) //
-            .hasMessageContaining(
-                "Cannot apply ordering comparison to input column of type \"Number (double)\" and reference value of "
-                    + "type \"Number (long)\"");
+            .hasMessageContaining("Cannot apply ordering comparison to input column of type \""
+                + DoubleCell.TYPE.getName() + "\" and reference value of type \"" + LongCell.TYPE.getName() + "\"");
 
         // Double column with Double reference
         assertThatCode(() -> createPredicate("Double1", new DoubleCell(1.0), operator)) //
@@ -207,9 +203,8 @@ final class OrderingPredicateFactoryTest {
         assertThatCode(() -> createPredicate("Double1", new StringCell("foo"), operator)) //
             .as("Comparing Double column with String reference via " + operator) //
             .isInstanceOf(InvalidSettingsException.class) //
-            .hasMessageContaining(
-                "Cannot apply ordering comparison to input column of type \"Number (double)\" and reference value of "
-                    + "type \"String\"");
+            .hasMessageContaining("Cannot apply ordering comparison to input column of type \""
+                + DoubleCell.TYPE.getName() + "\" and reference value of type \"" + StringCell.TYPE.getName() + "\"");
     }
 
     @SuppressWarnings("static-method")
@@ -225,8 +220,8 @@ final class OrderingPredicateFactoryTest {
         assertThatCode(() -> createPredicate("Dummy1", new StringCell("foo"), operator)) //
             .as("Comparing FilterDummyCell column with String reference via " + operator) //
             .isInstanceOf(InvalidSettingsException.class) //
-            .hasMessageContaining(
-                "Column type \"FilterDummyCell\" is not a super type of reference type \"String\"");
+            .hasMessageContaining("Column type \"FilterDummyCell\" is not a super type of reference type \""
+                + StringCell.TYPE.getName() + "\"");
     }
 
     @SuppressWarnings("static-method")

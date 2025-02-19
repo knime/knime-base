@@ -2157,7 +2157,7 @@
         "text" : "localDateTime",
         "type" : {
           "id" : "org.knime.core.data.time.localdatetime.LocalDateTimeValue",
-          "text" : "Local Date Time"
+          "text" : "Date&time (Local)"
         },
         "compatibleTypes" : [ "org.knime.core.data.time.localdatetime.LocalDateTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
       }, {
@@ -2165,7 +2165,7 @@
         "text" : "zonedDateTime",
         "type" : {
           "id" : "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue",
-          "text" : "Zoned Date Time"
+          "text" : "Date&time (Zoned)"
         },
         "compatibleTypes" : [ "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
       } ]

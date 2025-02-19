@@ -210,15 +210,13 @@ final class FilterCriterionTest {
             criterion.m_operator = FilterOperator.EQ;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Int with default value via EQ") //
-                .hasMessageContaining(
-                    "Cannot compare input column of type \"Number (integer)\" "
-                    + "with a value of type \"String\" for equality");
+                .hasMessageContaining("Cannot compare input column of type \"" + IntCell.TYPE.getName()
+                    + "\" with a value of type \"" + StringCell.TYPE.getName() + "\" for equality");
             criterion.m_operator = FilterOperator.NEQ;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Int with default value via NEQ") //
-                .hasMessageContaining(
-                    "Cannot compare input column of type \"Number (integer)\" "
-                    + "with a value of type \"String\" for inequality");
+                .hasMessageContaining("Cannot compare input column of type \"" + IntCell.TYPE.getName()
+                    + "\" with a value of type \"" + StringCell.TYPE.getName() + "\" for inequality");
         }
 
         /**
@@ -237,16 +235,14 @@ final class FilterCriterionTest {
             criterion.m_operator = FilterOperator.EQ;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Long with default value via EQ") //
-                .hasMessageContaining(
-                    "Cannot compare input column of type \"Number (long)\" with a value of type \"String\" for "
-                    + "equality");
+                .hasMessageContaining("Cannot compare input column of type \"" + LongCell.TYPE.getName()
+                    + "\" with a value of type \"" + StringCell.TYPE.getName() + "\" for equality");
 
             criterion.m_operator = FilterOperator.NEQ;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Long with default value via NEQ") //
-                .hasMessageContaining(
-                    "Cannot compare input column of type \"Number (long)\" with a value of type \"String\" for "
-                    + "inequality");
+                .hasMessageContaining("Cannot compare input column of type \"" + LongCell.TYPE.getName()
+                    + "\" with a value of type \"" + StringCell.TYPE.getName() + "\" for inequality");
         }
     }
 
@@ -275,7 +271,7 @@ final class FilterCriterionTest {
             criterion.m_operator = FilterOperator.EQ;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Boolean via EQ") //
-                .hasMessage("Unsupported operator for input column type \"Boolean value\"");
+                .hasMessage("Unsupported operator for input column type \"" + BooleanCell.TYPE.getName() + "\"");
         }
 
         @Test
@@ -452,11 +448,13 @@ final class FilterCriterionTest {
 
             criterion.m_operator = FilterOperator.WILDCARD;
             assertThatCode(() -> criterion.toPredicate(SPEC)).as("Double with default value via wildcard") //
-                .hasMessageContaining("Unsupported operator for input column type \"Number (double)\"");
+                .hasMessageContaining(
+                    "Unsupported operator for input column type \"" + DoubleCell.TYPE.getName() + "\"");
 
             criterion.m_operator = FilterOperator.REGEX;
             assertThatCode(() -> criterion.toPredicate(SPEC)).as("Double with default value via regex") //
-                .hasMessageContaining("Unsupported operator for input column type \"Number (double)\"");
+                .hasMessageContaining(
+                    "Unsupported operator for input column type \"" + DoubleCell.TYPE.getName() + "\"");
         }
     }
 }

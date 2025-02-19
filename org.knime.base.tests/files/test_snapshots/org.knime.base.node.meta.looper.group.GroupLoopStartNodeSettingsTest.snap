@@ -182,7 +182,7 @@
           "text" : "test1",
           "type" : {
             "id" : "org.knime.core.data.IntValue",
-            "text" : "Number (integer)"
+            "text" : "Number (Integer)"
           },
           "compatibleTypes" : [ "org.knime.core.data.IntValue", "org.knime.core.data.DataValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
         }, {
