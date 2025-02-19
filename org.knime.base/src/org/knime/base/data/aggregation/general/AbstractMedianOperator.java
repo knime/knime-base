@@ -96,9 +96,23 @@ public abstract class AbstractMedianOperator extends SortedListCellOperator {
     /**
      * @param utility utility of the implementation's specific {@DataValue}
      * @return unique identifier used for registration
+     * @deprecated Do not use since the name returned from the utility factory may change at any point. Use
+     *             {@link #formatId(String)}
      */
+    @Deprecated(since = "5.5")
     protected static String formatId(final ExtensibleUtilityFactory utility) {
-        return LABEL + " " + utility.getName();
+        return formatId(utility.getName());
+    }
+
+    /**
+     * Format id based on a type identifier.
+     *
+     * @param typeIdentifier a string identifier that uniquely determines the type this operator acts on
+     * @return {@link #LABEL} followed by a space and the argument
+     * @since 5.5
+     */
+    protected static String formatId(final String typeIdentifier) {
+        return LABEL + " " + typeIdentifier;
     }
 
     /**

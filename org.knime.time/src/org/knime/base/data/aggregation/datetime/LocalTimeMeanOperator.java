@@ -88,7 +88,8 @@ public final class LocalTimeMeanOperator extends AggregationOperator {
      * @param opColSettings the operator column specific settings
      */
     public LocalTimeMeanOperator(final GlobalSettings globalSettings, final OperatorColumnSettings opColSettings) {
-        super(new OperatorData("Mean " + LocalTimeValue.UTILITY.getName(), "Mean", "Mean", false, true,
+        // hard coded name as part of AP-23571
+        super(new OperatorData("Mean Local Time", "Mean", "Mean", false, true,
             LocalTimeValue.class, false), globalSettings, opColSettings);
     }
 
