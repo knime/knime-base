@@ -55,7 +55,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
-import org.knime.InputTableNode;
+import org.knime.DateTimeTestingUtil;
 import org.knime.NodeModelTestRunnerUtil;
 import org.knime.base.node.viz.format.AlignmentSuggestionOption;
 import org.knime.core.data.DataType;
@@ -84,8 +84,8 @@ final class DurationPeriodFormatManagerNodeModelTest {
     @Test
     void testSetFormatter() throws IOException, InvalidSettingsException {
         String[] columnNamesToAddFormaterTo = { //
-            InputTableNode.COLUMN_DURATION, //
-            InputTableNode.COLUMN_PERIOD //
+            DateTimeTestingUtil.COLUMN_DURATION, //
+            DateTimeTestingUtil.COLUMN_PERIOD //
         };
 
         var wfm = WorkflowManagerUtil.createEmptyWorkflow();
@@ -105,8 +105,8 @@ final class DurationPeriodFormatManagerNodeModelTest {
         DefaultNodeSettings.saveSettings(DurationPeriodFormatManagerNodeSettings.class, settings, modelSettings);
         wfm.loadNodeSettings(formatManagerNode.getID(), nodeSettings);
 
-        var inTable = InputTableNode.createDefaultTestTable();
-        InputTableNode.addTableToNodeInputPort(wfm, inTable, formatManagerNode, 1);
+        var inTable = DateTimeTestingUtil.createDefaultTestTable();
+        DateTimeTestingUtil.addTableToNodeInputPort(wfm, inTable, formatManagerNode, 1);
 
         wfm.executeAllAndWaitUntilDone();
 
