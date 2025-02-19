@@ -60,7 +60,7 @@ import java.util.function.Supplier;
 import org.apache.commons.lang3.LocaleUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.knime.InputTableNode;
+import org.knime.DateTimeTestingUtil;
 import org.knime.NodeModelTestRunnerUtil;
 import org.knime.base.node.viz.format.AlignmentSuggestionOption;
 import org.knime.core.data.DataType;
@@ -102,7 +102,7 @@ final class DateTimeFormatManagerNodeModelTest {
         final var settings = new DateTimeFormatManagerNodeSettings();
         setSettings(settings);
 
-        InputTableNode.addDefaultTableToNodeInputPort(m_wfm, m_dateTimeFormatManagerNode, 1);
+        DateTimeTestingUtil.addDefaultTableToNodeInputPort(m_wfm, m_dateTimeFormatManagerNode, 1);
 
         assertTrue(m_wfm.executeAllAndWaitUntilDone(), "The workflow should have been executed.");
         assertTrue(m_dateTimeFormatManagerNode.getNodeContainerState().isExecuted());
@@ -111,7 +111,7 @@ final class DateTimeFormatManagerNodeModelTest {
     @Test
     void checkThatFormatsAreAddedToHistory() throws InvalidSettingsException, IOException {
         var settings = new DateTimeFormatManagerNodeSettings();
-        settings.m_columnFilter = new ColumnFilter(new String[]{InputTableNode.COLUMN_LOCAL_TIME});
+        settings.m_columnFilter = new ColumnFilter(new String[]{DateTimeTestingUtil.COLUMN_LOCAL_TIME});
         settings.m_locale = Locale.ENGLISH.toLanguageTag();
         settings.m_format = "HH";
 
@@ -128,10 +128,10 @@ final class DateTimeFormatManagerNodeModelTest {
     void appendDateTimeFormatter() throws InvalidSettingsException {
 
         String[] columnNamesToAddFormatterTo = { //
-            InputTableNode.COLUMN_LOCAL_TIME, //
-            InputTableNode.COLUMN_LOCAL_DATE_TIME, //
-            InputTableNode.COLUMN_LOCAL_DATE, //
-            InputTableNode.COLUMN_ZONED_DATE_TIME};
+            DateTimeTestingUtil.COLUMN_LOCAL_TIME, //
+            DateTimeTestingUtil.COLUMN_LOCAL_DATE_TIME, //
+            DateTimeTestingUtil.COLUMN_LOCAL_DATE, //
+            DateTimeTestingUtil.COLUMN_ZONED_DATE_TIME};
 
         final var settings = new DateTimeFormatManagerNodeSettings();
         settings.m_columnFilter = new ColumnFilter(columnNamesToAddFormatterTo);
@@ -190,9 +190,9 @@ final class DateTimeFormatManagerNodeModelTest {
         throws InvalidSettingsException {
         setSettings(settings);
 
-        var inputTable = InputTableNode.createDefaultTestTable();
+        var inputTable = DateTimeTestingUtil.createDefaultTestTable();
 
-        InputTableNode.addTableToNodeInputPort(m_wfm, inputTable, m_dateTimeFormatManagerNode, 1);
+        DateTimeTestingUtil.addTableToNodeInputPort(m_wfm, inputTable, m_dateTimeFormatManagerNode, 1);
         assertTrue(m_wfm.executeAllAndWaitUntilDone(), "The workflow should have been executed");
         return inputTable;
     }
