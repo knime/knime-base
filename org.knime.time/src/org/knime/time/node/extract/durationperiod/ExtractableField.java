@@ -58,6 +58,8 @@ import java.util.stream.Collectors;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
+import org.knime.core.data.def.IntCell.IntCellFactory;
+import org.knime.core.data.def.LongCell.LongCellFactory;
 import org.knime.core.data.time.duration.DurationCell;
 import org.knime.core.data.time.duration.DurationValue;
 import org.knime.core.data.time.period.PeriodCell;
@@ -73,46 +75,86 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 enum ExtractableField {
 
         @Label(value = "Years", description = "The years component of a period.")
-        YEARS(Period.class, Period::getYears, "Year", "Years"), //
+        YEARS(Period.class, (PeriodToIntCellExtractor)Period::getYears, "Years", "Years"), //
         @Label(value = "Months", description = "The months component of a period.")
-        MONTHS(Period.class, Period::getMonths, "Months", "Months"), //
+        MONTHS(Period.class, (PeriodToIntCellExtractor)Period::getMonths, "Months", "Months"), //
         @Label(value = "Days", description = "The days component of a period.")
-        DAYS(Period.class, Period::getDays, "Days", "Days"), //
+        DAYS(Period.class, (PeriodToIntCellExtractor)Period::getDays, "Days", "Days"), //
         @Label(value = "Hours", description = "The hours component of a duration.")
-        HOURS(Duration.class, Duration::toHours, "Hours", "Hours"), //
+        HOURS(Duration.class, (DurationToLongCellExtractor)Duration::toHours, "Hours", "Hours"), //
         @Label(value = "Minutes", description = "The minutes component of a duration.")
-        MINUTES(Duration.class, Duration::toMinutesPart, "Minutes", "Minutes"), //
+        MINUTES(Duration.class, (DurationToIntCellExtractor)Duration::toMinutesPart, "Minutes", "Minutes"), //
         @Label(value = "Seconds", description = "The seconds component of a duration.")
-        SECONDS(Duration.class, Duration::toSecondsPart, "Seconds", "Seconds"), //
+        SECONDS(Duration.class, (DurationToIntCellExtractor)Duration::toSecondsPart, "Seconds", "Seconds"), //
         @Label(value = "Millis", description = """
                 The milliseconds component of a duration. In other words, a duration of 10.123456789 \
                 seconds would have 123 milliseconds.
                 """)
-        MILLIS(Duration.class, d -> d.toMillisPart() % 1_000, "Millis", "Milliseconds"), //
+        MILLIS(Duration.class, (DurationToIntCellExtractor)d -> d.toMillisPart() % 1_000, "Millis", "Milliseconds"), //
         @Label(value = "Micros (all subseconds)", description = """
                 Microseconds of a duration, including all of the subseconds. In other words, \
                 a duration of 10.123456789 seconds would have 123456 microseconds.
                 """)
-        MICROS_ALL(Duration.class, d -> d.toNanosPart() / 1_000, "Micros", "Microseconds (all subseconds)"), //
+        MICROS_ALL(Duration.class, (DurationToIntCellExtractor)d -> d.toNanosPart() / 1_000, "Micros",
+            "Microseconds (all subseconds)"), //
         @Label(value = "Micros", description = """
                 The microseconds component of a duration. In other words, a duration of 10.123456789 \
                 seconds would have 456 microseconds.
                 """)
-        MICROS_PART(Duration.class, d -> (d.toNanosPart() / 1_000) % 1_000, null, "Microseconds"), //
+        MICROS_PART(Duration.class, (DurationToIntCellExtractor)d -> (d.toNanosPart() / 1_000) % 1_000, null,
+            "Microseconds"), //
         @Label(value = "Nanos (all subseconds)", description = """
                 Nanoseconds of a duration, including all of the subseconds. In other words, \
                 a duration of 10.123456789 seconds would have 123456789 nanoseconds.
                 """)
-        NANOS_ALL(Duration.class, Duration::toNanosPart, "Nanos", "Nanoseconds (all subseconds)"), //
+        NANOS_ALL(Duration.class, (DurationToIntCellExtractor)Duration::toNanosPart, "Nanos",
+            "Nanoseconds (all subseconds)"), //
         @Label(value = "Nanos", description = """
                 The nanoseconds component of a duration. In other words, a duration of 10.123456789 \
                 seconds would have 789 nanoseconds.
                 """)
-        NANOS_PART(Duration.class, d -> d.toNanosPart() % 1_000, null, "Nanoseconds");
+        NANOS_PART(Duration.class, (DurationToIntCellExtractor)d -> d.toNanosPart() % 1_000, null, "Nanoseconds");
+
+    interface NumberCellExtractor {
+        DataCell extractNumberCellFromTemporalAmount(TemporalAmount amount);
+    }
+
+    interface LongCellExtractor<T extends TemporalAmount> extends NumberCellExtractor, ToLongFunction<T> {
+
+    }
+
+    interface IntCellExtractor<T extends TemporalAmount> extends NumberCellExtractor {
+        int applyAsInt(T value);
+    }
+
+    interface DurationToLongCellExtractor extends LongCellExtractor<Duration> {
+
+        @Override
+        default DataCell extractNumberCellFromTemporalAmount(final TemporalAmount amount) {
+            return LongCellFactory.create(this.applyAsLong((Duration)amount));
+        }
+    }
+
+    interface DurationToIntCellExtractor extends IntCellExtractor<Duration> {
+
+        @Override
+        default DataCell extractNumberCellFromTemporalAmount(final TemporalAmount amount) {
+            return IntCellFactory
+                .create(this.applyAsInt(((Duration)amount).abs()) * (((Duration)amount).isNegative() ? -1 : 1));
+        }
+    }
+
+    interface PeriodToIntCellExtractor extends IntCellExtractor<Period> {
+
+        @Override
+        default DataCell extractNumberCellFromTemporalAmount(final TemporalAmount amount) {
+            return IntCellFactory.create(this.applyAsInt((Period)amount));
+        }
+    }
 
     private Class<? extends TemporalAmount> m_extractionType;
 
-    private final ToLongFunction<? extends TemporalAmount> m_extractor;
+    private final NumberCellExtractor m_extractor;
 
     private final String m_oldConfigValue;
 
@@ -120,7 +162,7 @@ enum ExtractableField {
 
     <T extends TemporalAmount> ExtractableField( //
         final Class<T> extractionType, //
-        final ToLongFunction<T> extractor, //
+        final NumberCellExtractor extractor, //
         final String oldConfigValue, //
         final String niceName //
     ) {
@@ -132,7 +174,7 @@ enum ExtractableField {
 
     /**
      * If this returns true, the field can be extracted from the given {@link DataCell} using
-     * {@link ExtractableField#extractFieldFrom(DataCell)}. If it returns false, the field cannot be extracted from the
+     * {@link ExtractableField#extractLongFrom(DataCell)}. If it returns false, the field cannot be extracted from the
      * given {@link DataCell} by this enum constant.
      *
      * @param dataValueType
@@ -152,17 +194,9 @@ enum ExtractableField {
      * @return
      */
     @SuppressWarnings("unchecked") // these casts should be fine
-    long extractFieldFrom(final DataCell value) {
+    DataCell extractNumberCellFrom(final DataCell value) {
         var amount = extractFromCell(value);
-
-        if (amount instanceof Duration d && m_extractionType == Duration.class) {
-            return ((ToLongFunction<Duration>)this.m_extractor).applyAsLong(d.abs()) * (d.isNegative() ? -1 : 1);
-        } else if (amount instanceof Period p && m_extractionType == Period.class) {
-            return ((ToLongFunction<Period>)this.m_extractor).applyAsLong(p);
-        } else {
-            throw new IllegalArgumentException(
-                "Cannot extract %s from %s".formatted(m_extractionType.getSimpleName(), amount));
-        }
+        return this.m_extractor.extractNumberCellFromTemporalAmount(amount);
     }
 
     /**
@@ -187,6 +221,10 @@ enum ExtractableField {
         return Optional.ofNullable(m_oldConfigValue);
     }
 
+    boolean extractsLongCell() {
+        return this.m_extractor instanceof LongCellExtractor;
+    }
+
     static ExtractableField getByOldConfigValue(final String oldConfigValue) {
         String oldConfigValuesSeparatedByCommas = Arrays.stream(values()) //
             .map(f -> f.m_oldConfigValue) //
@@ -194,7 +232,7 @@ enum ExtractableField {
             .collect(Collectors.joining(", "));
 
         return Arrays.stream(values()) //
-            .filter(f -> f.m_oldConfigValue.equals(oldConfigValue)) //
+            .filter(f -> f.m_oldConfigValue != null && f.m_oldConfigValue.equals(oldConfigValue)) //
             .findFirst() //
             .orElseThrow(() -> new IllegalArgumentException("Unknown old config value '%s'. Allowed values are: %s"
                 .formatted(oldConfigValue, oldConfigValuesSeparatedByCommas)));

@@ -60,8 +60,8 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
+import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
-import org.knime.core.data.def.LongCell.LongCellFactory;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.util.UniqueNameGenerator;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
@@ -143,7 +143,8 @@ public class ExtractDurationPeriodFieldsNodeModel2
             final int referenceColumnIndex, //
             final ExtractableField extractableField //
         ) {
-            super(createNewColumnSpec(outputColumnName));
+            super(createNewColumnSpec(outputColumnName,
+                extractableField.extractsLongCell() ? LongCell.TYPE : IntCell.TYPE));
 
             this.m_extractableField = extractableField;
             this.m_referenceColumnIndex = referenceColumnIndex;
@@ -163,13 +164,11 @@ public class ExtractDurationPeriodFieldsNodeModel2
                         .formatted(cell.getType().getName(), m_extractableField.name()) //
                 );
             }
-
-            long extractedValue = m_extractableField.extractFieldFrom(cell);
-            return LongCellFactory.create(extractedValue);
+            return m_extractableField.extractNumberCellFrom(cell);
         }
 
-        static DataColumnSpec createNewColumnSpec(final String newColumnName) {
-            return new DataColumnSpecCreator(newColumnName, LongCell.TYPE).createSpec();
+        private static DataColumnSpec createNewColumnSpec(final String newColumnName, final DataType type) {
+            return new DataColumnSpecCreator(newColumnName, type).createSpec();
         }
     }
 }
