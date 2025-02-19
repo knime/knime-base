@@ -97,6 +97,9 @@ public class ColumnAutoTypeCasterNodeDialogPane extends NodeDialogPane {
     private JLabel m_missValueLabel;
     private JComboBox<String> m_missValueChooser;
 
+    /** Added as part of AP-23571 */
+    private final JCheckBox m_useLegacyTypeNamesChecker;
+
 
     /**
      * Creates a new {@link NodeDialogPane} for the column filter in order to
@@ -136,6 +139,8 @@ public class ColumnAutoTypeCasterNodeDialogPane extends NodeDialogPane {
         m_numberOfRowsSpinner = new JSpinner(new SpinnerNumberModel(1000, 1, Integer.MAX_VALUE, 10));
         m_numberOfRowsSpinner.setPreferredSize(prefDim);
         m_numberOfRowsSpinner.setEnabled(false);
+
+        m_useLegacyTypeNamesChecker = new JCheckBox("Use legacy type names instead of identifiers");
 
         m_panel.setLayout(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
@@ -196,6 +201,15 @@ public class ColumnAutoTypeCasterNodeDialogPane extends NodeDialogPane {
         c.gridy = 3;
         m_panel.add(m_numberOfRowsSpinner, c);
 
+        c.fill = GridBagConstraints.NONE;
+        c.weightx = M_WEIGHTX;
+        c.anchor = GridBagConstraints.NORTH;
+        c.gridwidth = 1;
+        c.insets = new Insets(M_INSETS_TOP, 0, 0, 0);
+        c.gridx = 0;
+        c.gridy = 4;
+        m_panel.add(m_useLegacyTypeNamesChecker, c);
+
 
         super.addTab("Configuration", m_panel);
     }
@@ -225,7 +239,8 @@ public class ColumnAutoTypeCasterNodeDialogPane extends NodeDialogPane {
         m_quickScanCheckBox
             .setSelected(settings.getBoolean(ColumnAutoTypeCasterNodeModel.CFGKEY_QUICKSANBOOLEAN, false));
         m_numberOfRowsSpinner.setValue(settings.getInt(ColumnAutoTypeCasterNodeModel.CFGKEY_QUICKSCANROWS, 1000));
-
+        m_useLegacyTypeNamesChecker
+            .setSelected(settings.getBoolean(ColumnAutoTypeCasterNodeModel.CFGKEY_USELEGACYTYPENAMES, true));
     }
 
     /**
@@ -246,5 +261,7 @@ public class ColumnAutoTypeCasterNodeDialogPane extends NodeDialogPane {
             m_missValueChooser.getEditor().getItem().toString());
         settings.addBoolean(ColumnAutoTypeCasterNodeModel.CFGKEY_QUICKSANBOOLEAN, m_quickScanCheckBox.isSelected());
         settings.addInt(ColumnAutoTypeCasterNodeModel.CFGKEY_QUICKSCANROWS, (int)m_numberOfRowsSpinner.getValue());
+        settings.addBoolean(ColumnAutoTypeCasterNodeModel.CFGKEY_USELEGACYTYPENAMES,
+            m_useLegacyTypeNamesChecker.isSelected());
     }
 }

@@ -101,6 +101,8 @@ public class ColumnAutoTypeCasterNodeModel extends NodeModel {
 
     static final String CFGKEY_MISSVALPAT = "missingValuePattern";
 
+    static final String CFGKEY_USELEGACYTYPENAMES = "useLegacyTypeNames";
+
     static final String MISSVALDESC_NONE = "<none>";
 
     static final String MISSVALDESC_EMPTY = "<empty>";
@@ -116,6 +118,9 @@ public class ColumnAutoTypeCasterNodeModel extends NodeModel {
     private int m_numberOfRows = 1000;
 
     private String m_missValPat = null;
+
+    // added in AP-23571 (5.5)
+    private boolean m_useLegacyTypeNames = false;
 
     /**
      * Creates a new node model with one in- and outport.
@@ -174,7 +179,7 @@ public class ColumnAutoTypeCasterNodeModel extends NodeModel {
                         DataType toSet = setType(types[i], newType);
                         if (!toSet.equals(types[i])) {
                             m_reasons[i][2] = row.getKey().getString();
-                            m_reasons[i][1] = toSet.toString();
+                            m_reasons[i][1] = m_useLegacyTypeNames ? toSet.toLegacyString() : toSet.getIdentifier();
                             m_reasons[i][0] = incls[i];
                         }
                         types[i] = toSet;
@@ -183,7 +188,7 @@ public class ColumnAutoTypeCasterNodeModel extends NodeModel {
                         String r = row.getKey().toString();
                         r += m_quickScan ? (" based on a quickscan.") : "";
                         m_reasons[i][2] = r;
-                        m_reasons[i][1] = newType.toString();
+                        m_reasons[i][1] = m_useLegacyTypeNames ? newType.toLegacyString() : newType.getIdentifier();
                         m_reasons[i][0] = incls[i];
                     }
                     exec.checkCanceled();
@@ -198,7 +203,7 @@ public class ColumnAutoTypeCasterNodeModel extends NodeModel {
                 if (types[i] == null || types[i].equals(DataType.getMissingCell().getType())) {
                     types[i] = StringCell.TYPE;
                     m_reasons[i][2] = "";
-                    m_reasons[i][1] = types[i].toString();
+                    m_reasons[i][1] = m_useLegacyTypeNames ? types[i].toLegacyString() : types[i].getIdentifier();
                     m_reasons[i][0] = incls[i];
                 }
             }
@@ -474,6 +479,7 @@ public class ColumnAutoTypeCasterNodeModel extends NodeModel {
         }
         m_quickScan = settings.getBoolean(CFGKEY_QUICKSANBOOLEAN);
         m_numberOfRows = settings.getInt(CFGKEY_QUICKSCANROWS);
+        m_useLegacyTypeNames = settings.getBoolean(CFGKEY_USELEGACYTYPENAMES, true);
     }
 
     /**
@@ -502,6 +508,7 @@ public class ColumnAutoTypeCasterNodeModel extends NodeModel {
         }
         settings.addBoolean(CFGKEY_QUICKSANBOOLEAN, m_quickScan);
         settings.addInt(CFGKEY_QUICKSCANROWS, m_numberOfRows);
+        settings.addBoolean(CFGKEY_USELEGACYTYPENAMES, m_useLegacyTypeNames);
     }
 
     /**

@@ -80,6 +80,12 @@
 				field. <br/>
 				Note: With quickscan enabled this node could fail during execute. 
 			</option>
+			<option name="Use legacy type names instead of identifiers">
+				Use this to output legacy type names like "Number (double)" on the second port instead of a type
+				identifier like "org.knime.core.data.def.DoubleCell".
+				This resembles the old behaviour of the node, however, it is discouraged to use this option as the
+				output of the node may then change at any point in time when a data type is renamed.
+			</option>
 		</tab>
 	</fullDescription>
 
