@@ -1,0 +1,241 @@
+{
+  "data" : {
+    "model" : {
+      "newColumnSettings" : [ {
+        "type" : "STRING",
+        "replaceOrAppend" : "APPEND",
+        "columnNameToAppend" : "New column",
+        "customOrMissingValue" : "MISSING",
+        "value" : ""
+      } ]
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "newColumnSettings" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "columnNameToAppend" : {
+                  "type" : "string",
+                  "title" : "New column",
+                  "description" : "The name of the new column.",
+                  "default" : "New column"
+                },
+                "columnNameToReplace" : {
+                  "type" : "string",
+                  "title" : "Replace column",
+                  "description" : "The name of the column to replace."
+                },
+                "customOrMissingValue" : {
+                  "oneOf" : [ {
+                    "const" : "MISSING",
+                    "title" : "Missing"
+                  }, {
+                    "const" : "CUSTOM",
+                    "title" : "Custom"
+                  } ],
+                  "title" : "Fill value",
+                  "description" : "Whether to use a custom value for the new column, or fill it with missing cells.\n",
+                  "default" : "MISSING"
+                },
+                "replaceOrAppend" : {
+                  "oneOf" : [ {
+                    "const" : "REPLACE",
+                    "title" : "Replace"
+                  }, {
+                    "const" : "APPEND",
+                    "title" : "Append"
+                  } ],
+                  "title" : "Output column",
+                  "description" : "Whether to replace an existing column or append a new one.",
+                  "default" : "APPEND"
+                },
+                "type" : {
+                  "oneOf" : [ {
+                    "const" : "STRING",
+                    "title" : "String"
+                  }, {
+                    "const" : "INTEGER",
+                    "title" : "Number (integer)"
+                  }, {
+                    "const" : "LONG",
+                    "title" : "Number (long)"
+                  }, {
+                    "const" : "DOUBLE",
+                    "title" : "Number (double)"
+                  }, {
+                    "const" : "BOOLEAN",
+                    "title" : "Boolean"
+                  } ],
+                  "title" : "Column type",
+                  "description" : "The type of the new column.",
+                  "default" : "STRING"
+                },
+                "value" : {
+                  "type" : "string",
+                  "title" : "Custom value",
+                  "description" : "The value to be used when filling the output column.",
+                  "default" : ""
+                }
+              }
+            },
+            "default" : [ {
+              "type" : "STRING",
+              "replaceOrAppend" : "APPEND",
+              "columnNameToAppend" : "New column",
+              "customOrMissingValue" : "MISSING",
+              "value" : ""
+            } ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/newColumnSettings",
+      "options" : {
+        "detail" : [ {
+          "type" : "Control",
+          "scope" : "#/properties/type"
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/replaceOrAppend",
+          "options" : {
+            "format" : "valueSwitch"
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/columnNameToAppend",
+          "options" : {
+            "hideOnNull" : false,
+            "placeholder" : "New column name"
+          },
+          "rule" : {
+            "effect" : "HIDE",
+            "condition" : {
+              "scope" : "#/properties/replaceOrAppend",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "REPLACE"
+                } ]
+              }
+            }
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/columnNameToReplace",
+          "options" : {
+            "possibleValues" : [ {
+              "id" : "test",
+              "text" : "test",
+              "type" : {
+                "id" : "org.knime.core.data.StringValue",
+                "text" : "String"
+              },
+              "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+            } ],
+            "format" : "dropDown",
+            "showNoneColumn" : false,
+            "showRowKeys" : false,
+            "showSearch" : true,
+            "showMode" : true
+          },
+          "rule" : {
+            "effect" : "SHOW",
+            "condition" : {
+              "scope" : "#/properties/replaceOrAppend",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "REPLACE"
+                } ]
+              }
+            }
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/customOrMissingValue",
+          "options" : {
+            "format" : "valueSwitch"
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/value",
+          "rule" : {
+            "effect" : "HIDE",
+            "condition" : {
+              "scope" : "#/properties/customOrMissingValue",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "MISSING"
+                } ]
+              }
+            }
+          }
+        } ],
+        "addButtonText" : "Add column",
+        "arrayElementTitle" : "Constant column",
+        "elementDefaultValueProvider" : "org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings$NewColumnSettings$InitialNewColumnSettingsValueProvider"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "newColumnSettings" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "type" : { },
+                "replaceOrAppend" : { },
+                "columnNameToAppend" : { },
+                "columnNameToReplace" : { },
+                "customOrMissingValue" : { },
+                "value" : { }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog",
+      "triggerInitially" : true
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/newColumnSettings" ],
+      "id" : "org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings$NewColumnSettingsArrayRef"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings$NewColumnSettings$SupportedColumnType$Ref",
+      "scopes" : [ "#/properties/model/properties/newColumnSettings", "#/properties/type" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/newColumnSettings", "#/properties/type" ],
+      "id" : "org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings$NewColumnSettings$SupportedColumnType$Ref"
+    } ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings$NewColumnSettingsArrayRef",
+      "scopes" : [ "#/properties/model/properties/newColumnSettings" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/newColumnSettings" ],
+      "id" : "org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings$NewColumnSettingsArrayRef"
+    } ]
+  } ]
+}
