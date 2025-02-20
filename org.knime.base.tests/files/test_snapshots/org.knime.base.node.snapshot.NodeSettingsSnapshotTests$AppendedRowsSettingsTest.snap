@@ -154,7 +154,7 @@
             "configPaths" : [ [ "intersection_of_columns" ] ]
           },
           "rowIdStrategy" : {
-            "configPaths" : [ [ "create_new_rowids" ], [ "append_suffix" ], [ "fail_on_duplicates" ] ]
+            "configPaths" : [ [ "create_new_rowids" ], [ "append_suffix" ], [ "fail_on_duplicates" ], [ "suffix" ] ]
           },
           "enableHiliting" : {
             "configKey" : "enable_hiliting"

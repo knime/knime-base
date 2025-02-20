@@ -228,7 +228,8 @@ public final class AppendedRowsNodeSettings implements DefaultNodeSettings {
             return new String[][]{//
                 {AppendedRowsNodeModel.CFG_NEW_ROWIDS}, //
                 {AppendedRowsNodeModel.CFG_APPEND_SUFFIX}, //
-                {AppendedRowsNodeModel.CFG_FAIL_ON_DUPLICATES}//
+                {AppendedRowsNodeModel.CFG_FAIL_ON_DUPLICATES}, //
+                {AppendedRowsNodeModel.CFG_SUFFIX}//
             };
         }
     }
