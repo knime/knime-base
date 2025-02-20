@@ -309,8 +309,12 @@ final class CreateDateTimeNodeModel2 extends WebUINodeModel<CreateDateTimeNodeSe
             case LOCAL_DATE -> settings.m_localDateEnd.atTime(LocalTime.NOON).atZone(utc);
             case LOCAL_TIME -> settings.m_localTimeEnd.atDate(LocalDate.EPOCH).atZone(utc);
             case LOCAL_DATE_TIME -> ZonedDateTime.of(settings.m_localDateTimeEnd, utc);
-            case ZONED_DATE_TIME -> settings.m_zonedDateTimeEnd;
+            case ZONED_DATE_TIME -> shiftToStartTimeZone(settings.m_zonedDateTimeStart, settings.m_zonedDateTimeEnd);
         };
+    }
+
+    private static ZonedDateTime shiftToStartTimeZone(final ZonedDateTime startTime, final ZonedDateTime endTime) {
+        return endTime.withZoneSameInstant(startTime.getZone());
     }
 
     /**

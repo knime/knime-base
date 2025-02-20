@@ -130,7 +130,7 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
             """)
     @Effect(predicate = DateTimeType.IsLocalDateTime.class, type = EffectType.SHOW)
     @Layout(StartingPointSettingsSection.class)
-    LocalDateTime m_localDateTimeStart = LocalDateTime.now().minusYears(1);
+    LocalDateTime m_localDateTimeStart = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS).minusYears(1);
 
     @Widget(title = "Start zoned date time", description = """
             The date&amp;time&amp;zone at which the date time creation should start, \
@@ -138,7 +138,7 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
             """)
     @Effect(predicate = DateTimeType.IsZonedDateTime.class, type = EffectType.SHOW)
     @Layout(StartingPointSettingsSection.class)
-    ZonedDateTime m_zonedDateTimeStart = ZonedDateTime.now().minusYears(1);
+    ZonedDateTime m_zonedDateTimeStart = ZonedDateTime.now().truncatedTo(ChronoUnit.SECONDS).minusYears(1);
 
     @Layout(RangeSettingsSection.class)
     @Widget(title = "Fixed steps", description = "How the rows are created.")
