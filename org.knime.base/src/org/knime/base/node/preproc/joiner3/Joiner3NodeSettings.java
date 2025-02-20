@@ -135,9 +135,9 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
 
     Joiner3NodeSettings(final DefaultNodeSettingsContext context) {
         context.getDataTableSpec(0).ifPresent(
-            spec -> m_leftColumnSelectionConfig = new ColumnFilter(spec.getColumnNames()).withIncludeUnknownColumns());
+            spec -> m_leftColumnSelectionConfigV2 = new ColumnFilter(spec.getColumnNames()).withIncludeUnknownColumns());
         context.getDataTableSpec(1).ifPresent(
-            spec -> m_rightColumnSelectionConfig = new ColumnFilter(spec.getColumnNames()).withIncludeUnknownColumns());
+            spec -> m_rightColumnSelectionConfigV2 = new ColumnFilter(spec.getColumnNames()).withIncludeUnknownColumns());
     }
 
     enum CompositionMode {
@@ -334,7 +334,7 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
     @Layout(OutputColumnsSection.class)
     @Migration(LeftColumnSelectionMigration.class)
     @ChoicesWidget(choicesProvider = LeftTableChoices.class)
-    ColumnFilter m_leftColumnSelectionConfig = new ColumnFilter();
+    ColumnFilter m_leftColumnSelectionConfigV2 = new ColumnFilter();
 
     static final class RightColumnSelectionMigration extends LegacyColumnFilterMigration {
 
@@ -348,7 +348,7 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
     @Layout(OutputColumnsSection.class)
     @Migration(RightColumnSelectionMigration.class)
     @ChoicesWidget(choicesProvider = RightTableChoices.class)
-    ColumnFilter m_rightColumnSelectionConfig = new ColumnFilter();
+    ColumnFilter m_rightColumnSelectionConfigV2 = new ColumnFilter();
 
     @Widget(title = "Merge join columns",
         description = """

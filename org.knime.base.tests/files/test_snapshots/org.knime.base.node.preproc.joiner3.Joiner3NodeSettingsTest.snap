@@ -10,7 +10,7 @@
       "includeMatchesInOutput" : true,
       "includeLeftUnmatchedInOutput" : false,
       "includeRightUnmatchedInOutput" : false,
-      "leftColumnSelectionConfig" : {
+      "leftColumnSelectionConfigV2" : {
         "selected" : [ "test1", "test2" ],
         "mode" : "MANUAL",
         "patternFilter" : {
@@ -28,7 +28,7 @@
           "typeDisplays" : [ ]
         }
       },
-      "rightColumnSelectionConfig" : {
+      "rightColumnSelectionConfigV2" : {
         "selected" : [ "test1", "test2" ],
         "mode" : "MANUAL",
         "patternFilter" : {
@@ -126,7 +126,7 @@
             "description" : "Include rows from the right input table for which no matching row in the left input table is found.",
             "default" : false
           },
-          "leftColumnSelectionConfig" : {
+          "leftColumnSelectionConfigV2" : {
             "type" : "object",
             "properties" : {
               "manualFilter" : {
@@ -310,7 +310,7 @@
             "description" : "Output unmatched rows (if selected under \"Include in output\") at the second and third output port, i.e.<ul><li> top: Matching rows </li><li> middle: Left unmatched rows </li><li> bottom: Right unmatched rows </li></ul>",
             "default" : false
           },
-          "rightColumnSelectionConfig" : {
+          "rightColumnSelectionConfigV2" : {
             "type" : "object",
             "properties" : {
               "manualFilter" : {
@@ -544,7 +544,7 @@
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/leftColumnSelectionConfig",
+        "scope" : "#/properties/model/properties/leftColumnSelectionConfigV2",
         "options" : {
           "format" : "columnFilter",
           "choicesProvider" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$LeftTableChoices",
@@ -555,7 +555,7 @@
         }
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/rightColumnSelectionConfig",
+        "scope" : "#/properties/model/properties/rightColumnSelectionConfigV2",
         "options" : {
           "format" : "columnFilter",
           "choicesProvider" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$RightTableChoices",
@@ -671,7 +671,7 @@
           "includeMatchesInOutput" : { },
           "includeLeftUnmatchedInOutput" : { },
           "includeRightUnmatchedInOutput" : { },
-          "leftColumnSelectionConfig" : {
+          "leftColumnSelectionConfigV2" : {
             "type" : "object",
             "properties" : {
               "selected" : {
@@ -708,7 +708,7 @@
               "deprecated" : [ [ "leftColumnSelectionConfig", "filter-type" ], [ "leftColumnSelectionConfig", "included_names" ], [ "leftColumnSelectionConfig", "excluded_names" ], [ "leftColumnSelectionConfig", "enforce_option" ], [ "leftColumnSelectionConfig", "name_pattern", "pattern" ], [ "leftColumnSelectionConfig", "name_pattern", "type" ], [ "leftColumnSelectionConfig", "name_pattern", "caseSensitive" ], [ "leftColumnSelectionConfig", "name_pattern", "excludeMatching" ] ]
             } ]
           },
-          "rightColumnSelectionConfig" : {
+          "rightColumnSelectionConfigV2" : {
             "type" : "object",
             "properties" : {
               "selected" : {

@@ -11,7 +11,7 @@
     <entry key="includeMatchesInOutput" type="xboolean" value="true"/>
     <entry key="includeLeftUnmatchedInOutput" type="xboolean" value="false"/>
     <entry key="includeRightUnmatchedInOutput" type="xboolean" value="false"/>
-    <config key="leftColumnSelectionConfig">
+    <config key="leftColumnSelectionConfigV2">
         <config key="selected_Internals">
             <entry key="array-size" type="xint" value="0"/>
         </config>
@@ -36,7 +36,7 @@
             </config>
         </config>
     </config>
-    <config key="rightColumnSelectionConfig">
+    <config key="rightColumnSelectionConfigV2">
         <config key="selected_Internals">
             <entry key="array-size" type="xint" value="0"/>
         </config>
