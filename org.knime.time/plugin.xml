@@ -466,5 +466,23 @@
             class="org.knime.time.node.convert.durationtonumber.DurationToNumberNodeMigrationRule">
       </Rule> -->
    </extension>
+   <extension
+         point="org.knime.workflow.migration.NodeMigrationRule">
+      <Rule
+            class="org.knime.time.node.convert.datetimetostring.DateTimeToStringNodeMigrationRule">
+      </Rule>
+   </extension>
+   <extension
+         point="org.knime.workflow.migration.NodeMigrationRule">
+      <Rule
+            class="org.knime.time.node.convert.stringtodatetime.StringToDateTimeNodeMigrationRule">
+      </Rule>
+   </extension>
+   <extension
+         point="org.knime.workflow.migration.NodeMigrationRule">
+      <Rule
+            class="org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeMigrationRule">
+      </Rule>
+   </extension>
    
 </plugin>
