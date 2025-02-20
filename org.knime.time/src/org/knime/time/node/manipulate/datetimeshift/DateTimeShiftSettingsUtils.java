@@ -84,10 +84,10 @@ final class DateTimeShiftSettingsUtils {
 
     static void validateNumericalColumn(final String columnName, final DataTableSpec spec)
         throws InvalidSettingsException {
-        validateColumn(columnName, spec, "numerical", DateTimeShiftSettingsUtils::isIntegerColumn);
+        validateColumn(columnName, spec, "numerical", DateTimeShiftSettingsUtils::isWholeNumberColumn);
     }
 
-    static boolean isIntegerColumn(final DataColumnSpec column) {
+    static boolean isWholeNumberColumn(final DataColumnSpec column) {
         return column.getType().isCompatible(LongValue.class) || column.getType().isCompatible(IntValue.class);
     }
 
@@ -110,7 +110,7 @@ final class DateTimeShiftSettingsUtils {
             return context.getDataTableSpec(0)//
                 .map(DataTableSpec::stream)//
                 .orElseGet(Stream::empty)//
-                .filter(DateTimeShiftSettingsUtils::isIntegerColumn)//
+                .filter(DateTimeShiftSettingsUtils::isWholeNumberColumn)//
                 .toArray(DataColumnSpec[]::new);
         }
 
@@ -119,7 +119,7 @@ final class DateTimeShiftSettingsUtils {
                 return null;
             }
             return spec.stream() //
-                .filter(DateTimeShiftSettingsUtils::isIntegerColumn) //
+                .filter(DateTimeShiftSettingsUtils::isWholeNumberColumn) //
                 .map(DataColumnSpec::getName) //
                 .findFirst() //
                 .orElse(null);

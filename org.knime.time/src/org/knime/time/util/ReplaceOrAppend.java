@@ -147,7 +147,7 @@ public enum ReplaceOrAppend {
         return createRearranger(Arrays.asList(inputColumnNames), originalSpec, cellFactoryFactory, suffix);
     }
 
-    public static ReplaceOrAppend getByOldConfigValue(final String oldValue) throws InvalidSettingsException {
+    private static ReplaceOrAppend getByOldConfigValue(final String oldValue) throws InvalidSettingsException {
         return Arrays.stream(values()) //
             .filter(v -> v.m_oldConfigValue.equals(oldValue)) //
             .findFirst() //

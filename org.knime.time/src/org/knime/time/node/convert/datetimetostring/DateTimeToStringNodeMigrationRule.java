@@ -146,8 +146,7 @@ public final class DateTimeToStringNodeMigrationRule extends NodeMigrationRule {
             newSettings.m_locale = origModelSettings.getString(LOCALE_CFG_KEY).replace("_", "-");
             newSettings.m_format = origModelSettings.getString(DATE_FORMAT_CFG_KEY);
             newSettings.m_outputColumnSuffix = origModelSettings.getString(SUFFIX_CFG_KEY);
-            newSettings.m_appendOrReplace =
-                ReplaceOrAppend.getByOldConfigValue(origModelSettings.getString(REPLACE_OR_APPEND_CFG_KEY));
+            newSettings.m_appendOrReplace = new ReplaceOrAppend.Persistor().load(origModelSettings);
             newSettings.m_columnFilter = new ColumnFilterPersistor().load(origModelSettings);
 
         } catch (IllegalArgumentException ex) {
