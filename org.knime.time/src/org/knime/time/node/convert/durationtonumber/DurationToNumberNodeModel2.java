@@ -53,6 +53,7 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.MissingCell;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.data.def.DoubleCell;
@@ -111,7 +112,7 @@ final class DurationToNumberNodeModel2 extends WebUISimpleStreamableFunctionNode
             ), modelSettings.m_suffix);
     }
 
-    static final class DurationToNumberCellFactory extends SingleCellFactory {
+    final class DurationToNumberCellFactory extends SingleCellFactory {
 
         private final RoundingBehaviour m_roundingBehaviour;
 
@@ -141,10 +142,16 @@ final class DurationToNumberNodeModel2 extends WebUISimpleStreamableFunctionNode
 
             var durationCell = (DurationValue)cell;
 
-            return switch (m_roundingBehaviour) {
-                case DOUBLE -> new DoubleCell(m_unit.getConversionExact(durationCell.getDuration()));
-                case INTEGER -> new LongCell(m_unit.getConversionFloored(durationCell.getDuration()));
-            };
+            try {
+                return switch (m_roundingBehaviour) {
+                    case DOUBLE -> new DoubleCell(m_unit.getConversionExact(durationCell.getDuration()));
+                    case INTEGER -> new LongCell(m_unit.getConversionFloored(durationCell.getDuration()));
+                };
+            } catch (ArithmeticException e) {
+                setWarningMessage(String.format("The duration in row '%s' could not be converted to %s!", row.getKey(),
+                    m_unit.name().toLowerCase()));
+                return new MissingCell(e.getMessage());
+            }
         }
 
         private static DataColumnSpec createNewColumnSpec(final String newColumnName,

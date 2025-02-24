@@ -131,15 +131,27 @@ public enum TimeBasedGranularityUnit {
      * @param unit
      * @param duration
      * @return the duration in the specified unit, as an integer and a decimal part
+     * @throws ArithmeticException if numeric overflow occurs
      */
-    public static IntegerAndDecimalPart convertDuration(final TimeUnit unit, final Duration duration) {
+    public static IntegerAndDecimalPart convertDuration(final TimeUnit unit, final Duration duration)
+        throws ArithmeticException {
         // Get the duration in the specified unit as an integer, e.g. '3 hours'
         long durationInSpecifiedUnit = unit.convert(duration);
+        validateConversionResult(unit, duration, durationInSpecifiedUnit);
 
         // Figure out the fractional part
         var leftoverDuration = duration.minus(durationInSpecifiedUnit, unit.toChronoUnit());
         long leftoverNanos = TimeUnit.NANOSECONDS.convert(leftoverDuration);
+        validateConversionResult(TimeUnit.NANOSECONDS, duration, leftoverNanos);
+
         double leftOverDurationAsFractionOfSpecifiedUnit = leftoverNanos / (double)unit.toNanos(1);
         return new IntegerAndDecimalPart(durationInSpecifiedUnit, leftOverDurationAsFractionOfSpecifiedUnit);
+    }
+
+    private static void validateConversionResult(final TimeUnit unit, final Duration duration,
+        final long conversionResult) throws ArithmeticException {
+        if (conversionResult == Long.MIN_VALUE || conversionResult == Long.MAX_VALUE) {
+            throw new ArithmeticException("Overflow during conversion from duration to number");
+        }
     }
 }
