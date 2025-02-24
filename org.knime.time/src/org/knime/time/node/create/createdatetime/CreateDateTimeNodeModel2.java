@@ -91,7 +91,7 @@ final class CreateDateTimeNodeModel2 extends WebUINodeModel<CreateDateTimeNodeSe
     @Override
     protected void validateSettings(final CreateDateTimeNodeSettings loadedSettings) throws InvalidSettingsException {
         // If the duration is zero and being used, things will go badly, so let's check that first.
-        assertNonZeroInterval(loadedSettings);
+        assertNonZeroIntervalWithEndDate(loadedSettings);
 
         // If the number of rows is zero and being used, things will go badly, so let's check that too.
         assertNumberOfRowsGreaterThanZero(loadedSettings);
@@ -138,11 +138,10 @@ final class CreateDateTimeNodeModel2 extends WebUINodeModel<CreateDateTimeNodeSe
         }
     }
 
-    private static void assertNonZeroInterval(final CreateDateTimeNodeSettings loadedSettings)
+    private static void assertNonZeroIntervalWithEndDate(final CreateDateTimeNodeSettings loadedSettings)
         throws InvalidSettingsException {
-        var intervalIsUsed = loadedSettings.m_fixedSteps == FixedSteps.INTERVAL_AND_END
-            || loadedSettings.m_fixedSteps == FixedSteps.NUMBER_AND_INTERVAL;
-        if (intervalIsUsed && loadedSettings.m_interval.isZero()) {
+        var intervalWithEndDateIsUsed = loadedSettings.m_fixedSteps == FixedSteps.INTERVAL_AND_END;
+        if (intervalWithEndDateIsUsed && loadedSettings.m_interval.isZero()) {
             throw new InvalidSettingsException("The provided interval must be non-zero.");
         }
     }
