@@ -57,6 +57,8 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat.FormatTemporalType;
 import org.knime.time.util.ActionIfExtractionFails;
 import org.knime.time.util.DateTimeType;
 import org.knime.time.util.ReplaceOrAppend;
@@ -135,6 +137,23 @@ public class StringToDateTimeNodeMigrationRule extends NodeMigrationRule {
         }
     }
 
+    private static FormatTemporalType convertDateTimeType(final String dateTimeType) throws MigrationException {
+        final var dtt = DateTimeType.valueOf(dateTimeType);
+        if (dtt == DateTimeType.LOCAL_DATE) {
+            return FormatTemporalType.DATE;
+        }
+        if (dtt == DateTimeType.LOCAL_TIME) {
+            return FormatTemporalType.TIME;
+        }
+        if (dtt == DateTimeType.LOCAL_DATE_TIME) {
+            return FormatTemporalType.DATE_TIME;
+        }
+        if (dtt == DateTimeType.ZONED_DATE_TIME) {
+            return FormatTemporalType.ZONED_DATE_TIME;
+        }
+        throw new MigrationException(String.format("Unsupported enum member: %s", dtt.name()));
+    }
+
     private static Pair<StringToDateTimeNodeSettings, NodeSettingsRO>
         performMigration(final MigrationNode migrationNode) throws MigrationException {
         final NodeSettingsRO origVariableSettings = migrationNode.getOriginalNodeVariableSettings();
@@ -150,14 +169,13 @@ public class StringToDateTimeNodeMigrationRule extends NodeMigrationRule {
             }
 
             newSettings.m_locale = origModelSettings.getString(LOCALE_CFG_KEY).replace("_", "-");
-            newSettings.m_format = origModelSettings.getString(DATE_FORMAT_CFG_KEY);
+            newSettings.m_format = new TemporalFormat(origModelSettings.getString(DATE_FORMAT_CFG_KEY),
+                convertDateTimeType(origModelSettings.getString(TYPE_ENUM_CFG_KEY)));
             newSettings.m_outputColumnSuffix = origModelSettings.getString(SUFFIX_CFG_KEY);
             newSettings.m_onError = origModelSettings.getBoolean(CANCEL_ON_FAIL_CFG_KEY) ? ActionIfExtractionFails.FAIL
                 : ActionIfExtractionFails.SET_MISSING;
-            newSettings.m_appendOrReplace =
-                ReplaceOrAppend.getByOldConfigValue(origModelSettings.getString(REPLACE_OR_APPEND_CFG_KEY));
+            newSettings.m_appendOrReplace = new ReplaceOrAppend.Persistor().load(origModelSettings);
             newSettings.m_columnFilter = new ColumnFilterPersistor().load(origModelSettings);
-            newSettings.m_selectedType = DateTimeType.valueOf(origModelSettings.getString(TYPE_ENUM_CFG_KEY));
 
         } catch (IllegalArgumentException ex) {
             System.out.println("IllegalArgumentException");
