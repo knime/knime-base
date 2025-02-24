@@ -51,37 +51,7 @@
             }
           },
           "granularity" : {
-            "oneOf" : [ {
-              "const" : "YEAR",
-              "title" : "Year"
-            }, {
-              "const" : "MONTH",
-              "title" : "Month"
-            }, {
-              "const" : "WEEK",
-              "title" : "Week"
-            }, {
-              "const" : "DAY",
-              "title" : "Day"
-            }, {
-              "const" : "HOUR",
-              "title" : "Hour"
-            }, {
-              "const" : "MINUTE",
-              "title" : "Minute"
-            }, {
-              "const" : "SECOND",
-              "title" : "Second"
-            }, {
-              "const" : "MILLISECOND",
-              "title" : "Millisecond"
-            }, {
-              "const" : "MICROSECOND",
-              "title" : "Microsecond"
-            }, {
-              "const" : "NANOSECOND",
-              "title" : "Nanosecond"
-            } ],
+            "type" : "string",
             "title" : "Granularity",
             "description" : "The unit of the output column when converting to a number.",
             "default" : "SECOND"
@@ -2230,6 +2200,14 @@
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/granularity",
+        "options" : {
+          "choicesProvider" : "org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings$ApplicableGranularitiesProvider",
+          "format" : "dropDown",
+          "showNoneColumn" : false,
+          "showRowKeys" : false,
+          "showSearch" : true,
+          "showMode" : true
+        },
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
@@ -2303,6 +2281,31 @@
     }
   },
   "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings$ApplicableGranularitiesProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "HOUR",
+        "text" : "Hours"
+      }, {
+        "id" : "MINUTE",
+        "text" : "Minutes"
+      }, {
+        "id" : "SECOND",
+        "text" : "Seconds"
+      }, {
+        "id" : "MILLISECOND",
+        "text" : "Millis"
+      }, {
+        "id" : "MICROSECOND",
+        "text" : "Micros"
+      }, {
+        "id" : "NANOSECOND",
+        "text" : "Nanos"
+      } ]
+    } ]
+  }, {
     "scopes" : null,
     "id" : "org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings$SecondColumnProvider",
     "values" : [ {
