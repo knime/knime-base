@@ -51,37 +51,7 @@
             }
           },
           "granularity" : {
-            "oneOf" : [ {
-              "const" : "YEAR",
-              "title" : "Year"
-            }, {
-              "const" : "MONTH",
-              "title" : "Month"
-            }, {
-              "const" : "WEEK",
-              "title" : "Week"
-            }, {
-              "const" : "DAY",
-              "title" : "Day"
-            }, {
-              "const" : "HOUR",
-              "title" : "Hour"
-            }, {
-              "const" : "MINUTE",
-              "title" : "Minute"
-            }, {
-              "const" : "SECOND",
-              "title" : "Second"
-            }, {
-              "const" : "MILLISECOND",
-              "title" : "Millisecond"
-            }, {
-              "const" : "MICROSECOND",
-              "title" : "Microsecond"
-            }, {
-              "const" : "NANOSECOND",
-              "title" : "Nanosecond"
-            } ],
+            "type" : "string",
             "title" : "Granularity",
             "description" : "The unit of the output column when converting to a number.",
             "default" : "SECOND"
@@ -215,7 +185,7 @@
             "text" : "localTimeTest",
             "type" : {
               "id" : "org.knime.core.data.time.localtime.LocalTimeValue",
-              "text" : "Time"
+              "text" : "Local Time"
             },
             "compatibleTypes" : [ "org.knime.core.data.time.localtime.LocalTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
           }, {
@@ -223,7 +193,7 @@
             "text" : "localDateTest",
             "type" : {
               "id" : "org.knime.core.data.time.localdate.LocalDateValue",
-              "text" : "Date"
+              "text" : "Local Date"
             },
             "compatibleTypes" : [ "org.knime.core.data.time.localdate.LocalDateValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
           }, {
@@ -231,7 +201,7 @@
             "text" : "localDateTimeTest",
             "type" : {
               "id" : "org.knime.core.data.time.localdatetime.LocalDateTimeValue",
-              "text" : "Date&time (Local)"
+              "text" : "Local Date Time"
             },
             "compatibleTypes" : [ "org.knime.core.data.time.localdatetime.LocalDateTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
           }, {
@@ -239,7 +209,7 @@
             "text" : "zonedDateTimeTest",
             "type" : {
               "id" : "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue",
-              "text" : "Date&time (Zoned)"
+              "text" : "Zoned Date Time"
             },
             "compatibleTypes" : [ "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
           } ],
@@ -2230,6 +2200,14 @@
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/granularity",
+        "options" : {
+          "choicesProvider" : "org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings$ApplicableGranularitiesProvider",
+          "format" : "dropDown",
+          "showNoneColumn" : false,
+          "showRowKeys" : false,
+          "showSearch" : true,
+          "showMode" : true
+        },
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
@@ -2303,6 +2281,43 @@
     }
   },
   "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings$ApplicableGranularitiesProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "YEAR",
+        "text" : "Years"
+      }, {
+        "id" : "MONTH",
+        "text" : "Months"
+      }, {
+        "id" : "WEEK",
+        "text" : "Weeks"
+      }, {
+        "id" : "DAY",
+        "text" : "Days"
+      }, {
+        "id" : "HOUR",
+        "text" : "Hours"
+      }, {
+        "id" : "MINUTE",
+        "text" : "Minutes"
+      }, {
+        "id" : "SECOND",
+        "text" : "Seconds"
+      }, {
+        "id" : "MILLISECOND",
+        "text" : "Millis"
+      }, {
+        "id" : "MICROSECOND",
+        "text" : "Micros"
+      }, {
+        "id" : "NANOSECOND",
+        "text" : "Nanos"
+      } ]
+    } ]
+  }, {
     "scopes" : null,
     "id" : "org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings$SecondColumnProvider",
     "values" : [ {

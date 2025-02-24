@@ -58,8 +58,10 @@ import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.time.localdate.LocalDateCellFactory;
 import org.knime.core.data.time.localdate.LocalDateValue;
 import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
+import org.knime.core.data.time.localtime.LocalTimeCellFactory;
 import org.knime.core.data.time.localtime.LocalTimeValue;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
@@ -71,8 +73,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
@@ -162,7 +166,8 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Granularity", description = "The unit of the output column when converting to a number.")
     @Layout(OutputSettingsSection.class)
     @Effect(predicate = OutputType.IsNumber.class, type = EffectType.SHOW)
-    Granularity m_granularity = Granularity.SECOND;
+    @ChoicesWidget(choicesProvider = ApplicableGranularitiesProvider.class)
+    String m_granularity = Granularity.SECOND.name();
 
     @Widget(title = "Output number type", description = "The type of the output number column.")
     @Layout(OutputSettingsSection.class)
@@ -397,5 +402,51 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
             NO_DECIMALS, //
             @Label("Decimals")
             DECIMALS; //
+    }
+
+    static class ApplicableGranularitiesProvider implements StringChoicesStateProvider {
+
+        private Supplier<ColumnSelection> m_firstColumn;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            initializer.computeBeforeOpenDialog();
+            m_firstColumn = initializer.computeFromValueSupplier(FirstColumnSelectionRef.class);
+        }
+
+        @Override
+        public IdAndText[] computeState(final DefaultNodeSettingsContext context) {
+            var firstSelectedColumn = m_firstColumn.get().m_selected;
+
+            // if the first selected column exists in the table and is a local date,
+            // filter to only date-based granularities that. If it's a local time,
+            // filter to only time-based granularities. Otherwise, anything goes.
+            var spec = context.getDataTableSpec(0);
+            var firstColumnSpec = spec.map(s -> s.getColumnSpec(firstSelectedColumn));
+
+            if (firstColumnSpec.isPresent()) {
+                var firstColumnType = firstColumnSpec.get().getType();
+
+                if (firstColumnType.equals(LocalDateCellFactory.TYPE)) {
+                    return Arrays.stream(Granularity.values()) //
+                        .filter(g -> g.getChronoUnit().isDateBased()) //
+                        .map(ApplicableGranularitiesProvider::fromGranularity) //
+                        .toArray(IdAndText[]::new);
+                } else if (firstColumnType.equals(LocalTimeCellFactory.TYPE)) {
+                    return Arrays.stream(Granularity.values()) //
+                        .filter(g -> g.getChronoUnit().isTimeBased()) //
+                        .map(ApplicableGranularitiesProvider::fromGranularity) //
+                        .toArray(IdAndText[]::new);
+                }
+            }
+
+            return Arrays.stream(Granularity.values()) //
+                .map(ApplicableGranularitiesProvider::fromGranularity) //
+                .toArray(IdAndText[]::new);
+        }
+
+        private static IdAndText fromGranularity(final Granularity granularity) {
+            return new IdAndText(granularity.name(), granularity.toString());
+        }
     }
 }

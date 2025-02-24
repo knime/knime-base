@@ -337,17 +337,17 @@ public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDiffere
         return PeriodCellFactory.create(negate ? period.negated() : period);
     }
 
-    private static DataCell longCellBetween(final Temporal start, final Temporal end, final Granularity unit,
+    private static DataCell longCellBetween(final Temporal start, final Temporal end, final String unit,
         final boolean negate) {
-        return LongCellFactory.create(unit.between(start, end) * (negate ? -1 : 1));
+        return LongCellFactory.create(Granularity.valueOf(unit).between(start, end) * (negate ? -1 : 1));
     }
 
     /**
      * Will error for date-based granularity units! But the settings dialogue should prevent that, unless the user
      * manually overrides the settings with a flow variable.
      */
-    private static DataCell doubleBetween(final Temporal start, final Temporal end, final Granularity unit,
+    private static DataCell doubleBetween(final Temporal start, final Temporal end, final String unit,
         final boolean negate) {
-        return DoubleCellFactory.create(unit.betweenExact(start, end) * (negate ? -1 : 1));
+        return DoubleCellFactory.create(Granularity.valueOf(unit).betweenExact(start, end) * (negate ? -1 : 1));
     }
 }
