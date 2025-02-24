@@ -58,7 +58,6 @@ import java.util.stream.Collectors;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
-import org.knime.core.data.def.IntCell.IntCellFactory;
 import org.knime.core.data.def.LongCell.LongCellFactory;
 import org.knime.core.data.time.duration.DurationCell;
 import org.knime.core.data.time.duration.DurationValue;
@@ -75,45 +74,45 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 enum ExtractableField {
 
         @Label(value = "Years", description = "The years component of a period.")
-        YEARS(Period.class, (PeriodToIntCellExtractor)Period::getYears, "Years", "Years"), //
+        YEARS(Period.class, (PeriodToLongCellExtractor)Period::getYears, "Years", "Years"), //
         @Label(value = "Months", description = "The months component of a period.")
-        MONTHS(Period.class, (PeriodToIntCellExtractor)Period::getMonths, "Months", "Months"), //
+        MONTHS(Period.class, (PeriodToLongCellExtractor)Period::getMonths, "Months", "Months"), //
         @Label(value = "Days", description = "The days component of a period.")
-        DAYS(Period.class, (PeriodToIntCellExtractor)Period::getDays, "Days", "Days"), //
+        DAYS(Period.class, (PeriodToLongCellExtractor)Period::getDays, "Days", "Days"), //
         @Label(value = "Hours", description = "The hours component of a duration.")
         HOURS(Duration.class, (DurationToLongCellExtractor)Duration::toHours, "Hours", "Hours"), //
         @Label(value = "Minutes", description = "The minutes component of a duration.")
-        MINUTES(Duration.class, (DurationToIntCellExtractor)Duration::toMinutesPart, "Minutes", "Minutes"), //
+        MINUTES(Duration.class, (DurationToLongCellExtractor)Duration::toMinutesPart, "Minutes", "Minutes"), //
         @Label(value = "Seconds", description = "The seconds component of a duration.")
-        SECONDS(Duration.class, (DurationToIntCellExtractor)Duration::toSecondsPart, "Seconds", "Seconds"), //
+        SECONDS(Duration.class, (DurationToLongCellExtractor)Duration::toSecondsPart, "Seconds", "Seconds"), //
         @Label(value = "Millis", description = """
                 The milliseconds component of a duration. In other words, a duration of 10.123456789 \
                 seconds would have 123 milliseconds.
                 """)
-        MILLIS(Duration.class, (DurationToIntCellExtractor)d -> d.toMillisPart() % 1_000, "Millis", "Milliseconds"), //
+        MILLIS(Duration.class, (DurationToLongCellExtractor)d -> d.toMillisPart() % 1_000, "Millis", "Milliseconds"), //
         @Label(value = "Micros (all subseconds)", description = """
                 Microseconds of a duration, including all of the subseconds. In other words, \
                 a duration of 10.123456789 seconds would have 123456 microseconds.
                 """)
-        MICROS_ALL(Duration.class, (DurationToIntCellExtractor)d -> d.toNanosPart() / 1_000, "Micros",
+        MICROS_ALL(Duration.class, (DurationToLongCellExtractor)d -> d.toNanosPart() / 1_000, "Micros",
             "Microseconds (all subseconds)"), //
         @Label(value = "Micros", description = """
                 The microseconds component of a duration. In other words, a duration of 10.123456789 \
                 seconds would have 456 microseconds.
                 """)
-        MICROS_PART(Duration.class, (DurationToIntCellExtractor)d -> (d.toNanosPart() / 1_000) % 1_000, null,
+        MICROS_PART(Duration.class, (DurationToLongCellExtractor)d -> (d.toNanosPart() / 1_000) % 1_000, null,
             "Microseconds"), //
         @Label(value = "Nanos (all subseconds)", description = """
                 Nanoseconds of a duration, including all of the subseconds. In other words, \
                 a duration of 10.123456789 seconds would have 123456789 nanoseconds.
                 """)
-        NANOS_ALL(Duration.class, (DurationToIntCellExtractor)Duration::toNanosPart, "Nanos",
+        NANOS_ALL(Duration.class, (DurationToLongCellExtractor)Duration::toNanosPart, "Nanos",
             "Nanoseconds (all subseconds)"), //
         @Label(value = "Nanos", description = """
                 The nanoseconds component of a duration. In other words, a duration of 10.123456789 \
                 seconds would have 789 nanoseconds.
                 """)
-        NANOS_PART(Duration.class, (DurationToIntCellExtractor)d -> d.toNanosPart() % 1_000, null, "Nanoseconds");
+        NANOS_PART(Duration.class, (DurationToLongCellExtractor)d -> d.toNanosPart() % 1_000, null, "Nanoseconds");
 
     interface NumberCellExtractor {
         DataCell extractNumberCellFromTemporalAmount(TemporalAmount amount);
@@ -127,28 +126,20 @@ enum ExtractableField {
         int applyAsInt(T value);
     }
 
+    interface PeriodToLongCellExtractor extends LongCellExtractor<Period> {
+
+        @Override
+        default DataCell extractNumberCellFromTemporalAmount(final TemporalAmount amount) {
+            return LongCellFactory.create(this.applyAsLong((Period)amount));
+        }
+    }
+
     interface DurationToLongCellExtractor extends LongCellExtractor<Duration> {
 
         @Override
         default DataCell extractNumberCellFromTemporalAmount(final TemporalAmount amount) {
-            return LongCellFactory.create(this.applyAsLong((Duration)amount));
-        }
-    }
-
-    interface DurationToIntCellExtractor extends IntCellExtractor<Duration> {
-
-        @Override
-        default DataCell extractNumberCellFromTemporalAmount(final TemporalAmount amount) {
-            return IntCellFactory
-                .create(this.applyAsInt(((Duration)amount).abs()) * (((Duration)amount).isNegative() ? -1 : 1));
-        }
-    }
-
-    interface PeriodToIntCellExtractor extends IntCellExtractor<Period> {
-
-        @Override
-        default DataCell extractNumberCellFromTemporalAmount(final TemporalAmount amount) {
-            return IntCellFactory.create(this.applyAsInt((Period)amount));
+            return LongCellFactory
+                .create(this.applyAsLong(((Duration)amount).abs()) * (((Duration)amount).isNegative() ? -1 : 1));
         }
     }
 
