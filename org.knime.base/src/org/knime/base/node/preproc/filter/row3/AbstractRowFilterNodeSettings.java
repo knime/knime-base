@@ -187,19 +187,17 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
         // in order to allow the user to switch between columns without resetting their operator selection.
         @Widget(title = "Operator", description =
                 """
-                The operator defines whether a particular value passes the filter criterion or not.
-                A value matches the filter criterion, if the operator applied to it returns "true". If the operator
-                returns "false" or a missing value, the value does not match the filter criterion.
-                Not all operators offered by this node may be applicable to a particular column data type.
-                Only the applicable operators are shown for the selected column.
+                The operator determines whether a value meets the filter criterion. A value matches the criterion if the
+                applied operator returns "true" and does not match if it returns "false."
+                Not all operators are compatible with every column data type. Only the applicable operators are shown
+                for the selected column.
                 <br /><br />
 
-                <b>Missing value handling:</b> All operators except "Is missing" or "Is not missing" return a missing
-                cell if they encounter a missing cell as input.
-                Therefore, a missing cell is matched if and only if the filter operator is "Is missing" or
-                "Is not missing".
-                Consequently, the filter behavior follows the semantics of SQL missing value filtering, e.g. when using
-                the <i>DB Row Filter</i> node or SQL <tt>WHERE</tt> clause in the <i>DB Query</i> node.
+                <b>Missing value handling:</b> The "is missing" and "is not missing" operators are available for all
+                data types. Most other operators do not evaluate on missing values and will not match if a missing cell
+                is encountered. An exception is the "is not equal" operator, which matches missing cells because they
+                cannot equal the reference value. To exclude missing cells in this case, use the "is not equal (nor
+                missing)" operator. "RowID" and "Row number" special columns are never missing.
                 """)
         @Layout(Condition.ColumnOperator.Operator.class)
         @ValueReference(OperatorRef.class)

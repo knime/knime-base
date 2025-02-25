@@ -109,6 +109,7 @@ final class FilterOperatorTest {
                 FilterOperator.IS_NOT_MISSING, //
                 FilterOperator.EQ, //
                 FilterOperator.NEQ, //
+                FilterOperator.NEQ_MISS, //
                 FilterOperator.REGEX, //
                 FilterOperator.WILDCARD //
             );
@@ -118,6 +119,7 @@ final class FilterOperatorTest {
                 FilterOperator.IS_NOT_MISSING, //
                 FilterOperator.EQ, //
                 FilterOperator.NEQ, //
+                FilterOperator.NEQ_MISS, //
                 FilterOperator.GT, //
                 FilterOperator.GTE, //
                 FilterOperator.LT, //
@@ -134,6 +136,7 @@ final class FilterOperatorTest {
                 FilterOperator.IS_NOT_MISSING, //
                 FilterOperator.EQ, //
                 FilterOperator.NEQ, //
+                FilterOperator.NEQ_MISS, //
                 FilterOperator.GT, //
                 FilterOperator.GTE, //
                 FilterOperator.LT, //

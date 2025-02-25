@@ -81,7 +81,7 @@ final class RowNumberFilterSpec {
 
     static boolean supportsOperator(final FilterOperator operator) {
         return switch (operator) {
-            case EQ, NEQ, LT, LTE, GT, GTE, FIRST_N_ROWS, LAST_N_ROWS -> true;
+            case EQ, NEQ, NEQ_MISS, LT, LTE, GT, GTE, FIRST_N_ROWS, LAST_N_ROWS -> true;
             case IS_FALSE, IS_TRUE, IS_MISSING, IS_NOT_MISSING, REGEX, WILDCARD -> false;
         };
     }
@@ -98,7 +98,7 @@ final class RowNumberFilterSpec {
         // the dialog accepts 1-based row numbers but we use 0-based row offsets internally
         return switch (m_operator) {
             case EQ -> new OffsetFilter(Operator.EQ, m_value - 1);
-            case NEQ -> new OffsetFilter(Operator.NEQ, m_value - 1);
+            case NEQ, NEQ_MISS -> new OffsetFilter(Operator.NEQ, m_value - 1);
             case LT -> new OffsetFilter(Operator.LT, m_value - 1);
             case LTE -> new OffsetFilter(Operator.LTE, m_value - 1);
             case GT -> new OffsetFilter(Operator.GT, m_value - 1);
