@@ -81,16 +81,26 @@ public enum FilterOperator {
                 representation.
                 """)
         EQ("Equals"),
+
         /**
          * Operator checking inequality between values. In particular, two missing cells are considered neither equal
          * nor non-equal to each other (following the SQL semantic of nullable comparison with {@code !=}/{@code <>}).
-         * To check whether a cell is missing, use {@link #IS_MISSING} or {@link #IS_NOT_MISSING}.
+         * See also {@link #NEQ_MISS}.
          */
-        @Label(value = "Does not equal", description =
+        @Label(value = "Is not equal (nor missing)", description =
                 """
-                Value in column must be <b>not equal</b> to specified reference value.
+                Value in column must be <b>not equal</b> to specified reference and also not missing.
                 """)
-        NEQ("Does not equal"),
+        NEQ("Is not equal (nor missing)"),
+
+        /**
+         * Operator checking inequality between values, but allowing for missing values. See also {@link #NEQ}.
+         */
+        @Label(value = "Is not equal", description =
+                """
+                Value in column must be <b>not equal</b> to specified reference value but can be missing.
+                """)
+        NEQ_MISS("Is not equal", true),
 
         /** Operator checking that the left-hand-side value is strictly less than the right-hand-side value. */
         @Label(value = "Less than", description =
@@ -105,14 +115,17 @@ public enum FilterOperator {
         "Greather than", and "Greater than or equal".
         """) //
         LT("Less than"), //
+
         /** Operator checking that the lhs value is less than or equal to the rhs value. */
         @Label(value = "Less than or equal", //
             description = "Value in column must be <b>smaller than or equal</b> to specified value") //
         LTE("Less than or equal"), //
+
         /** Operator checking that the lhs value is strictly greater than the rhs value. */
         @Label(value = "Greater than", //
             description = "Value in column must be <b>strictly larger</b> than specified value") //
         GT("Greater than"), //
+
         /** Operator checking that the lhs value is strictly greater than or equal to the rhs value. */
         @Label(value = "Greater than or equal", //
             description = "Value in column must be <b>larger than or equal</b> than specified value") //
@@ -124,11 +137,12 @@ public enum FilterOperator {
                 Matches the specified number of rows counted from the start of the input.
                 """)
         FIRST_N_ROWS("First n rows"), //
+
+        /** Operator matching the last {@code n} rows. */
         @Label(value = "Last <i>n</i> rows", description =
                 """
                 Matches the specified number of rows counted from the end of the input.
                 """)
-        /** Operator matching the last {@code n} rows. */
         LAST_N_ROWS("Last n rows"), //
 
         /** Operator matching the lhs value with the given regular expression. */
@@ -173,8 +187,15 @@ public enum FilterOperator {
 
     final String m_label;
 
+    final boolean m_allowMissing;
+
     FilterOperator(final String label) {
+        this(label, false);
+    }
+
+    FilterOperator(final String label, final boolean allowMissing) {
         m_label = label;
+        m_allowMissing = allowMissing;
     }
 
     /**
@@ -196,7 +217,7 @@ public enum FilterOperator {
 
     boolean isBinary() {
         return switch (this) {
-            case EQ, NEQ, LT, LTE, GT, GTE, REGEX, WILDCARD, FIRST_N_ROWS, LAST_N_ROWS -> true;
+            case EQ, NEQ, NEQ_MISS, LT, LTE, GT, GTE, REGEX, WILDCARD, FIRST_N_ROWS, LAST_N_ROWS -> true;
             case IS_TRUE, IS_FALSE, IS_MISSING, IS_NOT_MISSING -> false;
         };
     }
@@ -219,6 +240,8 @@ public enum FilterOperator {
             case FIRST_N_ROWS, LAST_N_ROWS -> specialColumn == SpecialColumns.ROW_NUMBERS;
             // booleans are handled with these two operators
             case IS_TRUE, IS_FALSE -> dataType.equals(BooleanCell.TYPE);
+            case NEQ_MISS -> specialColumn == null
+                && PredicateFactories.getValuePredicateFactory(this, dataType).isPresent();
             case LT, LTE, GT, GTE, EQ, NEQ, REGEX, WILDCARD ->
                 PredicateFactories.getValuePredicateFactory(this, dataType).isPresent();
         };
@@ -254,7 +277,7 @@ public enum FilterOperator {
      */
     IndexedRowReadPredicate translateToPredicate(final DynamicValuesInput predicateValues, final int columnIndex,
         final DataType dataType) throws InvalidSettingsException {
-        // handle missingness tests early
+        // handle pure missingness tests early
         if (this == FilterOperator.IS_MISSING || this == FilterOperator.IS_NOT_MISSING) {
             // only missing value filter, no value predicate present
             final var isMissing = this == FilterOperator.IS_MISSING;
@@ -285,24 +308,36 @@ public enum FilterOperator {
          *
          * This results in the following test to determine if the row should pass the filter or not:
          *
-         *   (isRowKey OR !isMissing) AND valuePredicate
+         * If the predicate allows for missing values:
          *
+         *   (!isRowKey AND isMissing) OR valuePredicate
+         *
+         * Otherwise, i.e. if the predicate does not allow for missing values:
+         *
+         *   (isRowKey OR !isMissing) AND valuePredicate
          */
 
-        if (valuePredicate == IndexedRowReadPredicate.FALSE) {
-            // the AND can never be true, if the value predicate always returns false
-            return IndexedRowReadPredicate.FALSE;
-        }
         final var isRowKey = columnIndex < 0;
-        if (valuePredicate == IndexedRowReadPredicate.TRUE) {
-            // since row keys are never missing, we can return always true here
-            // for a non-rowkey column for which the predicate is always true, we still need to check its presence
-            return isRowKey ? IndexedRowReadPredicate.TRUE : (idx, rowRead) -> !rowRead.isMissing(columnIndex);
+        if (isRowKey) {
+            // The row key cannot be missing, so we just evaluate the value predicate
+            return valuePredicate;
         }
 
-        // rowKey cannot be missing, so we can safely evaluate the value predicate
-        return isRowKey ? valuePredicate
-            : ((idx, rowRead) -> !rowRead.isMissing(columnIndex) && valuePredicate.test(idx, rowRead));
+        if (m_allowMissing) {
+            if (valuePredicate == IndexedRowReadPredicate.TRUE) {
+                // if the value predicate is always true, the check will always pass
+                return IndexedRowReadPredicate.TRUE;
+            }
+            // Check for missingness first to ensure the value predicate is only evaluated if the value is present
+            return (idx, rowRead) -> rowRead.isMissing(columnIndex) || valuePredicate.test(idx, rowRead);
+        } else {
+            if (valuePredicate == IndexedRowReadPredicate.FALSE) {
+                // if the value predicate is always false, the check will always fail
+                return IndexedRowReadPredicate.FALSE;
+            }
+            // Check for missingness first to ensure the value predicate is only evaluated if the value is present
+            return (idx, rowRead) -> !rowRead.isMissing(columnIndex) && valuePredicate.test(idx, rowRead);
+        }
     }
 
 }

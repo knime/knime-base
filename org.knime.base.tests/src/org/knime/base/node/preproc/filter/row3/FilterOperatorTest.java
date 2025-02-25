@@ -109,6 +109,7 @@ final class FilterOperatorTest {
                 FilterOperator.IS_NOT_MISSING, //
                 FilterOperator.EQ, //
                 FilterOperator.NEQ, //
+                FilterOperator.NEQ_MISS, //
                 FilterOperator.REGEX, //
                 FilterOperator.WILDCARD //
             );
@@ -118,6 +119,7 @@ final class FilterOperatorTest {
                 FilterOperator.IS_NOT_MISSING, //
                 FilterOperator.EQ, //
                 FilterOperator.NEQ, //
+                FilterOperator.NEQ_MISS, //
                 FilterOperator.GT, //
                 FilterOperator.GTE, //
                 FilterOperator.LT, //
@@ -134,6 +136,7 @@ final class FilterOperatorTest {
                 FilterOperator.IS_NOT_MISSING, //
                 FilterOperator.EQ, //
                 FilterOperator.NEQ, //
+                FilterOperator.NEQ_MISS, //
                 FilterOperator.GT, //
                 FilterOperator.GTE, //
                 FilterOperator.LT, //
@@ -458,5 +461,32 @@ final class FilterOperatorTest {
             .returns(false, t -> t.test(SpecialColumns.ROWID, StringCell.TYPE)) //
             .as("RowNumber cannot be missing") //
             .returns(false, t -> t.test(SpecialColumns.ROW_NUMBERS, IntCell.TYPE));
+    }
+
+    private static final class IsNeqMiss extends BaseTester {
+        @Override
+        Stream<FilterOperator> getOperators() {
+            return Stream.of(FilterOperator.NEQ_MISS);
+        }
+    }
+
+    @Test
+    void testIsNeqMiss() {
+        final var tester = new IsNeqMiss();
+        assertThat(tester) //
+            .as("RowID is not NEQ_MISS") // because it cannot be missing
+            .returns(false, t -> t.test(SpecialColumns.ROWID, StringCell.TYPE)) //
+            .as("Row number is not NEQ_MISS") // because it cannot be missing
+            .returns(false, t -> t.test(SpecialColumns.ROW_NUMBERS, LongCell.TYPE)) //
+            .as("Normal string column is NEQ_MISS") //
+            .returns(true, t -> t.test(null, StringCell.TYPE)) //
+            .as("Long column is NEQ_MISS") //
+            .returns(true, t -> t.test(null, LongCell.TYPE)) //
+            .as("Int column is NEQ_MISS") //
+            .returns(true, t -> t.test(null, IntCell.TYPE)) //
+            .as("Double column is NEQ_MISS") //
+            .returns(true, t -> t.test(null, DoubleCell.TYPE)) //
+            .as("Boolean column is not NEQ_MISS") // because it is not NEQ
+            .returns(false, t -> t.test(null, BooleanCell.TYPE));
     }
 }

@@ -130,6 +130,11 @@ final class FilterCriterionTest {
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Long with default value via NEQ") //
                 .doesNotThrowAnyException();
+
+            criterion.m_operator = FilterOperator.NEQ_MISS;
+            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+                .as("Long with default value via NEQ_MISS") //
+                .doesNotThrowAnyException();
         }
 
         /**
@@ -156,6 +161,11 @@ final class FilterCriterionTest {
                 .as("Int with default value via NEQ") //
                 .doesNotThrowAnyException();
 
+            criterion.m_operator = FilterOperator.NEQ_MISS;
+            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+                .as("Int with default value via NEQ_MISS") //
+                .doesNotThrowAnyException();
+
             // Int column with Long reference
             criterion.m_predicateValues =
                 DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(LongCell.TYPE);
@@ -167,6 +177,10 @@ final class FilterCriterionTest {
             criterion.m_operator = FilterOperator.NEQ;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Int with default Long value via NEQ") //
+                .doesNotThrowAnyException();
+            criterion.m_operator = FilterOperator.NEQ_MISS;
+            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+                .as("Int with default Long value via NEQ_MISS") //
                 .doesNotThrowAnyException();
 
             // Int column with Double reference
@@ -180,6 +194,10 @@ final class FilterCriterionTest {
             criterion.m_operator = FilterOperator.NEQ;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Int with default Double value via NEQ") //
+                .doesNotThrowAnyException();
+            criterion.m_operator = FilterOperator.NEQ_MISS;
+            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+                .as("Int with default Double value via NEQ_MISS") //
                 .doesNotThrowAnyException();
         }
 
@@ -217,6 +235,11 @@ final class FilterCriterionTest {
                 .as("Int with default value via NEQ") //
                 .hasMessageContaining("Cannot compare input column of type \"" + IntCell.TYPE.getName()
                     + "\" with a value of type \"" + StringCell.TYPE.getName() + "\" for inequality");
+            criterion.m_operator = FilterOperator.NEQ_MISS;
+            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+                .as("Int with default value via NEQ_MISS") //
+                .hasMessageContaining("Cannot compare input column of type \"" + IntCell.TYPE.getName()
+                    + "\" with a value of type \"" + StringCell.TYPE.getName() + "\" for inequality");
         }
 
         /**
@@ -241,6 +264,12 @@ final class FilterCriterionTest {
             criterion.m_operator = FilterOperator.NEQ;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Long with default value via NEQ") //
+                .hasMessageContaining("Cannot compare input column of type \"" + LongCell.TYPE.getName()
+                    + "\" with a value of type \"" + StringCell.TYPE.getName() + "\" for inequality");
+
+            criterion.m_operator = FilterOperator.NEQ_MISS;
+            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+                .as("Long with default value via NEQ_MISS") //
                 .hasMessageContaining("Cannot compare input column of type \"" + LongCell.TYPE.getName()
                     + "\" with a value of type \"" + StringCell.TYPE.getName() + "\" for inequality");
         }

@@ -96,7 +96,7 @@ public final class PredicateFactories {
         return switch (operator) {
             case EQ:
                 yield EqualityPredicateFactory.create(dataType, true);
-            case NEQ:
+            case NEQ, NEQ_MISS:
                 yield EqualityPredicateFactory.create(dataType, false);
             case GT:
                 yield OrderingPredicateFactory.create(dataType, FilterOperator.GT);
@@ -129,7 +129,7 @@ public final class PredicateFactories {
         return switch (operator) {
             case EQ:
                 yield EqualityPredicateFactory.forRowKey(true);
-            case NEQ:
+            case NEQ, NEQ_MISS:
                 yield EqualityPredicateFactory.forRowKey(false);
             case REGEX:
                 yield Optional.of(PatternMatchingPredicateFactory.forRowKey(true));
@@ -154,7 +154,7 @@ public final class PredicateFactories {
             case WILDCARD:
                 yield Optional.of(PatternMatchingPredicateFactory.forRowNumber(false));
             case //
-                EQ, NEQ, GT, GTE, LT, LTE, // these are handled via `OffsetFilter`
+                EQ, NEQ, NEQ_MISS, GT, GTE, LT, LTE, // these are handled via `OffsetFilter`
                 IS_MISSING, IS_NOT_MISSING, FIRST_N_ROWS, LAST_N_ROWS, IS_TRUE, IS_FALSE:
                 yield Optional.empty();
         };
