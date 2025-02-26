@@ -5,6 +5,7 @@
     <entry key="localTimeStart" type="xstring" value="16:41:39"/>
     <entry key="localDateTimeStart" type="xstring" value="2024-01-22T17:41:39.521969145"/>
     <entry key="zonedDateTimeStart" type="xstring" value="2024-01-22T17:41:39.521973361+01:00[Europe/Berlin]"/>
+    <entry key="useExecutionTimeStart" type="xboolean" value="false"/>
     <entry key="fixedSteps" type="xstring" value="INTERVAL_AND_END"/>
     <entry key="numberOfRows" type="xlong" value="1000"/>
     <entry key="interval" type="xstring" value="P0Y0M0W1D"/>
@@ -12,5 +13,6 @@
     <entry key="localTimeEnd" type="xstring" value="17:41:39"/>
     <entry key="localDateTimeEnd" type="xstring" value="2025-01-22T17:41:39.521988364"/>
     <entry key="zonedDateTimeEnd" type="xstring" value="2025-01-22T17:41:39.521989931+01:00[Europe/Berlin]"/>
+    <entry key="useExecutionTimeEnd" type="xboolean" value="true"/>
     <entry key="outputColumnName" type="xstring" value="Date"/>
 </config>

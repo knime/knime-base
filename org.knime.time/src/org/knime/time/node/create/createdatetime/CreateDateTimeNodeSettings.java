@@ -74,6 +74,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.time.util.DateTimeType;
+import org.knime.time.util.DateTimeType.IsDateTimeTypeAndNotDisabled;
 
 /**
  * Settings for the new Create Date Time webUI node.
@@ -114,21 +115,21 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Start date", description = """
             The date at which the date time creation should start, inclusive.
             """)
-    @Effect(predicate = DateTimeType.IsLocalDate.class, type = EffectType.SHOW)
+    @Effect(predicate = IsLocalDateAndNotDisabledStart.class, type = EffectType.SHOW)
     @Layout(StartingPointSettingsSection.class)
     LocalDate m_localDateStart = LocalDate.now().minusYears(1);
 
     @Widget(title = "Start time", description = """
             The time at which the date time creation should start, inclusive.
             """)
-    @Effect(predicate = DateTimeType.IsLocalTime.class, type = EffectType.SHOW)
+    @Effect(predicate = IsLocalTimeAndNotDisabledStart.class, type = EffectType.SHOW)
     @Layout(StartingPointSettingsSection.class)
     LocalTime m_localTimeStart = LocalTime.now().truncatedTo(ChronoUnit.SECONDS).minusHours(1);
 
     @Widget(title = "Start date time", description = """
             The date&amp;time at which the date time creation should start, inclusive.
             """)
-    @Effect(predicate = DateTimeType.IsLocalDateTime.class, type = EffectType.SHOW)
+    @Effect(predicate = IsLocalDateTimeAndNotDisabledStart.class, type = EffectType.SHOW)
     @Layout(StartingPointSettingsSection.class)
     LocalDateTime m_localDateTimeStart = LocalDateTime.now().minusYears(1);
 
@@ -136,9 +137,15 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
             The date&amp;time&amp;zone at which the date time creation should start, \
             inclusive.
             """)
-    @Effect(predicate = DateTimeType.IsZonedDateTime.class, type = EffectType.SHOW)
+    @Effect(predicate = IsZonedDateTimeAndNotDisabledStart.class, type = EffectType.SHOW)
     @Layout(StartingPointSettingsSection.class)
     ZonedDateTime m_zonedDateTimeStart = ZonedDateTime.now().minusYears(1);
+
+    @Widget(title = "Use execution date & time",
+        description = "If checked, the execution date &amp; time will be used as starting point.")
+    @Layout(StartingPointSettingsSection.class)
+    @ValueReference(UseExecutionTimeStartRef.class)
+    boolean m_useExecutionTimeStart;
 
     @Layout(RangeSettingsSection.class)
     @Widget(title = "Fixed steps", description = "How the rows are created.")
@@ -167,7 +174,7 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
             if the output mode is 'Number and Duration' and the provided interval does not divide \
             evenly between the start and end date.
             """)
-    @Effect(predicate = DateTimeType.IsLocalDate.class, type = EffectType.SHOW)
+    @Effect(predicate = IsLocalDateAndNotDisabledEnd.class, type = EffectType.SHOW)
     @Layout(value = EndSettingsSection.class)
     LocalDate m_localDateEnd = LocalDate.now();
 
@@ -176,7 +183,7 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
             if the output mode is 'Number and Duration' and the provided interval does not divide \
             evenly between the start and end time.
             """)
-    @Effect(predicate = DateTimeType.IsLocalTime.class, type = EffectType.SHOW)
+    @Effect(predicate = IsLocalTimeAndNotDisabledEnd.class, type = EffectType.SHOW)
     @Layout(value = EndSettingsSection.class)
     LocalTime m_localTimeEnd = LocalTime.now().truncatedTo(ChronoUnit.SECONDS);
 
@@ -185,7 +192,7 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
             except if the output mode is 'Number and Duration' and the provided interval does not divide \
             evenly between the start and end date&amp;time.
             """)
-    @Effect(predicate = DateTimeType.IsLocalDateTime.class, type = EffectType.SHOW)
+    @Effect(predicate = IsLocalDateTimeAndNotDisabledEnd.class, type = EffectType.SHOW)
     @Layout(value = EndSettingsSection.class)
     LocalDateTime m_localDateTimeEnd = LocalDateTime.now();
 
@@ -194,9 +201,15 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
             is inclusive,  except if the output mode is 'Number and Duration' and the provided interval \
             does not divide evenly between the start and end date&amp;time.
             """)
-    @Effect(predicate = DateTimeType.IsZonedDateTime.class, type = EffectType.SHOW)
+    @Effect(predicate = IsZonedDateTimeAndNotDisabledEnd.class, type = EffectType.SHOW)
     @Layout(value = EndSettingsSection.class)
     ZonedDateTime m_zonedDateTimeEnd = ZonedDateTime.now();
+
+    @Widget(title = "Use execution date & time",
+        description = "If checked, the execution date &amp; time will be used as ending point.")
+    @Layout(value = EndSettingsSection.class)
+    @ValueReference(UseExecutionTimeEndRef.class)
+    boolean m_useExecutionTimeEnd;
 
     @Layout(value = OutputSettingsSection.class)
     @Widget(title = "Output column name", description = "The name of the output column.")
@@ -252,6 +265,12 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
         }
     }
 
+    static final class UseExecutionTimeStartRef implements Reference<Boolean> {
+    }
+
+    static final class UseExecutionTimeEndRef implements Reference<Boolean> {
+    }
+
     static final class DurationTypeStateProvider implements StateProvider<IntervalWidget.IntervalType> {
 
         private Supplier<DateTimeType> m_fixedStepsValueSupplier;
@@ -269,6 +288,62 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
                 case LOCAL_TIME -> IntervalWidget.IntervalType.TIME;
                 case LOCAL_DATE_TIME, ZONED_DATE_TIME -> IntervalWidget.IntervalType.DATE_OR_TIME;
             };
+        }
+    }
+
+    private static final class IsLocalTimeAndNotDisabledStart
+        extends IsDateTimeTypeAndNotDisabled<UseExecutionTimeStartRef> {
+        IsLocalTimeAndNotDisabledStart() {
+            super(DateTimeType.LOCAL_TIME, UseExecutionTimeStartRef.class);
+        }
+    }
+
+    private static final class IsLocalDateAndNotDisabledStart
+        extends IsDateTimeTypeAndNotDisabled<UseExecutionTimeStartRef> {
+        IsLocalDateAndNotDisabledStart() {
+            super(DateTimeType.LOCAL_DATE, UseExecutionTimeStartRef.class);
+        }
+    }
+
+    private static final class IsLocalDateTimeAndNotDisabledStart
+        extends IsDateTimeTypeAndNotDisabled<UseExecutionTimeStartRef> {
+        IsLocalDateTimeAndNotDisabledStart() {
+            super(DateTimeType.LOCAL_DATE_TIME, UseExecutionTimeStartRef.class);
+        }
+    }
+
+    private static final class IsZonedDateTimeAndNotDisabledStart
+        extends IsDateTimeTypeAndNotDisabled<UseExecutionTimeStartRef> {
+        IsZonedDateTimeAndNotDisabledStart() {
+            super(DateTimeType.ZONED_DATE_TIME, UseExecutionTimeStartRef.class);
+        }
+    }
+
+    private static final class IsLocalTimeAndNotDisabledEnd
+        extends IsDateTimeTypeAndNotDisabled<UseExecutionTimeEndRef> {
+        IsLocalTimeAndNotDisabledEnd() {
+            super(DateTimeType.LOCAL_TIME, UseExecutionTimeEndRef.class);
+        }
+    }
+
+    private static final class IsLocalDateAndNotDisabledEnd
+        extends IsDateTimeTypeAndNotDisabled<UseExecutionTimeEndRef> {
+        IsLocalDateAndNotDisabledEnd() {
+            super(DateTimeType.LOCAL_DATE, UseExecutionTimeEndRef.class);
+        }
+    }
+
+    private static final class IsLocalDateTimeAndNotDisabledEnd
+        extends IsDateTimeTypeAndNotDisabled<UseExecutionTimeEndRef> {
+        IsLocalDateTimeAndNotDisabledEnd() {
+            super(DateTimeType.LOCAL_DATE_TIME, UseExecutionTimeEndRef.class);
+        }
+    }
+
+    private static final class IsZonedDateTimeAndNotDisabledEnd
+        extends IsDateTimeTypeAndNotDisabled<UseExecutionTimeEndRef> {
+        IsZonedDateTimeAndNotDisabledEnd() {
+            super(DateTimeType.ZONED_DATE_TIME, UseExecutionTimeEndRef.class);
         }
     }
 }

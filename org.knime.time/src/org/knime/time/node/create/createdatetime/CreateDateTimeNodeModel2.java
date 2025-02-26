@@ -306,10 +306,14 @@ final class CreateDateTimeNodeModel2 extends WebUINodeModel<CreateDateTimeNodeSe
         final var utc = ZoneId.of("UTC");
 
         return switch (settings.m_outputType) {
-            case LOCAL_DATE -> settings.m_localDateEnd.atTime(LocalTime.NOON).atZone(utc);
-            case LOCAL_TIME -> settings.m_localTimeEnd.atDate(LocalDate.EPOCH).atZone(utc);
-            case LOCAL_DATE_TIME -> ZonedDateTime.of(settings.m_localDateTimeEnd, utc);
-            case ZONED_DATE_TIME -> settings.m_zonedDateTimeEnd;
+            case LOCAL_DATE -> settings.m_useExecutionTimeEnd ? LocalDate.now().atTime(LocalTime.NOON).atZone(utc)
+                : settings.m_localDateEnd.atTime(LocalTime.NOON).atZone(utc);
+            case LOCAL_TIME -> settings.m_useExecutionTimeEnd ? LocalTime.now().atDate(LocalDate.EPOCH).atZone(utc)
+                : settings.m_localTimeEnd.atDate(LocalDate.EPOCH).atZone(utc);
+            case LOCAL_DATE_TIME -> settings.m_useExecutionTimeEnd ? LocalDateTime.now().atZone(utc)
+                : ZonedDateTime.of(settings.m_localDateTimeEnd, utc);
+            case ZONED_DATE_TIME -> settings.m_useExecutionTimeEnd ? ZonedDateTime.now() //
+                : settings.m_zonedDateTimeEnd;
         };
     }
 
@@ -321,10 +325,14 @@ final class CreateDateTimeNodeModel2 extends WebUINodeModel<CreateDateTimeNodeSe
         final var utc = ZoneId.of("UTC");
 
         return switch (settings.m_outputType) {
-            case LOCAL_DATE -> settings.m_localDateStart.atTime(LocalTime.NOON).atZone(utc);
-            case LOCAL_TIME -> settings.m_localTimeStart.atDate(LocalDate.EPOCH).atZone(utc);
-            case LOCAL_DATE_TIME -> ZonedDateTime.of(settings.m_localDateTimeStart, utc);
-            case ZONED_DATE_TIME -> settings.m_zonedDateTimeStart;
+            case LOCAL_DATE -> settings.m_useExecutionTimeStart ? LocalDate.now().atTime(LocalTime.NOON).atZone(utc)
+                : settings.m_localDateStart.atTime(LocalTime.NOON).atZone(utc);
+            case LOCAL_TIME -> settings.m_useExecutionTimeStart ? LocalTime.now().atDate(LocalDate.EPOCH).atZone(utc)
+                : settings.m_localTimeStart.atDate(LocalDate.EPOCH).atZone(utc);
+            case LOCAL_DATE_TIME -> settings.m_useExecutionTimeStart ? LocalDateTime.now().atZone(utc)
+                : ZonedDateTime.of(settings.m_localDateTimeStart, utc);
+            case ZONED_DATE_TIME -> settings.m_useExecutionTimeStart ? ZonedDateTime.now()
+                : settings.m_zonedDateTimeStart;
         };
     }
 }

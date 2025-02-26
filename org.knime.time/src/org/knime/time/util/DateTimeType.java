@@ -140,14 +140,58 @@ public enum DateTimeType {
     }
 
     /**
+     * Abstract Predicate for a DateTimeType. Using {@link Ref}
+     *
+     * @author Martin Sillye, TNG Technology Consulting GmbH
+     */
+    public abstract static class IsDateTimeType implements PredicateProvider {
+        private DateTimeType m_type;
+
+        /**
+         * @param type The chosen DateTimeType that results in a True predicate
+         */
+        protected IsDateTimeType(final DateTimeType type) {
+            this.m_type = type;
+        }
+
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i.getEnum(Ref.class).isOneOf(this.m_type);
+        }
+    }
+
+    /**
+     * Abstract Predicate for a DateTimeType and a (negated) Boolean Reference. Using {@link Ref}
+     *
+     * @author Martin Sillye, TNG Technology Consulting GmbH
+     * @param <T> Reference class
+     */
+    public abstract static class IsDateTimeTypeAndNotDisabled<T extends Reference<Boolean>> extends IsDateTimeType {
+        private Class<T> m_checkbox;
+
+        /**
+         * @param type The chosen DateTimeType
+         * @param checkbox A reference to a boolean field
+         */
+        protected IsDateTimeTypeAndNotDisabled(final DateTimeType type, final Class<T> checkbox) {
+            super(type);
+            this.m_checkbox = checkbox;
+        }
+
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return super.init(i).and(i.getBoolean(m_checkbox).isFalse());
+        }
+    }
+
+    /**
      * Predicate for the LOCAL_TIME value. Using {@link Ref}
      *
      * @author Martin Sillye, TNG Technology Consulting GmbH
      */
-    public static final class IsLocalTime implements PredicateProvider {
-        @Override
-        public Predicate init(final PredicateInitializer i) {
-            return i.getEnum(Ref.class).isOneOf(DateTimeType.LOCAL_TIME);
+    public static final class IsLocalTime extends IsDateTimeType {
+        IsLocalTime() {
+            super(DateTimeType.LOCAL_TIME);
         }
     }
 
@@ -156,10 +200,9 @@ public enum DateTimeType {
      *
      * @author Martin Sillye, TNG Technology Consulting GmbH
      */
-    public static final class IsLocalDate implements PredicateProvider {
-        @Override
-        public Predicate init(final PredicateInitializer i) {
-            return i.getEnum(Ref.class).isOneOf(DateTimeType.LOCAL_DATE);
+    public static final class IsLocalDate extends IsDateTimeType {
+        IsLocalDate() {
+            super(DateTimeType.LOCAL_DATE);
         }
     }
 
@@ -168,10 +211,9 @@ public enum DateTimeType {
      *
      * @author Martin Sillye, TNG Technology Consulting GmbH
      */
-    public static final class IsLocalDateTime implements PredicateProvider {
-        @Override
-        public Predicate init(final PredicateInitializer i) {
-            return i.getEnum(Ref.class).isOneOf(DateTimeType.LOCAL_DATE_TIME);
+    public static final class IsLocalDateTime extends IsDateTimeType {
+        IsLocalDateTime() {
+            super(DateTimeType.LOCAL_DATE_TIME);
         }
     }
 
@@ -180,10 +222,9 @@ public enum DateTimeType {
      *
      * @author Martin Sillye, TNG Technology Consulting GmbH
      */
-    public static final class IsZonedDateTime implements PredicateProvider {
-        @Override
-        public Predicate init(final PredicateInitializer i) {
-            return i.getEnum(Ref.class).isOneOf(DateTimeType.ZONED_DATE_TIME);
+    public static final class IsZonedDateTime extends IsDateTimeType {
+        IsZonedDateTime() {
+            super(DateTimeType.ZONED_DATE_TIME);
         }
     }
 }

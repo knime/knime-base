@@ -9,6 +9,7 @@
         "dateTime" : "2019-01-01T14:00:00.123456789",
         "timeZone" : "Europe/Berlin"
       },
+      "useExecutionTimeStart" : false,
       "fixedSteps" : "INTERVAL_AND_END",
       "numberOfRows" : 1000,
       "interval" : "P0Y0M0W1D",
@@ -19,6 +20,7 @@
         "dateTime" : "2020-01-01T14:00:00.123456789",
         "timeZone" : "Europe/Berlin"
       },
+      "useExecutionTimeEnd" : false,
       "outputColumnName" : "Date"
     }
   },
@@ -122,6 +124,18 @@
             "description" : "The type to create can be selected. It can be either a Local Date, Local Time, Local Date Time, or Zoned Date Time.\n\n<ul>\n<li><b>Date</b>: Outputs will be of type Local Date</li>\n<li><b>Time</b>: Outputs will be of type Local Time</li>\n<li><b>Date &amp; time</b>: Outputs will be of type Local Date Time</li>\n<li><b>Date &amp; time &amp; zone</b>: Outputs will be of type Zoned Date Time</li>\n</ul>",
             "default" : "LOCAL_DATE"
           },
+          "useExecutionTimeEnd" : {
+            "type" : "boolean",
+            "title" : "Use execution date & time",
+            "description" : "If checked, the execution date &amp; time will be used as ending point.",
+            "default" : false
+          },
+          "useExecutionTimeStart" : {
+            "type" : "boolean",
+            "title" : "Use execution date & time",
+            "description" : "If checked, the execution date &amp; time will be used as starting point.",
+            "default" : false
+          },
           "zonedDateTimeEnd" : {
             "type" : "string",
             "format" : "date-time",
@@ -165,12 +179,20 @@
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
-            "scope" : "#/properties/model/properties/outputType",
-            "schema" : {
-              "oneOf" : [ {
-                "const" : "LOCAL_DATE"
-              } ]
-            }
+            "type" : "AND",
+            "conditions" : [ {
+              "scope" : "#/properties/model/properties/outputType",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "LOCAL_DATE"
+                } ]
+              }
+            }, {
+              "scope" : "#/properties/model/properties/useExecutionTimeStart",
+              "schema" : {
+                "const" : false
+              }
+            } ]
           }
         }
       }, {
@@ -182,12 +204,20 @@
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
-            "scope" : "#/properties/model/properties/outputType",
-            "schema" : {
-              "oneOf" : [ {
-                "const" : "LOCAL_TIME"
-              } ]
-            }
+            "type" : "AND",
+            "conditions" : [ {
+              "scope" : "#/properties/model/properties/outputType",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "LOCAL_TIME"
+                } ]
+              }
+            }, {
+              "scope" : "#/properties/model/properties/useExecutionTimeStart",
+              "schema" : {
+                "const" : false
+              }
+            } ]
           }
         }
       }, {
@@ -199,12 +229,20 @@
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
-            "scope" : "#/properties/model/properties/outputType",
-            "schema" : {
-              "oneOf" : [ {
-                "const" : "LOCAL_DATE_TIME"
-              } ]
-            }
+            "type" : "AND",
+            "conditions" : [ {
+              "scope" : "#/properties/model/properties/outputType",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "LOCAL_DATE_TIME"
+                } ]
+              }
+            }, {
+              "scope" : "#/properties/model/properties/useExecutionTimeStart",
+              "schema" : {
+                "const" : false
+              }
+            } ]
           }
         }
       }, {
@@ -2026,13 +2064,27 @@
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
-            "scope" : "#/properties/model/properties/outputType",
-            "schema" : {
-              "oneOf" : [ {
-                "const" : "ZONED_DATE_TIME"
-              } ]
-            }
+            "type" : "AND",
+            "conditions" : [ {
+              "scope" : "#/properties/model/properties/outputType",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "ZONED_DATE_TIME"
+                } ]
+              }
+            }, {
+              "scope" : "#/properties/model/properties/useExecutionTimeStart",
+              "schema" : {
+                "const" : false
+              }
+            } ]
           }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/useExecutionTimeStart",
+        "options" : {
+          "format" : "checkbox"
         }
       } ]
     }, {
@@ -2110,12 +2162,20 @@
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
-            "scope" : "#/properties/model/properties/outputType",
-            "schema" : {
-              "oneOf" : [ {
-                "const" : "LOCAL_DATE"
-              } ]
-            }
+            "type" : "AND",
+            "conditions" : [ {
+              "scope" : "#/properties/model/properties/outputType",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "LOCAL_DATE"
+                } ]
+              }
+            }, {
+              "scope" : "#/properties/model/properties/useExecutionTimeEnd",
+              "schema" : {
+                "const" : false
+              }
+            } ]
           }
         }
       }, {
@@ -2127,12 +2187,20 @@
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
-            "scope" : "#/properties/model/properties/outputType",
-            "schema" : {
-              "oneOf" : [ {
-                "const" : "LOCAL_TIME"
-              } ]
-            }
+            "type" : "AND",
+            "conditions" : [ {
+              "scope" : "#/properties/model/properties/outputType",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "LOCAL_TIME"
+                } ]
+              }
+            }, {
+              "scope" : "#/properties/model/properties/useExecutionTimeEnd",
+              "schema" : {
+                "const" : false
+              }
+            } ]
           }
         }
       }, {
@@ -2144,12 +2212,20 @@
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
-            "scope" : "#/properties/model/properties/outputType",
-            "schema" : {
-              "oneOf" : [ {
-                "const" : "LOCAL_DATE_TIME"
-              } ]
-            }
+            "type" : "AND",
+            "conditions" : [ {
+              "scope" : "#/properties/model/properties/outputType",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "LOCAL_DATE_TIME"
+                } ]
+              }
+            }, {
+              "scope" : "#/properties/model/properties/useExecutionTimeEnd",
+              "schema" : {
+                "const" : false
+              }
+            } ]
           }
         }
       }, {
@@ -3971,13 +4047,27 @@
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
-            "scope" : "#/properties/model/properties/outputType",
-            "schema" : {
-              "oneOf" : [ {
-                "const" : "ZONED_DATE_TIME"
-              } ]
-            }
+            "type" : "AND",
+            "conditions" : [ {
+              "scope" : "#/properties/model/properties/outputType",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "ZONED_DATE_TIME"
+                } ]
+              }
+            }, {
+              "scope" : "#/properties/model/properties/useExecutionTimeEnd",
+              "schema" : {
+                "const" : false
+              }
+            } ]
           }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/useExecutionTimeEnd",
+        "options" : {
+          "format" : "checkbox"
         }
       } ]
     }, {
@@ -4000,6 +4090,7 @@
           "localTimeStart" : { },
           "localDateTimeStart" : { },
           "zonedDateTimeStart" : { },
+          "useExecutionTimeStart" : { },
           "fixedSteps" : { },
           "numberOfRows" : { },
           "interval" : { },
@@ -4007,6 +4098,7 @@
           "localTimeEnd" : { },
           "localDateTimeEnd" : { },
           "zonedDateTimeEnd" : { },
+          "useExecutionTimeEnd" : { },
           "outputColumnName" : { }
         }
       }
