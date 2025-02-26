@@ -53,6 +53,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataRow;
 import org.knime.core.data.RowKey;
 
 /**
@@ -60,20 +61,20 @@ import org.knime.core.data.RowKey;
  *
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  */
-class SubstringDict extends ListDict<String> {
+class SubstringDict extends ListDict<String, String> {
 
     /**
      * Function that extracts the string from a cell
      */
-    protected Function<DataCell, String> m_stringNormaliser = DataCell::toString;
+    protected Function<String, String> m_stringNormaliser = Function.identity();
 
     /**
      * Create a new instance by providing the settings of a node instance
      *
      * @param settings the relevant settings instance
      */
-    protected SubstringDict(final ValueLookupNodeSettings settings) {
-        super(settings);
+    protected SubstringDict(final ValueLookupNodeSettings settings, final Function<DataRow, String> keyExtractor) {
+        super(settings, keyExtractor);
         if (!m_settings.m_caseSensitive) {
             // augment the extractor function by lower-caseing
             m_stringNormaliser = m_stringNormaliser.andThen(s -> s.toLowerCase(Locale.ROOT));
@@ -81,13 +82,13 @@ class SubstringDict extends ListDict<String> {
     }
 
     @Override
-    boolean matches(final String entry, final DataCell lookup) {
+    boolean matches(final String entry, final String lookup) {
         var lookupStr = m_stringNormaliser.apply(lookup);
         return lookupStr.contains(entry);
     }
 
     @Override
-    public Optional<Boolean> insertSearchPair(final DataCell key, final RowKey dictRowID, final DataCell[] values)
+    public Optional<Boolean> insertSearchPair(final String key, final RowKey dictRowID, final DataCell[] values)
         throws IllegalLookupKeyException {
         insertKVPair(m_stringNormaliser.apply(key), dictRowID, values);
         return Optional.empty();

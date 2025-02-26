@@ -50,9 +50,11 @@ package org.knime.base.node.preproc.valuelookup;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.SearchDirection;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataRow;
 import org.knime.core.data.RowKey;
 import org.knime.core.util.Pair;
 
@@ -62,15 +64,15 @@ import org.knime.core.util.Pair;
  *
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  */
-abstract class MapDict extends UnsortedInputDict {
+abstract class MapDict<K> extends UnsortedInputDict<K> {
 
     /**
      * Create a new instance by providing the settings of a node instance
      *
      * @param settings the relevant settings instance
      */
-    protected MapDict(final ValueLookupNodeSettings settings) {
-        super(settings);
+    protected MapDict(final ValueLookupNodeSettings settings, final Function<DataRow, K> keyExtractor) {
+        super(settings, keyExtractor);
         switch (m_settings.m_searchDirection) { //NOSONAR: switch is nicer to read here
             case FORWARD, BACKWARD:
                 break;
@@ -88,11 +90,10 @@ abstract class MapDict extends UnsortedInputDict {
      * @param key
      * @param dictRowID
      * @param values
-     * @param <K> the type of the key (e.g. DataCell, String, Pattern, etc...)
      * @param <M> the dictionary implementation
      * @return {@code true} if the key is already present in the dictionary, {@code false} otherwise
      */
-    protected <K, M extends Map<K, Pair<RowKey, DataCell[]>>> Optional<Boolean> insertKVPair(final M dict, final K key,
+    protected <M extends Map<K, Pair<RowKey, DataCell[]>>> Optional<Boolean> insertKVPair(final M dict, final K key,
         final RowKey dictRowID, final DataCell[] values) {
         // deduplicate input pairs based on search direction: FORWARD -> first key wins, BACKWARD -> last key wins
         var dup = (m_settings.m_searchDirection == SearchDirection.FORWARD) //

@@ -51,8 +51,10 @@ package org.knime.base.node.preproc.valuelookup;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataRow;
 import org.knime.core.data.RowKey;
 import org.knime.core.util.Pair;
 
@@ -61,28 +63,28 @@ import org.knime.core.util.Pair;
  *
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  */
-class ExactDict extends MapDict {
+class ExactDict<K> extends MapDict<K> {
 
-    private final Map<DataCell, Pair<RowKey, DataCell[]>> m_dict;
+    private final Map<K, Pair<RowKey, DataCell[]>> m_dict;
 
     /**
      * Create a new instance by providing the settings of a node instance
      *
      * @param settings the relevant settings instance
      */
-    ExactDict(final ValueLookupNodeSettings settings) {
-        super(settings);
+    ExactDict(final ValueLookupNodeSettings settings, final Function<DataRow, K> keyExtractor) {
+        super(settings, keyExtractor);
         m_dict = new HashMap<>();
     }
 
     @Override
-    public Optional<Boolean> insertSearchPair(final DataCell key, final RowKey dictRowID, final DataCell[] values)
+    public Optional<Boolean> insertSearchPair(final K key, final RowKey dictRowID, final DataCell[] values)
         throws IllegalLookupKeyException {
         return insertKVPair(m_dict, key, dictRowID, values);
     }
 
     @Override
-    public Optional<Pair<RowKey, DataCell[]>> getDictEntry(final DataCell key) {
+    public Optional<Pair<RowKey, DataCell[]>> getDictEntry(final K key) {
         return Optional.ofNullable(m_dict.get(key));
     }
 

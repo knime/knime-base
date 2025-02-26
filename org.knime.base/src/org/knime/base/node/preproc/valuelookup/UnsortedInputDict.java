@@ -49,8 +49,10 @@
 package org.knime.base.node.preproc.valuelookup;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataRow;
 import org.knime.core.data.RowKey;
 
 /**
@@ -60,7 +62,7 @@ import org.knime.core.data.RowKey;
  *
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  */
-abstract class UnsortedInputDict implements LookupDict {
+abstract class UnsortedInputDict<K> extends AbstractLookupDict<K> {
 
     /**
      * Exception that indicates that a key could not be inserted in the dictionary
@@ -83,7 +85,8 @@ abstract class UnsortedInputDict implements LookupDict {
      *
      * @param settings the relevant settings instance
      */
-    protected UnsortedInputDict(final ValueLookupNodeSettings settings) {
+    protected UnsortedInputDict(final ValueLookupNodeSettings settings, final Function<DataRow, K> keyExtractor) {
+        super(keyExtractor);
         m_settings = settings;
     }
 
@@ -97,7 +100,7 @@ abstract class UnsortedInputDict implements LookupDict {
      *         {@link Optional#empty()} if no knowledge on the already contained keys is available
      * @throws IllegalLookupKeyException If the search pair could not be inserted
      */
-    public abstract Optional<Boolean> insertSearchPair(final DataCell key, final RowKey dictRowID,
+    public abstract Optional<Boolean> insertSearchPair(final K key, final RowKey dictRowID,
         final DataCell[] values) throws IllegalLookupKeyException;
 
 }

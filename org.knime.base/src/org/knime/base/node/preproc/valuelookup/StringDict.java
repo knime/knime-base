@@ -55,6 +55,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataRow;
 import org.knime.core.data.RowKey;
 import org.knime.core.util.Pair;
 
@@ -63,22 +64,22 @@ import org.knime.core.util.Pair;
  *
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  */
-class StringDict extends MapDict {
+class StringDict extends MapDict<String> {
 
     private final Map<String, Pair<RowKey, DataCell[]>> m_dict;
 
     /**
      * Function that extracts the string from a cell
      */
-    protected Function<DataCell, String> m_stringNormaliser = DataCell::toString;
+    protected Function<String, String> m_stringNormaliser = Function.identity();
 
     /**
      * Create a new instance by providing the settings of a node instance
      *
      * @param settings the relevant settings instance
      */
-    StringDict(final ValueLookupNodeSettings settings) {
-        super(settings);
+    StringDict(final ValueLookupNodeSettings settings, final Function<DataRow, String> keyExtractor) {
+        super(settings, keyExtractor);
         m_dict = new HashMap<>();
         if (!m_settings.m_caseSensitive) {
             m_stringNormaliser = m_stringNormaliser.andThen(s -> s.toLowerCase(Locale.ROOT));
@@ -86,14 +87,14 @@ class StringDict extends MapDict {
     }
 
     @Override
-    public Optional<Boolean> insertSearchPair(final DataCell key, final RowKey dictRowID, final DataCell[] values)
+    public Optional<Boolean> insertSearchPair(final String key, final RowKey dictRowID, final DataCell[] values)
         throws IllegalLookupKeyException {
         var str = m_stringNormaliser.apply(key); // might lower-case the string
         return insertKVPair(m_dict, str, dictRowID, values);
     }
 
     @Override
-    public Optional<Pair<RowKey, DataCell[]>> getDictEntry(final DataCell key) {
+    public Optional<Pair<RowKey, DataCell[]>> getDictEntry(final String key) {
         return Optional.ofNullable(m_dict.get(m_stringNormaliser.apply(key)));
     }
 

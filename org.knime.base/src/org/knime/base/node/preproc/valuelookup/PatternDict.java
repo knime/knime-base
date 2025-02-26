@@ -49,11 +49,13 @@
 package org.knime.base.node.preproc.valuelookup;
 
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.StringMatching;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataRow;
 import org.knime.core.data.RowKey;
 import org.knime.filehandling.core.util.WildcardToRegexUtil;
 
@@ -63,7 +65,7 @@ import org.knime.filehandling.core.util.WildcardToRegexUtil;
  *
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  */
-class PatternDict extends ListDict<Pattern> {
+class PatternDict extends ListDict<Pattern, String> {
 
     /**
      * The default flags that will be used when compiling patterns
@@ -75,8 +77,8 @@ class PatternDict extends ListDict<Pattern> {
      *
      * @param settings the relevant settings instance
      */
-    protected PatternDict(final ValueLookupNodeSettings settings) {
-        super(settings);
+    protected PatternDict(final ValueLookupNodeSettings settings, final Function<DataRow, String> keyExtractor) {
+        super(settings, keyExtractor);
         if (!m_settings.m_caseSensitive) {
             // Add additional case-insensitive flags
             m_flags |= Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
@@ -84,14 +86,13 @@ class PatternDict extends ListDict<Pattern> {
     }
 
     @Override
-    boolean matches(final Pattern entry, final DataCell lookup) {
-        return entry.matcher(lookup.toString()).matches();
+    boolean matches(final Pattern entry, final String lookup) {
+        return entry.matcher(lookup).matches();
     }
 
     @Override
-    public Optional<Boolean> insertSearchPair(final DataCell key, final RowKey dictRowID, final DataCell[] values)
+    public Optional<Boolean> insertSearchPair(String patternAsStr, final RowKey dictRowID, final DataCell[] values)
         throws IllegalLookupKeyException {
-        var patternAsStr = key.toString();
         if (m_settings.m_stringMatchBehaviour == StringMatching.WILDCARD) {
             patternAsStr = WildcardToRegexUtil.wildcardToRegex(patternAsStr);
         }

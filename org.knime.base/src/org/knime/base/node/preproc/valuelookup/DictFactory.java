@@ -53,6 +53,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.knime.base.node.preproc.valuelookup.BinarySearchDict.SortingOrder;
 import org.knime.base.node.preproc.valuelookup.UnsortedInputDict.IllegalLookupKeyException;
@@ -79,13 +80,15 @@ import org.knime.core.util.Pair;
  *
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  */
-final class DictFactory {
+final class DictFactory<K> {
 
     private final ValueLookupNodeSettings m_settings;
 
+    private final Function<DataRow, K> m_keyExtractor;
+
     private final BufferedDataTable m_dictTable;
 
-    private final Comparator<DataCell> m_comparator;
+    private final Comparator<K> m_comparator;
 
     private final ExecutionMonitor m_dictInitMon;
 
@@ -98,7 +101,7 @@ final class DictFactory {
     private DataRow m_currentRow;
 
     DictFactory(final ValueLookupNodeSettings settings, final BufferedDataTable dictTable,
-            final int[] dictOutputColIndices, final Comparator<DataCell> comparator,
+            final int[] dictOutputColIndices, final Comparator<K> comparator,
             final ExecutionMonitor dictInitMon) {
         m_settings = settings;
         m_dictTable = dictTable;
@@ -152,7 +155,7 @@ final class DictFactory {
         }
     }
 
-    private void populateDictionary(final UnsortedInputDict resultDict, final CloseableRowIterator dictionaryIterator,
+    private void populateDictionary(final UnsortedInputDict<K> resultDict, final CloseableRowIterator dictionaryIterator,
         final int dictKeyColIndex)
         throws CanceledExecutionException, IllegalLookupKeyException {
         while (dictionaryIterator.hasNext()) {
@@ -176,7 +179,7 @@ final class DictFactory {
         }
     }
 
-    private UnsortedInputDict getDictImplementation(final DataType dictKeyColType) {
+    private UnsortedInputDict<K> getDictImplementation(final DataType dictKeyColType) {
         if (m_settings.m_matchBehaviour == MatchBehaviour.EQUAL) {
             if (dictKeyColType.isCompatible(StringValue.class)) {
                 return switch (m_settings.m_stringMatchBehaviour) {
@@ -212,13 +215,13 @@ final class DictFactory {
      * @return
      * @throws CanceledExecutionException
      */
-    private Optional<BinarySearchDict> tryToInitialiseBinarySearchDict(final Iterator<DataRow> dictionaryIterator,
+    private Optional<BinarySearchDict<K>> tryToInitialiseBinarySearchDict(final Iterator<DataRow> dictionaryIterator,
         final int dictKeyColIndex, final ArrayList<DataCell> keyCache,
         final ArrayList<Pair<RowKey, DataCell[]>> valueCache) throws CanceledExecutionException {
         var couldBeAscendinglySorted = true;
         var couldBeDescendinglySorted = true;
 
-        DataCell lastKey = null;
+        K lastKey = null;
 
         while (dictionaryIterator.hasNext()) {
             // Read the next row and key from the iterator, and (maybe) add it to the cache

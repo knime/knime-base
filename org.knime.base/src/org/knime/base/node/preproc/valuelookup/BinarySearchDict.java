@@ -52,9 +52,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.MatchBehaviour;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataRow;
 import org.knime.core.data.RowKey;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.Pair;
@@ -65,14 +67,14 @@ import org.knime.core.util.Pair;
  *
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  */
-class BinarySearchDict implements LookupDict {
+class BinarySearchDict<K> extends AbstractLookupDict<K> {
 
     private final ValueLookupNodeSettings m_settings;
 
     /**
      * The key cells from the dictionary table
      */
-    private final ArrayList<DataCell> m_keys;
+    private final ArrayList<K> m_keys;
 
     /**
      * The output cells from the dictionary table. m_values[i] corresponds to m_keys[i]
@@ -82,13 +84,13 @@ class BinarySearchDict implements LookupDict {
     /**
      * A comparator that will be used to compare cells in m_keys.
      */
-    private final Comparator<DataCell> m_comparator;
+    private final Comparator<K> m_comparator;
 
     /**
      * This comparator is used for the binary search. It might induce the same ordering as m_comparator, or the reversed
      * one, depending on the sorting order.
      */
-    private final Comparator<DataCell> m_comparatorForBinsearch;
+    private final Comparator<K> m_comparatorForBinsearch;
 
     /** To be more verbose, the order of the keys is indicated with this enum. */
     enum SortingOrder {
@@ -109,13 +111,14 @@ class BinarySearchDict implements LookupDict {
      * @param keys The vector of keys, on which the binary search will be performed. The keys must be sorted, consistent
      *            with sortingOrder
      * @param values The vector of values that will be returned once the corresponding key has been found. It must hold
-     *            m_values.size() == m_keys.size(), although meaningful results will only be achieved with equality.
+     *            m_values.size() == m_keys.size().
      * @param sortingOrder Whether the provided key vector is sorted ascendingly or descendingly w.r.t. the provided
      *            comparator
      */
-    BinarySearchDict(final ValueLookupNodeSettings settings, final Comparator<DataCell> comp,
-        final ArrayList<DataCell> keys, final ArrayList<Pair<RowKey, DataCell[]>> values,
+    BinarySearchDict(final ValueLookupNodeSettings settings, final Function<DataRow, K> keyExtractor,
+        final Comparator<K> comp, final ArrayList<K> keys, final ArrayList<Pair<RowKey, DataCell[]>> values,
         final SortingOrder sortingOrder) {
+        super(keyExtractor);
         CheckUtils.checkArgument(keys.size() == values.size(), "The number of keys and values must be equal.");
         m_settings = settings;
         m_keys = keys;
@@ -126,7 +129,7 @@ class BinarySearchDict implements LookupDict {
     }
 
     @Override
-    public Optional<Pair<RowKey, DataCell[]>> getDictEntry(final DataCell key) {
+    public Optional<Pair<RowKey, DataCell[]>> getDictEntry(final K key) {
         var index = Collections.binarySearch(m_keys, key, m_comparatorForBinsearch);
         // `index` is either the index of an exact match, or (-insertionpoint - 1)
 
@@ -159,5 +162,4 @@ class BinarySearchDict implements LookupDict {
         return (m_settings.m_matchBehaviour == MatchBehaviour.EQUALORLARGER && m_sortingOrder == SortingOrder.ASC)
             || (m_settings.m_matchBehaviour == MatchBehaviour.EQUALORSMALLER && m_sortingOrder == SortingOrder.DESC);
     }
-
 }

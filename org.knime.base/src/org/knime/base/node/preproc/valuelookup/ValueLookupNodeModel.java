@@ -416,11 +416,6 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
             rearranger.remove(targetColIndex);
         }
 
-        var dictKeyColType = dictSpec.getColumnSpec(dictInputColIndex).getType();
-        if (dictKeyColType.isCollectionType()) {
-            dictKeyColType = dictKeyColType.getCollectionElementType();
-        }
-        var comparator = DataType.getCommonSuperType(dictKeyColType, lookupColType).getComparator();
 
         // Create the actual cell factory using the values that were checked and extracted above
         final var cellFactory = createCellFactory(modelSettings, newColumns.m_specs.toArray(DataColumnSpec[]::new),
@@ -435,6 +430,25 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
             rearranger.remove(targetSpec.getNumColumns() + newColumns.m_extraReplaceColIdx);
         }
         return rearranger;
+    }
+
+    private static final LookupDict createDictionary(final ValueLookupNodeSettings modelSettings,
+        final BufferedDataTable dictTable, final int[] dictOutputColIndices,
+        final ExecutionMonitor dictInitMon) {
+
+        var dictKeyColType = dictTable.getSpec().getColumnSpec(dictInputColIndex).getType();
+        if (dictKeyColType.isCollectionType()) {
+            dictKeyColType = dictKeyColType.getCollectionElementType();
+        }
+        final var comparator = DataType.getCommonSuperType(dictKeyColType, lookupColType).getComparator();
+        switch (modelSettings.m_dictImplementation) {
+            case LIST:
+                return new ListDict<>(modelSettings, dictTable, dictOutputColIndices, comparator, dictInitMon);
+            case BINARY_SEARCH:
+                return new BinarySearchDict<>(modelSettings, dictTable, dictOutputColIndices, comparator, dictInitMon);
+            default:
+                throw new IllegalArgumentException("Unknown dictionary implementation: " + modelSettings.m_dictImplementation);
+        }
     }
 
     /**
@@ -462,9 +476,9 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
      *
      * @return
      */
-    private static CellFactory createCellFactory(final ValueLookupNodeSettings modelSettings,
+    private static <K> CellFactory createCellFactory(final ValueLookupNodeSettings modelSettings,
         final DataColumnSpec[] insertedColumns, final int targetColIndex, final BufferedDataTable dictTable,
-        final int[] dictOutputColIndices, final ExecutionMonitor dictInitMon, final Comparator<DataCell> comparator,
+        final int[] dictOutputColIndices, final ExecutionMonitor dictInitMon, final Comparator<K> comparator,
         final Map<RowKey, Set<RowKey>> hiliteMap) {
         return new AbstractCellFactory(insertedColumns) { // NOSONAR: this anonymous class is easy to read
             /**

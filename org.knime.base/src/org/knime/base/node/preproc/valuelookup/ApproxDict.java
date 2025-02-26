@@ -57,6 +57,7 @@ import java.util.function.Function;
 
 import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.MatchBehaviour;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataRow;
 import org.knime.core.data.RowKey;
 import org.knime.core.util.Pair;
 
@@ -67,14 +68,14 @@ import org.knime.core.util.Pair;
  *
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  */
-class ApproxDict extends MapDict {
+class ApproxDict<K> extends MapDict<K> {
 
-    private final NavigableMap<DataCell, Pair<RowKey, DataCell[]>> m_dict;
+    private final NavigableMap<K, Pair<RowKey, DataCell[]>> m_dict;
 
     /**
      * This function will be used to extract an entry from m_dict and is defined by the match behaviour
      */
-    private final Function<DataCell, Map.Entry<DataCell, Pair<RowKey, DataCell[]>>> m_lookupFunction;
+    private final Function<K, Map.Entry<K, Pair<RowKey, DataCell[]>>> m_lookupFunction;
 
     /**
      * Create a new instance by providing the settings of a node instance and a suitable comparator
@@ -82,8 +83,9 @@ class ApproxDict extends MapDict {
      * @param settings the relevant settings instance
      * @param comp a comparator that is used to compare the key cells
      */
-    ApproxDict(final ValueLookupNodeSettings settings, final Comparator<DataCell> comp) {
-        super(settings);
+    ApproxDict(final ValueLookupNodeSettings settings, final Function<DataRow, K> keyExtractor,
+        final Comparator<K> comp) {
+        super(settings, keyExtractor);
         m_dict = new TreeMap<>(comp);
         switch (m_settings.m_matchBehaviour) {
             case EQUALORLARGER:
@@ -98,13 +100,13 @@ class ApproxDict extends MapDict {
     }
 
     @Override
-    public Optional<Boolean> insertSearchPair(final DataCell key, final RowKey dictRowID, final DataCell[] values)
+    public Optional<Boolean> insertSearchPair(final K key, final RowKey dictRowID, final DataCell[] values)
         throws IllegalLookupKeyException {
         return insertKVPair(m_dict, key, dictRowID, values);
     }
 
     @Override
-    public Optional<Pair<RowKey, DataCell[]>> getDictEntry(final DataCell key) {
+    public Optional<Pair<RowKey, DataCell[]>> getDictEntry(final K key) {
         var entry = m_lookupFunction.apply(key);
         return Optional.ofNullable(entry).map(Map.Entry::getValue);
     }

@@ -48,12 +48,15 @@
  */
 package org.knime.base.node.preproc.valuelookup;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.SearchDirection;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataRow;
 import org.knime.core.data.RowKey;
 import org.knime.core.util.Pair;
 
@@ -64,21 +67,22 @@ import org.knime.core.util.Pair;
  * @param <K> The type of the lookup key
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  */
-abstract class ListDict<K> extends UnsortedInputDict {
+abstract class ListDict<DK, LK> extends UnsortedInputDict<LK> {
 
     /**
      * Stores all Key-Value pairs from the dictionary table
      */
-    protected final LinkedList<Map.Entry<K, Pair<RowKey, DataCell[]>>> m_dict;
+    protected final List<Map.Entry<DK, Pair<RowKey, DataCell[]>>> m_dict;
 
     /**
      * Create a new instance by providing the settings of a node instance
      *
      * @param settings the relevant settings instance
+     * @param keyExtractor
      */
-    protected ListDict(final ValueLookupNodeSettings settings) {
-        super(settings);
-        m_dict = new LinkedList<>();
+    protected ListDict(final ValueLookupNodeSettings settings, final Function<DataRow, LK> keyExtractor) {
+        super(settings, keyExtractor);
+        m_dict = new ArrayList<>();
     }
 
     /**
@@ -88,12 +92,12 @@ abstract class ListDict<K> extends UnsortedInputDict {
      * @param dictRowID
      * @param values
      */
-    protected void insertKVPair(final K key, final RowKey dictRowID, final DataCell[] values) {
+    protected final void insertKVPair(final DK key, final RowKey dictRowID, final DataCell[] values) {
         m_dict.add(Map.entry(key, Pair.create(dictRowID, values)));
     }
 
     @Override
-    public Optional<Pair<RowKey, DataCell[]>> getDictEntry(final DataCell key) {
+    public Optional<Pair<RowKey, DataCell[]>> getDictEntry(final LK key) {
         if (m_settings.m_searchDirection == SearchDirection.FORWARD) {
             for (var it = m_dict.listIterator(); it.hasNext();) {
                 var elem = it.next();
@@ -119,6 +123,6 @@ abstract class ListDict<K> extends UnsortedInputDict {
      * @param lookup a lookup cell from the data table
      * @return whether they match
      */
-    abstract boolean matches(K entry, DataCell lookup);
+    abstract boolean matches(DK entry, LK lookup);
 
 }

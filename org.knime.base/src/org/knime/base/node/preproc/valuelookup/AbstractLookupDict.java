@@ -44,11 +44,12 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   19 Jan 2023 (jasper): created
+ *   25 Feb 2025 (jasper): created
  */
 package org.knime.base.node.preproc.valuelookup;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
@@ -56,17 +57,23 @@ import org.knime.core.data.RowKey;
 import org.knime.core.util.Pair;
 
 /**
- * Interface for a Dictionary from which {@link DataCell}s can be queried given a lookup cell. See
- * {@link ValueLookupNodeModel} and {@link DictFactory#initialiseDict()}
  *
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
+ * @param <K>
  */
-interface LookupDict {
-    /**
-     * Providing a lookup DataCell, get the associated data cells for it.
-     *
-     * @param row The row containing the key (a cell or the row key) to search for
-     * @return The value cells, their associated row ID, or {@link Optional#empty()} if there is no replacement
-     */
-    Optional<Pair<RowKey, DataCell[]>> getDictEntry(final DataRow row);
+abstract class AbstractLookupDict<K> implements LookupDict {
+
+    private final Function<DataRow, K> m_keyExtractor;
+
+    @Override
+    public final Optional<Pair<RowKey, DataCell[]>> getDictEntry(final DataRow row) {
+        return getDictEntry(m_keyExtractor.apply(row));
+    }
+
+    protected AbstractLookupDict(final Function<DataRow, K> keyExtractor) {
+        m_keyExtractor = keyExtractor;
+    }
+
+    protected abstract Optional<Pair<RowKey, DataCell[]>> getDictEntry(final K key);
+
 }
