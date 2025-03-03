@@ -48,17 +48,21 @@
  */
 package org.knime.time.node.convert.durationtonumber;
 
+import java.util.Locale;
+
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.MissingCell;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.time.duration.DurationValue;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.message.MessageBuilder;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 import org.knime.time.node.convert.durationtonumber.DurationToNumberNodeSettings.RoundingBehaviour;
@@ -101,17 +105,20 @@ final class DurationToNumberNodeModel2 extends WebUISimpleStreamableFunctionNode
     protected ColumnRearranger createColumnRearranger(final DataTableSpec inputSpec,
         final DurationToNumberNodeSettings modelSettings) throws InvalidSettingsException {
 
+        final var messageBuilder = createMessageBuilder();
+
         var inputColumnNames = getInputColumnNames(inputSpec, modelSettings);
         return modelSettings.m_appendOrReplaceColumn.createRearranger(inputColumnNames, inputSpec,
             (inputColumnSpec, newColumnName) -> new DurationToNumberCellFactory( //
                 inputSpec.findColumnIndex(inputColumnSpec.getName()), //
                 modelSettings.m_roundingBehaviour, //
                 newColumnName, //
-                modelSettings.m_unit //
+                modelSettings.m_unit, //
+                messageBuilder //
             ), modelSettings.m_suffix);
     }
 
-    static final class DurationToNumberCellFactory extends SingleCellFactory {
+    final class DurationToNumberCellFactory extends SingleCellFactory {
 
         private final RoundingBehaviour m_roundingBehaviour;
 
@@ -119,32 +126,44 @@ final class DurationToNumberNodeModel2 extends WebUISimpleStreamableFunctionNode
 
         private final int m_inputColumnIndex;
 
+        private final MessageBuilder m_messageBuilder;
+
         DurationToNumberCellFactory( //
             final int inputColumnIndex, //
             final RoundingBehaviour roundingBehaviour, //
             final String newColumnName, //
-            final TimeBasedGranularityUnit unit //
+            final TimeBasedGranularityUnit unit, //
+            final MessageBuilder messageBuilder //
         ) {
             super(createNewColumnSpec(newColumnName, roundingBehaviour));
 
-            this.m_roundingBehaviour = roundingBehaviour;
-            this.m_inputColumnIndex = inputColumnIndex;
-            this.m_unit = unit;
+            m_roundingBehaviour = roundingBehaviour;
+            m_inputColumnIndex = inputColumnIndex;
+            m_unit = unit;
+            m_messageBuilder = messageBuilder;
         }
 
         @Override
-        public DataCell getCell(final DataRow row) {
+        public DataCell getCell(final DataRow row, final long rowIndex) {
             var cell = row.getCell(m_inputColumnIndex);
             if (cell.isMissing()) {
                 return cell;
             }
 
             var durationCell = (DurationValue)cell;
+            final var duration = durationCell.getDuration();
 
-            return switch (m_roundingBehaviour) {
-                case DOUBLE -> new DoubleCell(m_unit.getConversionExact(durationCell.getDuration()));
-                case INTEGER -> new LongCell(m_unit.getConversionFloored(durationCell.getDuration()));
-            };
+            try {
+                return switch (m_roundingBehaviour) {
+                    case DOUBLE -> new DoubleCell(m_unit.getConversionExact(duration));
+                    case INTEGER -> new LongCell(m_unit.getConversionFloored(duration));
+                };
+            } catch (ArithmeticException e) { // NOSONAR
+                final var msg = String.format("The duration '%s' in row '%s' could not be converted to %s! %s",
+                    duration.toString(), row.getKey(), m_unit.name().toLowerCase(Locale.getDefault()), e.getMessage());
+                m_messageBuilder.addRowIssue(0, m_inputColumnIndex, rowIndex, msg);
+                return new MissingCell(msg);
+            }
         }
 
         private static DataColumnSpec createNewColumnSpec(final String newColumnName,
@@ -153,6 +172,17 @@ final class DurationToNumberNodeModel2 extends WebUISimpleStreamableFunctionNode
             return new DataColumnSpecCreator( //
                 newColumnName, roundingBehaviour == RoundingBehaviour.DOUBLE ? DoubleCell.TYPE : LongCell.TYPE //
             ).createSpec();
+        }
+
+        @Override
+        public void afterProcessing() {
+            if (m_messageBuilder.getIssueCount() > 0) {
+                m_messageBuilder //
+                    .withSummary("%s warning%s encountered.".formatted(m_messageBuilder.getIssueCount(),
+                        m_messageBuilder.getIssueCount() == 1 ? "" : "s")) //
+                    .build() //
+                    .ifPresent(DurationToNumberNodeModel2.this::setWarning);
+            }
         }
     }
 }

@@ -54,6 +54,7 @@ import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalAccessor;
 import java.util.Locale;
 
+import org.apache.commons.lang3.StringUtils;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -167,6 +168,8 @@ final class StringToDateTimeNodeModel2 extends WebUISimpleStreamableFunctionNode
 
         private final MessageBuilder m_warningListener;
 
+        private final DataColumnSpec m_spec;
+
         StringToDateTimeCellFactory(final DataColumnSpec newColSpec, final StringToDateTimeNodeSettings settings,
             final int targetIndex, final MessageBuilder warninglistener) {
             super(newColSpec);
@@ -177,6 +180,7 @@ final class StringToDateTimeNodeModel2 extends WebUISimpleStreamableFunctionNode
             m_pattern = settings.m_format.format();
             m_targetType = settings.m_format.temporalType();
             m_targetIndex = targetIndex;
+            m_spec = newColSpec;
 
             m_failOnParseError = settings.m_onError == ActionIfExtractionFails.FAIL;
 
@@ -198,15 +202,22 @@ final class StringToDateTimeNodeModel2 extends WebUISimpleStreamableFunctionNode
                     parseString(stringValue, m_parser, m_targetType) //
                 );
             } catch (DateTimeParseException ex) { // NOSONAR
-                var message = "Failed to parse string '%s' with format '%s' at row %d" //
-                    .formatted(stringValue, m_pattern, rowIndex);
-
-                if (m_failOnParseError) {
-                    throw new KNIMEException(message, ex).toUnchecked();
-                }
+                var message = String.format(
+                    "Could not parse date in cell [%s, column \"%s\", row number %d]: "
+                        + "Pattern \"%s\" does not match \"%s\".", //
+                    StringUtils.abbreviate(row.getKey().getString(), 15), m_spec.getName(), rowIndex + 1, //
+                    StringUtils.abbreviate(m_pattern, 32), StringUtils.abbreviate(stringValue, 32));
 
                 // emit warning and return missing cell
                 m_warningListener.addRowIssue(0, m_targetIndex, rowIndex, message);
+
+                if (m_failOnParseError) {
+                    m_warningListener.withSummary("Error encountered.");
+                    m_warningListener.addResolutions(
+                        "Deselect the \"Fail on error\" option to output missing values for non-matching strings.");
+                    throw KNIMEException.of(m_warningListener.build().orElseThrow(), ex).toUnchecked();
+                }
+
                 return new MissingCell(message);
             }
         }
@@ -223,6 +234,7 @@ final class StringToDateTimeNodeModel2 extends WebUISimpleStreamableFunctionNode
                 m_warningListener //
                     .withSummary("%s warning%s encountered.".formatted(m_warningListener.getIssueCount(),
                         m_warningListener.getIssueCount() == 1 ? "" : "s")) //
+                    .addResolutions("Change the date and time pattern to match all provided strings.") //
                     .build() //
                     .ifPresent(StringToDateTimeNodeModel2.this::setWarning);
             }

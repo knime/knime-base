@@ -284,21 +284,25 @@ final class StringToDurationPeriodNodeModel2 extends WebUINodeModel<StringToDura
                 } else if (newColumnSpec.getType().equals(PeriodCellFactory.TYPE)) {
                     return PeriodCellFactory.create(DurationPeriodFormatUtils.parsePeriod(stringValue));
                 } else if (newColumnSpec.getType().equals(DataType.getMissingCell().getType())) {
-                    return new MissingCell("Could not parse string '%s' to a %s".formatted(stringValue,
+                    return new MissingCell("Could not parse string '%s' to a %s.".formatted(stringValue,
                         newColumnSpec.getType().getName()));
                 } else {
                     throw new IllegalStateException(
                         "Implementation error: unexpected column type " + newColumnSpec.getType().getName());
                 }
             } catch (DateTimeParseException e) {
-                var message = "Failed to parse string '%s' to type %s at row %d".formatted(stringValue,
-                    newColumnSpec.getType().getName(), rowIndex);
-
-                if (m_failOnParseError) {
-                    throw new KNIMEException(message).toUnchecked();
-                }
+                var message = "Failed to parse string '%s' to type %s at row %d. %s".formatted(stringValue,
+                    newColumnSpec.getType().getName(), rowIndex, e.getMessage());
 
                 m_warningListener.addRowIssue(0, m_targetColIndex, rowIndex, message);
+
+                if (m_failOnParseError) {
+                    m_warningListener.withSummary("Error encountered.");
+                    m_warningListener.addResolutions(
+                        "Deselect the \"Fail on error\" option to output missing values for non-matching strings.");
+                    throw KNIMEException.of(m_warningListener.build().orElseThrow(), e).toUnchecked();
+                }
+
                 return new MissingCell(message);
             }
         }
