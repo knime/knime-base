@@ -54,6 +54,7 @@ import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
@@ -167,13 +168,14 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
     @Layout(OutputSettingsSection.class)
     @Effect(predicate = OutputType.IsNumber.class, type = EffectType.SHOW)
     @ChoicesWidget(choicesProvider = ApplicableGranularitiesProvider.class)
+    @ValueReference(GranularityRef.class)
     String m_granularity = Granularity.SECOND.name();
 
     @Widget(title = "Output number type", description = "The type of the output number column.")
     @Layout(OutputSettingsSection.class)
-    @Effect(predicate = OutputType.IsNumber.class, type = EffectType.SHOW)
+    @Effect(predicate = OutputTypeIsNumberAndSelectedGranularitySupportsDecimals.class, type = EffectType.SHOW)
     @ValueSwitchWidget
-    OutputNumberType m_outputNumberType = OutputNumberType.DECIMALS;
+    OutputNumberType m_outputNumberType = OutputNumberType.NO_DECIMALS;
 
     @Widget(title = "Output column name", description = "The name of the output column.")
     @Layout(OutputSettingsSection.class)
@@ -398,9 +400,15 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
     }
 
     enum OutputNumberType {
-            @Label("No decimals")
+            @Label(value = "No decimals", description = """
+                    The output column will be an integer. Applicable for all \
+                    granularities.
+                    """)
             NO_DECIMALS, //
-            @Label("Decimals")
+            @Label(value = "Decimals", description = """
+                    The output column will be a floating decimal number. Not applicable \
+                    for date-based granularities.
+                    """)
             DECIMALS; //
     }
 
@@ -447,6 +455,24 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
 
         private static IdAndText fromGranularity(final Granularity granularity) {
             return new IdAndText(granularity.name(), granularity.toString());
+        }
+    }
+
+    static final class GranularityRef implements Reference<String> {
+    }
+
+    static final class OutputTypeIsNumberAndSelectedGranularitySupportsDecimals implements PredicateProvider {
+
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            var isNumber = i.getPredicate(OutputType.IsNumber.class);
+            var granularitySupportsDecimals = i.getString(GranularityRef.class)
+                .matchesPattern(Arrays.stream(Granularity.values()) //
+                    .filter(Granularity::supportsExactDifferences) //
+                    .map(Enum::name) //
+                    .collect(Collectors.joining("|")));
+            return isNumber //
+                .and(granularitySupportsDecimals);
         }
     }
 }

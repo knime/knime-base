@@ -104,8 +104,8 @@
               "title" : "Decimals"
             } ],
             "title" : "Output number type",
-            "description" : "The type of the output number column.",
-            "default" : "DECIMALS"
+            "description" : "The type of the output number column.\n<ul>\n<li><b>No decimals</b>: The output column will be an integer. Applicable for all granularities.\n</li>\n<li><b>Decimals</b>: The output column will be a floating decimal number. Not applicable for date-based granularities.\n</li>\n</ul>",
+            "default" : "NO_DECIMALS"
           },
           "outputType" : {
             "oneOf" : [ {
@@ -2228,12 +2228,20 @@
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
-            "scope" : "#/properties/model/properties/outputType",
-            "schema" : {
-              "oneOf" : [ {
-                "const" : "NUMBER"
-              } ]
-            }
+            "type" : "AND",
+            "conditions" : [ {
+              "scope" : "#/properties/model/properties/outputType",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "NUMBER"
+                } ]
+              }
+            }, {
+              "scope" : "#/properties/model/properties/granularity",
+              "schema" : {
+                "pattern" : "HOUR|MINUTE|SECOND|MILLISECOND|MICROSECOND|NANOSECOND"
+              }
+            } ]
           }
         }
       }, {

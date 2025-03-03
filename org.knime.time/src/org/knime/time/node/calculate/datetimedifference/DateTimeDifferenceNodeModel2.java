@@ -155,14 +155,17 @@ public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDiffere
         final DateTimeDifferenceNodeSettings settings) {
 
         var selectedFirstColumnSpec = inSpec.getColumnSpec(settings.m_firstColumnSelection.m_selected);
+        var selectedGranularitySupportsExactDifferences =
+            Granularity.valueOf(settings.m_granularity).supportsExactDifferences();
 
         var type = switch (settings.m_outputType) {
             case DURATION_OR_PERIOD -> selectedFirstColumnSpec.getType().equals(LocalDateCellFactory.TYPE) //
                 ? PeriodCellFactory.TYPE //
                 : DurationCellFactory.TYPE;
-            case NUMBER -> settings.m_outputNumberType == OutputNumberType.DECIMALS //
-                ? DoubleCellFactory.TYPE //
-                : LongCellFactory.TYPE;
+            case NUMBER -> settings.m_outputNumberType == OutputNumberType.DECIMALS
+                && selectedGranularitySupportsExactDifferences //
+                    ? DoubleCellFactory.TYPE //
+                    : LongCellFactory.TYPE;
         };
 
         return new UniqueNameGenerator(inSpec).newColumn(settings.m_outputColumnName, type);
@@ -291,13 +294,17 @@ public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDiffere
 
         var negate = settings.m_mode == Mode.FIRST_MINUS_SECOND;
 
+        var granularitySupportsExactDifferences =
+            Granularity.valueOf(settings.m_granularity).supportsExactDifferences();
+
         return switch (settings.m_outputType) {
             case DURATION_OR_PERIOD -> start instanceof LocalDate //
                 ? periodCellBetween(start, end, negate) //
                 : durationCellBetween(start, end, negate);
-            case NUMBER -> settings.m_outputNumberType == OutputNumberType.DECIMALS //
-                ? doubleBetween(start, end, settings.m_granularity, negate) //
-                : longCellBetween(start, end, settings.m_granularity, negate);
+            case NUMBER -> settings.m_outputNumberType == OutputNumberType.DECIMALS
+                && granularitySupportsExactDifferences //
+                    ? doubleBetween(start, end, settings.m_granularity, negate) //
+                    : longCellBetween(start, end, settings.m_granularity, negate);
         };
     }
 
