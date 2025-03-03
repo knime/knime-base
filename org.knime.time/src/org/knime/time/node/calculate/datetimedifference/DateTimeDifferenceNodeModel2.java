@@ -91,7 +91,11 @@ import org.knime.time.util.TemporalCellUtils;
 @SuppressWarnings("restriction")
 public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDifferenceNodeSettings> {
 
-    private static final String ERROR_MISSING_CELL = "Can't calculate difference to missing cell.";
+    private static final String ERROR_MISSING_FIRST_CELL = "First cell for calculating difference is missing.";
+
+    private static final String ERROR_MISSING_SECOND_CELL = "Second cell for calculating difference is missing.";
+
+    private static final String ERROR_MISSING_BOTH_CELLS = "Both cells for calculating difference are missing.";
 
     /**
      * @param configuration
@@ -133,9 +137,22 @@ public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDiffere
 
         var inSpec = inSpecs[0];
 
+        validateInputColumn(inSpec, modelSettings.m_firstColumnSelection.getSelected());
+        if (modelSettings.m_secondDateTimeValueType == SecondDateTimeValueType.COLUMN) {
+            validateInputColumn(inSpec, modelSettings.m_secondColumnSelection.getSelected());
+        }
+
         return new DataTableSpec[]{ //
             createNewSpec(inSpec, modelSettings) //
         };
+    }
+
+    private static void validateInputColumn(final DataTableSpec inSpec, final String column)
+        throws InvalidSettingsException {
+        if (inSpec.findColumnIndex(column) == -1) {
+            throw new InvalidSettingsException(
+                String.format("The column '%s' is configured but no longer exists in the input table.", column));
+        }
     }
 
     private static ColumnRearranger createColumnRearranger(final DataTableSpec inSpec,
@@ -193,7 +210,7 @@ public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDiffere
             var firstCell = row.getCell(m_firstColumnIndex);
 
             if (firstCell.isMissing()) {
-                return new MissingCell(ERROR_MISSING_CELL);
+                return new MissingCell(ERROR_MISSING_FIRST_CELL);
             }
 
             var firstTemporal = TemporalCellUtils.getTemporalFromCell(firstCell);
@@ -203,7 +220,7 @@ public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDiffere
                 var secondCell = row.getCell(secondColumnIndex);
 
                 if (secondCell.isMissing()) {
-                    return new MissingCell(ERROR_MISSING_CELL);
+                    return new MissingCell(ERROR_MISSING_SECOND_CELL);
                 }
 
                 var secondTemporal = TemporalCellUtils.getTemporalFromCell(secondCell);
@@ -314,8 +331,12 @@ public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDiffere
      */
     private static DataCell createDifferenceCell(final DataCell firstCell, final DataCell secondCell,
         final DateTimeDifferenceNodeSettings settings) {
-        if (firstCell.isMissing() || secondCell.isMissing()) {
-            return new MissingCell(ERROR_MISSING_CELL);
+        if (firstCell.isMissing() && secondCell.isMissing()) {
+            return new MissingCell(ERROR_MISSING_BOTH_CELLS);
+        } else if (firstCell.isMissing()) {
+            return new MissingCell(ERROR_MISSING_FIRST_CELL);
+        } else if (secondCell.isMissing()) {
+            return new MissingCell(ERROR_MISSING_SECOND_CELL);
         }
 
         return createDifferenceCell( //

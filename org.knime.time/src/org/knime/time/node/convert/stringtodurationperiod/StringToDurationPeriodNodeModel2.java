@@ -57,6 +57,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.apache.commons.lang3.StringUtils;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -225,7 +226,7 @@ final class StringToDurationPeriodNodeModel2 extends WebUINodeModel<StringToDura
             var outputColSpec = new DataColumnSpecCreator(outputName, outputColType).createSpec();
 
             return new StringToDurationPeriodCellFactory(outputColSpec, spec.findColumnIndex(inputSpec.getName()),
-                modelSettings, messageBuilder);
+                inputSpec.getName(), modelSettings, messageBuilder);
         }, modelSettings.m_appendedSuffix);
     }
 
@@ -255,15 +256,19 @@ final class StringToDurationPeriodNodeModel2 extends WebUINodeModel<StringToDura
 
         private final int m_targetColIndex;
 
+        private final String m_targetColNameAbbr;
+
         private final boolean m_failOnParseError;
 
         private final MessageBuilder m_warningListener;
 
         StringToDurationPeriodCellFactory(final DataColumnSpec newColSpec, final int targetColIndex,
-            final StringToDurationPeriodNodeSettings settings, final MessageBuilder warningListener) {
+            final String targetColNameString, final StringToDurationPeriodNodeSettings settings,
+            final MessageBuilder warningListener) {
             super(newColSpec);
 
             m_targetColIndex = targetColIndex;
+            m_targetColNameAbbr = StringUtils.abbreviate(targetColNameString, 32);
             m_failOnParseError = settings.m_actionIfExtractionFails == ActionIfExtractionFails.FAIL;
             m_warningListener = warningListener;
         }
@@ -284,22 +289,34 @@ final class StringToDurationPeriodNodeModel2 extends WebUINodeModel<StringToDura
                 } else if (newColumnSpec.getType().equals(PeriodCellFactory.TYPE)) {
                     return PeriodCellFactory.create(DurationPeriodFormatUtils.parsePeriod(stringValue));
                 } else if (newColumnSpec.getType().equals(DataType.getMissingCell().getType())) {
-                    return new MissingCell("Could not parse string '%s' to a %s".formatted(stringValue,
-                        newColumnSpec.getType().getName()));
+                    return new MissingCell(
+                        "Could not auto-detect the type of this column: value of this row was \"%s\"."
+                            .formatted(stringValue));
                 } else {
                     throw new IllegalStateException(
                         "Implementation error: unexpected column type " + newColumnSpec.getType().getName());
                 }
             } catch (DateTimeParseException e) {
-                var message = "Failed to parse string '%s' to type %s at row %d".formatted(stringValue,
-                    newColumnSpec.getType().getName(), rowIndex);
+                final var stringValueAbbr = StringUtils.abbreviate(stringValue, 32);
+                final var rowKeyAbbr = StringUtils.abbreviate(row.getKey().getString(), 16);
+                final var warningMessage = String.format(
+                    "Could not parse string \"%s\" in cell [%s, column \"%s\", row number %d] to type %s: %s",
+                    stringValueAbbr, rowKeyAbbr, m_targetColNameAbbr, rowIndex, newColumnSpec.getType().getName(),
+                    e.getMessage());
+
+                m_warningListener.addRowIssue(0, m_targetColIndex, rowIndex, warningMessage);
 
                 if (m_failOnParseError) {
-                    throw new KNIMEException(message).toUnchecked();
+                    m_warningListener.withSummary("Error encountered.");
+                    m_warningListener.addResolutions(
+                        "Deselect the \"Fail on error\" option to output missing values for non-matching strings.");
+                    throw KNIMEException.of(m_warningListener.build().orElseThrow(), e).toUnchecked();
                 }
 
-                m_warningListener.addRowIssue(0, m_targetColIndex, rowIndex, message);
-                return new MissingCell(message);
+                final var missingCellMessage = String.format("Could not parse string \"%s\" to type %s: %s",
+                    stringValueAbbr, newColumnSpec.getType().getName(), e.getMessage());
+
+                return new MissingCell(missingCellMessage);
             }
         }
 

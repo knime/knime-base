@@ -53,6 +53,7 @@ import java.time.chrono.Chronology;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
+import org.apache.commons.lang3.StringUtils;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -63,6 +64,7 @@ import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.message.MessageBuilder;
 import org.knime.core.util.UniqueNameGenerator;
 import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
@@ -113,6 +115,8 @@ final class DateTimeToStringNodeModel2 extends WebUISimpleStreamableFunctionNode
         var targetColumnNames = modelSettings.m_columnFilter.getSelected(supportedColumns, spec);
         var targetColumnIndices = spec.columnsToIndices(targetColumnNames);
 
+        final var messageBuilder = createMessageBuilder();
+
         if (modelSettings.m_appendOrReplace == ReplaceOrAppend.APPEND) {
             var uniqueNameGenerator = new UniqueNameGenerator(spec);
 
@@ -120,13 +124,15 @@ final class DateTimeToStringNodeModel2 extends WebUISimpleStreamableFunctionNode
                 var newName = uniqueNameGenerator.newName(targetColumnNames[i] + modelSettings.m_outputColumnSuffix);
                 var newSpec = new DataColumnSpecCreator(newName, StringCellFactory.TYPE).createSpec();
 
-                rearranger.append(new DateTimeToStringCellFactory(newSpec, modelSettings, targetColumnIndices[i]));
+                rearranger.append(
+                    new DateTimeToStringCellFactory(newSpec, modelSettings, targetColumnIndices[i], messageBuilder));
             }
         } else {
             for (var i = 0; i < targetColumnNames.length; ++i) {
                 var newSpec = new DataColumnSpecCreator(targetColumnNames[i], StringCellFactory.TYPE).createSpec();
 
-                rearranger.replace(new DateTimeToStringCellFactory(newSpec, modelSettings, targetColumnIndices[i]),
+                rearranger.replace(
+                    new DateTimeToStringCellFactory(newSpec, modelSettings, targetColumnIndices[i], messageBuilder),
                     targetColumnIndices[i]);
             }
         }
@@ -134,24 +140,33 @@ final class DateTimeToStringNodeModel2 extends WebUISimpleStreamableFunctionNode
         return rearranger;
     }
 
-    static final class DateTimeToStringCellFactory extends SingleCellFactory {
+    final class DateTimeToStringCellFactory extends SingleCellFactory {
 
         private final DateTimeFormatter m_formatter;
 
+        private final String m_formatAbbr;
+
         private final int m_targetIndex;
 
+        private final String m_targetNameAbbr;
+
+        private final MessageBuilder m_messageBuilder;
+
         DateTimeToStringCellFactory(final DataColumnSpec newColSpec, final DateTimeToStringNodeSettings settings,
-            final int targetIndex) {
+            final int targetIndex, final MessageBuilder messageBuilder) {
             super(newColSpec);
 
             var locale = Locale.forLanguageTag(settings.m_locale);
             m_formatter = DateTimeFormatter.ofPattern(settings.m_format, locale) //
                 .withChronology((Chronology.ofLocale(locale)));
             m_targetIndex = targetIndex;
+            m_formatAbbr = StringUtils.abbreviate(settings.m_format, 32);
+            m_targetNameAbbr = StringUtils.abbreviate(newColSpec.getName(), 32);
+            m_messageBuilder = messageBuilder;
         }
 
         @Override
-        public DataCell getCell(final DataRow row) {
+        public DataCell getCell(final DataRow row, final long rowIndex) {
             var cell = row.getCell(m_targetIndex);
 
             if (cell.isMissing()) {
@@ -165,7 +180,29 @@ final class DateTimeToStringNodeModel2 extends WebUISimpleStreamableFunctionNode
                     m_formatter.format(temporalValue) //
                 );
             } catch (DateTimeException e) { // NOSONAR
-                return new MissingCell(e.getMessage());
+                final var reason = String.format("Pattern \"%s\" does not match \"%s\".", m_formatAbbr,
+                    StringUtils.abbreviate(temporalValue.toString(), 32));
+
+                final var warningMessage =
+                    String.format("Could not parse date in cell [%s, column \"%s\", row number %d]: %s",
+                        StringUtils.abbreviate(row.getKey().getString(), 16), m_targetNameAbbr, rowIndex, reason);
+
+                m_messageBuilder.addRowIssue(0, m_targetIndex, rowIndex, warningMessage);
+
+                final var missingCellMessage = String.format("Could not parse date: %s", reason);
+                return new MissingCell(missingCellMessage);
+            }
+        }
+
+        @Override
+        public void afterProcessing() {
+            if (m_messageBuilder.getIssueCount() > 0) {
+                m_messageBuilder //
+                    .withSummary("%s warning%s encountered.".formatted(m_messageBuilder.getIssueCount(),
+                        m_messageBuilder.getIssueCount() == 1 ? "" : "s")) //
+                    .addResolutions("Change the date and time pattern to match all provided dates.") //
+                    .build() //
+                    .ifPresent(DateTimeToStringNodeModel2.this::setWarning);
             }
         }
     }

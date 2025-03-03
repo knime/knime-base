@@ -173,6 +173,8 @@ final class DateTimeShiftUtils {
 
         protected final int m_targetColumnIndex;
 
+        protected Integer m_referenceColumnIndex;
+
         protected final MessageBuilder m_messageBuilder;
 
         protected final Consumer<Message> m_warningConsumer;
@@ -204,7 +206,9 @@ final class DateTimeShiftUtils {
                 return DateTimeShiftUtils.addTemporalAmountToCell(cell, temporalAmount);
             } catch (ArithmeticException | DateTimeException | MissingValueException e) { // NOSONAR
                 final var missingReason = e.getMessage();
-                m_messageBuilder.addRowIssue(0, m_targetColumnIndex, rowIndex, missingReason);
+                if (m_referenceColumnIndex != null) {
+                    m_messageBuilder.addRowIssue(0, m_referenceColumnIndex, rowIndex, missingReason);
+                }
                 return new MissingCell(missingReason);
             }
         }
@@ -224,18 +228,16 @@ final class DateTimeShiftUtils {
 
     static final class ShiftTemporalAmountColumnCellFactory extends BaseShiftCellFactory {
 
-        private final int m_temporalAmountColumnIdx;
-
         public ShiftTemporalAmountColumnCellFactory(final DataColumnSpec newColSpec, final int targetColumnIndex,
             final int temporalAmountColumnIndex, final MessageBuilder messageBuilder,
             final Consumer<Message> warningConsumer) {
             super(newColSpec, targetColumnIndex, messageBuilder, warningConsumer);
-            this.m_temporalAmountColumnIdx = temporalAmountColumnIndex;
+            this.m_referenceColumnIndex = temporalAmountColumnIndex;
         }
 
         @Override
         protected TemporalAmount getTemporalAmount(final DataRow row, final long rowIndex) {
-            final DataCell temporalAmountCell = row.getCell(m_temporalAmountColumnIdx);
+            final DataCell temporalAmountCell = row.getCell(m_referenceColumnIndex);
 
             if (temporalAmountCell.isMissing()) {
                 final var missingReason = "The duration cell containing the value to shift is missing.";
@@ -254,22 +256,20 @@ final class DateTimeShiftUtils {
 
     static final class ShiftNumericColumnCellFactory extends BaseShiftCellFactory {
 
-        private final int m_numericalColumnIndex;
-
         private final Granularity m_granularity;
 
         public ShiftNumericColumnCellFactory(final DataColumnSpec newColSpec, final int targetColumnIndex,
             final int numericalColumnIndex, final Granularity granularity, final MessageBuilder messageBuilder,
             final Consumer<Message> warningConsumer) {
             super(newColSpec, targetColumnIndex, messageBuilder, warningConsumer);
-            this.m_numericalColumnIndex = numericalColumnIndex;
+            this.m_referenceColumnIndex = numericalColumnIndex;
             this.m_granularity = granularity;
 
         }
 
         @Override
         protected TemporalAmount getTemporalAmount(final DataRow row, final long rowIndex) {
-            final DataCell numericalAmountCell = row.getCell(m_numericalColumnIndex);
+            final DataCell numericalAmountCell = row.getCell(m_referenceColumnIndex);
 
             if (numericalAmountCell.isMissing()) {
                 final var missingReason = "The numeric cell containing the value to shift is missing.";
