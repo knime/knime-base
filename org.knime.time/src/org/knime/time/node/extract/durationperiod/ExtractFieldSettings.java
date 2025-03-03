@@ -126,7 +126,7 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
 
         @Override
         public String computeState(final DefaultNodeSettingsContext context) {
-            return Optional.of(m_valueSupplier.get()) //
+            return Optional.ofNullable(m_valueSupplier.get()) //
                 .map(ExtractableField::niceName) //
                 .orElse("");
         }
@@ -142,7 +142,7 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
 
         @Override
         public void init(final StateProviderInitializer initializer) {
-            initializer.computeBeforeOpenDialog();
+            initializer.computeAfterOpenDialog();
             m_selectedInputColumnNameSupplier = initializer.computeFromValueSupplier( //
                 SelectedInputColumnHelpers.ValueRef.class //
             );
