@@ -201,6 +201,6 @@ public enum Granularity {
     }
 
     private static Duration ofMicros(final long value) {
-        return Duration.ofMillis(1000 * value);
+        return Duration.ofNanos(1000 * value);
     }
 }

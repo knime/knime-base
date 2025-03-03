@@ -313,7 +313,8 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/localDateTimeFixed",
         "options" : {
-          "format" : "dateTime"
+          "format" : "dateTime",
+          "showMilliseconds" : true
         },
         "rule" : {
           "effect" : "SHOW",
@@ -345,6 +346,7 @@
         "scope" : "#/properties/model/properties/zonedDateTimeFixed",
         "options" : {
           "format" : "zonedDateTime",
+          "showMilliseconds" : true,
           "possibleValues" : [ {
             "id" : "Africa/Abidjan",
             "text" : "Africa/Abidjan"

@@ -91,6 +91,8 @@ final class CreateDateTimeNodeModel2Test {
 
     private static final ZoneId BERLIN_TZ = ZoneId.of("Europe/Berlin");
 
+    private static final ZoneId ATHENS_TZ = ZoneId.of("Europe/Athens");
+
     private static final String DATE_PFX = "date";
 
     private static final String TIME_PFX = "time";
@@ -248,8 +250,14 @@ final class CreateDateTimeNodeModel2Test {
                     ZonedDateTime.of(LocalDateTime.of(2024, 10, 27, 1, 0, 0), BERLIN_TZ),
                     ZonedDateTime.of(LocalDateTime.of(2024, 10, 27, 2, 0, 0), BERLIN_TZ),
                     ZonedDateTime.of(LocalDateTime.of(2024, 10, 27, 2, 0, 0), BERLIN_TZ).withLaterOffsetAtOverlap(), //
-                    ZonedDateTime.of(LocalDateTime.of(2024, 10, 27, 3, 0, 0), BERLIN_TZ)) //
-            )).toList();
+                    ZonedDateTime.of(LocalDateTime.of(2024, 10, 27, 3, 0, 0), BERLIN_TZ)), //
+                DurationAndEndTestCase.of("End zone is shifted to start zone",
+                    ZonedDateTime.of(LocalDateTime.of(2025, 1, 1, 0, 0, 0), BERLIN_TZ),
+                    ZonedDateTime.of(LocalDateTime.of(2025, 1, 1, 3, 0, 0), ATHENS_TZ), Interval.parseISO("PT1H"),
+                    ZonedDateTime.of(LocalDateTime.of(2025, 1, 1, 0, 0, 0), BERLIN_TZ),
+                    ZonedDateTime.of(LocalDateTime.of(2025, 1, 1, 1, 0, 0), BERLIN_TZ),
+                    ZonedDateTime.of(LocalDateTime.of(2025, 1, 1, 2, 0, 0), BERLIN_TZ))))
+            .toList();
 
     final static List<DurationAndNumberTestCase<LocalDate>> DURATION_AND_NUMBER_DATE_TEST_CASES = List.of( //
         DurationAndNumberTestCase.of("1 day period", LocalDate.of(2024, 1, 1), Interval.parseISO("P1D"),
@@ -405,8 +413,13 @@ final class CreateDateTimeNodeModel2Test {
                 ZonedDateTime.of(LocalDateTime.of(2024, 10, 27, 1, 0, 0), BERLIN_TZ), //
                 ZonedDateTime.of(LocalDateTime.of(2024, 10, 27, 2, 0, 0), BERLIN_TZ), //
                 ZonedDateTime.of(LocalDateTime.of(2024, 10, 27, 2, 0, 0), BERLIN_TZ).withLaterOffsetAtOverlap(),
-                ZonedDateTime.of(LocalDateTime.of(2024, 10, 27, 3, 0), BERLIN_TZ)) //
-        ) //
+                ZonedDateTime.of(LocalDateTime.of(2024, 10, 27, 3, 0), BERLIN_TZ)), //
+            NumberAndEndTestCase.of("End zone is shifted to start zone",
+                ZonedDateTime.of(LocalDateTime.of(2025, 1, 1, 0, 0, 0), BERLIN_TZ),
+                ZonedDateTime.of(LocalDateTime.of(2025, 1, 1, 3, 0, 0), ATHENS_TZ),
+                ZonedDateTime.of(LocalDateTime.of(2025, 1, 1, 0, 0, 0), BERLIN_TZ),
+                ZonedDateTime.of(LocalDateTime.of(2025, 1, 1, 1, 0, 0), BERLIN_TZ),
+                ZonedDateTime.of(LocalDateTime.of(2025, 1, 1, 2, 0, 0), BERLIN_TZ))) //
     ).toList();
 
     final static Stream<Arguments> provideDurationAndEndNumericalTestCases() {

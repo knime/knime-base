@@ -4,9 +4,9 @@
       "outputType" : "LOCAL_DATE",
       "localDateStart" : "2019-01-01",
       "localTimeStart" : "13:00:00",
-      "localDateTimeStart" : "2019-01-01T14:00:00.123456789",
+      "localDateTimeStart" : "2019-01-01T14:00:00",
       "zonedDateTimeStart" : {
-        "dateTime" : "2019-01-01T14:00:00.123456789",
+        "dateTime" : "2019-01-01T14:00:00",
         "timeZone" : "Europe/Berlin"
       },
       "useExecutionTimeStart" : false,
@@ -77,7 +77,7 @@
             "format" : "date-time",
             "title" : "Start date time",
             "description" : "The date&amp;time at which the date time creation should start, inclusive.\n",
-            "default" : "2019-01-01T14:00:00.123456789"
+            "default" : "2019-01-01T14:00:00"
           },
           "localTimeEnd" : {
             "type" : "string",
@@ -152,7 +152,7 @@
             "title" : "Start zoned date time",
             "description" : "The date&amp;time&amp;zone at which the date time creation should start, inclusive.\n",
             "default" : {
-              "dateTime" : "2019-01-01T14:00:00.123456789",
+              "dateTime" : "2019-01-01T14:00:00",
               "timeZone" : "Europe/Berlin"
             }
           }
@@ -224,7 +224,8 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/localDateTimeStart",
         "options" : {
-          "format" : "dateTime"
+          "format" : "dateTime",
+          "showMilliseconds" : true
         },
         "rule" : {
           "effect" : "SHOW",
@@ -250,6 +251,7 @@
         "scope" : "#/properties/model/properties/zonedDateTimeStart",
         "options" : {
           "format" : "zonedDateTime",
+          "showMilliseconds" : true,
           "possibleValues" : [ {
             "id" : "Africa/Abidjan",
             "text" : "Africa/Abidjan"
@@ -2207,7 +2209,8 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/localDateTimeEnd",
         "options" : {
-          "format" : "dateTime"
+          "format" : "dateTime",
+          "showMilliseconds" : true
         },
         "rule" : {
           "effect" : "SHOW",
@@ -2233,6 +2236,7 @@
         "scope" : "#/properties/model/properties/zonedDateTimeEnd",
         "options" : {
           "format" : "zonedDateTime",
+          "showMilliseconds" : true,
           "possibleValues" : [ {
             "id" : "Africa/Abidjan",
             "text" : "Africa/Abidjan"
