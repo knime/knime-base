@@ -49,10 +49,12 @@ package org.knime.base.node.io.extractcontextprop;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
@@ -68,6 +70,22 @@ import org.knime.core.webui.node.impl.WebUINodeModel;
  */
 @SuppressWarnings("restriction")
 final class ReadContextProperty2NodeModel extends WebUINodeModel<ReadContextProperty2NodeSettings>  {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(ReadContextProperty2NodeModel.class);
+
+    private static final String PROP_COMPATIBILITY_MODE = "org.knime.base.extractcontextproperties.compatibilitymode";
+
+    private static final Set<String> PRE_53_PROPERTIES = Set.of(
+        ContextProperties.CONTEXT_PROPERTY_WORKFLOW_NAME,
+        ContextProperties.CONTEXT_PROPERTY_WORKFLOW_PATH,
+        ContextProperties.CONTEXT_PROPERTY_WORKFLOW_ABSOLUTE_PATH,
+        ContextProperties.CONTEXT_PROPERTY_SERVER_USER,
+        ContextProperties.CONTEXT_PROPERTY_TEMP_LOCATION,
+        ContextProperties.CONTEXT_PROPERTY_AUTHOR,
+        ContextProperties.CONTEXT_PROPERTY_EDITOR,
+        ContextProperties.CONTEXT_PROPERTY_CREATION_DATE,
+        ContextProperties.CONTEXT_PROPERTY_LAST_MODIFIED
+    );
 
     ReadContextProperty2NodeModel(final WebUINodeConfiguration config) {
         super(config, ReadContextProperty2NodeSettings.class);
@@ -89,9 +107,16 @@ final class ReadContextProperty2NodeModel extends WebUINodeModel<ReadContextProp
 
     private void executeInternal(final ReadContextProperty2NodeSettings modelSettings) throws InvalidSettingsException {
         final var props = new LinkedHashMap<String, String>();
-
+        // if the compatibility mode is set, the node will not emit "newer" properties, if the checkbox is checked
+        final boolean isCompatMode = Boolean.getBoolean(PROP_COMPATIBILITY_MODE);
         if (modelSettings.m_isExtractAllProps) {
+            if (isCompatMode) {
+                LOGGER.debug("Skipping newer properties due to system property");
+            }
             for (String property : ContextProperties.getContextProperties()) {
+                if (isCompatMode && !PRE_53_PROPERTIES.contains(property)) {
+                    continue;
+                }
                 props.put(property, StringUtils.defaultString(ContextProperties.extractContextProperty(property)));
             }
         } else {
