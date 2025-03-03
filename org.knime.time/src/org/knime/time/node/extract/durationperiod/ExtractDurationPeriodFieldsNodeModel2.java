@@ -61,7 +61,6 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.data.def.LongCell;
-import org.knime.core.data.def.LongCell.LongCellFactory;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.util.UniqueNameGenerator;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
@@ -165,12 +164,10 @@ public class ExtractDurationPeriodFieldsNodeModel2
                         .formatted(cell.getType().getName(), m_extractableField.name()) //
                 );
             }
-
-            long extractedValue = m_extractableField.extractFieldFrom(cell);
-            return LongCellFactory.create(extractedValue);
+            return m_extractableField.extractNumberCellFrom(cell);
         }
 
-        static DataColumnSpec createNewColumnSpec(final String newColumnName) {
+        private static DataColumnSpec createNewColumnSpec(final String newColumnName) {
             return new DataColumnSpecCreator(newColumnName, LongCell.TYPE).createSpec();
         }
     }
