@@ -79,11 +79,11 @@ public final class CreateDateTimeNodeFactory2 extends WebUINodeFactory<CreateDat
                 Generates date&amp;time values, i.e. either a date, a time, a date&amp;time \
                 (local) or a zoned date&amp;time. There are three creation modes:
                 <ul>
-                    <li><strong>Duration &amp; end</strong>: a starting point, an ending point and an interval is \
+                    <li><b>Duration &amp; end</b>: a starting point, an ending point and an interval is \
                     selected (the number of rows corresponds to how often the interval fits between start and end).</li>
-                    <li><strong>Number &amp; end</strong>: a number of rows, a starting point, and an ending point \
+                    <li><b>Number &amp; end</b>: a number of rows, a starting point, and an ending point \
                     is selected (the steps in between will be calculated).</li>
-                    <li><strong>Number &amp; duration</strong>: a number of rows, a starting point and an interval is \
+                    <li><b>Number &amp; duration</b>: a number of rows, a starting point and an interval is \
                     selected (the interval defines the steps between each row).</li>
                 </ul> \
                 """) //

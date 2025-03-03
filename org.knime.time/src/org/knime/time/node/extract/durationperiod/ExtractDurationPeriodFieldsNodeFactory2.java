@@ -74,10 +74,10 @@ public final class ExtractDurationPeriodFieldsNodeFactory2
                 second, while the 'part' variant only includes the part that is selected. For example:
                 </p>
                 <ul>
-                    <li><strong>Nanos (all subseconds)</strong>: Nanoseconds of a duration, \
+                    <li><b>Nanos (all subseconds)</b>: Nanoseconds of a duration, \
                     including all of the subseconds. In other words, a duration of 10.123456789 seconds \
                     would have 123456789 nanoseconds.</li>
-                    <li><strong>Nanos</strong>: The nanoseconds component of a duration. In other words, \
+                    <li><b>Nanos</b>: The nanoseconds component of a duration. In other words, \
                     a duration of 10.123456789 seconds would have 789 nanoseconds.</li>
                 </ul>
                 """) //
