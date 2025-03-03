@@ -156,20 +156,6 @@
   },
   "initialUpdates" : [ {
     "scopes" : null,
-    "id" : "org.knime.time.node.extract.durationperiod.ExtractFieldSettings$DefaultExtractFieldWidgetProvider",
-    "values" : [ {
-      "indices" : [ ],
-      "value" : { }
-    } ]
-  }, {
-    "scopes" : null,
-    "id" : "org.knime.time.node.extract.durationperiod.ExtractFieldSettings$FilteredPossibleFieldsChoices",
-    "values" : [ {
-      "indices" : [ ],
-      "value" : [ ]
-    } ]
-  }, {
-    "scopes" : null,
     "id" : "org.knime.time.node.extract.durationperiod.ExtractFieldSettings$OutputColumnNamePlaceholderProvider",
     "values" : [ ]
   } ],
