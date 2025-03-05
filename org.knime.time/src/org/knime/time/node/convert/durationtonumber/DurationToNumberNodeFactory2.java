@@ -65,7 +65,7 @@ public final class DurationToNumberNodeFactory2 extends WebUINodeFactory<Duratio
     }
 
     private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
-        .name("Duration to Number (Labs)") //
+        .name("Duration to Number") //
         .icon("durationtonumber.png") //
         .shortDescription("Converts a duration to a number.") //
         .fullDescription("""

@@ -59,7 +59,7 @@ public final class ExtractDurationPeriodFieldsNodeFactory2
     extends WebUINodeFactory<ExtractDurationPeriodFieldsNodeModel2> {
 
     private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
-        .name("Duration Part Extractor (Labs)") //
+        .name("Duration Part Extractor") //
         .icon("extractduration.png") //
         .shortDescription("Extracts duration fields from duration and period cells") //
         .fullDescription("""

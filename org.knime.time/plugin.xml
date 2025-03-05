@@ -69,57 +69,51 @@
       </node>
       <node
             category-path="/applications/timeseries/manipulate"
-            deprecated="false"
+            deprecated="true"
             factory-class="org.knime.time.node.manipulate.datetimeshift.DateTimeShiftNodeFactory">
       </node>
       <node
             category-path="/applications/timeseries/manipulate"
             deprecated="false"
-            hidden="true"
             factory-class="org.knime.time.node.manipulate.datetimeround.TimeRoundNodeFactory">
       </node>
       <node
             category-path="/applications/timeseries/manipulate"
             deprecated="false"
-            hidden="true"
             factory-class="org.knime.time.node.manipulate.datetimeround.DateRoundNodeFactory">
       </node>
       <node
             category-path="/applications/timeseries/manipulate"
             deprecated="false"
-            hidden="true"
             factory-class="org.knime.time.node.manipulate.datetimeshift.TimeShiftNodeFactory">
       </node>
       <node
             category-path="/applications/timeseries/manipulate"
             deprecated="false"
-            hidden="true"
             factory-class="org.knime.time.node.manipulate.datetimeshift.DateShiftNodeFactory">
       </node>
       <node
             after="org.knime.time.node.convert.timestamptodatetime.TimestampToDateTimeNodeFactory"
             category-path="/applications/timeseries/transform"
-            deprecated="false"
+            deprecated="true"
             factory-class="org.knime.time.node.convert.durationperiodtostring.DurationPeriodToStringNodeFactory">
       </node>
       <node
             after="org.knime.time.node.convert.timestamptodatetime.TimestampToDateTimeNodeFactory"
             category-path="/applications/timeseries/transform"
             deprecated="false"
-            hidden="true"
             factory-class="org.knime.time.node.convert.durationperiodtostring.DurationPeriodToStringNodeFactory2">
       </node>
       <node
             after="org.knime.time.node.convert.durationperiodtostring.DurationPeriodToStringNodeFactory"
             category-path="/applications/timeseries/transform"
-            deprecated="false"
+            deprecated="true"
             factory-class="org.knime.time.node.convert.stringtodurationperiod.StringToDurationPeriodNodeFactory">
       </node>
       <node
             after="org.knime.time.node.convert.durationperiodtostring.DurationPeriodToStringNodeFactory"
             category-path="/applications/timeseries/transform"
             deprecated="false"
-            hidden="true"
             factory-class="org.knime.time.node.convert.stringtodurationperiod.StringToDurationPeriodNodeFactory2">
       </node>
       <node
@@ -130,13 +124,12 @@
       </node>
       <node
             category-path="/applications/timeseries/transform"
-            deprecated="false"
+            deprecated="true"
             factory-class="org.knime.time.node.extract.durationperiod.ExtractDurationPeriodFieldsNodeFactory">
       </node>
             <node
             category-path="/applications/timeseries/transform"
             deprecated="false"
-            hidden="true"
             factory-class="org.knime.time.node.extract.durationperiod.ExtractDurationPeriodFieldsNodeFactory2">
       </node>
       <node
@@ -161,26 +154,24 @@
       </node>
       <node
             category-path="/applications/timeseries/manipulate"
-            deprecated="false"
+            deprecated="true"
             factory-class="org.knime.time.node.create.createdatetime.CreateDateTimeNodeFactory">
       </node>
       <node
             category-path="/applications/timeseries/manipulate"
             deprecated="false"
-            factory-class="org.knime.time.node.create.createdatetime.CreateDateTimeNodeFactory2"
-            hidden="true">
+            factory-class="org.knime.time.node.create.createdatetime.CreateDateTimeNodeFactory2">
       </node>
       <node
             after="org.knime.time.node.convert.durationperiodtostring.DurationPeriodToStringNodeFactory"
             category-path="/applications/timeseries/transform"
-            deprecated="false"
+            deprecated="true"
             factory-class="org.knime.time.node.convert.durationtonumber.DurationToNumberNodeFactory">
       </node>
       <node
             after="org.knime.time.node.convert.durationperiodtostring.DurationPeriodToStringNodeFactory"
             category-path="/applications/timeseries/transform"
             deprecated="false"
-            hidden="true"
             factory-class="org.knime.time.node.convert.durationtonumber.DurationToNumberNodeFactory2">
       </node>
       <node

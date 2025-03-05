@@ -71,7 +71,7 @@ public final class StringToDurationPeriodNodeFactory2 extends WebUINodeFactory<S
         "https://docs.oracle.com/javase/17/docs/api/java/time/Period.html#parse-java.lang.CharSequence-";
 
     private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
-        .name("String to Duration (Labs)") //
+        .name("String to Duration") //
         .icon("stringtoduration.png") //
         .shortDescription("Converts a string to a duration/period.") //
         .fullDescription("""

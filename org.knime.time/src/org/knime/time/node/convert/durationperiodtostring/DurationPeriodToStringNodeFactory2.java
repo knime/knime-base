@@ -65,7 +65,7 @@ public final class DurationPeriodToStringNodeFactory2 extends WebUINodeFactory<D
     }
 
     private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
-        .name("Duration to String (Labs)") //
+        .name("Duration to String") //
         .icon("durationtostring.png") //
         .shortDescription("Converts a duration to a string.") //
         .fullDescription("""
