@@ -382,7 +382,7 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
     }
 
     enum OutputType {
-            @Label("Duration/Period")
+            @Label("Duration")
             DURATION_OR_PERIOD, //
             @Label("Number")
             NUMBER;

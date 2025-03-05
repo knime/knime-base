@@ -110,7 +110,7 @@
           "outputType" : {
             "oneOf" : [ {
               "const" : "DURATION_OR_PERIOD",
-              "title" : "Duration/Period"
+              "title" : "Duration"
             }, {
               "const" : "NUMBER",
               "title" : "Number"
