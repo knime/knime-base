@@ -51,7 +51,7 @@ package org.knime.base.node.preproc.filter.nominal;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-import org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings.NominalValueRowFilterNodeSettings;
+import org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings.NominalValueRowSplitterNodeSettings;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnDomainCreator;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -65,13 +65,13 @@ import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * {@link DefaultNodeSettingsSnapshotTest} for the {@link NominalValueRowFilterNodeSettings}.
+ * {@link DefaultNodeSettingsSnapshotTest} for the {@link NominalValueRowSplitterNodeSettings}.
  *
- * @author Jakob Sanowski, KNIME GmbH, Konstanz, Germany
+ * @author David Hickey, TNG Technology Consulting GmbH
  */
-final class NominalValueRowFilterSettingsTest extends DefaultNodeSettingsSnapshotTest {
+final class NominalValueRowSplitterSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
-    protected NominalValueRowFilterSettingsTest() {
+    protected NominalValueRowSplitterSettingsTest() {
         super(getConfig());
     }
 
@@ -88,7 +88,7 @@ final class NominalValueRowFilterSettingsTest extends DefaultNodeSettingsSnapsho
 
         return SnapshotTestConfiguration.builder() //
             .addInputTableSpec(dataTable.createSpec()) //
-            .testJsonFormsForModel(NominalValueRowFilterNodeSettings.class) //
+            .testJsonFormsForModel(NominalValueRowSplitterNodeSettings.class) //
             .testJsonFormsWithInstance(SettingsType.MODEL, () -> createSettings()) //
             .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
             .testNodeSettingsStructure(() -> createSettings()) //
@@ -96,18 +96,18 @@ final class NominalValueRowFilterSettingsTest extends DefaultNodeSettingsSnapsho
             .build();
     }
 
-    private static NominalValueRowFilterNodeSettings createSettings() {
-        return new NominalValueRowFilterNodeSettings();
+    private static NominalValueRowSplitterNodeSettings createSettings() {
+        return new NominalValueRowSplitterNodeSettings();
     }
 
-    private static NominalValueRowFilterNodeSettings readSettings() {
+    private static NominalValueRowSplitterNodeSettings readSettings() {
         try {
-            var path = getSnapshotPath(NominalValueRowFilterNodeSettings.class).getParent().resolve("node_settings")
-                .resolve("NominalValueRowFilterNodeSettings.xml");
+            var path = getSnapshotPath(NominalValueRowSplitterNodeSettings.class).getParent().resolve("node_settings")
+                .resolve("NominalValueRowSplitterNodeSettings.xml");
             try (var fis = new FileInputStream(path.toFile())) {
                 var nodeSettings = NodeSettings.loadFromXML(fis);
                 return DefaultNodeSettings.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
-                    NominalValueRowFilterNodeSettings.class);
+                    NominalValueRowSplitterNodeSettings.class);
             }
         } catch (IOException | InvalidSettingsException e) {
             throw new RuntimeException(e);
