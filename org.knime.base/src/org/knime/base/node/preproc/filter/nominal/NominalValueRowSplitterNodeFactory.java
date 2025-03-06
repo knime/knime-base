@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,66 +41,66 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   Mar 6, 2025 (david): created
  */
 package org.knime.base.node.preproc.filter.nominal;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings.NominalValueRowSplitterNodeSettings;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
- * <code>NodeFactory</code> for the "PossibleValueRowFilter" Node.
+ * <code>WebUINodeFactory</code> for the "Nominal Value Row Splitter" Node.
  *
- *
- * @author Ferry Abt, KNIME AG, Zurich, Switzerland
- * @since 3.4
+ * @author David Hickey, TNG Technology Consulting GmbH
  */
-public class NominalValueRowSplitterNodeFactory extends NodeFactory<NominalValueRowSplitterNodeModel> {
+@SuppressWarnings("restriction")
+public class NominalValueRowSplitterNodeFactory extends WebUINodeFactory<NominalValueRowSplitterNodeModel> {
 
     /**
-     * {@inheritDoc}
-     *
-     * @since 5.3
+     * Constructor for the node factory.
      */
+    public NominalValueRowSplitterNodeFactory() {
+        super(CONFIGURATION);
+    }
+
     @Override
     public NominalValueRowSplitterNodeModel createNodeModel() {
-        return new NominalValueRowSplitterNodeModel();
+        return new NominalValueRowSplitterNodeModel(CONFIGURATION);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int getNrNodeViews() {
-        return 0;
-    }
+    private static final String DOMAIN_CALCULATOR_URL = "https://hub.knime.com/knime/extensions/"
+        + "org.knime.features.base/latest/org.knime.base.node.preproc.domain.dialog2.DomainNodeFactory";
 
-    /**
-     * {@inheritDoc}
-     *
-     * @since 5.3
-     */
-    @Override
-    public NodeView<NominalValueRowSplitterNodeModel> createNodeView(final int viewIndex,
-        final NominalValueRowSplitterNodeModel nodeModel) {
-        throw new IllegalArgumentException("No view available!");
-    }
+    private static final String DOMAIN_EDITOR_URL = "https://hub.knime.com/knime/extensions/"
+        + "org.knime.features.base/latest/org.knime.base.node.preproc.domain.editnominal.EditNominalDomainNodeFactory";
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return new NominalValueRowSplitterNodeDialog(true);
-    }
-
+    static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
+        .name("Nominal Value Row Splitter") //
+        .icon("nominal_value_splitter.png") //
+        .shortDescription("Splits rows on nominal attribute value") //
+        .fullDescription("""
+                <p>
+                Splits the rows based on the selected value of a nominal attribute.
+                A nominal column can be selected and one or more nominal values of this
+                attribute. Rows which have this nominal value in the selected column are
+                included in the output data in the first table, the rest in the second.
+                </p>
+                <p>
+                In order for a nominal column to appear in the node dialog, its domain
+                (the set of values that appear in the column) must be calculated. For
+                columns with few values (less than 60) this is done automatically.
+                To ensure the domain is properly set, use the
+                <a href="%s">Domain Calculator</a> node or the
+                <a href="%s">Edit Nominal Domain</a> node.
+                </p>
+                """.formatted(DOMAIN_CALCULATOR_URL, DOMAIN_EDITOR_URL)) //
+        .modelSettingsClass(NominalValueRowSplitterNodeSettings.class) //
+        .addInputTable("Input Table", "Data that should be split") //
+        .addOutputTable("First Table", "Matching rows") //
+        .addOutputTable("Second Table", "Non-matching rows") //
+        .build();
 }

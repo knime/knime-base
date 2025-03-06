@@ -44,6 +44,7 @@
  */
 package org.knime.base.node.preproc.filter.nominal;
 
+import org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings.NominalValueRowFilterNodeSettings;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeFactory;
 
@@ -71,7 +72,7 @@ public class NominalValueRowFilterNodeFactory extends WebUINodeFactory<NominalVa
             + "appear in the column) must be calculated. For columns with few values (less than 60) this is done "
             + "automatically. To ensure the domain is properly set, use the Domain Calculator node or the Edit "
             + "Nominal Domain node.</p>")
-        .modelSettingsClass(NominalValueRowFilterSettings.class)//
+        .modelSettingsClass(NominalValueRowFilterNodeSettings.class)//
         .addInputTable("Data to filter", "Data that should be filtered")//
         .addOutputTable("Included", "Matching rows")//
         .keywords("Filter Table")//

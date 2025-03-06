@@ -49,6 +49,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings.NominalValueRowFilterNodeSettings;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
@@ -78,7 +79,8 @@ import org.knime.core.webui.node.impl.WebUINodeModel;
  *
  * @author KNIME GmbH
  */
-public class NominalValueRowFilterNodeModel extends WebUINodeModel<NominalValueRowFilterSettings> {
+@SuppressWarnings("restriction")
+final class NominalValueRowFilterNodeModel extends WebUINodeModel<NominalValueRowFilterNodeSettings> {
 
     private int m_selectedColIdx;
 
@@ -87,21 +89,20 @@ public class NominalValueRowFilterNodeModel extends WebUINodeModel<NominalValueR
     /**
      * One inport (data to be filtered) one out port (included).
      *
-     * @since 5.3
-     */
-    protected NominalValueRowFilterNodeModel(final WebUINodeConfiguration config) {
-        super(config, NominalValueRowFilterSettings.class);
-    }
-
-    /**
-     * {@inheritDoc}
+     * @param config
      *
      * @since 5.3
      */
-    @SuppressWarnings("null")
+    protected NominalValueRowFilterNodeModel(final WebUINodeConfiguration config) {
+        super(config, NominalValueRowFilterNodeSettings.class);
+    }
+
+    /**
+     * @since 5.3
+     */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec,
-        final NominalValueRowFilterSettings settings) throws Exception {
+        final NominalValueRowFilterNodeSettings settings) throws Exception {
         // include data container
         DataContainer positive = exec.createDataContainer(inData[0].getDataTableSpec());
         long currentRow = 0;
@@ -131,21 +132,17 @@ public class NominalValueRowFilterNodeModel extends WebUINodeModel<NominalValueR
         DataCell dc = row.getCell(m_selectedColIdx);
         if (dc.isMissing()) {
             return getSettings().orElseThrow(IllegalStateException::new//
-            ).m_missingValueHandling == NominalValueRowFilterSettings.MissingValueHandling.INCLUDE;
+            ).m_missingValueHandling == NominalValueRowFilterNodeSettings.MissingValueHandling.INCLUDE;
         } else {
             return m_selectedAttr.contains(dc.toString());
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
         final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         return new StreamableOperator() {
 
-            @SuppressWarnings("null")
             @Override
             public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
                 throws Exception {
@@ -170,36 +167,21 @@ public class NominalValueRowFilterNodeModel extends WebUINodeModel<NominalValueR
         };
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public InputPortRole[] getInputPortRoles() {
         return new InputPortRole[]{InputPortRole.DISTRIBUTED_STREAMABLE};
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public OutputPortRole[] getOutputPortRoles() {
         return new OutputPortRole[]{OutputPortRole.DISTRIBUTED};
     }
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void reset() {
-    }
-
-    /**
-     * {@inheritDoc}
-     *
      * @since 5.3
      */
     @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final NominalValueRowFilterSettings settings)
+    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final NominalValueRowFilterNodeSettings settings) // NOSONAR method is old and well-tested. Complexity is OK.
         throws InvalidSettingsException {
         // check if possible values are available
         int nrValidCols = 0;
@@ -251,7 +233,5 @@ public class NominalValueRowFilterNodeModel extends WebUINodeModel<NominalValueR
             // only the rows are affected
         }
         return new DataTableSpec[]{inSpecs[0]};
-
     }
-
 }

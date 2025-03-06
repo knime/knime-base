@@ -1,7 +1,6 @@
 {
   "data" : {
     "model" : {
-      "selectedColumn" : "column3",
       "nominalValueSelection" : {
         "mode" : "MANUAL",
         "patternFilter" : {
@@ -11,11 +10,11 @@
         },
         "manualFilter" : {
           "manuallySelected" : [ ],
-          "manuallyDeselected" : [ "asdf", "assad", "sadf" ],
+          "manuallyDeselected" : [ ],
           "includeUnknownColumns" : false
         }
       },
-      "missingValueHandling" : "EXCLUDE"
+      "missingValueHandling" : "LOWER"
     }
   },
   "schema" : {
@@ -26,15 +25,15 @@
         "properties" : {
           "missingValueHandling" : {
             "oneOf" : [ {
-              "const" : "EXCLUDE",
-              "title" : "Exclude"
+              "const" : "LOWER",
+              "title" : "Second/lower"
             }, {
-              "const" : "INCLUDE",
-              "title" : "Include"
+              "const" : "UPPER",
+              "title" : "First/upper"
             } ],
             "title" : "If value is missing",
-            "description" : "Defines how missing values are handled.\n<ul>\n<li><b>Exclude</b>: Missing values are excluded from the output table.</li>\n<li><b>Include</b>: Missing values are included in the output table.</li>\n</ul>",
-            "default" : "EXCLUDE"
+            "description" : "Defines how missing values are handled.\n<ul>\n<li><b>Second/lower</b>: Missing values are excluded from the first output table. They will be included in the second table instead.\n</li>\n<li><b>First/upper</b>: Missing values will be included in the first output table.\n</li>\n</ul>",
+            "default" : "LOWER"
           },
           "nominalValueSelection" : {
             "type" : "object",
@@ -108,7 +107,7 @@
               }
             },
             "title" : "Values",
-            "description" : "Select the nominal values to be included in the output table, by moving them from left (excluded) to right (included).\n",
+            "description" : "Select the nominal values to be in the first output table,\nby moving them from left (second table) to right\n(first table).\n",
             "default" : {
               "mode" : "MANUAL",
               "patternFilter" : {
@@ -162,7 +161,9 @@
         "showNoneColumn" : false,
         "showRowKeys" : false,
         "showSearch" : true,
-        "showMode" : true
+        "showMode" : true,
+        "includedLabel" : "First table",
+        "excludedLabel" : "Second table"
       }
     }, {
       "type" : "Control",
