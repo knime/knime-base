@@ -67,6 +67,7 @@ import org.knime.core.node.message.MessageBuilder;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 import org.knime.time.node.convert.durationtonumber.DurationToNumberNodeSettings.RoundingBehaviour;
+import org.knime.time.util.ReplaceOrAppend.InputColumn;
 import org.knime.time.util.TimeBasedGranularityUnit;
 
 /**
@@ -110,16 +111,23 @@ final class DurationToNumberNodeModel2 extends WebUISimpleStreamableFunctionNode
 
         var inputColumnNames = getInputColumnNames(inputSpec, modelSettings);
         return modelSettings.m_appendOrReplaceColumn.createRearranger(inputColumnNames, inputSpec,
-            (inputColumnSpec, newColumnName) -> new DurationToNumberCellFactory( //
-                inputSpec.findColumnIndex(inputColumnSpec.getName()), //
-                inputColumnSpec.getName(), //
+            (inputColumn, newColumnName) -> new DurationToNumberCellFactory( //
+                inputColumn, //
                 newColumnName, //
                 modelSettings, //
                 messageBuilder //
-            ), modelSettings.m_suffix);
+            ), modelSettings.m_suffix, () -> {
+                if (messageBuilder.getIssueCount() > 0) {
+                    messageBuilder //
+                        .withSummary("%s warning%s encountered.".formatted(messageBuilder.getIssueCount(),
+                            messageBuilder.getIssueCount() == 1 ? "" : "s")) //
+                        .build() //
+                        .ifPresent(this::setWarning);
+                }
+            });
     }
 
-    final class DurationToNumberCellFactory extends SingleCellFactory {
+    static final class DurationToNumberCellFactory extends SingleCellFactory {
 
         private final RoundingBehaviour m_roundingBehaviour;
 
@@ -134,16 +142,14 @@ final class DurationToNumberNodeModel2 extends WebUISimpleStreamableFunctionNode
         private final MessageBuilder m_messageBuilder;
 
         DurationToNumberCellFactory( //
-            final int inputColumnIndex, //
-            final String inputColumnName, //
+            final InputColumn inputColumn, //
             final String newColumnName, //
             final DurationToNumberNodeSettings settings, //
             final MessageBuilder messageBuilder //
         ) {
             super(createNewColumnSpec(newColumnName, settings.m_roundingBehaviour));
-
-            m_inputColumnIndex = inputColumnIndex;
-            m_inputColumnNameAbbr = StringUtils.abbreviate(inputColumnName, 32);
+            m_inputColumnIndex = inputColumn.index();
+            m_inputColumnNameAbbr = StringUtils.abbreviate(inputColumn.spec().getName(), 32);
             m_roundingBehaviour = settings.m_roundingBehaviour;
             m_unit = settings.m_unit;
             m_messageBuilder = messageBuilder;
@@ -189,15 +195,5 @@ final class DurationToNumberNodeModel2 extends WebUISimpleStreamableFunctionNode
             ).createSpec();
         }
 
-        @Override
-        public void afterProcessing() {
-            if (m_messageBuilder.getIssueCount() > 0) {
-                m_messageBuilder //
-                    .withSummary("%s warning%s encountered.".formatted(m_messageBuilder.getIssueCount(),
-                        m_messageBuilder.getIssueCount() == 1 ? "" : "s")) //
-                    .build() //
-                    .ifPresent(DurationToNumberNodeModel2.this::setWarning);
-            }
-        }
     }
 }

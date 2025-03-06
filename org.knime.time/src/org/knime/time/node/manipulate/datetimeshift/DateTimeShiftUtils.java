@@ -81,11 +81,9 @@ import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFactory;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
 import org.knime.core.node.message.Message;
 import org.knime.core.node.message.MessageBuilder;
-import org.knime.core.util.UniqueNameGenerator;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
 import org.knime.time.util.Granularity;
-import org.knime.time.util.ReplaceOrAppend;
 
 /**
  * Date/Time agnostic utility functions for the Date&Time shift nodes.
@@ -102,32 +100,16 @@ final class DateTimeShiftUtils {
      * Column rearranger - execute the operation on the cells
      * ------------------------------------------------------------------------
      */
-
     static ColumnRearranger createColumnRearranger(final DataTableSpec spec, final ShiftContext context,
         final GenericShiftType type) {
-
-        ColumnRearranger rearranger = new ColumnRearranger(spec);
-
         int referenceColumnIndex = getReferenceColumnIndex(spec, context, type);
-
-        for (String selectedColumn : context.selectedColumnNames()) {
-            var typeOfTargetColumn = spec.getColumnSpec(selectedColumn).getType();
-            var indexOfTargetColumn = spec.findColumnIndex(selectedColumn);
-
-            if (context.replaceOrAppend() == ReplaceOrAppend.REPLACE) {
+        return context.replaceOrAppend().createRearranger(context.selectedColumnNames(), spec,
+            (selectedColumn, newName) -> {
                 final DataColumnSpec dataColSpec =
-                    new DataColumnSpecCreator(selectedColumn, typeOfTargetColumn).createSpec();
-                rearranger.replace(
-                    createCellFactory(dataColSpec, indexOfTargetColumn, referenceColumnIndex, context, type),
-                    selectedColumn);
-            } else {
-                final DataColumnSpec dataColSpec = new UniqueNameGenerator(spec)
-                    .newColumn(selectedColumn + context.outputColumnSuffix(), typeOfTargetColumn);
-                rearranger
-                    .append(createCellFactory(dataColSpec, indexOfTargetColumn, referenceColumnIndex, context, type));
-            }
-        }
-        return rearranger;
+                    new DataColumnSpecCreator(newName, selectedColumn.spec().getType()).createSpec();
+                return createCellFactory(dataColSpec, selectedColumn.index(), referenceColumnIndex, context, type);
+            }, context.outputColumnSuffix(), () -> {
+            });
     }
 
     private static int getReferenceColumnIndex(final DataTableSpec spec, final ShiftContext context,

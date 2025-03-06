@@ -93,16 +93,15 @@ final class ModifyTimeZoneNodeModel2 extends WebUISimpleStreamableFunctionNodeMo
             ? LocalDateTimeCellFactory.TYPE //
             : ZonedDateTimeCellFactory.TYPE;
 
-        return modelSettings.m_appendOrReplace.createRearranger(includedColumns, spec, (inColSpec, outColName) -> {
+        return modelSettings.m_appendOrReplace.createRearranger(includedColumns, spec, (inCol, outColName) -> {
             var outputSpec = new DataColumnSpecCreator(outColName, outputDataType).createSpec();
-            var inputColumnIndex = spec.findColumnIndex(inColSpec.getName());
-
             return switch (modelSettings.m_behaviourType) {
-                case SET -> new SetTimeZoneCellFactory(outputSpec, inputColumnIndex, modelSettings.m_timeZone);
-                case SHIFT -> new ShiftTimeZoneCellFactory(outputSpec, inputColumnIndex, modelSettings.m_timeZone);
-                case REMOVE -> new RemoveTimeZoneCellFactory(outputSpec, inputColumnIndex);
+                case SET -> new SetTimeZoneCellFactory(outputSpec, inCol.index(), modelSettings.m_timeZone);
+                case SHIFT -> new ShiftTimeZoneCellFactory(outputSpec, inCol.index(), modelSettings.m_timeZone);
+                case REMOVE -> new RemoveTimeZoneCellFactory(outputSpec, inCol.index());
             };
-        }, modelSettings.m_outputColumnSuffix);
+        }, modelSettings.m_outputColumnSuffix, () -> {
+        });
     }
 
     private static final class SetTimeZoneCellFactory extends SingleCellFactory {

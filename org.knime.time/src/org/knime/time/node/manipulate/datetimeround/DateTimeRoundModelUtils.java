@@ -51,7 +51,6 @@ package org.knime.time.node.manipulate.datetimeround;
 import java.time.DateTimeException;
 import java.time.temporal.Temporal;
 import java.util.Collection;
-import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
 import org.knime.core.data.DataCell;
@@ -61,7 +60,6 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.MissingCell;
 import org.knime.core.data.container.SingleCellFactory;
-import org.knime.core.node.message.Message;
 import org.knime.core.node.message.MessageBuilder;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.time.util.DateTimeUtils;
@@ -84,8 +82,6 @@ final class DateTimeRoundModelUtils {
 
         private final MessageBuilder m_messageBuilder;
 
-        private final Consumer<Message> m_setWarning;
-
         private final UnaryOperator<Temporal> m_roundingOperator;
 
         /**
@@ -94,11 +90,9 @@ final class DateTimeRoundModelUtils {
          * @param roundingOperator the rounding operator to apply
          * @param messageBuilder the message builder to collect issues called from NodeModel context:
          *            "createMessageBuilder()"
-         * @param setWarningConsumer the consumer to set warnings from the NodeModel context: "setWarning"
          */
         public RoundCellFactory(final DataColumnSpec newColSpec, final int targetColumnIndex,
-            final UnaryOperator<Temporal> roundingOperator, final MessageBuilder messageBuilder,
-            final Consumer<Message> setWarningConsumer) {
+            final UnaryOperator<Temporal> roundingOperator, final MessageBuilder messageBuilder) {
 
             super(newColSpec);
             this.m_targetColumnIndex = targetColumnIndex;
@@ -106,7 +100,6 @@ final class DateTimeRoundModelUtils {
             this.m_roundingOperator = roundingOperator;
 
             this.m_messageBuilder = messageBuilder;
-            this.m_setWarning = setWarningConsumer;
         }
 
         @Override
@@ -125,14 +118,6 @@ final class DateTimeRoundModelUtils {
             }
         }
 
-        @Override
-        public void afterProcessing() {
-            final var issueCount = m_messageBuilder.getIssueCount();
-            if (issueCount > 0) {
-                m_messageBuilder.withSummary("Problems occurred in " + issueCount + " rows.").build()
-                    .ifPresent(this.m_setWarning);
-            }
-        }
     }
 
     /**

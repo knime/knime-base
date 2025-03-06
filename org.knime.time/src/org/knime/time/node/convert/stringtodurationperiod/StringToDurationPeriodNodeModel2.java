@@ -51,8 +51,9 @@ package org.knime.time.node.convert.stringtodurationperiod;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -81,6 +82,7 @@ import org.knime.time.node.convert.stringtodurationperiod.StringToDurationPeriod
 import org.knime.time.util.ActionIfExtractionFails;
 import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.DurationPeriodFormatUtils;
+import org.knime.time.util.ReplaceOrAppend.InputColumn;
 
 /**
  * Node model for the "String to Duration/Period" node.
@@ -139,7 +141,7 @@ final class StringToDurationPeriodNodeModel2 extends WebUINodeModel<StringToDura
             var rearranger = createColumnRearranger(inTable.getDataTableSpec(), modelSettings,
                 IntStream.range(0, types.length) //
                     .boxed() //
-                    .collect(Collectors.toMap(includedColumns::get, i -> types[i])),
+                    .collect(Collectors.toMap(includedColumns::get, i -> types[i], (l, r) -> l, TreeMap::new)),
                 warningMessageBuilder);
 
             return new BufferedDataTable[]{ //
@@ -217,17 +219,21 @@ final class StringToDurationPeriodNodeModel2 extends WebUINodeModel<StringToDura
      */
     private ColumnRearranger createColumnRearranger(final DataTableSpec spec,
         final StringToDurationPeriodNodeSettings modelSettings,
-        final Map<String, DataType> inputColumnNameAndOutputType, final MessageBuilder messageBuilder) {
+        final SortedMap<String, DataType> inputColumnNameAndOutputType, final MessageBuilder messageBuilder) {
 
         var targetColumnNames = inputColumnNameAndOutputType.keySet();
 
-        return modelSettings.m_replaceOrAppend.createRearranger(targetColumnNames, spec, (inputSpec, outputName) -> {
-            var outputColType = inputColumnNameAndOutputType.get(inputSpec.getName());
+        return modelSettings.m_replaceOrAppend.createRearranger(targetColumnNames, spec, (inputColumn, outputName) -> {
+            var outputColType = inputColumnNameAndOutputType.get(inputColumn.spec().getName());
             var outputColSpec = new DataColumnSpecCreator(outputName, outputColType).createSpec();
 
-            return new StringToDurationPeriodCellFactory(outputColSpec, spec.findColumnIndex(inputSpec.getName()),
-                inputSpec.getName(), modelSettings, messageBuilder);
-        }, modelSettings.m_appendedSuffix);
+            return new StringToDurationPeriodCellFactory(outputColSpec, inputColumn, modelSettings, messageBuilder);
+        }, modelSettings.m_appendedSuffix, () -> {
+            if (messageBuilder.getIssueCount() > 0) {
+                messageBuilder.withSummary("%s warning%s encountered.".formatted(messageBuilder.getIssueCount(),
+                    messageBuilder.getIssueCount() == 1 ? "" : "s")).build().ifPresent(this::setWarning);
+            }
+        });
     }
 
     /**
@@ -240,7 +246,8 @@ final class StringToDurationPeriodNodeModel2 extends WebUINodeModel<StringToDura
         var targetColumns = getSupportedTargetColumns(spec, modelSettings);
 
         return createColumnRearranger(spec, modelSettings, targetColumns.stream() //
-            .collect(Collectors.toMap(Function.identity(), x -> outputType)), warningMessageBuilder);
+            .collect(Collectors.toMap(Function.identity(), x -> outputType, (l, r) -> l, TreeMap::new)),
+            warningMessageBuilder);
     }
 
     /**
@@ -252,7 +259,7 @@ final class StringToDurationPeriodNodeModel2 extends WebUINodeModel<StringToDura
         return Arrays.asList(settings.m_columnFilter.getSelected(supportedColumn, spec));
     }
 
-    private final class StringToDurationPeriodCellFactory extends SingleCellFactory {
+    private static final class StringToDurationPeriodCellFactory extends SingleCellFactory {
 
         private final int m_targetColIndex;
 
@@ -262,13 +269,12 @@ final class StringToDurationPeriodNodeModel2 extends WebUINodeModel<StringToDura
 
         private final MessageBuilder m_warningListener;
 
-        StringToDurationPeriodCellFactory(final DataColumnSpec newColSpec, final int targetColIndex,
-            final String targetColNameString, final StringToDurationPeriodNodeSettings settings,
-            final MessageBuilder warningListener) {
+        StringToDurationPeriodCellFactory(final DataColumnSpec newColSpec, final InputColumn targetCol,
+            final StringToDurationPeriodNodeSettings settings, final MessageBuilder warningListener) {
             super(newColSpec);
 
-            m_targetColIndex = targetColIndex;
-            m_targetColNameAbbr = StringUtils.abbreviate(targetColNameString, 32);
+            m_targetColIndex = targetCol.index();
+            m_targetColNameAbbr = StringUtils.abbreviate(targetCol.spec().getName(), 32);
             m_failOnParseError = settings.m_actionIfExtractionFails == ActionIfExtractionFails.FAIL;
             m_warningListener = warningListener;
         }
@@ -320,14 +326,5 @@ final class StringToDurationPeriodNodeModel2 extends WebUINodeModel<StringToDura
             }
         }
 
-        @Override
-        public void afterProcessing() {
-            if (m_warningListener.getIssueCount() > 0) {
-                m_warningListener
-                    .withSummary("%s warning%s encountered.".formatted(m_warningListener.getIssueCount(),
-                        m_warningListener.getIssueCount() == 1 ? "" : "s"))
-                    .build().ifPresent(StringToDurationPeriodNodeModel2.this::setWarning);
-            }
-        }
     }
 }

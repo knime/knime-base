@@ -64,17 +64,16 @@ import org.knime.time.util.ReplaceOrAppend;
 /**
  * type to allow handling of time and date shift in a generic way.
  *
- * @param supportedTypes supported column types that are allowed for the shift
  * @param temporalColumn name of the temporal column containing a period if the shift is date-based or a duration if the
  *            shift is time-based.
- * @param numericalColumn name of the numerical column containing the shift value.
  * @param temporalValue value of the temporal column containing a period if the shift is date-based or a duration if the
  *            shift is time-based.
+ * @param numericalColumn name of the numerical column containing the shift value.
  * @param granularity granularity of the shift (e.g. days, hours, minutes). Must be set if numericalColumn or shiftValue
  *            is set.
  * @param replaceOrAppend whether to append the shifted column or replace the original column
  * @param outputColumnSuffix suffix to append to the output column name
- * @param columnFilter column filter to select valid columns for the shift
+ * @param selectedColumnNames selected in the column filter to select valid columns for the shift
  * @param messageBuilder message builder that provides utility to communicate messages to the user
  * @param messageConsumer message consumer
  */

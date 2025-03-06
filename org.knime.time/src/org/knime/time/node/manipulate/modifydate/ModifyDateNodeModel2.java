@@ -91,19 +91,20 @@ final class ModifyDateNodeModel2 extends WebUISimpleStreamableFunctionNodeModel<
             .map(DataColumnSpec::getName) //
             .toArray(String[]::new), inSpec);
 
-        return modelSettings.m_appendOrReplace.createRearranger(includeList, inSpec, (inColSpec, outColName) -> {
+        return modelSettings.m_appendOrReplace.createRearranger(includeList, inSpec, (inCol, outColName) -> {
             // determine the data type of output
             var dataType = switch (modelSettings.m_behaviourType) {
                 case REMOVE -> LocalTimeCellFactory.TYPE;
-                case CHANGE -> inColSpec.getType();
+                case CHANGE -> inCol.spec().getType();
                 case APPEND -> modelSettings.m_timeZone == null //
                     ? LocalDateTimeCellFactory.TYPE //
                     : ZonedDateTimeCellFactory.TYPE;
             };
             var newSpec = new DataColumnSpecCreator(outColName, dataType).createSpec();
 
-            return createCellFactory(modelSettings, newSpec, inSpec.findColumnIndex(inColSpec.getName()));
-        }, modelSettings.m_outputColumnSuffix);
+            return createCellFactory(modelSettings, newSpec, inCol.index());
+        }, modelSettings.m_outputColumnSuffix, () -> {
+        });
     }
 
     private static SingleCellFactory createCellFactory(final ModifyDateNodeSettings settings,

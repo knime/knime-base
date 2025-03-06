@@ -65,12 +65,10 @@ import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.message.MessageBuilder;
-import org.knime.core.util.UniqueNameGenerator;
 import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 import org.knime.time.util.DateTimeUtils;
-import org.knime.time.util.ReplaceOrAppend;
 import org.knime.time.util.TemporalCellUtils;
 
 /**
@@ -108,39 +106,28 @@ final class DateTimeToStringNodeModel2 extends WebUISimpleStreamableFunctionNode
 
         DateTimeFormatStringHistoryManager.addFormatToStringHistoryIfNotPresent(modelSettings.m_format);
 
-        var rearranger = new ColumnRearranger(spec);
-
         var supportedColumns = DateTimeUtils.getCompatibleColumns(spec, DateTimeUtils.DATE_TIME_COLUMN_TYPES);
-
         var targetColumnNames = modelSettings.m_columnFilter.getSelected(supportedColumns, spec);
-        var targetColumnIndices = spec.columnsToIndices(targetColumnNames);
 
         final var messageBuilder = createMessageBuilder();
 
-        if (modelSettings.m_appendOrReplace == ReplaceOrAppend.APPEND) {
-            var uniqueNameGenerator = new UniqueNameGenerator(spec);
-
-            for (var i = 0; i < targetColumnNames.length; ++i) {
-                var newName = uniqueNameGenerator.newName(targetColumnNames[i] + modelSettings.m_outputColumnSuffix);
-                var newSpec = new DataColumnSpecCreator(newName, StringCellFactory.TYPE).createSpec();
-
-                rearranger.append(
-                    new DateTimeToStringCellFactory(newSpec, modelSettings, targetColumnIndices[i], messageBuilder));
+        return modelSettings.m_appendOrReplace.createRearranger(targetColumnNames, spec, (inputColumn, newName) -> {
+            var newSpec = new DataColumnSpecCreator(newName, StringCellFactory.TYPE).createSpec();
+            return new DateTimeToStringCellFactory(newSpec, modelSettings, inputColumn.index(), messageBuilder);
+        }, modelSettings.m_outputColumnSuffix, () -> {
+            if (messageBuilder.getIssueCount() > 0) {
+                messageBuilder //
+                    .withSummary("%s warning%s encountered.".formatted(messageBuilder.getIssueCount(),
+                        messageBuilder.getIssueCount() == 1 ? "" : "s")) //
+                    .addResolutions("Change the date and time pattern to match all provided dates.") //
+                    .build() //
+                    .ifPresent(this::setWarning);
             }
-        } else {
-            for (var i = 0; i < targetColumnNames.length; ++i) {
-                var newSpec = new DataColumnSpecCreator(targetColumnNames[i], StringCellFactory.TYPE).createSpec();
+        });
 
-                rearranger.replace(
-                    new DateTimeToStringCellFactory(newSpec, modelSettings, targetColumnIndices[i], messageBuilder),
-                    targetColumnIndices[i]);
-            }
-        }
-
-        return rearranger;
     }
 
-    final class DateTimeToStringCellFactory extends SingleCellFactory {
+    static final class DateTimeToStringCellFactory extends SingleCellFactory {
 
         private final DateTimeFormatter m_formatter;
 
@@ -194,17 +181,6 @@ final class DateTimeToStringNodeModel2 extends WebUISimpleStreamableFunctionNode
             }
         }
 
-        @Override
-        public void afterProcessing() {
-            if (m_messageBuilder.getIssueCount() > 0) {
-                m_messageBuilder //
-                    .withSummary("%s warning%s encountered.".formatted(m_messageBuilder.getIssueCount(),
-                        m_messageBuilder.getIssueCount() == 1 ? "" : "s")) //
-                    .addResolutions("Change the date and time pattern to match all provided dates.") //
-                    .build() //
-                    .ifPresent(DateTimeToStringNodeModel2.this::setWarning);
-            }
-        }
     }
 
 }

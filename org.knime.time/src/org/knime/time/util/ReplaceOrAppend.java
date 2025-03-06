@@ -49,10 +49,16 @@
 package org.knime.time.util;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.function.BiFunction;
 
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.container.AbstractCellFactory;
+import org.knime.core.data.container.CellFactory;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.node.InvalidSettingsException;
@@ -104,47 +110,114 @@ public enum ReplaceOrAppend {
      *            given output column name.
      * @param suffix the suffix to append to the column names if the mode is {@link #APPEND}. If the mode is not append,
      *            this argument is ignored.
+     * @param afterProcessingAll a method that is run after processing all individual cell factories
      * @return a column rearranger that processes the input columns.
      */
-    public ColumnRearranger createRearranger(final Iterable<String> inputColumnNames, final DataTableSpec originalSpec,
-        final BiFunction<DataColumnSpec, String, SingleCellFactory> cellFactoryFactory, final String suffix) {
+    public ColumnRearranger createRearranger(final Collection<String> inputColumnNames,
+        final DataTableSpec originalSpec, final BiFunction<InputColumn, String, SingleCellFactory> cellFactoryFactory,
+        final String suffix, final Runnable afterProcessingAll) {
+        return createRearranger(inputColumnNames.stream().toArray(String[]::new), originalSpec, cellFactoryFactory,
+            suffix, afterProcessingAll);
 
-        final var rearranger = new ColumnRearranger(originalSpec);
-
-        if (this == REPLACE) {
-            for (String inputName : inputColumnNames) {
-                var inputSpec = originalSpec.getColumnSpec(inputName);
-                rearranger.replace(cellFactoryFactory.apply(inputSpec, inputName),
-                    originalSpec.findColumnIndex(inputName));
-            }
-        } else {
-            var uniqueNameGenerator = new UniqueNameGenerator(originalSpec);
-
-            for (String inputName : inputColumnNames) {
-                var inputSpec = originalSpec.getColumnSpec(inputName);
-                var newName = uniqueNameGenerator.newName(inputName + suffix);
-                var factory = cellFactoryFactory.apply(inputSpec, newName);
-
-                rearranger.append(factory);
-            }
-        }
-
-        return rearranger;
     }
 
     /**
-     * See {@link #createRearranger(Iterable, DataTableSpec, BiFunction, String)}, which this function defers to.
+     * See {@link #createRearranger(Collection, DataTableSpec, BiFunction, String, Runnable)}, which this function
+     * defers to.
      *
      * @param inputColumnNames
      * @param originalSpec
      * @param cellFactoryFactory
      * @param suffix
+     * @param afterProcessingAll
      * @return a column rearranger that processes the input columns.
      */
     public ColumnRearranger createRearranger(final String[] inputColumnNames, final DataTableSpec originalSpec,
-        final BiFunction<DataColumnSpec, String, SingleCellFactory> cellFactoryFactory, final String suffix) {
+        final BiFunction<InputColumn, String, SingleCellFactory> cellFactoryFactory, final String suffix,
+        final Runnable afterProcessingAll) {
 
-        return createRearranger(Arrays.asList(inputColumnNames), originalSpec, cellFactoryFactory, suffix);
+        final var rearranger = new ColumnRearranger(originalSpec);
+        /**
+         * In case of REPLACE, the uniqueNameGenerator is not used.
+         */
+        final var uniqueNameGenerator = this == REPLACE ? null : new UniqueNameGenerator(originalSpec);
+        final var inputColumns = toInputColumns(inputColumnNames, originalSpec);
+        final var factory = constructCombinedCellFactory(inputColumns, cellFactoryFactory, suffix, uniqueNameGenerator,
+            afterProcessingAll);
+        if (this == REPLACE) {
+            rearranger.replace(factory, inputColumns.stream().mapToInt(InputColumn::index).toArray());
+        } else {
+            rearranger.append(factory);
+        }
+        return rearranger;
+
+    }
+
+    private CellFactory constructCombinedCellFactory(final Collection<InputColumn> inputColumns,
+        final BiFunction<InputColumn, String, SingleCellFactory> cellFactoryFactory, final String suffix,
+        final UniqueNameGenerator uniqueNameGenerator, final Runnable afterProcessingAll) {
+
+        final var singleCellFactories = inputColumns.stream()
+            .map(
+                inputColumn -> constructSingleCellFactory(inputColumn, cellFactoryFactory, suffix, uniqueNameGenerator))
+            .toList();
+        return new SingleCellFactoryCombination(singleCellFactories, afterProcessingAll);
+    }
+
+    private static List<InputColumn> toInputColumns(final String[] inputColumnNames, final DataTableSpec originalSpec) {
+        return Arrays.stream(originalSpec.columnsToIndices(inputColumnNames))//
+            .mapToObj(i -> new InputColumn(originalSpec.getColumnSpec(i), i))//
+            .toList();
+    }
+
+    private SingleCellFactory constructSingleCellFactory(final InputColumn inputColumn,
+        final BiFunction<InputColumn, String, SingleCellFactory> cellFactoryFactory, final String suffix,
+        final UniqueNameGenerator uniqueNameGenerator) {
+        final var inputColumnName = inputColumn.spec.getName();
+        return cellFactoryFactory.apply(inputColumn,
+            this == REPLACE ? inputColumnName : uniqueNameGenerator.newName(inputColumnName + suffix));
+
+    }
+
+    private static final class SingleCellFactoryCombination extends AbstractCellFactory {
+
+        private final List<SingleCellFactory> m_singleCellFactories;
+
+        private final Runnable m_afterProcessingAll;
+
+        /**
+         * @param singleCellFactories
+         * @param afterProcessingAll
+         */
+        SingleCellFactoryCombination(final List<SingleCellFactory> singleCellFactories,
+            final Runnable afterProcessingAll) {
+            super(singleCellFactories.stream().flatMap(fac -> Arrays.stream(fac.getColumnSpecs()))
+                .toArray(DataColumnSpec[]::new));
+            m_singleCellFactories = singleCellFactories;
+            m_afterProcessingAll = afterProcessingAll;
+
+        }
+
+        @Override
+        public DataCell[] getCells(final DataRow row, final long rowIndex) {
+            return m_singleCellFactories.stream().map(fac -> fac.getCell(row, rowIndex)).toArray(DataCell[]::new);
+        }
+
+        @Override
+        public void afterProcessing() {
+            m_singleCellFactories.forEach(SingleCellFactory::afterProcessing);
+            m_afterProcessingAll.run();
+        }
+
+    }
+
+    /**
+     * a column spec and its input in the to be processed table.
+     *
+     * @param spec
+     * @param index
+     */
+    public record InputColumn(DataColumnSpec spec, Integer index) {
     }
 
     private static ReplaceOrAppend getByOldConfigValue(final String oldValue) throws InvalidSettingsException {
@@ -215,4 +288,5 @@ public enum ReplaceOrAppend {
             return new String[][]{{CONFIG_KEY}};
         }
     }
+
 }

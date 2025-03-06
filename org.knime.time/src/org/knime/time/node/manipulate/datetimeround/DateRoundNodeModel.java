@@ -48,15 +48,16 @@
  */
 package org.knime.time.node.manipulate.datetimeround;
 
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.message.MessageBuilder;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 import org.knime.time.util.DateTimeUtils;
+import org.knime.time.util.ReplaceOrAppend.InputColumn;
 
 /**
  *
@@ -76,26 +77,30 @@ public class DateRoundNodeModel extends WebUISimpleStreamableFunctionNodeModel<D
     protected ColumnRearranger createColumnRearranger(final DataTableSpec spec,
         final DateRoundNodeSettings modelSettings) throws InvalidSettingsException {
 
-        String[] selectedColumns = DateTimeRoundModelUtils.getSelectedColumns(spec,
-            DateTimeUtils.DATE_COLUMN_TYPES, modelSettings.m_columnFilter);
+        String[] selectedColumns = DateTimeRoundModelUtils.getSelectedColumns(spec, DateTimeUtils.DATE_COLUMN_TYPES,
+            modelSettings.m_columnFilter);
 
-        return modelSettings.m_replaceOrAppend.createRearranger(selectedColumns, spec,
-            (inputColumnSpec, newColumnName) -> createCellFactory(spec, inputColumnSpec, newColumnName, modelSettings),
-            modelSettings.m_outputColumnSuffix);
+        final var messageBuilder = createMessageBuilder();
+        return modelSettings.m_replaceOrAppend.createRearranger(selectedColumns, spec, (inputColumn,
+            newColumnName) -> createCellFactory(inputColumn, newColumnName, modelSettings, messageBuilder),
+            modelSettings.m_outputColumnSuffix, () -> {
+                final var issueCount = messageBuilder.getIssueCount();
+                if (issueCount > 0) {
+                    messageBuilder.withSummary("Problems occurred in " + issueCount + " rows.").build()
+                        .ifPresent(this::setWarning);
+                }
+            });
     }
 
-    private SingleCellFactory createCellFactory(final DataTableSpec inSpec, final DataColumnSpec inputColumnSpec,
-        final String newColumnName, final DateRoundNodeSettings settings) {
-        var indexOfInputColumn = inSpec.findColumnIndex(inputColumnSpec.getName());
-
+    private static SingleCellFactory createCellFactory(final InputColumn inputColumn, final String newColumnName,
+        final DateRoundNodeSettings settings, final MessageBuilder messageBuilder) {
         // type of column doesn't change
-        var newColSpec = new DataColumnSpecCreator(newColumnName, inputColumnSpec.getType()).createSpec();
+        var newColSpec = new DataColumnSpecCreator(newColumnName, inputColumn.spec().getType()).createSpec();
 
         return new DateTimeRoundModelUtils.RoundCellFactory( //
             newColSpec, //
-            indexOfInputColumn, //
+            inputColumn.index(), //
             DateRoundingUtil.createDateRounder(settings), //
-            createMessageBuilder(), //
-            this::setWarning); //
+            messageBuilder); //
     }
 }

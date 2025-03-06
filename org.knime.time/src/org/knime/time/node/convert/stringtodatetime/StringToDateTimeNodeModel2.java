@@ -72,13 +72,11 @@ import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFactory;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.KNIMEException;
 import org.knime.core.node.message.MessageBuilder;
-import org.knime.core.util.UniqueNameGenerator;
 import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat.FormatTemporalType;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 import org.knime.time.util.ActionIfExtractionFails;
-import org.knime.time.util.ReplaceOrAppend;
 import org.knime.time.util.TemporalCellUtils;
 
 /**
@@ -116,45 +114,33 @@ final class StringToDateTimeNodeModel2 extends WebUISimpleStreamableFunctionNode
 
         DateTimeFormatStringHistoryManager.addFormatToStringHistoryIfNotPresent(modelSettings.m_format.format());
 
-        var rearranger = new ColumnRearranger(spec);
-
         var supportedColumns = spec.stream() //
             .filter(colSpec -> colSpec.getType().isCompatible(StringValue.class)) //
             .map(DataColumnSpec::getName) //
             .toArray(String[]::new);
 
         var targetColumnNames = modelSettings.m_columnFilter.getSelected(supportedColumns, spec);
-        var targetColumnIndices = spec.columnsToIndices(targetColumnNames);
 
-        var warnings = createMessageBuilder();
+        var messageBuilder = createMessageBuilder();
 
-        if (modelSettings.m_appendOrReplace == ReplaceOrAppend.APPEND) {
-            var uniqueNameGenerator = new UniqueNameGenerator(spec);
-
-            for (var i = 0; i < targetColumnNames.length; ++i) {
-                var newName = uniqueNameGenerator.newName(targetColumnNames[i] + modelSettings.m_outputColumnSuffix);
-                var newSpec =
-                    new DataColumnSpecCreator(newName, fromFormatTemporalType(modelSettings.m_format.temporalType()))
-                        .createSpec();
-
-                rearranger
-                    .append(new StringToDateTimeCellFactory(newSpec, modelSettings, targetColumnIndices[i], warnings));
+        return modelSettings.m_appendOrReplace.createRearranger(targetColumnNames, spec, (inputColumn, newName) -> {
+            var newSpec =
+                new DataColumnSpecCreator(newName, fromFormatTemporalType(modelSettings.m_format.temporalType()))
+                    .createSpec();
+            return new StringToDateTimeCellFactory(newSpec, modelSettings, inputColumn.index(), messageBuilder);
+        }, modelSettings.m_outputColumnSuffix, () -> {
+            if (messageBuilder.getIssueCount() > 0) {
+                messageBuilder //
+                    .withSummary("%s warning%s encountered.".formatted(messageBuilder.getIssueCount(),
+                        messageBuilder.getIssueCount() == 1 ? "" : "s")) //
+                    .addResolutions("Change the date and time pattern to match all provided strings.") //
+                    .build() //
+                    .ifPresent(this::setWarning);
             }
-        } else {
-            for (var i = 0; i < targetColumnNames.length; ++i) {
-                var newSpec = new DataColumnSpecCreator(targetColumnNames[i],
-                    fromFormatTemporalType(modelSettings.m_format.temporalType())).createSpec();
-
-                rearranger.replace(
-                    new StringToDateTimeCellFactory(newSpec, modelSettings, targetColumnIndices[i], warnings),
-                    targetColumnIndices[i]);
-            }
-        }
-
-        return rearranger;
+        });
     }
 
-    final class StringToDateTimeCellFactory extends SingleCellFactory {
+    static final class StringToDateTimeCellFactory extends SingleCellFactory {
 
         private final DateTimeFormatter m_parser;
 
@@ -230,17 +216,6 @@ final class StringToDateTimeNodeModel2 extends WebUISimpleStreamableFunctionNode
             return formatter.parse(str, targetType.associatedQuery());
         }
 
-        @Override
-        public void afterProcessing() {
-            if (m_warningListener.getIssueCount() > 0) {
-                m_warningListener //
-                    .withSummary("%s warning%s encountered.".formatted(m_warningListener.getIssueCount(),
-                        m_warningListener.getIssueCount() == 1 ? "" : "s")) //
-                    .addResolutions("Change the date and time pattern to match all provided strings.") //
-                    .build() //
-                    .ifPresent(StringToDateTimeNodeModel2.this::setWarning);
-            }
-        }
     }
 
     private static DataType fromFormatTemporalType(final FormatTemporalType t) {
