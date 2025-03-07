@@ -52,7 +52,13 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/dataColumn",
       "options" : {
-        "possibleValues" : [ ],
+        "possibleValues" : [ {
+          "id" : "test1",
+          "text" : "test1"
+        }, {
+          "id" : "test2",
+          "text" : "test2"
+        } ],
         "format" : "dropDown",
         "showNoneColumn" : false,
         "showRowKeys" : true,
@@ -63,7 +69,13 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/referenceColumn",
       "options" : {
-        "possibleValues" : [ ],
+        "possibleValues" : [ {
+          "id" : "test1",
+          "text" : "test1"
+        }, {
+          "id" : "test2",
+          "text" : "test2"
+        } ],
         "format" : "dropDown",
         "showNoneColumn" : false,
         "showRowKeys" : true,

@@ -74,7 +74,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColu
  * @since 5.1
  */
 @SuppressWarnings("restriction")
-final class RowFilterRefNodeSettings implements DefaultNodeSettings {
+public final class RowFilterRefNodeSettings implements DefaultNodeSettings {
 
     @Persistor(DataColumnPersistor.class)
     @Widget(title = "Data column (in table 1)",

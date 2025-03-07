@@ -96,14 +96,6 @@
             </message_arguments>
         </filter>
     </resource>
-    <resource path="src/org/knime/base/node/preproc/filter/rowref/RowFilterRefNodeSettings.java" type="org.knime.base.node.preproc.filter.rowref.RowFilterRefNodeSettings">
-        <filter id="305365105">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.filter.rowref.RowFilterRefNodeSettings"/>
-                <message_argument value="org.knime.base_5.5.0"/>
-            </message_arguments>
-        </filter>
-    </resource>
     <resource path="src/org/knime/base/node/preproc/filter/rowref/RowSplitRefNodeFactory.java" type="org.knime.base.node.preproc.filter.rowref.RowSplitRefNodeFactory">
         <filter id="337768515">
             <message_arguments>
