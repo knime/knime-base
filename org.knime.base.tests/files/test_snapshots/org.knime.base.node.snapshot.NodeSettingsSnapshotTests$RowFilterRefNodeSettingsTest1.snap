@@ -1,9 +1,9 @@
 {
   "data" : {
     "model" : {
-      "dataColumn" : "<row-keys>",
-      "referenceColumn" : "<row-keys>",
-      "inexclude" : "INCLUDE",
+      "dataColumn" : "column1",
+      "referenceColumn" : "column1",
+      "inexclude" : "EXCLUDE",
       "updateDomains" : false
     }
   },

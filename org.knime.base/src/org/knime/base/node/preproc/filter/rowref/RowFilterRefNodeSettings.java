@@ -48,12 +48,16 @@
  */
 package org.knime.base.node.preproc.filter.rowref;
 
+import java.util.List;
+
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.settingsmodel.SettingsModelBooleanPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.settingsmodel.SettingsModelColumnNamePersistor;
@@ -72,7 +76,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  */
 @SuppressWarnings("restriction")
 public final class RowFilterRefNodeSettings implements DefaultNodeSettings {
-
 
     @Persist(customPersistor = SettingsModelColumnNamePersistor.class, configKey = "dataTableColumn")
     @Widget(title = "Data column",
@@ -93,13 +96,48 @@ public final class RowFilterRefNodeSettings implements DefaultNodeSettings {
     @ValueSwitchWidget
     IncludeOrExcludeRows m_inexclude = IncludeOrExcludeRows.INCLUDE;
 
-    @Persist(customPersistor = SettingsModelBooleanPersistor.class)
+    @Persist(customPersistor = UpdateDomainsPersistor.class)
     @Widget( //
         title = "Update domains of all columns", //
         description = "Advanced setting to enable recomputation of the domains of all columns in the output table " //
             + "such that the domains' bounds exactly match the bounds of the data in the output table.", //
         advanced = true)
     boolean m_updateDomains;
+
+    static final class UpdateDomainsPersistor implements FieldNodeSettingsPersistor<Boolean> {
+
+        NodeSettingsPersistorWithConfigKey<Boolean> m_settingsModelBooleanPersistor;
+
+        static final String CFG_KEY = "updateDomains";
+
+        UpdateDomainsPersistor() {
+            m_settingsModelBooleanPersistor = new SettingsModelBooleanPersistor();
+            m_settingsModelBooleanPersistor.setConfigKey(CFG_KEY);
+        }
+
+        @Override
+        public Boolean load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return m_settingsModelBooleanPersistor.load(settings);
+        }
+
+        @Override
+        public List<ConfigsDeprecation<Boolean>> getConfigsDeprecations() {
+            return List.of(ConfigsDeprecation.builder(settings -> false)
+                .withMatcher(settings -> !settings.containsKey(CFG_KEY)).build());
+        }
+
+        @Override
+        public void save(final Boolean obj, final NodeSettingsWO settings) {
+            m_settingsModelBooleanPersistor.save(obj, settings);
+        }
+
+
+        @Override
+        public String[] getConfigKeys() {
+            return new String[] { CFG_KEY };
+        }
+
+    }
 
     enum IncludeOrExcludeRows {
             @Label("Include")
