@@ -33,21 +33,21 @@
           "fixedSteps" : {
             "oneOf" : [ {
               "const" : "INTERVAL_AND_END",
-              "title" : "Duration & end"
+              "title" : "Interval to end"
             }, {
               "const" : "NUMBER_AND_END",
-              "title" : "Number & end"
+              "title" : "Count to end"
             }, {
               "const" : "NUMBER_AND_INTERVAL",
-              "title" : "Number & duration"
+              "title" : "Count with interval"
             } ],
             "title" : "Fixed steps",
-            "description" : "How the rows are created.\n<ul>\n<li><b>Duration &amp; end</b>: The outputs will be evenly spaced, with the specified interval between them, starting at the start date&amp;time and ending at or before the end date&amp;time, depending on whether the interval divides exactly into the range. The number of rows produced in this case is variable and depends on the interval and the range.\n</li>\n<li><b>Number &amp; end</b>: The outputs will be evenly spaced, with the specified number of output values, starting at the the start date&amp;time and ending exactly at the specified end date&amp;time. The number of rows produced in this case is fixed to the number of steps specified.\n</li>\n<li><b>Number &amp; duration</b>: The outputs will be evenly spaced, with the specified interval between them, starting at the start date&amp;time and ending once the specified number of rows have been added. The number of rows produced in this case is fixed to the number of steps specified.\n</li>\n</ul>",
+            "description" : "How the rows are created.\n<ul>\n<li><b>Interval to end</b>: The outputs will be evenly spaced, with the specified interval between them, starting at the start date&amp;time and ending at or before the end date&amp;time, depending on whether the interval divides exactly into the range. The number of rows produced in this case is variable and depends on the interval and the range.\n</li>\n<li><b>Count to end</b>: The outputs will be evenly spaced, with the specified number of output values, starting at the the start date&amp;time and ending exactly at the specified end date&amp;time. The number of rows produced in this case is fixed to the number of steps specified.\n</li>\n<li><b>Count with interval</b>: The outputs will be evenly spaced, with the specified interval between them, starting at the start date&amp;time and ending once the specified number of rows have been added. The number of rows produced in this case is fixed to the number of steps specified.\n</li>\n</ul>",
             "default" : "INTERVAL_AND_END"
           },
           "interval" : {
             "type" : "object",
-            "title" : "Duration",
+            "title" : "Interval between rows",
             "description" : "The interval between the created rows.\n",
             "default" : "P0Y0M0W1D"
           },

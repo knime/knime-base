@@ -162,7 +162,7 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
     long m_numberOfRows = 1000;
 
     @Layout(value = RangeSettingsSection.class)
-    @Widget(title = "Duration", description = """
+    @Widget(title = "Interval between rows", description = """
             The interval between the created rows.
             """)
     @IntervalWidget(typeProvider = DurationTypeStateProvider.class)
@@ -217,20 +217,20 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
 
     enum FixedSteps {
 
-            @Label(value = "Duration & end", description = """
+            @Label(value = "Interval to end", description = """
                     The outputs will be evenly spaced, with the specified interval between them, starting at the \
                     start date&amp;time and ending at or before the end date&amp;time, depending on whether the \
                     interval divides exactly into the range. The number of rows produced in this case is variable and \
                     depends on the interval and the range.
                     """)
             INTERVAL_AND_END, //
-            @Label(value = "Number & end", description = """
+            @Label(value = "Count to end", description = """
                     The outputs will be evenly spaced, with the specified number of output values, starting at the \
                     the start date&amp;time and ending exactly at the specified end date&amp;time. The number of rows \
                     produced in this case is fixed to the number of steps specified.
                     """)
             NUMBER_AND_END, //
-            @Label(value = "Number & duration", description = """
+            @Label(value = "Count with interval", description = """
                     The outputs will be evenly spaced, with the specified interval between them, starting at the \
                     start date&amp;time and ending once the specified number of rows have been added. The number \
                     of rows produced in this case is fixed to the number of steps specified.
