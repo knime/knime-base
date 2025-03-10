@@ -642,7 +642,11 @@
             deprecated="true"/>
       <node
             category-path="/manipulation/column/column-split+combine"
+            deprecated="true"
             factory-class="org.knime.base.node.preproc.split2.SplitNodeFactory2"/>
+      <node
+            category-path="/manipulation/column/column-split+combine"
+            factory-class="org.knime.base.node.preproc.split3.ColumnSplitNodeFactory3" />
       <node
             category-path="/manipulation/column/column-split+combine"
             factory-class="org.knime.base.node.preproc.columnappend.ColumnAppenderNodeFactory"
