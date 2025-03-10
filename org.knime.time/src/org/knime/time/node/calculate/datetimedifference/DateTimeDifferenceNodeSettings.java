@@ -54,9 +54,9 @@ import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.time.localdate.LocalDateCellFactory;
@@ -83,6 +83,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.Effe
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.Granularity;
@@ -167,9 +169,10 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Granularity", description = "The unit of the output column when converting to a number.")
     @Layout(OutputSettingsSection.class)
     @Effect(predicate = OutputType.IsNumber.class, type = EffectType.SHOW)
-    @ChoicesWidget(choicesProvider = ApplicableGranularitiesProvider.class)
+    @ChoicesWidget(choicesProvider = ApplicableGranularitiesChoicesProvider.class)
+    @ValueProvider(FirstChoiceOnChoicesChangeWhenMissing.class)
     @ValueReference(GranularityRef.class)
-    String m_granularity = Granularity.SECOND.name();
+    Granularity m_granularity = Granularity.SECOND;
 
     @Widget(title = "Output number type", description = "The type of the output number column.")
     @Layout(OutputSettingsSection.class)
@@ -412,7 +415,7 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
             DECIMALS; //
     }
 
-    static class ApplicableGranularitiesProvider implements StringChoicesStateProvider {
+    static final class ApplicableGranularitiesProvider implements StateProvider<Granularity[]> {
 
         private Supplier<ColumnSelection> m_firstColumn;
 
@@ -423,7 +426,7 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public IdAndText[] computeState(final DefaultNodeSettingsContext context) {
+        public Granularity[] computeState(final DefaultNodeSettingsContext context) {
             var firstSelectedColumn = m_firstColumn.get().m_selected;
 
             // if the first selected column exists in the table and is a local date,
@@ -438,27 +441,60 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
                 if (firstColumnType.equals(LocalDateCellFactory.TYPE)) {
                     return Arrays.stream(Granularity.values()) //
                         .filter(g -> g.getChronoUnit().isDateBased()) //
-                        .map(ApplicableGranularitiesProvider::fromGranularity) //
-                        .toArray(IdAndText[]::new);
+                        .toArray(Granularity[]::new);
                 } else if (firstColumnType.equals(LocalTimeCellFactory.TYPE)) {
                     return Arrays.stream(Granularity.values()) //
                         .filter(g -> g.getChronoUnit().isTimeBased()) //
-                        .map(ApplicableGranularitiesProvider::fromGranularity) //
-                        .toArray(IdAndText[]::new);
+                        .toArray(Granularity[]::new);
                 }
             }
+            return Granularity.values();
 
-            return Arrays.stream(Granularity.values()) //
-                .map(ApplicableGranularitiesProvider::fromGranularity) //
-                .toArray(IdAndText[]::new);
+        }
+
+    }
+
+    static final class ApplicableGranularitiesChoicesProvider implements StringChoicesStateProvider {
+        private Supplier<Granularity[]> m_applicableGranularities;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            m_applicableGranularities = initializer.computeFromProvidedState(ApplicableGranularitiesProvider.class);
         }
 
         private static IdAndText fromGranularity(final Granularity granularity) {
             return new IdAndText(granularity.name(), granularity.toString());
         }
+
+        @Override
+        public IdAndText[] computeState(final DefaultNodeSettingsContext context) {
+            return Arrays.stream(m_applicableGranularities.get()) //
+                .map(ApplicableGranularitiesChoicesProvider::fromGranularity) //
+                .toArray(IdAndText[]::new);
+        }
+
     }
 
-    static final class GranularityRef implements Reference<String> {
+    static final class FirstChoiceOnChoicesChangeWhenMissing implements StateProvider<Granularity> {
+        private Supplier<Granularity[]> m_applicableGranularities;
+
+        private Supplier<Granularity> m_currentGranularity;
+
+        @Override
+        public void init(final StateProviderInitializer i) {
+            m_applicableGranularities = i.computeFromProvidedState(ApplicableGranularitiesProvider.class);
+            m_currentGranularity = i.getValueSupplier(GranularityRef.class);
+        }
+
+        @Override
+        public Granularity computeState(final DefaultNodeSettingsContext context) {
+            final var currentGranularity = m_currentGranularity.get();
+            final var granularities = m_applicableGranularities.get();
+            return ArrayUtils.contains(granularities, currentGranularity) ? currentGranularity : granularities[0];
+        }
+    }
+
+    static final class GranularityRef implements Reference<Granularity> {
     }
 
     static final class OutputTypeIsNumberAndSelectedGranularitySupportsDecimals implements PredicateProvider {
@@ -466,13 +502,11 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
         @Override
         public Predicate init(final PredicateInitializer i) {
             var isNumber = i.getPredicate(OutputType.IsNumber.class);
-            var granularitySupportsDecimals = i.getString(GranularityRef.class)
-                .matchesPattern(Arrays.stream(Granularity.values()) //
-                    .filter(Granularity::supportsExactDifferences) //
-                    .map(Enum::name) //
-                    .collect(Collectors.joining("|")));
-            return isNumber //
-                .and(granularitySupportsDecimals);
+            var granularitySupportsDecimals = i.getEnum(GranularityRef.class).isOneOf(//
+                Arrays.stream(Granularity.values()) //
+                    .filter(Granularity::supportsExactDifferences)//
+                    .toArray(Granularity[]::new));
+            return and(isNumber, granularitySupportsDecimals);
         }
     }
 }

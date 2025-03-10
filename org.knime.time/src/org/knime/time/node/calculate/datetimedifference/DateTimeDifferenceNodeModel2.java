@@ -172,8 +172,7 @@ public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDiffere
         final DateTimeDifferenceNodeSettings settings) {
 
         var selectedFirstColumnSpec = inSpec.getColumnSpec(settings.m_firstColumnSelection.m_selected);
-        var selectedGranularitySupportsExactDifferences =
-            Granularity.valueOf(settings.m_granularity).supportsExactDifferences();
+        var selectedGranularitySupportsExactDifferences = settings.m_granularity.supportsExactDifferences();
 
         var type = switch (settings.m_outputType) {
             case DURATION_OR_PERIOD -> selectedFirstColumnSpec.getType().equals(LocalDateCellFactory.TYPE) //
@@ -311,8 +310,7 @@ public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDiffere
 
         var negate = settings.m_mode == Mode.FIRST_MINUS_SECOND;
 
-        var granularitySupportsExactDifferences =
-            Granularity.valueOf(settings.m_granularity).supportsExactDifferences();
+        var granularitySupportsExactDifferences = settings.m_granularity.supportsExactDifferences();
 
         return switch (settings.m_outputType) {
             case DURATION_OR_PERIOD -> start instanceof LocalDate //
@@ -365,17 +363,17 @@ public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDiffere
         return PeriodCellFactory.create(negate ? period.negated() : period);
     }
 
-    private static DataCell longCellBetween(final Temporal start, final Temporal end, final String unit,
+    private static DataCell longCellBetween(final Temporal start, final Temporal end, final Granularity unit,
         final boolean negate) {
-        return LongCellFactory.create(Granularity.valueOf(unit).between(start, end) * (negate ? -1 : 1));
+        return LongCellFactory.create(unit.between(start, end) * (negate ? -1 : 1));
     }
 
     /**
      * Will error for date-based granularity units! But the settings dialogue should prevent that, unless the user
      * manually overrides the settings with a flow variable.
      */
-    private static DataCell doubleBetween(final Temporal start, final Temporal end, final String unit,
+    private static DataCell doubleBetween(final Temporal start, final Temporal end, final Granularity unit,
         final boolean negate) {
-        return DoubleCellFactory.create(Granularity.valueOf(unit).betweenExact(start, end) * (negate ? -1 : 1));
+        return DoubleCellFactory.create(unit.betweenExact(start, end) * (negate ? -1 : 1));
     }
 }

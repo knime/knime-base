@@ -307,7 +307,7 @@ final class DateTimeDifferenceNodeModel2Test {
         settings.m_secondDateTimeValueType = SecondDateTimeValueType.PREVIOUS_ROW;
         settings.m_outputType = OutputType.NUMBER;
         settings.m_outputNumberType = OutputNumberType.DECIMALS;
-        settings.m_granularity = unit.name();
+        settings.m_granularity = unit;
 
         var setup = setupAndExecuteWorkflow(settings, table);
         var amount = ((DoubleValue)setup.lastAppendedCell).getDoubleValue();
@@ -340,7 +340,7 @@ final class DateTimeDifferenceNodeModel2Test {
         settings.m_secondDateTimeValueType = SecondDateTimeValueType.PREVIOUS_ROW;
         settings.m_outputType = OutputType.NUMBER;
         settings.m_outputNumberType = OutputNumberType.NO_DECIMALS;
-        settings.m_granularity = unit.name();
+        settings.m_granularity = unit;
 
         var setup = setupAndExecuteWorkflow(settings, table);
         var amount = ((LongValue)setup.lastAppendedCell).getLongValue();
@@ -488,7 +488,7 @@ final class DateTimeDifferenceNodeModel2Test {
         settings.m_mode = negated ? Mode.FIRST_MINUS_SECOND : Mode.SECOND_MINUS_FIRST;
         settings.m_outputType = OutputType.NUMBER;
         settings.m_outputNumberType = OutputNumberType.DECIMALS;
-        settings.m_granularity = unit.name();
+        settings.m_granularity = unit;
 
         var setup = setupAndExecuteWorkflow(settings, table);
         var amount = ((DoubleValue)setup.lastAppendedCell).getDoubleValue();
@@ -512,7 +512,7 @@ final class DateTimeDifferenceNodeModel2Test {
         settings.m_mode = negated ? Mode.FIRST_MINUS_SECOND : Mode.SECOND_MINUS_FIRST;
         settings.m_outputType = OutputType.NUMBER;
         settings.m_outputNumberType = OutputNumberType.NO_DECIMALS;
-        settings.m_granularity = unit.name();
+        settings.m_granularity = unit;
 
         var setup = setupAndExecuteWorkflow(settings, table);
         var amount = ((LongValue)setup.lastAppendedCell).getLongValue();
@@ -630,7 +630,7 @@ final class DateTimeDifferenceNodeModel2Test {
 
         settings.m_outputType = OutputType.NUMBER;
         settings.m_outputNumberType = OutputNumberType.DECIMALS;
-        settings.m_granularity = unit.name();
+        settings.m_granularity = unit;
         settings.m_mode = negated ? Mode.FIRST_MINUS_SECOND : Mode.SECOND_MINUS_FIRST;
 
         var setup = setupAndExecuteWorkflow(settings, table);
@@ -655,7 +655,7 @@ final class DateTimeDifferenceNodeModel2Test {
 
         settings.m_outputType = OutputType.NUMBER;
         settings.m_outputNumberType = OutputNumberType.NO_DECIMALS;
-        settings.m_granularity = unit.name();
+        settings.m_granularity = unit;
         settings.m_mode = negated ? Mode.FIRST_MINUS_SECOND : Mode.SECOND_MINUS_FIRST;
 
         var setup = setupAndExecuteWorkflow(settings, table);

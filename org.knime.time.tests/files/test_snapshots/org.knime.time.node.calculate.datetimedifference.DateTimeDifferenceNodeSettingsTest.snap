@@ -51,7 +51,37 @@
             }
           },
           "granularity" : {
-            "type" : "string",
+            "oneOf" : [ {
+              "const" : "YEAR",
+              "title" : "Year"
+            }, {
+              "const" : "MONTH",
+              "title" : "Month"
+            }, {
+              "const" : "WEEK",
+              "title" : "Week"
+            }, {
+              "const" : "DAY",
+              "title" : "Day"
+            }, {
+              "const" : "HOUR",
+              "title" : "Hour"
+            }, {
+              "const" : "MINUTE",
+              "title" : "Minute"
+            }, {
+              "const" : "SECOND",
+              "title" : "Second"
+            }, {
+              "const" : "MILLISECOND",
+              "title" : "Millisecond"
+            }, {
+              "const" : "MICROSECOND",
+              "title" : "Microsecond"
+            }, {
+              "const" : "NANOSECOND",
+              "title" : "Nanosecond"
+            } ],
             "title" : "Granularity",
             "description" : "The unit of the output column when converting to a number.",
             "default" : "SECOND"
@@ -2203,7 +2233,7 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/granularity",
         "options" : {
-          "choicesProvider" : "org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings$ApplicableGranularitiesProvider",
+          "choicesProvider" : "org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings$ApplicableGranularitiesChoicesProvider",
           "format" : "dropDown",
           "showNoneColumn" : false,
           "showRowKeys" : false,
@@ -2241,7 +2271,19 @@
             }, {
               "scope" : "#/properties/model/properties/granularity",
               "schema" : {
-                "pattern" : "HOUR|MINUTE|SECOND|MILLISECOND|MICROSECOND|NANOSECOND"
+                "oneOf" : [ {
+                  "const" : "HOUR"
+                }, {
+                  "const" : "MINUTE"
+                }, {
+                  "const" : "SECOND"
+                }, {
+                  "const" : "MILLISECOND"
+                }, {
+                  "const" : "MICROSECOND"
+                }, {
+                  "const" : "NANOSECOND"
+                } ]
               }
             } ]
           }
@@ -2291,8 +2333,15 @@
     }
   },
   "initialUpdates" : [ {
+    "scopes" : [ "#/properties/model/properties/granularity" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "SECOND"
+    } ]
+  }, {
     "scopes" : null,
-    "id" : "org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings$ApplicableGranularitiesProvider",
+    "id" : "org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings$ApplicableGranularitiesChoicesProvider",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
@@ -2339,6 +2388,9 @@
     "dependencies" : [ {
       "scopes" : [ "#/properties/model/properties/firstColumnSelection" ],
       "id" : "org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings$FirstColumnSelectionRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/granularity" ],
+      "id" : "org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings$GranularityRef"
     } ]
   } ]
 }
