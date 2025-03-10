@@ -93,5 +93,5 @@ final class DurationPeriodFormatManagerNodeSettings implements DefaultNodeSettin
     @Widget(title = "Alignment suggestion",
         description = "Position value horizontally in compatible views like the Table View.")
     @ValueSwitchWidget
-    AlignmentSuggestionOption m_alignment = AlignmentSuggestionOption.RIGHT;
+    AlignmentSuggestionOption m_alignment = AlignmentSuggestionOption.LEFT;
 }

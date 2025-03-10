@@ -20,7 +20,7 @@
         }
       },
       "format" : "ISO",
-      "alignment" : "RIGHT"
+      "alignment" : "LEFT"
     }
   },
   "schema" : {
@@ -42,7 +42,7 @@
             } ],
             "title" : "Alignment suggestion",
             "description" : "Position value horizontally in compatible views like the Table View.\n<ul>\n<li><b>Left</b>: Align the text to the left.</li>\n<li><b>Center</b>: Center the text.</li>\n<li><b>Right</b>: Align the text to the right.</li>\n</ul>",
-            "default" : "RIGHT"
+            "default" : "LEFT"
           },
           "columnFilter" : {
             "type" : "object",
