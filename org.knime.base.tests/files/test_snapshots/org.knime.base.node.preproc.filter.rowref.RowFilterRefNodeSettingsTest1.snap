@@ -1,9 +1,9 @@
 {
   "data" : {
     "model" : {
-      "dataColumn" : "<row-keys>",
-      "referenceColumn" : "<row-keys>",
-      "inexclude" : "INCLUDE",
+      "dataColumn" : "column1",
+      "referenceColumn" : "column1",
+      "inexclude" : "EXCLUDE",
       "updateDomains" : false
     }
   },
@@ -53,11 +53,11 @@
       "scope" : "#/properties/model/properties/dataColumn",
       "options" : {
         "possibleValues" : [ {
-          "id" : "test1",
-          "text" : "test1"
+          "id" : "A",
+          "text" : "A"
         }, {
-          "id" : "test2",
-          "text" : "test2"
+          "id" : "B",
+          "text" : "B"
         } ],
         "format" : "dropDown",
         "showNoneColumn" : false,
@@ -70,11 +70,8 @@
       "scope" : "#/properties/model/properties/referenceColumn",
       "options" : {
         "possibleValues" : [ {
-          "id" : "test1",
-          "text" : "test1"
-        }, {
-          "id" : "test2",
-          "text" : "test2"
+          "id" : "C",
+          "text" : "C"
         } ],
         "format" : "dropDown",
         "showNoneColumn" : false,

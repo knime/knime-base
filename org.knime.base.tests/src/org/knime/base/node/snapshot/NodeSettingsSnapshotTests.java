@@ -50,8 +50,6 @@ package org.knime.base.node.snapshot;
 
 import static org.knime.base.node.snapshot.TestTableSpecUtil.createDefaultTestTableSpec;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.Map;
 
 import org.junit.jupiter.api.Nested;
@@ -70,7 +68,6 @@ import org.knime.base.node.preproc.double2int2.DoubleToIntNodeSettings;
 import org.knime.base.node.preproc.duplicates.DuplicateRowFilterDialogSettings;
 import org.knime.base.node.preproc.filter.column.ColumnFilterNodeSettings;
 import org.knime.base.node.preproc.filter.columnref.ColumnFilterRefNodeSettings;
-import org.knime.base.node.preproc.filter.rowref.RowFilterRefNodeSettings;
 import org.knime.base.node.preproc.rounddouble.RoundDoubleNodeSettings;
 import org.knime.base.node.preproc.rowagg.RowAggregatorSettings;
 import org.knime.base.node.preproc.rowtocolumnheader.RowToColumnHeaderSettings;
@@ -86,12 +83,8 @@ import org.knime.base.node.preproc.unpivot2.Unpivot2NodeSettings;
 import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings;
 import org.knime.base.node.viz.format.number.NumberFormatManagerNodeSettings;
 import org.knime.base.node.viz.format.string.StringFormatManagerNodeSettings;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettings;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
-import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
  *
@@ -211,33 +204,6 @@ class NodeSettingsSnapshotTests { // NOSONAR
     class RowAggregatorSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected RowAggregatorSettingsTest() {
             super(Map.of(SettingsType.MODEL, RowAggregatorSettings.class), createDefaultTestTableSpec());
-        }
-    }
-
-    @Nested
-    class RowFilterRefNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
-        protected RowFilterRefNodeSettingsTest() {
-            super(SnapshotTestConfiguration.builder()//
-                .addInputTableSpec(createDefaultTestTableSpec()) //
-                .addInputTableSpec(createDefaultTestTableSpec()) //
-                .testJsonFormsForModel(RowFilterRefNodeSettings.class)//
-                .testJsonFormsForModel(readLegacySettings())//
-                .build());
-        }
-
-        private static RowFilterRefNodeSettings readLegacySettings() {
-            try {
-                var path = getSnapshotPath(RowFilterRefNodeSettings.class).getParent().resolve("node_settings")
-                    .resolve("RowFilterRefNodeSettings.xml");
-                try (var fis = new FileInputStream(path.toFile())) {
-                    var nodeSettings = NodeSettings.loadFromXML(fis);
-                    return DefaultNodeSettings.loadSettings(
-                        nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
-                        RowFilterRefNodeSettings.class);
-                }
-            } catch (IOException | InvalidSettingsException e) {
-                throw new RuntimeException(e);
-            }
         }
     }
 

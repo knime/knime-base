@@ -51,8 +51,12 @@ package org.knime.base.node.preproc.filter.rowref;
 import java.io.FileInputStream;
 import java.io.IOException;
 
+import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.def.IntCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
@@ -65,12 +69,18 @@ import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 @SuppressWarnings("restriction")
 final class RowFilterRefNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
+    private static final PortObjectSpec[] TEST_SPEC = new PortObjectSpec[]{
+        new DataTableSpec(new DataColumnSpecCreator("A", IntCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("B", IntCell.TYPE).createSpec()),
+        new DataTableSpec(new DataColumnSpecCreator("C", IntCell.TYPE).createSpec())};
+
     RowFilterRefNodeSettingsTest() {
         super(getConfig());
     }
 
     private static SnapshotTestConfiguration getConfig() {
         return SnapshotTestConfiguration.builder() //
+            .withInputPortObjectSpecs(TEST_SPEC) //
             .testJsonFormsForModel(RowFilterRefNodeSettings.class) //
             .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
             .testNodeSettingsStructure(() -> readSettings()) //
