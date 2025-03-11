@@ -65,11 +65,11 @@ public final class DurationToNumberNodeFactory2 extends WebUINodeFactory<Duratio
     }
 
     private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
-        .name("Duration to Number") //
+        .name("Duration (time-based) to Number") //
         .icon("durationtonumber.png") //
-        .shortDescription("Converts a duration to a number.") //
+        .shortDescription("Converts a time-based duration to a number.") //
         .fullDescription("""
-                Converts a duration to the selected field and appends the value as a long or double \
+                Converts a time-based duration to the selected field and appends the value as a long or double \
                 column. Valid fields are hours, minutes, seconds, nano-, micro- and milliseconds. If \
                 the output should be a long value the conversion result will be truncated, e.g. if \
                 the duration <i>1 hour 30 minutes</i> should be converted to  hours, the exact output \
