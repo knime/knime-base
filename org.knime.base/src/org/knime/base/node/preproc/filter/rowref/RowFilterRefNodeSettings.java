@@ -77,13 +77,13 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColu
 public final class RowFilterRefNodeSettings implements DefaultNodeSettings {
 
     @Persistor(DataColumnPersistor.class)
-    @Widget(title = "Data column (in table 1)",
+    @Widget(title = "Data column (in top/first input)",
         description = "The column from the table to be filtered that should be used for comparison.")
     @ChoicesWidget(choices = DataColumnChoices.class, showRowKeysColumn = true)
     String m_dataColumn = SpecialColumns.ROWID.getId();
 
     @Persistor(ReferenceColumnPersistor.class)
-    @Widget(title = "Reference column (in table 2)",
+    @Widget(title = "Reference column (in bottom/second input)",
         description = "The column from the filter table that should be used for comparison.")
     @ChoicesWidget(choices = ReferenceColumnChoices.class, showRowKeysColumn = true)
     String m_referenceColumn = SpecialColumns.ROWID.getId();

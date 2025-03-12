@@ -14,13 +14,13 @@
         "properties" : {
           "dataColumn" : {
             "type" : "string",
-            "title" : "Data column (in table 1)",
-            "description" : "The column from the table to be filtered that should be used for comparison.",
+            "title" : "Data column (in top/first input)",
+            "description" : "The column from the table to be split that should be used for comparison.",
             "default" : "<row-keys>"
           },
           "referenceColumn" : {
             "type" : "string",
-            "title" : "Reference column (in table 2)",
+            "title" : "Reference column (in bottom/second input)",
             "description" : "The column from the filter table that should be used for comparison.",
             "default" : "<row-keys>"
           },
