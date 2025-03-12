@@ -96,8 +96,8 @@
           "localDateTimeFixed" : {
             "type" : "string",
             "format" : "date-time",
-            "title" : "Date&time",
-            "description" : "The fixed date&amp;time to calculate the difference to.",
+            "title" : "Local date&amp;time",
+            "description" : "The fixed local date&amp;time to calculate the difference to.",
             "default" : "2020-01-01T14:00:00.123456789"
           },
           "localTimeFixed" : {
@@ -116,7 +116,7 @@
               "title" : "First minus second"
             } ],
             "title" : "Mode",
-            "description" : "The mode in which the date&amp; time values are subtracted from each other: either subtract the second value from the first, or subtract the first from the second.\n",
+            "description" : "The mode in which the date&amp;time values are subtracted from each other: either subtract the second value from the first, or subtract the first from the second.\n",
             "default" : "SECOND_MINUS_FIRST"
           },
           "outputColumnName" : {
@@ -134,7 +134,7 @@
               "title" : "Decimals"
             } ],
             "title" : "Output number type",
-            "description" : "The type of the output number column.\n<ul>\n<li><b>No decimals</b>: The output column will be an integer. Applicable for all granularities.\n</li>\n<li><b>Decimals</b>: The output column will be a floating decimal number. Not applicable for date-based granularities.\n</li>\n</ul>",
+            "description" : "The type of the numeric output column.\n<ul>\n<li><b>No decimals</b>: The output column will be an integer. Applicable for all granularities.\n</li>\n<li><b>Decimals</b>: The output column will be a floating decimal number. Not applicable for date-based granularities.\n</li>\n</ul>",
             "default" : "NO_DECIMALS"
           },
           "outputType" : {
@@ -163,7 +163,7 @@
               }
             },
             "title" : "Second date&time column",
-            "description" : "The date&amp;time column that is subtracted from the first column, or vice versa, with the direction depending on the 'mode' option.\n",
+            "description" : "The second date&amp;time column to calculate the difference to.\n",
             "default" : {
               "selected" : "localTimeTest",
               "compatibleTypes" : [ "org.knime.core.data.time.localtime.LocalTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
@@ -190,8 +190,8 @@
           "zonedDateTimeFixed" : {
             "type" : "string",
             "format" : "date-time",
-            "title" : "Zoned date time",
-            "description" : "The fixed date&amp;time&amp;zone to calculate the difference to.",
+            "title" : "Zoned date&amp;time",
+            "description" : "The fixed zoned date&amp;time to calculate the difference to.",
             "default" : {
               "dateTime" : "2020-01-01T14:00:00.123456789",
               "timeZone" : "Europe/Berlin"

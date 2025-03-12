@@ -105,36 +105,36 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
     }
 
     @Widget(title = "Output type", description = """
-            The type to create can be selected. It can be either a Local Date, Local Time, Local Date Time, \
-            or Zoned Date Time.
+            The type to create can be selected. It can be either a Date, Time, Date&amp;time (Local), \
+            or Date&amp;time (Zoned).
             """)
     @ValueReference(DateTimeType.Ref.class)
     @ValueSwitchWidget
     DateTimeType m_outputType = DateTimeType.LOCAL_DATE;
 
     @Widget(title = "Start date", description = """
-            The date at which the date time creation should start, inclusive.
+            The date at which the date&amp;time creation should start, inclusive.
             """)
     @Effect(predicate = IsLocalDateAndNotDisabledStart.class, type = EffectType.SHOW)
     @Layout(StartingPointSettingsSection.class)
     LocalDate m_localDateStart = LocalDate.now().minusYears(1);
 
     @Widget(title = "Start time", description = """
-            The time at which the date time creation should start, inclusive.
+            The time at which the date&amp;time creation should start, inclusive.
             """)
     @Effect(predicate = IsLocalTimeAndNotDisabledStart.class, type = EffectType.SHOW)
     @Layout(StartingPointSettingsSection.class)
     LocalTime m_localTimeStart = LocalTime.now().truncatedTo(ChronoUnit.SECONDS).minusHours(1);
 
-    @Widget(title = "Start date time", description = """
-            The date&amp;time at which the date time creation should start, inclusive.
+    @Widget(title = "Start local date&amp;time", description = """
+            The local date&amp;time at which the date&amp;time creation should start, inclusive.
             """)
     @Effect(predicate = IsLocalDateTimeAndNotDisabledStart.class, type = EffectType.SHOW)
     @Layout(StartingPointSettingsSection.class)
     LocalDateTime m_localDateTimeStart = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS).minusYears(1);
 
-    @Widget(title = "Start zoned date time", description = """
-            The date&amp;time&amp;zone at which the date time creation should start, \
+    @Widget(title = "Start zoned date&amp;time", description = """
+            The zoned date&amp;time at which the date&amp;time creation should start, \
             inclusive.
             """)
     @Effect(predicate = IsZonedDateTimeAndNotDisabledStart.class, type = EffectType.SHOW)
@@ -170,7 +170,7 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
     Interval m_interval = DateInterval.of(0, 0, 0, 1);
 
     @Widget(title = "End date", description = """
-            The date at which the date time creation should stop. The end date is inclusive, except \
+            The date at which the date&amp;time creation should stop. The end date is inclusive, except \
             if the output mode is 'Number and Duration' and the provided interval does not divide \
             evenly between the start and end date.
             """)
@@ -179,7 +179,7 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
     LocalDate m_localDateEnd = LocalDate.now();
 
     @Widget(title = "End time", description = """
-            The time at which the date time creation should stop. The end time is inclusive, except \
+            The time at which the date&amp;time creation should stop. The end time is inclusive, except \
             if the output mode is 'Number and Duration' and the provided interval does not divide \
             evenly between the start and end time.
             """)
@@ -187,18 +187,18 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
     @Layout(value = EndSettingsSection.class)
     LocalTime m_localTimeEnd = LocalTime.now().truncatedTo(ChronoUnit.SECONDS);
 
-    @Widget(title = "End date time", description = """
-            The date and time at which the date time creation should stop. The end date&amp;time is inclusive, \
-            except if the output mode is 'Number and Duration' and the provided interval does not divide \
+    @Widget(title = "End local date&amp;time", description = """
+            The local date&amp;time at which the date&amp;time creation should stop. The end date&amp;time is \
+            inclusive, except if the output mode is 'Number and Duration' and the provided interval does not divide \
             evenly between the start and end date&amp;time.
             """)
     @Effect(predicate = IsLocalDateTimeAndNotDisabledEnd.class, type = EffectType.SHOW)
     @Layout(value = EndSettingsSection.class)
     LocalDateTime m_localDateTimeEnd = LocalDateTime.now();
 
-    @Widget(title = "End zoned date time", description = """
-            The date and time and zone at which the date time creation should stop. The end date&amp;time \
-            is inclusive,  except if the output mode is 'Number and Duration' and the provided interval \
+    @Widget(title = "End zoned date&amp;time", description = """
+            The zoned date&amp;time at which the date&amp;time creation should stop. The end date&amp;time \
+            is inclusive, except if the output mode is 'Number and Duration' and the provided interval \
             does not divide evenly between the start and end date&amp;time.
             """)
     @Effect(predicate = IsZonedDateTimeAndNotDisabledEnd.class, type = EffectType.SHOW)
@@ -218,21 +218,21 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
     enum FixedSteps {
 
             @Label(value = "Interval to end", description = """
-                    The outputs will be evenly spaced, with the specified interval between them, starting at the \
-                    start date&amp;time and ending at or before the end date&amp;time, depending on whether the \
+                    Outputs evenly spaced date&amp;time rows, with the specified interval between them, starting at \
+                    the start date&amp;time and ending at or before the end date&amp;time, depending on whether the \
                     interval divides exactly into the range. The number of rows produced in this case is variable and \
                     depends on the interval and the range.
                     """)
             INTERVAL_AND_END, //
             @Label(value = "Count to end", description = """
-                    The outputs will be evenly spaced, with the specified number of output values, starting at the \
-                    the start date&amp;time and ending exactly at the specified end date&amp;time. The number of rows \
-                    produced in this case is fixed to the number of steps specified.
+                    Outputs evenly spaced date&amp;time rows, with the specified number of output values, starting at \
+                    the the start date&amp;time and ending exactly at the specified end date&amp;time. The number of \
+                    rows produced in this case is fixed to the number of steps specified.
                     """)
             NUMBER_AND_END, //
             @Label(value = "Count with interval", description = """
-                    The outputs will be evenly spaced, with the specified interval between them, starting at the \
-                    start date&amp;time and ending once the specified number of rows have been added. The number \
+                    Outputs evenly spaced date&amp;time rows, with the specified interval between them, starting at \
+                    the start date&amp;time and ending once the specified number of rows have been added. The number \
                     of rows produced in this case is fixed to the number of steps specified.
                     """)
             NUMBER_AND_INTERVAL;

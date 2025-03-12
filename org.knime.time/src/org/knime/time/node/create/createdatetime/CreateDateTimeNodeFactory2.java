@@ -76,20 +76,14 @@ public final class CreateDateTimeNodeFactory2 extends WebUINodeFactory<CreateDat
         .icon("create_date_time.png") //
         .shortDescription("Generates date&amp;time values.") //
         .fullDescription("""
-                Generates date&amp;time values, i.e. either a date, a time, a date&amp;time \
-                (local) or a zoned date&amp;time. There are three creation modes:
-                <ul>
-                    <li><b>Duration &amp; end</b>: a starting point, an ending point and an interval is \
-                    selected (the number of rows corresponds to how often the interval fits between start and end).</li>
-                    <li><b>Number &amp; end</b>: a number of rows, a starting point, and an ending point \
-                    is selected (the steps in between will be calculated).</li>
-                    <li><b>Number &amp; duration</b>: a number of rows, a starting point and an interval is \
-                    selected (the interval defines the steps between each row).</li>
-                </ul> \
+                Generates sequences of date&amp;time values based on defined parameters. You can create sequences \
+                using three modes: Duration &amp; End (start, end, and interval), Number &amp; End (number of rows, \
+                start, and end), or Number &amp; Duration (number of rows, start, and interval).<br/>\
+                Typically used to generate time series data for simulations, forecasts, or testing.\
                 """) //
         .modelSettingsClass(CreateDateTimeNodeSettings.class) //
-        .addOutputTable("Output table", "Output table with created date range.") //
-        .keywords("create", "date", "date-time", "range", "period", "interval", "duration") //
+        .addOutputTable("Output table", "Output table with created date&amp;time range.") //
+        .keywords("create", "date", "time", "range", "period", "interval", "duration") //
         .build();
 
 }

@@ -68,23 +68,17 @@ public final class DateTimeToStringNodeFactory2 extends WebUINodeFactory<DateTim
     static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
         .name("Date&Time to String") //
         .icon("timetostring.png") //
-        .shortDescription("Converts Date&amp;Time cells into cells holding strings.") //
+        .shortDescription("Converts date&amp;time cells into cells holding strings.") //
         .fullDescription("""
-                <p>
-                    Converts the time values in Date&amp;Time columns into strings
-                    using a user-provided format pattern. See <a href="%s">the
-                    Java documentation</a> for more details about possible format
-                    patterns.
-                </p>
-                <p>
-                    Since dates may contain localized terms such as month or weekday
-                    names, you can additionally specify a locale.
-                </p>
+                Converts date&amp;time values to string representations using a user-defined format pattern. Locales \
+                can be specified to handle localized month or weekday names. Use this node to create customized \
+                date&amp;time string formats.<br/>\
+                Often used to export date&amp;time data in a specific format for reports, files, or external systems.
                 """.formatted(ComprehensiveDateTimeFormatProvider.LINK_TO_FORMAT_JAVADOC)) //
         .modelSettingsClass(DateTimeToStringNodeSettings.class) //
-        .addInputTable("Input table", "Input table.") //
-        .addOutputTable("Output table", "Output table containing columns converted to a string.") //
-        .keywords("covert", "date-time", "string", "local", "format", "hour", "minute", "second", "millisecond", //
+        .addInputTable("Input table", "Input table containing date&amp;time columns.") //
+        .addOutputTable("Output table", "Output table with date&amp;time columns converted to string columns.") //
+        .keywords("convert", "date", "time", "string", "local", "format", "hour", "minute", "second", "millisecond", //
             "year", "month", "week", "day")//
         .build();
 

@@ -75,7 +75,7 @@ import org.knime.time.util.ReplaceOrAppend;
 @SuppressWarnings("restriction")
 public class TimeRoundNodeSettings implements DefaultNodeSettings {
 
-    @Widget(title = "Date&time columns", description = "Only the included columns will be shifted.")
+    @Widget(title = "Date&time columns", description = "The date&amp;time columns whose values are shifted.")
     @ChoicesWidget(choices = DateTimeUtils.TimeColumnProvider.class)
     @Layout(DateTimeRoundNodeLayout.Top.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
@@ -96,17 +96,17 @@ public class TimeRoundNodeSettings implements DefaultNodeSettings {
     @Layout(DateTimeRoundNodeLayout.FirstHorizontal.class)
     RoundTimePrecision m_timeRoundingPrecision = RoundTimePrecision.HOURS_1;
 
-    @Widget(title = "Output columns",
-        description = "Depending on the selection, the selected columns will be replaced "
-            + "or appended to the input table.")
+    @Widget(title = "Output columns", description = """
+            Depending on this setting, the output columns will either replace the modified columns, or be \
+            appended to the table with a suffix.
+                """)
     @ValueSwitchWidget
     @ValueReference(ReplaceOrAppend.ValueRef.class)
     @Layout(DateTimeRoundNodeLayout.Bottom.class)
     ReplaceOrAppend m_replaceOrAppend = ReplaceOrAppend.REPLACE;
 
     @Widget(title = "Output column suffix",
-        description = "The suffix that is appended to the column name. "
-            + "The suffix will be added to the original column name separated by a space.")
+        description = "The suffix to append to the column names of the new columns.")
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
     @Layout(DateTimeRoundNodeLayout.Bottom.class)
     String m_outputColumnSuffix = " (Rounded)";
@@ -127,15 +127,15 @@ public class TimeRoundNodeSettings implements DefaultNodeSettings {
 
     enum TimeRoundingStrategy {
             @Label(value = "First point in time",
-                description = "Round to the first point in time of the selected duration. "
+                description = "Rounds to the first point in time of the selected duration. "
                     + "E.g., rounding 18:45.215 to one hour yields 18:00.")
             FIRST_POINT_IN_TIME, //
             @Label(value = "Last point in time",
-                description = "Round to the last point in time of the selected duration. "
+                description = "Rounds to the last point in time of the selected duration. "
                     + "E.g., rounding 18:45.215 to one hour yields 19:00.")
             LAST_POINT_IN_TIME, //
             @Label(value = "Nearest point in time",
-                description = "Round to the nearest point in time of the selected duration. "
+                description = "Rounds to the nearest point in time of the selected duration. "
                     + "E.g., Last/First is chosen depending on which one is closer to the to be rounded time")
             NEAREST_POINT_IN_TIME;
     }

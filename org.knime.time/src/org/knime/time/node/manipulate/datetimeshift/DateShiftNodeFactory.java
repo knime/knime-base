@@ -67,24 +67,18 @@ public final class DateShiftNodeFactory extends WebUINodeFactory<DateShiftNodeMo
     private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
         .name("Date Shifter") //
         .icon("date-shift.png") //
-        .shortDescription("Shifts a date by a period or granularity.") //
+        .shortDescription("Shifts a date by a duration or granularity.") //
         .fullDescription("""
-                The node shifts a date by a defined period or granularity. \
-                The user can select the date columns to shift and the shift value. \
-                The shift value can be either
-                <ul>
-                  <li>a period column</li>
-                  <li>a numerical column and a granularity</li>
-                  <li>a constant numerical value and a granularity</li>
-                </ul>
-                If the shift value is positive, it is added to the selected \
-                date. A negative value will be subtracted. A numerical value \
-                is interpreted based on the selected granularity.
+                Shifts date columns by a defined duration or granularity. You can select the date columns to shift and \
+                specify the shift value as a duration column, a numerical column with a granularity, or a constant \
+                numerical value with a granularity. Positive values shift the date forward; negative values shift it \
+                backward. Numerical values are interpreted based on the selected granularity.<br/>\
+                Often used to adjust timestamps to account for time zone differences or reporting periods.
                 """) //
         .modelSettingsClass(DateShiftNodeSettings.class) //
-        .addInputTable("Input table", "Input table.") //
+        .addInputTable("Input table", "Input table containing date&amp;time columns.") //
         .addOutputTable("Output table", "Output table with shifted date.") //
-        .keywords("date&time", "shift", "modify", "fields", "day", "month", "week", "year") //
+        .keywords("date", "time", "shift", "modify", "fields", "day", "month", "week", "year") //
         .build();
 
     /**

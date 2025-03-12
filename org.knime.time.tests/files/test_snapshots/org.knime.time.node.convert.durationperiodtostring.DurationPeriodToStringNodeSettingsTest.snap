@@ -39,7 +39,7 @@
               "title" : "Append with suffix"
             } ],
             "title" : "Output columns",
-            "description" : "Depending on this setting, the output columns will either replace the modified columns, or be appended to the table with a suffix.\n\n<ul>\n<li><b>Replace</b>: The selected columns will be replaced by the new columns.</li>\n<li><b>Append with suffix</b>: The selected columns will be appended to the input table with a new name that is the previous name plus the provided suffix.\n</li>\n</ul>",
+            "description" : "Depending on this setting, the output columns will either replace the modified columns, or be appended to the table with a suffix.\n\n<ul>\n<li><b>Replace</b>: Replaces the selected columns by the new columns.</li>\n<li><b>Append with suffix</b>: Appends the selected columns to the input table with a new name that is the previous name plus the provided suffix.\n</li>\n</ul>",
             "default" : "REPLACE"
           },
           "filter" : {
@@ -184,7 +184,7 @@
               "title" : "Single letters"
             } ],
             "title" : "Output format",
-            "description" : "The format of the output string.\n<ul>\n<li><b>ISO 8601</b>: The durations will be formatted using the ISO-8601 representation, e.g. 'P2Y3M5D'.\n</li>\n<li><b>Whole words</b>: The durations will be formatted using words to represent them, e.g. '2 years 3 months 5 days'.\n</li>\n<li><b>Single letters</b>: The durations will be formatted using letters to represent them, e.g. '2y 3M 5d' (Date-based duration: y: years, M: months, d: days; Time-based duration: H: hours, m: minutes, s: seconds).\n</li>\n</ul>",
+            "description" : "The format of the output string.\n<ul>\n<li><b>ISO 8601</b>: Formats the durations using the ISO-8601 representation, e.g. 'P2Y3M5D'.\n</li>\n<li><b>Whole words</b>: Formats the durations using words to represent them, e.g. '2 years 3 months 5 days'.\n</li>\n<li><b>Single letters</b>: Formats the durations using letters to represent them, e.g. '2y 3M 5d' (Date-based duration: y: years, M: months, d: days; Time-based duration: H: hours, m: minutes, s: seconds).\n</li>\n</ul>",
             "default" : "ISO"
           },
           "suffix" : {

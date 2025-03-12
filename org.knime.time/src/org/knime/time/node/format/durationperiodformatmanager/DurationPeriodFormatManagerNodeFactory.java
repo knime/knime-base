@@ -74,14 +74,14 @@ public class DurationPeriodFormatManagerNodeFactory extends WebUINodeFactory<Dur
     private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
         .name("Duration Format Manager") //
         .icon("duration-format-manager.png") //
-        .shortDescription("Attach formatter to Duration/Period cells.") //
+        .shortDescription("Attach formatter to duration cells.") //
         .fullDescription("""
-                This node allows you to attach a formatter to Duration/Period cells in a table. \
-                This does not change the data, only the way that the selected columns are \
-                displayed in views, e.g. the Table View.
+                Attaches a display formatter to duration columns. This node changes how duration values are \
+                displayed in views, such as the Table View, without altering the underlying data.<br/>\
+                Helpful for formatting durations for better readability in reports or data apps.
                 """).modelSettingsClass(DurationPeriodFormatManagerNodeSettings.class) //
         .nodeType(NodeType.Visualizer) //
-        .addInputTable("Input table", "Input table.") //
+        .addInputTable("Input table", "Input table containing duration columns.") //
         .addOutputTable("Output table", "Output table with columns containing the attached formatter") //
         .keywords("duration", "period", "interval", "format", "formatter") //
         .build();

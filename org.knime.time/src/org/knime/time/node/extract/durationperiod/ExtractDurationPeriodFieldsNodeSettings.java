@@ -75,14 +75,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
 class ExtractDurationPeriodFieldsNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Duration column", description = """
-            A Duration or Period column from which to extract the fields.
+            A duration column from which to extract the fields.
             """)
     @ChoicesWidget(choices = SelectedInputColumnHelpers.ColumnChoicesProvider.class)
     @ValueReference(SelectedInputColumnHelpers.ValueRef.class)
     @ValueProvider(SelectedInputColumnHelpers.ValueProvider.class)
     public String m_selectedColumn;
 
-    @Widget(title = "Extracted fields", description = "Define fields to extract and set column names.")
+    @Widget(title = "Extracted fields", description = "Define the fields to extract and their column names.")
     @ArrayWidget( //
         addButtonText = "Add field", //
         showSortButtons = true, //

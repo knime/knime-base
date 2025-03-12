@@ -86,11 +86,11 @@ final class StringToDurationPeriodNodeSettings implements DefaultNodeSettings {
         // default constructor is needed
     }
 
-    @Widget(title = "String columns", description = "The string columns to convert to a duration/period.")
+    @Widget(title = "String columns", description = "The string columns to convert to duration columns.")
     @ChoicesWidget(choices = StringColumnChoicesProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
-    @Widget(title = "Duration type", description = "The type of the duration/period to parse.")
+    @Widget(title = "Duration type", description = "The type of the duration to parse.")
     @ValueSwitchWidget
     DurationPeriodType m_durationType = DurationPeriodType.AUTO_DETECT;
 
@@ -98,32 +98,35 @@ final class StringToDurationPeriodNodeSettings implements DefaultNodeSettings {
     @ValueSwitchWidget
     ActionIfExtractionFails m_actionIfExtractionFails = ActionIfExtractionFails.SET_MISSING;
 
-    @Widget(title = "Output columns",
-        description = "Whether to append a new output column, or replace the input column.")
+    @Widget(title = "Output columns", description = """
+            Depending on this setting, the output columns will either replace the modified columns, or be \
+            appended to the table with a suffix.
+            """)
     @ValueSwitchWidget
     @ValueReference(ReplaceOrAppend.ValueRef.class)
     ReplaceOrAppend m_replaceOrAppend = ReplaceOrAppend.REPLACE;
 
-    @Widget(title = "Output column suffix", description = "The suffix to append to the output column name.")
+    @Widget(title = "Output column suffix",
+        description = "The suffix to append to the column names of the new columns.")
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
     String m_appendedSuffix = " (Duration)";
 
     enum DurationPeriodType {
             @Label(value = "Auto-detected", description = """
-                    Automatically detect whether a date-based or a time-based duration should be \
+                    Detects whether a date-based or time-based duration should be \
                     parsed. The type will be determined based on the first cell in each column \
                     which can be successfully parsed. Automatically detect whether the input is \
                     date-based or time-based.
                     """)
             AUTO_DETECT(null), //
             @Label(value = "Date-based", description = """
-                    All included columns will be converted to date-based duration columns, with \
-                    data type "Period".
+                    Converts all included columns to date-based duration columns, with \
+                    data type "Duration (Date-based)".
                     """)
             PERIOD(PeriodCellFactory.TYPE), //
             @Label(value = "Time-based", description = """
-                    All included columns will be converted to time-based duration columns, with \
-                    data type "Duration".
+                    Converts all included columns to time-based duration columns, with \
+                    data type "Duration (Time-based)".
                     """)
             DURATION(DurationCellFactory.TYPE);
 

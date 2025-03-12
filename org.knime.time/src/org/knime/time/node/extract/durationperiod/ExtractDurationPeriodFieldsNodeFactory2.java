@@ -61,28 +61,21 @@ public final class ExtractDurationPeriodFieldsNodeFactory2
     private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
         .name("Duration Part Extractor") //
         .icon("extractduration.png") //
-        .shortDescription("Extracts duration fields from duration and period cells") //
+        .shortDescription("Extracts duration fields from duration cells") //
         .fullDescription("""
-                <p>
-                Extracts the selected fields from a duration column and appends the values as \
-                long columns. Valid fields are hours, minutes, seconds, milli- micro- and nanoseconds \
-                for a time-based duration and years, months and days for a date-based duration. \
-                </p>
-                <p>
-                Note that for a time-based duration, some subsecond parts can have both a 'part' and an 'all' \
-                variant. The 'all' variant includes all parts of the duration that are smaller than one \
-                second, while the 'part' variant only includes the part that is selected. For example:
-                </p>
-                <ul>
-                    <li><b>Nanos (all subseconds)</b>: Nanoseconds of a duration, \
-                    including all of the subseconds. In other words, a duration of 10.123456789 seconds \
-                    would have 123456789 nanoseconds.</li>
-                    <li><b>Nanos</b>: The nanoseconds component of a duration. In other words, \
-                    a duration of 10.123456789 seconds would have 789 nanoseconds.</li>
-                </ul>
+                Extracts selected fields from duration columns and appends them as long columns. For time-based \
+                durations, fields include hours, minutes, seconds, milliseconds, microseconds, and nanoseconds. \
+                For date-based durations, fields include years, months, and days. For subsecond fields in \
+                time-based durations, there are two extraction options: 'All' and 'Part'. The 'All' variant returns \
+                the total of all subsecond parts combined. For example, if the duration is 10.123456789 seconds, \
+                selecting 'Nanos (All)' would return 123456789 nanoseconds. The 'Part' variant extracts only the \
+                selected subsecond component. In the same example, selecting 'Nanos' would return just the \
+                nanoseconds part, which is 789. This distinction allows for precise control over how subsecond data \
+                is extracted, depending on the level of detail required.<br/>\
+                Useful for decomposing durations into components for detailed analysis or visualization.
                 """) //
         .modelSettingsClass(ExtractDurationPeriodFieldsNodeSettings.class) //
-        .addInputTable("Input table", "Input table.") //
+        .addInputTable("Input table", "The input table that contains columns with duration information to extract.") //
         .addOutputTable("Output table", "Output table containing the extracted fields as appended columns.") //
         .keywords("extract", "duration", "period", "interval", "field", "part", "years", "months", "days", "hours",
             "minutes", "seconds", "milliseconds", "microseconds", "nanoseconds") //

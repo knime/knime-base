@@ -72,7 +72,7 @@ import org.knime.time.util.ReplaceOrAppend;
 @SuppressWarnings("restriction")
 public class DateRoundNodeSettings implements DefaultNodeSettings {
 
-    @Widget(title = "Date&time columns", description = "Only the included columns will be shifted.")
+    @Widget(title = "Date&time columns", description = "The date&amp;time columns whose values are shifted.")
     @ChoicesWidget(choices = DateTimeUtils.DateColumnProvider.class)
     @Layout(DateTimeRoundNodeLayout.Top.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
@@ -108,17 +108,17 @@ public class DateRoundNodeSettings implements DefaultNodeSettings {
     @OverwriteDialogTitle("")
     RoundDatePrecision m_dateRoundingPrecision = RoundDatePrecision.MONTH;
 
-    @Widget(title = "Output columns",
-        description = "Depending on the selection, the selected columns will be replaced "
-            + "or appended to the input table.")
+    @Widget(title = "Output columns", description = """
+            Depending on this setting, the output columns will either replace the modified columns, or be \
+            appended to the table with a suffix.
+                """)
     @ValueSwitchWidget
     @ValueReference(ReplaceOrAppend.ValueRef.class)
     @Layout(DateTimeRoundNodeLayout.Bottom.class)
     ReplaceOrAppend m_replaceOrAppend = ReplaceOrAppend.REPLACE;
 
     @Widget(title = "Output column suffix",
-        description = "The suffix that is appended to the column name. "
-            + "The suffix will be added to the original column name separated by a space.")
+        description = "The suffix to append to the column names of the new columns.")
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
     @Layout(DateTimeRoundNodeLayout.Bottom.class)
     String m_outputColumnSuffix = " (Rounded)";
@@ -173,18 +173,18 @@ public class DateRoundNodeSettings implements DefaultNodeSettings {
              * Shift to the previous value. 12.12.24 rounded to the first day of the 'previous' month will result in
              * 1.11.24.
              */
-            @Label(value = "Previous", description = "Shift to the previous value. 12.12.24 rounded to the "
+            @Label(value = "Previous", description = "Shifts to the previous value. 12.12.24 rounded to the "
                 + "first day of the 'previous' month will result in 1.11.24.")
             PREVIOUS,
             /**
              * Option to not shift the value. Shift to the this value, i.e., no shift at all.
              */
-            @Label(value = "This", description = "Shift to the this value, i.e., no shift at all.")
+            @Label(value = "This", description = "Shifts to the this value, i.e., no shift at all.")
             THIS,
             /**
              * Shift to the next value. 12.12.24 rounded to the first day of the 'next' month will result in 1.1.25.
              */
-            @Label(value = "Next", description = "Shift to the next value. 12.12.24 rounded to the "
+            @Label(value = "Next", description = "Shifts to the next value. 12.12.24 rounded to the "
                 + "first day of the 'next' month will result in 1.1.25.")
             NEXT;
     }

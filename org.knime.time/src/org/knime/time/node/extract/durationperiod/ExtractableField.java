@@ -73,44 +73,44 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 @SuppressWarnings("restriction")
 enum ExtractableField {
 
-        @Label(value = "Years", description = "The years component of a period.")
+        @Label(value = "Years", description = "Extracts the years component of a date-based duration.")
         YEARS(Period.class, (PeriodToLongCellExtractor)Period::getYears, "Years", "Years"), //
-        @Label(value = "Months", description = "The months component of a period.")
+        @Label(value = "Months", description = "Extracts the months component of a date-based duration.")
         MONTHS(Period.class, (PeriodToLongCellExtractor)Period::getMonths, "Months", "Months"), //
-        @Label(value = "Days", description = "The days component of a period.")
+        @Label(value = "Days", description = "Extracts the days component of a date-based duration.")
         DAYS(Period.class, (PeriodToLongCellExtractor)Period::getDays, "Days", "Days"), //
-        @Label(value = "Hours", description = "The hours component of a duration.")
+        @Label(value = "Hours", description = "Extracts the hours component of a time-based duration.")
         HOURS(Duration.class, (DurationToLongCellExtractor)Duration::toHours, "Hours", "Hours"), //
-        @Label(value = "Minutes", description = "The minutes component of a duration.")
+        @Label(value = "Minutes", description = "Extracts the minutes component of a time-based duration.")
         MINUTES(Duration.class, (DurationToLongCellExtractor)Duration::toMinutesPart, "Minutes", "Minutes"), //
-        @Label(value = "Seconds", description = "The seconds component of a duration.")
+        @Label(value = "Seconds", description = "Extracts the seconds component of a time-based duration.")
         SECONDS(Duration.class, (DurationToLongCellExtractor)Duration::toSecondsPart, "Seconds", "Seconds"), //
-        @Label(value = "Millis", description = """
-                The milliseconds component of a duration. In other words, a duration of 10.123456789 \
-                seconds would have 123 milliseconds.
+        @Label(value = "Milliseconds", description = """
+                Extracts the milliseconds component of a time-based duration. In other words, a duration of \
+                10.123456789 seconds would have 123 milliseconds.
                 """)
         MILLIS(Duration.class, (DurationToLongCellExtractor)d -> d.toMillisPart() % 1_000, "Millis", "Milliseconds"), //
-        @Label(value = "Micros (all subseconds)", description = """
-                Microseconds of a duration, including all of the subseconds. In other words, \
+        @Label(value = "Microseconds (all subseconds)", description = """
+                Extracts the microseconds of a time-based duration, including all of the subseconds. In other words, \
                 a duration of 10.123456789 seconds would have 123456 microseconds.
                 """)
         MICROS_ALL(Duration.class, (DurationToLongCellExtractor)d -> d.toNanosPart() / 1_000, "Micros",
             "Microseconds (all subseconds)"), //
-        @Label(value = "Micros", description = """
-                The microseconds component of a duration. In other words, a duration of 10.123456789 \
-                seconds would have 456 microseconds.
+        @Label(value = "Microseconds", description = """
+                Extracts the microseconds component of a time-based duration. In other words, a duration of \
+                10.123456789 seconds would have 456 microseconds.
                 """)
         MICROS_PART(Duration.class, (DurationToLongCellExtractor)d -> (d.toNanosPart() / 1_000) % 1_000, null,
             "Microseconds"), //
-        @Label(value = "Nanos (all subseconds)", description = """
-                Nanoseconds of a duration, including all of the subseconds. In other words, \
+        @Label(value = "Nanoseconds (all subseconds)", description = """
+                Extracts the Nanoseconds of a time-based duration, including all of the subseconds. In other words, \
                 a duration of 10.123456789 seconds would have 123456789 nanoseconds.
                 """)
         NANOS_ALL(Duration.class, (DurationToLongCellExtractor)Duration::toNanosPart, "Nanos",
             "Nanoseconds (all subseconds)"), //
-        @Label(value = "Nanos", description = """
-                The nanoseconds component of a duration. In other words, a duration of 10.123456789 \
-                seconds would have 789 nanoseconds.
+        @Label(value = "Nanoseconds", description = """
+                Extracts the nanoseconds component of a time-based duration. In other words, a duration of \
+                10.123456789 seconds would have 789 nanoseconds.
                 """)
         NANOS_PART(Duration.class, (DurationToLongCellExtractor)d -> d.toNanosPart() % 1_000, null, "Nanoseconds");
 

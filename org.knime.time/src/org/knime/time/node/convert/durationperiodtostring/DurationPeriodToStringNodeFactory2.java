@@ -69,15 +69,16 @@ public final class DurationPeriodToStringNodeFactory2 extends WebUINodeFactory<D
         .icon("durationtostring.png") //
         .shortDescription("Converts a duration to a string.") //
         .fullDescription("""
-                Converts duration or period cells to string cells. The string \
-                representation of these durations can be either ISO 8601, a \
-                short form (using letters), or a long form (using words).
+                Converts duration columns to string representations. Supported formats include ISO 8601, \
+                a short form (using letters), or a long form (using words). This helps make duration data more \
+                readable.<br/>\
+                Often used to display human-readable durations in reports or data apps.
                 """) //
         .modelSettingsClass(DurationPeriodToStringNodeSettings.class) //
-        .addInputTable("Input table", "Input table.") //
-        .addOutputTable("Output table", "Output table with periods/durations converted to strings.") //
-        .keywords("hour", "minute", "second", "millisecond", "duration", "period", "interval", "iso8601",
-            "year", "month", "week", "day") //
+        .addInputTable("Input table", "Input table containing duration columns.") //
+        .addOutputTable("Output table", "Output table with duration columns converted to string columns.") //
+        .keywords("hour", "minute", "second", "millisecond", "duration", "period", "interval", "iso8601", "year",
+            "month", "week", "day") //
         .build();
 
     /**

@@ -123,8 +123,7 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
     SecondDateTimeValueType m_secondDateTimeValueType = SecondDateTimeValueType.COLUMN;
 
     @Widget(title = "Second date&time column", description = """
-            The date&amp;time column that is subtracted from the first column, or vice versa, \
-            with the direction depending on the 'mode' option.
+            The second date&amp;time column to calculate the difference to.
             """)
     @ChoicesWidget(choicesProvider = SecondColumnProvider.class)
     @Layout(DifferencingSettingsSection.class)
@@ -141,18 +140,20 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
     @Layout(DifferencingSettingsSection.class)
     LocalTime m_localTimeFixed = LocalTime.now();
 
-    @Widget(title = "Date&time", description = "The fixed date&amp;time to calculate the difference to.")
+    @Widget(title = "Local date&amp;time",
+        description = "The fixed local date&amp;time to calculate the difference to.")
     @Effect(predicate = FirstColumnIsDateTimeAndFixedDateTime.class, type = EffectType.SHOW)
     @Layout(DifferencingSettingsSection.class)
     LocalDateTime m_localDateTimeFixed = LocalDateTime.now();
 
-    @Widget(title = "Zoned date time", description = "The fixed date&amp;time&amp;zone to calculate the difference to.")
+    @Widget(title = "Zoned date&amp;time",
+        description = "The fixed zoned date&amp;time to calculate the difference to.")
     @Effect(predicate = FirstColumnIsZonedDateTimeAndFixedDateTime.class, type = EffectType.SHOW)
     @Layout(DifferencingSettingsSection.class)
     ZonedDateTime m_zonedDateTimeFixed = ZonedDateTime.now();
 
     @Widget(title = "Mode", description = """
-            The mode in which the date&amp; time values are subtracted from each other: \
+            The mode in which the date&amp;time values are subtracted from each other: \
             either subtract the second value from the first, or subtract the first from \
             the second.
             """)
@@ -174,7 +175,7 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
     @ValueReference(GranularityRef.class)
     Granularity m_granularity = Granularity.SECOND;
 
-    @Widget(title = "Output number type", description = "The type of the output number column.")
+    @Widget(title = "Output number type", description = "The type of the numeric output column.")
     @Layout(OutputSettingsSection.class)
     @Effect(predicate = OutputTypeIsNumberAndSelectedGranularitySupportsDecimals.class, type = EffectType.SHOW)
     @ValueSwitchWidget

@@ -40,7 +40,7 @@
               "title" : "Append with suffix"
             } ],
             "title" : "Output columns",
-            "description" : "Depending on the selection, the selected columns will be replaced or appended to the input table.\n\n<ul>\n<li><b>Replace</b>: The selected columns will be replaced by the new columns.</li>\n<li><b>Append with suffix</b>: The selected columns will be appended to the input table with a new name that is the previous name plus the provided suffix.\n</li>\n</ul>",
+            "description" : "Depending on this setting, the output columns will either replace the modified columns, or be appended to the table with a suffix.\n\n<ul>\n<li><b>Replace</b>: Replaces the selected columns by the new columns.</li>\n<li><b>Append with suffix</b>: Appends the selected columns to the input table with a new name that is the previous name plus the provided suffix.\n</li>\n</ul>",
             "default" : "REPLACE"
           },
           "behaviourType" : {
@@ -55,7 +55,7 @@
               "title" : "Remove"
             } ],
             "title" : "Modification",
-            "description" : "Defines the action to be performed on the selected columns.\n<ul>\n<li><b>Set</b>: Changes the timezone of a date-time column, leaving the wall time unchanged.\n</li>\n<li><b>Shift</b>: Changes the timezone of a date-time column, changing the wall time so it refers to the same instant. Both the nominal date and time may change.\n</li>\n<li><b>Remove</b>: Removes timezone information from zoned date-time columns.</li>\n</ul>",
+            "description" : "Defines the action to be performed on the selected columns.\n<ul>\n<li><b>Set</b>: Changes the time zone of a date&amp;time column, leaving the wall time unchanged.\n</li>\n<li><b>Shift</b>: Changes the time zone of a date&amp;time column, changing the wall time so it refers to the same instant. Both, the nominal date and time may change.\n</li>\n<li><b>Remove</b>: Removes time zone information from zoned date&amp;time columns.</li>\n</ul>",
             "default" : "SET"
           },
           "columnFilter" : {
@@ -165,7 +165,7 @@
               }
             },
             "title" : "Date&time columns",
-            "description" : "Only the included columns will be modified.",
+            "description" : "The date&amp;time columns whose values to modify.",
             "default" : {
               "selected" : [ "localDateTimeTest", "zonedDateTimeTest" ],
               "mode" : "MANUAL",
@@ -188,13 +188,13 @@
           "outputColumnSuffix" : {
             "type" : "string",
             "title" : "Output column suffix",
-            "description" : "The suffix that is appended to the column name.",
+            "description" : "The suffix to append to the column names of the new columns.",
             "default" : " (Modified time zone)"
           },
           "timeZone" : {
             "type" : "string",
             "title" : "Time zone",
-            "description" : "A timezone to be used when saving the date.",
+            "description" : "The time zone to use when modifying the date&amp;time.",
             "default" : "Europe/Berlin"
           }
         }

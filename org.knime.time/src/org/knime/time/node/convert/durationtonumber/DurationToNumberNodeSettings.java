@@ -120,14 +120,14 @@ final class DurationToNumberNodeSettings implements DefaultNodeSettings {
 
     enum RoundingBehaviour {
             @Label(value = "Integer", description = """
-                    The output will be the truncated calculation, i.e. the duration \
+                    Truncates the converted number, i.e. the duration \
                     <i>1 hour 30 minutes 30 seconds</i> will be converted to \
                     <i>1 hour</i> or <i>90 minutes</i> or <i>5430 seconds</i> \
                     etc., depending upon the value of the unit of the number. \
                     """)
             INTEGER, //
             @Label(value = "Decimals", description = """
-                    The output will be the exact calculation, i.e. the duration \
+                    Outputs the exact converted number, i.e. the duration \
                     <i>1 hour 30 minutes 30 seconds</i> will be converted to \
                     <i>1.508 hours</i> or <i>90.5 minutes</i> or <i>5430.0 seconds</i> \
                     etc., depending upon the value of the unit of the number. \

@@ -132,8 +132,8 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
     }
 
     @Widget(title = "Date&time column",
-        description = "A Local Date, Local Time, Local Date Time or "
-            + "Zoned Date Time column whose fields to extract.")
+        description = "Select the column containing Date, Time, Date&amp;time (Local), or Date&amp;time (Zoned) values "
+            + "from which you want to extract specific fields.")
     @Persist(configKey = "col_select")
     @ChoicesWidget(choices = DateTimeColumnChoices.class)
     @ValueReference(SelectedColumnRef.class)
@@ -161,7 +161,7 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
         }
     }
 
-    @Widget(title = "Extracted fields", description = "Define date or time fields to extract and set column names.")
+    @Widget(title = "Extracted fields", description = "Define date or time fields to extract and their column names.")
     @Migration(DateTimeFieldsMigration.class)
     @ArrayWidget(addButtonText = "Add field", showSortButtons = true,
         elementDefaultValueProvider = DefaultExtractFieldProvider.class)
@@ -207,7 +207,8 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
         public DateTimeField m_field;
 
         @Widget(title = "Column name",
-            description = "The name of the column populated with the values of the selected field.")
+            description = "The name of the column populated with the values of the selected field. "
+                + "The field cannot be empty (it must contain at least one character).")
         @Layout(ExtractFieldLayout.class)
         @TextInputWidget(placeholderProvider = ColumnNameProvider.class)
         public String m_columnName;
@@ -215,90 +216,85 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
 
     enum DateTimeField {
 
-            @Label(value = "Year", description = "The year number will be extracted and appended as an integer column.")
+            @Label(value = "Year", description = "Extracts the year as number and appends it as an integer column.")
             YEAR,
 
             @Label(value = "Year (Week-based)",
-                description = "The year based on the week will be "
-                    + "extracted and appended as an integer column. Depending on the selected locale, week 1 of a "
+                description = "Extracts the year based on the week"
+                    + " and appends it as an integer column. Depending on the selected locale, week 1 of a "
                     + " year may already start in the previous year, or week 52 of a year may last until the next "
                     + " year (e.g., 30th Dec 2010 belongs to week 1 of year 2011 (locale en-US), so the extracted "
                     + " <i>Year (week-based)</i> would be 2011 while the extracted <i>Year</i> would be 2010).")
             YEAR_WEEK_BASED,
 
-            @Label(value = "Quarter", description = "If checked, the quarter of year will be extracted as a number "
-                + "in range  [1-4] and appended as an integer column.")
+            @Label(value = "Quarter", description = "Extracts the quarter of the year as a number "
+                + "in range [1-4] and appends it as an integer column.")
             QUARTER,
 
-            @Label(value = "Month (Number)",
-                description = "If checked, the month of year will be extracted as a number "
-                    + "in range [1-12] and appended as an integer column.")
+            @Label(value = "Month (Number)", description = "Extracts the month of the year as a number "
+                + "in range [1-12] and appends it as an integer column.")
             MONTH_NUMBER,
 
             @Label(value = "Month (Name)",
-                description = "If checked, the month of year will be extracted as a localized name and appended "
+                description = "Extracts the month of the year as a localized name and appends it "
                     + "as a string column.")
             MONTH_NAME,
 
             @Label(value = "Week",
-                description = "If checked, the week of year will be extracted as a number "
-                    + "in range [1-52] and appended as an integer column. A partial week at "
+                description = "Extracts the week of the year as a number "
+                    + "in range [1-52] and appends it as an integer column. A partial week at "
                     + "the beginning of a year is handled according to the chosen locale.")
             WEEK,
 
             @Label(value = "Day of Year",
-                description = "If checked, the day of year will be extracted as a number in range [1-366] and appended "
+                description = "Extracts the day of the year as a number in range [1-366] and appends it "
                     + "as an integer column.")
             DAY_OF_YEAR,
 
             @Label(value = "Day of Month",
-                description = "If checked, the day of month will be extracted as a number in range [1-31] and appended "
+                description = "Extracts the day of the month as a number in range [1-31] and appends it "
                     + "as an integer column.")
             DAY_OF_MONTH,
 
             @Label(value = "Day of Week (Number)",
-                description = "If checked, the day of week will be extracted as a number "
-                    + "in range [1-7] and appended as an integer column. The numbering is based on the chosen locale.")
+                description = "Extracts the day of the week as a number in range [1-7] and appends "
+                    + "it as an integer column. The numbering is based on the chosen locale.")
             DAY_OF_WEEK_NUMBER,
 
-            @Label(value = "Day of Week (Name)", description = "If checked, the day of week will be extracted as a "
-                + "localized name and appended as a string column.")
+            @Label(value = "Day of Week (Name)", description = "Extracts the day of the week as a "
+                + "localized name and appends it as a string column.")
             DAY_OF_WEEK_NAME,
 
-            @Label(value = "Hour", description = "If checked, the hour of day will be extracted as a number in range "
-                + "[0-23] and appended as an integer column.")
+            @Label(value = "Hour", description = "Extracts the hour of the day as a number in range "
+                + "[0-23] and appends it as an integer column.")
             HOUR,
 
-            @Label(value = "Minute", description = "If checked, the minute of hour will be extracted as a number in "
-                + "range [0-59] and appended as an integer column.")
+            @Label(value = "Minute", description = "Extracts the minute of the hour as a number in "
+                + "range [0-59] and appends it as an integer column.")
             MINUTE,
 
-            @Label(value = "Second", description = "If checked, the second of minute will be extracted as a number in "
-                + "range [0-59] and appended as an integer column.")
+            @Label(value = "Second", description = "Extracts the second of the minute as a number in "
+                + "range [0-59] and appends it as an integer column.")
             SECOND,
 
-            @Label(value = "Millisecond",
-                description = "If checked, the millisecond fraction of second will be extracted "
-                    + "as number in range [0-999] and appended as an integer column.")
+            @Label(value = "Millisecond", description = "Extracts the millisecond fraction of the second "
+                + "as number in range [0-999] and appends it as an integer column.")
             MILLISECOND,
 
-            @Label(value = "Microsecond",
-                description = "If checked, the microsecond fraction of second will be extracted "
-                    + "as number in range [0-999,999] and appended as an integer column.")
+            @Label(value = "Microsecond", description = "Extracts the microsecond fraction of the second "
+                + "as number in range [0-999,999] and appends it as an integer column.")
             MICROSECOND,
 
-            @Label(value = "Nanosecond",
-                description = "If checked, the nanosecond fraction of second will be extracted "
-                    + "as number in range [0-999,999,999] and appended as an integer column.")
+            @Label(value = "Nanosecond", description = "Extracts the nanosecond fraction of the second "
+                + "as number in range [0-999,999,999] and appends it as an integer column.")
             NANOSECOND,
 
-            @Label(value = "Time Zone Name",
-                description = "If checked, the unique time zone name will be extracted as a "
-                    + "non-localized name and appended as a string column.")
+            @Label(value = "Time Zone Name", description = "Extracts the unique time zone name as a "
+                + "non-localized name and appends it as a string column.")
             TIME_ZONE_NAME,
 
-            @Label(value = "Time Zone Offset", description = "If checked, the time zone offset will be extracted as a "
-                + "localized, formatted number and appended as a string column.")
+            @Label(value = "Time Zone Offset", description = "Extracts the time zone offset as a "
+                + "localized, formatted number and appends it as a string column.")
             TIME_ZONE_OFFSET;
 
         String getLabelValue() {

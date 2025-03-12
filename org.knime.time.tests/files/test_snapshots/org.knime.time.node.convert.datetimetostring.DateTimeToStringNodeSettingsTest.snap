@@ -40,7 +40,7 @@
               "title" : "Append with suffix"
             } ],
             "title" : "Output columns",
-            "description" : "Depending on the selection, the selected columns will be replaced or appended to the input table.\n\n<ul>\n<li><b>Replace</b>: The selected columns will be replaced by the new columns.</li>\n<li><b>Append with suffix</b>: The selected columns will be appended to the input table with a new name that is the previous name plus the provided suffix.\n</li>\n</ul>",
+            "description" : "Depending on this setting, the output columns will either replace the modified columns, or be appended to the table with a suffix.\n\n<ul>\n<li><b>Replace</b>: Replaces the selected columns by the new columns.</li>\n<li><b>Append with suffix</b>: Appends the selected columns to the input table with a new name that is the previous name plus the provided suffix.\n</li>\n</ul>",
             "default" : "REPLACE"
           },
           "columnFilter" : {
@@ -150,7 +150,7 @@
               }
             },
             "title" : "Date&time columns",
-            "description" : "Only the included columns will be converted.",
+            "description" : "The date&amp;time columns to convert to string columns.",
             "default" : {
               "selected" : [ "localTimeTest", "localDateTest", "localDateTimeTest", "zonedDateTimeTest" ],
               "mode" : "MANUAL",
@@ -179,13 +179,13 @@
           "locale" : {
             "type" : "string",
             "title" : "Locale",
-            "description" : "The locale to use for formatting the date and time. Names of months and days of the week will be translated according to the selected locale.\n",
+            "description" : "The locale to use for formatting the date&amp;time. Names of months and days of the week will be translated according to the selected locale.\n",
             "default" : "de-DE"
           },
           "outputColumnSuffix" : {
             "type" : "string",
             "title" : "Output column suffix",
-            "description" : "The selected columns will be appended to the input table.",
+            "description" : "The suffix to append to the column names of the new columns.",
             "default" : " (String)"
           }
         }

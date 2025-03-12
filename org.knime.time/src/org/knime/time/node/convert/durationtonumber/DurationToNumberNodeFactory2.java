@@ -65,28 +65,25 @@ public final class DurationToNumberNodeFactory2 extends WebUINodeFactory<Duratio
     }
 
     private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
-        .name("Duration (time-based) to Number") //
+        .name("Duration (Time-based) to Number") //
         .icon("durationtonumber.png") //
         .shortDescription("Converts a time-based duration to a number.") //
         .fullDescription("""
-                Converts a time-based duration to the selected field and appends the value as a long or double \
-                column. Valid fields are hours, minutes, seconds, nano-, micro- and milliseconds. If \
-                the output should be a long value the conversion result will be truncated, e.g. if \
-                the duration <i>1 hour 30 minutes</i> should be converted to  hours, the exact output \
-                is <i>1.5 hours</i> whereas the truncated output <i>1 hour</i>.
-                <br />
-                <br />
-                <i>
-                  Note: Only time-based durations can be converted to numbers, since \
-                  the conversion of date-based durations is not well defined (e.g. \
-                  it is not clearly defined how many days a month has). \
-                </i>
+                Converts a time-based duration to a numeric value and appends it as a long or double column. \
+                You can select fields such as hours, minutes, seconds, milliseconds, microseconds, and nanoseconds. \
+                If the output is a long value, it truncates the result (e.g., <tt>1 hour 30 minutes</tt> becomes \
+                <tt>1 hour</tt>).<br/>\
+                Often used to transform durations into numeric values for mathematical computations \
+                or aggregations.\
+                <br/><i>Note: Only time-based durations can be converted to numbers. Date-based durations are not \
+                supported because their conversion is ambiguous (for example, the number of days in a month can \
+                vary).</i>
                 """) //
         .modelSettingsClass(DurationToNumberNodeSettings.class) //
-        .addInputTable("Input table", "Input table.") //
-        .addOutputTable("Output table", "Output table with durations converted to numbers.") //
-        .keywords("modify", "date-time", "fields", "hour", "minute", "second", "milli", "micro", "nano", "period",
-            "interval") //
+        .addInputTable("Input table", "Input table containing duration columns.") //
+        .addOutputTable("Output table", "Output table with duration columns converted to numeric columns.") //
+        .keywords("modify", "date", "time", "fields", "hour", "minute", "second", "millisecond", "microsecond",
+            "nanosecond", "period", "interval") //
         .build();
 
     /**

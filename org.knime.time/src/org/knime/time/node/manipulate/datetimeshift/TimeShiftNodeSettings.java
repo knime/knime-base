@@ -81,7 +81,7 @@ import org.knime.time.util.TimeBasedGranularityUnit;
  */
 @SuppressWarnings("restriction")
 class TimeShiftNodeSettings implements DefaultNodeSettings {
-    @Widget(title = "Date&time columns", description = "Only the included columns will be shifted.")
+    @Widget(title = "Date&time columns", description = "The date&amp;time columns whose values are shifted.")
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
@@ -112,7 +112,7 @@ class TimeShiftNodeSettings implements DefaultNodeSettings {
     TimeInterval m_shiftDurationValue = TimeInterval.of(0, 1, 0, 0);
 
     @Widget(title = "Column", description = """
-            Select to choose the shift value from a duration column.
+            Select to choose the shift value from a time-based duration column.
             """)
     @ChoicesWidget(choices = DateTimeUtils.DurationColumnProvider.class)
     @Effect(predicate = ShiftModeIsDurationColumn.class, type = EffectType.SHOW)
@@ -131,17 +131,15 @@ class TimeShiftNodeSettings implements DefaultNodeSettings {
     TimeBasedGranularityUnit m_granularity = TimeBasedGranularityUnit.HOURS;
 
     @Widget(title = "Output columns", description = """
-            Depending on the selection, the selected columns will be replaced \
-            or appended to the input table.
+            Depending on this setting, the output columns will either replace the modified columns, or be \
+            appended to the table with a suffix.
             """)
     @ValueSwitchWidget
     @ValueReference(ReplaceOrAppend.ValueRef.class)
     ReplaceOrAppend m_replaceOrAppend = ReplaceOrAppend.REPLACE;
 
-    @Widget(title = "Output column suffix", description = """
-            The suffix that is appended to the column name. The suffix will be added to the original \
-            column name.
-            """)
+    @Widget(title = "Output column suffix",
+        description = "The suffix to append to the column names of the new columns.")
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
     String m_outputColumnSuffix = " (Shifted)";
 
@@ -181,13 +179,13 @@ class TimeShiftNodeSettings implements DefaultNodeSettings {
      */
 
     enum ShiftMode implements CompatibleDataValueClassesSupplier {
-            @Label(value = "Shift value", description = "A time-based shift value.")
+            @Label(value = "Shift value", description = "Uses a time-based shift value.")
             SHIFT_VALUE, //
             @Label(value = "Duration column", //
-                description = "A shift value from a duration column.")
+                description = "Uses a shift value from a time-based duration column.")
             DURATION_COLUMN, //
-            @Label(value = "Numerical column", //
-                description = "Select a numerical column to scale a configurable time unit.")
+            @Label(value = "Number column", //
+                description = "Uses a numerical column to scale a configurable time unit.")
             NUMERICAL_COLUMN;
 
         @Override

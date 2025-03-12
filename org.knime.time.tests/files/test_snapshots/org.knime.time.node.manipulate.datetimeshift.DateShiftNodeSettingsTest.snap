@@ -140,7 +140,7 @@
               }
             },
             "title" : "Date&time columns",
-            "description" : "Only the included columns will be shifted.",
+            "description" : "The date&amp;time columns whose values are shifted.",
             "default" : {
               "selected" : [ "localDateTest", "localDateTimeTest", "zonedDateTimeTest" ],
               "mode" : "MANUAL",
@@ -186,13 +186,13 @@
           "outputColumnSuffix" : {
             "type" : "string",
             "title" : "Output column suffix",
-            "description" : "The suffix that is appended to the column name. The suffix will be added to the original column name.\n",
+            "description" : "The suffix to append to the column names of the new columns.",
             "default" : " (Shifted)"
           },
           "periodColumn" : {
             "type" : "string",
             "title" : "Column",
-            "description" : "Select to choose the shift value from a period column.",
+            "description" : "Select to choose the shift value from a date-based duration column.",
             "default" : "periodTest"
           },
           "replaceOrAppend" : {
@@ -204,7 +204,7 @@
               "title" : "Append with suffix"
             } ],
             "title" : "Output columns",
-            "description" : "Depending on the selection, the selected columns will be replaced or appended to the input table.\n\n<ul>\n<li><b>Replace</b>: The selected columns will be replaced by the new columns.</li>\n<li><b>Append with suffix</b>: The selected columns will be appended to the input table with a new name that is the previous name plus the provided suffix.\n</li>\n</ul>",
+            "description" : "Depending on this setting, the output columns will either replace the modified columns, or be appended to the table with a suffix.\n\n<ul>\n<li><b>Replace</b>: Replaces the selected columns by the new columns.</li>\n<li><b>Append with suffix</b>: Appends the selected columns to the input table with a new name that is the previous name plus the provided suffix.\n</li>\n</ul>",
             "default" : "REPLACE"
           },
           "shiftMode" : {
@@ -219,7 +219,7 @@
               "title" : "Number column"
             } ],
             "title" : "Shift mode",
-            "description" : "Select the shift mode to use.\n<ul>\n<li><b>Shift value</b>: A date-based shift value.</li>\n<li><b>Period column</b>: A shift value from a period column.</li>\n<li><b>Number column</b>: Select a numerical column to scale a configurable time unit.</li>\n</ul>",
+            "description" : "Select the shift mode to use.\n<ul>\n<li><b>Shift value</b>: Uses a date-based shift value.</li>\n<li><b>Period column</b>: Uses a shift value from a date-based duration column.</li>\n<li><b>Number column</b>: Uses a numerical column to scale a configurable time unit.</li>\n</ul>",
             "default" : "SHIFT_VALUE"
           },
           "shiftPeriodValue" : {

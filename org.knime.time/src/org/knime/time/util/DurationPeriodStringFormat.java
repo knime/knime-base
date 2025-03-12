@@ -68,17 +68,17 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
 @SuppressWarnings("restriction")
 public enum DurationPeriodStringFormat {
         @Label(value = "ISO 8601", description = """
-                The durations will be formatted using the ISO-8601 representation, e.g. \
+                Formats the durations using the ISO-8601 representation, e.g. \
                 'P2Y3M5D'.
                 """)
         ISO("ISO-8601 representation"), //
         @Label(value = "Whole words", description = """
-                The durations will be formatted using words to represent them, e.g. '2 \
+                Formats the durations using words to represent them, e.g. '2 \
                 years 3 months 5 days'.
                 """)
         WORDS("Long representation"), //
         @Label(value = "Single letters", description = """
-                The durations will be formatted using letters to represent them, e.g. \
+                Formats the durations using letters to represent them, e.g. \
                 '2y 3M 5d' (Date-based duration: y: years, M: months, d: days; Time-based \
                 duration: H: hours, m: minutes, s: seconds).
                 """)

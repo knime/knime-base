@@ -84,11 +84,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
 public enum ReplaceOrAppend {
 
         /** Replace the existing column */
-        @Label(value = "Replace", description = "The selected columns will be replaced by the new columns.")
+        @Label(value = "Replace", description = "Replaces the selected columns by the new columns.")
         REPLACE("Replace selected columns"), //
         /** Append a new column with a name based on the existing column name + suffix */
         @Label(value = "Append with suffix", description = """
-                The selected columns will be appended to the input table with \
+                Appends the selected columns to the input table with \
                 a new name that is the previous name plus the provided suffix.
                 """)
         APPEND("Append selected columns"); //

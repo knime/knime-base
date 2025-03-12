@@ -102,23 +102,24 @@ final class ModifyTimeZoneNodeSettings implements DefaultNodeSettings {
     @ValueReference(BehaviourTypeRef.class)
     BehaviourType m_behaviourType = BehaviourType.SET;
 
-    @Widget(title = "Time zone", description = "A timezone to be used when saving the date.")
+    @Widget(title = "Time zone", description = "The time zone to use when modifying the date&amp;time.")
     @Effect(predicate = BehaviourTypeIsRemove.class, type = EffectType.HIDE)
     ZoneId m_timeZone = ZoneId.systemDefault();
 
-    @Widget(title = "Date&time columns", description = "Only the included columns will be modified.")
+    @Widget(title = "Date&time columns", description = "The date&amp;time columns whose values to modify.")
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
     @Widget(title = "Output columns", description = """
-            Depending on the selection, the selected columns will be replaced \
-            or appended to the input table.
+            Depending on this setting, the output columns will either replace the modified columns, or be \
+            appended to the table with a suffix.
             """)
     @ValueSwitchWidget
     @ValueReference(ReplaceOrAppend.ValueRef.class)
     ReplaceOrAppend m_appendOrReplace = ReplaceOrAppend.REPLACE;
 
-    @Widget(title = "Output column suffix", description = "The suffix that is appended to the column name.")
+    @Widget(title = "Output column suffix",
+        description = "The suffix to append to the column names of the new columns.")
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
     String m_outputColumnSuffix = " (Modified time zone)";
 
@@ -129,17 +130,17 @@ final class ModifyTimeZoneNodeSettings implements DefaultNodeSettings {
      */
     enum BehaviourType implements CompatibleDataValueClassesSupplier {
             @Label(value = "Set", description = """
-                    Changes the timezone of a date-time column, leaving the wall time \
+                    Changes the time zone of a date&amp;time column, leaving the wall time \
                     unchanged.
                     """)
             SET(List.of(LocalDateTimeValue.class, ZonedDateTimeValue.class)), //
             @Label(value = "Shift", description = """
-                    Changes the timezone of a date-time column, changing the wall time \
-                    so it refers to the same instant. Both the nominal date and time may \
+                    Changes the time zone of a date&amp;time column, changing the wall time \
+                    so it refers to the same instant. Both, the nominal date and time may \
                     change.
                     """)
             SHIFT(List.of(ZonedDateTimeValue.class)), //
-            @Label(value = "Remove", description = "Removes timezone information from zoned date-time columns.")
+            @Label(value = "Remove", description = "Removes time zone information from zoned date&amp;time columns.")
             REMOVE(List.of(ZonedDateTimeValue.class));
 
         private final Collection<Class<? extends DataValue>> m_compatibleDataValues;

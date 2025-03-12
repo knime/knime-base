@@ -36,38 +36,38 @@
                     "title" : "Seconds"
                   }, {
                     "const" : "MILLIS",
-                    "title" : "Millis"
+                    "title" : "Milliseconds"
                   }, {
                     "const" : "MICROS_ALL",
-                    "title" : "Micros (all subseconds)"
+                    "title" : "Microseconds (all subseconds)"
                   }, {
                     "const" : "MICROS_PART",
-                    "title" : "Micros"
+                    "title" : "Microseconds"
                   }, {
                     "const" : "NANOS_ALL",
-                    "title" : "Nanos (all subseconds)"
+                    "title" : "Nanoseconds (all subseconds)"
                   }, {
                     "const" : "NANOS_PART",
-                    "title" : "Nanos"
+                    "title" : "Nanoseconds"
                   } ],
                   "title" : "Field",
-                  "description" : "The type of field to extract.\n<ul>\n<li><b>Years</b>: The years component of a period.</li>\n<li><b>Months</b>: The months component of a period.</li>\n<li><b>Days</b>: The days component of a period.</li>\n<li><b>Hours</b>: The hours component of a duration.</li>\n<li><b>Minutes</b>: The minutes component of a duration.</li>\n<li><b>Seconds</b>: The seconds component of a duration.</li>\n<li><b>Millis</b>: The milliseconds component of a duration. In other words, a duration of 10.123456789 seconds would have 123 milliseconds.\n</li>\n<li><b>Micros (all subseconds)</b>: Microseconds of a duration, including all of the subseconds. In other words, a duration of 10.123456789 seconds would have 123456 microseconds.\n</li>\n<li><b>Micros</b>: The microseconds component of a duration. In other words, a duration of 10.123456789 seconds would have 456 microseconds.\n</li>\n<li><b>Nanos (all subseconds)</b>: Nanoseconds of a duration, including all of the subseconds. In other words, a duration of 10.123456789 seconds would have 123456789 nanoseconds.\n</li>\n<li><b>Nanos</b>: The nanoseconds component of a duration. In other words, a duration of 10.123456789 seconds would have 789 nanoseconds.\n</li>\n</ul>"
+                  "description" : "The type of field to extract.\n<ul>\n<li><b>Years</b>: Extracts the years component of a date-based duration.</li>\n<li><b>Months</b>: Extracts the months component of a date-based duration.</li>\n<li><b>Days</b>: Extracts the days component of a date-based duration.</li>\n<li><b>Hours</b>: Extracts the hours component of a time-based duration.</li>\n<li><b>Minutes</b>: Extracts the minutes component of a time-based duration.</li>\n<li><b>Seconds</b>: Extracts the seconds component of a time-based duration.</li>\n<li><b>Milliseconds</b>: Extracts the milliseconds component of a time-based duration. In other words, a duration of 10.123456789 seconds would have 123 milliseconds.\n</li>\n<li><b>Microseconds (all subseconds)</b>: Extracts the microseconds of a time-based duration, including all of the subseconds. In other words, a duration of 10.123456789 seconds would have 123456 microseconds.\n</li>\n<li><b>Microseconds</b>: Extracts the microseconds component of a time-based duration. In other words, a duration of 10.123456789 seconds would have 456 microseconds.\n</li>\n<li><b>Nanoseconds (all subseconds)</b>: Extracts the Nanoseconds of a time-based duration, including all of the subseconds. In other words, a duration of 10.123456789 seconds would have 123456789 nanoseconds.\n</li>\n<li><b>Nanoseconds</b>: Extracts the nanoseconds component of a time-based duration. In other words, a duration of 10.123456789 seconds would have 789 nanoseconds.\n</li>\n</ul>"
                 },
                 "outputcolumnName" : {
                   "type" : "string",
                   "title" : "Column name",
-                  "description" : "The name of the column populated with the values of the selected field. Cannot be empty!\n"
+                  "description" : "The name of the column populated with the values of the selected field. The field cannot be empty (it must contain at least one character)."
                 }
               }
             },
             "title" : "Extracted fields",
-            "description" : "Define fields to extract and set column names.",
+            "description" : "Define the fields to extract and their column names.",
             "default" : [ ]
           },
           "selectedColumn" : {
             "type" : "string",
             "title" : "Duration column",
-            "description" : "A Duration or Period column from which to extract the fields.\n"
+            "description" : "A duration column from which to extract the fields.\n"
           }
         }
       }

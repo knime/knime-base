@@ -105,37 +105,40 @@ final class ModifyDateNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Modification", description = """
             Defines the action to be performed on the selected columns. \
             The date can be changed, appended, or removed, with different \
-            columns being eligible for each action. For example, only local \
-            time columns can have date appended, while local date-time \
+            columns being eligible for each action. For example, only \
+            time columns can have date appended, while local date&amp;time \
             columns can only be modified or have their date component removed.
             """)
     @ValueSwitchWidget
     @ValueReference(BehaviourTypeRef.class)
     BehaviourType m_behaviourType = BehaviourType.CHANGE;
 
-    @Widget(title = "Date", description = "A date value.")
+    @Widget(title = "Date",
+        description = "The date to use when changing the date of date&amp;time columns or appending "
+            + "a date to time columns.")
     @Effect(predicate = BehaviourTypeIsRemove.class, type = EffectType.HIDE)
     LocalDate m_localDate = LocalDate.now();
 
-    @Widget(title = "Time zone", description = "A timezone to be used when saving the date.")
+    @Widget(title = "Time zone", description = "The time zone to use when appending a date to time columns.")
     @ChoicesWidget(optional = true)
     @Effect(predicate = BehaviourTypeIsAppend.class, type = EffectType.SHOW)
     @JsonInclude(Include.ALWAYS)
     ZoneId m_timeZone = ZoneId.systemDefault();
 
-    @Widget(title = "Date&time columns", description = "Only the included columns will be modified.")
+    @Widget(title = "Date&time columns", description = "The date&amp;time columns whose values are modified.")
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
     @Widget(title = "Output columns", description = """
-            Depending on the selection, the selected columns will be replaced \
-            or appended to the input table.
+            Depending on this setting, the output columns will either replace the modified columns, or be \
+            appended to the table with a suffix.
             """)
     @ValueSwitchWidget
     @ValueReference(ReplaceOrAppend.ValueRef.class)
     ReplaceOrAppend m_appendOrReplace = ReplaceOrAppend.REPLACE;
 
-    @Widget(title = "Output column suffix", description = "The suffix that is appended to the column name.")
+    @Widget(title = "Output column suffix",
+        description = "The suffix to append to the column names of the new columns.")
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
     String m_outputColumnSuffix = " (Modified date)";
 
@@ -147,17 +150,17 @@ final class ModifyDateNodeSettings implements DefaultNodeSettings {
 
     enum BehaviourType implements CompatibleDataValueClassesSupplier {
             @Label(value = "Change", description = """
-                    Change the date of a date-time column, leaving the timezone \
+                    Changes the date of a date&amp;time column, leaving the time zone \
                     unchanged.
                     """)
             CHANGE(List.of(ZonedDateTimeValue.class, LocalDateTimeValue.class)), //
             @Label(value = "Append", description = """
-                    Append a date to a time column, resulting in a date-time column. \
+                    Appends a date to a time column, resulting in a date&amp;time column. \
                     A time zone can optionally be set.
                     """)
             APPEND(List.of(LocalTimeValue.class)), //
             @Label(value = "Remove", description = """
-                    Removes the date and timezone information from date-time columns, \
+                    Removes the date and time zone information from date&amp;time columns, \
                     leaving only the time.
                     """)
             REMOVE(List.of(ZonedDateTimeValue.class, LocalDateTimeValue.class));

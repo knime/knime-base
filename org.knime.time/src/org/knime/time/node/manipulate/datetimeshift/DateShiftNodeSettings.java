@@ -81,7 +81,7 @@ import org.knime.time.util.ReplaceOrAppend;
 @SuppressWarnings("restriction")
 class DateShiftNodeSettings implements DefaultNodeSettings {
 
-    @Widget(title = "Date&time columns", description = "Only the included columns will be shifted.")
+    @Widget(title = "Date&time columns", description = "The date&amp;time columns whose values are shifted.")
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
@@ -111,7 +111,7 @@ class DateShiftNodeSettings implements DefaultNodeSettings {
     @Effect(predicate = ShiftModeIsShiftValue.class, type = EffectType.SHOW)
     DateInterval m_shiftPeriodValue = DateInterval.of(0, 0, 0, 1);
 
-    @Widget(title = "Column", description = "Select to choose the shift value from a period column.")
+    @Widget(title = "Column", description = "Select to choose the shift value from a date-based duration column.")
     @ChoicesWidget(choices = DateTimeUtils.PeriodColumnProvider.class)
     @Effect(predicate = ShiftModeIsDurationColumn.class, type = EffectType.SHOW)
     String m_periodColumn;
@@ -129,17 +129,15 @@ class DateShiftNodeSettings implements DefaultNodeSettings {
     DateGranularity m_granularity = DateGranularity.DAYS;
 
     @Widget(title = "Output columns", description = """
-            Depending on the selection, the selected columns will be replaced \
-            or appended to the input table.
+            Depending on this setting, the output columns will either replace the modified columns, or be \
+            appended to the table with a suffix.
             """)
     @ValueSwitchWidget
     @ValueReference(ReplaceOrAppend.ValueRef.class)
     ReplaceOrAppend m_replaceOrAppend = ReplaceOrAppend.REPLACE;
 
-    @Widget(title = "Output column suffix", description = """
-            The suffix that is appended to the column name. The suffix will be added to the original \
-            column name.
-            """)
+    @Widget(title = "Output column suffix",
+            description = "The suffix to append to the column names of the new columns.")
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
     String m_outputColumnSuffix = " (Shifted)";
 
@@ -179,13 +177,13 @@ class DateShiftNodeSettings implements DefaultNodeSettings {
      */
 
     enum ShiftMode implements CompatibleDataValueClassesSupplier {
-            @Label(value = "Shift value", description = "A date-based shift value.")
+            @Label(value = "Shift value", description = "Uses a date-based shift value.")
             SHIFT_VALUE, //
             @Label(value = "Period column", //
-                description = "A shift value from a period column.")
+                description = "Uses a shift value from a date-based duration column.")
             PERIOD_COLUMN, //
             @Label(value = "Number column", //
-                description = "Select a numerical column to scale a configurable time unit.")
+                description = "Uses a numerical column to scale a configurable time unit.")
             NUMERICAL_COLUMN;
 
         @Override

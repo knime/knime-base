@@ -96,7 +96,7 @@ final class DateTimeToStringNodeModel2 extends WebUISimpleStreamableFunctionNode
             DateTimeFormatter.ofPattern(settings.m_format);
         } catch (IllegalArgumentException ex) {
             throw new InvalidSettingsException(
-                "Invalid date time format '%s'. Reason: %s".formatted(settings.m_format, ex.getMessage()), ex);
+                "Invalid date&time format '%s'. Reason: %s".formatted(settings.m_format, ex.getMessage()), ex);
         }
     }
 
@@ -119,7 +119,7 @@ final class DateTimeToStringNodeModel2 extends WebUISimpleStreamableFunctionNode
                 messageBuilder //
                     .withSummary("%s warning%s encountered.".formatted(messageBuilder.getIssueCount(),
                         messageBuilder.getIssueCount() == 1 ? "" : "s")) //
-                    .addResolutions("Change the date and time pattern to match all provided dates.") //
+                    .addResolutions("Change the date&time pattern to match all provided dates.") //
                     .build() //
                     .ifPresent(this::setWarning);
             }

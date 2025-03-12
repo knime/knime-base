@@ -70,27 +70,17 @@ public final class ModifyTimeNodeFactory2 extends WebUINodeFactory<ModifyTimeNod
         .icon("modify_time.png") //
         .shortDescription("Modifies time information of a date&amp;time cell.") //
         .fullDescription("""
-                Modifies date&amp;time columns in three different ways:
-                <ul>
-                    <li>
-                        Append a time to local date columns \
-                        (output type is local or zoned date time column).
-                    </li>
-                    <li>
-                        Change the time in local or zoned date&amp;time columns.
-                    </li>
-                    <li>
-                        Remove the time from local or zoned date&amp;time columns \
-                        (output type is local date).
-                    </li>
-                </ul>
-                <b>Note:</b> This node is not intended for adding or subtracting time. \
-                Use the <i>Time Shifter</i> node for that.
+                Modifies date&amp;time columns by appending, changing, or removing the time component. You can append \
+                a time to date columns (output: local or zoned date&amp;time), change the time in local or zoned \
+                date&amp;time columns, or remove the time (output: date).<br/>\
+                Useful for standardizing or removing time data from date&amp;time columns for consistency in reporting.\
+                <br/><i>Note: This node does not perform shifting operations. Use the Time Shifter node for that \
+                purpose.</i>
                 """) //
         .modelSettingsClass(ModifyTimeNodeSettings.class) //
-        .addInputTable("Input table", "Input table.") //
+        .addInputTable("Input table", "Input table containing date&amp;time columns.") //
         .addOutputTable("Output table", "Output table with modified time.") //
-        .keywords("modify", "date-time", "time", "fields", "hour", "minute", "second", "millisecond") //
+        .keywords("modify", "date", "time", "fields", "hour", "minute", "second", "millisecond") //
         .build();
 
     /**

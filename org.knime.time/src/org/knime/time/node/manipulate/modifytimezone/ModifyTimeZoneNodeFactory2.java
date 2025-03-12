@@ -52,7 +52,7 @@ import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
- * The node dialog of the node which modifies timezone.
+ * The node dialog of the node which modifies time zone.
  *
  * @author David Hickey, TNG Technology Consulting
  */
@@ -69,26 +69,18 @@ public final class ModifyTimeZoneNodeFactory2 extends WebUINodeFactory<ModifyTim
         .icon("modify_time_zone.png") //
         .shortDescription("Modifies a time zone.") //
         .fullDescription("""
-                Modifies date&amp;time columns in three different ways:
-                <ul>
-                    <li>
-                        Add a time zone to local date&amp;time columns or change the time zone in zoned \
-                        date&amp;time columns <i>(without adjusting the time!)</i>.
-                    </li>
-                    <li>
-                        Shift the time zone in zoned date time columns by \
-                        adjusting the time (and potentially date) according to the \
-                        new time zone offset.
-                    </li>
-                    <li>
-                        Remove the time zone from zoned date&amp;time columns.
-                    </li>
-                </ul>
+                Modifies date&amp;time columns by adding, changing, shifting, or removing time zone information. \
+                This node can add or change the time zone of date&amp;time columns without adjusting the time values. \
+                It can also shift the time zone of zoned date&amp;time columns and adjust the time and date according \
+                to the new time zone offset. Additionally, it can remove the time zone information from zoned \
+                date&amp;time columns, converting them to local date&amp;time columns.<br/> \
+                Useful for standardizing time zones in datasets from different regions or preparing time-based \
+                data for analysis.
                 """) //
         .modelSettingsClass(ModifyTimeZoneNodeSettings.class) //
-        .addInputTable("Input table", "Input table.") //
-        .addOutputTable("Output table", "Output table with modified timezone.") //
-        .keywords("modify", "date-time", "date")//
+        .addInputTable("Input table", "Input table containing date&amp;time columns.") //
+        .addOutputTable("Output table", "Output table with modified time zone.") //
+        .keywords("modify", "date", "time")//
         .build();
 
     public ModifyTimeZoneNodeFactory2() {

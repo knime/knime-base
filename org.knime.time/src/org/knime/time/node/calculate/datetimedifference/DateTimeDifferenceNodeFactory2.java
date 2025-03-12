@@ -69,15 +69,16 @@ public final class DateTimeDifferenceNodeFactory2 extends WebUINodeFactory<DateT
         .icon("date_time_difference.png") //
         .shortDescription("Calculates differences between two date&amp;time values.") //
         .fullDescription("""
-                Calculates differences between two date&amp;time values and appends a new \
-                column. The output can be either a duration or a number with a selected granularity \
-                (years, months, weeks, days, hours, minutes, seconds, milliseconds, \
-                nanoseconds). It can be configured to use as the second date&amp;time either \
-                a second column, the execution date&amp;time, a selected fixed date&amp;time, \
-                or the date&amp;time contained in the previous row.
+                Calculates the difference between two date&amp;time columns and appends the result in a new column. \
+                The difference can be output as either a duration or a number with a specified granularity \
+                (years, months, weeks, days, hours, minutes, seconds, milliseconds, nanoseconds). \
+                You can select the second date&amp;time from another column, the execution date&amp;time, \
+                a fixed date&amp;time, or the previous row's date&amp;time.<br/>\
+                This node is commonly used to calculate time intervals between events for time series analysis or \
+                process monitoring.
                 """) //
         .modelSettingsClass(DateTimeDifferenceNodeSettings.class) //
-        .addInputTable("Input table", "Input table.") //
+        .addInputTable("Input table", "Input table containing a date&amp;time column.") //
         .addOutputTable("Output table", "Output table containing an appended column with the differences.") //
         .keywords("calculate", "subtract", "minute", "second", "millisecond", "day", "month", "week", "delta") //
         .build();

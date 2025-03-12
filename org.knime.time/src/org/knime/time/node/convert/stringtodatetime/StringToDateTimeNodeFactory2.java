@@ -68,24 +68,18 @@ public final class StringToDateTimeNodeFactory2 extends WebUINodeFactory<StringT
     static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
         .name("String to Date&Time") //
         .icon("stringtotime.png") //
-        .shortDescription("Parses date and/or time strings into Date&amp;Time cells.") //
+        .shortDescription("Parses date and/or time strings into date&amp;time cells.") //
         .fullDescription("""
-                <p>
-                    Parses the strings in the selected columns and converts them into \
-                    Date&amp;Time cells. The expected format can be selected from a number \
-                    of commonly used formats or specified manually. See the <a href="%s"> \
-                    Java documentation</a> for more details about possible formats.
-                </p>
-                <p>
-                    Since dates may contain localized terms such as month or weekday
-                    names, you can additionally specify a locale.
-                </p>
+                Parses strings in selected columns and converts them to date&amp;time cells. You can choose from \
+                common date&amp;time formats or specify a custom format. Locales can be set to handle localized month \
+                or weekday names.<br/>\
+                Useful when converting imported date strings into date&amp;time format for analysis and processing.
                 """.formatted(ComprehensiveDateTimeFormatProvider.LINK_TO_FORMAT_JAVADOC)) //
         .modelSettingsClass(StringToDateTimeNodeSettings.class) //
-        .addInputTable("Input table", "Input table.") //
+        .addInputTable("Input table", "Input table containing string columns with date&amp;time information.") //
         .addOutputTable("Output table", "Output table containing the parsed columns.") //
-        .keywords("covert", "date-time", "string", "local", "parse", "hour", "minute", "second", "millisecond", "year",
-            "month", "day", "week") //
+        .keywords("convert", "date", "time", "string", "local", "parse", "hour", "minute", "second", "millisecond",
+            "year", "month", "day", "week") //
         .build();
 
     /**

@@ -69,22 +69,16 @@ public final class TimeShiftNodeFactory extends WebUINodeFactory<TimeShiftNodeMo
         .icon("time-shift.png") //
         .shortDescription("Shifts a time by a duration or granularity.") //
         .fullDescription("""
-                The node shifts a date by a defined duration or granularity. \
-                The user can select the date columns to shift and the shift value. \
-                The shift value can be either
-                <ul>
-                  <li>a duration column</li>
-                  <li>a numerical column and a granularity</li>
-                  <li>a constant numerical value and a granularity</li>
-                </ul>
-                If the shift value is positive, it is added to the selected \
-                date. A negative value will be subtracted. A numerical value \
-                is interpreted based on the selected granularity.
+                    Shifts time columns by a defined duration or granularity. You can select the time columns to shift \
+                    and specify the shift value as a duration column, a numerical column with a granularity, or a \
+                    constant numerical value with a granularity. Positive values shift forward; negative values shift \
+                    backward.<br/>\
+                    Commonly used to adjust times for time zone corrections or shift schedules.
                 """) //
         .modelSettingsClass(TimeShiftNodeSettings.class) //
-        .addInputTable("Input table", "Input table.") //
+        .addInputTable("Input table", "Input table containing date&amp;time columns.") //
         .addOutputTable("Output table", "Output table with shifted time.") //
-        .keywords("modify", "shift", "date&time", "hour", "minute", "second", "millisecond", "nanosecond") //
+        .keywords("modify", "shift", "date", "time", "hour", "minute", "second", "millisecond", "nanosecond") //
         .build();
 
     /**

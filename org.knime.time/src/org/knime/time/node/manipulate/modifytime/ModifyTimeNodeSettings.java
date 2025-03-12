@@ -105,9 +105,9 @@ final class ModifyTimeNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Modification", description = """
             Defines the action to be performed on the selected columns. \
             The time can be changed, appended, or removed, with different \
-            columns being eligible for each action. For example, only local \
-            date columns can have time appended, while local date-time \
-            columns can only  be modified or have their time component removed.
+            columns being eligible for each action. For example, only \
+            date columns can have time appended, while local date&amp;time \
+            columns can only be modified or have their time component removed.
             """)
     @ValueSwitchWidget
     @ValueReference(BehaviourTypeRef.class)
@@ -123,19 +123,20 @@ final class ModifyTimeNodeSettings implements DefaultNodeSettings {
     @JsonInclude(Include.ALWAYS)
     ZoneId m_timeZone = ZoneId.systemDefault();
 
-    @Widget(title = "Date&time columns", description = "Only the included columns will be modified.")
+    @Widget(title = "Date&time columns", description = "The date&amp;time columns whose values are modified.")
     @ChoicesWidget(choicesProvider = ColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
     @Widget(title = "Output columns", description = """
-            Depending on the selection, the selected columns will be replaced \
-            or appended to the input table.
+            Depending on this setting, the output columns will either replace the modified columns, or be \
+            appended to the table with a suffix.
             """)
     @ValueSwitchWidget
     @ValueReference(ReplaceOrAppend.ValueRef.class)
     ReplaceOrAppend m_appendOrReplace = ReplaceOrAppend.REPLACE;
 
-    @Widget(title = "Output column suffix", description = "The suffix that is appended to the column name.")
+    @Widget(title = "Output column suffix",
+            description = "The suffix to append to the column names of the new columns.")
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
     String m_outputColumnSuffix = " (Modified time)";
 
@@ -153,7 +154,7 @@ final class ModifyTimeNodeSettings implements DefaultNodeSettings {
                         """)
             CHANGE(List.of(ZonedDateTimeValue.class, LocalDateTimeValue.class)), //
             @Label(value = "Append", description = """
-                    Appends a time to local date columns. Optionally a time zone can be \
+                    Appends a time to date columns. Optionally a time zone can be \
                     appended too.
                     """)
             APPEND(List.of(LocalDateValue.class)), //

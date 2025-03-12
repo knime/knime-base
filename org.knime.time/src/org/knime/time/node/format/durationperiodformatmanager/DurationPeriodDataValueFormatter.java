@@ -144,7 +144,7 @@ public final class DurationPeriodDataValueFormatter implements ValueFormatModel 
 
         @Override
         public String getDescription() {
-            return "Custom formatter for Duration/Period values";
+            return "Custom formatter for Duration values";
         }
 
         @Override

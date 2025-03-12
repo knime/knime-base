@@ -62,14 +62,17 @@ public final class ExtractDateTimeFieldsNodeFactory2 extends WebUINodeFactory<Ex
         .name("Date&Time Part Extractor")//
         .icon("./extractdatetime.png")//
         .shortDescription("Extracts date and/or time fields from date &amp; time cells.")//
-        .fullDescription("Extracts the selected fields from a Local Date, Local Time, " +
-            "Local Date Time or Zoned Date Time column and appends their values as " +
-            "corresponding integer or string columns.")
+        .fullDescription("""
+                    Extracts specific components from Date, Time, Date&amp;time (Local), or Date&amp;time (Zoned) \
+                    columns. Appends the extracted values as integer or string columns, depending on the \
+                    component.<br/>\
+                    Useful for extracting years, months, days, or time components for analysis, filtering, or \
+                    visualization.
+                """) //
         .modelSettingsClass(ExtractDateTimeFieldsSettings.class)//
-        .addInputTable("Input table", "The input table that contains columns with date or time information " +
-            "to extract.")//
+        .addInputTable("Input table", "The input table that contains columns with date or time information to extract.")
         .addOutputTable("Output table", "Output table containing the extracted fields as appended columns.")//
-        .keywords("extract", "date", "time", "date-time", "fields", "day", "quarter", "week", "year")//
+        .keywords("extract", "date", "time", "fields", "day", "quarter", "week", "year")//
         .build();
 
     /**

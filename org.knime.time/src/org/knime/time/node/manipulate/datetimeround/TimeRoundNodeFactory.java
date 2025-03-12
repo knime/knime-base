@@ -69,17 +69,17 @@ public final class TimeRoundNodeFactory extends WebUINodeFactory<TimeRoundNodeMo
         .icon("time-rounder.png") //
         .shortDescription("Rounds a time.") //
         .fullDescription("""
-                The Time Rounder Node is designed for rounding time-based data within a table. \
-                It offers a flexible interface to adjust and transform time column values based \
-                on user-defined strategies and precision settings. This node is highly adaptable, \
-                enabling users to replace or append transformed columns to the input table, \
-                facilitating seamless integration into data workflows.
+                Rounds time columns to a specified granularity. You can adjust time values using user-defined \
+                rounding strategies and precision and either replace or append the rounded values to the input \
+                table.<br/>\
+                Commonly used to round times to the nearest minute, hour, or other time units for aggregation or \
+                reporting.\
                 """) //
         .modelSettingsClass(TimeRoundNodeSettings.class) //
-        .addInputTable("Input table", "Input table.") //
+        .addInputTable("Input table", "Input table containing date&amp;time columns.") //
         .addOutputTable("Output table", "Output table with rounded times.") //
-        .keywords("modify", "ceil", "floor", "trunc", "fields", "hour", "minute", "second", "milli", "precision", "day",
-            "weekday", "month", "quater", "decade", "week", "date")//
+        .keywords("modify", "ceil", "floor", "truncate", "fields", "hour", "minute", "second", "millisecond",
+            "precision", "day", "weekday", "month", "quater", "decade", "week", "date")//
         .build();
 
     /**

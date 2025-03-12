@@ -98,7 +98,7 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    @Widget(title = "String columns", description = "Only the included columns will be converted.")
+    @Widget(title = "String columns", description = "The string columns to convert to date&amp;time columns.")
     @ChoicesWidget(choices = StringColumnChoicesProvider.class)
     @ValueReference(ColumnFilterValueRef.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
@@ -155,14 +155,15 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
     ActionIfExtractionFails m_onError = ActionIfExtractionFails.SET_MISSING;
 
     @Widget(title = "Output columns", description = """
-            Depending on the selection, the selected columns will be replaced \
-            or appended to the input table.
+            Depending on this setting, the output columns will either replace the modified columns, or be \
+            appended to the table with a suffix.
             """)
     @ValueSwitchWidget
     @ValueReference(ReplaceOrAppend.ValueRef.class)
     ReplaceOrAppend m_appendOrReplace = ReplaceOrAppend.REPLACE;
 
-    @Widget(title = "Output column suffix", description = "The selected columns will be appended to the input table.")
+    @Widget(title = "Output column suffix",
+        description = "The suffix to append to the column names of the new columns.")
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
     String m_outputColumnSuffix = " (Date&time)";
 

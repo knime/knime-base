@@ -68,26 +68,19 @@ public final class DateTimeFormatManagerNodeFactory extends WebUINodeFactory<Dat
     private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
         .name("Date&Time Format Manager") //
         .icon("date-time-format-manager.png") //
-        .shortDescription("Attach formatter to Date&amp;Time cells.") //
+        .shortDescription("Attach formatter to date&amp;time cells.") //
         .fullDescription("""
-                <p>
-                    This node attaches formatting information to date&amp;time in a table. \
-                    This does not change the data, only the way the strings in the \
-                    selected columns are displayed in views, e.g., the Table View. \
-                    For more information about possible formats, see <a href="%s">the \
-                    Java documentation</a>.
-                </p>
-                <p>
-                    Since dates may contain localized terms such as month or weekday
-                    names, you can additionally specify a locale.
-                </p>
+                Attaches display formatting to date&amp;time columns. This node changes how date&amp;time values are \
+                displayed in views, such as the Table View, without modifying the data. Locales can be specified for \
+                localized terms.<br/>\
+                Helpful for formatting date&amp;time values for display in reports or data apps.
                 """.formatted(ComprehensiveDateTimeFormatProvider.LINK_TO_FORMAT_JAVADOC)) //
         .modelSettingsClass(DateTimeFormatManagerNodeSettings.class) //
         .nodeType(NodeType.Visualizer)//
-        .addInputTable("Input table", "Input table.") //
+        .addInputTable("Input table", "Input table containing date&amp;time columns.") //
         .addOutputTable("Output table", "Output table with columns containing the attached formatter.") //
-        .keywords("date-time", "locale", "hour", "minute", "second", "millisecond", "date", "year", "month", "day",
-            "time", "formatter", "day light saving")//
+        .keywords("date", "time", "locale", "hour", "minute", "second", "millisecond", "year", "month", "day",
+            "formatter", "day light saving")//
         .build();
 
     /**

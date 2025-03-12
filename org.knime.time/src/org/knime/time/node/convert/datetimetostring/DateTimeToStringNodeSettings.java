@@ -73,12 +73,12 @@ import org.knime.time.util.ReplaceOrAppend;
 @SuppressWarnings("restriction")
 final class DateTimeToStringNodeSettings implements DefaultNodeSettings {
 
-    @Widget(title = "Date&time columns", description = "Only the included columns will be converted.")
+    @Widget(title = "Date&time columns", description = "The date&amp;time columns to convert to string columns.")
     @ChoicesWidget(choices = DateTimeUtils.DateTimeColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
     @Widget(title = "Locale", description = """
-            The locale to use for formatting the date and time. \
+            The locale to use for formatting the date&amp;time. \
             Names of months and days of the week will be translated \
             according to the selected locale.
             """)
@@ -106,14 +106,15 @@ final class DateTimeToStringNodeSettings implements DefaultNodeSettings {
     String m_format = "yyyy-MM-dd HH:mm:ss";
 
     @Widget(title = "Output columns", description = """
-            Depending on the selection, the selected columns will be \
-            replaced or appended to the input table.
+            Depending on this setting, the output columns will either replace the modified columns, or be \
+            appended to the table with a suffix.
             """)
     @ValueSwitchWidget
     @ValueReference(ReplaceOrAppend.ValueRef.class)
     ReplaceOrAppend m_appendOrReplace = ReplaceOrAppend.REPLACE;
 
-    @Widget(title = "Output column suffix", description = "The selected columns will be appended to the input table.")
+    @Widget(title = "Output column suffix",
+        description = "The suffix to append to the column names of the new columns.")
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
     String m_outputColumnSuffix = " (String)";
 

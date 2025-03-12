@@ -69,17 +69,15 @@ public final class DateRoundNodeFactory extends WebUINodeFactory<DateRoundNodeMo
         .icon("date-rounder.png") //
         .shortDescription("Rounds a date.") //
         .fullDescription("""
-                The Date Rounder Node is designed for rounding date-based data within a table. \
-                It offers a flexible interface to adjust and transform date column values based \
-                on user-defined strategies and precision settings. This node is highly adaptable, \
-                enabling users to replace or append transformed columns to the input table, \
-                facilitating seamless integration into data workflows.
+                Rounds date columns to a specified granularity. You can adjust date values according to user-defined \
+                rounding strategies and precision, and replace or append the rounded values to the input table.<br/> \
+                Frequently used to align dates to the start of months, quarters, or years for reporting and grouping.
                 """) //
         .modelSettingsClass(DateRoundNodeSettings.class) //
-        .addInputTable("Input table", "Input table.") //
+        .addInputTable("Input table", "Input table containing date&amp;time columns.") //
         .addOutputTable("Output table", "Output table with rounded dates.") //
-        .keywords("modify", "ceil", "floor", "trunc", "fields", "hour", "minute", "second", "milli", "precision", "day",
-            "weekday", "month", "quater", "decade", "week", "time")//
+        .keywords("modify", "ceil", "floor", "truncate", "fields", "hour", "minute", "second", "millisecond",
+            "precision", "day", "weekday", "month", "quarter", "decade", "week", "time")//
         .build();
 
     public DateRoundNodeFactory() {

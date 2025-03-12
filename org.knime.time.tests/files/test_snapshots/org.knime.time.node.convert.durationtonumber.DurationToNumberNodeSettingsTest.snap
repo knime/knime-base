@@ -40,7 +40,7 @@
               "title" : "Append with suffix"
             } ],
             "title" : "Output columns",
-            "description" : "Depending on this setting, the output columns will either replace the modified columns, or be appended to the table with a suffix.\n\n<ul>\n<li><b>Replace</b>: The selected columns will be replaced by the new columns.</li>\n<li><b>Append with suffix</b>: The selected columns will be appended to the input table with a new name that is the previous name plus the provided suffix.\n</li>\n</ul>",
+            "description" : "Depending on this setting, the output columns will either replace the modified columns, or be appended to the table with a suffix.\n\n<ul>\n<li><b>Replace</b>: Replaces the selected columns by the new columns.</li>\n<li><b>Append with suffix</b>: Appends the selected columns to the input table with a new name that is the previous name plus the provided suffix.\n</li>\n</ul>",
             "default" : "REPLACE"
           },
           "filter" : {
@@ -182,7 +182,7 @@
               "title" : "Decimals"
             } ],
             "title" : "Output mode",
-            "description" : "The behaviour for rounding the number.\n<ul>\n<li><b>Integer</b>: The output will be the truncated calculation, i.e. the duration <i>1 hour 30 minutes 30 seconds</i> will be converted to <i>1 hour</i> or <i>90 minutes</i> or <i>5430 seconds</i> etc., depending upon the value of the unit of the number. </li>\n<li><b>Decimals</b>: The output will be the exact calculation, i.e. the duration <i>1 hour 30 minutes 30 seconds</i> will be converted to <i>1.508 hours</i> or <i>90.5 minutes</i> or <i>5430.0 seconds</i> etc., depending upon the value of the unit of the number. </li>\n</ul>",
+            "description" : "The behaviour for rounding the number.\n<ul>\n<li><b>Integer</b>: Truncates the converted number, i.e. the duration <i>1 hour 30 minutes 30 seconds</i> will be converted to <i>1 hour</i> or <i>90 minutes</i> or <i>5430 seconds</i> etc., depending upon the value of the unit of the number. </li>\n<li><b>Decimals</b>: Outputs the exact converted number, i.e. the duration <i>1 hour 30 minutes 30 seconds</i> will be converted to <i>1.508 hours</i> or <i>90.5 minutes</i> or <i>5430.0 seconds</i> etc., depending upon the value of the unit of the number. </li>\n</ul>",
             "default" : "INTEGER"
           },
           "suffix" : {

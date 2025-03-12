@@ -69,21 +69,17 @@ public final class ModifyDateNodeFactory2 extends WebUINodeFactory<ModifyDateNod
         .icon("modify_date.png") //
         .shortDescription("Modifies date information of a date&amp;time cell.") //
         .fullDescription("""
-                Modifies date&amp;time columns in three different ways:
-                <ul>
-                    <li>Append a date to local time columns (output type is a \
-                        local or zoned date-time column).</li>
-                    <li>Change the date in local or zoned date and time columns.</li>
-                    <li>Remove the date from local or zoned date and time columns \
-                    (output type is a local time column).</li>
-                </ul>
-                <b>Note:</b> This node is not intended for adding or subtracting dates. \
-                Use the <i>Date Shifter</i> node for such operations.
+                Modifies date&amp;time columns by appending, changing, or removing the date component. \
+                You can append a date to time columns (output: Date&amp;time (Local) or Date&amp;time (Zoned)), \
+                change the date in local or zoned date&amp;time columns, or remove the date (output: Time).<br/> \
+                Useful for normalizing date columns or extracting time components for time-based analysis. \
+                <br/><i>Note: This node does not perform shifting operations. Use the Date Shifter node for that \
+                purpose.</i>
                 """) //
         .modelSettingsClass(ModifyDateNodeSettings.class) //
-        .addInputTable("Input table", "Input table.") //
+        .addInputTable("Input table", "Input table containing date&amp;time columns.") //
         .addOutputTable("Output table", "Output table with modified date.") //
-        .keywords("modify", "date", "date-time", "fields", "year", "month", "day") //
+        .keywords("modify", "date", "time", "fields", "year", "month", "day") //
         .build();
 
     public ModifyDateNodeFactory2() {

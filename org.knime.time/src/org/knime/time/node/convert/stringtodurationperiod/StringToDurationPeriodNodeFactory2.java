@@ -64,28 +64,27 @@ public final class StringToDurationPeriodNodeFactory2 extends WebUINodeFactory<S
         return new StringToDurationPeriodNodeModel2(CONFIGURATION);
     }
 
-    private static final String DURATION_PARSE_URL =
-        "https://docs.oracle.com/javase/17/docs/api/java/time/Duration.html#parse-java.lang.CharSequence-";
+    private static final String BASE_URL = "https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/";
 
-    private static final String PERIOD_PARSE_URL =
-        "https://docs.oracle.com/javase/17/docs/api/java/time/Period.html#parse-java.lang.CharSequence-";
+    private static final String DURATION_PARSE_URL = BASE_URL + "Duration.html#parse(java.lang.CharSequence)";
+
+    private static final String PERIOD_PARSE_URL = BASE_URL + "Period.html#parse(java.lang.CharSequence)";
 
     private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
         .name("String to Duration") //
         .icon("stringtoduration.png") //
-        .shortDescription("Converts a string to a duration/period.") //
+        .shortDescription("Converts a string to a duration.") //
         .fullDescription("""
-                Converts string cells to duration/period cells. The string representation of these \
-                durations needs to be in either the ISO 8601 representation (see  <a href="%s"> \
-                date-based duration format</a> or <a href="%s">time-based duration format</a> \
-                for details, e.g. 'P2Y3M1D'), the short letter representation (e.g. '2y 3M 1d', \
-                where y means years, M means months, and d means days; or '2H 3m 1s', where \
-                H means hours, m means minutes, and s means seconds) or the long word \
-                representation (e.g. '2 years 3 months 1 day').
+                Converts string cells to duration cells. The input strings can follow the ISO 8601 format \
+                (see  <a href="%s">date-based duration format</a> or <a href="%s">time-based duration format</a> \
+                for details, e.g. <tt>P2Y3M1D</tt>), a short letter format (e.g., <tt>2y 3M 1d or 2H 3m 1s</tt>), \
+                or a long word format (e.g., <tt>2 years 3 months 1 day</tt>).<br/>\
+                Commonly applied when preparing data containing text-based durations for calculation or further \
+                processing.
                 """.formatted(PERIOD_PARSE_URL, DURATION_PARSE_URL)) //
         .modelSettingsClass(StringToDurationPeriodNodeSettings.class) //
-        .addInputTable("Input table", "Input table.") //
-        .addOutputTable("Output table", "Output table with strings parsed to durations/periods.") //
+        .addInputTable("Input table", "Input table containing string columns with duration information.") //
+        .addOutputTable("Output table", "Output table with strings parsed to durations.") //
         .keywords("parse", "convert", "string", "duration", "period", "interval", "hour", "minute", "second",
             "millisecond", "year", "month", "week", "day") //
         .build();

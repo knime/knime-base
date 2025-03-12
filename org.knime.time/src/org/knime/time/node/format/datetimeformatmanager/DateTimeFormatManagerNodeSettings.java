@@ -79,12 +79,12 @@ final class DateTimeFormatManagerNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    @Widget(title = "Date&time columns", description = "Only the included columns will be converted.")
+    @Widget(title = "Date&time columns", description = "The date&amp;time columns to create a formatter for.")
     @ChoicesWidget(choices = DateTimeUtils.DateTimeColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
     @Widget(title = "Locale", description = """
-            The locale to use for formatting the date and time. \
+            The locale to use for formatting the date&amp;time. \
             Names of months and days of the week will be translated \
             according to the selected locale.
             """)
@@ -113,7 +113,7 @@ final class DateTimeFormatManagerNodeSettings implements DefaultNodeSettings {
     String m_format = "yyyy-MM-dd HH:mm:ss";
 
     @Widget(title = "Alignment suggestion", description = """
-            Position value horizontally in compatible views like the \
+            Position the value horizontally in compatible views like the \
             Table View.
             """)
     @ValueSwitchWidget

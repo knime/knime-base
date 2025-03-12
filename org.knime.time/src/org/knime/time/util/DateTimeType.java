@@ -75,22 +75,22 @@ public enum DateTimeType {
         /**
          * Contains only a date.
          */
-        @Label(value = "Date", description = "Outputs will be of type Local Date")
+        @Label(value = "Date", description = "Outputs values of type Date")
         LOCAL_DATE("Date", LocalDateCellFactory.TYPE, LocalDate::from),
         /**
          * Contains only a time.
          */
-        @Label(value = "Time", description = "Outputs will be of type Local Time")
+        @Label(value = "Time", description = "Outputs values of type Time")
         LOCAL_TIME("Time", LocalTimeCellFactory.TYPE, LocalTime::from),
         /**
          * Contains a date and a time.
          */
-        @Label(value = "Date & time", description = "Outputs will be of type Local Date Time")
+        @Label(value = "Date & time", description = "Outputs values of type Date&amp;time (Local)")
         LOCAL_DATE_TIME("Date&time", LocalDateTimeCellFactory.TYPE, LocalDateTime::from),
         /**
          * Contains a date, a time and a time zone.
          */
-        @Label(value = "Date & time & zone", description = "Outputs will be of type Zoned Date Time")
+        @Label(value = "Date & time & zone", description = "Outputs values of type Date&amp;time (Zoned)")
         ZONED_DATE_TIME("Date&time with zone", ZonedDateTimeCellFactory.TYPE, ZonedDateTime::from);
 
     private final String m_name;
