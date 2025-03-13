@@ -88,6 +88,12 @@ final class TableColumnToVariable4NodeModel extends WebUINodeModel<TableColumnTo
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs,
         final TableColumnToVariable4NodeSettings modelSettings) throws InvalidSettingsException {
         final DataTableSpec spec = (DataTableSpec)inSpecs[0];
+
+        //For backwards compatibility, otherwise it should never be null
+        if (modelSettings.m_column == null) {
+            modelSettings.m_column = autoGuess(spec);
+        }
+
         // validation
         final int colIndex = spec.findColumnIndex(modelSettings.m_column);
         if (colIndex < 0) {
@@ -163,6 +169,16 @@ final class TableColumnToVariable4NodeModel extends WebUINodeModel<TableColumnTo
         return spec.stream()//
             .filter(s -> CellToVariableConverterFactory.isSupported(s.getType()))//
             .collect(Collectors.toList());
+    }
+
+    private String autoGuess(final DataTableSpec spec) throws InvalidSettingsException {
+        final Collection<DataColumnSpec> applicableColumns = applicableColumns(spec);
+        if (applicableColumns.isEmpty()) {
+            throw new InvalidSettingsException("Input contains no column that can be converted to a flow variable");
+        }
+        final DataColumnSpec column = applicableColumns.iterator().next();
+        setWarningMessage(String.format("Auto-guessing: Selected column '%s'", column.getName()));
+        return column.getName();
     }
 
 }
