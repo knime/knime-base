@@ -54,10 +54,11 @@ import org.knime.core.webui.node.impl.WebUINodeFactory;
 /**
  * WebUI node factory for the "Table Structure Creator" node.
  *
+ * @noreference This class is not intended to be referenced by clients.
  * @author Martin Sillye, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public class CreateTableStructureNodeFactory extends WebUINodeFactory<CreateTableStructureNodeModel> {
+public final class CreateTableStructureNodeFactory extends WebUINodeFactory<CreateTableStructureNodeModel> {
 
     /**
      *

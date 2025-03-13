@@ -73,10 +73,10 @@
         </filter>
     </resource>
     <resource path="src/org/knime/base/node/preproc/createtablestructure/CreateTableStructureNodeFactory.java" type="org.knime.base.node.preproc.createtablestructure.CreateTableStructureNodeFactory">
-        <filter id="338792546">
+        <filter comment="UIEXT-2500 - node has never been API" id="305365105">
             <message_arguments>
                 <message_argument value="org.knime.base.node.preproc.createtablestructure.CreateTableStructureNodeFactory"/>
-                <message_argument value="createNodeView(int, CreateTableStructureNodeModel)"/>
+                <message_argument value="org.knime.base_5.5.0"/>
             </message_arguments>
         </filter>
     </resource>
