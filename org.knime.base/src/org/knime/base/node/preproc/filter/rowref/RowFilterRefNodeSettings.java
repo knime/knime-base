@@ -73,6 +73,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 final class RowFilterRefNodeSettings implements DefaultNodeSettings {
 
     // TODO: UIEXT-1007 migrate String to ColumnSelection
+
     @Persist(settingsModel = SettingsModelColumnName.class, configKey = "dataTableColumn")
     @Widget(title = "Data column",
         description = "The column from the table to be filtered that should be used for comparison.")
@@ -92,39 +93,13 @@ final class RowFilterRefNodeSettings implements DefaultNodeSettings {
     @ValueSwitchWidget
     IncludeOrExcludeRows m_inexclude = IncludeOrExcludeRows.INCLUDE;
 
-    @Persist(customPersistor = UpdateDomainsPersistor.class)
+    @Persist(settingsModel = SettingsModelBoolean.class)
     @Widget( //
         title = "Update domains of all columns", //
         description = "Advanced setting to enable recomputation of the domains of all columns in the output table " //
             + "such that the domains' bounds exactly match the bounds of the data in the output table.", //
         advanced = true)
     boolean m_updateDomains;
-
-    static final class UpdateDomainsPersistor implements FieldNodeSettingsPersistor<Boolean> {
-
-        static final String CFG_KEY = "updateDomains";
-
-        @Override
-        public Boolean load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            if (!settings.containsKey(CFG_KEY)) {
-                return false;
-            }
-            final var model = new SettingsModelBoolean(CFG_KEY, false);
-            model.loadSettingsFrom(settings);
-            return model.getBooleanValue();
-        }
-
-        @Override
-        public void save(final Boolean obj, final NodeSettingsWO settings) {
-            new SettingsModelBoolean(CFG_KEY, obj).saveSettingsTo(settings);
-        }
-
-        @Override
-        public String[] getConfigKeys() {
-            return new String[]{CFG_KEY};
-        }
-
-    }
 
     enum IncludeOrExcludeRows {
             @Label("Include")
