@@ -10,7 +10,7 @@
         "timeZone" : "Europe/Berlin"
       },
       "useExecutionTimeStart" : false,
-      "fixedSteps" : "INTERVAL_AND_END",
+      "fixedSteps" : "NUMBER_AND_END",
       "numberOfRows" : 1000,
       "interval" : "P0Y0M0W1D",
       "localDateEnd" : "2020-01-01",
@@ -32,18 +32,18 @@
         "properties" : {
           "fixedSteps" : {
             "oneOf" : [ {
-              "const" : "INTERVAL_AND_END",
-              "title" : "Interval to end"
-            }, {
               "const" : "NUMBER_AND_END",
               "title" : "Count to end"
             }, {
               "const" : "NUMBER_AND_INTERVAL",
               "title" : "Count with interval"
+            }, {
+              "const" : "INTERVAL_AND_END",
+              "title" : "Interval to end"
             } ],
             "title" : "Fixed steps",
-            "description" : "How the rows are created.\n<ul>\n<li><b>Interval to end</b>: Outputs evenly spaced date&amp;time rows, with the specified interval between them, starting at the start date&amp;time and ending at or before the end date&amp;time, depending on whether the interval divides exactly into the range. The number of rows produced in this case is variable and depends on the interval and the range.\n</li>\n<li><b>Count to end</b>: Outputs evenly spaced date&amp;time rows, with the specified number of output values, starting at the the start date&amp;time and ending exactly at the specified end date&amp;time. The number of rows produced in this case is fixed to the number of steps specified.\n</li>\n<li><b>Count with interval</b>: Outputs evenly spaced date&amp;time rows, with the specified interval between them, starting at the start date&amp;time and ending once the specified number of rows have been added. The number of rows produced in this case is fixed to the number of steps specified.\n</li>\n</ul>",
-            "default" : "INTERVAL_AND_END"
+            "description" : "How the rows are created.\n<ul>\n<li><b>Count to end</b>: Outputs evenly spaced date&amp;time rows, with the specified number of output values, starting at the the start date&amp;time and ending exactly at the specified end date&amp;time. The number of rows produced in this case is fixed to the number of steps specified.\n</li>\n<li><b>Count with interval</b>: Outputs evenly spaced date&amp;time rows, with the specified interval between them, starting at the start date&amp;time and ending once the specified number of rows have been added. The number of rows produced in this case is fixed to the number of steps specified.\n</li>\n<li><b>Interval to end</b>: Outputs evenly spaced date&amp;time rows, with the specified interval between them, starting at the start date&amp;time and ending at or before the end date&amp;time, depending on whether the interval divides exactly into the range. The number of rows produced in this case is variable and depends on the interval and the range.\n</li>\n</ul>",
+            "default" : "NUMBER_AND_END"
           },
           "interval" : {
             "type" : "object",
