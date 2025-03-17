@@ -140,13 +140,13 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
     @Layout(DifferencingSettingsSection.class)
     LocalTime m_localTimeFixed = LocalTime.now();
 
-    @Widget(title = "Local date&amp;time",
+    @Widget(title = "Local date&time",
         description = "The fixed local date&amp;time to calculate the difference to.")
     @Effect(predicate = FirstColumnIsDateTimeAndFixedDateTime.class, type = EffectType.SHOW)
     @Layout(DifferencingSettingsSection.class)
     LocalDateTime m_localDateTimeFixed = LocalDateTime.now();
 
-    @Widget(title = "Zoned date&amp;time",
+    @Widget(title = "Zoned date&time",
         description = "The fixed zoned date&amp;time to calculate the difference to.")
     @Effect(predicate = FirstColumnIsZonedDateTimeAndFixedDateTime.class, type = EffectType.SHOW)
     @Layout(DifferencingSettingsSection.class)

@@ -126,14 +126,14 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
     @Layout(StartingPointSettingsSection.class)
     LocalTime m_localTimeStart = LocalTime.now().truncatedTo(ChronoUnit.SECONDS).minusHours(1);
 
-    @Widget(title = "Start local date&amp;time", description = """
+    @Widget(title = "Start local date&time", description = """
             The local date&amp;time at which the date&amp;time creation should start, inclusive.
             """)
     @Effect(predicate = IsLocalDateTimeAndNotDisabledStart.class, type = EffectType.SHOW)
     @Layout(StartingPointSettingsSection.class)
     LocalDateTime m_localDateTimeStart = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS).minusYears(1);
 
-    @Widget(title = "Start zoned date&amp;time", description = """
+    @Widget(title = "Start zoned date&time", description = """
             The zoned date&amp;time at which the date&amp;time creation should start, \
             inclusive.
             """)
@@ -187,7 +187,7 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
     @Layout(value = EndSettingsSection.class)
     LocalTime m_localTimeEnd = LocalTime.now().truncatedTo(ChronoUnit.SECONDS);
 
-    @Widget(title = "End local date&amp;time", description = """
+    @Widget(title = "End local date&time", description = """
             The local date&amp;time at which the date&amp;time creation should stop. The end date&amp;time is \
             inclusive, except if the output mode is 'Number and Duration' and the provided interval does not divide \
             evenly between the start and end date&amp;time.
@@ -196,7 +196,7 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
     @Layout(value = EndSettingsSection.class)
     LocalDateTime m_localDateTimeEnd = LocalDateTime.now();
 
-    @Widget(title = "End zoned date&amp;time", description = """
+    @Widget(title = "End zoned date&time", description = """
             The zoned date&amp;time at which the date&amp;time creation should stop. The end date&amp;time \
             is inclusive, except if the output mode is 'Number and Duration' and the provided interval \
             does not divide evenly between the start and end date&amp;time.

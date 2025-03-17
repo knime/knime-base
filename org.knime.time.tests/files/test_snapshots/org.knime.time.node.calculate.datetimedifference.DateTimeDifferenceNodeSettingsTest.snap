@@ -96,7 +96,7 @@
           "localDateTimeFixed" : {
             "type" : "string",
             "format" : "date-time",
-            "title" : "Local date&amp;time",
+            "title" : "Local date&time",
             "description" : "The fixed local date&amp;time to calculate the difference to.",
             "default" : "2020-01-01T14:00:00.123456789"
           },
@@ -190,7 +190,7 @@
           "zonedDateTimeFixed" : {
             "type" : "string",
             "format" : "date-time",
-            "title" : "Zoned date&amp;time",
+            "title" : "Zoned date&time",
             "description" : "The fixed zoned date&amp;time to calculate the difference to.",
             "default" : {
               "dateTime" : "2020-01-01T14:00:00.123456789",

@@ -68,14 +68,14 @@
           "localDateTimeEnd" : {
             "type" : "string",
             "format" : "date-time",
-            "title" : "End local date&amp;time",
+            "title" : "End local date&time",
             "description" : "The local date&amp;time at which the date&amp;time creation should stop. The end date&amp;time is inclusive, except if the output mode is 'Number and Duration' and the provided interval does not divide evenly between the start and end date&amp;time.\n",
             "default" : "2020-01-01T14:00:00.123456789"
           },
           "localDateTimeStart" : {
             "type" : "string",
             "format" : "date-time",
-            "title" : "Start local date&amp;time",
+            "title" : "Start local date&time",
             "description" : "The local date&amp;time at which the date&amp;time creation should start, inclusive.\n",
             "default" : "2019-01-01T14:00:00"
           },
@@ -139,7 +139,7 @@
           "zonedDateTimeEnd" : {
             "type" : "string",
             "format" : "date-time",
-            "title" : "End zoned date&amp;time",
+            "title" : "End zoned date&time",
             "description" : "The zoned date&amp;time at which the date&amp;time creation should stop. The end date&amp;time is inclusive, except if the output mode is 'Number and Duration' and the provided interval does not divide evenly between the start and end date&amp;time.\n",
             "default" : {
               "dateTime" : "2020-01-01T14:00:00.123456789",
@@ -149,7 +149,7 @@
           "zonedDateTimeStart" : {
             "type" : "string",
             "format" : "date-time",
-            "title" : "Start zoned date&amp;time",
+            "title" : "Start zoned date&time",
             "description" : "The zoned date&amp;time at which the date&amp;time creation should start, inclusive.\n",
             "default" : {
               "dateTime" : "2019-01-01T14:00:00",
