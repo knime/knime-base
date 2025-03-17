@@ -48,13 +48,15 @@
  */
 package org.knime.base.node.preproc.filter.row3;
 
+import static org.knime.base.node.preproc.filter.row3.RowIdentifiers.ROW_ID;
+import static org.knime.base.node.preproc.filter.row3.RowIdentifiers.ROW_NUMBER;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion.SelectedColumnRef;
@@ -70,16 +72,18 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelectionToStringMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelectionToStringOrEnumMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoice;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
@@ -144,20 +148,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
             }
         }
 
-        private static class ColumnsWithTypeMapping implements ColumnChoicesProvider {
-
-            @Override
-            public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
-                return context.getDataTableSpec(0) //
-                    .map(DataTableSpec::stream) //
-                    .orElseGet(Stream::empty) //
-                    .toArray(DataColumnSpec[]::new);
-            }
-
-        }
-
-        @Widget(title = "Filter column", description =
-                """
+        @Widget(title = "Filter column", description = """
                 The column on which to apply the filter.
                 <br />
 
@@ -174,13 +165,32 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
 
                 Collection columns are also not supported by the node.
                 """)
-        @ChoicesWidget(showRowKeysColumn = true, showRowNumbersColumn = true,
-            choicesProvider = ColumnsWithTypeMapping.class)
+        @ChoicesProvider(AllColumnsProvider.class)
         @Layout(Condition.ColumnOperator.Column.class)
         @ValueReference(SelectedColumnRef.class)
-        ColumnSelection m_column = SpecialColumns.ROWID.toColumnSelection();
+        @Migration(FromColumnSelectionMigration.class)
+        @Persist(configKey = "columnV2")
+        StringOrEnum<RowIdentifiers> m_column = new StringOrEnum<>(ROW_ID);
 
-        static final class SelectedColumnRef implements Reference<ColumnSelection> {
+        static final class FromColumnSelectionMigration extends ColumnSelectionToStringOrEnumMigration<RowIdentifiers> {
+
+            FromColumnSelectionMigration() {
+                super("column");
+            }
+
+            @Override
+            protected Optional<RowIdentifiers> loadFromLegacyString(final String legacyString) {
+                if (LEGACY_ROW_KEYS_IDENTIFIER.equals(legacyString)) {
+                    return Optional.of(ROW_ID);
+                }
+                if (LEGACY_ROW_NUMBERS_IDENTIFIER.equals(legacyString)) {
+                    return Optional.of(ROW_NUMBER);
+                }
+                return Optional.empty();
+            }
+        }
+
+        static final class SelectedColumnRef implements Reference<StringOrEnum<RowIdentifiers>> {
         }
 
         // We explicitly do not "reset" the current operator to one applicable for the current column data type,
@@ -201,7 +211,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                 """)
         @Layout(Condition.ColumnOperator.Operator.class)
         @ValueReference(OperatorRef.class)
-        @ChoicesWidget(choicesProvider = TypeBasedOperatorChoices.class)
+        @ChoicesProvider(TypeBasedOperatorChoices.class)
         FilterOperator m_operator = FilterOperator.EQ;
 
         static class OperatorRef implements Reference<FilterOperator> {
@@ -220,13 +230,12 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
 
         FilterCriterion(final DataColumnSpec colSpec) {
             if (colSpec == null) {
-                m_column = SpecialColumns.ROWID.toColumnSelection();
                 // we don't know how RowIDs look in general, since they can be user-defined, hence we just put
                 // a placeholder here that is not null
                 m_predicateValues = DynamicValuesInput.forRowID();
                 return;
             }
-            m_column = new ColumnSelection(colSpec);
+            m_column = new StringOrEnum<>(colSpec.getName());
             if (DynamicValuesInput.supportsDataType(colSpec.getType())) {
                 m_predicateValues =
                     DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(colSpec.getType());
@@ -247,17 +256,16 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
         }
 
         IndexedRowReadPredicate toPredicate(final DataTableSpec spec) throws InvalidSettingsException {
-            // Special case for RowID, which is not a DataValue
-            if (isFilterOnRowKeys()) {
-                return rowKeyPredicate(m_predicateValues);
+
+            final var rowIdentifierChoice = m_column.getEnumChoice();
+            if (rowIdentifierChoice.isPresent()) {
+                return switch (rowIdentifierChoice.get()) {
+                    case ROW_ID -> rowKeyPredicate(m_predicateValues);
+                    case ROW_NUMBER -> rowNumberPredicate(m_predicateValues);
+                };
             }
 
-            // case where row numbers are treated as data, e.g. WILDCARD/REGEX matching
-            if (isFilterOnRowNumbers()) {
-                return rowNumberPredicate(m_predicateValues);
-            }
-
-            final var column = m_column.getSelected();
+            final var column = m_column.getStringChoice();
             final var columnIndex = spec.findColumnIndex(column);
             if (columnIndex < 0) {
                 throw new InvalidSettingsException("Column \"%s\" could not be found in input table".formatted(column));
@@ -285,12 +293,8 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                 .createPredicate(OptionalInt.empty(), predicateValues);
         }
 
-        boolean isFilterOnRowKeys() {
-            return isRowIDSelected(m_column.getSelected());
-        }
-
         boolean isFilterOnRowNumbers() {
-            return isRowNumberSelected(m_column.getSelected());
+            return m_column.getEnumChoice().map(ROW_NUMBER::equals).orElse(false);
         }
 
         @Widget(title = "Filter value", description = """
@@ -320,7 +324,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
 
         static class TypeAndOperatorBasedInput implements StateProvider<DynamicValuesInput> {
 
-            private Supplier<ColumnSelection> m_selectedColumn;
+            private Supplier<StringOrEnum<RowIdentifiers>> m_selectedColumn;
 
             private Supplier<DynamicValuesInput> m_currentValue;
 
@@ -353,19 +357,21 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
                     return DynamicValuesInput.emptySingle();
                 }
 
-                final var selected = m_selectedColumn.get().getSelected();
+                final var selectedColumn = m_selectedColumn.get();
                 final var dts = inputSpec.get();
-                final var columnSpec = dts.getColumnSpec(selected);
+
+                final var rowIdentifierChoice = selectedColumn.getEnumChoice();
+                if (rowIdentifierChoice.isPresent()) {
+                    final var newDynamicValue = switch (rowIdentifierChoice.get()) {
+                        case ROW_ID -> DynamicValuesInput.forRowID();
+                        case ROW_NUMBER -> DynamicValuesInput.forRowNumber(LongCell.TYPE);
+                    };
+                    return keepCurrentValueIfPossible(newDynamicValue);
+                }
+
+                final var columnSpec = dts.getColumnSpec(selectedColumn.getStringChoice());
                 final var operatorRequiredType = m_currentOperator.get().getRequiredInputType();
                 if (columnSpec == null) {
-                    // column went missing or we selected a "special column"
-                    if (isRowIDSelected(selected)) {
-                        return keepCurrentValueIfPossible(DynamicValuesInput.forRowID());
-                    }
-                    if (isRowNumberSelected(selected)) {
-                        return keepCurrentValueIfPossible(
-                            DynamicValuesInput.forRowNumber(operatorRequiredType.orElse(LongCell.TYPE)));
-                    }
                     // we don't know the column type, but we still have the (user-supplied) comparison value,
                     // which we don't want to clear
                     return m_currentValue.get();
@@ -394,104 +400,106 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    interface PredicatesRef extends Reference<FilterCriterion[]> {
-    }
-
-    static final class HasMultipleFilterConditions implements PredicateProvider {
-        @Override
-        public Predicate init(final PredicateInitializer i) {
-            return i.getArray(PredicatesRef.class).hasMultipleItems();
+        interface PredicatesRef extends Reference<FilterCriterion[]> {
         }
-    }
 
-    @Widget(title = "Filter criteria", description = "The list of criteria that should be filtered on.")
-    @ArrayWidget(elementTitle = "Criterion", showSortButtons = true, addButtonText = "Add criterion",
-        elementDefaultValueProvider = DefaultFitlerCriterionProvider.class)
-    @Layout(DialogSections.Filter.Conditions.class)
-    @ValueReference(PredicatesRef.class)
-    FilterCriterion[] m_predicates;
+        static final class HasMultipleFilterConditions implements PredicateProvider {
+            @Override
+            public Predicate init(final PredicateInitializer i) {
+                return i.getArray(PredicatesRef.class).hasMultipleItems();
+            }
+        }
 
-    @Widget(title = "Column domains", description = """
-            Specify whether to take domains of all input columns as output domains as-is or compute them on the output
-            rows.
-            <br />
+        @Widget(title = "Filter criteria", description = "The list of criteria that should be filtered on.")
+        @ArrayWidget(elementTitle = "Criterion", showSortButtons = true, addButtonText = "Add criterion",
+            elementDefaultValueProvider = DefaultFilterCriterionProvider.class)
+        @Layout(DialogSections.Filter.Conditions.class)
+        @ValueReference(PredicatesRef.class)
+        FilterCriterion[] m_predicates;
 
-            Depending on the use case, one or the other setting may be preferable:
-            <ul>
-                <li><em>Retaining</em> input columns can be useful, if the axis limits of a view should be derived from
-                domain bounds, and that bounds should stay stable even when the displayed data is filtered.
-                </li>
-                <li><em>Computing</em> domains can be useful when a selection widget consumes the output and should only
-                display actually present options to users.</li>
-            </ul>
+        @Widget(title = "Column domains",
+            description = """
+                    Specify whether to take domains of all input columns as output domains as-is or compute them on the output
+                    rows.
+                    <br />
 
-            If column domains are irrelevant for a particular use case, the &quot;Retain&quot; option should be used
-            since it does not incur computation costs.
-            <br />
+                    Depending on the use case, one or the other setting may be preferable:
+                    <ul>
+                        <li><em>Retaining</em> input columns can be useful, if the axis limits of a view should be derived from
+                        domain bounds, and that bounds should stay stable even when the displayed data is filtered.
+                        </li>
+                        <li><em>Computing</em> domains can be useful when a selection widget consumes the output and should only
+                        display actually present options to users.</li>
+                    </ul>
 
-            For more control over individual column domains, you can use the <a href="
-            """ + ExternalLinks.HUB_DOMAIN_CALCULATOR + """
-                    "><em>Domain Calculator</em></a>, <a href="
-            """ + ExternalLinks.HUB_EDIT_NUMERIC_DOMAIN + """
-                    "><em>Edit Numeric Domain</em></a>, or <a href="
-            """ + ExternalLinks.HUB_EDIT_NOMINAL_DOMAIN + """
-                    "><em>Edit Nominal Domain</em></a> nodes.
-            """)
-    @ValueSwitchWidget()
-    @Layout(DialogSections.Output.Domain.class)
-    ColumnDomains m_domains = ColumnDomains.RETAIN;
+                    If column domains are irrelevant for a particular use case, the &quot;Retain&quot; option should be used
+                    since it does not incur computation costs.
+                    <br />
 
-    enum ColumnDomains {
-        @Label(value = "Retain",
-        description = """
-                Retain input domains on output columns, i.e. the upper and lower bounds or possible values in the table
-                spec are not changed, even if one of the bounds or one value is fully filtered out from the output
-                table. If the input does not contain domain information, so will the output.
-                    """)
-        RETAIN, @Label(value = "Compute",
-        description = """
-                Compute column domains on output columns, i.e. upper and lower bounds and possible values are computed
-                only on the rows output by the node.
-                    """)
-        COMPUTE;
-    }
+                    For more control over individual column domains, you can use the <a href="
+                    """
+                + ExternalLinks.HUB_DOMAIN_CALCULATOR + """
+                                "><em>Domain Calculator</em></a>, <a href="
+                        """ + ExternalLinks.HUB_EDIT_NUMERIC_DOMAIN + """
+                                "><em>Edit Numeric Domain</em></a>, or <a href="
+                        """ + ExternalLinks.HUB_EDIT_NOMINAL_DOMAIN + """
+                                "><em>Edit Nominal Domain</em></a> nodes.
+                        """)
+        @ValueSwitchWidget()
+        @Layout(DialogSections.Output.Domain.class)
+        ColumnDomains m_domains = ColumnDomains.RETAIN;
 
-    /**
-     * Mode to determine which set of rows is output at the first output port (and second in case of a splitter).
-     */
-    enum FilterMode {
-            /**
-             * Include matching rows at the first port.
-             */
-            @Label("Output matching rows")
-            MATCHING, //
-            /**
-             * Exclude matching rows from the first port.
-             */
-            @Label("Output non-matching rows")
-            NON_MATCHING
-    }
+        enum ColumnDomains {
+                @Label(value = "Retain",
+                    description = """
+                            Retain input domains on output columns, i.e. the upper and lower bounds or possible values in the table
+                            spec are not changed, even if one of the bounds or one value is fully filtered out from the output
+                            table. If the input does not contain domain information, so will the output.
+                                """)
+                RETAIN, @Label(value = "Compute",
+                    description = """
+                            Compute column domains on output columns, i.e. upper and lower bounds and possible values are computed
+                            only on the rows output by the node.
+                                """)
+                COMPUTE;
+        }
 
-    /**
-     * Get the output mode, i.e. output only matching rows or only non-matching rows in the first output. The second
-     * output, if present, will receive the complementary set of rows.
-     *
-     * @return {@link FilterMode#MATCHING} if only matching rows should be output (in the first output) or
-     *         {@link FilterMode#NON_MATCHING} for only non-matching.
-     */
-    abstract FilterMode outputMode();
+        /**
+         * Mode to determine which set of rows is output at the first output port (and second in case of a splitter).
+         */
+        enum FilterMode {
+                /**
+                 * Include matching rows at the first port.
+                 */
+                @Label("Output matching rows")
+                MATCHING, //
+                /**
+                 * Exclude matching rows from the first port.
+                 */
+                @Label("Output non-matching rows")
+                NON_MATCHING
+        }
 
-    boolean outputMatches() {
-        return outputMode() == FilterMode.MATCHING;
-    }
+        /**
+         * Get the output mode, i.e. output only matching rows or only non-matching rows in the first output. The second
+         * output, if present, will receive the complementary set of rows.
+         *
+         * @return {@link FilterMode#MATCHING} if only matching rows should be output (in the first output) or
+         *         {@link FilterMode#NON_MATCHING} for only non-matching.
+         */
+        abstract FilterMode outputMode();
 
-    // constructor needed for de-/serialisation
+        boolean outputMatches() {
+            return outputMode() == FilterMode.MATCHING;
+        }
+
+        // constructor needed for de-/serialisation
 
     AbstractRowFilterNodeSettings() {
         this(null);
     }
 
-    // auto-configuration
+        // auto-configuration
     AbstractRowFilterNodeSettings(@SuppressWarnings("unused") final DefaultNodeSettingsContext ctx) { // NOSONAR
         // we don't add a filter criterion automatically in order to avoid setting a default value without
         // the user noticing (and we need to set some default value in the filter criterion, s.t. flow variables work
@@ -499,233 +507,215 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
         m_predicates = new FilterCriterion[0];
     }
 
-    void validate(final DataTableSpec spec) throws InvalidSettingsException {
-        for (final var p : m_predicates) {
-            p.validate(spec);
-        }
-    }
-
-    abstract boolean isSecondOutputActive();
-
-    // UPDATE HANDLER
-
-    /**
-     * Compute possible enum values for filter operator based on the selected column.
-     */
-    static class TypeBasedOperatorsProvider implements StateProvider<List<FilterOperator>> {
-
-        private Supplier<ColumnSelection> m_columnSelection;
-
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            initializer.computeAfterOpenDialog();
-            m_columnSelection = initializer.computeFromValueSupplier(SelectedColumnRef.class);
-        }
-
-        @Override
-        public List<FilterOperator> computeState(final DefaultNodeSettingsContext context)
-            throws WidgetHandlerException {
-            final var column = m_columnSelection.get().getSelected();
-            return getFilterOperators(context, column);
-        }
-
-        private static List<FilterOperator> getFilterOperators(final DefaultNodeSettingsContext context,
-            final String column) {
-            if (column == null) {
-                return List.of();
-            }
-            final var specialColumn =
-                Arrays.stream(SpecialColumns.values()).filter(t -> t.getId().equals(column)).findFirst().orElse(null);
-            if (SpecialColumns.NONE == specialColumn) {
-                return List.of();
-            }
-            final var dataType = getColumnType(specialColumn,
-                () -> context.getDataTableSpec(0).map(dts -> dts.getColumnSpec(column)).map(DataColumnSpec::getType));
-            if (dataType.isEmpty()) {
-                // we don't know the column, but we know that columns always can contain missing cells
-                return List.of(FilterOperator.IS_MISSING, FilterOperator.IS_NOT_MISSING);
-            }
-            // filter on top-level type
-            return Arrays.stream(FilterOperator.values()) //
-                .filter(op -> !op.isHidden(specialColumn, dataType.get())) //
-                .toList();
-        }
-
-        private static Optional<DataType> getColumnType(final SpecialColumns optionalSpecialColumn,
-            final Supplier<Optional<DataType>> columnDataTypeSupplier) {
-            if (optionalSpecialColumn == null) {
-                return columnDataTypeSupplier.get();
-            }
-            return Optional.ofNullable(switch (optionalSpecialColumn) {
-                case ROWID -> StringCell.TYPE;
-                case ROW_NUMBERS -> LongCell.TYPE;
-                case NONE -> throw new IllegalArgumentException(
-                    "Unsupported special column type \"%s\"".formatted(optionalSpecialColumn.name()));
-            });
-        }
-    }
-
-    static class DefaultFitlerCriterionProvider implements StateProvider<FilterCriterion> {
-
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            initializer.computeBeforeOpenDialog();
-        }
-
-        @Override
-        public FilterCriterion computeState(final DefaultNodeSettingsContext context) {
-            final var filterCriterion = new FilterCriterion(context);
-            final var validOperators =
-                TypeBasedOperatorsProvider.getFilterOperators(context, filterCriterion.m_column.getSelected());
-            if (!validOperators.contains(FilterOperator.EQ)) {
-                filterCriterion.m_operator = validOperators.get(0);
-            }
-            return filterCriterion;
-        }
-    }
-
-    /**
-     * Compute choices for the filter operator based on the selected column and compare mode
-     */
-    static class TypeBasedOperatorChoices implements StringChoicesProvider {
-
-        private Supplier<List<FilterOperator>> m_typeBasedOperators;
-
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            m_typeBasedOperators = initializer.computeFromProvidedState(TypeBasedOperatorsProvider.class);
-        }
-
-        @Override
-        public List<StringChoice> computeState(final DefaultNodeSettingsContext context) throws WidgetHandlerException {
-            return m_typeBasedOperators.get().stream().map(op -> new StringChoice(op.name(), op.label())) //
-                .toArray(StringChoice[]::new);
-        }
-    }
-
-    // UTILITIES
-
-    static boolean isRowIDSelected(final String selected) {
-        return SpecialColumns.ROWID.getId().equals(selected);
-    }
-
-    static boolean isRowNumberSelected(final String selected) {
-        return SpecialColumns.ROW_NUMBERS.getId().equals(selected);
-    }
-
-    static boolean hasLastNFilter(final List<FilterCriterion> criteria) {
-        return criteria.stream().anyMatch(c -> c.m_operator == FilterOperator.LAST_N_ROWS);
-    }
-
-    // SECTIONS
-
-    interface DialogSections {
-        @Section(title = "Filter")
-        interface Filter {
-            interface AllAny {
-            }
-
-            interface Conditions {
+        void validate(final DataTableSpec spec) throws InvalidSettingsException {
+            for (final var p : m_predicates) {
+                p.validate(spec);
             }
         }
 
-        @Section(title = "Output")
-        @After(Filter.class)
-        interface Output {
-            interface OutputMode {
+        abstract boolean isSecondOutputActive();
+
+        // UPDATE HANDLER
+
+        /**
+         * Compute possible enum values for filter operator based on the selected column.
+         */
+        static class TypeBasedOperatorsProvider implements StateProvider<List<FilterOperator>> {
+
+            private Supplier<StringOrEnum<RowIdentifiers>> m_columnSelection;
+
+            @Override
+            public void init(final StateProviderInitializer initializer) {
+                initializer.computeAfterOpenDialog();
+                m_columnSelection = initializer.computeFromValueSupplier(SelectedColumnRef.class);
             }
 
-            interface Domain {
+            @Override
+            public List<FilterOperator> computeState(final DefaultNodeSettingsContext context)
+                throws WidgetHandlerException {
+                return getFilterOperators(context, m_columnSelection.get());
+            }
+
+            private static List<FilterOperator> getFilterOperators(final DefaultNodeSettingsContext context,
+                final StringOrEnum<RowIdentifiers> column) {
+
+                final var rowIdentifierChoice = column.getEnumChoice();
+                final var dataType = rowIdentifierChoice.map(TypeBasedOperatorsProvider::getColumnType).or(() -> context
+                    .getDataTableSpec(0).map(dts -> dts.getColumnSpec(column.getStringChoice()).getType()));
+
+                if (dataType.isEmpty()) {
+                    // we don't know the column, but we know that columns always can contain missing cells
+                    return List.of(FilterOperator.IS_MISSING, FilterOperator.IS_NOT_MISSING);
+                }
+                // filter on top-level type
+                return Arrays.stream(FilterOperator.values()) //
+                    .filter(op -> !op.isHidden(rowIdentifierChoice.orElse(null), dataType.get())) //
+                    .toList();
+            }
+
+            private static DataType getColumnType(final RowIdentifiers optionalSpecialColumn) {
+                return switch (optionalSpecialColumn) {
+                    case ROW_ID -> StringCell.TYPE;
+                    case ROW_NUMBER -> LongCell.TYPE;
+                };
             }
         }
-    }
 
-    static IndexedRowReadPredicate createFilterPredicate(final boolean isAnd,
-        final List<FilterCriterion> rowNumberCriteria, final List<FilterCriterion> dataCriteria,
-        final DataTableSpec spec, final long tableSize) throws InvalidSettingsException {
-        // TODO(performance): use domain bounds to derive whether predicates are always true or always false
-        // TODO(performance): propagate ALWAYS_TRUE and ALWAYS_FALSE predicates
-        final var optRowNumbers = mergeRowNumberPredicates(isAnd, mapToPredicates(rowNumberCriteria, tableSize));
-        final var data = mergeValuePredicates(isAnd, mapToPredicates(dataCriteria, spec)).orElseThrow(
-            () -> new IllegalStateException("Row number predicate without data predicate, should have used slicing"));
-        if (optRowNumbers.isEmpty()) {
-            return data;
+        static class DefaultFilterCriterionProvider implements StateProvider<FilterCriterion> {
+
+            @Override
+            public void init(final StateProviderInitializer initializer) {
+                initializer.computeBeforeOpenDialog();
+            }
+
+            @Override
+            public FilterCriterion computeState(final DefaultNodeSettingsContext context) {
+                final var filterCriterion = new FilterCriterion(context);
+                final var validOperators =
+                    TypeBasedOperatorsProvider.getFilterOperators(context, filterCriterion.m_column);
+                if (!validOperators.contains(FilterOperator.EQ)) {
+                    filterCriterion.m_operator = validOperators.get(0);
+                }
+                return filterCriterion;
+            }
         }
-        final var rowNumbers = optRowNumbers.get();
-        return isAnd ? (index, read) -> rowNumbers.test(index, read) && data.test(index, read) // NOSONAR this is not too hard to read
-            : (index, read) -> rowNumbers.test(index, read) || data.test(index, read); // NOSONAR see above
-    }
 
-    private static List<IndexedRowReadPredicate> mapToPredicates(final List<FilterCriterion> criteria,
-        final DataTableSpec spec) throws InvalidSettingsException {
-        final var predicates = new ArrayList<IndexedRowReadPredicate>();
-        for (final var filterCriterion : criteria) {
-            predicates.add(filterCriterion.toPredicate(spec));
+        /**
+         * Compute choices for the filter operator based on the selected column and compare mode
+         */
+        static class TypeBasedOperatorChoices implements StringChoicesProvider {
+
+            private Supplier<List<FilterOperator>> m_typeBasedOperators;
+
+            @Override
+            public void init(final StateProviderInitializer initializer) {
+                m_typeBasedOperators = initializer.computeFromProvidedState(TypeBasedOperatorsProvider.class);
+            }
+
+            @Override
+            public List<StringChoice> computeState(final DefaultNodeSettingsContext context)
+                throws WidgetHandlerException {
+                return m_typeBasedOperators.get().stream().map(op -> new StringChoice(op.name(), op.label())).toList();
+            }
         }
-        return predicates;
-    }
 
-    private static List<IndexedRowReadPredicate> mapToPredicates(final List<FilterCriterion> criteria,
-        final long optionalTableSize) throws InvalidSettingsException {
-        final var predicates = new ArrayList<IndexedRowReadPredicate>();
-        for (final var filterCriterion : criteria) {
-            final var filterSpec = RowNumberFilterSpec.toFilterSpec(filterCriterion);
-            final var offsetFilter = filterSpec.toOffsetFilter(optionalTableSize);
-            predicates.add(offsetFilter.asPredicate());
+        // UTILITIES
+
+        static boolean hasLastNFilter(final List<FilterCriterion> criteria) {
+            return criteria.stream().anyMatch(c -> c.m_operator == FilterOperator.LAST_N_ROWS);
         }
-        return predicates;
-    }
 
-    /* === Private methods operating on "core" classes  === */
+        // SECTIONS
 
-    /**
-     * Merges the given predicates using AND or OR, possibly short-circuiting.
-     *
-     * @param isAnd if {@code true}, combine predicates with AND, otherwise with OR
-     * @param rowNumberCriteria list of predicates to merge
-     * @return merged predicate
-     */
-    private static Optional<IndexedRowReadPredicate> mergeRowNumberPredicates(final boolean isAnd,
-        final List<IndexedRowReadPredicate> rowNumberCriteria) {
-        return rowNumberCriteria.stream().reduce((l, r) -> isAnd ? l.and(r) : l.or(r));
-    }
+        interface DialogSections {
+            @Section(title = "Filter")
+            interface Filter {
+                interface AllAny {
+                }
 
-    /**
-     * Merges the given predicates using AND or OR.
-     *
-     * @param isAnd if {@code true}, combine predicates with AND, otherwise with OR
-     * @param predicates list of predicates to merge
-     * @return merged predicate, possibly short-circuited
-     */
-    private static Optional<IndexedRowReadPredicate> mergeValuePredicates(final boolean isAnd,
-        final List<IndexedRowReadPredicate> predicates) {
-        return predicates.stream().reduce((l, r) -> merge(isAnd, l, r));
-    }
+                interface Conditions {
+                }
+            }
 
-    /**
-     * Merges the given predicates, short-circuiting if possible.
-     * @param isAnd if {@code true}, combine predicates with AND, otherwise with OR
-     * @param l left-hand-side predicate
-     * @param r right-hand-side predicate
-     * @return combined predicate
-     */
-    private static final IndexedRowReadPredicate merge(final boolean isAnd, final IndexedRowReadPredicate l,
-        final IndexedRowReadPredicate r) {
-        return isAnd ? // NOSONAR
-          // AND case
+            @Section(title = "Output")
+            @After(Filter.class)
+            interface Output {
+                interface OutputMode {
+                }
+
+                interface Domain {
+                }
+            }
+        }
+
+        static IndexedRowReadPredicate createFilterPredicate(final boolean isAnd,
+            final List<FilterCriterion> rowNumberCriteria, final List<FilterCriterion> dataCriteria,
+            final DataTableSpec spec, final long tableSize) throws InvalidSettingsException {
+            // TODO(performance): use domain bounds to derive whether predicates are always true or always false
+            // TODO(performance): propagate ALWAYS_TRUE and ALWAYS_FALSE predicates
+            final var optRowNumbers = mergeRowNumberPredicates(isAnd, mapToPredicates(rowNumberCriteria, tableSize));
+            final var data = mergeValuePredicates(isAnd, mapToPredicates(dataCriteria, spec))
+                .orElseThrow(() -> new IllegalStateException(
+                    "Row number predicate without data predicate, should have used slicing"));
+            if (optRowNumbers.isEmpty()) {
+                return data;
+            }
+            final var rowNumbers = optRowNumbers.get();
+            return isAnd ? (index, read) -> rowNumbers.test(index, read) && data.test(index, read) // NOSONAR this is not too hard to read
+                : (index, read) -> rowNumbers.test(index, read) || data.test(index, read); // NOSONAR see above
+        }
+
+        private static List<IndexedRowReadPredicate> mapToPredicates(final List<FilterCriterion> criteria,
+            final DataTableSpec spec) throws InvalidSettingsException {
+            final var predicates = new ArrayList<IndexedRowReadPredicate>();
+            for (final var filterCriterion : criteria) {
+                predicates.add(filterCriterion.toPredicate(spec));
+            }
+            return predicates;
+        }
+
+        private static List<IndexedRowReadPredicate> mapToPredicates(final List<FilterCriterion> criteria,
+            final long optionalTableSize) throws InvalidSettingsException {
+            final var predicates = new ArrayList<IndexedRowReadPredicate>();
+            for (final var filterCriterion : criteria) {
+                final var filterSpec = RowNumberFilterSpec.toFilterSpec(filterCriterion);
+                final var offsetFilter = filterSpec.toOffsetFilter(optionalTableSize);
+                predicates.add(offsetFilter.asPredicate());
+            }
+            return predicates;
+        }
+
+        /* === Private methods operating on "core" classes  === */
+
+        /**
+         * Merges the given predicates using AND or OR, possibly short-circuiting.
+         *
+         * @param isAnd if {@code true}, combine predicates with AND, otherwise with OR
+         * @param rowNumberCriteria list of predicates to merge
+         * @return merged predicate
+         */
+        private static Optional<IndexedRowReadPredicate> mergeRowNumberPredicates(final boolean isAnd,
+            final List<IndexedRowReadPredicate> rowNumberCriteria) {
+            return rowNumberCriteria.stream().reduce((l, r) -> isAnd ? l.and(r) : l.or(r));
+        }
+
+        /**
+         * Merges the given predicates using AND or OR.
+         *
+         * @param isAnd if {@code true}, combine predicates with AND, otherwise with OR
+         * @param predicates list of predicates to merge
+         * @return merged predicate, possibly short-circuited
+         */
+        private static Optional<IndexedRowReadPredicate> mergeValuePredicates(final boolean isAnd,
+            final List<IndexedRowReadPredicate> predicates) {
+            return predicates.stream().reduce((l, r) -> merge(isAnd, l, r));
+        }
+
+        /**
+         * Merges the given predicates, short-circuiting if possible.
+         *
+         * @param isAnd if {@code true}, combine predicates with AND, otherwise with OR
+         * @param l left-hand-side predicate
+         * @param r right-hand-side predicate
+         * @return combined predicate
+         */
+        private static final IndexedRowReadPredicate merge(final boolean isAnd, final IndexedRowReadPredicate l,
+            final IndexedRowReadPredicate r) {
+            return isAnd ? // NOSONAR
+            // AND case
             // l AND false -> false
-            (r == IndexedRowReadPredicate.FALSE ? IndexedRowReadPredicate.FALSE // NOSONAR
-            // l AND true -> l
-          : (r == IndexedRowReadPredicate.TRUE ? l // NOSONAR
-            // else simply combine
-          : l.and(r)))
-        : // OR case
-            // l OR false -> l
-            (r == IndexedRowReadPredicate.FALSE ? l // NOSONAR
-                // x OR true -> true
-          : (r == IndexedRowReadPredicate.TRUE ? IndexedRowReadPredicate.TRUE // NOSONAR
-          : // else simply combine
-            l.or(r)));
-    }
+                (r == IndexedRowReadPredicate.FALSE ? IndexedRowReadPredicate.FALSE // NOSONAR
+                    // l AND true -> l
+                    : (r == IndexedRowReadPredicate.TRUE ? l // NOSONAR
+                        // else simply combine
+                        : l.and(r)))
+                : // OR case
+                               // l OR false -> l
+                (r == IndexedRowReadPredicate.FALSE ? l // NOSONAR
+                    // x OR true -> true
+                    : (r == IndexedRowReadPredicate.TRUE ? IndexedRowReadPredicate.TRUE // NOSONAR
+                        : // else simply combine
+                        l.or(r)));
+        }
 
 }

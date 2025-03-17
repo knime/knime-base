@@ -60,7 +60,6 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.data.v2.RowRead;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 
 /**
@@ -229,7 +228,7 @@ public enum FilterOperator {
      * @param dataType data type of the column
      * @return {@code true} if the operator is applicable, {@code false} otherwise
      */
-    boolean isApplicableFor(final SpecialColumns specialColumn, final DataType dataType) { // NOSONAR single switch
+    boolean isApplicableFor(final RowIdentifiers specialColumn, final DataType dataType) { // NOSONAR single switch
         // we only need to check if the input supports the data type in case of a binary operator
         final var inputSupportsDataType = !isBinary() || DynamicValuesInput.supportsDataType(dataType);
         return inputSupportsDataType && switch (this) {
@@ -237,7 +236,7 @@ public enum FilterOperator {
             case IS_MISSING, IS_NOT_MISSING -> specialColumn == null;
             // a factory is not required for the Row Numbers special column, since we don't actually access anything
             // from the RowRead
-            case FIRST_N_ROWS, LAST_N_ROWS -> specialColumn == SpecialColumns.ROW_NUMBERS;
+            case FIRST_N_ROWS, LAST_N_ROWS -> specialColumn == RowIdentifiers.ROW_NUMBER;
             // booleans are handled with these two operators
             case IS_TRUE, IS_FALSE -> dataType.equals(BooleanCell.TYPE);
             case NEQ_MISS -> specialColumn == null
@@ -254,7 +253,7 @@ public enum FilterOperator {
      * @param dataType data type of the column
      * @return {@code true} if the operator should be hidden, {@code false} otherwise
      */
-    boolean isHidden(final SpecialColumns specialColumn, final DataType dataType) {
+    boolean isHidden(final RowIdentifiers specialColumn, final DataType dataType) {
         final var hide = switch (this) {
             // we hide ordering operators for non-bounded values, but they can still be used to filter if
             // if configured via flow variable or 5.3.0 instance of the node
