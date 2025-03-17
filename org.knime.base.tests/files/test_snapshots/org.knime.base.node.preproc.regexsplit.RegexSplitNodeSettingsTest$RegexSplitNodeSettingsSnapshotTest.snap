@@ -228,26 +228,13 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/column",
         "options" : {
-          "possibleValues" : [ {
-            "id" : "test",
-            "text" : "test",
-            "type" : {
-              "id" : "org.knime.core.data.StringValue",
-              "text" : "String"
-            },
-            "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
-          } ],
-          "format" : "dropDown",
-          "showNoneColumn" : false,
-          "showRowKeys" : false,
-          "showSearch" : true,
-          "showMode" : true
+          "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider$StringColumnsProvider",
+          "format" : "dropDown"
         }
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/pattern",
         "options" : {
-          "hideOnNull" : false,
           "validations" : [ {
             "id" : "pattern",
             "parameters" : {
@@ -413,7 +400,6 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/output/properties/columnName",
         "options" : {
-          "hideOnNull" : false,
           "validations" : [ {
             "id" : "pattern",
             "parameters" : {
@@ -535,5 +521,20 @@
         }
       }
     }
-  }
+  },
+  "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider$StringColumnsProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test",
+        "text" : "test",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ]
 }

@@ -54,35 +54,15 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/primaryColumn",
       "options" : {
-        "possibleValues" : [ {
-          "id" : "test1",
-          "text" : "test1"
-        }, {
-          "id" : "test2",
-          "text" : "test2"
-        } ],
-        "format" : "dropDown",
-        "showNoneColumn" : false,
-        "showRowKeys" : false,
-        "showSearch" : true,
-        "showMode" : true
+        "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
+        "format" : "dropDown"
       }
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/secondaryColumn",
       "options" : {
-        "possibleValues" : [ {
-          "id" : "test1",
-          "text" : "test1"
-        }, {
-          "id" : "test2",
-          "text" : "test2"
-        } ],
-        "format" : "dropDown",
-        "showNoneColumn" : false,
-        "showRowKeys" : false,
-        "showSearch" : true,
-        "showMode" : true
+        "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
+        "format" : "dropDown"
       }
     }, {
       "type" : "Control",
@@ -128,5 +108,27 @@
         }
       }
     }
-  }
+  },
+  "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test1",
+        "text" : "test1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Floating Decimal)"
+        }
+      }, {
+        "id" : "test2",
+        "text" : "test2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ]
 }

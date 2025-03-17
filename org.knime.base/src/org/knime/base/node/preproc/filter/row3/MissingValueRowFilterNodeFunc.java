@@ -53,6 +53,7 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.func.NodeFuncApi.Builder;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 
 /**
  *
@@ -60,6 +61,7 @@ import org.knime.core.node.func.NodeFuncApi.Builder;
  *
  * @author Alexander Jauch-Walser, KNIME GmbH, Konstanz, Germany
  */
+@SuppressWarnings("restriction")
 public final class MissingValueRowFilterNodeFunc extends AbstractRowFilterNodeFunc {
 
     @Override
@@ -68,7 +70,7 @@ public final class MissingValueRowFilterNodeFunc extends AbstractRowFilterNodeFu
         var column = arguments.getString(COLUMN);
 
         var criterion = new FilterCriterion();
-        criterion.m_column.m_selected = column;
+        criterion.m_column = new StringOrEnum<>(column);
         criterion.m_operator = FilterOperator.IS_MISSING;
 
         return new FilterCriterion[]{criterion};

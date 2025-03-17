@@ -55,6 +55,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings.NominalValueRowFilterNodeSettings;
+import org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings.NominalValueRowSplitterNodeSettings;
 import org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings.SettingsUtils.LegacyNameFilterPersistorForNominalValueRowFilter;
 import org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings.SettingsUtils.MigrationFromSelectedAttributes;
 import org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings.SettingsUtils.NominalColumnWithDomainChoicesProider;
@@ -74,15 +76,16 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyNameFilterPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.NameFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.LegacyNameFilterPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DomainValuesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TwinlistWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
@@ -107,18 +110,18 @@ abstract sealed class NominalValueRowCommonSettings implements DefaultNodeSettin
 
     @Widget(title = SettingsUtils.TITLE_FILTER_COLUMN, description = SettingsUtils.DESC_FILTER_COLUMN)
     @ValueReference(SelectedColumnDependency.class)
-    @ChoicesWidget(choices = NominalColumnWithDomainChoicesProider.class)
+    @ChoicesProvider(NominalColumnWithDomainChoicesProider.class)
     @Persist(configKey = "selected_column")
     String m_selectedColumn;
 
     @Widget(title = SettingsUtils.TITLE_VALUES, description = "to be replaced by widget modification")
     @ValueReference(NominalValueSelectionDependency.class)
-    @ChoicesWidget(choicesProvider = SelectedColumnDomainChoicesStateProviderOnInitAndDepChange.class)
+    @ChoicesProvider(SelectedColumnDomainChoicesStateProviderOnInitAndDepChange.class)
     @ValueProvider(SelectedDomainValuesStateProvider.class)
     @Persistor(LegacyNameFilterPersistorForNominalValueRowFilter.class)
     @Migration(MigrationFromSelectedAttributes.class)
     @WidgetGroup.Modification.WidgetReference(NominalValueSelectionWidgetReference.class)
-    NameFilter m_nominalValueSelection = new NameFilter();
+    StringFilter m_nominalValueSelection = new StringFilter();
 
     static final class NominalValueSelectionWidgetReference implements Modification.Reference {
     }
@@ -229,7 +232,7 @@ abstract sealed class NominalValueRowCommonSettings implements DefaultNodeSettin
                     .modify();
 
                 group.find(NominalValueSelectionWidgetReference.class) //
-                    .modifyAnnotation(ChoicesWidget.class) //
+                    .addAnnotation(TwinlistWidget.class) //
                     .withProperty("includedLabel", "First table") //
                     .withProperty("excludedLabel", "Second table") //
                     .modify();
@@ -309,19 +312,19 @@ abstract sealed class NominalValueRowCommonSettings implements DefaultNodeSettin
         /**
          * AP-6231: For backwards compatibility before AP version 3.4
          */
-        static final class MigrationFromSelectedAttributes implements NodeSettingsMigration<NameFilter> {
+        static final class MigrationFromSelectedAttributes implements NodeSettingsMigration<StringFilter> {
 
             /** Config key for the possible values to be included. */
             private static final String CFG_SELECTED_ATTR = "selected attributes";
 
-            private static NameFilter loadFromSelectedAttr(final NodeSettingsRO settings)
+            private static StringFilter loadFromSelectedAttr(final NodeSettingsRO settings)
                 throws InvalidSettingsException {
                 String[] selected = settings.getStringArray(CFG_SELECTED_ATTR);
-                return new NameFilter(selected);
+                return new StringFilter(selected);
             }
 
             @Override
-            public List<ConfigMigration<NameFilter>> getConfigMigrations() {
+            public List<ConfigMigration<StringFilter>> getConfigMigrations() {
                 return List.of(ConfigMigration.builder(MigrationFromSelectedAttributes::loadFromSelectedAttr)
                     .withDeprecatedConfigPath(CFG_SELECTED_ATTR).build());
             }
@@ -339,14 +342,13 @@ abstract sealed class NominalValueRowCommonSettings implements DefaultNodeSettin
 
         }
 
-        static final class SelectedColumnDomainChoicesStateProviderOnInitAndDepChange
-            implements StringChoicesStateProvider {
+        static final class SelectedColumnDomainChoicesStateProviderOnInitAndDepChange implements StringChoicesProvider {
 
             private Supplier<List<String>> m_domainValues;
 
             @Override
-            public String[] choices(final DefaultNodeSettingsContext context) {
-                return m_domainValues.get().toArray(String[]::new);
+            public List<String> choices(final DefaultNodeSettingsContext context) {
+                return m_domainValues.get();
             }
 
             @Override
@@ -356,18 +358,18 @@ abstract sealed class NominalValueRowCommonSettings implements DefaultNodeSettin
             }
         }
 
-        static final class NominalValueSelectionDependency implements Reference<NameFilter> {
+        static final class NominalValueSelectionDependency implements Reference<StringFilter> {
         }
 
         /**
          * Adjusts the selected values of the name filter by moving unknown and new values to the left side. On the
          * right side, the ones contained in the new domain remain. Missing values are removed from the right side.
          */
-        static final class SelectedDomainValuesStateProvider implements StateProvider<NameFilter> {
+        static final class SelectedDomainValuesStateProvider implements StateProvider<StringFilter> {
 
             Supplier<List<String>> m_newDomainValuesSupplier;
 
-            Supplier<NameFilter> m_currentNameFilterSupplier;
+            Supplier<StringFilter> m_currentNameFilterSupplier;
 
             @Override
             public void init(final StateProviderInitializer initializer) {
@@ -377,21 +379,21 @@ abstract sealed class NominalValueRowCommonSettings implements DefaultNodeSettin
             }
 
             @Override
-            public NameFilter computeState(final DefaultNodeSettingsContext context) {
+            public StringFilter computeState(final DefaultNodeSettingsContext context) {
                 final var newChoices = m_newDomainValuesSupplier.get().stream().collect(Collectors.toSet());
-                final var currentSelection = m_currentNameFilterSupplier.get().getSelected(new String[0]);
+                final var currentSelection = m_currentNameFilterSupplier.get().filter(new String[0]);
                 final var filteredSelection =
                     Arrays.stream(currentSelection).filter(newChoices::contains).toArray(String[]::new);
-                return new NameFilter(filteredSelection);
+                return new StringFilter(filteredSelection);
             }
         }
 
         static final class NominalColumnWithDomainChoicesProider implements ColumnChoicesProvider {
 
             @Override
-            public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
+            public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
                 final var spec = context.getDataTableSpec(0);
-                return getNominalColumnsWithDomain(spec.orElse(null)).toArray(DataColumnSpec[]::new);
+                return getNominalColumnsWithDomain(spec.orElse(null)).toList();
             }
 
         }

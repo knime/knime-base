@@ -137,31 +137,15 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/selectedColumn",
       "options" : {
-        "possibleValues" : [ {
-          "id" : "Test",
-          "text" : "Test",
-          "type" : {
-            "id" : "org.knime.core.data.StringValue",
-            "text" : "String"
-          },
-          "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
-        } ],
-        "format" : "dropDown",
-        "showNoneColumn" : false,
-        "showRowKeys" : false,
-        "showSearch" : true,
-        "showMode" : true
+        "choicesProvider" : "org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings$SettingsUtils$NominalColumnWithDomainChoicesProider",
+        "format" : "dropDown"
       }
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/nominalValueSelection",
       "options" : {
         "format" : "nameFilter",
-        "choicesProvider" : "org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings$SettingsUtils$SelectedColumnDomainChoicesStateProviderOnInitAndDepChange",
-        "showNoneColumn" : false,
-        "showRowKeys" : false,
-        "showSearch" : true,
-        "showMode" : true
+        "choicesProvider" : "org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings$SettingsUtils$SelectedColumnDomainChoicesStateProviderOnInitAndDepChange"
       }
     }, {
       "type" : "Control",
@@ -197,6 +181,21 @@
       }
     }
   },
+  "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings$SettingsUtils$NominalColumnWithDomainChoicesProider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Test",
+        "text" : "Test",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ],
   "globalUpdates" : [ {
     "trigger" : {
       "id" : "after-open-dialog",

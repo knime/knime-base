@@ -170,21 +170,6 @@
                     "items" : {
                       "type" : "string"
                     }
-                  },
-                  "typeDisplays" : {
-                    "default" : [ ],
-                    "type" : "array",
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "id" : {
-                          "type" : "string"
-                        },
-                        "text" : {
-                          "type" : "string"
-                        }
-                      }
-                    }
                   }
                 },
                 "default" : {
@@ -226,28 +211,10 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/valueColumns",
         "options" : {
-          "format" : "columnFilter",
-          "possibleValues" : [ {
-            "id" : "test1",
-            "text" : "test1",
-            "type" : {
-              "id" : "org.knime.core.data.DoubleValue",
-              "text" : "Number (Floating Decimal)"
-            },
-            "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
-          }, {
-            "id" : "test2",
-            "text" : "test2",
-            "type" : {
-              "id" : "org.knime.core.data.StringValue",
-              "text" : "String"
-            },
-            "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
-          } ],
-          "showNoneColumn" : false,
-          "showRowKeys" : false,
-          "showSearch" : true,
-          "showMode" : true
+          "format" : "typedNameFilter",
+          "unknownValuesText" : "Any unknown column",
+          "emptyStateLabel" : "No columns in this list.",
+          "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider"
         }
       } ]
     }, {
@@ -365,5 +332,27 @@
         }
       }
     }
-  }
+  },
+  "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test1",
+        "text" : "test1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Floating Decimal)"
+        }
+      }, {
+        "id" : "test2",
+        "text" : "test2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ]
 }

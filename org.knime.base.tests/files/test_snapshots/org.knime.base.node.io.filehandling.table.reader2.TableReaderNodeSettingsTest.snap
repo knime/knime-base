@@ -546,11 +546,7 @@
             "options" : {
               "hideControlHeader" : true,
               "choicesProvider" : "org.knime.base.node.io.filehandling.table.reader2.TableReaderTransformationSettingsStateProviders$TypeChoicesProvider",
-              "format" : "dropDown",
-              "showNoneColumn" : false,
-              "showRowKeys" : false,
-              "showSearch" : true,
-              "showMode" : true
+              "format" : "dropDown"
             },
             "rule" : {
               "effect" : "SHOW",

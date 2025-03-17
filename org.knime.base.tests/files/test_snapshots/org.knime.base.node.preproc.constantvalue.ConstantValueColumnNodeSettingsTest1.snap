@@ -99,7 +99,6 @@
           "type" : "Control",
           "scope" : "#/properties/columnNameToAppend",
           "options" : {
-            "hideOnNull" : false,
             "placeholder" : "New column name",
             "validations" : [ {
               "id" : "pattern",
@@ -124,20 +123,8 @@
           "type" : "Control",
           "scope" : "#/properties/columnNameToReplace",
           "options" : {
-            "possibleValues" : [ {
-              "id" : "test",
-              "text" : "test",
-              "type" : {
-                "id" : "org.knime.core.data.StringValue",
-                "text" : "String"
-              },
-              "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
-            } ],
-            "format" : "dropDown",
-            "showNoneColumn" : false,
-            "showRowKeys" : false,
-            "showSearch" : true,
-            "showMode" : true
+            "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
+            "format" : "dropDown"
           },
           "rule" : {
             "effect" : "SHOW",
@@ -155,11 +142,7 @@
           "scope" : "#/properties/type",
           "options" : {
             "format" : "dropDown",
-            "choicesProvider" : "org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings$SupportedDataTypeChoicesProvider",
-            "showNoneColumn" : false,
-            "showRowKeys" : false,
-            "showSearch" : true,
-            "showMode" : true
+            "choicesProvider" : "org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings$SupportedDataTypeChoicesProvider"
           }
         }, {
           "type" : "Control",
@@ -256,6 +239,20 @@
       }, {
         "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
         "text" : "String"
+      } ]
+    } ]
+  }, {
+    "scopes" : null,
+    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test",
+        "text" : "test",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
       } ]
     } ]
   } ],

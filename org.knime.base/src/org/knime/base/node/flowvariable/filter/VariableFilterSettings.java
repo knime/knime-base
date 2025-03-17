@@ -47,14 +47,19 @@
  */
 package org.knime.base.node.flowvariable.filter;
 
+import java.util.List;
+
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.FlowVariable.Scope;
 import org.knime.core.node.workflow.VariableTypeRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.NameFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.StringFilterToFlowVariableFilterMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableChoicesProvider;
 
 /**
  * Settings for Variable Filter node.
@@ -68,18 +73,29 @@ final class VariableFilterSettings implements DefaultNodeSettings {
     @Widget(title = "Flow Variable Filter",
         description = "The names of the flow variables that pass this filter node. See the general node description "
             + "for details regarding which variables can be filtered.")
-    @ChoicesWidget(choices = FlowVariableNamesChoicesProvider.class)
-    NameFilter m_filter = new NameFilter();
+    @ChoicesProvider(FlowVariableNamesChoicesProvider.class)
+    @Migration(FromStringFilterMigration.class)
+    @Persist(configKey = "filterV2")
+    FlowVariableFilter m_filter = new FlowVariableFilter();
+
+    static final class FromStringFilterMigration extends StringFilterToFlowVariableFilterMigration {
+
+        FromStringFilterMigration() {
+            super("filter");
+        }
+
+    }
 
     /** Provider for the available flow variables, excluding constants. */
-    private static final class FlowVariableNamesChoicesProvider implements ChoicesProvider {
+    private static final class FlowVariableNamesChoicesProvider implements FlowVariableChoicesProvider {
+
         @Override
-        public String[] choices(final DefaultNodeSettingsContext context) {
+        public List<FlowVariable> flowVariableChoices(final DefaultNodeSettingsContext context) {
             return context.getAvailableInputFlowVariables(VariableTypeRegistry.getInstance().getAllTypes()) //
-                    .values().stream() //
-                    .filter(v -> Scope.Flow == v.getScope()) //
-                    .map(FlowVariable::getName) //
-                    .toArray(String[]::new);
+                .values().stream() //
+                .filter(v -> Scope.Flow == v.getScope())//
+                .toList();
         }
     }
+
 }

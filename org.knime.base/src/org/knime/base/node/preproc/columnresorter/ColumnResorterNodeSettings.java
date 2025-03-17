@@ -50,10 +50,10 @@ package org.knime.base.node.preproc.columnresorter;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.SortListWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.AllColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
 
 /**
  *
@@ -67,7 +67,7 @@ final class ColumnResorterNodeSettings implements DefaultNodeSettings {
             + "You can either select the columns and move their position up or down, using the up and down arrows, "
             + "or sort them alphabetically from first to last (A-Z) or from last to first (Z-A). "
             + "You can also reset all to the order of the input table. ")
-    @ChoicesWidget(choices = AllColumnChoicesProvider.class)
+    @ChoicesProvider(AllColumnsProvider.class)
     @SortListWidget
     String[] m_order = new String[0];
 

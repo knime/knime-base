@@ -59,16 +59,14 @@ import org.knime.core.webui.node.impl.WebUINodeFactory;
 @SuppressWarnings("restriction")
 public final class RowSplitRefNodeFactory extends WebUINodeFactory<RowSplitRefNodeModel> {
 
-    /**
-     *
-     */
+    @SuppressWarnings("javadoc")
     public RowSplitRefNodeFactory() {
         super(CONFIGURATION);
     }
 
     @Override
     public RowSplitRefNodeModel createNodeModel() {
-        return new RowSplitRefNodeModel();
+        return new RowSplitRefNodeModel(CONFIGURATION);
     }
 
     static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //

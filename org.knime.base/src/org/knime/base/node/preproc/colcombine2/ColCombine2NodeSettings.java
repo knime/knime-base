@@ -49,10 +49,7 @@
 package org.knime.base.node.preproc.colcombine2;
 
 import java.util.List;
-import java.util.stream.Stream;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.util.filter.NameFilterConfiguration.EnforceOption;
@@ -64,13 +61,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
@@ -87,7 +85,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
 public final class ColCombine2NodeSettings implements DefaultNodeSettings {
 
     ColCombine2NodeSettings(final DefaultNodeSettingsContext context) {
-        m_columnFilter = ColumnFilter.createDefault(AllColumns.class, context);
+        m_columnFilter = new ColumnFilter(ColumnSelectionUtil.getAllColumnsOfFirstPort(context)).withIncludeUnknownColumns();
     }
 
     /**
@@ -142,7 +140,7 @@ public final class ColCombine2NodeSettings implements DefaultNodeSettings {
 
     @Migration(ColumnFilterMigration.class)
     @Widget(title = "Input columns", description = "Select the columns to combine in the output table.")
-    @ChoicesWidget(choices = AllColumns.class)
+    @ChoicesProvider(AllColumnsProvider.class)
     @Layout(Concatenation.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
@@ -208,15 +206,6 @@ public final class ColCombine2NodeSettings implements DefaultNodeSettings {
     @Layout(Output.class)
     boolean m_removeInputColumns;
 
-    static final class AllColumns implements ColumnChoicesProvider {
-        @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0).map(DataTableSpec::stream)//
-                .orElseGet(Stream::empty)//
-                .toArray(DataColumnSpec[]::new);
-        }
-
-    }
 
     static final class DelimiterInputMigration implements NodeSettingsMigration<DelimiterInputs> {
 

@@ -123,7 +123,7 @@ public class CredentialsPropertiesExtractorNodeModel extends WebUINodeModel<Cred
         // CredentialsPropertyExtractorSettings.m_selectedCredentials will never have filter mode "TYPE", because we
         // only provide a ChoicesProvider and not a ColumnChoicesProvider. So, passing null for a spec is okay.
         final var selectedNames = Arrays
-            .stream(modelSettings.m_selectedCredentials.getSelected(flowVars.keySet().toArray(String[]::new), null))
+            .stream(modelSettings.m_selectedCredentials.filter(flowVars.keySet().toArray(String[]::new)))
             .collect(Collectors.toSet());
 
         // fail on missing properties if necessary

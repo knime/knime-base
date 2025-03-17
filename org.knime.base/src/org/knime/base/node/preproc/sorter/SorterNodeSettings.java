@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.preproc.sorter;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice.ROW_ID;
+
 import java.util.List;
 
 import org.knime.base.node.preproc.sorter.dialog.DynamicSorterPanel;
@@ -66,10 +68,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
 
 /**
  * @author Paul Bärnreuther
@@ -117,7 +119,7 @@ final class SorterNodeSettings implements DefaultNodeSettings {
         }
 
         private static SortingCriterionSettings toCriterion(final SortKeyItem item) {
-            final var column = getColumnSelection(item);
+            final var column = getColumn(item);
             final var sortingOrder = item.isAscendingOrder() ? SortingOrder.ASCENDING : SortingOrder.DESCENDING;
             final var stringComparison =
                 item.isAlphaNumComp() ? StringComparison.NATURAL : StringComparison.LEXICOGRAPHIC;
@@ -125,12 +127,12 @@ final class SorterNodeSettings implements DefaultNodeSettings {
 
         }
 
-        private static ColumnSelection getColumnSelection(final SortKeyItem item) {
+        private static StringOrEnum<RowIDChoice> getColumn(final SortKeyItem item) {
             final var identifier = item.getIdentifier();
             if (LEGACY_ROW_ID.equals(identifier)) {
-                return SpecialColumns.ROWID.toColumnSelection();
+                return new StringOrEnum<>(ROW_ID);
             }
-            return new ColumnSelection(item.getIdentifier(), null);
+            return new StringOrEnum<>(item.getIdentifier());
         }
 
         @Override

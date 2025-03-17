@@ -133,21 +133,6 @@
                     "items" : {
                       "type" : "string"
                     }
-                  },
-                  "typeDisplays" : {
-                    "default" : [ ],
-                    "type" : "array",
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "id" : {
-                          "type" : "string"
-                        },
-                        "text" : {
-                          "type" : "string"
-                        }
-                      }
-                    }
                   }
                 },
                 "default" : {
@@ -210,15 +195,10 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/inclCols",
         "options" : {
-          "format" : "columnFilter",
-          "possibleValues" : [ {
-            "id" : "test2",
-            "text" : "test2"
-          } ],
-          "showNoneColumn" : false,
-          "showRowKeys" : false,
-          "showSearch" : true,
-          "showMode" : true
+          "format" : "typedNameFilter",
+          "unknownValuesText" : "Any unknown column",
+          "emptyStateLabel" : "No columns in this list.",
+          "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider$StringColumnsProvider"
         }
       } ]
     }, {
@@ -275,5 +255,20 @@
         }
       }
     }
-  }
+  },
+  "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider$StringColumnsProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test2",
+        "text" : "test2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ]
 }

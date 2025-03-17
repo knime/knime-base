@@ -56,10 +56,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelStringPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
@@ -75,7 +75,7 @@ public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
     @Persistor(PrimaryColumnPersistor.class)
     @Widget(title = "Primary column",
         description = "The column with the value that will be used, unless it is missing.")
-    @ChoicesWidget(choices = AllColumns.class)
+    @ChoicesProvider(AllColumnsProvider.class)
     String m_primaryColumn = "";
 
     static final class PrimaryColumnPersistor extends SettingsModelStringPersistor {
@@ -87,7 +87,7 @@ public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
     @Persistor(SecondaryColumnPersistor.class)
     @Widget(title = "Secondary column", description = "The column with the value that will be used if it is missing "//
         + "in the primary column.")
-    @ChoicesWidget(choices = AllColumns.class)
+    @ChoicesProvider(AllColumnsProvider.class)
     String m_secondaryColumn = "";
 
     static final class SecondaryColumnPersistor extends SettingsModelStringPersistor {
@@ -121,15 +121,6 @@ public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
     @Widget(title = "New column name", description = "The name for the new column.")
     @Effect(predicate = OutputPlacement.IsAppendAsNewColumn.class, type = EffectType.SHOW)
     String m_outputName;
-
-    private static final class AllColumns implements ChoicesProvider {
-        @Override
-        public String[] choices(final DefaultNodeSettingsContext context) {
-            var spec = context.getDataTableSpecs()[0];
-            return spec == null ? new String[0] : spec.getColumnNames();
-        }
-
-    }
 
     private static final class OutputPlacementOptionsPersistor implements NodeSettingsPersistor<OutputPlacement> {
 

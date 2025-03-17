@@ -74,28 +74,8 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/columnName",
       "options" : {
-        "possibleValues" : [ {
-          "id" : "test1",
-          "text" : "test1",
-          "type" : {
-            "id" : "org.knime.core.data.DoubleValue",
-            "text" : "Number (Floating Decimal)"
-          },
-          "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
-        }, {
-          "id" : "test2",
-          "text" : "test2",
-          "type" : {
-            "id" : "org.knime.core.data.StringValue",
-            "text" : "String"
-          },
-          "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
-        } ],
-        "format" : "dropDown",
-        "showNoneColumn" : false,
-        "showRowKeys" : false,
-        "showSearch" : true,
-        "showMode" : true
+        "choicesProvider" : "org.knime.base.node.preproc.table.cellupdater.CellUpdaterSettings$AllColumns",
+        "format" : "dropDown"
       },
       "rule" : {
         "effect" : "SHOW",
@@ -155,15 +135,8 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/flowVariableName",
       "options" : {
-        "possibleValues" : [ {
-          "id" : "knime.workspace",
-          "text" : "knime.workspace"
-        } ],
-        "format" : "dropDown",
-        "showNoneColumn" : false,
-        "showRowKeys" : false,
-        "showSearch" : true,
-        "showMode" : true
+        "choicesProvider" : "org.knime.base.node.preproc.table.cellupdater.CellUpdaterSettings$AllVariables",
+        "format" : "dropDown"
       }
     } ]
   },
@@ -182,5 +155,37 @@
         }
       }
     }
-  }
+  },
+  "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.base.node.preproc.table.cellupdater.CellUpdaterSettings$AllColumns",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test1",
+        "text" : "test1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Floating Decimal)"
+        }
+      }, {
+        "id" : "test2",
+        "text" : "test2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scopes" : null,
+    "id" : "org.knime.base.node.preproc.table.cellupdater.CellUpdaterSettings$AllVariables",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "knime.workspace",
+        "text" : "knime.workspace"
+      } ]
+    } ]
+  } ]
 }

@@ -54,6 +54,7 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.func.NodeFuncApi.Builder;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 
 /**
@@ -62,6 +63,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValu
  *
  * @author Alexander Jauch-Walser, KNIME GmbH, Konstanz, Germany
  */
+@SuppressWarnings("restriction")
 public class AttributePatternRowFilterNodeFunc extends AbstractRowFilterNodeFunc {
 
     private static final String REGEX = "regex";
@@ -73,7 +75,7 @@ public class AttributePatternRowFilterNodeFunc extends AbstractRowFilterNodeFunc
         var regex = arguments.getString(REGEX);
 
         var criterion = new FilterCriterion();
-        criterion.m_column.m_selected = column;
+        criterion.m_column = new StringOrEnum<>(column);
         criterion.m_operator = FilterOperator.REGEX;
 
         var stringCell = new StringCell.StringCellFactory().createCell(regex);

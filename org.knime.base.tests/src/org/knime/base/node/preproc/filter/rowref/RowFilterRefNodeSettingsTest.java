@@ -69,7 +69,7 @@ import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 @SuppressWarnings("restriction")
 final class RowFilterRefNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
-    private static final PortObjectSpec[] TEST_SPEC = new PortObjectSpec[]{
+    static final PortObjectSpec[] TEST_SPEC = new PortObjectSpec[]{
         new DataTableSpec(new DataColumnSpecCreator("A", IntCell.TYPE).createSpec(),
             new DataColumnSpecCreator("B", IntCell.TYPE).createSpec()),
         new DataTableSpec(new DataColumnSpecCreator("C", IntCell.TYPE).createSpec())};

@@ -51,7 +51,6 @@ package org.knime.base.node.preproc.split3;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.node.BufferedDataTable;
@@ -76,8 +75,7 @@ final class ColumnSplitNodeModel3 extends WebUINodeModel<ColumnSplitNodeSettings
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec,
         final ColumnSplitNodeSettings modelSettings) throws Exception {
 
-        var selectedColumns = modelSettings.m_columnsToInclude
-            .getSelected(inData[0].getDataTableSpec().getColumnNames(), inData[0].getDataTableSpec());
+        var selectedColumns = modelSettings.m_columnsToInclude.filterFromFullSpec(inData[0].getDataTableSpec());
 
         var columnRearrangers = createColumnRearrangers(inData[0].getDataTableSpec(), selectedColumns);
 
@@ -93,16 +91,7 @@ final class ColumnSplitNodeModel3 extends WebUINodeModel<ColumnSplitNodeSettings
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final ColumnSplitNodeSettings modelSettings)
         throws InvalidSettingsException {
 
-        var availableColumns = inSpecs[0].getColumnNames();
-
-        var selectedColumns = modelSettings.m_columnsToInclude.getSelected(availableColumns, inSpecs[0]);
-        var selectedColumnsIncludingOnesThatNoLongerExist =
-            modelSettings.m_columnsToInclude.getSelectedIncludingMissing(availableColumns, inSpecs[0]);
-
-        // find any columns in the second list that aren't in the first
-        var missingColumns = Arrays.stream(selectedColumnsIncludingOnesThatNoLongerExist)
-            .filter(col -> !ArrayUtils.contains(selectedColumns, col)) //
-            .toArray(String[]::new);
+        var missingColumns = modelSettings.m_columnsToInclude.getMissingSelectedFromFullSpec(inSpecs[0]);
 
         if (missingColumns.length == 1) {
             setWarningMessage(
@@ -112,6 +101,7 @@ final class ColumnSplitNodeModel3 extends WebUINodeModel<ColumnSplitNodeSettings
                 .formatted(Arrays.stream(missingColumns).collect(Collectors.joining(", "))));
         }
 
+        var selectedColumns = modelSettings.m_columnsToInclude.filterFromFullSpec(inSpecs[0]);
         var columnRearrangers = createColumnRearrangers(inSpecs[0], selectedColumns);
 
         return new DataTableSpec[]{ //

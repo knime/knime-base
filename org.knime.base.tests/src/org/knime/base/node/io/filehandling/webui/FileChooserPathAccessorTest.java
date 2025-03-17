@@ -72,6 +72,7 @@ import org.knime.filehandling.core.connections.FSLocation;
  *
  * @author Paul Bärnreuther
  */
+@SuppressWarnings("restriction")
 public class FileChooserPathAccessorTest extends LocalWorkflowContextTest {
 
     @TempDir

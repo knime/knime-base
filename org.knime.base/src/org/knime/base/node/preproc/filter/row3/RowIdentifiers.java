@@ -44,45 +44,31 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   8 Mar 2023 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   Mar 13, 2025 (paulbaernreuther): created
  */
-package org.knime.base.node.preproc.duplicates;
+package org.knime.base.node.preproc.filter.row3;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-
-import org.junit.jupiter.api.Test;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataColumnSpecCreator;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataTableSpecCreator;
-import org.knime.core.data.def.BooleanCell;
-import org.knime.core.data.def.DoubleCell;
-import org.knime.core.data.def.IntCell;
-import org.knime.core.data.def.StringCell;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 
 /**
- * Tests for the DuplicateRowFilterDialogSettings column choices provider.
+ * Use as static choices in a {@link StringOrEnum} field to allow selecting row keys or row numbers.
  *
- * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-@SuppressWarnings("restriction")// WebUI* classes
-class DuplicateRowFilterDialogSettingsTest {
+@SuppressWarnings("restriction")
+enum RowIdentifiers {
 
-    @Test
-    void testColumnChoicesProvider() {
-        final var spec = new DataTableSpecCreator().addColumns(
-            new DataColumnSpecCreator("Int1", IntCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("Double1", DoubleCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("Bool1", BooleanCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("String1", StringCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("Int2", IntCell.TYPE).createSpec()
-            ).createSpec();
-        final var ctx = DefaultNodeSettings.createDefaultNodeSettingsContext(new DataTableSpec[] { spec });
+        /**
+         * Row Id selection.
+         */
+        @Label(RowIDChoice.ROW_ID_LABEL)
+        ROW_ID,
 
-        final var choices = new DuplicateRowFilterDialogSettings.AllColumns().columnChoices(ctx);
-        assertArrayEquals(spec.stream().toArray(DataColumnSpec[]::new), choices,
-            "Wrong \"all columns\" column choices.");
-    }
-
+        /**
+         * Row number selection.
+         */
+        @Label("Row number")
+        ROW_NUMBER;
 }

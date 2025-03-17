@@ -71,7 +71,7 @@ import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.testing.core.ExecutionContextExtension;
 
 /**
@@ -80,6 +80,7 @@ import org.knime.testing.core.ExecutionContextExtension;
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @ExtendWith({ExecutionContextExtension.class})
+@SuppressWarnings("restriction")
 class ValueLookupNodeModelTest {
 
     private static final ValueLookupNodeFactory FACTORY = new ValueLookupNodeFactory();

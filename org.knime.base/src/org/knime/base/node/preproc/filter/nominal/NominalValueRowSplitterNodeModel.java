@@ -138,14 +138,12 @@ final class NominalValueRowSplitterNodeModel extends WebUINodeModel<NominalValue
 
     @Override
     public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
-        final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        final PortObjectSpec[] inSpecs, final NominalValueRowSplitterNodeSettings settings) throws InvalidSettingsException {
         return new StreamableOperator() {
 
             @Override
             public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
                 throws Exception {
-
-                var settings = getSettings().orElseThrow(() -> new IllegalStateException("Settings not present"));
 
                 RowInput in = (RowInput)inputs[0];
                 RowOutput match = (RowOutput)outputs[0];
@@ -213,7 +211,7 @@ final class NominalValueRowSplitterNodeModel extends WebUINodeModel<NominalValue
                 Optional.ofNullable(inSpecs[0].getColumnSpec(m_selectedColIdx).getDomain().getValues()) //
                     .map(values -> values.stream().map(DataCell::toString).toArray(String[]::new)) //
                     .orElse(new String[0]);
-            m_selectedAttr.addAll(Arrays.asList(settings.m_nominalValueSelection.getNonMissingSelected(domainValues)));
+            m_selectedAttr.addAll(Arrays.asList(settings.m_nominalValueSelection.filter(domainValues)));
             // all values excluded?
             var includeMissing =
                 settings.m_missingValueHandling == NominalValueRowSplitterNodeSettings.MissingValueHandling.UPPER;

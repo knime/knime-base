@@ -58,6 +58,7 @@ import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.util.valueformat.NumberFormatter;
+import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 
@@ -83,8 +84,8 @@ final class NumberFormatManagerNodeModel extends WebUINodeModel<NumberFormatMana
         final NumberFormatManagerNodeSettings modelSettings) throws InvalidSettingsException {
         var valueFormatHandler = handlerFor(modelSettings);
         var inSpec = inSpecs[0];
-        String[] numberColumnNames = numberColumns(inSpec);
-        var result = createOutputSpec(inSpec, modelSettings.m_columnsToFormat.getSelected(numberColumnNames, inSpec),
+        final var numberColumns = ColumnSelectionUtil.getDoubleColumns(inSpec);
+        var result = createOutputSpec(inSpec, modelSettings.m_columnsToFormat.filter(numberColumns),
             valueFormatHandler);
         return new DataTableSpec[]{result};
     }
@@ -95,22 +96,11 @@ final class NumberFormatManagerNodeModel extends WebUINodeModel<NumberFormatMana
         final var in = inData[0];
         final var inSpec = in.getDataTableSpec();
         var valueFormatHandler = handlerFor(modelSettings);
-        String[] numberColumnNames = numberColumns(inSpec);
+        final var numberColumnNames = ColumnSelectionUtil.getDoubleColumns(inSpec);
         final var outputTableSpec = createOutputSpec(inSpec,
-            modelSettings.m_columnsToFormat.getSelected(numberColumnNames, inSpec), valueFormatHandler);
+            modelSettings.m_columnsToFormat.filter(numberColumnNames), valueFormatHandler);
         final var outputTable = outputTableSpec == inSpec ? in : exec.createSpecReplacerTable(in, outputTableSpec);
         return new BufferedDataTable[]{outputTable};
-    }
-
-    /**
-     * @param inSpec to filter
-     * @return the names of the columns that can be selected
-     */
-    private static String[] numberColumns(final DataTableSpec inSpec) {
-        return inSpec.stream()//
-            .filter(NumberFormatManagerNodeModel::isTargetColumn)//
-            .map(DataColumnSpec::getName)//
-            .toArray(String[]::new);
     }
 
     /**

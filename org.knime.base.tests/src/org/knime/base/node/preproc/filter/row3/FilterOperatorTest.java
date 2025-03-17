@@ -60,7 +60,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.TypeBasedOperatorChoices;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.TypeBasedOperatorsProvider;
 import org.knime.base.node.preproc.filter.row3.predicates.PredicateFactories;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -75,8 +74,7 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
@@ -103,8 +101,8 @@ final class FilterOperatorTest {
 
     @Test
     void testOperatorChoices() {
-        assertThat(operatorChoicesFor("String1", StringCell.TYPE))
-            .as("The list of operators for a string column is what is expected").containsExactlyInAnyOrder( //
+        assertThat(operatorChoicesFor("String1")).as("The list of operators for a string column is what is expected")
+            .containsExactlyInAnyOrder( //
                 FilterOperator.IS_MISSING, //
                 FilterOperator.IS_NOT_MISSING, //
                 FilterOperator.EQ, //
@@ -113,8 +111,8 @@ final class FilterOperatorTest {
                 FilterOperator.REGEX, //
                 FilterOperator.WILDCARD //
             );
-        assertThat(operatorChoicesFor("Int1", IntCell.TYPE))
-            .as("The list of operators for an integer column is what is expected").containsExactlyInAnyOrder( //
+        assertThat(operatorChoicesFor("Int1")).as("The list of operators for an integer column is what is expected")
+            .containsExactlyInAnyOrder( //
                 FilterOperator.IS_MISSING, //
                 FilterOperator.IS_NOT_MISSING, //
                 FilterOperator.EQ, //
@@ -127,11 +125,10 @@ final class FilterOperatorTest {
                 FilterOperator.WILDCARD, //
                 FilterOperator.REGEX //
             );
-        assertThat(operatorChoicesFor("Long1", LongCell.TYPE))
-            .as("The list of operators for int cells is the same as for long cells")
-            .isEqualTo(operatorChoicesFor("Int1", IntCell.TYPE));
-        assertThat(operatorChoicesFor("Double1", DoubleCell.TYPE))
-            .as("The list of operators for a double column is what is expected").containsExactlyInAnyOrder( //
+        assertThat(operatorChoicesFor("Long1")).as("The list of operators for int cells is the same as for long cells")
+            .isEqualTo(operatorChoicesFor("Int1"));
+        assertThat(operatorChoicesFor("Double1")).as("The list of operators for a double column is what is expected")
+            .containsExactlyInAnyOrder( //
                 FilterOperator.IS_MISSING, //
                 FilterOperator.IS_NOT_MISSING, //
                 FilterOperator.EQ, //
@@ -141,14 +138,14 @@ final class FilterOperatorTest {
                 FilterOperator.GTE, //
                 FilterOperator.LT, //
                 FilterOperator.LTE);
-        assertThat(operatorChoicesFor("Bool1", BooleanCell.TYPE))
-            .as("The list of operators for a boolean column is what is expected").containsExactlyInAnyOrder( //
+        assertThat(operatorChoicesFor("Bool1")).as("The list of operators for a boolean column is what is expected")
+            .containsExactlyInAnyOrder( //
                 FilterOperator.IS_MISSING, //
                 FilterOperator.IS_NOT_MISSING, //
                 FilterOperator.IS_TRUE, //
                 FilterOperator.IS_FALSE //
             );
-        assertThat(operatorChoicesFor("Unknown Column", DataType.getType(DataType.getMissingCell().getClass())))
+        assertThat(operatorChoicesFor("Unknown Column"))
             .as("The list of operators for an unknown column type is what is expected").containsExactlyInAnyOrder( //
                 FilterOperator.IS_MISSING, //
                 FilterOperator.IS_NOT_MISSING //
@@ -157,7 +154,7 @@ final class FilterOperatorTest {
 
     @Test
     void testOperatorChoicesForSpecialColumns() {
-        assertThat(operatorChoicesFor(SpecialColumns.ROW_NUMBERS))
+        assertThat(operatorChoicesFor(RowIdentifiers.ROW_NUMBER))
             .as("The list of operators for the row numbers is what is expected").containsExactlyInAnyOrder( //
                 FilterOperator.EQ, //
                 FilterOperator.NEQ, //
@@ -170,7 +167,7 @@ final class FilterOperatorTest {
                 FilterOperator.WILDCARD, //
                 FilterOperator.REGEX //
             );
-        assertThat(operatorChoicesFor(SpecialColumns.ROWID))
+        assertThat(operatorChoicesFor(RowIdentifiers.ROW_ID))
             .as("The list of operators for the row id column is what is expected").containsExactlyInAnyOrder( //
                 FilterOperator.EQ, //
                 FilterOperator.NEQ, //
@@ -179,15 +176,15 @@ final class FilterOperatorTest {
             );
     }
 
-    static FilterOperator[] operatorChoicesFor(final String col, final DataType type) {
-        return operatorChoicesFor(new ColumnSelection(col, type));
+    static FilterOperator[] operatorChoicesFor(final String col) {
+        return operatorChoicesFor(new StringOrEnum<>(col));
     }
 
-    static FilterOperator[] operatorChoicesFor(final SpecialColumns col) {
-        return operatorChoicesFor(col.toColumnSelection());
+    static FilterOperator[] operatorChoicesFor(final RowIdentifiers col) {
+        return operatorChoicesFor(new StringOrEnum<>(col));
     }
 
-    static FilterOperator[] operatorChoicesFor(final ColumnSelection columnSelection) {
+    static FilterOperator[] operatorChoicesFor(final StringOrEnum<RowIdentifiers> columnSelection) {
         final var ctx = DefaultNodeSettings.createDefaultNodeSettingsContext(new DataTableSpec[]{SPEC});
 
         final var provider = new TypeBasedOperatorsProvider();
@@ -209,23 +206,7 @@ final class FilterOperatorTest {
 
         });
 
-        final var choices = new TypeBasedOperatorChoices();
-        choices.init(new TestInitializer() {
-            @SuppressWarnings("unchecked")
-            @Override
-            public <T> Supplier<T>
-                computeFromProvidedState(final Class<? extends StateProvider<T>> stateProviderClass) {
-                if (stateProviderClass.equals(TypeBasedOperatorsProvider.class)) {
-                    return () -> (T)provider.computeState(ctx);
-                }
-                throw new IllegalStateException(
-                    "Unexpected provider class \"%s\"".formatted(stateProviderClass.getName()));
-            }
-
-        });
-
-        return Arrays.stream(choices.computeState(ctx)).map(idAndText -> FilterOperator.valueOf(idAndText.id()))
-            .toArray(FilterOperator[]::new);
+        return provider.choices(ctx).toArray(FilterOperator[]::new);
     }
 
     static class TestInitializer implements StateProvider.StateProviderInitializer {
@@ -275,15 +256,14 @@ final class FilterOperatorTest {
     @EnumSource(names = {"IS_MISSING", "IS_NOT_MISSING", "FIRST_N_ROWS", "LAST_N_ROWS"})
     void testOperatorsWithoutPredicateFactory(final FilterOperator operator) {
         assertThat(PredicateFactories.getValuePredicateFactory(operator, null))
-        .as("Operator %s has no value predicate factory".formatted(operator))
-        .isEmpty();
+            .as("Operator %s has no value predicate factory".formatted(operator)).isEmpty();
     }
 
     private abstract static class BaseTester {
 
         abstract Stream<FilterOperator> getOperators();
 
-        final boolean test(final SpecialColumns specialColumn, final DataType type) {
+        final boolean test(final RowIdentifiers specialColumn, final DataType type) {
             // tests that the operator is not hidden and can be applied (i.e. has a predicate factory)
             return getOperators() //
                 .map(op -> !op.isHidden(specialColumn, type) && op.isApplicableFor(specialColumn, type))
@@ -303,7 +283,7 @@ final class FilterOperatorTest {
         final var tester = new PatternMatchable();
         assertThat(tester) //
             .as("RowID is pattern-matchable") //
-            .returns(true, t -> t.test(SpecialColumns.ROWID, StringCell.TYPE)) //
+            .returns(true, t -> t.test(RowIdentifiers.ROW_ID, StringCell.TYPE)) //
             .as("Normal string column is pattern-matchable") //
             .returns(true, t -> t.test(null, StringCell.TYPE)) //
             .as("Long column is pattern-matchable") //
@@ -329,7 +309,7 @@ final class FilterOperatorTest {
         final var tester = new IsEq();
         assertThat(tester) //
             .as("RowID is eq-able") //
-            .returns(true, t -> t.test(SpecialColumns.ROWID, StringCell.TYPE)) //
+            .returns(true, t -> t.test(RowIdentifiers.ROW_ID, StringCell.TYPE)) //
             .as("Normal string column is eq-able") //
             .returns(true, t -> t.test(null, StringCell.TYPE)) //
             .as("Long column is eq-able") //
@@ -357,7 +337,7 @@ final class FilterOperatorTest {
         final var tester = new IsTruthy();
         assertThat(tester) //
             .as("RowID is not truthy") //
-            .returns(false, t -> t.test(SpecialColumns.ROWID, StringCell.TYPE)) //
+            .returns(false, t -> t.test(RowIdentifiers.ROW_ID, StringCell.TYPE)) //
             .as("Normal string column is not truthy") //
             .returns(false, t -> t.test(null, StringCell.TYPE)) //
             .as("Long column is not truthy") //
@@ -385,7 +365,7 @@ final class FilterOperatorTest {
 
         void validate(final DynamicValuesInput input) throws InvalidSettingsException {
             final var criterion = new AbstractRowFilterNodeSettings.FilterCriterion();
-            criterion.m_column = SpecialColumns.ROW_NUMBERS.toColumnSelection();
+            criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_NUMBER);
             criterion.m_predicateValues = input;
             for (final var op : SLICED_OPS) {
                 criterion.m_operator = op;
@@ -404,9 +384,9 @@ final class FilterOperatorTest {
         final var tester = new IsRowNumber();
         assertThat(tester) //
             .as("Row number is row number") //
-            .returns(true, t -> t.test(SpecialColumns.ROW_NUMBERS, IntCell.TYPE)) //
+            .returns(true, t -> t.test(RowIdentifiers.ROW_NUMBER, IntCell.TYPE)) //
             .as("RowID is not row number") //
-            .returns(false, t -> t.test(SpecialColumns.ROWID, StringCell.TYPE)) //
+            .returns(false, t -> t.test(RowIdentifiers.ROW_ID, StringCell.TYPE)) //
             .as("Normal string column is not row number").returns(false, t -> t.test(null, StringCell.TYPE)); //
 
         assertThatCode(() -> tester.validate(DynamicValuesInput.forRowNumber(LongCell.TYPE))) //
@@ -435,7 +415,7 @@ final class FilterOperatorTest {
             .as("String cell is not Ord)") //
             .returns(false, t -> t.test(null, StringCell.TYPE)) //
             .as("RowID is not Ord") //
-            .returns(false, t -> t.test(SpecialColumns.ROWID, StringCell.TYPE)) //
+            .returns(false, t -> t.test(RowIdentifiers.ROW_ID, StringCell.TYPE)) //
         ;
     }
 
@@ -458,9 +438,9 @@ final class FilterOperatorTest {
             .as("Boolean cell can be missing") //
             .returns(true, t -> t.test(null, BooleanCell.TYPE)) //
             .as("RowID cannot be missing") //
-            .returns(false, t -> t.test(SpecialColumns.ROWID, StringCell.TYPE)) //
+            .returns(false, t -> t.test(RowIdentifiers.ROW_ID, StringCell.TYPE)) //
             .as("RowNumber cannot be missing") //
-            .returns(false, t -> t.test(SpecialColumns.ROW_NUMBERS, IntCell.TYPE));
+            .returns(false, t -> t.test(RowIdentifiers.ROW_NUMBER, IntCell.TYPE));
     }
 
     private static final class IsNeqMiss extends BaseTester {
@@ -475,9 +455,9 @@ final class FilterOperatorTest {
         final var tester = new IsNeqMiss();
         assertThat(tester) //
             .as("RowID is not NEQ_MISS") // because it cannot be missing
-            .returns(false, t -> t.test(SpecialColumns.ROWID, StringCell.TYPE)) //
+            .returns(false, t -> t.test(RowIdentifiers.ROW_ID, StringCell.TYPE)) //
             .as("Row number is not NEQ_MISS") // because it cannot be missing
-            .returns(false, t -> t.test(SpecialColumns.ROW_NUMBERS, LongCell.TYPE)) //
+            .returns(false, t -> t.test(RowIdentifiers.ROW_NUMBER, LongCell.TYPE)) //
             .as("Normal string column is NEQ_MISS") //
             .returns(true, t -> t.test(null, StringCell.TYPE)) //
             .as("Long column is NEQ_MISS") //

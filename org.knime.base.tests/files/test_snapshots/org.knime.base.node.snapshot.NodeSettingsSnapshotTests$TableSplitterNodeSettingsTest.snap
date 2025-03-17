@@ -2,7 +2,9 @@
   "data" : {
     "model" : {
       "findSplittingRowMode" : "FIRST_MATCH",
-      "lookupColumn" : "<row-keys>",
+      "lookupColumn" : {
+        "specialChoice" : "ROW_ID"
+      },
       "matchingCriteria" : "EQUALS",
       "searchPattern" : "",
       "includeMatchingRowInTopTable" : true,
@@ -41,10 +43,23 @@
             "default" : true
           },
           "lookupColumn" : {
-            "type" : "string",
+            "type" : "object",
+            "properties" : {
+              "regularChoice" : {
+                "type" : "string"
+              },
+              "specialChoice" : {
+                "oneOf" : [ {
+                  "const" : "ROW_ID",
+                  "title" : "RowID"
+                } ]
+              }
+            },
             "title" : "Lookup column",
             "description" : "Select the column that should be used to evaluate the matching criteria. Only columns of type String, Number (integer), or Number (long) can be selected.",
-            "default" : "<row-keys>"
+            "default" : {
+              "specialChoice" : "ROW_ID"
+            }
           },
           "matchingCriteria" : {
             "oneOf" : [ {
@@ -91,15 +106,12 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/lookupColumn",
         "options" : {
-          "possibleValues" : [ {
-            "id" : "test2",
-            "text" : "test2"
+          "format" : "singleSelection",
+          "specialChoices" : [ {
+            "id" : "ROW_ID",
+            "text" : "RowID"
           } ],
-          "format" : "dropDown",
-          "showNoneColumn" : false,
-          "showRowKeys" : true,
-          "showSearch" : true,
-          "showMode" : true
+          "choicesProvider" : "org.knime.base.node.preproc.table.splitter.TableSplitterNodeSettings$ColumnChoices"
         }
       }, {
         "type" : "Control",
@@ -151,7 +163,19 @@
         "type" : "object",
         "properties" : {
           "findSplittingRowMode" : { },
-          "lookupColumn" : { },
+          "lookupColumn" : {
+            "type" : "object",
+            "properties" : {
+              "regularChoice" : { },
+              "specialChoice" : {
+                "configPaths" : [ ]
+              }
+            },
+            "configKey" : "lookupColumnV2",
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "lookupColumn" ] ]
+            } ]
+          },
           "matchingCriteria" : { },
           "searchPattern" : { },
           "includeMatchingRowInTopTable" : { },
@@ -160,5 +184,20 @@
         }
       }
     }
-  }
+  },
+  "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.base.node.preproc.table.splitter.TableSplitterNodeSettings$ColumnChoices",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test2",
+        "text" : "test2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ]
 }

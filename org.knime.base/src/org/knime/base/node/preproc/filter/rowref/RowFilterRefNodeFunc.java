@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.preproc.filter.rowref;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice.ROW_ID;
+
 import org.knime.base.node.preproc.filter.rowref.RowFilterRefNodeSettings.IncludeOrExcludeRows;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
@@ -58,6 +60,8 @@ import org.knime.core.node.func.NodeFunc;
 import org.knime.core.node.func.NodeFuncApi;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 
 /**
  * NodeFunc that makes the Reference Row Filter available to K-AI's build mode.
@@ -72,13 +76,15 @@ public final class RowFilterRefNodeFunc implements NodeFunc {
 
     private static final String REF_COLUMN = "ref_column";
 
+    private static final String USE_ROW_ID_REF_COLUMN = "use_row_id_ref_column";
+
     private static final String DATA_COLUMN = "data_column";
+
+    private static final String USE_ROW_ID_DATA_COLUMN = "use_row_id_data_column";
 
     private static final String REF_TABLE = "ref_table";
 
     private static final String DATA_TABLE = "data_table";
-
-    private static final String ROW_KEYS_PLACEHOLDER = "<row-keys>";
 
     @Override
     public void saveSettings(final NodeSettingsRO arguments, final PortObjectSpec[] inputSpecs,
@@ -86,17 +92,30 @@ public final class RowFilterRefNodeFunc implements NodeFunc {
         var refRowFilterSettings = new RowFilterRefNodeSettings();
         var dataTable = (DataTableSpec)inputSpecs[0];
         var refTable = (DataTableSpec)inputSpecs[1];
-        refRowFilterSettings.m_dataColumn = checkContained(arguments.getString(DATA_COLUMN), dataTable, DATA_TABLE);
-        refRowFilterSettings.m_referenceColumn = checkContained(arguments.getString(REF_COLUMN), refTable, REF_TABLE);
+        refRowFilterSettings.m_dataColumn = checkContained(//
+            arguments.getBoolean(USE_ROW_ID_DATA_COLUMN), //
+            arguments.getString(DATA_COLUMN), //
+            dataTable, //
+            DATA_TABLE//
+        );
+        refRowFilterSettings.m_referenceColumn = checkContained(//
+            arguments.getBoolean(USE_ROW_ID_REF_COLUMN), //
+            arguments.getString(REF_COLUMN), //
+            refTable, //
+            REF_TABLE //
+        );
         refRowFilterSettings.m_inexclude =
             arguments.getBoolean(INCLUDE) ? IncludeOrExcludeRows.INCLUDE : IncludeOrExcludeRows.EXCLUDE;
         DefaultNodeSettings.saveSettings(RowFilterRefNodeSettings.class, refRowFilterSettings, settings);
     }
 
-    private static String checkContained(final String column, final DataTableSpec tableSpec, final String tableName)
-        throws InvalidSettingsException {
-        if (ROW_KEYS_PLACEHOLDER.equals(column) || tableSpec == null || tableSpec.containsName(column)) {
-            return column;
+    private static StringOrEnum<RowIDChoice> checkContained(final boolean useRowId, final String column,
+        final DataTableSpec tableSpec, final String tableName) throws InvalidSettingsException {
+        if (useRowId) {
+            return new StringOrEnum<>(ROW_ID);
+        }
+        if (tableSpec == null || tableSpec.containsName(column)) {
+            return new StringOrEnum<>(column);
         }
         throw new InvalidSettingsException("The column '%s' does not exist in the %s.".formatted(column, tableName));
     }
@@ -110,12 +129,14 @@ public final class RowFilterRefNodeFunc implements NodeFunc {
             .withInputTable(REF_TABLE,
                 "The reference table that contains the rows to in- or exclude in the output table.")//
             .withArgument(INCLUDE, "Whether matched rows should be in- or excluded.", PrimitiveArgumentType.BOOLEAN)//
-            .withArgument(DATA_COLUMN,
-                "The column in the data_table to filter by. Use <row-keys> if rows should be filtered by RowID.",
-                PrimitiveArgumentType.STRING)//
-            .withArgument(REF_COLUMN,
-                "The column in the ref_table to match. Use <row-keys> if rows should be filtered by RowID.",
-                PrimitiveArgumentType.STRING)
+            .withArgument(USE_ROW_ID_DATA_COLUMN,
+                "Whether RowID should be as the column in the data_table. If true, data_column is ignored.",
+                PrimitiveArgumentType.BOOLEAN)//
+            .withArgument(DATA_COLUMN, "The column in the data_table to filter by.", PrimitiveArgumentType.STRING)//
+            .withArgument(USE_ROW_ID_REF_COLUMN,
+                "Whether RowID should be as the column in the ref_table. If true, ref_column is ignored.",
+                PrimitiveArgumentType.BOOLEAN)//
+            .withArgument(REF_COLUMN, "The column in the ref_table to match.", PrimitiveArgumentType.STRING)
             .withOutputTable("filtered_table", "The filtered table.")//
             .build();
     }

@@ -50,9 +50,6 @@ package org.knime.base.node.preproc.stringreplacer;
 
 import java.util.List;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.StringValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -65,10 +62,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettin
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider.StringColumnsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.BooleanReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
@@ -108,7 +105,7 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
     @Layout(DialogSections.ColumnSelection.class)
     @Persist(configKey = StringReplacerSettings.CFG_COL_NAME)
     @Widget(title = "Target column", description = "Select the column in which the strings should be replaced.")
-    @ChoicesWidget(choices = StringColumnChoices.class)
+    @ChoicesProvider(StringColumnsProvider.class)
     String m_colName;
 
     interface PatternTypeRef extends Reference<PatternType> {
@@ -239,18 +236,4 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    private static final class StringColumnChoices implements ChoicesProvider {
-        @Override
-        public String[] choices(final DefaultNodeSettingsContext context) {
-            final DataTableSpec specs = context.getDataTableSpecs()[0];
-            if (specs == null) {
-                return new String[0];
-            } else {
-                return specs.stream() //
-                    .filter(s -> s.getType().isCompatible(StringValue.class)) //
-                    .map(DataColumnSpec::getName) //
-                    .toArray(String[]::new);
-            }
-        }
-    }
 }

@@ -48,11 +48,7 @@
  */
 package org.knime.base.node.preproc.double2int2;
 
-import java.util.stream.Stream;
-
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataType;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.IntValue;
 import org.knime.core.node.InvalidSettingsException;
@@ -66,13 +62,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.FilteredInputTableColumnsProvider;
 
 /**
  * Settings for the Web UI dialog of the Double to Int node. Double check backwards compatible loading if this class is
@@ -97,7 +94,9 @@ public final class DoubleToIntNodeSettings implements DefaultNodeSettings {
      */
     DoubleToIntNodeSettings(final DefaultNodeSettingsContext context) {
         this();
-        m_inclCols = ColumnFilter.createDefault(NumericalColumns.class, context);
+        final var numericColumns =
+            ColumnSelectionUtil.getFilteredColumns(context, 0, NumericalColumns::isNumericColumn);
+        m_inclCols = new ColumnFilter(numericColumns).withIncludeUnknownColumns();
     }
 
     @Section(title = "Column Selection")
@@ -107,7 +106,7 @@ public final class DoubleToIntNodeSettings implements DefaultNodeSettings {
 
     @Persistor(InclColsPersistor.class)
     @Widget(title = "Column Selection", description = "Move the columns of interest into the &quot;Includes&quot; list")
-    @ChoicesWidget(choices = NumericalColumns.class)
+    @ChoicesProvider(NumericalColumns.class)
     @Layout(ColumnSelectionSection.class)
     ColumnFilter m_inclCols = new ColumnFilter();
 
@@ -159,19 +158,15 @@ public final class DoubleToIntNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    static final class NumericalColumns implements ChoicesProvider {
+    static final class NumericalColumns implements FilteredInputTableColumnsProvider {
 
         @Override
-        public String[] choices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0)//
-                .map(DataTableSpec::stream)//
-                .orElseGet(Stream::empty)//
-                .filter(c -> include(c.getType()))//
-                .map(DataColumnSpec::getName)//
-                .toArray(String[]::new);
+        public boolean isIncluded(final DataColumnSpec colSpec) {
+            return isNumericColumn(colSpec);
         }
 
-        private static boolean include(final DataType type) {
+        static boolean isNumericColumn(final DataColumnSpec colSpec) {
+            final var type = colSpec.getType();
             return type.isCompatible(DoubleValue.class) && !type.isCompatible(IntValue.class);
         }
 

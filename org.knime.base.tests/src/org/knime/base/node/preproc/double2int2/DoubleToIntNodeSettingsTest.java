@@ -51,6 +51,7 @@ package org.knime.base.node.preproc.double2int2;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 import org.junit.jupiter.api.Test;
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
@@ -65,22 +66,22 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction")// WebUI* classes
+@SuppressWarnings("restriction") // WebUI* classes
 class DoubleToIntNodeSettingsTest {
 
     @Test
     void testColumnChoicesProvider() {
-        final var spec = new DataTableSpecCreator().addColumns(
-            new DataColumnSpecCreator("Int1", IntCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("Double1", DoubleCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("Bool1", BooleanCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("String1", StringCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("Int2", IntCell.TYPE).createSpec()
-            ).createSpec();
-        final var ctx = DefaultNodeSettings.createDefaultNodeSettingsContext(new DataTableSpec[] { spec });
+        final var spec =
+            new DataTableSpecCreator().addColumns(new DataColumnSpecCreator("Int1", IntCell.TYPE).createSpec(),
+                new DataColumnSpecCreator("Double1", DoubleCell.TYPE).createSpec(),
+                new DataColumnSpecCreator("Bool1", BooleanCell.TYPE).createSpec(),
+                new DataColumnSpecCreator("String1", StringCell.TYPE).createSpec(),
+                new DataColumnSpecCreator("Int2", IntCell.TYPE).createSpec()).createSpec();
+        final var ctx = DefaultNodeSettings.createDefaultNodeSettingsContext(new DataTableSpec[]{spec});
 
-        final var expected = new String[] { "Double1" };
-        final var choices = new DoubleToIntNodeSettings.NumericalColumns().choices(ctx);
+        final var expected = new String[]{"Double1"};
+        final var choices = new DoubleToIntNodeSettings.NumericalColumns().columnChoices(ctx).stream()
+            .map(DataColumnSpec::getName).toArray(String[]::new);
         assertArrayEquals(expected, choices, "Wrong double column choices.");
     }
 }

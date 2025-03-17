@@ -48,14 +48,6 @@
  */
 package org.knime.base.node.preproc.filter.rowref;
 
-import java.util.Optional;
-
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelColumnNamePersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-
 /**
  * Common utilities for settings for row splitter nodes.
  *
@@ -64,68 +56,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 @SuppressWarnings("restriction")
 final class SettingsUtils {
 
-    /** Value saved in settings to indicate we should include selected rows. */
-    static final String INCLUDE = "Include rows from reference table";
-
-    /** Value saved in settings to indicate we should exclude selected rows. */
-    static final String EXCLUDE = "Exclude rows from reference table";
-
     private SettingsUtils() {
         // no instantiation
     }
 
-    abstract static class AllColumnChoices implements ChoicesProvider {
-
-        private final int m_portIdx;
-
-        AllColumnChoices(final int portIdx) {
-            m_portIdx = portIdx;
-        }
-
-        @Override
-        public String[] choices(final DefaultNodeSettingsContext context) {
-            // This check is needed for the settings tests, which creates a dummy node
-            // with no ports.
-            Optional<DataTableSpec> specs = context.getDataTableSpecs().length > 0 //
-                ? context.getDataTableSpec(m_portIdx) //
-                : Optional.empty();
-
-            return specs //
-                .map(DataTableSpec::getColumnNames) //
-                .orElse(new String[0]);
-        }
-    }
-
-    static final class DataColumnChoices extends AllColumnChoices {
-        public DataColumnChoices() {
-            super(0);
-        }
-    }
-
-    static final class ReferenceColumnChoices extends AllColumnChoices {
-        public ReferenceColumnChoices() {
-            super(1);
-        }
-    }
-
-    static final class DataColumnPersistor extends SettingsModelColumnNamePersistor {
-        DataColumnPersistor() {
-            super("dataTableColumn");
-        }
-    }
-
-    static final class ReferenceColumnPersistor extends SettingsModelColumnNamePersistor {
-        ReferenceColumnPersistor() {
-            super("referenceTableColumn");
-        }
-    }
-
-    static final class UpdateDomainsPersistor extends SettingsModelBooleanPersistor {
-
-        private static final String KEY_UPDATE_DOMAINS = "updateDomains";
-
-        UpdateDomainsPersistor() {
-            super(KEY_UPDATE_DOMAINS);
-        }
-    }
 }

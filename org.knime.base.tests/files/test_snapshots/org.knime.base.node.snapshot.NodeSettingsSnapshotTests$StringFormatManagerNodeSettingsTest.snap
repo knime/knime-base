@@ -134,21 +134,6 @@
                     "items" : {
                       "type" : "string"
                     }
-                  },
-                  "typeDisplays" : {
-                    "default" : [ ],
-                    "type" : "array",
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "id" : {
-                          "type" : "string"
-                        },
-                        "text" : {
-                          "type" : "string"
-                        }
-                      }
-                    }
                   }
                 },
                 "default" : {
@@ -255,20 +240,10 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/columnsToFormat",
         "options" : {
-          "format" : "columnFilter",
-          "possibleValues" : [ {
-            "id" : "test2",
-            "text" : "test2",
-            "type" : {
-              "id" : "org.knime.core.data.StringValue",
-              "text" : "String"
-            },
-            "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
-          } ],
-          "showNoneColumn" : false,
-          "showRowKeys" : false,
-          "showSearch" : true,
-          "showMode" : true
+          "format" : "typedNameFilter",
+          "unknownValuesText" : "Any unknown column",
+          "emptyStateLabel" : "No columns in this list.",
+          "choicesProvider" : "org.knime.base.node.viz.format.string.StringFormatManagerNodeSettings$StringCellColumns"
         }
       } ]
     }, {
@@ -403,10 +378,7 @@
               "typeFilter" : {
                 "type" : "object",
                 "properties" : {
-                  "selectedTypes" : { },
-                  "typeDisplays" : {
-                    "configPaths" : [ ]
-                  }
+                  "selectedTypes" : { }
                 }
               }
             }
@@ -423,5 +395,20 @@
         }
       }
     }
-  }
+  },
+  "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.base.node.viz.format.string.StringFormatManagerNodeSettings$StringCellColumns",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test2",
+        "text" : "test2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ]
 }

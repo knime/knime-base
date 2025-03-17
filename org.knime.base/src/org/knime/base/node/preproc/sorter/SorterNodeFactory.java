@@ -74,7 +74,7 @@ import org.xml.sax.SAXException;
  *
  * @author Nicolas Cebron, University of Konstanz
  */
-
+@SuppressWarnings("restriction")
 public class SorterNodeFactory extends NodeFactory implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//

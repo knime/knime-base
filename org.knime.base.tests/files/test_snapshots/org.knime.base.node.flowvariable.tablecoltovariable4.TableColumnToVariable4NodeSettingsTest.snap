@@ -38,28 +38,8 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/column",
       "options" : {
-        "possibleValues" : [ {
-          "id" : "Column 1",
-          "text" : "Column 1",
-          "type" : {
-            "id" : "org.knime.core.data.StringValue",
-            "text" : "String"
-          },
-          "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
-        }, {
-          "id" : "Column 2",
-          "text" : "Column 2",
-          "type" : {
-            "id" : "org.knime.core.data.DoubleValue",
-            "text" : "Number (Floating Decimal)"
-          },
-          "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
-        } ],
-        "format" : "dropDown",
-        "showNoneColumn" : false,
-        "showRowKeys" : false,
-        "showSearch" : true,
-        "showMode" : true
+        "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
+        "format" : "dropDown"
       }
     }, {
       "type" : "Control",
@@ -84,5 +64,27 @@
         }
       }
     }
-  }
+  },
+  "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Column 1",
+        "text" : "Column 1",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Column 2",
+        "text" : "Column 2",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Floating Decimal)"
+        }
+      } ]
+    } ]
+  } ]
 }

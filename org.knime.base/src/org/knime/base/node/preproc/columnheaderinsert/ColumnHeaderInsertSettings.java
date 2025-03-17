@@ -48,13 +48,22 @@
  */
 package org.knime.base.node.preproc.columnheaderinsert;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.StringValue;
+import static org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice.ROW_ID;
+
+import java.util.Optional;
+
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.StringToStringWithRowIDChoiceMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
+import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider.StringColumnsProvider;
 
 /**
  * Settings of the Insert Column Header (Dictionary) Node. Only used for the Web UI dialog, please double-check
@@ -66,40 +75,82 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 @SuppressWarnings("restriction")
 public final class ColumnHeaderInsertSettings implements DefaultNodeSettings {
 
-    // TODO: UIEXT-1007 migrate String to ColumnSelection
-
-    @Persist(configKey = ColumnHeaderInsertConfig.CFG_LOOKUP_COLUMN)
     @Widget(title = "Lookup column",
         description = "The column in the 2nd input table containing the \"old\" names of the columns.")
-    @ChoicesWidget(choices = StringColumnsSecondTable.class, showRowKeysColumn = true)
-    String m_lookupColumn;
+    @ChoicesProvider(StringColumnsSecondTable.class)
+    @Migration(LookupColumnMigration.class)
+    @Persist(configKey = "lookupColumnV2")
+    StringOrEnum<RowIDChoice> m_lookupColumn = new StringOrEnum<>(ROW_ID);
 
-    @Persist(configKey = ColumnHeaderInsertConfig.CFG_VALUE_COLUMN)
-    @Widget(title = "Names column",
-        description = "The column in the 2nd input table containing the \"new\" names of the columns.")
-    @ChoicesWidget(choices = StringColumnsSecondTable.class)
-    String m_valueColumn;
+    static final class LookupColumnMigration extends StringToStringWithRowIDChoiceMigration {
 
-    @Persist(configKey = ColumnHeaderInsertConfig.CFG_FAIL_IF_NO_MATCH)
-    @Widget(title = "Fail if no assignment in dictionary table",
-        description = "If selected, the node fails if there is no matching entry of a column name"
-            + " in the dictionary table. Otherwise it will keep the original column name.")
-    boolean m_failIfNoMatch;
-
-    private static final class StringColumnsSecondTable implements ChoicesProvider {
+        protected LookupColumnMigration() {
+            super("lookupColumn");
+        }
 
         @Override
-        public String[] choices(final DefaultNodeSettingsContext context) {
-            var spec = context.getDataTableSpecs()[1];
-            if (spec == null) {
-                return new String[0];
-            } else {
-                return spec.stream()//
-                    .filter(c -> c.getType().isCompatible(StringValue.class))//
-                    .map(DataColumnSpec::getName)//
-                    .toArray(String[]::new);
+        public Optional<RowIDChoice> loadEnumFromLegacyString(final String legacyString) {
+            /**
+             * Prior to 5.0.0 row keys were represented by a null string value in the settings.
+             */
+            if (legacyString == null) {
+                return Optional.of(ROW_ID);
             }
+            return super.loadEnumFromLegacyString(legacyString);
         }
 
     }
+
+    @Widget(title = "Names column",
+        description = "The column in the 2nd input table containing the \"new\" names of the columns.")
+    @ChoicesProvider(StringColumnsSecondTable.class)
+    String m_valueColumn;
+
+    @Widget(title = "Fail if no assignment in dictionary table",
+        description = "If selected, the node fails if there is no matching entry of a column name"
+            + " in the dictionary table. Otherwise it will keep the original column name.")
+    boolean m_failIfNoMatch = true;
+
+    static final class StringColumnsSecondTable extends StringColumnsProvider {
+
+        StringColumnsSecondTable() {
+            super();
+        }
+
+        @Override
+        public int getInputTableIndex() {
+            return 1;
+        }
+
+    }
+
+    void validate() throws InvalidSettingsException {
+        if (m_lookupColumn.getEnumChoice().isEmpty() && m_lookupColumn.getStringChoice().isEmpty()) {
+            throw new InvalidSettingsException("Invalid (empty) key for lookup column");
+        }
+        if (m_valueColumn == null || m_valueColumn.isEmpty()) {
+            throw new InvalidSettingsException("Invalid (empty) value for value column name");
+        }
+
+    }
+
+    /**
+     * Default settings constructor
+     */
+    public ColumnHeaderInsertSettings() {
+    }
+
+    ColumnHeaderInsertSettings(final DefaultNodeSettingsContext context) {
+        this(context.getDataTableSpec(1).orElse(null));
+    }
+
+    ColumnHeaderInsertSettings(final DataTableSpec dictSpec) {
+        if (dictSpec == null) {
+            return;
+        }
+        ColumnSelectionUtil.getFirstStringColumn(dictSpec).ifPresent(c -> {
+            m_valueColumn = c.getName();
+        });
+    }
+
 }

@@ -51,8 +51,6 @@ package org.knime.base.node.io.filehandling.csv.reader.api;
 import java.util.Arrays;
 import java.util.function.Consumer;
 
-import javax.print.DocFlavor.STRING;
-
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TreeTypeHierarchy;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeTester;
 
@@ -98,7 +96,7 @@ public enum CSVGuessableType {
         }
     };
 
-    /** Type hierarchy that only contains {@link STRING}, used to skip type guessing. */
+    /** Type hierarchy that only contains {@link #STRING}, used to skip type guessing. */
     private static final TreeTypeHierarchy<Class<?>, String> ONLY_STRING =
             TreeTypeHierarchy.builder(CSVGuessableType.STRING.createTypeTester(null)).build();
 
@@ -117,7 +115,7 @@ public enum CSVGuessableType {
     }
 
     /**
-     * Singleton type hierarchy only containing {@link STRING}.
+     * Singleton type hierarchy only containing {@link #STRING}.
      *
      * @return singleton type hierarchy
      */

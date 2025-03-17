@@ -91,7 +91,7 @@ public class ColCombine2NodeModel extends WebUISimpleStreamableFunctionNodeModel
         var result = new ColumnRearranger(spec);
         DataColumnSpec append =
             new DataColumnSpecCreator(modelSettings.m_outputColumnName, StringCell.TYPE).createSpec();
-        String[] selectedColumns = modelSettings.m_columnFilter.getSelected(spec.getColumnNames(), spec);
+        String[] selectedColumns = modelSettings.m_columnFilter.filterFromFullSpec(spec);
         final var indices = new int[selectedColumns.length];
         var j = 0;
         for (var k = 0; k < spec.getNumColumns() && j < selectedColumns.length; k++) {
@@ -112,14 +112,14 @@ public class ColCombine2NodeModel extends WebUISimpleStreamableFunctionNodeModel
                 var cellContents = new String[indices.length];
                 for (var i = 0; i < indices.length; i++) {
                     DataCell c = row.getCell(indices[i]);
-                    String s = c instanceof StringValue sv? sv.getStringValue() : c.toString();
+                    String s = c instanceof StringValue sv ? sv.getStringValue() : c.toString();
                     cellContents[i] = s;
                 }
                 return new StringCell(handleContent(cellContents, delimTrim, modelSettings));
             }
         });
         if (modelSettings.m_removeInputColumns) {
-            result.remove(modelSettings.m_columnFilter.getSelected(spec.getColumnNames(), spec));
+            result.remove(modelSettings.m_columnFilter.filterFromFullSpec(spec));
         }
         return result;
     }
@@ -130,19 +130,13 @@ public class ColCombine2NodeModel extends WebUISimpleStreamableFunctionNodeModel
             throw new InvalidSettingsException("Column already exits: " + modelSettings.m_outputColumnName);
         }
 
-        String[] selectedColumns = modelSettings.m_columnFilter.getSelected(spec.getColumnNames(), spec);
-        String[] selectedColumnsWithMissing =
-            modelSettings.m_columnFilter.getSelectedIncludingMissing(spec.getColumnNames(), spec);
-        if (selectedColumnsWithMissing.length > selectedColumns.length && modelSettings.m_failIfMissingColumns) {
-            String[] missingColumns = Arrays.stream(selectedColumnsWithMissing).distinct()
-                .filter(x -> !Arrays.asList(selectedColumns).contains(x)).toArray(String[]::new);
+        String[] missing = modelSettings.m_columnFilter.getMissingSelectedFromFullSpec(spec);
+        if (missing.length > 0 && modelSettings.m_failIfMissingColumns) {
             throw new InvalidSettingsException(
                 "Input table does not match selected include columns, unable to find column(s): "
-                    + ConvenienceMethods.getShortStringFrom(new HashSet<>(Arrays.asList(missingColumns)), 3));
+                    + ConvenienceMethods.getShortStringFrom(new HashSet<>(Arrays.asList(missing)), 3));
         }
     }
-
-
 
     /**
      * Concatenates the elements of the array, used from cell factory.
