@@ -48,6 +48,7 @@ package org.knime.base.node.preproc.columnlag;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Optional;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -76,32 +77,44 @@ import org.knime.core.util.UniqueNameGenerator;
  */
 final class LagColumnStreamableOperator extends StreamableOperator {
 
-    private final LagColumnConfiguration m_configuration;
+    private final LagColumnNodeSettings m_configuration;
+
     private final DataTableSpec m_outSpec;
-    private final int m_columnIndex;
-    private long m_maxRows = -1; // stays -1 if used only during configure or if used in real streaming
 
     /**
-     * @param inSpecs
-     *
+     * Empty if row id column, otherwise an optional of non-negative column index.
      */
-    LagColumnStreamableOperator(final LagColumnConfiguration configuration, final DataTableSpec inSpec)
-            throws InvalidSettingsException {
-        m_configuration = configuration;
+    private final Optional<Integer> m_columnIndex;
+
+    private long m_maxRows = -1; // stays -1 if used only during configure or if used in real streaming
+
+    LagColumnStreamableOperator(final LagColumnNodeSettings settings, final DataTableSpec inSpec)
+        throws InvalidSettingsException {
+        m_configuration = settings;
         if (m_configuration == null) {
             throw new InvalidSettingsException("No configuration available.");
         }
-        String colName = m_configuration.getColumn();
-        m_columnIndex = inSpec.findColumnIndex(colName); // -1 if row id column or column not present
-        if (colName != null && m_columnIndex < 0) {
-            throw new InvalidSettingsException("Selected column \"" + colName + "\" does not exist.");
+        final var column = m_configuration.m_column;
+        String baseName;
+        DataType type;
+        if (column.getEnumChoice().isPresent()) {
+            baseName = "RowID";
+            type = StringCell.TYPE;
+            m_columnIndex = Optional.empty();
+        } else {
+            final var colName = column.getStringChoice();
+            final var columnIndex = inSpec.findColumnIndex(colName); // -1 if row id column or column not present
+            if (columnIndex < 0) {
+                throw new InvalidSettingsException("Selected column \"" + colName + "\" does not exist.");
+            }
+            m_columnIndex = Optional.of(columnIndex);
+            baseName = colName;
+            type = inSpec.getColumnSpec(columnIndex).getType();
         }
-        String baseName = colName == null ? "RowID" : colName;
-        DataType type = colName == null ? StringCell.TYPE : inSpec.getColumnSpec(colName).getType();
         UniqueNameGenerator gen = new UniqueNameGenerator(inSpec);
-        int lag = m_configuration.getLag();
+        int lag = m_configuration.m_lag;
         DataColumnSpec[] newCols = new DataColumnSpec[lag];
-        int lagInterval = m_configuration.getLagInterval();
+        int lagInterval = m_configuration.m_lagInterval;
         for (int i = 0; i < lag; i++) {
             String p = Integer.toString(lagInterval * (i + 1));
             newCols[i] = gen.newColumn(baseName + "(-" + p + ")", type);
@@ -118,48 +131,47 @@ final class LagColumnStreamableOperator extends StreamableOperator {
 
     BufferedDataTable execute(final BufferedDataTable table, final ExecutionContext exec) throws Exception {
         long maxRows = table.size();
-        int maxLag = m_configuration.getLag() * m_configuration.getLagInterval();
-        if (m_configuration.isSkipInitialIncompleteRows()) {
+        int maxLag = m_configuration.m_lag * m_configuration.m_lagInterval;
+        if (m_configuration.m_skipInitialIncompleteRows) {
             maxRows -= maxLag;
         }
-        if (!m_configuration.isSkipLastIncompleteRows()) {
+        if (!m_configuration.m_skipLastIncompleteRows) {
             maxRows += maxLag;
         }
         m_maxRows = maxRows;
         BufferedDataContainer output = exec.createDataContainer(m_outSpec);
         RowInput wrappedInput = new DataTableRowInput(table);
         DataContainerPortOutput wrappedOutput = new DataContainerPortOutput(output);
-        runFinal(new PortInput[] {wrappedInput}, new PortOutput[] {wrappedOutput}, exec);
+        runFinal(new PortInput[]{wrappedInput}, new PortOutput[]{wrappedOutput}, exec);
         return wrappedOutput.getTable();
     }
 
-
     /** {@inheritDoc} */
     @Override
-    public void runFinal(final PortInput[] inputs, final PortOutput[] outputs,
-                         final ExecutionContext exec) throws Exception {
+    public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
+        throws Exception {
         long counter = 0;
-        int maxLag = m_configuration.getLagInterval() * m_configuration.getLag();
+        int maxLag = m_configuration.m_lagInterval * m_configuration.m_lag;
         RingBuffer ringBuffer = new RingBuffer(maxLag);
 
         RowInput input = (RowInput)inputs[0];
         RowOutput output = (RowOutput)outputs[0];
-        int skippedFirstCount = !m_configuration.isSkipInitialIncompleteRows() ? -1
-                : m_configuration.getLagInterval() * m_configuration.getLag();
+        int skippedFirstCount =
+            !m_configuration.m_skipInitialIncompleteRows ? -1 : m_configuration.m_lagInterval * m_configuration.m_lag;
         DataRow row;
         while ((row = input.poll()) != null) {
             if (counter >= skippedFirstCount) {
                 DataCell[] newCells = getAdditionalCells(ringBuffer);
                 output.push(copyWithNewCells(row, newCells));
             }
-            DataCell toBeCached = m_columnIndex < 0 ? new StringCell(row.getKey().toString())
-                : row.getCell(m_columnIndex);
+            DataCell toBeCached =
+                m_columnIndex.isEmpty() ? new StringCell(row.getKey().toString()) : row.getCell(m_columnIndex.get());
             ringBuffer.add(toBeCached);
             setProgress(exec, counter, row);
             counter += 1;
         }
 
-        if (!m_configuration.isSkipLastIncompleteRows()) {
+        if (!m_configuration.m_skipLastIncompleteRows) {
             DataCell[] missings = new DataCell[input.getDataTableSpec().getNumColumns()];
             Arrays.fill(missings, DataType.getMissingCell());
             for (int i = 0; i < maxLag; i++) {
@@ -182,8 +194,8 @@ final class LagColumnStreamableOperator extends StreamableOperator {
         DataCell[] copiedCells = new DataCell[oldCount + newCells.length];
         int i;
         for (i = 0; i < oldCount; i++) {
-            copiedCells[i] = row instanceof BlobSupportDataRow ? ((BlobSupportDataRow)row).getRawCell(i)
-                    : row.getCell(i);
+            copiedCells[i] =
+                row instanceof BlobSupportDataRow ? ((BlobSupportDataRow)row).getRawCell(i) : row.getCell(i);
         }
         for (int j = 0; j < newCells.length; j++) {
             copiedCells[i + j] = newCells[j];
@@ -192,8 +204,8 @@ final class LagColumnStreamableOperator extends StreamableOperator {
     }
 
     private DataCell[] getAdditionalCells(final RingBuffer ringBuffer) {
-        int lag = m_configuration.getLag();
-        int lagInterval = m_configuration.getLagInterval();
+        int lag = m_configuration.m_lag;
+        int lagInterval = m_configuration.m_lagInterval;
         DataCell[] result = new DataCell[lag];
         for (int i = 0; i < lag; i++) {
             result[i] = ringBuffer.get((i + 1) * lagInterval);
@@ -202,7 +214,7 @@ final class LagColumnStreamableOperator extends StreamableOperator {
     }
 
     private void setProgress(final ExecutionContext exec, final long counter, final DataRow row)
-            throws CanceledExecutionException {
+        throws CanceledExecutionException {
         StringBuilder progMessageBuilder = new StringBuilder("Added row ");
         progMessageBuilder.append(counter + 1);
         if (m_maxRows > 0) {
@@ -242,11 +254,12 @@ final class LagColumnStreamableOperator extends StreamableOperator {
 
     }
 
-
     private static final class RingBuffer {
 
         private final int m_capacity;
+
         private final ArrayList<DataCell> m_storageList;
+
         int m_nextIndex = 0;
 
         RingBuffer(final int capacity) {

@@ -56,12 +56,10 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.Temporal;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.time.duration.DurationValue;
@@ -70,7 +68,7 @@ import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
 import org.knime.core.data.time.localtime.LocalTimeValue;
 import org.knime.core.data.time.period.PeriodValue;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.CompatibleColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider;
 
 /**
  * This class contains several useful functions for the the new date&time types.
@@ -251,55 +249,9 @@ public final class DateTimeUtils {
     }
 
     /**
-     * Get the compatible columns from the DataTableSpec by checking the value classes.
-     *
-     * @param spec The DataTable spec
-     * @param valueClasses The value classes to check for compatibility
-     * @return An array of compatible column names
-     */
-    public static String[] getCompatibleColumns(final DataTableSpec spec,
-        final Collection<Class<? extends DataValue>> valueClasses) {
-
-        return spec.stream()
-            .filter(dateColumnSpec -> valueClasses.stream().anyMatch(dateColumnSpec.getType()::isCompatible))
-            .map(DataColumnSpec::getName).toArray(String[]::new);
-    }
-
-    /**
-     * Get the compatible columns from the DataTableSpec by checking the single provided value class.
-     *
-     * @param spec The DataTable spec
-     * @param clazz The value class to check for compatibility
-     * @return An array of compatible column names
-     */
-    public static String[] getCompatibleColumns(final DataTableSpec spec, final Class<? extends DataValue> clazz) {
-        return getCompatibleColumns(spec, List.of(clazz));
-    }
-
-    /**
-     * Get the compatible Date columns from the DataTableSpec.
-     *
-     * @param spec The DataTable spec
-     * @return A list of compatible columns names
-     */
-    public static String[] getCompatibleDateColumns(final DataTableSpec spec) {
-        return getCompatibleColumns(spec, DATE_COLUMN_TYPES);
-    }
-
-    /**
-     * Get the compatible Time columns from the DataTableSpec.
-     *
-     * @param spec The DataTable spec
-     * @return A list of compatible columns names
-     */
-    public static String[] getCompatibleTimeColumns(final DataTableSpec spec) {
-        return getCompatibleColumns(spec, TIME_COLUMN_TYPES);
-    }
-
-    /**
      * A column provider for Date Columns
      */
-    public static final class DateColumnProvider extends CompatibleColumnChoicesProvider {
+    public static final class DateColumnProvider extends CompatibleColumnsProvider {
         DateColumnProvider() {
             super(DATE_COLUMN_TYPES);
         }
@@ -318,7 +270,7 @@ public final class DateTimeUtils {
     /**
      * A column provider for Time Columns
      */
-    public static final class TimeColumnProvider extends CompatibleColumnChoicesProvider {
+    public static final class TimeColumnProvider extends CompatibleColumnsProvider {
         TimeColumnProvider() {
             super(TIME_COLUMN_TYPES);
         }
@@ -337,7 +289,7 @@ public final class DateTimeUtils {
     /**
      * A column provider for DateTime Columns
      */
-    public static final class DateTimeColumnProvider extends CompatibleColumnChoicesProvider {
+    public static final class DateTimeColumnProvider extends CompatibleColumnsProvider {
         DateTimeColumnProvider() {
             super(DATE_TIME_COLUMN_TYPES);
         }
@@ -356,7 +308,7 @@ public final class DateTimeUtils {
     /**
      * A column provider for Interval Columns
      */
-    public static final class IntervalColumnProvider extends CompatibleColumnChoicesProvider {
+    public static final class IntervalColumnProvider extends CompatibleColumnsProvider {
         IntervalColumnProvider() {
             super(INTERVAL_COLUMN_TYPES);
         }
@@ -376,7 +328,7 @@ public final class DateTimeUtils {
      * A column provider for Duration columns. Supports anything compatible to {@link DurationValue} and only
      * {@link DurationValue}.
      */
-    public static final class DurationColumnProvider extends CompatibleColumnChoicesProvider {
+    public static final class DurationColumnProvider extends CompatibleColumnsProvider {
         DurationColumnProvider() {
             super(List.of(DurationValue.class));
         }
@@ -396,7 +348,7 @@ public final class DateTimeUtils {
      * A column provider for Period columns. Supports anything compatible to {@link PeriodValue} and only
      * {@link PeriodValue}.
      */
-    public static final class PeriodColumnProvider extends CompatibleColumnChoicesProvider {
+    public static final class PeriodColumnProvider extends CompatibleColumnsProvider {
         PeriodColumnProvider() {
             super(List.of(PeriodValue.class));
         }

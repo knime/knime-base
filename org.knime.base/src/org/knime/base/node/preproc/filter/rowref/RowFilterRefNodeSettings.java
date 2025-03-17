@@ -48,23 +48,20 @@
  */
 package org.knime.base.node.preproc.filter.rowref;
 
-import org.knime.base.node.preproc.filter.rowref.SettingsUtils.DataColumnChoices;
-import org.knime.base.node.preproc.filter.rowref.SettingsUtils.DataColumnPersistor;
-import org.knime.base.node.preproc.filter.rowref.SettingsUtils.ReferenceColumnChoices;
-import org.knime.base.node.preproc.filter.rowref.SettingsUtils.ReferenceColumnPersistor;
-import org.knime.base.node.preproc.filter.rowref.SettingsUtils.UpdateDomainsPersistor;
+import java.util.List;
+
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
 
 /**
  * {@link DefaultNodeSettings} implementation for the Reference Row Filter to auto-generate a Web-UI based dialog. Note
@@ -74,35 +71,20 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColu
  * @since 5.1
  */
 @SuppressWarnings("restriction")
-public final class RowFilterRefNodeSettings implements DefaultNodeSettings {
+public final class RowFilterRefNodeSettings extends AbstractRowFilterRefNodeSettings {
 
-    @Persistor(DataColumnPersistor.class)
-    @Widget(title = "Data column (in top/first input)",
-        description = "The column from the table to be filtered that should be used for comparison.")
-    @ChoicesWidget(choices = DataColumnChoices.class, showRowKeysColumn = true)
-    String m_dataColumn = SpecialColumns.ROWID.getId();
+    @After(ColumnsLayout.class)
+    @Before(UpdateDomainsLayout.class)
+    interface IncludeOrExcludeRowsLayout {
+    }
 
-    @Persistor(ReferenceColumnPersistor.class)
-    @Widget(title = "Reference column (in bottom/second input)",
-        description = "The column from the filter table that should be used for comparison.")
-    @ChoicesWidget(choices = ReferenceColumnChoices.class, showRowKeysColumn = true)
-    String m_referenceColumn = SpecialColumns.ROWID.getId();
-
-    @Persistor(IncludeOrExcludeRowsPersistor.class)
+    @Migration(IncludeOrExcludeRowsMigration.class)
     @Widget(title = "Include or exclude rows from the reference table",
         description = "Includes or excludes all rows from the reference table in the resulting table from the first "
             + "input.")
     @ValueSwitchWidget
+    @Layout(IncludeOrExcludeRowsLayout.class)
     IncludeOrExcludeRows m_inexclude = IncludeOrExcludeRows.INCLUDE;
-
-    @Widget( //
-        title = "Update domains of all columns", //
-        description = "Advanced setting to enable recomputation of the domains of all columns in the output table " //
-            + "such that the domains' bounds exactly match the bounds of the data in the output table.", //
-        advanced = true)
-    @Migrate(loadDefaultIfAbsent = true)
-    @Persistor(UpdateDomainsPersistor.class)
-    boolean m_updateDomains;
 
     enum IncludeOrExcludeRows {
             @Label("Include")
@@ -112,29 +94,30 @@ public final class RowFilterRefNodeSettings implements DefaultNodeSettings {
             EXCLUDE;
     }
 
-    static final class IncludeOrExcludeRowsPersistor implements NodeSettingsPersistor<IncludeOrExcludeRows> {
+    static final class IncludeOrExcludeRowsMigration implements NodeSettingsMigration<IncludeOrExcludeRows> {
 
-        private static final String KEY_INCLUDE_EXCLUDE = "inexclude";
+        private static final String LEGACY_KEY_INCLUDE_EXCLUDE = "inexclude";
+
+        /**
+         * Value saved in settings to indicate we should exclude selected rows:
+         *
+         * "Exclude rows from reference table";
+         */
+        /** Value saved in settings to indicate we should include selected rows. */
+        private static final String LEGACY_INCLUDE_VALUE = "Include rows from reference table";
+
 
         @Override
-        public IncludeOrExcludeRows load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return SettingsUtils.INCLUDE.equals(settings.getString(KEY_INCLUDE_EXCLUDE)) //
+        public List<ConfigMigration<IncludeOrExcludeRows>> getConfigMigrations() {
+            return List.of(ConfigMigration.builder(IncludeOrExcludeRowsMigration::load)
+                .withDeprecatedConfigPath(LEGACY_KEY_INCLUDE_EXCLUDE).build());
+        }
+
+        static IncludeOrExcludeRows load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return LEGACY_INCLUDE_VALUE.equals(settings.getString(LEGACY_KEY_INCLUDE_EXCLUDE)) //
                 ? IncludeOrExcludeRows.INCLUDE //
                 : IncludeOrExcludeRows.EXCLUDE;
         }
 
-        @Override
-        public void save(final IncludeOrExcludeRows obj, final NodeSettingsWO settings) {
-            settings.addString(KEY_INCLUDE_EXCLUDE, //
-                obj == IncludeOrExcludeRows.INCLUDE //
-                    ? SettingsUtils.INCLUDE //
-                    : SettingsUtils.EXCLUDE //
-            );
-        }
-
-        @Override
-        public String[][] getConfigPaths() {
-            return new String[][]{{KEY_INCLUDE_EXCLUDE}};
-        }
     }
 }

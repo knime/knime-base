@@ -44,19 +44,8 @@
  */
 package org.knime.base.node.preproc.filter.rowref;
 
-import java.util.Map;
-
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
-import org.knime.core.webui.node.dialog.NodeDialog;
-import org.knime.core.webui.node.dialog.NodeDialogFactory;
-import org.knime.core.webui.node.dialog.NodeDialogManager;
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
-import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
-import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
  * Factory for the creation of a Reference Row Filter node.
@@ -64,47 +53,38 @@ import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
  * @author Thomas Gabriel, University of Konstanz
  */
 @SuppressWarnings("restriction")
-public class RowFilterRefNodeFactory extends NodeFactory<RowFilterRefNodeModel>
-    implements NodeDialogFactory, KaiNodeInterfaceFactory {
+public class RowFilterRefNodeFactory extends WebUINodeFactory<RowFilterRefNodeModel> {
 
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+
+    private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
+        .name("Reference Row Filter") //
+        .icon("./refrowfilter.png") //
+        .shortDescription("Allows rows to be filtered from the first table using the second table as reference.")
+        .fullDescription("""
+                This node allows rows to be filtered from the first table using
+                the second table as reference. Depending on the dialog
+                setting, the rows from the reference table are either included or
+                excluded in the output table.<br />
+                During the test for in-/exclusion the values of the selected columns
+                 of both tables are compared.
+                    """) //
+        .modelSettingsClass(RowFilterRefNodeSettings.class) //
+        .addInputTable("Table to be filtered", "Table from which rows are to be included or excluded")//
+        .addInputTable("Reference table", "Table rows used as reference filter") //
+        .addOutputTable("Filtered table", "Table with filtered rows") //
+        .nodeType(NodeType.Manipulator) //
+        .keywords("Filter table") //
+        .sinceVersion(5, 3, 0) //
+        .build();
+
+    @SuppressWarnings("javadoc")
+    public RowFilterRefNodeFactory() {
+        super(CONFIGURATION);
     }
 
     @Override
     public RowFilterRefNodeModel createNodeModel() {
-        return new RowFilterRefNodeModel();
+        return new RowFilterRefNodeModel(CONFIGURATION);
     }
 
-    @Override
-    public NodeView<RowFilterRefNodeModel> createNodeView(final int index, final RowFilterRefNodeModel model) {
-        return null;
-    }
-
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * @since 5.0
-     */
-    @Override
-    public NodeDialog createNodeDialog() {
-        return new DefaultNodeDialog(SettingsType.MODEL, RowFilterRefNodeSettings.class);
-    }
-
-    /**
-     * @since 5.5
-     */
-    @Override
-    public KaiNodeInterface createKaiNodeInterface() {
-        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, RowFilterRefNodeSettings.class));
-    }
 }

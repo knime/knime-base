@@ -50,8 +50,6 @@ package org.knime.base.node.preproc.rowagg;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
-import java.util.Arrays;
-
 import org.junit.jupiter.api.Test;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -73,49 +71,44 @@ class RowAggregatorSettingsTest {
 
     @Test
     void testColumnChoicesProviders() {
-        final var spec = new DataTableSpecCreator().addColumns(
-            new DataColumnSpecCreator("Int1", IntCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("Double1", DoubleCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("Bool1", BooleanCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("String1", StringCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("Int2", IntCell.TYPE).createSpec()
-            ).createSpec();
-        final var ctx = DefaultNodeSettings.createDefaultNodeSettingsContext(new DataTableSpec[] { spec });
+        final var spec =
+            new DataTableSpecCreator().addColumns(new DataColumnSpecCreator("Int1", IntCell.TYPE).createSpec(),
+                new DataColumnSpecCreator("Double1", DoubleCell.TYPE).createSpec(),
+                new DataColumnSpecCreator("Bool1", BooleanCell.TYPE).createSpec(),
+                new DataColumnSpecCreator("String1", StringCell.TYPE).createSpec(),
+                new DataColumnSpecCreator("Int2", IntCell.TYPE).createSpec()).createSpec();
+        final var ctx = DefaultNodeSettings.createDefaultNodeSettingsContext(new DataTableSpec[]{spec});
 
-        final var expectedColumnNames = new String[] { "Int1", "Double1", "Bool1", "Int2" };
-        final var expected = Arrays.stream(expectedColumnNames).map(c -> spec.getColumnSpec(c))
-                .toArray(DataColumnSpec[]::new);
-        final var choices = new RowAggregatorSettings.AggregatableColumns().columnChoices(ctx);
-        assertArrayEquals(choices, expected, "Wrong aggregatable column choices.");
+        final var expectedColumnNames = new String[]{"Int1", "Double1", "Bool1", "Int2"};
+        final var aggregatableColumns = new RowAggregatorSettings.AggregatableColumns();
+        final var choices =
+            aggregatableColumns.columnChoices(ctx).stream().map(DataColumnSpec::getName).toArray(String[]::new);
+        assertArrayEquals(choices, expectedColumnNames, "Wrong aggregatable column choices.");
 
         final var weightCols = new RowAggregatorSettings.WeightColumns();
         // expect same weight columns as aggregate columns (something numeric-compatible)
-        final var weightChoices = weightCols.choices(ctx);
+        final var weightChoices =
+            weightCols.columnChoices(ctx).stream().map(DataColumnSpec::getName).toArray(String[]::new);
         assertArrayEquals(weightChoices, expectedColumnNames, "Wrong weight column choices.");
 
-        final var catCols = new RowAggregatorSettings.CategoryColumns();
-        // all columns can be category (group-by) columns
-        final var catChoices = catCols.choices(ctx);
-        assertArrayEquals(spec.getColumnNames(), catChoices, "Wrong category column choices.");
     }
 
     @Test
     void testDefaultSettingsColumnSelection() {
-        final var spec = new DataTableSpecCreator().addColumns(
-            new DataColumnSpecCreator("Int1", IntCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("Double1", DoubleCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("Bool1", BooleanCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("String1", StringCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("Int2", IntCell.TYPE).createSpec()
-            ).createSpec();
-        final var ctx = DefaultNodeSettings.createDefaultNodeSettingsContext(new DataTableSpec[] { spec });
+        final var spec =
+            new DataTableSpecCreator().addColumns(new DataColumnSpecCreator("Int1", IntCell.TYPE).createSpec(),
+                new DataColumnSpecCreator("Double1", DoubleCell.TYPE).createSpec(),
+                new DataColumnSpecCreator("Bool1", BooleanCell.TYPE).createSpec(),
+                new DataColumnSpecCreator("String1", StringCell.TYPE).createSpec(),
+                new DataColumnSpecCreator("Int2", IntCell.TYPE).createSpec()).createSpec();
+        final var ctx = DefaultNodeSettings.createDefaultNodeSettingsContext(new DataTableSpec[]{spec});
         final var settings = new RowAggregatorSettings(ctx);
 
-        final var expected = new String[] { "Int1", "Double1", "Bool1", "Int2" };
+        final var expected = new String[]{"Int1", "Double1", "Bool1", "Int2"};
 
-        final var aggCols = new RowAggregatorSettings.AggregatableColumns().choices(ctx);
+        final var aggCols = new RowAggregatorSettings.AggregatableColumns().columnChoices(ctx);
         // by default this should be all aggregatable columns
-        assertArrayEquals(expected, settings.m_frequencyColumns.getSelected(aggCols, spec),
+        assertArrayEquals(expected, settings.m_frequencyColumns.filter(aggCols),
             "Wrong columns selected by default");
     }
 

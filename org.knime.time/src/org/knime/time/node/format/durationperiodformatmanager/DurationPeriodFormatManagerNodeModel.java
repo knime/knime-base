@@ -58,6 +58,7 @@ import org.knime.core.data.property.ValueFormatHandler;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 import org.knime.time.util.DateTimeUtils;
@@ -127,7 +128,8 @@ public class DurationPeriodFormatManagerNodeModel extends WebUINodeModel<Duratio
     private static List<String> getInputColumnNames(final DataTableSpec inputSpec,
         final DurationPeriodFormatManagerNodeSettings settings) {
 
-        var compatibleColumns = DateTimeUtils.getCompatibleColumns(inputSpec, DateTimeUtils.INTERVAL_COLUMN_TYPES);
-        return Arrays.asList(settings.m_columnFilter.getSelected(compatibleColumns, inputSpec));
+        var compatibleColumns =
+            ColumnSelectionUtil.getCompatibleColumns(inputSpec, DateTimeUtils.INTERVAL_COLUMN_TYPES);
+        return Arrays.asList(settings.m_columnFilter.filter(compatibleColumns));
     }
 }

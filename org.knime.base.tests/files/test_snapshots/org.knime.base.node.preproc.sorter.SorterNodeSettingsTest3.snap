@@ -3,9 +3,9 @@
     "model" : {
       "sortingCriteria" : [ {
         "column" : {
-          "selected" : "<row-keys>",
-          "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+          "specialChoice" : "ROW_ID"
         },
+        "isStringColumn" : false,
         "sortingOrder" : "ASCENDING",
         "stringComparison" : "NATURAL"
       } ],
@@ -39,22 +39,25 @@
                 "column" : {
                   "type" : "object",
                   "properties" : {
-                    "compatibleTypes" : {
-                      "type" : "array",
-                      "items" : {
-                        "type" : "string"
-                      }
-                    },
-                    "selected" : {
+                    "regularChoice" : {
                       "type" : "string"
+                    },
+                    "specialChoice" : {
+                      "oneOf" : [ {
+                        "const" : "ROW_ID",
+                        "title" : "RowID"
+                      } ]
                     }
                   },
                   "title" : "Column",
                   "description" : "Sort rows by the values in this column. If you set multiple sorting criteria, the table is sorted by the first criterion. The following criteria are only considered, if the comparison by all previous criteria results in a tie.",
                   "default" : {
-                    "selected" : "test1",
-                    "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+                    "regularChoice" : "test1"
                   }
+                },
+                "isStringColumn" : {
+                  "type" : "boolean",
+                  "default" : false
                 },
                 "sortingOrder" : {
                   "oneOf" : [ {
@@ -86,9 +89,9 @@
             "description" : "A list of sorting critera.",
             "default" : [ {
               "column" : {
-                "selected" : "test1",
-                "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+                "regularChoice" : "test1"
               },
+              "isStringColumn" : false,
               "sortingOrder" : "ASCENDING",
               "stringComparison" : "NATURAL"
             } ]
@@ -109,28 +112,12 @@
             "type" : "Control",
             "scope" : "#/properties/column",
             "options" : {
-              "format" : "columnSelection",
-              "possibleValues" : [ {
-                "id" : "test1",
-                "text" : "test1",
-                "type" : {
-                  "id" : "org.knime.core.data.DoubleValue",
-                  "text" : "Number (Floating Decimal)"
-                },
-                "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
-              }, {
-                "id" : "test2",
-                "text" : "test2",
-                "type" : {
-                  "id" : "org.knime.core.data.StringValue",
-                  "text" : "String"
-                },
-                "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+              "format" : "singleSelection",
+              "specialChoices" : [ {
+                "id" : "ROW_ID",
+                "text" : "RowID"
               } ],
-              "showNoneColumn" : false,
-              "showRowKeys" : true,
-              "showSearch" : true,
-              "showMode" : true
+              "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider"
             }
           }, {
             "type" : "Control",
@@ -148,15 +135,9 @@
             "rule" : {
               "effect" : "SHOW",
               "condition" : {
-                "scope" : "#/properties/column",
+                "scope" : "#/properties/isStringColumn",
                 "schema" : {
-                  "properties" : {
-                    "compatibleTypes" : {
-                      "contains" : {
-                        "const" : "org.knime.core.data.StringValue"
-                      }
-                    }
-                  }
+                  "const" : true
                 }
               }
             }
@@ -201,11 +182,18 @@
                 "column" : {
                   "type" : "object",
                   "properties" : {
-                    "selected" : { },
-                    "compatibleTypes" : {
+                    "regularChoice" : { },
+                    "specialChoice" : {
                       "configPaths" : [ ]
                     }
-                  }
+                  },
+                  "configKey" : "columnV2",
+                  "deprecatedConfigKeys" : [ {
+                    "deprecated" : [ [ "column" ] ]
+                  } ]
+                },
+                "isStringColumn" : {
+                  "configPaths" : [ ]
                 },
                 "sortingOrder" : { },
                 "stringComparison" : { }
@@ -224,5 +212,44 @@
         }
       }
     }
-  }
+  },
+  "initialUpdates" : [ {
+    "scopes" : [ "#/properties/model/properties/sortingCriteria", "#/properties/isStringColumn" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ 0 ],
+      "value" : true
+    } ]
+  }, {
+    "scopes" : null,
+    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test1",
+        "text" : "test1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Floating Decimal)"
+        }
+      }, {
+        "id" : "test2",
+        "text" : "test2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "org.knime.base.node.util.preproc.SortingUtils$SortingCriterionSettings$ColumnRef",
+      "scopes" : [ "#/properties/model/properties/sortingCriteria", "#/properties/column" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/sortingCriteria", "#/properties/column" ],
+      "id" : "org.knime.base.node.util.preproc.SortingUtils$SortingCriterionSettings$ColumnRef"
+    } ]
+  } ]
 }

@@ -49,12 +49,12 @@
 package org.knime.base.node.preproc.table.cellextractor;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
@@ -109,7 +109,7 @@ public final class CellExtractorSettings implements DefaultNodeSettings {
     ColumnSpecificationMode m_columnSpecificationMode = ColumnSpecificationMode.BY_NAME;
 
     @Widget(title = "Column name", description = "Select the column that contains the target cell.")
-    @ChoicesWidget(choices = AllColumns.class)
+    @ChoicesProvider(AllColumnsProvider.class)
     @Effect(predicate = SpecifyByName.class, type = EffectType.SHOW)
     String m_columnName;
 
@@ -125,17 +125,6 @@ public final class CellExtractorSettings implements DefaultNodeSettings {
     @Widget(title = "Count rows from the end of the table",
         description = "If selected, the rows will be counted from the end of the table.")
     boolean m_countFromEnd;
-
-    private static final class AllColumns implements ChoicesProvider {
-        @Override
-        public String[] choices(final DefaultNodeSettingsContext context) {
-            var specs = context.getDataTableSpecs();
-            var spec = specs[0];
-
-            // handle the lack of spec when opening a workflow with an executed node
-            return spec != null ? spec.getColumnNames() : new String[0];
-        }
-    }
 
     enum ColumnSpecificationMode {
             @Label("Name")

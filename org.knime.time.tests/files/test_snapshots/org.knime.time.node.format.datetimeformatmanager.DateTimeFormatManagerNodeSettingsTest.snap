@@ -128,21 +128,6 @@
                     "items" : {
                       "type" : "string"
                     }
-                  },
-                  "typeDisplays" : {
-                    "default" : [ ],
-                    "type" : "array",
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "id" : {
-                          "type" : "string"
-                        },
-                        "text" : {
-                          "type" : "string"
-                        }
-                      }
-                    }
                   }
                 },
                 "default" : {
@@ -193,55 +178,17 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/columnFilter",
       "options" : {
-        "format" : "columnFilter",
-        "possibleValues" : [ {
-          "id" : "localTimeTest",
-          "text" : "localTimeTest",
-          "type" : {
-            "id" : "org.knime.core.data.time.localtime.LocalTimeValue",
-            "text" : "Time"
-          },
-          "compatibleTypes" : [ "org.knime.core.data.time.localtime.LocalTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
-        }, {
-          "id" : "localDateTest",
-          "text" : "localDateTest",
-          "type" : {
-            "id" : "org.knime.core.data.time.localdate.LocalDateValue",
-            "text" : "Date"
-          },
-          "compatibleTypes" : [ "org.knime.core.data.time.localdate.LocalDateValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
-        }, {
-          "id" : "localDateTimeTest",
-          "text" : "localDateTimeTest",
-          "type" : {
-            "id" : "org.knime.core.data.time.localdatetime.LocalDateTimeValue",
-            "text" : "Date&time (Local)"
-          },
-          "compatibleTypes" : [ "org.knime.core.data.time.localdatetime.LocalDateTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
-        }, {
-          "id" : "zonedDateTimeTest",
-          "text" : "zonedDateTimeTest",
-          "type" : {
-            "id" : "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue",
-            "text" : "Date&time (Zoned)"
-          },
-          "compatibleTypes" : [ "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
-        } ],
-        "showNoneColumn" : false,
-        "showRowKeys" : false,
-        "showSearch" : true,
-        "showMode" : true
+        "format" : "typedNameFilter",
+        "unknownValuesText" : "Any unknown column",
+        "emptyStateLabel" : "No columns in this list.",
+        "choicesProvider" : "org.knime.time.util.DateTimeUtils$DateTimeColumnProvider"
       }
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/locale",
       "options" : {
         "choicesProvider" : "org.knime.time.util.LocaleStateProvider",
-        "format" : "dropDown",
-        "showNoneColumn" : false,
-        "showRowKeys" : false,
-        "showSearch" : true,
-        "showMode" : true
+        "format" : "dropDown"
       }
     }, {
       "type" : "Control",
@@ -290,10 +237,7 @@
               "typeFilter" : {
                 "type" : "object",
                 "properties" : {
-                  "selectedTypes" : { },
-                  "typeDisplays" : {
-                    "configPaths" : [ ]
-                  }
+                  "selectedTypes" : { }
                 }
               }
             }
@@ -1250,6 +1194,41 @@
         "temporalType" : "ZONED_DATE_TIME",
         "category" : "AMERICAN",
         "example" : "0001-01-01T14:00:00+00:53"
+      } ]
+    } ]
+  }, {
+    "scopes" : null,
+    "id" : "org.knime.time.util.DateTimeUtils$DateTimeColumnProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "localTimeTest",
+        "text" : "localTimeTest",
+        "type" : {
+          "id" : "org.knime.core.data.time.localtime.LocalTimeValue",
+          "text" : "Time"
+        }
+      }, {
+        "id" : "localDateTest",
+        "text" : "localDateTest",
+        "type" : {
+          "id" : "org.knime.core.data.time.localdate.LocalDateValue",
+          "text" : "Date"
+        }
+      }, {
+        "id" : "localDateTimeTest",
+        "text" : "localDateTimeTest",
+        "type" : {
+          "id" : "org.knime.core.data.time.localdatetime.LocalDateTimeValue",
+          "text" : "Date&time (Local)"
+        }
+      }, {
+        "id" : "zonedDateTimeTest",
+        "text" : "zonedDateTimeTest",
+        "type" : {
+          "id" : "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue",
+          "text" : "Date&time (Zoned)"
+        }
       } ]
     } ]
   }, {

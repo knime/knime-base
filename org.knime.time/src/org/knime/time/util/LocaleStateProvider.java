@@ -55,8 +55,8 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 
 /**
@@ -67,7 +67,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandl
  * @author Tobias Kampmann
  */
 @SuppressWarnings("restriction")
-public final class LocaleStateProvider implements StringChoicesStateProvider {
+public final class LocaleStateProvider implements StringChoicesProvider {
 
     private static final List<Locale> LOCALES_TO_SHOW_FIRST = List.of(Locale.getDefault());
 
@@ -83,7 +83,7 @@ public final class LocaleStateProvider implements StringChoicesStateProvider {
     }
 
     @Override
-    public IdAndText[] computeState(final DefaultNodeSettingsContext context) throws WidgetHandlerException {
+    public List<StringChoice> computeState(final DefaultNodeSettingsContext context) throws WidgetHandlerException {
         List<Locale> sortedLocales = Arrays.stream(Locale.getAvailableLocales()) //
             .sorted(LocaleStateProvider::compareByEnglishTextRepresentation) //
             .collect(Collectors.toCollection(ArrayList::new)); // modifiable list
@@ -95,15 +95,15 @@ public final class LocaleStateProvider implements StringChoicesStateProvider {
         }
 
         return sortedLocales.stream() //
-            .map(LocaleStateProvider::localeToIdAndText) //
-            .toArray(IdAndText[]::new);
+            .map(LocaleStateProvider::localeToStringChoice) //
+            .toList();
     }
 
     private static int compareByEnglishTextRepresentation(final Locale l1, final Locale l2) {
         return l1.getDisplayName(Locale.ENGLISH).compareTo(l2.getDisplayName(Locale.ENGLISH));
     }
 
-    private static IdAndText localeToIdAndText(final Locale locale) {
-        return new IdAndText(locale.toLanguageTag(), locale.getDisplayName(Locale.ENGLISH));
+    private static StringChoice localeToStringChoice(final Locale locale) {
+        return new StringChoice(locale.toLanguageTag(), locale.getDisplayName(Locale.ENGLISH));
     }
 }

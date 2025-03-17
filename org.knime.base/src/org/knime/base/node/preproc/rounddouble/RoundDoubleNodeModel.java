@@ -60,7 +60,6 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.data.DoubleValue;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.DoubleCell;
@@ -68,6 +67,7 @@ import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 
@@ -87,8 +87,8 @@ final class RoundDoubleNodeModel extends WebUISimpleStreamableFunctionNodeModel<
     protected ColumnRearranger createColumnRearranger(final DataTableSpec inSpec,
         final RoundDoubleNodeSettings modelSettings) throws InvalidSettingsException {
         // Configure
-        final var numberColumnNames = getNumberColumnNames(inSpec);
-        final var targetColumns = Set.of(modelSettings.m_columnsToFormat.getSelected(numberColumnNames, inSpec));
+        final var numberColumns = ColumnSelectionUtil.getDoubleColumns(inSpec);
+        final var targetColumns = Set.of(modelSettings.m_columnsToFormat.filter(numberColumns));
         final var isAppend = modelSettings.m_outputColumn == OutputColumn.APPEND;
         final var newColSpecs = createNewColSpecs(inSpec, targetColumns, isAppend, modelSettings.m_numberModeV2,
             modelSettings.m_outputMode, modelSettings.m_suffix);
@@ -107,13 +107,6 @@ final class RoundDoubleNodeModel extends WebUISimpleStreamableFunctionNodeModel<
             columnRearranger.replace(cellFactory, colIndexToRound);
         }
         return columnRearranger;
-    }
-
-    private static String[] getNumberColumnNames(final DataTableSpec inSpec) {
-        return inSpec.stream()//
-            .filter(RoundDoubleNodeModel::isTargetColumn)//
-            .map(DataColumnSpec::getName)//
-            .toArray(String[]::new);
     }
 
     private static DataColumnSpec[] createNewColSpecs(final DataTableSpec inSpec, final Set<String> targetColumns,
@@ -167,14 +160,6 @@ final class RoundDoubleNodeModel extends WebUISimpleStreamableFunctionNodeModel<
         return IntStream.range(0, inSpec.getNumColumns()) //
             .filter(idx -> targetColumns.contains(inSpec.getColumnSpec(idx).getName())) //
             .toArray();
-    }
-
-    /**
-     * The column to round must be compatible to {@link DoubleValue}, because floating point representations of numbers
-     * are used internally.
-     */
-    static boolean isTargetColumn(final DataColumnSpec column) {
-        return column.getType().isCompatible(DoubleValue.class);
     }
 
 }

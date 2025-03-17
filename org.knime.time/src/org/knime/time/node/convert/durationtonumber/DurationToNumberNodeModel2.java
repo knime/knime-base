@@ -64,6 +64,7 @@ import org.knime.core.data.def.LongCell;
 import org.knime.core.data.time.duration.DurationValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.message.MessageBuilder;
+import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 import org.knime.time.node.convert.durationtonumber.DurationToNumberNodeSettings.RoundingBehaviour;
@@ -94,13 +95,8 @@ final class DurationToNumberNodeModel2 extends WebUISimpleStreamableFunctionNode
      */
     private static String[] getInputColumnNames(final DataTableSpec inputSpec,
         final DurationToNumberNodeSettings settings) {
-
-        var compatibleColumns = inputSpec.stream() //
-            .filter(colSpec -> colSpec.getType().isCompatible(DurationValue.class)) //
-            .map(DataColumnSpec::getName) //
-            .toArray(String[]::new);
-
-        return settings.m_filter.getSelected(compatibleColumns, inputSpec);
+        var compatibleColumns = ColumnSelectionUtil.getCompatibleColumns(inputSpec, DurationValue.class);
+        return settings.m_filter.filter(compatibleColumns);
     }
 
     @Override

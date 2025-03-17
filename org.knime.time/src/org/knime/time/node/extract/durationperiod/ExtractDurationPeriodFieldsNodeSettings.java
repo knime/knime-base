@@ -59,9 +59,9 @@ import org.knime.core.data.time.duration.DurationValue;
 import org.knime.core.data.time.period.PeriodValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.CompatibleColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
@@ -77,7 +77,7 @@ class ExtractDurationPeriodFieldsNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Duration column", description = """
             A duration column from which to extract the fields.
             """)
-    @ChoicesWidget(choices = SelectedInputColumnHelpers.ColumnChoicesProvider.class)
+    @ChoicesProvider(SelectedInputColumnHelpers.ColumnChoicesProvider.class)
     @ValueReference(SelectedInputColumnHelpers.ValueRef.class)
     @ValueProvider(SelectedInputColumnHelpers.ValueProvider.class)
     public String m_selectedColumn;
@@ -100,7 +100,7 @@ class ExtractDurationPeriodFieldsNodeSettings implements DefaultNodeSettings {
             // prevent instantiation
         }
 
-        static final class ColumnChoicesProvider extends CompatibleColumnChoicesProvider {
+        static final class ColumnChoicesProvider extends CompatibleColumnsProvider {
 
             static final List<Class<? extends DataValue>> COMPATIBLE_TYPES =
                 List.of(DurationValue.class, PeriodValue.class);

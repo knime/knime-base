@@ -50,10 +50,11 @@ package org.knime.time.node.format.durationperiodformatmanager;
 
 import org.knime.base.node.viz.format.AlignmentSuggestionOption;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.DurationPeriodStringFormat;
 
@@ -77,13 +78,13 @@ final class DurationPeriodFormatManagerNodeSettings implements DefaultNodeSettin
         var spec = context.getDataTableSpec(0);
 
         if (spec.isPresent()) {
-            m_columnFilter =
-                new ColumnFilter(DateTimeUtils.getCompatibleColumns(spec.get(), DateTimeUtils.INTERVAL_COLUMN_TYPES));
+            m_columnFilter = new ColumnFilter(
+                ColumnSelectionUtil.getCompatibleColumns(spec.get(), DateTimeUtils.INTERVAL_COLUMN_TYPES));
         }
     }
 
     @Widget(title = "Duration columns", description = "The duration columns to create a formatter for.")
-    @ChoicesWidget(choices = DateTimeUtils.IntervalColumnProvider.class)
+    @ChoicesProvider(DateTimeUtils.IntervalColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
     @Widget(title = "Duration format", description = "The format of the output string.")

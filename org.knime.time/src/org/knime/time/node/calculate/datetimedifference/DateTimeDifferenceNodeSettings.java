@@ -53,12 +53,15 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.DataValue;
 import org.knime.core.data.time.localdate.LocalDateCellFactory;
 import org.knime.core.data.time.localdate.LocalDateValue;
 import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
@@ -69,16 +72,19 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesStateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DoNotPersistBoolean;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.EnumChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.EnumChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.BooleanReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
@@ -115,8 +121,96 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
             """)
     @ValueReference(FirstColumnSelectionRef.class)
     @Layout(DifferencingSettingsSection.class)
-    @ChoicesWidget(choices = DateTimeUtils.DateTimeColumnProvider.class)
-    ColumnSelection m_firstColumnSelection = new ColumnSelection();
+    @ChoicesProvider(DateTimeUtils.DateTimeColumnProvider.class)
+    String m_firstColumnSelection;
+
+    static abstract class FirstColumnIsProvider implements StateProvider<Boolean> {
+
+        private final Class<? extends DataValue> m_dataValueClass;
+
+        FirstColumnIsProvider(final Class<? extends DataValue> dataValueClass) {
+            m_dataValueClass = dataValueClass;
+        }
+
+        private Supplier<String> m_columnSupplier;
+
+        @Override
+        public void init(final StateProviderInitializer i) {
+            i.computeBeforeOpenDialog();
+            m_columnSupplier = i.computeFromValueSupplier(FirstColumnSelectionRef.class);
+        }
+
+        @Override
+        public Boolean computeState(final DefaultNodeSettingsContext context) {
+            final var tableSpecOptional = context.getDataTableSpec(0);
+            if (tableSpecOptional.isEmpty()) {
+                return false;
+            }
+            final var tableSpec = tableSpecOptional.get();
+            final var column = m_columnSupplier.get();
+            final var colSpec = tableSpec.getColumnSpec(column);
+            if (colSpec == null) {
+                return false;
+            }
+            return colSpec.getType().isCompatible(m_dataValueClass);
+        }
+    }
+
+    static final class FirstColumnIsDateProvider extends FirstColumnIsProvider {
+        FirstColumnIsDateProvider() {
+            super(LocalDateValue.class);
+        }
+    }
+
+    static final class FirstColumnIsTimeProvider extends FirstColumnIsProvider {
+        FirstColumnIsTimeProvider() {
+            super(LocalTimeValue.class);
+        }
+    }
+
+    static final class FirstColumnIsDateTimeProvider extends FirstColumnIsProvider {
+        FirstColumnIsDateTimeProvider() {
+            super(LocalDateTimeValue.class);
+        }
+    }
+
+    static final class FirstColumnIsZonedDateTimeProvider extends FirstColumnIsProvider {
+        FirstColumnIsZonedDateTimeProvider() {
+            super(ZonedDateTimeValue.class);
+        }
+    }
+
+    static final class FirstColumnIsDate implements BooleanReference {
+    }
+
+    static final class FirstColumnIsTime implements BooleanReference {
+    }
+
+    static final class FirstColumnIsDateTime implements BooleanReference {
+    }
+
+    static final class FirstColumnIsZonedDateTime implements BooleanReference {
+    }
+
+    @ValueProvider(FirstColumnIsDateProvider.class)
+    @ValueReference(FirstColumnIsDate.class)
+    @Persistor(DoNotPersistBoolean.class)
+    boolean m_firstColumnIsDate;
+
+    @ValueProvider(FirstColumnIsTimeProvider.class)
+    @ValueReference(FirstColumnIsTime.class)
+    @Persistor(DoNotPersistBoolean.class)
+    boolean m_firstColumnIsTime;
+
+    @ValueProvider(FirstColumnIsDateTimeProvider.class)
+    @ValueReference(FirstColumnIsDateTime.class)
+    @Persistor(DoNotPersistBoolean.class)
+    boolean m_firstColumnIsDateTime;
+
+    @ValueProvider(FirstColumnIsZonedDateTimeProvider.class)
+    @ValueReference(FirstColumnIsZonedDateTime.class)
+    @Persistor(DoNotPersistBoolean.class)
+    boolean m_firstColumnIsZonedDateTime;
 
     @Widget(title = "Second date&time value", description = "The source of the second date&amp;time value.")
     @ValueReference(SecondDateTimeValueRef.class)
@@ -127,10 +221,10 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Second date&time column", description = """
             The second date&amp;time column to calculate the difference to.
             """)
-    @ChoicesWidget(choicesProvider = SecondColumnProvider.class)
+    @ChoicesProvider(SecondColumnProvider.class)
     @Layout(DifferencingSettingsSection.class)
     @Effect(predicate = SecondDateTimeValueTypeIsColumn.class, type = EffectType.SHOW)
-    ColumnSelection m_secondColumnSelection = new ColumnSelection();
+    String m_secondColumnSelection;
 
     @Widget(title = "Date", description = "The fixed date to calculate the difference to.")
     @Effect(predicate = FirstColumnIsDateAndFixedDateTime.class, type = EffectType.SHOW)
@@ -170,7 +264,7 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Granularity", description = "The unit of the output column when converting to a number.")
     @Layout(OutputSettingsSection.class)
     @Effect(predicate = OutputType.IsNumber.class, type = EffectType.SHOW)
-    @ChoicesWidget(choicesProvider = ApplicableGranularitiesChoicesProvider.class)
+    @ChoicesProvider(ApplicableGranularitiesChoicesProvider.class)
     @ValueProvider(FirstChoiceOnChoicesChangeWhenMissing.class)
     @ValueReference(GranularityRef.class)
     Granularity m_granularity = Granularity.SECOND;
@@ -199,25 +293,22 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
             return;
         }
 
-        var availableColumns =
-            Arrays.stream(DateTimeUtils.getCompatibleColumns(spec, DateTimeUtils.DATE_TIME_COLUMN_TYPES)) //
-                .map(spec::getColumnSpec) //
-                .toList();
-
-        if (availableColumns.isEmpty()) {
+        final var firstDateTimeColumn =
+            ColumnSelectionUtil.getFirstCompatibleColumn(spec, DateTimeUtils.DATE_TIME_COLUMN_TYPES);
+        if (firstDateTimeColumn.isEmpty()) {
             return;
         }
 
-        m_firstColumnSelection = new ColumnSelection(availableColumns.get(0));
+        m_firstColumnSelection = firstDateTimeColumn.get().getName();
 
         var compatibleSecondColumns = spec.stream() //
-            .filter(c -> availableColumns.get(0).getType().equals(c.getType())) //
+            .filter(c -> firstDateTimeColumn.get().getType().equals(c.getType())) //
             .toArray(DataColumnSpec[]::new);
 
         if (compatibleSecondColumns.length > 1) {
-            m_secondColumnSelection = new ColumnSelection(compatibleSecondColumns[1]);
+            m_secondColumnSelection = compatibleSecondColumns[1].getName();
         } else if (compatibleSecondColumns.length == 1) {
-            m_secondColumnSelection = new ColumnSelection(compatibleSecondColumns[0]);
+            m_secondColumnSelection = compatibleSecondColumns[0].getName();
         }
 
     }
@@ -241,39 +332,7 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    interface FirstColumnSelectionRef extends Reference<ColumnSelection> {
-    }
-
-    static final class FirstColumnIsDate implements PredicateProvider {
-
-        @Override
-        public Predicate init(final PredicateInitializer i) {
-            return i.getColumnSelection(FirstColumnSelectionRef.class).hasColumnType(LocalDateValue.class);
-        }
-    }
-
-    static final class FirstColumnIsTime implements PredicateProvider {
-
-        @Override
-        public Predicate init(final PredicateInitializer i) {
-            return i.getColumnSelection(FirstColumnSelectionRef.class).hasColumnType(LocalTimeValue.class);
-        }
-    }
-
-    static final class FirstColumnIsDateTime implements PredicateProvider {
-
-        @Override
-        public Predicate init(final PredicateInitializer i) {
-            return i.getColumnSelection(FirstColumnSelectionRef.class).hasColumnType(LocalDateTimeValue.class);
-        }
-    }
-
-    static final class FirstColumnIsZonedDateTime implements PredicateProvider {
-
-        @Override
-        public Predicate init(final PredicateInitializer i) {
-            return i.getColumnSelection(FirstColumnSelectionRef.class).hasColumnType(ZonedDateTimeValue.class);
-        }
+    interface FirstColumnSelectionRef extends Reference<String> {
     }
 
     static final class FirstColumnIsDateAndFixedDateTime implements PredicateProvider {
@@ -315,41 +374,42 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
     /**
      * Provides columns that have the same type as the currently selected first column.
      */
-    static final class SecondColumnProvider implements ColumnChoicesStateProvider {
+    static final class SecondColumnProvider implements ColumnChoicesProvider {
 
-        private Supplier<ColumnSelection> m_firstColumnSelection;
+        private Supplier<String> m_firstColumnSelection;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
-            ColumnChoicesStateProvider.super.init(initializer);
+            ColumnChoicesProvider.super.init(initializer);
             m_firstColumnSelection = initializer.computeFromValueSupplier(FirstColumnSelectionRef.class);
         }
 
         @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
+        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
             var spec = context.getDataTableSpec(0);
-
             if (spec.isEmpty()) {
-                return new DataColumnSpec[0];
+                return List.of();
             }
-
-            var firstColumnName = m_firstColumnSelection.get().m_selected;
-
-            if (firstColumnName == null) {
-                return new DataColumnSpec[0];
-            }
-
-            var firstColumnSpec = spec.get().getColumnSpec(firstColumnName);
-
+            final var firstColumnName = m_firstColumnSelection.get();
+            final var firstColumnSpec = spec.get().getColumnSpec(firstColumnName);
             if (firstColumnSpec == null) {
-                return new DataColumnSpec[0];
+                return List.of();
             }
-
-            var typeOfFirstColumn = firstColumnSpec.getType();
+            final var typeOfFirstColumn = firstColumnSpec.getType();
+            final var dataValueOfFirstColumn = toCompatibleDateTimeDataValue(typeOfFirstColumn);
+            if (typeOfFirstColumn == null) {
+                return List.of();
+            }
             return spec.map(DataTableSpec::stream) //
                 .orElseGet(Stream::empty) //
-                .filter(c -> typeOfFirstColumn.equals(c.getType())) //
-                .toArray(DataColumnSpec[]::new);
+                .filter(col -> col.getType().isCompatible(dataValueOfFirstColumn)) //
+                .toList();
+        }
+
+        static Class<? extends DataValue> toCompatibleDateTimeDataValue(final DataType colType) {
+            return Stream
+                .of(ZonedDateTimeValue.class, LocalDateTimeValue.class, LocalDateValue.class, LocalTimeValue.class)
+                .filter(colType::isCompatible).findFirst().orElse(null);
         }
     }
 
@@ -419,7 +479,7 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
 
     static final class ApplicableGranularitiesProvider implements StateProvider<Granularity[]> {
 
-        private Supplier<ColumnSelection> m_firstColumn;
+        private Supplier<String> m_firstColumn;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
@@ -429,7 +489,7 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
 
         @Override
         public Granularity[] computeState(final DefaultNodeSettingsContext context) {
-            var firstSelectedColumn = m_firstColumn.get().m_selected;
+            var firstSelectedColumn = m_firstColumn.get();
 
             // if the first selected column exists in the table and is a local date,
             // filter to only date-based granularities that. If it's a local time,
@@ -456,7 +516,7 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
 
     }
 
-    static final class ApplicableGranularitiesChoicesProvider implements StringChoicesStateProvider {
+    static final class ApplicableGranularitiesChoicesProvider implements EnumChoicesProvider<Granularity> {
         private Supplier<Granularity[]> m_applicableGranularities;
 
         @Override
@@ -464,15 +524,14 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
             m_applicableGranularities = initializer.computeFromProvidedState(ApplicableGranularitiesProvider.class);
         }
 
-        private static IdAndText fromGranularity(final Granularity granularity) {
-            return new IdAndText(granularity.name(), granularity.toString());
+        private static EnumChoice<Granularity> fromGranularity(final Granularity granularity) {
+            return new EnumChoice<>(granularity, granularity.toString());
         }
 
         @Override
-        public IdAndText[] computeState(final DefaultNodeSettingsContext context) {
+        public List<EnumChoice<Granularity>> computeState(final DefaultNodeSettingsContext context) {
             return Arrays.stream(m_applicableGranularities.get()) //
-                .map(ApplicableGranularitiesChoicesProvider::fromGranularity) //
-                .toArray(IdAndText[]::new);
+                .map(ApplicableGranularitiesChoicesProvider::fromGranularity).toList();
         }
 
     }

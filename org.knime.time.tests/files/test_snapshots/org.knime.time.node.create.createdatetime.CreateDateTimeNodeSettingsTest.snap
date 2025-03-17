@@ -4088,7 +4088,6 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/outputColumnName",
         "options" : {
-          "hideOnNull" : false,
           "validations" : [ {
             "id" : "pattern",
             "parameters" : {

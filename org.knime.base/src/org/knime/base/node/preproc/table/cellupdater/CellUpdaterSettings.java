@@ -48,21 +48,22 @@
  */
 package org.knime.base.node.preproc.table.cellupdater;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import org.knime.base.node.flowvariable.converter.variabletocell.VariableToCellConverterFactory;
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
@@ -117,11 +118,9 @@ public final class CellUpdaterSettings implements DefaultNodeSettings {
     @ValueReference(ColumnModeRef.class)
     ColumnMode m_columnMode = ColumnMode.BY_NAME;
 
-    // TODO: UIEXT-1007 migrate String to ColumnSelection
-
     @Widget(title = "Column name", description = "Select the column that contains the target cell.")
-    @ChoicesWidget(choices = AllColumns.class)
-    @Effect(predicate =  ColumnModeIsByName.class, type = EffectType.SHOW)
+    @ChoicesProvider(AllColumns.class)
+    @Effect(predicate = ColumnModeIsByName.class, type = EffectType.SHOW)
     String m_columnName;
 
     @Widget(title = "Column number", description = "Provide the number of the column that contains the target cell.")
@@ -138,22 +137,22 @@ public final class CellUpdaterSettings implements DefaultNodeSettings {
     boolean m_countFromEnd = false;
 
     @Widget(title = "New cell value", description = "Select the flow variable containing the new cell value.")
-    @ChoicesWidget(choices = AllVariables.class)
+    @ChoicesProvider(AllVariables.class)
     String m_flowVariableName;
 
-    private static final class AllColumns implements ColumnChoicesProvider {
+    private static final class AllColumns extends AllColumnsProvider {
+
         @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(1).stream()//
-                .flatMap(DataTableSpec::stream)//
-                .toArray(DataColumnSpec[]::new);
+        public int getInputTableIndex() {
+            return 1;
         }
+
     }
 
-    private static final class AllVariables implements ChoicesProvider {
+    private static final class AllVariables implements StringChoicesProvider {
         @Override
-        public String[] choices(final DefaultNodeSettingsContext context) {
-            return context.getAvailableFlowVariableNames();
+        public List<String> choices(final DefaultNodeSettingsContext context) {
+            return Arrays.asList(context.getAvailableFlowVariableNames());
         }
     }
 

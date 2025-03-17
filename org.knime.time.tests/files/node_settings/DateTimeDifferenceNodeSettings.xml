@@ -6,23 +6,9 @@
         <entry key="memory_policy" type="xstring" value="CacheSmallInMemory"/>
     </config>
     <config key="model">
-        <config key="firstColumnSelection">
-            <entry key="selected" type="xstring" value="Zoned Date Time"/>
-            <config key="compatibleTypes_Internals">
-                <entry key="array-size" type="xint" value="4"/>
-                <entry key="0" type="xstring" value="org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue"/>
-                <entry key="1" type="xstring" value="org.knime.core.data.DataValue"/>
-                <entry key="2" type="xstring" value="org.knime.core.data.BoundedValue"/>
-                <entry key="3" type="xstring" value="org.knime.core.data.StringValue"/>
-            </config>
-        </config>
+        <entry key="firstColumnSelection" type="xstring" value="Zoned Date Time"/>
         <entry key="secondDateTimeValueType" type="xstring" value="FIXED_DATE_TIME"/>
-        <config key="secondColumnSelection">
-            <entry key="selected" type="xstring" value="Local Date"/>
-            <config key="compatibleTypes_Internals">
-                <entry key="array-size" type="xint" value="0"/>
-            </config>
-        </config>
+        <entry key="secondColumnSelection" type="xstring" value="Local Date"/>
         <entry key="localDateFixed" type="xstring" value="2025-01-22"/>
         <entry key="localTimeFixed" type="xstring" value="11:11:03.696287373"/>
         <entry key="localDateTimeFixed" type="xstring" value="2025-01-22T11:11:03.696293188"/>

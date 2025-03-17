@@ -49,7 +49,6 @@
 package org.knime.time.node.manipulate.datetimeshift;
 
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
@@ -58,8 +57,7 @@ import org.knime.core.data.LongValue;
 import org.knime.core.data.time.duration.DurationValue;
 import org.knime.core.data.time.period.PeriodValue;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesStateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.FilteredInputTableColumnsProvider;
 
 /**
  *
@@ -99,19 +97,11 @@ final class DateTimeShiftSettingsUtils {
         return column.getType().isCompatible(PeriodValue.class);
     }
 
-    static final class NumberColumnProvider implements ColumnChoicesStateProvider {
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            ColumnChoicesStateProvider.super.init(initializer);
-        }
+    static final class NumberColumnProvider implements FilteredInputTableColumnsProvider {
 
         @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0)//
-                .map(DataTableSpec::stream)//
-                .orElseGet(Stream::empty)//
-                .filter(DateTimeShiftSettingsUtils::isWholeNumberColumn)//
-                .toArray(DataColumnSpec[]::new);
+        public boolean isIncluded(final DataColumnSpec col) {
+            return isWholeNumberColumn(col);
         }
 
         static String getFirstNumberColumn(final DataTableSpec spec) {
@@ -124,6 +114,7 @@ final class DateTimeShiftSettingsUtils {
                 .findFirst() //
                 .orElse(null);
         }
+
     }
 
     private static void validateColumn(final String columnName, final DataTableSpec spec, final String typeName,

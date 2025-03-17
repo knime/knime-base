@@ -84,10 +84,9 @@ final class ModifyTimeZoneNodeModel2 extends WebUISimpleStreamableFunctionNodeMo
     protected ColumnRearranger createColumnRearranger(final DataTableSpec spec,
         final ModifyTimeZoneNodeSettings modelSettings) throws InvalidSettingsException {
 
-        String[] includedColumns = modelSettings.m_columnFilter.getSelected(spec.stream() //
+        String[] includedColumns = modelSettings.m_columnFilter.filter(spec.stream() //
             .filter(modelSettings.m_behaviourType::isCompatibleType) //
-            .map(DataColumnSpec::getName) //
-            .toArray(String[]::new), spec);
+            .toList());
 
         var outputDataType = modelSettings.m_behaviourType == BehaviourType.REMOVE //
             ? LocalDateTimeCellFactory.TYPE //

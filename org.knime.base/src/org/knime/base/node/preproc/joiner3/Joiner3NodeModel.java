@@ -94,6 +94,7 @@ import org.knime.core.webui.node.impl.WebUINodeModel;
  *
  * @author Carl Witt, KNIME AG, Zurich, Switzerland
  */
+@SuppressWarnings("restriction")
 class Joiner3NodeModel extends WebUINodeModel<Joiner3NodeSettings> {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(Joiner3NodeModel.class);

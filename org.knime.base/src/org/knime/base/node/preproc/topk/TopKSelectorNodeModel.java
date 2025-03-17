@@ -48,18 +48,13 @@
  */
 package org.knime.base.node.preproc.topk;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.List;
 
-import org.knime.base.node.util.SortKeyItem;
-import org.knime.base.node.util.preproc.SortingUtils.SortingOrder;
-import org.knime.base.node.util.preproc.SortingUtils.StringComparison;
+import org.knime.base.node.util.preproc.SortingUtils;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.StringValue;
 import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
@@ -68,7 +63,6 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.ConvenienceMethods;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 
@@ -92,12 +86,7 @@ final class TopKSelectorNodeModel extends WebUINodeModel<TopKSelectorNodeSetting
         CheckUtils.checkSetting(
             modelSettings.m_amount <= Integer.MAX_VALUE && modelSettings.m_amount >= Integer.MIN_VALUE,
             "Amount value needs to be in the Integer range");
-        final var sk = Arrays.stream(modelSettings.m_sortingCriteria)
-            .map(crit -> new SortKeyItem(crit.getColumn().m_selected, crit.getSortingOrder() == SortingOrder.ASCENDING,
-                crit.getStringComparison() == StringComparison.NATURAL))
-            .toList();
-        final DataTableSpec dts = inSpecs[0];
-        final List<String> missing = SortKeyItem.getMissing(sk, dts, TopKSelectorNodeModel::isRowKey);
+        final var missing = SortingUtils.getMissing(modelSettings.m_sortingCriteria, inSpecs[0]);
         CheckUtils.checkSetting(missing.isEmpty(), String.format("The columns %s are configured but no longer exist.",
             ConvenienceMethods.getShortStringFrom(missing, 3)));
         return inSpecs.clone();
@@ -111,12 +100,6 @@ final class TopKSelectorNodeModel extends WebUINodeModel<TopKSelectorNodeSetting
         CheckUtils.checkSetting(
             modelSettings.m_amount <= Integer.MAX_VALUE && modelSettings.m_amount >= Integer.MIN_VALUE,
             "Amount value needs to be in the Integer range");
-        final var sortKey = Arrays.stream(modelSettings.m_sortingCriteria)
-            .map(crit -> new SortKeyItem(crit.getColumn().m_selected, crit.getSortingOrder() == SortingOrder.ASCENDING,
-                Arrays.stream(crit.getColumn().m_compatibleTypes)
-                    .anyMatch(type -> StringValue.class.getName().equals(type))
-                    && crit.getStringComparison() == StringComparison.NATURAL))
-            .toList();
 
         final BufferedDataTable table = inData[0];
         if (table.size() < modelSettings.m_amount) {
@@ -124,9 +107,9 @@ final class TopKSelectorNodeModel extends WebUINodeModel<TopKSelectorNodeSetting
                 "The input table has fewer rows (%s) than the specified k. Make sure the input has at least %s rows.",
                 table.size(), modelSettings.m_amount));
         }
-        final boolean missingsLast = modelSettings.m_missingsToEnd;
         final var dts = table.getDataTableSpec();
-        final var rc = SortKeyItem.toRowComparator(dts, sortKey, missingsLast, TopKSelectorNodeModel::isRowKey);
+        final var rc =
+            SortingUtils.toRowComparator(dts, modelSettings.m_sortingCriteria, modelSettings.m_missingsToEnd);
         final TopKSelector elementSelector = createElementSelector(rc, modelSettings);
         final var outputOrder = modelSettings.m_rowOrder.m_outputOrder;
         final OrderPreprocessor preprocessor = outputOrder.getPreprocessor();
@@ -138,10 +121,6 @@ final class TopKSelectorNodeModel extends WebUINodeModel<TopKSelectorNodeSetting
             outputOrder.getPostprocessor().postprocessSelection(elementSelector.getTopK(), rc);
         final BufferedDataTable outputTable = createOutputTable(topK, dts, exec.createSubExecutionContext(0.1));
         return new BufferedDataTable[]{outputTable};
-    }
-
-    private static boolean isRowKey(final String colName) {
-        return SpecialColumns.ROWID.getId().equals(colName);
     }
 
     private static TopKSelector createElementSelector(final Comparator<DataRow> comparator,

@@ -1,7 +1,9 @@
 {
   "data" : {
     "model" : {
-      "categoryColumn" : "<none>",
+      "categoryColumn" : {
+        "specialChoice" : "NONE"
+      },
       "aggregationMethod" : "SUM",
       "frequencyColumns" : {
         "selected" : [ "test1" ],
@@ -20,6 +22,9 @@
           "selectedTypes" : [ ],
           "typeDisplays" : [ ]
         }
+      },
+      "weightColumn" : {
+        "specialChoice" : "NONE"
       },
       "grandTotals" : false,
       "enableHiliting" : false
@@ -49,14 +54,27 @@
               "title" : "Maximum"
             } ],
             "title" : "Aggregation",
-            "description" : "Select the aggregation function to be applied on all rows belonging to the same category.<ul><li><i>Occurrence count:</i> Count how many rows occur</li><li><i>Sum:</i> Sum up values, optionally weighted by the value from the weight column</li><li><i>Average:</i> Calculate the mean value, optionally weighted by the value from the weight column</li><li><i>Minimum:</i> Calculate the minimum value</li><li><i>Maximum:</i> Calculate the maximum value</li></ul>",
+            "description" : "Select the aggregation function to be applied on all rows belonging to the same category.\n<ul>\n<li><b>Occurrence count</b>: Count how many rows occur</li>\n<li><b>Sum</b>: Sum up values, optionally weighted by the value from the weight column</li>\n<li><b>Average</b>: Calculate the mean value, optionally weighted by the value from the weight column</li>\n<li><b>Minimum</b>: Calculate the minimum value</li>\n<li><b>Maximum</b>: Calculate the maximum value</li>\n</ul>",
             "default" : "SUM"
           },
           "categoryColumn" : {
-            "type" : "string",
+            "type" : "object",
+            "properties" : {
+              "regularChoice" : {
+                "type" : "string"
+              },
+              "specialChoice" : {
+                "oneOf" : [ {
+                  "const" : "NONE",
+                  "title" : "None"
+                } ]
+              }
+            },
             "title" : "Category column",
             "description" : "Select the column that defines the category on which rows are grouped. If no category column is selected, \"grand total\" values in which all rows belong to the same group will be calculated.",
-            "default" : "<none>"
+            "default" : {
+              "specialChoice" : "NONE"
+            }
           },
           "enableHiliting" : {
             "type" : "boolean",
@@ -147,21 +165,6 @@
                     "items" : {
                       "type" : "string"
                     }
-                  },
-                  "typeDisplays" : {
-                    "default" : [ ],
-                    "type" : "array",
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "id" : {
-                          "type" : "string"
-                        },
-                        "text" : {
-                          "type" : "string"
-                        }
-                      }
-                    }
                   }
                 },
                 "default" : {
@@ -198,9 +201,23 @@
             "default" : false
           },
           "weightColumn" : {
-            "type" : "string",
+            "type" : "object",
+            "properties" : {
+              "regularChoice" : {
+                "type" : "string"
+              },
+              "specialChoice" : {
+                "oneOf" : [ {
+                  "const" : "NONE",
+                  "title" : "None"
+                } ]
+              }
+            },
             "title" : "Weight column",
-            "description" : "Select the column that defines the weight with which a value is multiplied before aggregation. Note, that only the aggregation functions \"Sum\" and \"Average\" support a weight column"
+            "description" : "Select the column that defines the weight with which a value is multiplied before aggregation. Note, that only the aggregation functions \"Sum\" and \"Average\" support a weight column",
+            "default" : {
+              "specialChoice" : "NONE"
+            }
           }
         }
       }
@@ -211,18 +228,12 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/categoryColumn",
       "options" : {
-        "possibleValues" : [ {
-          "id" : "test1",
-          "text" : "test1"
-        }, {
-          "id" : "test2",
-          "text" : "test2"
+        "format" : "singleSelection",
+        "specialChoices" : [ {
+          "id" : "NONE",
+          "text" : "None"
         } ],
-        "format" : "dropDown",
-        "showNoneColumn" : true,
-        "showRowKeys" : false,
-        "showSearch" : true,
-        "showMode" : true
+        "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider"
       }
     }, {
       "type" : "Control",
@@ -235,20 +246,10 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/frequencyColumns",
       "options" : {
-        "format" : "columnFilter",
-        "possibleValues" : [ {
-          "id" : "test1",
-          "text" : "test1",
-          "type" : {
-            "id" : "org.knime.core.data.DoubleValue",
-            "text" : "Number (Floating Decimal)"
-          },
-          "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
-        } ],
-        "showNoneColumn" : false,
-        "showRowKeys" : false,
-        "showSearch" : true,
-        "showMode" : true
+        "format" : "typedNameFilter",
+        "unknownValuesText" : "Any unknown column",
+        "emptyStateLabel" : "No columns in this list.",
+        "choicesProvider" : "org.knime.base.node.preproc.rowagg.RowAggregatorSettings$AggregatableColumns"
       },
       "rule" : {
         "effect" : "DISABLE",
@@ -265,15 +266,12 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/weightColumn",
       "options" : {
-        "possibleValues" : [ {
-          "id" : "test1",
-          "text" : "test1"
+        "format" : "singleSelection",
+        "specialChoices" : [ {
+          "id" : "NONE",
+          "text" : "None"
         } ],
-        "format" : "dropDown",
-        "showNoneColumn" : true,
-        "showRowKeys" : false,
-        "showSearch" : true,
-        "showMode" : true
+        "choicesProvider" : "org.knime.base.node.preproc.rowagg.RowAggregatorSettings$WeightColumns"
       },
       "rule" : {
         "effect" : "DISABLE",
@@ -301,7 +299,13 @@
         "condition" : {
           "scope" : "#/properties/model/properties/categoryColumn",
           "schema" : {
-            "const" : "<none>"
+            "properties" : {
+              "specialChoice" : {
+                "oneOf" : [ {
+                  "const" : "NONE"
+                } ]
+              }
+            }
           }
         }
       }
@@ -320,7 +324,19 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "categoryColumn" : { },
+          "categoryColumn" : {
+            "type" : "object",
+            "properties" : {
+              "regularChoice" : { },
+              "specialChoice" : {
+                "configPaths" : [ ]
+              }
+            },
+            "configKey" : "categoryColumnV2",
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "categoryColumn" ] ]
+            } ]
+          },
           "aggregationMethod" : { },
           "frequencyColumns" : {
             "type" : "object",
@@ -348,19 +364,78 @@
               "typeFilter" : {
                 "type" : "object",
                 "properties" : {
-                  "selectedTypes" : { },
-                  "typeDisplays" : {
-                    "configPaths" : [ ]
-                  }
+                  "selectedTypes" : { }
                 }
               }
             }
           },
-          "weightColumn" : { },
+          "weightColumn" : {
+            "type" : "object",
+            "properties" : {
+              "regularChoice" : { },
+              "specialChoice" : {
+                "configPaths" : [ ]
+              }
+            },
+            "configKey" : "weightColumnV2",
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "weightColumn" ] ]
+            } ]
+          },
           "grandTotals" : { },
           "enableHiliting" : { }
         }
       }
     }
-  }
+  },
+  "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.base.node.preproc.rowagg.RowAggregatorSettings$AggregatableColumns",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test1",
+        "text" : "test1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Floating Decimal)"
+        }
+      } ]
+    } ]
+  }, {
+    "scopes" : null,
+    "id" : "org.knime.base.node.preproc.rowagg.RowAggregatorSettings$WeightColumns",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test1",
+        "text" : "test1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Floating Decimal)"
+        }
+      } ]
+    } ]
+  }, {
+    "scopes" : null,
+    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test1",
+        "text" : "test1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Floating Decimal)"
+        }
+      }, {
+        "id" : "test2",
+        "text" : "test2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ]
 }

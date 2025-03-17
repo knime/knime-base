@@ -48,24 +48,22 @@
  */
 package org.knime.base.node.viz.format.number;
 
-import java.util.stream.Stream;
+import static org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil.getDoubleColumnsOfFirstPort;
 
 import org.knime.base.node.viz.format.AlignmentSuggestionOption;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider.DoubleColumnsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 
 /**
@@ -154,7 +152,7 @@ public final class NumberFormatManagerNodeSettings implements DefaultNodeSetting
             Select the columns to attach the selected format to.
             This does not change the data, only the way the values in the column are displayed in views.
             """)
-    @ChoicesWidget(choices = NumberColumns.class)
+    @ChoicesProvider(DoubleColumnsProvider.class)
     @Layout(DialogLayout.ColumnSelection.class)
     ColumnFilter m_columnsToFormat;
 
@@ -204,23 +202,11 @@ public final class NumberFormatManagerNodeSettings implements DefaultNodeSetting
     // Utility
 
     NumberFormatManagerNodeSettings(final DefaultNodeSettingsContext ctx) {
-        m_columnsToFormat = ColumnFilter.createDefault(NumberColumns.class, ctx);
+        final var numberColumns = getDoubleColumnsOfFirstPort(ctx);
+        m_columnsToFormat = new ColumnFilter(numberColumns).withIncludeUnknownColumns();
     }
 
     NumberFormatManagerNodeSettings() {
         // required by framework for serialization/deserialization
     }
-
-    static final class NumberColumns implements ColumnChoicesProvider {
-
-        @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0).map(DataTableSpec::stream)//
-                .orElseGet(Stream::empty)//
-                .filter(NumberFormatManagerNodeModel::isTargetColumn)//
-                .toArray(DataColumnSpec[]::new);
-        }
-
-    }
-
 }

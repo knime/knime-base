@@ -48,24 +48,23 @@
  */
 package org.knime.base.node.meta.looper.group;
 
-import java.util.List;
-import java.util.stream.Stream;
+import static org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil.getAllColumnsOfFirstPort;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
+import java.util.List;
+
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
 
 /**
  * The GroupLoopStartNodeSettings define the WebUI dialog of the Group Loop Start Node.
@@ -86,12 +85,12 @@ final class GroupLoopStartNodeSettings implements DefaultNodeSettings {
      * Constructor for auto-configuration if no settings are available.
      */
     GroupLoopStartNodeSettings(final DefaultNodeSettingsContext context) {
-        m_categoryColumns = ColumnFilter.createDefault(AllColumns.class, context);
+        m_categoryColumns = new ColumnFilter(getAllColumnsOfFirstPort(context)).withIncludeUnknownColumns();
     }
 
     @Migration(CategoryColumnsMigration.class)
     @Widget(title = "Category columns", description = "The columns used to identify the groups.")
-    @ChoicesWidget(choices = AllColumns.class)
+    @ChoicesProvider(AllColumnsProvider.class)
     ColumnFilter m_categoryColumns = new ColumnFilter();
 
     static final class CategoryColumnsMigration extends LegacyColumnFilterMigration {
@@ -109,16 +108,6 @@ final class GroupLoopStartNodeSettings implements DefaultNodeSettings {
     @Migration(YesOrNoMigration.class)
     YesOrNo m_alreadySorted = YesOrNo.NO;
 
-    static final class AllColumns implements ColumnChoicesProvider {
-
-        @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0).map(DataTableSpec::stream)//
-                .orElseGet(Stream::empty)//
-                .toArray(DataColumnSpec[]::new);
-        }
-
-    }
 
     enum YesOrNo {
             @Label("Automatically sort data")

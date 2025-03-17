@@ -59,6 +59,7 @@ import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
+import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 import org.knime.time.util.DateTimeUtils;
@@ -124,18 +125,16 @@ final class DateTimeFormatManagerNodeModel extends WebUINodeModel<DateTimeFormat
         );
 
         final var tableSpecCreator = new DataTableSpecCreator(spec);
-        final String[] targetColumns = DateTimeUtils.getCompatibleColumns(spec, DateTimeUtils.DATE_TIME_COLUMN_TYPES);
+        final var compatibleColumns =
+            ColumnSelectionUtil.getCompatibleColumns(spec, DateTimeUtils.DATE_TIME_COLUMN_TYPES);
+        final var targetColumns = settings.m_columnFilter.filter(compatibleColumns);
 
         for (var columnName : targetColumns) {
-
-            final var columnSpec = spec.getColumnSpec(columnName);
-            if (columnSpec == null || !DateTimeUtils.DateTimeColumnProvider.isCompatibleType(columnSpec)) {
-                continue; // skip columns that do not exist anymore
-            }
-            final var columnSpecCreator = new DataColumnSpecCreator(columnSpec);
+            final var columnIndex = spec.findColumnIndex(columnName);
+            final var columnSpecCreator = new DataColumnSpecCreator(spec.getColumnSpec(columnIndex));
             columnSpecCreator.setValueFormatHandler(handler);
             final var outputColumnSpec = columnSpecCreator.createSpec();
-            tableSpecCreator.replaceColumn(spec.findColumnIndex(columnName), outputColumnSpec);
+            tableSpecCreator.replaceColumn(columnIndex, outputColumnSpec);
         }
         return tableSpecCreator.createSpec();
     }

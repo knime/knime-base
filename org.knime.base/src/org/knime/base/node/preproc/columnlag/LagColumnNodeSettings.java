@@ -48,19 +48,24 @@
  */
 package org.knime.base.node.preproc.columnlag;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice.ROW_ID;
+
+import java.util.Optional;
+
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.date.DateAndTimeValue;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.StringToStringWithRowIDChoiceMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 
 /**
@@ -76,80 +81,90 @@ public final class LagColumnNodeSettings implements DefaultNodeSettings {
      * @param context of the settings creation
      */
     LagColumnNodeSettings(final DefaultNodeSettingsContext context) {
-        m_column = context.getDataTableSpec(0)//
-            .map(LagColumnConfiguration::findDefaultColumn)//
-            .orElse(ROW_KEYS);
+        context.getDataTableSpec(0)//
+            .flatMap(LagColumnNodeSettings::findDefaultColumn).ifPresent(column -> {
+                m_column = new StringOrEnum<>(column.getName());
+            });
+    }
+
+    /**
+     * @param spec
+     * @return the last time column or - if none is present - the last column
+     */
+    static Optional<DataColumnSpec> findDefaultColumn(final DataTableSpec spec) {
+        return spec.stream().reduce(LagColumnNodeSettings::chooseBetterColumn);
+    }
+
+    private static DataColumnSpec chooseBetterColumn(final DataColumnSpec previous, final DataColumnSpec next) {
+        return isBetterColumn(previous, next) ? next : previous;
+    }
+
+    private static boolean isBetterColumn(final DataColumnSpec previous, final DataColumnSpec next) {
+        return isTimeColumn(next) || !isTimeColumn(previous);
+    }
+
+    private static boolean isTimeColumn(final DataColumnSpec col) {
+        return col.getType().isCompatible(DateAndTimeValue.class);
     }
 
     /**
      * Constructor called by the framework for persistence and JSON conversion.
      */
     LagColumnNodeSettings() {
+    }
+
+    @Widget(title = "Column to lag", description = "The column to be lagged.")
+    @ChoicesProvider(AllColumnsProvider.class)
+    @Migration(ColumnMigration.class)
+    @Persist(configKey = "columnV2")
+    StringOrEnum<RowIDChoice> m_column = new StringOrEnum<>(ROW_ID);
+
+    static final class ColumnMigration extends StringToStringWithRowIDChoiceMigration {
+
+        protected ColumnMigration() {
+            super("column");
+        }
+
+        @Override
+        public Optional<RowIDChoice> loadEnumFromLegacyString(final String legacyString) {
+            if (legacyString == null) {
+                // Before migrating the model to WebUI, null had been used to indicate that the RowID is used
+                return Optional.of(ROW_ID);
+            }
+            return super.loadEnumFromLegacyString(legacyString);
+        }
 
     }
 
-    private static final String ROW_KEYS = "<row-keys>";
-
-
-    @Persistor(ColumnNodeSettingsPersistor.class)
-    @Widget(title = "Column to lag", description = "The column to be lagged.")
-    @ChoicesWidget(choices = AllColumns.class, showRowKeysColumn = true)
-    String m_column = ROW_KEYS;
-
-    @Persist(configKey = LagColumnConfiguration.CFG_LAG)
     @Widget(title = "Number of copies", description = " <i>L</i> = defines how many lagged column copies to create.")
     @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
     int m_lag = 1;
 
-    @Persist(configKey = LagColumnConfiguration.CFG_LAG_INTERVAL)
+    @Persist(configKey = "lag_interval")
     @Widget(title = "Lag per copy",
         description = "<i>I</i> = lag interval (sometimes also called periodicity or seasonality), defines "
             + "how many rows to shift per column copy.")
     @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
     int m_lagInterval = 1;
 
-    @Persist(configKey = LagColumnConfiguration.CFG_SKIP_INITIAL_COMPLETE_ROWS)
     @Widget(title = "Drop incomplete rows at the top of the table",
         description = "If selected, the first rows from the input table are omitted in the output so that the lag "
             + "output column(s) is not missing (unless the reference data is missing).")
     boolean m_skipInitialIncompleteRows;
 
-    @Persist(configKey = LagColumnConfiguration.CFG_SKIP_LAST_COMPLETE_ROWS)
     @Widget(title = "Drop incomplete rows at the bottom of the table",
         description = "If selected the rows containing the lagged values of the last real data row are "
             + "omitted (no artificial new rows). Otherwise new rows are added, "
             + "which contain missing values in all columns but the new lag output.")
     boolean m_skipLastIncompleteRows = true;
 
-    private static final class ColumnNodeSettingsPersistor implements NodeSettingsPersistor<String> {
-
-        @Override
-        public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            var column = settings.getString(LagColumnConfiguration.CFG_COLUMN);
-            return column == null ? ROW_KEYS : column;
+    void validate() throws InvalidSettingsException {
+        if (m_lag <= 0) {
+            throw new InvalidSettingsException("Lag must be greater than 0: " + m_lag);
         }
-
-        @Override
-        public void save(final String obj, final NodeSettingsWO settings) {
-            // LagColumnConfiguration uses null to indicate that the RowID is used
-            settings.addString(LagColumnConfiguration.CFG_COLUMN, ROW_KEYS.equals(obj) ? null : obj);
-        }
-
-        @Override
-        public String[][] getConfigPaths() {
-            return new String[][]{{LagColumnConfiguration.CFG_COLUMN}};
+        if (m_lagInterval <= 0) {
+            throw new InvalidSettingsException("Lag interval must be greater than 0: " + m_lagInterval);
         }
     }
 
-    private static final class AllColumns implements ColumnChoicesProvider {
-
-        @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0)//
-                .stream()//
-                .flatMap(DataTableSpec::stream)//
-                .toArray(DataColumnSpec[]::new);
-        }
-
-    }
 }

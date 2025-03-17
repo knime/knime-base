@@ -48,7 +48,8 @@
  */
 package org.knime.base.node.preproc.stringcleaner;
 
-import java.util.Arrays;
+import static org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil.getStringColumns;
+
 import java.util.LinkedList;
 
 import org.knime.base.node.preproc.stringcleaner.StringCleanerNodeSettings.OutputOption;
@@ -82,10 +83,6 @@ import org.knime.core.webui.node.impl.WebUINodeModel;
  */
 @SuppressWarnings("restriction") // New Node UI is not yet API
 public class StringCleanerNodeModel extends WebUINodeModel<StringCleanerNodeSettings> {
-    /**
-     * TODO: Get rid of this once UIEXT-722 is merged This is currently only needed to support streaming execution.
-     */
-    private StringCleanerNodeSettings m_settings;
 
     /**
      * Instantiate a new String Cleaner Node
@@ -101,7 +98,6 @@ public class StringCleanerNodeModel extends WebUINodeModel<StringCleanerNodeSett
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final StringCleanerNodeSettings modelSettings)
         throws InvalidSettingsException {
-        m_settings = modelSettings; // TODO remove once UIEXT-722 is merged
         final var outputSpec = createColumnRearranger(modelSettings, inSpecs[0]).createSpec();
         return new DataTableSpec[]{outputSpec};
     }
@@ -115,8 +111,8 @@ public class StringCleanerNodeModel extends WebUINodeModel<StringCleanerNodeSett
 
     private static ColumnRearranger createColumnRearranger(final StringCleanerNodeSettings settings,
         final DataTableSpec spec) throws InvalidSettingsException {
-        final var choices = Arrays.stream(stringColumns(spec)).map(DataColumnSpec::getName).toArray(String[]::new);
-        final var selectedColumns = spec.columnsToIndices(settings.m_columnsToClean.getSelected(choices, spec));
+        final var selectedColumns =
+            spec.columnsToIndices(settings.m_columnsToClean.filter(getStringColumns(spec)));
         final var insertedColumns = new LinkedList<DataColumnSpec>();
 
         // Create new column specs
@@ -165,14 +161,10 @@ public class StringCleanerNodeModel extends WebUINodeModel<StringCleanerNodeSett
         return cr;
     }
 
-
-
     @Override
     public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
-        final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        // TODO once UIEXT-722 is merged, change signature and refactor settings to use the settings that are passed as
-        // an argument
-        final var rearranger = createColumnRearranger(m_settings, (DataTableSpec)inSpecs[0]);
+        final PortObjectSpec[] inSpecs, final StringCleanerNodeSettings settings) throws InvalidSettingsException {
+        final var rearranger = createColumnRearranger(settings, (DataTableSpec)inSpecs[0]);
         return rearranger.createStreamableFunction(0, 0);
     }
 
@@ -191,9 +183,4 @@ public class StringCleanerNodeModel extends WebUINodeModel<StringCleanerNodeSett
         StringCleaner.validateSettings(settings);
     }
 
-    static DataColumnSpec[] stringColumns(final DataTableSpec spec) {
-        return spec.stream()//
-            .filter(s -> s.getType().isCompatible(StringValue.class))//
-            .toArray(DataColumnSpec[]::new);
-    }
 }

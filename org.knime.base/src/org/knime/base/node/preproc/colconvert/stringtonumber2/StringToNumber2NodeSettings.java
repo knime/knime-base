@@ -48,13 +48,8 @@
  */
 package org.knime.base.node.preproc.colconvert.stringtonumber2;
 
-import java.util.stream.Stream;
-
 import org.knime.base.node.preproc.colconvert.stringtonumber2.StringToNumber2NodeSettings.ParsingOptionsSection;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.data.StringValue;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
@@ -69,12 +64,13 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettin
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelStringPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider.StringColumnsProvider;
 
 /**
  *
@@ -96,7 +92,8 @@ public final class StringToNumber2NodeSettings implements DefaultNodeSettings {
 
     StringToNumber2NodeSettings(final DefaultNodeSettingsContext context) {
         this();
-        m_inclCols = ColumnFilter.createDefault(StringColumns.class, context);
+        m_inclCols =
+            new ColumnFilter(ColumnSelectionUtil.getStringColumnsOfFirstPort(context)).withIncludeUnknownColumns();
     }
 
     @Section(title = "Column Selection")
@@ -191,23 +188,9 @@ public final class StringToNumber2NodeSettings implements DefaultNodeSettings {
 
     @Persistor(InclColsPersistor.class)
     @Widget(title = "Column selection", description = "Move the columns of interest into the &quot;Includes&quot; list")
-    @ChoicesWidget(choices = StringColumns.class)
+    @ChoicesProvider(StringColumnsProvider.class)
     @Layout(ColumnSelectionSection.class)
     ColumnFilter m_inclCols = new ColumnFilter();
-
-    static final class StringColumns implements ChoicesProvider {
-
-        @Override
-        public String[] choices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0)//
-                .map(DataTableSpec::stream)//
-                .orElseGet(Stream::empty)//
-                .filter(c -> c.getType().isCompatible(StringValue.class))//
-                .map(DataColumnSpec::getName)//
-                .toArray(String[]::new);
-        }
-
-    }
 
     static final class DecSepPersistor extends SettingsModelStringPersistor {
         DecSepPersistor() {

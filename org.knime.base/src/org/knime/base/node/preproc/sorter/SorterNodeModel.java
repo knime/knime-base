@@ -47,19 +47,9 @@
  */
 package org.knime.base.node.preproc.sorter;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.OptionalInt;
-import java.util.function.Predicate;
-
-import org.knime.base.node.util.preproc.SortingUtils.SortingOrder;
-import org.knime.base.node.util.preproc.SortingUtils.StringComparison;
+import org.knime.base.node.util.preproc.SortingUtils;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.StringValue;
 import org.knime.core.data.sort.BufferedDataTableSorter;
-import org.knime.core.data.sort.RowComparator;
-import org.knime.core.data.sort.RowComparator.ColumnComparatorBuilder;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
@@ -68,7 +58,6 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.ConvenienceMethods;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 
@@ -83,6 +72,7 @@ import org.knime.core.webui.node.impl.WebUINodeModel;
  * @see java.util.Arrays#sort(java.lang.Object[], int, int, java.util.Comparator)
  * @author Nicolas Cebron, University of Konstanz
  */
+@SuppressWarnings("restriction")
 public class SorterNodeModel extends WebUINodeModel<SorterNodeSettings> {
     /**
      * The input port used here.
@@ -159,51 +149,12 @@ public class SorterNodeModel extends WebUINodeModel<SorterNodeSettings> {
             return new BufferedDataTable[]{dataTable};
         }
         final var dts = dataTable.getDataTableSpec();
-        final var sorter = new BufferedDataTableSorter(dataTable, toRowComparator(dts, modelSettings));
+        final var rc = SortingUtils.toRowComparator(dts, modelSettings.m_sortingCriteria,
+            modelSettings.m_sortMissingCellsToEndOfList);
+        final var sorter = new BufferedDataTableSorter(dataTable, rc);
         sorter.setSortInMemory(modelSettings.m_sortInMemory);
         final var sortedTable = sorter.sort(exec);
         return new BufferedDataTable[]{sortedTable};
-    }
-
-    private static RowComparator toRowComparator(final DataTableSpec spec, final SorterNodeSettings modelSettings) {
-        final var rc = RowComparator.on(spec);
-        Arrays.stream(modelSettings.m_sortingCriteria).forEach(criterion -> {
-            final var ascending = criterion.getSortingOrder() == SortingOrder.ASCENDING;
-            final var alphaNum = criterion.getStringComparison() == StringComparison.NATURAL;
-            resolveColumnName(spec, criterion.getColumn().getSelected(), SorterNodeModel::isRowKey).ifPresentOrElse(
-                col -> rc.thenComparingColumn(col,
-                    c -> configureColumnComparatorBuilder(spec, modelSettings, ascending, alphaNum, col, c)),
-                () -> rc.thenComparingRowKey(
-                    k -> k.withDescendingSortOrder(!ascending).withAlphanumericComparison(alphaNum)));
-        });
-        return rc.build();
-    }
-
-    private static ColumnComparatorBuilder configureColumnComparatorBuilder(final DataTableSpec spec,
-        final SorterNodeSettings modelSettings, final boolean ascending, final boolean alphaNum, final int col,
-        final ColumnComparatorBuilder c) {
-        var compBuilder = c.withDescendingSortOrder(!ascending);
-        if (spec.getColumnSpec(col).getType().isCompatible(StringValue.class)) {
-            compBuilder.withAlphanumericComparison(alphaNum);
-        }
-        return compBuilder.withMissingsLast(modelSettings.m_sortMissingCellsToEndOfList);
-    }
-
-    private static OptionalInt resolveColumnName(final DataTableSpec dts, final String colName,
-        final Predicate<String> isRowKey) {
-        final var idx = dts.findColumnIndex(colName);
-        if (idx == -1) {
-            if (!isRowKey.test(colName)) {
-                throw new IllegalArgumentException(
-                    "The column identifier \"" + colName + "\" does not refer to a known column.");
-            }
-            return OptionalInt.empty();
-        }
-        return OptionalInt.of(idx);
-    }
-
-    private static boolean isRowKey(final String colName) {
-        return SpecialColumns.ROWID.getId().equals(colName);
     }
 
     /**
@@ -221,20 +172,8 @@ public class SorterNodeModel extends WebUINodeModel<SorterNodeSettings> {
             throw new InvalidSettingsException(
                 "No selected columns to sort by. Add a sorting criterion in the node’s settings");
         }
-        // check if the values of the include List
-        // exist in the DataTableSpec
-        final List<String> notAvailableCols = new ArrayList<>();
-        final var spec = inSpecs[INPORT];
-        for (var ic : modelSettings.m_sortingCriteria) {
-            final var id = ic.getColumn().getSelected();
-            if (!isRowKey(id)) {
-                final var idx = spec.findColumnIndex(id);
-                if (idx == -1) {
-                    notAvailableCols.add(id);
-                }
-            }
-        }
 
+        final var notAvailableCols = SortingUtils.getMissing(modelSettings.m_sortingCriteria, inSpecs[INPORT]);
         if (!notAvailableCols.isEmpty()) {
             throw new InvalidSettingsException("The input table has changed. Some columns are missing: "
                 + ConvenienceMethods.getShortStringFrom(notAvailableCols, 3));

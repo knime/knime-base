@@ -57,21 +57,23 @@
                 "column" : {
                   "type" : "object",
                   "properties" : {
-                    "compatibleTypes" : {
-                      "type" : "array",
-                      "items" : {
-                        "type" : "string"
-                      }
-                    },
-                    "selected" : {
+                    "regularChoice" : {
                       "type" : "string"
+                    },
+                    "specialChoice" : {
+                      "oneOf" : [ {
+                        "const" : "ROW_ID",
+                        "title" : "RowID"
+                      }, {
+                        "const" : "ROW_NUMBER",
+                        "title" : "Row number"
+                      } ]
                     }
                   },
                   "title" : "Filter column",
                   "description" : "The column on which to apply the filter.\n<br />\n\nThe special column \"RowID\" represents the RowID of the input and is treated as a String column that\nis never missing. The special column \"Row number\" targets the 1-based row number of the input, is\ntreated as a Long column and is never missing. Both special columns are always available, regardless of\nthe input table spec or data.\n<br /><br />\n\nColumns containing data types that are non-native, i.e. contain cells of heterogeneous data types, or\ndo not offer a conversion from and to a string representation are not supported and are filtered out\nfrom the available options.\n<br />\n\nCollection columns are also not supported by the node.\n",
                   "default" : {
-                    "selected" : "BoolCol",
-                    "compatibleTypes" : [ "org.knime.core.data.BooleanValue", "org.knime.core.data.DataValue", "org.knime.core.data.IntValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.NominalValue" ]
+                    "regularChoice" : "BoolCol"
                   }
                 },
                 "operator" : {
@@ -198,24 +200,22 @@
               "type" : "Control",
               "scope" : "#/properties/column",
               "options" : {
-                "format" : "columnSelection",
-                "choicesProvider" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$ColumnsWithTypeMapping",
-                "showNoneColumn" : false,
-                "showRowKeys" : true,
-                "showRowNumbers" : true,
-                "showSearch" : true,
-                "showMode" : true
+                "format" : "singleSelection",
+                "specialChoices" : [ {
+                  "id" : "ROW_ID",
+                  "text" : "RowID"
+                }, {
+                  "id" : "ROW_NUMBER",
+                  "text" : "Row number"
+                } ],
+                "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider"
               }
             }, {
               "type" : "Control",
               "scope" : "#/properties/operator",
               "options" : {
-                "choicesProvider" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$TypeBasedOperatorChoices",
-                "format" : "dropDown",
-                "showNoneColumn" : false,
-                "showRowKeys" : false,
-                "showSearch" : true,
-                "showMode" : true
+                "choicesProvider" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$TypeBasedOperatorsProvider",
+                "format" : "dropDown"
               }
             } ]
           }, {
@@ -228,7 +228,7 @@
           "addButtonText" : "Add criterion",
           "arrayElementTitle" : "Criterion",
           "showSortButtons" : true,
-          "elementDefaultValueProvider" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$DefaultFitlerCriterionProvider"
+          "elementDefaultValueProvider" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$DefaultFilterCriterionProvider"
         }
       } ]
     }, {
@@ -265,11 +265,15 @@
                 "column" : {
                   "type" : "object",
                   "properties" : {
-                    "selected" : { },
-                    "compatibleTypes" : {
+                    "regularChoice" : { },
+                    "specialChoice" : {
                       "configPaths" : [ ]
                     }
-                  }
+                  },
+                  "configKey" : "columnV2",
+                  "deprecatedConfigKeys" : [ {
+                    "deprecated" : [ [ "column" ] ]
+                  } ]
                 },
                 "operator" : { },
                 "predicateValues" : {
@@ -295,13 +299,12 @@
   },
   "initialUpdates" : [ {
     "scopes" : null,
-    "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$DefaultFitlerCriterionProvider",
+    "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$DefaultFilterCriterionProvider",
     "values" : [ {
       "indices" : [ ],
       "value" : {
         "column" : {
-          "selected" : "BoolCol",
-          "compatibleTypes" : [ "org.knime.core.data.BooleanValue", "org.knime.core.data.DataValue", "org.knime.core.data.IntValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.NominalValue" ]
+          "regularChoice" : "BoolCol"
         },
         "operator" : "IS_TRUE",
         "predicateValues" : {
@@ -317,7 +320,7 @@
     } ]
   }, {
     "scopes" : null,
-    "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$ColumnsWithTypeMapping",
+    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
@@ -326,32 +329,28 @@
         "type" : {
           "id" : "org.knime.core.data.DoubleValue",
           "text" : "Number (Floating Decimal)"
-        },
-        "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+        }
       }, {
         "id" : "StringCol",
         "text" : "StringCol",
         "type" : {
           "id" : "org.knime.core.data.StringValue",
           "text" : "String"
-        },
-        "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+        }
       }, {
         "id" : "IntCol",
         "text" : "IntCol",
         "type" : {
           "id" : "org.knime.core.data.IntValue",
           "text" : "Number (Integer)"
-        },
-        "compatibleTypes" : [ "org.knime.core.data.IntValue", "org.knime.core.data.DataValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+        }
       }, {
         "id" : "BoolCol",
         "text" : "BoolCol",
         "type" : {
           "id" : "org.knime.core.data.BooleanValue",
           "text" : "Boolean"
-        },
-        "compatibleTypes" : [ "org.knime.core.data.BooleanValue", "org.knime.core.data.DataValue", "org.knime.core.data.IntValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.NominalValue" ]
+        }
       } ]
     } ]
   } ],

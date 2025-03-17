@@ -58,7 +58,6 @@ import org.knime.core.data.DataColumnDomainCreator;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DoubleValue;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -67,6 +66,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.ConvenienceMethods;
+import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 
@@ -138,17 +138,16 @@ final class Normalizer3NodeModel extends WebUINodeModel<NormalizerNodeSettings> 
     }
 
     private String[] getIncludedColumns(final DataTableSpec spec, final NormalizerNodeSettings modelSettings) {
-        final var numericCols = spec.stream()//
-            .filter(colSpec -> colSpec.getType().isCompatible(DoubleValue.class)).map(DataColumnSpec::getName)//
-            .toArray(String[]::new);
-        final var nonMissingSelected = modelSettings.m_dataColumnFilterConfig.getSelected(numericCols, spec);
+        final var numericColumns = ColumnSelectionUtil.getDoubleColumns(spec);
+        final var nonMissingSelected = modelSettings.m_dataColumnFilterConfig.filter(numericColumns);
 
         if (nonMissingSelected.length == 0) {
             final var warnings = new StringBuilder("No columns included - input stays unchanged.");
-            final var selected = modelSettings.m_dataColumnFilterConfig.getSelectedIncludingMissing(numericCols, spec);
-            if (selected.length > 0) {
+            final var missingSelected = modelSettings.m_dataColumnFilterConfig.getMissingSelected(numericColumns);
+            if (missingSelected.length > 0) {
                 warnings.append("\nThe following columns were included before but no longer exist:\n");
-                warnings.append(ConvenienceMethods.getShortStringFrom(Arrays.asList(selected), MAX_UNKNOWN_COLS));
+                warnings
+                    .append(ConvenienceMethods.getShortStringFrom(Arrays.asList(missingSelected), MAX_UNKNOWN_COLS));
             }
             setWarningMessage(warnings.toString());
         }

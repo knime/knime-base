@@ -48,18 +48,16 @@
  */
 package org.knime.base.node.preproc.filter.column;
 
-import java.util.stream.Stream;
+import static org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil.getAllColumnsOfFirstPort;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
 
 /**
  * Settings for the Column Filter node.
@@ -71,7 +69,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 public final class ColumnFilterNodeSettings implements DefaultNodeSettings {
 
     ColumnFilterNodeSettings(final DefaultNodeSettingsContext context) {
-        m_columnFilter = ColumnFilter.createDefault(AllColumns.class, context);
+        m_columnFilter =
+            new ColumnFilter(getAllColumnsOfFirstPort(context)).withIncludeUnknownColumns();
     }
 
     /**
@@ -90,18 +89,7 @@ public final class ColumnFilterNodeSettings implements DefaultNodeSettings {
     @Persistor(ColumnFilterPersistor.class)
     @Migrate(loadDefaultIfAbsent = true)
     @Widget(title = "Column filter", description = "Select the columns to include in the output table.")
-    @ChoicesWidget(choices = AllColumns.class)
+    @ChoicesProvider(AllColumnsProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
-
-    static final class AllColumns implements ColumnChoicesProvider {
-
-        @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0).map(DataTableSpec::stream)//
-                .orElseGet(Stream::empty)//
-                .toArray(DataColumnSpec[]::new);
-        }
-
-    }
 
 }

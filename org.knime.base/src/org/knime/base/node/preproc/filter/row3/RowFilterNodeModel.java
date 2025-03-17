@@ -71,7 +71,6 @@ import org.knime.core.node.streamable.RowInput;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.util.Pair;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 
@@ -107,7 +106,7 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
 
     @Override
     protected BufferedDataTable[] execute(final PortObject[] inPortObjects, final ExecutionContext exec,
-            final AbstractRowFilterNodeSettings settings) throws Exception {
+        final AbstractRowFilterNodeSettings settings) throws Exception {
         final var in = (BufferedDataTable)inPortObjects[INPUT];
         final var spec = in.getSpec();
         settings.validate(spec);
@@ -137,10 +136,10 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
         // update while adding?
         final var domainUpdate = settings.m_domains == ColumnDomains.COMPUTE;
         final var dcSettings = DataContainerSettings.builder() //
-                .withInitializedDomain(initializedDomain) //
-                .withDomainUpdate(domainUpdate) // (note that older versions DO update domains, for historical reasons)
-                .withCheckDuplicateRowKeys(false) // only copying data
-                .build();
+            .withInitializedDomain(initializedDomain) //
+            .withDomainUpdate(domainUpdate) // (note that older versions DO update domains, for historical reasons)
+            .withCheckDuplicateRowKeys(false) // only copying data
+            .build();
         try (final var input = in.cursor();
                 // take domains from input in order to allow downstream visualizations to retain
                 // useful bounds, e.g. [0, 10] for an axis
@@ -164,14 +163,13 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
      * @return row number and data criteria
      */
     private static Pair<List<FilterCriterion>, List<FilterCriterion>>
-            partitionCriteria(final FilterCriterion[] criteria) {
+        partitionCriteria(final FilterCriterion[] criteria) {
         final var rowNumberCriteria = new ArrayList<FilterCriterion>();
         final var dataCriteria = new ArrayList<FilterCriterion>();
         for (final var c : criteria) {
-            final var selected = c.m_column.getSelected();
             // in case of REGEX and WILDCARD operators, we treat the row number column as a data column
-            if (AbstractRowFilterNodeSettings.isRowNumberSelected(selected)
-                    && RowNumberFilterSpec.supportsOperator(c.m_operator)) {
+            if (c.m_column.getEnumChoice().filter(RowIdentifiers.ROW_NUMBER::equals).isPresent()
+                && RowNumberFilterSpec.supportsOperator(c.m_operator)) {
                 rowNumberCriteria.add(c);
             } else {
                 dataCriteria.add(c);
@@ -207,10 +205,10 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
 
     @Override
     public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
-        final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        final var rowNumberCriteria = partitionCriteria(assertSettings().m_predicates).getFirst();
+        final PortObjectSpec[] inSpecs, final S settings) throws InvalidSettingsException {
+        final var rowNumberCriteria = partitionCriteria(settings.m_predicates).getFirst();
         if (AbstractRowFilterNodeSettings.hasLastNFilter(rowNumberCriteria)) {
-            return super.createStreamableOperator(partitionInfo, inSpecs);
+            return super.createStreamableOperator(partitionInfo, inSpecs, settings);
         }
         return new RowFilterOperator();
     }
@@ -228,7 +226,7 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
 
         @Override
         public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
-                throws Exception {
+            throws Exception {
             final var settings = assertSettings();
             final RowInput input = (RowInput)inputs[INPUT];
             try {

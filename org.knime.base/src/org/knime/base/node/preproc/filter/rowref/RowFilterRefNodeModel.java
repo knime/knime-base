@@ -44,13 +44,17 @@
  */
 package org.knime.base.node.preproc.filter.rowref;
 
-import java.io.File;
+import static org.knime.base.node.preproc.filter.rowref.AbstractRowRefNodeModel.updateDomain;
 
-import org.knime.core.node.ExecutionMonitor;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import java.util.function.Supplier;
+
+import org.knime.core.data.DataRow;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.node.BufferedDataContainer;
+import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.CanceledExecutionException;
+import org.knime.core.node.ExecutionContext;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 
 /**
  * The Reference Row Filter node allow the filtering of row IDs based on a second reference table. Two modes are
@@ -58,87 +62,63 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
  *
  * @author Thomas Gabriel, University of Konstanz
  * @author Christian Dietz, University of Konstanz
+ * @author Paul Baernreuther, KNIME
  */
-public class RowFilterRefNodeModel extends AbstractRowRefNodeModel {
-
-    /** Settings model for include/exclude option. */
-    private final SettingsModelString m_inexcludeRows = createInExcludeModel();
+public class RowFilterRefNodeModel extends AbstractRowRefNodeModel<RowFilterRefNodeSettings> {
 
     /**
      * Creates a new reference row filter node model with two inputs and one filtered output.
      */
-    public RowFilterRefNodeModel() {
-        super(false);
+    RowFilterRefNodeModel(final WebUINodeConfiguration config) {
+        super(config, RowFilterRefNodeSettings.class);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected boolean isInvertInclusion() {
-        return m_inexcludeRows.getStringValue().equals(SettingsUtils.EXCLUDE);
+    DataTableSpec[] getOutputSpecs(final DataTableSpec inputSpec) {
+        return new DataTableSpec[]{inputSpec};
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec) {
-        //nothing to load
+    BufferedDataTable[] noopExecute(final BufferedDataTable inputTable) {
+        return new BufferedDataTable[]{inputTable};
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_inexcludeRows.loadSettingsFrom(settings);
-        super.loadValidatedSettingsFrom(settings);
+    OutputCreator createOutputCreator(final DataTableSpec spec, final ExecutionContext exec,
+        final RowFilterRefNodeSettings settings) {
+        return new FilterOutputCreator(spec, exec, settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void reset() {
-        //nothing to reset
+    static class FilterOutputCreator extends OutputCreator {
+
+        private final boolean m_invertInclusion;
+
+        private final BufferedDataContainer m_container;
+
+        FilterOutputCreator(final DataTableSpec spec, final ExecutionContext exec,
+            final RowFilterRefNodeSettings settings) {
+            m_container = exec.createDataContainer(spec);
+            m_invertInclusion = settings.m_inexclude == RowFilterRefNodeSettings.IncludeOrExcludeRows.EXCLUDE;
+        }
+
+        @Override
+        void addRow(final DataRow row, final boolean isInSet) {
+            final var isSelected = m_invertInclusion ? !isInSet : isInSet;
+            if (isSelected) {
+                m_container.addRowToTable(row);
+            }
+        }
+
+        @Override
+        BufferedDataTable[] createTables(final boolean updateDomains,
+            final Supplier<ExecutionContext> domainUpdateExecSupplier) throws CanceledExecutionException {
+            m_container.close();
+            var filteredTable = m_container.getTable();
+            if (updateDomains) {
+                filteredTable = updateDomain(filteredTable, domainUpdateExecSupplier.get());
+            }
+            return new BufferedDataTable[]{filteredTable};
+        }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec) {
-        //nothing to save
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
-        m_inexcludeRows.saveSettingsTo(settings);
-        super.saveSettingsTo(settings);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_inexcludeRows.validateSettings(settings);
-        /*
-         * No validation of the dataTableCol and referenceTableCol settings
-         * since they were introduced in KNIME 2.0
-         * m_dataTableCol.validateSettings(settings);
-         * m_referenceTableCol.validateSettings(settings);
-         * */
-    }
-
-    /**
-     * @return setting model for include/exclude row IDs
-     */
-    static SettingsModelString createInExcludeModel() {
-        return new SettingsModelString("inexclude", SettingsUtils.INCLUDE);
-    }
 }

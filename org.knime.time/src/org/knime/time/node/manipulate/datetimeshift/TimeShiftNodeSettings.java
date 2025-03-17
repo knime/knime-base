@@ -54,14 +54,15 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.CompatibleColumnChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.CompatibleDataValueClassesSupplier;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
@@ -82,7 +83,7 @@ import org.knime.time.util.TimeBasedGranularityUnit;
 @SuppressWarnings("restriction")
 class TimeShiftNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Date&time columns", description = "The date&amp;time columns whose values are shifted.")
-    @ChoicesWidget(choicesProvider = ColumnProvider.class)
+    @ChoicesProvider(ColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
     @Widget(title = "Shift mode", description = "Select the shift mode to use.")
@@ -114,7 +115,7 @@ class TimeShiftNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Column", description = """
             Select to choose the shift value from a time-based duration column.
             """)
-    @ChoicesWidget(choices = DateTimeUtils.DurationColumnProvider.class)
+    @ChoicesProvider(DateTimeUtils.DurationColumnProvider.class)
     @Effect(predicate = ShiftModeIsDurationColumn.class, type = EffectType.SHOW)
     String m_durationColumn;
 
@@ -122,7 +123,7 @@ class TimeShiftNodeSettings implements DefaultNodeSettings {
             Select to choose the shift value from a numerical column. The shift value will be scaled by \
             the selected granularity.
             """)
-    @ChoicesWidget(choicesProvider = NumberColumnProvider.class)
+    @ChoicesProvider(NumberColumnProvider.class)
     @Effect(predicate = ShiftModeIsNumericalColumn.class, type = EffectType.SHOW)
     String m_numericalColumn;
 
@@ -168,7 +169,8 @@ class TimeShiftNodeSettings implements DefaultNodeSettings {
         m_numericalColumn = NumberColumnProvider.getFirstNumberColumn(spec);
 
         if (spec != null) {
-            m_columnFilter = new ColumnFilter(DateTimeUtils.getCompatibleTimeColumns(spec));
+            m_columnFilter =
+                new ColumnFilter(ColumnSelectionUtil.getCompatibleColumns(spec, DateTimeUtils.TIME_COLUMN_TYPES));
         }
     }
 

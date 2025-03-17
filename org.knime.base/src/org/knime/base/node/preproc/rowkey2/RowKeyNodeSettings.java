@@ -50,7 +50,6 @@ package org.knime.base.node.preproc.rowkey2;
 
 import java.util.List;
 
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
@@ -62,11 +61,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.BooleanReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
@@ -119,7 +118,7 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
 
     @Migration(NewRowKeyColumnMigration.class)
     @Widget(title = "ID column", description = "The column to replace the current RowID.")
-    @ChoicesWidget(choices = AllColumns.class)
+    @ChoicesProvider(AllColumnsProvider.class)
     @Effect(predicate = ReplaceByColumn.class, type = EffectType.SHOW)
     @Layout(ReplaceRowIdsSection.class)
     String m_newRowKeyColumnV2;
@@ -307,15 +306,6 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    private static final class AllColumns implements ChoicesProvider {
-
-        @Override
-        public String[] choices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(RowKeyNodeModel2.DATA_IN_PORT) //
-                .map(DataTableSpec::getColumnNames) //
-                .orElseGet(() -> new String[0]);
-        }
-    }
 
     @Section(title = "Replace RowIDs")
     private interface ReplaceRowIdsSection {

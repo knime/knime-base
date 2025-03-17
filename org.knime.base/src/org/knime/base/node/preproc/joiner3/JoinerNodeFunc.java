@@ -57,12 +57,15 @@ import org.knime.core.node.func.NodeFuncApi;
 import org.knime.core.node.func.SimpleNodeFunc;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 
 /**
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @since 5.2
  */
+@SuppressWarnings("restriction")
 public final class JoinerNodeFunc implements SimpleNodeFunc {
 
     private static final String JOIN_COLUMN = "join_column";
@@ -80,7 +83,7 @@ public final class JoinerNodeFunc implements SimpleNodeFunc {
     public void saveSettings(final NodeSettingsRO arguments, final PortObjectSpec[] inputSpecs,
         final NodeSettingsWO settings) throws InvalidSettingsException {
         final var joinerNodeSettings = new Joiner3NodeSettings();
-        final var joinColumn = arguments.getString(JOIN_COLUMN);
+        final StringOrEnum<RowIDChoice> joinColumn = new StringOrEnum<>(arguments.getString(JOIN_COLUMN));
         final var matchingCriteria = new MatchingCriterion[]{new MatchingCriterion(joinColumn, joinColumn)};
 
         joinerNodeSettings.m_matchingCriteria = matchingCriteria;

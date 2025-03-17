@@ -102,9 +102,6 @@ import org.knime.core.webui.node.impl.WebUINodeModel;
 @SuppressWarnings("restriction")
 final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
 
-    /** TODO: Get rid of this once UIEXT-722 is merged This is currently only needed to support streaming execution. */
-    private RegexSplitNodeSettings m_settings;
-
     RegexSplitNodeModel(final WebUINodeConfiguration cfg) {
         super(cfg, RegexSplitNodeSettings.class);
     }
@@ -112,7 +109,6 @@ final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final RegexSplitNodeSettings settings)
         throws InvalidSettingsException {
-        m_settings = settings; // TODO remove once UIEXT-722 is merged
         if (settings.m_column == null) {
             throw new InvalidSettingsException("No input column selected.");
         }
@@ -137,14 +133,12 @@ final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
 
     @Override
     public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
-        final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        // TODO once UIEXT-722 is merged, change signature and refactor settings to use the settings that are passed as
-        // an argument
+        final PortObjectSpec[] inSpecs, final RegexSplitNodeSettings settings) throws InvalidSettingsException {
         final var spec = (DataTableSpec)inSpecs[0]; // safe to assume, see javadoc
-        return switch (m_settings.m_output.m_mode) {
-            case COLUMNS, LIST, SET -> createColumnRearranger(m_settings, spec, this::setWarning)
+        return switch (settings.m_output.m_mode) {
+            case COLUMNS, LIST, SET -> createColumnRearranger(settings, spec, this::setWarning)
                 .createStreamableFunction(0, 0);
-            case ROWS -> createStreamableOperatorForRowOutput(m_settings, spec, this::setWarning);
+            case ROWS -> createStreamableOperatorForRowOutput(settings, spec, this::setWarning);
         };
     }
 
@@ -338,8 +332,7 @@ final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
     // ###############
 
     private static String getGroupLabel(final RegexSplitNodeSettings settings, final CaptureGroup g) {
-        return g.name().orElse(
-            String.valueOf(settings.m_decrementGroupIndexByOne ? (g.index() - 1) : g.index()));
+        return g.name().orElse(String.valueOf(settings.m_decrementGroupIndexByOne ? (g.index() - 1) : g.index()));
     }
 
     /**

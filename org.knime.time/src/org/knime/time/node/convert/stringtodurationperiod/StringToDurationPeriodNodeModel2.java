@@ -76,11 +76,11 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.KNIMEException;
 import org.knime.core.node.message.MessageBuilder;
+import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 import org.knime.time.node.convert.stringtodurationperiod.StringToDurationPeriodNodeSettings.DurationPeriodType;
 import org.knime.time.util.ActionIfExtractionFails;
-import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.DurationPeriodFormatUtils;
 import org.knime.time.util.ReplaceOrAppend.InputColumn;
 
@@ -255,8 +255,8 @@ final class StringToDurationPeriodNodeModel2 extends WebUINodeModel<StringToDura
      */
     private static List<String> getSupportedTargetColumns(final DataTableSpec spec,
         final StringToDurationPeriodNodeSettings settings) {
-        var supportedColumn = DateTimeUtils.getCompatibleColumns(spec, StringValue.class);
-        return Arrays.asList(settings.m_columnFilter.getSelected(supportedColumn, spec));
+        var supportedColumn = ColumnSelectionUtil.getCompatibleColumns(spec, StringValue.class);
+        return Arrays.asList(settings.m_columnFilter.filter(supportedColumn));
     }
 
     private static final class StringToDurationPeriodCellFactory extends SingleCellFactory {

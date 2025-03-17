@@ -1,7 +1,11 @@
 {
   "data" : {
     "model" : {
-      "failIfNoMatch" : false
+      "lookupColumn" : {
+        "specialChoice" : "ROW_ID"
+      },
+      "valueColumn" : "test2",
+      "failIfNoMatch" : true
     }
   },
   "schema" : {
@@ -14,17 +18,32 @@
             "type" : "boolean",
             "title" : "Fail if no assignment in dictionary table",
             "description" : "If selected, the node fails if there is no matching entry of a column name in the dictionary table. Otherwise it will keep the original column name.",
-            "default" : false
+            "default" : true
           },
           "lookupColumn" : {
-            "type" : "string",
+            "type" : "object",
+            "properties" : {
+              "regularChoice" : {
+                "type" : "string"
+              },
+              "specialChoice" : {
+                "oneOf" : [ {
+                  "const" : "ROW_ID",
+                  "title" : "RowID"
+                } ]
+              }
+            },
             "title" : "Lookup column",
-            "description" : "The column in the 2nd input table containing the \"old\" names of the columns."
+            "description" : "The column in the 2nd input table containing the \"old\" names of the columns.",
+            "default" : {
+              "specialChoice" : "ROW_ID"
+            }
           },
           "valueColumn" : {
             "type" : "string",
             "title" : "Names column",
-            "description" : "The column in the 2nd input table containing the \"new\" names of the columns."
+            "description" : "The column in the 2nd input table containing the \"new\" names of the columns.",
+            "default" : "test2"
           }
         }
       }
@@ -35,29 +54,19 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/lookupColumn",
       "options" : {
-        "possibleValues" : [ {
-          "id" : "test2",
-          "text" : "test2"
+        "format" : "singleSelection",
+        "specialChoices" : [ {
+          "id" : "ROW_ID",
+          "text" : "RowID"
         } ],
-        "format" : "dropDown",
-        "showNoneColumn" : false,
-        "showRowKeys" : true,
-        "showSearch" : true,
-        "showMode" : true
+        "choicesProvider" : "org.knime.base.node.preproc.columnheaderinsert.ColumnHeaderInsertSettings$StringColumnsSecondTable"
       }
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/valueColumn",
       "options" : {
-        "possibleValues" : [ {
-          "id" : "test2",
-          "text" : "test2"
-        } ],
-        "format" : "dropDown",
-        "showNoneColumn" : false,
-        "showRowKeys" : false,
-        "showSearch" : true,
-        "showMode" : true
+        "choicesProvider" : "org.knime.base.node.preproc.columnheaderinsert.ColumnHeaderInsertSettings$StringColumnsSecondTable",
+        "format" : "dropDown"
       }
     }, {
       "type" : "Control",
@@ -74,16 +83,37 @@
         "type" : "object",
         "properties" : {
           "lookupColumn" : {
-            "configKey" : "lookupColumn"
+            "type" : "object",
+            "properties" : {
+              "regularChoice" : { },
+              "specialChoice" : {
+                "configPaths" : [ ]
+              }
+            },
+            "configKey" : "lookupColumnV2",
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "lookupColumn" ] ]
+            } ]
           },
-          "valueColumn" : {
-            "configKey" : "valueColumn"
-          },
-          "failIfNoMatch" : {
-            "configKey" : "failIfNoMatch"
-          }
+          "valueColumn" : { },
+          "failIfNoMatch" : { }
         }
       }
     }
-  }
+  },
+  "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.base.node.preproc.columnheaderinsert.ColumnHeaderInsertSettings$StringColumnsSecondTable",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test2",
+        "text" : "test2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ]
 }

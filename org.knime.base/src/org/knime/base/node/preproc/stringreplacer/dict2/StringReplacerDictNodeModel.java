@@ -50,6 +50,7 @@ package org.knime.base.node.preproc.stringreplacer.dict2;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.knime.base.node.preproc.stringreplacer.PatternType;
 import org.knime.base.node.preproc.stringreplacer.dict2.DictReplacer.IllegalReplacementException;
@@ -82,6 +83,8 @@ import org.knime.core.node.streamable.PortObjectInput;
 import org.knime.core.node.streamable.PortOutput;
 import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 
@@ -97,11 +100,6 @@ public class StringReplacerDictNodeModel extends WebUINodeModel<StringReplacerDi
     static final NodeLogger LOGGER = NodeLogger.getLogger(StringReplacerDictNodeModel.class);
 
     /**
-     * TODO: Get rid of this once UIEXT-722 is merged This is currently only needed to support streaming execution.
-     */
-    private StringReplacerDictNodeSettings m_settings;
-
-    /**
      * Instantiate a new String Replacer (Dictionary) Node
      *
      * @param configuration node description
@@ -115,8 +113,6 @@ public class StringReplacerDictNodeModel extends WebUINodeModel<StringReplacerDi
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs,
         final StringReplacerDictNodeSettings modelSettings) throws InvalidSettingsException {
-        m_settings = modelSettings; // TODO remove once UIEXT-722 is merged
-
         CheckUtils.checkSettingNotNull(modelSettings.m_patternColumn,
             "Select a pattern column from the dictionary table");
         CheckUtils.checkSettingNotNull(modelSettings.m_replacementColumn,
@@ -151,9 +147,7 @@ public class StringReplacerDictNodeModel extends WebUINodeModel<StringReplacerDi
 
     @Override
     public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
-        final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        // TODO once UIEXT-722 is merged, change signature and refactor settings to use the settings that are passed as
-        // an argument
+        final PortObjectSpec[] inSpecs, final StringReplacerDictNodeSettings settings) throws InvalidSettingsException {
         return new StreamableOperator() {
             @Override
             public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
@@ -161,7 +155,7 @@ public class StringReplacerDictNodeModel extends WebUINodeModel<StringReplacerDi
                 // Cast the dict table to a BufferedDataTable (since it cannot be streamed)
                 final var dictTable = (BufferedDataTable)((PortObjectInput)inputs[1]).getPortObject();
                 // Create the rearranger (once again)
-                var rearranger = createColumnRearranger(m_settings, (DataTableSpec)inSpecs[0],
+                var rearranger = createColumnRearranger(settings, (DataTableSpec)inSpecs[0],
                     dictTable.getDataTableSpec(), dictTable, exec);
                 // Use the rearranger logic to create the streamable function and execute the node
                 var func = rearranger.createStreamableFunction(0, 0);
@@ -197,23 +191,14 @@ public class StringReplacerDictNodeModel extends WebUINodeModel<StringReplacerDi
         CheckUtils.checkArgumentNotNull(targetSpec, "No spec available for data table");
         CheckUtils.checkArgumentNotNull(dictSpec, "No spec available for dictionary table");
 
-        var stringCols = StringReplacerDictNodeSettings.getStringCompatibleColumns(targetSpec);
-        var stringColNames = Arrays.stream(stringCols).map(DataColumnSpec::getName).toArray(String[]::new);
+        var stringCols = ColumnSelectionUtil.getStringColumns(targetSpec);
 
-        // Also get missing columns to warn user if the node is misconfigured
-        var targetCols = modelSettings.m_targetColumns.getSelectedIncludingMissing(stringColNames, targetSpec);
+        validateMissingSelected(modelSettings.m_targetColumns, targetSpec, stringCols);
+        var targetCols = modelSettings.m_targetColumns.filter(stringCols);
         if (targetCols.length == 0) {
             return new ColumnRearranger(targetSpec);
         }
         var targetColIndices = Arrays.stream(targetCols).mapToInt(targetSpec::findColumnIndex).toArray();
-
-        for (var i = 0; i < targetCols.length; i++) {
-            CheckUtils.checkSetting(targetColIndices[i] >= 0,
-                "There is no target column \"%s\" in the data table. Please reconfigure the node.", targetCols[i]);
-            CheckUtils.checkSetting(
-                targetSpec.getColumnSpec(targetColIndices[i]).getType().isCompatible(StringValue.class),
-                "The type of target column \"%s\" is not string-compatible.", targetCols[i]);
-        }
 
         var patternColIndex = dictSpec.findColumnIndex(modelSettings.m_patternColumn);
         CheckUtils.checkSetting(patternColIndex >= 0, "No such pattern column \"%s\" in dictionary table",
@@ -244,6 +229,22 @@ public class StringReplacerDictNodeModel extends WebUINodeModel<StringReplacerDi
         }
 
         return rearranger;
+    }
+
+    private static void validateMissingSelected(final ColumnFilter targetColumns, final DataTableSpec targetSpec,
+        final List<DataColumnSpec> stringCols) throws InvalidSettingsException {
+        var missingTargetCols = targetColumns.getMissingSelected(stringCols);
+        if (missingTargetCols.length > 0) {
+            final var firstMissingCol = missingTargetCols[0];
+            final var missingCol = targetSpec.getColumnSpec(firstMissingCol);
+            if (missingCol == null) {
+                throw new InvalidSettingsException(
+                    String.format("There is no target column \"%s\" in the data table. Please reconfigure the node.",
+                        firstMissingCol));
+            }
+            throw new InvalidSettingsException(
+                String.format("The type of target column \"%s\" is not string-compatible.", firstMissingCol));
+        }
     }
 
     /**
@@ -304,8 +305,8 @@ public class StringReplacerDictNodeModel extends WebUINodeModel<StringReplacerDi
              */
             private void initDict() throws CanceledExecutionException {
                 m_progressPeriod = dictTable.size() / 25 + 1;
-                m_replacer = modelSettings.m_patternType == PatternType.LITERAL
-                    ? new StringReplacer(modelSettings) : new PatternReplacer(modelSettings);
+                m_replacer = modelSettings.m_patternType == PatternType.LITERAL ? new StringReplacer(modelSettings)
+                    : new PatternReplacer(modelSettings);
                 DataRow currentRow = null;
                 var rowCounter = 0;
                 try {
@@ -317,15 +318,16 @@ public class StringReplacerDictNodeModel extends WebUINodeModel<StringReplacerDi
                     }
                 } catch (IllegalSearchPatternException e) {
                     // Most likely a PatternSyntaxException, or some other faulty data that couldn't be processed
-                    throw KNIMEException.of(
-                        Message.fromRowIssue("Could not insert search pattern in row '" + currentRow.getKey() + "'",
-                            1, rowCounter, patternColIndex, e.getMessage()),
-                        e).toUnchecked();
+                    throw KNIMEException
+                        .of(Message.fromRowIssue("Could not insert search pattern in row '" + currentRow.getKey() + "'",
+                            1, rowCounter, patternColIndex, e.getMessage()), e)
+                        .toUnchecked();
                 } catch (IllegalReplacementException e) {
                     // Most likely a missing cell in the replacement column
-                    throw KNIMEException.of(Message.fromRowIssue(
-                        "Could not insert replacement string in row '" + currentRow.getKey() + "'", 1, rowCounter,
-                        patternColIndex, e.getMessage()), e).toUnchecked();
+                    throw KNIMEException.of(
+                        Message.fromRowIssue("Could not insert replacement string in row '" + currentRow.getKey() + "'",
+                            1, rowCounter, patternColIndex, e.getMessage()),
+                        e).toUnchecked();
                 }
             }
 

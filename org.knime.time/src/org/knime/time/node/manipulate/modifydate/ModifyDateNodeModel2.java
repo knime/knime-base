@@ -86,11 +86,9 @@ final class ModifyDateNodeModel2 extends WebUISimpleStreamableFunctionNodeModel<
     protected ColumnRearranger createColumnRearranger(final DataTableSpec inSpec,
         final ModifyDateNodeSettings modelSettings) throws InvalidSettingsException {
 
-        final String[] includeList = modelSettings.m_columnFilter.getSelected(inSpec.stream() //
+        final String[] includeList = modelSettings.m_columnFilter.filter(inSpec.stream() //
             .filter(modelSettings.m_behaviourType::isCompatibleType) //
-            .map(DataColumnSpec::getName) //
-            .toArray(String[]::new), inSpec);
-
+            .toList());
         return modelSettings.m_appendOrReplace.createRearranger(includeList, inSpec, (inCol, outColName) -> {
             // determine the data type of output
             var dataType = switch (modelSettings.m_behaviourType) {

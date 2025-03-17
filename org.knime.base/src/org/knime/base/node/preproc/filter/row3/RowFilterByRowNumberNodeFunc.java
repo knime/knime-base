@@ -54,7 +54,7 @@ import org.knime.core.data.def.LongCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.func.NodeFuncApi.Builder;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 
 /**
@@ -63,7 +63,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValu
  *
  * @author Alexander Jauch-Walser, KNIME GmbH, Konstanz, Germany
  */
-
+@SuppressWarnings("restriction")
 public class RowFilterByRowNumberNodeFunc extends AbstractRowFilterNodeFunc {
 
     private static final String OPERATOR = "operator";
@@ -94,7 +94,7 @@ public class RowFilterByRowNumberNodeFunc extends AbstractRowFilterNodeFunc {
         var index = arguments.getLong(ROW_NUMBER);
 
         var criterion = new FilterCriterion();
-        criterion.m_column.m_selected = SpecialColumns.ROW_NUMBERS.getId();
+        criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_NUMBER);
         criterion.m_operator = getOperator(operatorName);
         var longCell = new LongCell.LongCellFactory().createCell(Long.toString(index));
         criterion.m_predicateValues = DynamicValuesInput.singleValueWithInitialValue(LongCell.TYPE, longCell);
@@ -115,7 +115,6 @@ public class RowFilterByRowNumberNodeFunc extends AbstractRowFilterNodeFunc {
             default -> null;
         };
     }
-
 
     @Override
     void extendApi(final Builder builder) {

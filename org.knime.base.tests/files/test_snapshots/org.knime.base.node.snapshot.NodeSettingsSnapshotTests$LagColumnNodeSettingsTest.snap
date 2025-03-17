@@ -1,7 +1,9 @@
 {
   "data" : {
     "model" : {
-      "column" : "test2",
+      "column" : {
+        "regularChoice" : "test2"
+      },
       "lag" : 1,
       "lagInterval" : 1,
       "skipInitialIncompleteRows" : false,
@@ -15,10 +17,23 @@
         "type" : "object",
         "properties" : {
           "column" : {
-            "type" : "string",
+            "type" : "object",
+            "properties" : {
+              "regularChoice" : {
+                "type" : "string"
+              },
+              "specialChoice" : {
+                "oneOf" : [ {
+                  "const" : "ROW_ID",
+                  "title" : "RowID"
+                } ]
+              }
+            },
             "title" : "Column to lag",
             "description" : "The column to be lagged.",
-            "default" : "test2"
+            "default" : {
+              "regularChoice" : "test2"
+            }
           },
           "lag" : {
             "type" : "integer",
@@ -55,40 +70,24 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/column",
       "options" : {
-        "possibleValues" : [ {
-          "id" : "test1",
-          "text" : "test1",
-          "type" : {
-            "id" : "org.knime.core.data.DoubleValue",
-            "text" : "Number (Floating Decimal)"
-          },
-          "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
-        }, {
-          "id" : "test2",
-          "text" : "test2",
-          "type" : {
-            "id" : "org.knime.core.data.StringValue",
-            "text" : "String"
-          },
-          "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+        "format" : "singleSelection",
+        "specialChoices" : [ {
+          "id" : "ROW_ID",
+          "text" : "RowID"
         } ],
-        "format" : "dropDown",
-        "showNoneColumn" : false,
-        "showRowKeys" : true,
-        "showSearch" : true,
-        "showMode" : true
+        "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider"
       }
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/lag",
       "options" : {
         "validations" : [ {
+          "errorMessage" : "The value must be at least 1.",
           "id" : "min",
           "parameters" : {
             "min" : 1.0,
             "isExclusive" : false
-          },
-          "errorMessage" : "The value must be at least 1."
+          }
         } ]
       }
     }, {
@@ -96,12 +95,12 @@
       "scope" : "#/properties/model/properties/lagInterval",
       "options" : {
         "validations" : [ {
+          "errorMessage" : "The value must be at least 1.",
           "id" : "min",
           "parameters" : {
             "min" : 1.0,
             "isExclusive" : false
-          },
-          "errorMessage" : "The value must be at least 1."
+          }
         } ]
       }
     }, {
@@ -125,22 +124,48 @@
         "type" : "object",
         "properties" : {
           "column" : {
-            "configPaths" : [ [ "column" ] ]
+            "type" : "object",
+            "properties" : {
+              "regularChoice" : { },
+              "specialChoice" : {
+                "configPaths" : [ ]
+              }
+            },
+            "configKey" : "columnV2",
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "column" ] ]
+            } ]
           },
-          "lag" : {
-            "configKey" : "lag"
-          },
+          "lag" : { },
           "lagInterval" : {
             "configKey" : "lag_interval"
           },
-          "skipInitialIncompleteRows" : {
-            "configKey" : "skipInitialIncompleteRows"
-          },
-          "skipLastIncompleteRows" : {
-            "configKey" : "skipLastIncompleteRows"
-          }
+          "skipInitialIncompleteRows" : { },
+          "skipLastIncompleteRows" : { }
         }
       }
     }
-  }
+  },
+  "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test1",
+        "text" : "test1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Floating Decimal)"
+        }
+      }, {
+        "id" : "test2",
+        "text" : "test2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ]
 }

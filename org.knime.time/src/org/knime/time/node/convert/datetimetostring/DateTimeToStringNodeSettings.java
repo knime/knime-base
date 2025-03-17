@@ -52,12 +52,13 @@ import java.util.Locale;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
@@ -74,7 +75,7 @@ import org.knime.time.util.ReplaceOrAppend;
 final class DateTimeToStringNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Date&time columns", description = "The date&amp;time columns to convert to string columns.")
-    @ChoicesWidget(choices = DateTimeUtils.DateTimeColumnProvider.class)
+    @ChoicesProvider(DateTimeUtils.DateTimeColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
     @Widget(title = "Locale", description = """
@@ -82,7 +83,7 @@ final class DateTimeToStringNodeSettings implements DefaultNodeSettings {
             Names of months and days of the week will be translated \
             according to the selected locale.
             """)
-    @ChoicesWidget(choicesProvider = LocaleStateProvider.class)
+    @ChoicesProvider(LocaleStateProvider.class)
     String m_locale = Locale.getDefault().toLanguageTag();
 
     @Widget(title = "Output format", description = """
@@ -129,7 +130,7 @@ final class DateTimeToStringNodeSettings implements DefaultNodeSettings {
     DateTimeToStringNodeSettings(final DataTableSpec spec) {
         if (spec != null) {
             m_columnFilter =
-                new ColumnFilter(DateTimeUtils.getCompatibleColumns(spec, DateTimeUtils.DATE_TIME_COLUMN_TYPES));
+                new ColumnFilter(ColumnSelectionUtil.getCompatibleColumns(spec, DateTimeUtils.DATE_TIME_COLUMN_TYPES));
         }
     }
 }

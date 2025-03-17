@@ -2,14 +2,9 @@
 <config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
     <config key="sortingCriteria">
         <config key="0">
-            <config key="column">
-                <entry key="selected" type="xstring" value="&lt;row-keys&gt;"/>
-                <config key="compatibleTypes_Internals">
-                    <entry key="array-size" type="xint" value="3"/>
-                    <entry key="0" type="xstring" value="org.knime.core.data.StringValue"/>
-                    <entry key="1" type="xstring" value="org.knime.core.data.DataValue"/>
-                    <entry key="2" type="xstring" value="org.knime.core.data.NominalValue"/>
-                </config>
+            <config key="columnV2">
+                <entry key="regularChoice" type="xstring" isnull="true" value=""/>
+                <entry key="specialChoice_Internals" type="xstring" value="ROW_ID"/>
             </config>
             <entry key="sortingOrder" type="xstring" value="ASCENDING"/>
             <entry key="stringComparison" type="xstring" value="NATURAL"/>

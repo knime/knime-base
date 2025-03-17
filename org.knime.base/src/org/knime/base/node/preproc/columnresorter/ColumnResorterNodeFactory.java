@@ -73,6 +73,7 @@ import org.xml.sax.SAXException;
  *
  * @author Kilian Thiel, KNIME.com, Berlin, Germany
  */
+@SuppressWarnings("restriction")
 public class ColumnResorterNodeFactory extends NodeFactory<ColumnResorterNodeModel>
     implements NodeDialogFactory, KaiNodeInterfaceFactory {
 

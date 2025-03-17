@@ -63,7 +63,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.IntStream;
 
-import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.DictionaryTableChoices;
 import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.LookupColumnNoMatchReplacement;
 import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.LookupColumnOutput;
 import org.knime.core.data.DataCell;
@@ -186,7 +185,7 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
 
     @Override
     public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
-        final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        final PortObjectSpec[] inSpecs, final ValueLookupNodeSettings settings) throws InvalidSettingsException {
         return new StreamableOperator() {
             @Override
             public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
@@ -194,7 +193,7 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
                 // Cast the dict table to a BufferedDataTable (since it cannot be streamed)
                 final var dictTable = (BufferedDataTable)((PortObjectInput)inputs[1]).getPortObject();
                 // Create the rearranger (once again)
-                var rearranger = createColumnRearranger(getSettings().orElseThrow(), (DataTableSpec)inSpecs[0],
+                var rearranger = createColumnRearranger(settings, (DataTableSpec)inSpecs[0],
                     dictTable.getDataTableSpec(), dictTable, exec, null);
                 // Use the rearranger logic to create the streamable function and execute the node
                 var func = rearranger.createStreamableFunction(0, 0);
@@ -318,8 +317,7 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
 
             ColumnsToAppend() throws InvalidSettingsException {
                 // columns to pull in from the dictionary table
-                final var dictValueColNames = modelSettings.m_dictValueCols
-                    .getSelected(DictionaryTableChoices.choices(dictSpec), dictSpec);
+                final var dictValueColNames = modelSettings.m_dictValueCols.filterFromFullSpec(dictSpec);
                 final int[] selectedDictCols = dictSpec.columnsToIndices(dictValueColNames);
                 // Add the columns to the output spec, but check for existence and uniquify name w.r.t. the input table
                 for (var col : selectedDictCols) {

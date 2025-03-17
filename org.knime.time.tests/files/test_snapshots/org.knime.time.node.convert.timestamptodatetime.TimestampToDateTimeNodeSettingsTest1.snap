@@ -16,10 +16,7 @@
         },
         "typeFilter" : {
           "selectedTypes" : [ "org.knime.core.data.IntValue" ],
-          "typeDisplays" : [ {
-            "id" : "org.knime.core.data.IntValue",
-            "text" : "Number (Integer)"
-          } ]
+          "typeDisplays" : [ { } ]
         }
       },
       "granularity" : "MICROSECONDS",
@@ -178,21 +175,6 @@
                     "items" : {
                       "type" : "string"
                     }
-                  },
-                  "typeDisplays" : {
-                    "default" : [ ],
-                    "type" : "array",
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "id" : {
-                          "type" : "string"
-                        },
-                        "text" : {
-                          "type" : "string"
-                        }
-                      }
-                    }
                   }
                 },
                 "default" : {
@@ -231,20 +213,10 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/timestampColumns",
       "options" : {
-        "format" : "columnFilter",
-        "possibleValues" : [ {
-          "id" : "test",
-          "text" : "test",
-          "type" : {
-            "id" : "org.knime.core.data.IntValue",
-            "text" : "Number (Integer)"
-          },
-          "compatibleTypes" : [ "org.knime.core.data.IntValue", "org.knime.core.data.DataValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
-        } ],
-        "showNoneColumn" : false,
-        "showRowKeys" : false,
-        "showSearch" : true,
-        "showMode" : true
+        "format" : "typedNameFilter",
+        "unknownValuesText" : "Any unknown column",
+        "emptyStateLabel" : "No columns in this list.",
+        "choicesProvider" : "org.knime.time.node.convert.timestamptodatetime.TimestampToDateTimeNodeSettings$TimestampColumnsProvider"
       }
     }, {
       "type" : "Control",
@@ -2136,10 +2108,7 @@
               "typeFilter" : {
                 "type" : "object",
                 "properties" : {
-                  "selectedTypes" : { },
-                  "typeDisplays" : {
-                    "configPaths" : [ ]
-                  }
+                  "selectedTypes" : { }
                 }
               }
             }
@@ -2152,5 +2121,20 @@
         }
       }
     }
-  }
+  },
+  "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.time.node.convert.timestamptodatetime.TimestampToDateTimeNodeSettings$TimestampColumnsProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test",
+        "text" : "test",
+        "type" : {
+          "id" : "org.knime.core.data.IntValue",
+          "text" : "Number (Integer)"
+        }
+      } ]
+    } ]
+  } ]
 }

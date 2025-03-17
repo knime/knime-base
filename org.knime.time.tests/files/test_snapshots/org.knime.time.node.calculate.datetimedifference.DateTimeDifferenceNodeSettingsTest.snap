@@ -1,15 +1,13 @@
 {
   "data" : {
     "model" : {
-      "firstColumnSelection" : {
-        "selected" : "localTimeTest",
-        "compatibleTypes" : [ "org.knime.core.data.time.localtime.LocalTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
-      },
+      "firstColumnSelection" : "localTimeTest",
+      "firstColumnIsDate" : false,
+      "firstColumnIsTime" : false,
+      "firstColumnIsDateTime" : false,
+      "firstColumnIsZonedDateTime" : false,
       "secondDateTimeValueType" : "COLUMN",
-      "secondColumnSelection" : {
-        "selected" : "localTimeTest",
-        "compatibleTypes" : [ "org.knime.core.data.time.localtime.LocalTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
-      },
+      "secondColumnSelection" : "localTimeTest",
       "localDateFixed" : "2020-01-01",
       "localTimeFixed" : "14:00:00.123456789",
       "localDateTimeFixed" : "2020-01-01T14:00:00.123456789",
@@ -30,25 +28,27 @@
       "model" : {
         "type" : "object",
         "properties" : {
+          "firstColumnIsDate" : {
+            "type" : "boolean",
+            "default" : false
+          },
+          "firstColumnIsDateTime" : {
+            "type" : "boolean",
+            "default" : false
+          },
+          "firstColumnIsTime" : {
+            "type" : "boolean",
+            "default" : false
+          },
+          "firstColumnIsZonedDateTime" : {
+            "type" : "boolean",
+            "default" : false
+          },
           "firstColumnSelection" : {
-            "type" : "object",
-            "properties" : {
-              "compatibleTypes" : {
-                "type" : "array",
-                "items" : {
-                  "type" : "string"
-                }
-              },
-              "selected" : {
-                "type" : "string"
-              }
-            },
+            "type" : "string",
             "title" : "First date&time column",
             "description" : "The first date&amp;time column. The first and second column will be subtracted from each other, with the direction depending on the 'mode' option.\n",
-            "default" : {
-              "selected" : "localTimeTest",
-              "compatibleTypes" : [ "org.knime.core.data.time.localtime.LocalTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
-            }
+            "default" : "localTimeTest"
           },
           "granularity" : {
             "oneOf" : [ {
@@ -150,24 +150,10 @@
             "default" : "DURATION_OR_PERIOD"
           },
           "secondColumnSelection" : {
-            "type" : "object",
-            "properties" : {
-              "compatibleTypes" : {
-                "type" : "array",
-                "items" : {
-                  "type" : "string"
-                }
-              },
-              "selected" : {
-                "type" : "string"
-              }
-            },
+            "type" : "string",
             "title" : "Second date&time column",
             "description" : "The second date&amp;time column to calculate the difference to.\n",
-            "default" : {
-              "selected" : "localTimeTest",
-              "compatibleTypes" : [ "org.knime.core.data.time.localtime.LocalTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
-            }
+            "default" : "localTimeTest"
           },
           "secondDateTimeValueType" : {
             "oneOf" : [ {
@@ -209,44 +195,8 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/firstColumnSelection",
         "options" : {
-          "format" : "columnSelection",
-          "possibleValues" : [ {
-            "id" : "localTimeTest",
-            "text" : "localTimeTest",
-            "type" : {
-              "id" : "org.knime.core.data.time.localtime.LocalTimeValue",
-              "text" : "Time"
-            },
-            "compatibleTypes" : [ "org.knime.core.data.time.localtime.LocalTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
-          }, {
-            "id" : "localDateTest",
-            "text" : "localDateTest",
-            "type" : {
-              "id" : "org.knime.core.data.time.localdate.LocalDateValue",
-              "text" : "Date"
-            },
-            "compatibleTypes" : [ "org.knime.core.data.time.localdate.LocalDateValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
-          }, {
-            "id" : "localDateTimeTest",
-            "text" : "localDateTimeTest",
-            "type" : {
-              "id" : "org.knime.core.data.time.localdatetime.LocalDateTimeValue",
-              "text" : "Date&time (Local)"
-            },
-            "compatibleTypes" : [ "org.knime.core.data.time.localdatetime.LocalDateTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
-          }, {
-            "id" : "zonedDateTimeTest",
-            "text" : "zonedDateTimeTest",
-            "type" : {
-              "id" : "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue",
-              "text" : "Date&time (Zoned)"
-            },
-            "compatibleTypes" : [ "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
-          } ],
-          "showNoneColumn" : false,
-          "showRowKeys" : false,
-          "showSearch" : true,
-          "showMode" : true
+          "choicesProvider" : "org.knime.time.util.DateTimeUtils$DateTimeColumnProvider",
+          "format" : "dropDown"
         }
       }, {
         "type" : "Control",
@@ -259,12 +209,8 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/secondColumnSelection",
         "options" : {
-          "format" : "columnSelection",
           "choicesProvider" : "org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings$SecondColumnProvider",
-          "showNoneColumn" : false,
-          "showRowKeys" : false,
-          "showSearch" : true,
-          "showMode" : true
+          "format" : "dropDown"
         },
         "rule" : {
           "effect" : "SHOW",
@@ -288,15 +234,9 @@
           "condition" : {
             "type" : "AND",
             "conditions" : [ {
-              "scope" : "#/properties/model/properties/firstColumnSelection",
+              "scope" : "#/properties/model/properties/firstColumnIsDate",
               "schema" : {
-                "properties" : {
-                  "compatibleTypes" : {
-                    "contains" : {
-                      "const" : "org.knime.core.data.time.localdate.LocalDateValue"
-                    }
-                  }
-                }
+                "const" : true
               }
             }, {
               "scope" : "#/properties/model/properties/secondDateTimeValueType",
@@ -319,15 +259,9 @@
           "condition" : {
             "type" : "AND",
             "conditions" : [ {
-              "scope" : "#/properties/model/properties/firstColumnSelection",
+              "scope" : "#/properties/model/properties/firstColumnIsTime",
               "schema" : {
-                "properties" : {
-                  "compatibleTypes" : {
-                    "contains" : {
-                      "const" : "org.knime.core.data.time.localtime.LocalTimeValue"
-                    }
-                  }
-                }
+                "const" : true
               }
             }, {
               "scope" : "#/properties/model/properties/secondDateTimeValueType",
@@ -351,15 +285,9 @@
           "condition" : {
             "type" : "AND",
             "conditions" : [ {
-              "scope" : "#/properties/model/properties/firstColumnSelection",
+              "scope" : "#/properties/model/properties/firstColumnIsDateTime",
               "schema" : {
-                "properties" : {
-                  "compatibleTypes" : {
-                    "contains" : {
-                      "const" : "org.knime.core.data.time.localdatetime.LocalDateTimeValue"
-                    }
-                  }
-                }
+                "const" : true
               }
             }, {
               "scope" : "#/properties/model/properties/secondDateTimeValueType",
@@ -2193,15 +2121,9 @@
           "condition" : {
             "type" : "AND",
             "conditions" : [ {
-              "scope" : "#/properties/model/properties/firstColumnSelection",
+              "scope" : "#/properties/model/properties/firstColumnIsZonedDateTime",
               "schema" : {
-                "properties" : {
-                  "compatibleTypes" : {
-                    "contains" : {
-                      "const" : "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue"
-                    }
-                  }
-                }
+                "const" : true
               }
             }, {
               "scope" : "#/properties/model/properties/secondDateTimeValueType",
@@ -2234,11 +2156,7 @@
         "scope" : "#/properties/model/properties/granularity",
         "options" : {
           "choicesProvider" : "org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings$ApplicableGranularitiesChoicesProvider",
-          "format" : "dropDown",
-          "showNoneColumn" : false,
-          "showRowKeys" : false,
-          "showSearch" : true,
-          "showMode" : true
+          "format" : "dropDown"
         },
         "rule" : {
           "effect" : "SHOW",
@@ -2292,13 +2210,12 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/outputColumnName",
         "options" : {
-          "hideOnNull" : false,
           "validations" : [ {
+            "errorMessage" : "The string must match the pattern: ^(\\S(.*\\S)?)?$",
             "id" : "pattern",
             "parameters" : {
               "pattern" : "^(\\S(.*\\S)?)?$"
-            },
-            "errorMessage" : "The string must match the pattern: ^(\\S(.*\\S)?)?$"
+            }
           } ]
         }
       } ]
@@ -2310,25 +2227,21 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "firstColumnSelection" : {
-            "type" : "object",
-            "properties" : {
-              "selected" : { },
-              "compatibleTypes" : {
-                "configPaths" : [ ]
-              }
-            }
+          "firstColumnSelection" : { },
+          "firstColumnIsDate" : {
+            "configPaths" : [ ]
+          },
+          "firstColumnIsTime" : {
+            "configPaths" : [ ]
+          },
+          "firstColumnIsDateTime" : {
+            "configPaths" : [ ]
+          },
+          "firstColumnIsZonedDateTime" : {
+            "configPaths" : [ ]
           },
           "secondDateTimeValueType" : { },
-          "secondColumnSelection" : {
-            "type" : "object",
-            "properties" : {
-              "selected" : { },
-              "compatibleTypes" : {
-                "configPaths" : [ ]
-              }
-            }
-          },
+          "secondColumnSelection" : { },
           "localDateFixed" : { },
           "localTimeFixed" : { },
           "localDateTimeFixed" : { },
@@ -2343,6 +2256,34 @@
     }
   },
   "initialUpdates" : [ {
+    "scopes" : [ "#/properties/model/properties/firstColumnIsDateTime" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ ],
+      "value" : false
+    } ]
+  }, {
+    "scopes" : [ "#/properties/model/properties/firstColumnIsDate" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ ],
+      "value" : false
+    } ]
+  }, {
+    "scopes" : [ "#/properties/model/properties/firstColumnIsTime" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ ],
+      "value" : true
+    } ]
+  }, {
+    "scopes" : [ "#/properties/model/properties/firstColumnIsZonedDateTime" ],
+    "id" : null,
+    "values" : [ {
+      "indices" : [ ],
+      "value" : false
+    } ]
+  }, {
     "scopes" : [ "#/properties/model/properties/granularity" ],
     "id" : null,
     "values" : [ {
@@ -2385,8 +2326,42 @@
         "type" : {
           "id" : "org.knime.core.data.time.localtime.LocalTimeValue",
           "text" : "Time"
-        },
-        "compatibleTypes" : [ "org.knime.core.data.time.localtime.LocalTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
+        }
+      } ]
+    } ]
+  }, {
+    "scopes" : null,
+    "id" : "org.knime.time.util.DateTimeUtils$DateTimeColumnProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "localTimeTest",
+        "text" : "localTimeTest",
+        "type" : {
+          "id" : "org.knime.core.data.time.localtime.LocalTimeValue",
+          "text" : "Time"
+        }
+      }, {
+        "id" : "localDateTest",
+        "text" : "localDateTest",
+        "type" : {
+          "id" : "org.knime.core.data.time.localdate.LocalDateValue",
+          "text" : "Date"
+        }
+      }, {
+        "id" : "localDateTimeTest",
+        "text" : "localDateTimeTest",
+        "type" : {
+          "id" : "org.knime.core.data.time.localdatetime.LocalDateTimeValue",
+          "text" : "Date&time (Local)"
+        }
+      }, {
+        "id" : "zonedDateTimeTest",
+        "text" : "zonedDateTimeTest",
+        "type" : {
+          "id" : "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue",
+          "text" : "Date&time (Zoned)"
+        }
       } ]
     } ]
   } ],

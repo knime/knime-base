@@ -51,6 +51,7 @@ package org.knime.base.node.io.filehandling.csv.reader2;
 import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 import org.knime.base.node.io.filehandling.csv.reader.OSIndependentNewLineReader;
@@ -100,8 +101,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettin
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
@@ -110,7 +109,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.Icon;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.EnumChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.EnumChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
@@ -603,28 +604,26 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         static class Charset implements WidgetGroup, PersistableSettings {
 
             enum FileEncodingOption {
-                    @Label(value = "", description = FileEncoding.DESCRIPTION_DEFAULT) //
+                    @Label(value = "OS default", description = FileEncoding.DESCRIPTION_DEFAULT) //
                     DEFAULT(null, false, "OS default (" + java.nio.charset.Charset.defaultCharset().name() + ")"), //
-                    @Label(value = "", description = FileEncoding.DESCRIPTION_ISO_8859_1) //
+                    @Label(value = "ISO-8859-1", description = FileEncoding.DESCRIPTION_ISO_8859_1) //
                     ISO_8859_1("ISO-8859-1", true), //
-                    @Label(value = "", description = FileEncoding.DESCRIPTION_US_ASCII) //
+                    @Label(value = "US-ASCII", description = FileEncoding.DESCRIPTION_US_ASCII) //
                     US_ASCII("US-ASCII", true), //
-                    @Label(value = "", description = FileEncoding.DESCRIPTION_UTF_8) //
+                    @Label(value = "UTF-8", description = FileEncoding.DESCRIPTION_UTF_8) //
                     UTF_8("UTF-8", true), //
-                    @Label(value = "", description = FileEncoding.DESCRIPTION_UTF_16) //
+                    @Label(value = "UTF-16", description = FileEncoding.DESCRIPTION_UTF_16) //
                     UTF_16("UTF-16", true), //
-                    @Label(value = "", description = FileEncoding.DESCRIPTION_UTF_16BE) //
+                    @Label(value = "UTF-16BE", description = FileEncoding.DESCRIPTION_UTF_16BE) //
                     UTF_16BE("UTF-16BE", true), //
-                    @Label(value = "", description = FileEncoding.DESCRIPTION_UTF_16LE) //
+                    @Label(value = "UTF-16LE", description = FileEncoding.DESCRIPTION_UTF_16LE) //
                     UTF_16LE("UTF-16LE", true), //
-                    @Label(value = "", description = FileEncoding.DESCRIPTION_OTHER) //
-                    OTHER("", false, "Other"); //
+                    @Label(value = "Other", description = FileEncoding.DESCRIPTION_OTHER) //
+                    OTHER("", false); //
 
                 final String m_persistId;
 
-                final boolean m_isUnambigous;
-
-                final String m_displayText;
+                final String m_nonConstantDisplayText;
 
                 FileEncodingOption(final String persistId, final boolean isUnambigous) {
                     this(persistId, isUnambigous, persistId);
@@ -632,8 +631,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
 
                 FileEncodingOption(final String persistId, final boolean isUnambigous, final String displayText) {
                     m_persistId = persistId;
-                    m_isUnambigous = isUnambigous;
-                    m_displayText = displayText;
+                    m_nonConstantDisplayText = displayText;
                 }
 
                 static FileEncodingOption fromPersistId(final String persistId) {
@@ -641,14 +639,23 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
                         .filter(fileEncoding -> Objects.equals(fileEncoding.m_persistId, persistId)).findFirst()
                         .orElse(OTHER);
                 }
+
+                EnumChoice<FileEncodingOption> toEnumChoice() {
+                    if (m_nonConstantDisplayText == null) {
+                        return EnumChoice.fromEnumConst(this);
+                    }
+                    return new EnumChoice<>(this, m_nonConstantDisplayText);
+                }
             }
 
-            static final class EncodingChoicesProvider implements ChoicesProvider {
+            /**
+             * This provider is needed to display the non-constant display text of the default option.
+             */
+            static final class EncodingChoicesProvider implements EnumChoicesProvider<FileEncodingOption> {
+
                 @Override
-                public IdAndText[] choicesWithIdAndText(final DefaultNodeSettingsContext context) {
-                    return Arrays.stream(FileEncodingOption.values())
-                        .map(fileEncoding -> new IdAndText(fileEncoding.name(), fileEncoding.m_displayText))
-                        .toArray(IdAndText[]::new);
+                public List<EnumChoice<FileEncodingOption>> computeState(final DefaultNodeSettingsContext context) {
+                    return Arrays.stream(FileEncodingOption.values()).map(FileEncodingOption::toEnumChoice).toList();
                 }
             }
 
@@ -666,7 +673,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
 
             @Widget(title = "File encoding", description = FileEncoding.DESCRIPTION, advanced = true)
             @ValueReference(FileEncodingRef.class)
-            @ChoicesWidget(choices = EncodingChoicesProvider.class)
+            @ChoicesProvider(EncodingChoicesProvider.class)
             @Layout(FileEncoding.class)
             FileEncodingOption m_fileEncoding;
 

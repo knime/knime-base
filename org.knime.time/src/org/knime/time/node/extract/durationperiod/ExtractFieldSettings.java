@@ -49,6 +49,7 @@
 package org.knime.time.node.extract.durationperiod;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -61,11 +62,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.EnumChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.EnumChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
@@ -96,7 +97,7 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
     }
 
     @Widget(title = "Field", description = "The type of field to extract.")
-    @ChoicesWidget(choicesProvider = FilteredPossibleFieldsChoices.class)
+    @ChoicesProvider(FilteredPossibleFieldsChoices.class)
     @Layout(ExtractFieldWidgetLayout.class)
     @ValueReference(ExtractableFieldsReference.class)
     ExtractableField m_field;
@@ -128,8 +129,12 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
         @Override
         public String computeState(final DefaultNodeSettingsContext context) {
             return Optional.ofNullable(m_valueSupplier.get()) //
-                .map(ExtractableField::niceName) //
+                .map(OutputColumnNamePlaceholderProvider::getPlaceholder) //
                 .orElse("");
+        }
+
+       static String getPlaceholder(final ExtractableField field) {
+            return EnumChoice.fromEnumConst(field).text();
         }
     }
 
@@ -137,7 +142,7 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
      * A state provider that computes the choices for the dropdown box that selects the field to extract in the
      * {@link ExtractFieldSettings}.
      */
-    static final class FilteredPossibleFieldsChoices implements StringChoicesStateProvider {
+    static final class FilteredPossibleFieldsChoices implements EnumChoicesProvider<ExtractableField> {
 
         private Supplier<String> m_selectedInputColumnNameSupplier;
 
@@ -150,7 +155,7 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public IdAndText[] computeState(final DefaultNodeSettingsContext context) throws WidgetHandlerException {
+        public List<ExtractableField> choices(final DefaultNodeSettingsContext context) throws WidgetHandlerException {
             var inputTableSpec = context.getDataTableSpec(0);
             var selectedColumn = m_selectedInputColumnNameSupplier.get();
 
@@ -160,16 +165,12 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
                 .map(DataColumnSpec::getType);
 
             return selectedColumnType.isEmpty() //
-                ? new IdAndText[0] //
+                ? List.of()//
                 : Arrays.stream(ExtractableField.values()) //
                     .filter(v -> v.isCompatibleWith(selectedColumnType.get())) //
-                    .map(FilteredPossibleFieldsChoices::extractableFieldToIdAndText) //
-                    .toArray(IdAndText[]::new); //
+                    .toList();
         }
 
-        private static IdAndText extractableFieldToIdAndText(final ExtractableField field) {
-            return new IdAndText(field.name(), field.niceName());
-        }
     }
 
     /**
@@ -179,7 +180,7 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
      */
     static final class DefaultEnumProvider implements StateProvider<ExtractableField> {
 
-        private Supplier<IdAndText[]> m_possibleDropDownChoicesSupplier;
+        private Supplier<List<EnumChoice<ExtractableField>>> m_possibleDropDownChoicesSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
@@ -189,9 +190,8 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
 
         @Override
         public ExtractableField computeState(final DefaultNodeSettingsContext context) {
-            return Arrays.stream(m_possibleDropDownChoicesSupplier.get()) //
-                .map(IdAndText::id) //
-                .map(ExtractableField::valueOf) //
+            return m_possibleDropDownChoicesSupplier.get().stream() //
+                .map(EnumChoice::id) //
                 .findFirst() //
                 .orElse(null);
         }

@@ -48,6 +48,7 @@
  */
 package org.knime.base.node.viz.format.string;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.knime.base.node.viz.format.string.StringFormatManagerNodeSettings.CustomStringReplacementOption;
@@ -85,7 +86,7 @@ public final class StringFormatManagerNodeModel extends WebUINodeModel<StringFor
         // That will also take care of settings validation
         m_handler = new ValueFormatHandler(createFormatter(modelSettings));
         final var inSpec = inSpecs[0];
-        final var targetCols = modelSettings.m_columnsToFormat.getSelected(stringColumns(inSpec), inSpec);
+        final var targetCols = modelSettings.m_columnsToFormat.filter(stringColumns(inSpec));
         final var result = createOutputSpec(inSpec, targetCols, m_handler);
         return new DataTableSpec[]{result};
     }
@@ -95,7 +96,7 @@ public final class StringFormatManagerNodeModel extends WebUINodeModel<StringFor
         final StringFormatManagerNodeSettings modelSettings) throws Exception {
         final var in = inData[0];
         final var inSpec = in.getDataTableSpec();
-        final var targetCols = modelSettings.m_columnsToFormat.getSelected(stringColumns(inSpec), inSpec);
+        final var targetCols = modelSettings.m_columnsToFormat.filter(stringColumns(inSpec));
         final var resultSpec = createOutputSpec(inSpec, targetCols, m_handler);
         final var result = resultSpec == inSpec ? in : exec.createSpecReplacerTable(in, resultSpec);
         return new BufferedDataTable[]{result};
@@ -126,16 +127,15 @@ public final class StringFormatManagerNodeModel extends WebUINodeModel<StringFor
     }
 
     /**
-     * Return all string-compatible columns from the input spec
+     * Return all string-cell columns from the input spec
      *
      * @param inSpec
      * @return array of string column names
      */
-    private static String[] stringColumns(final DataTableSpec inSpec) {
+    private static List<DataColumnSpec> stringColumns(final DataTableSpec inSpec) {
         return inSpec.stream()//
             .filter(StringFormatManagerNodeModel::isStringCell)// only support string cells
-            .map(DataColumnSpec::getName)//
-            .toArray(String[]::new);
+            .toList();
     }
 
     static boolean isStringCell(final DataColumnSpec spec) {
@@ -156,8 +156,7 @@ public final class StringFormatManagerNodeModel extends WebUINodeModel<StringFor
             modelSettings.m_nLastChars, //
             modelSettings.m_wrapLinesOnDemand != WrapLinesOnDemandOption.NO, //
             modelSettings.m_wrapLinesOnDemand == WrapLinesOnDemandOption.ANYWHERE, //
-            modelSettings.m_alignmentSuggestion,
-            modelSettings.m_replaceNewlineAndCarriageReturn, //
+            modelSettings.m_alignmentSuggestion, modelSettings.m_replaceNewlineAndCarriageReturn, //
             modelSettings.m_replaceNonPrintableCharacters, //
             modelSettings.m_replaceEmptyString == CustomStringReplacementOption.CUSTOM
                 ? Optional.of(modelSettings.m_emptyStringReplacement) : Optional.empty(),

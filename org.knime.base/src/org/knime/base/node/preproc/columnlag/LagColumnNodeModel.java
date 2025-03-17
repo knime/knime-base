@@ -46,123 +46,64 @@
  */
 package org.knime.base.node.preproc.columnlag;
 
-import java.io.File;
-import java.io.IOException;
-
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.streamable.InputPortRole;
 import org.knime.core.node.streamable.OutputPortRole;
 import org.knime.core.node.streamable.PartitionInfo;
 import org.knime.core.node.streamable.StreamableOperator;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeModel;
 
 /**
  *
  * @author wiswedel
  */
-final class LagColumnNodeModel extends NodeModel {
-
-    private LagColumnConfiguration m_configuration;
+@SuppressWarnings("restriction")
+final class LagColumnNodeModel extends WebUINodeModel<LagColumnNodeSettings> {
 
     /** One in, one out. */
-    LagColumnNodeModel() {
-        super(1, 1);
+    LagColumnNodeModel(final WebUINodeConfiguration config) {
+        super(config, LagColumnNodeSettings.class);
     }
 
-    /** {@inheritDoc} */
     @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
-        DataTableSpec dictTable = inSpecs[0];
-        if (m_configuration == null) {
-            m_configuration = LagColumnConfiguration.autoConfigure(dictTable);
-        }
-        return new DataTableSpec[]{new LagColumnStreamableOperator(m_configuration, inSpecs[0]).getOutSpec()};
+    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final LagColumnNodeSettings settings)
+        throws InvalidSettingsException {
+        return new DataTableSpec[]{new LagColumnStreamableOperator(settings, inSpecs[0]).getOutSpec()};
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public InputPortRole[] getInputPortRoles() {
         return new InputPortRole[]{InputPortRole.NONDISTRIBUTED_STREAMABLE};
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public OutputPortRole[] getOutputPortRoles() {
         return new OutputPortRole[]{OutputPortRole.NONDISTRIBUTED};
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
-        final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        return new LagColumnStreamableOperator(m_configuration, (DataTableSpec)inSpecs[0]);
+        final PortObjectSpec[] inSpecs, final LagColumnNodeSettings settings) throws InvalidSettingsException {
+        return new LagColumnStreamableOperator(settings, (DataTableSpec)inSpecs[0]);
     }
 
-    /** {@inheritDoc} */
     @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
-        throws Exception {
+    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec,
+        final LagColumnNodeSettings nodeSettings) throws Exception {
         LagColumnStreamableOperator operator =
-            new LagColumnStreamableOperator(m_configuration, inData[0].getDataTableSpec());
+            new LagColumnStreamableOperator(nodeSettings, inData[0].getDataTableSpec());
         BufferedDataTable output = operator.execute(inData[0], exec);
         return new BufferedDataTable[]{output};
     }
 
-    /** {@inheritDoc} */
     @Override
-    protected void reset() {
-        // no internals
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
-        if (m_configuration != null) {
-            m_configuration.saveSettings(settings);
-        }
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        LagColumnConfiguration config = new LagColumnConfiguration();
-        config.loadSettingsInModel(settings);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        LagColumnConfiguration config = new LagColumnConfiguration();
-        config.loadSettingsInModel(settings);
-        m_configuration = config;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
-        // no internals
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
-        // no internals
+    protected void validateSettings(final LagColumnNodeSettings settings) throws InvalidSettingsException {
+        settings.validate();
     }
 
 }

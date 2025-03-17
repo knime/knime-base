@@ -62,8 +62,7 @@ import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 
 /**
@@ -72,6 +71,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValu
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @ExtendWith(FilterDummyDataCellExtension.class)
+@SuppressWarnings("restriction")
 final class FilterCriterionTest {
 
     private static final DataTableSpec SPEC = new DataTableSpecCreator() //
@@ -94,7 +94,7 @@ final class FilterCriterionTest {
         void testEqualityRowID() {
             // RowID with default values
             final var criterion = new FilterCriterion();
-            criterion.m_column = SpecialColumns.ROWID.toColumnSelection();
+            criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_ID);
             criterion.m_predicateValues = DynamicValuesInput.forRowID();
 
             criterion.m_operator = FilterOperator.EQ;
@@ -117,7 +117,7 @@ final class FilterCriterionTest {
             // Long column with default values
             final var criterion = new FilterCriterion();
 
-            criterion.m_column = new ColumnSelection(SPEC.getColumnSpec("Long1"));
+            criterion.m_column = new StringOrEnum<>("Long1");
             criterion.m_predicateValues =
                 DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(LongCell.TYPE);
 
@@ -147,7 +147,7 @@ final class FilterCriterionTest {
             final var criterion = new FilterCriterion();
 
             // Int column with Int reference
-            criterion.m_column = new ColumnSelection(SPEC.getColumnSpec("Int1"));
+            criterion.m_column = new StringOrEnum<>("Int1");
             criterion.m_predicateValues =
                 DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(IntCell.TYPE);
 
@@ -208,7 +208,7 @@ final class FilterCriterionTest {
         @Test
         void testEqualityDummy() {
             final var criterion = new FilterCriterion();
-            criterion.m_column = new ColumnSelection(SPEC.getColumnSpec("Dummy1"));
+            criterion.m_column = new StringOrEnum<>("Dummy1");
             criterion.m_predicateValues = DynamicValuesInput
                 .singleValueWithCaseMatchingForStringWithDefault(FilterDummyDataCellExtension.FilterDummyCell.TYPE);
 
@@ -222,7 +222,7 @@ final class FilterCriterionTest {
         void testEqualityIntException() {
             // Int column with default values and a String reference value
             final var criterion = new FilterCriterion();
-            criterion.m_column = new ColumnSelection(SPEC.getColumnSpec("Int1"));
+            criterion.m_column = new StringOrEnum<>("Int1");
             criterion.m_predicateValues =
                 DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(StringCell.TYPE);
             criterion.m_operator = FilterOperator.EQ;
@@ -251,7 +251,7 @@ final class FilterCriterionTest {
             // Long column with default values
             final var criterion = new FilterCriterion();
 
-            criterion.m_column = new ColumnSelection(SPEC.getColumnSpec("Long1"));
+            criterion.m_column = new StringOrEnum<>("Long1");
             criterion.m_predicateValues =
                 DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(StringCell.TYPE);
 
@@ -283,7 +283,7 @@ final class FilterCriterionTest {
             // Boolean cell can be filtered by IS_TRUE and IS_FALSE and nothing else.
             final var criterion = new FilterCriterion();
 
-            criterion.m_column = new ColumnSelection(SPEC.getColumnSpec("Bool1"));
+            criterion.m_column = new StringOrEnum<>("Bool1");
             criterion.m_predicateValues =
                 DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(BooleanCell.TYPE);
 
@@ -307,7 +307,7 @@ final class FilterCriterionTest {
         void testUnsupportedTruthy() {
             // anything other than BooleanCell are not supported by IS_TRUE and IS_FALSE
             final var criterion = new FilterCriterion();
-            criterion.m_column = SpecialColumns.ROWID.toColumnSelection();
+            criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_ID);
             criterion.m_predicateValues = DynamicValuesInput.forRowID();
 
             criterion.m_operator = FilterOperator.IS_TRUE;
@@ -334,21 +334,21 @@ final class FilterCriterionTest {
             criterion.m_operator = FilterOperator.LT;
 
             // Row numbers are orderable, but are handled via slicing, so there will be no predicate (factory) for it
-            criterion.m_column = SpecialColumns.ROW_NUMBERS.toColumnSelection();
+            criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_NUMBER);
             criterion.m_predicateValues = DynamicValuesInput.forRowNumber(LongCell.TYPE);
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Row number via LT") //
                 .hasMessage("Unsupported operator \"Less than\" for row number comparison");
 
             // RowIDs cannot be ordered (only column values)
-            criterion.m_column = SpecialColumns.ROWID.toColumnSelection();
+            criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_ID);
             criterion.m_predicateValues = DynamicValuesInput.forRowID();
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("RowID cannot be compared via ordering") //
                 .hasMessage("Unsupported operator \"Less than\" for RowID comparison");
 
             // Other DataCells can be ordered (for backwards-compatibility) but operators are hidden
-            criterion.m_column = new ColumnSelection(SPEC.getColumnSpec("String1"));
+            criterion.m_column = new StringOrEnum<>("String1");
             criterion.m_predicateValues =
                 DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(StringCell.TYPE);
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
@@ -356,7 +356,7 @@ final class FilterCriterionTest {
                 .doesNotThrowAnyException();
 
             // Normal column that implements BoundedValue
-            criterion.m_column = new ColumnSelection(SPEC.getColumnSpec("Long1"));
+            criterion.m_column = new StringOrEnum<>("Long1");
             criterion.m_predicateValues =
                 DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(LongCell.TYPE);
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
@@ -372,7 +372,7 @@ final class FilterCriterionTest {
         void testPatternMatchingRowID() {
             // RowID with default values
             final var criterion = new FilterCriterion();
-            criterion.m_column = SpecialColumns.ROWID.toColumnSelection();
+            criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_ID);
             criterion.m_predicateValues = DynamicValuesInput.forRowID();
 
             criterion.m_operator = FilterOperator.WILDCARD;
@@ -390,7 +390,7 @@ final class FilterCriterionTest {
         void testPatternMatchingRowNumber() {
             // RowNumber with default values
             final var criterion = new FilterCriterion();
-            criterion.m_column = SpecialColumns.ROW_NUMBERS.toColumnSelection();
+            criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_NUMBER);
             criterion.m_predicateValues = DynamicValuesInput.forRowNumber(StringCell.TYPE);
 
             criterion.m_operator = FilterOperator.WILDCARD;
@@ -410,7 +410,7 @@ final class FilterCriterionTest {
             // Long column with default values
             final var criterion = new FilterCriterion();
 
-            criterion.m_column = new ColumnSelection(SPEC.getColumnSpec("Long1"));
+            criterion.m_column = new StringOrEnum<>("Long1");
             criterion.m_predicateValues =
                 DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(StringCell.TYPE);
 
@@ -431,7 +431,7 @@ final class FilterCriterionTest {
             // Long column with default values
             final var criterion = new FilterCriterion();
 
-            criterion.m_column = new ColumnSelection(SPEC.getColumnSpec("Int1"));
+            criterion.m_column = new StringOrEnum<>("Int1");
             criterion.m_predicateValues =
                 DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(StringCell.TYPE);
 
@@ -452,7 +452,7 @@ final class FilterCriterionTest {
             // String column with default values
             final var criterion = new FilterCriterion();
 
-            criterion.m_column = new ColumnSelection(SPEC.getColumnSpec("String1"));
+            criterion.m_column = new StringOrEnum<>("String1");
             criterion.m_predicateValues =
                 DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(StringCell.TYPE);
 
@@ -471,7 +471,7 @@ final class FilterCriterionTest {
             // Double column with default values
             final var criterion = new FilterCriterion();
 
-            criterion.m_column = new ColumnSelection(SPEC.getColumnSpec("Double1"));
+            criterion.m_column = new StringOrEnum<>("Double1");
             criterion.m_predicateValues =
                 DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(StringCell.TYPE);
 

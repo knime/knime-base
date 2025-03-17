@@ -48,42 +48,13 @@
  */
 package org.knime.base.node.preproc.filter.rowref;
 
-import org.knime.base.node.preproc.filter.rowref.SettingsUtils.DataColumnChoices;
-import org.knime.base.node.preproc.filter.rowref.SettingsUtils.DataColumnPersistor;
-import org.knime.base.node.preproc.filter.rowref.SettingsUtils.ReferenceColumnChoices;
-import org.knime.base.node.preproc.filter.rowref.SettingsUtils.ReferenceColumnPersistor;
-import org.knime.base.node.preproc.filter.rowref.SettingsUtils.UpdateDomainsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
 
 /**
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-final class RowSplitRefNodeSettings implements DefaultNodeSettings {
+@Modification(AbstractRowFilterRefNodeSettings.AdjustDataColumnDescriptionsForSplitter.class)
+final class RowSplitRefNodeSettings extends AbstractRowFilterRefNodeSettings {
 
-    @Persistor(DataColumnPersistor.class)
-    @Widget(title = "Data column (in first input)",
-        description = "The column from the table to be split that should be used for comparison.")
-    @ChoicesWidget(choices = DataColumnChoices.class, showRowKeysColumn = true)
-    String m_dataColumn = SpecialColumns.ROWID.getId();
-
-    @Persistor(ReferenceColumnPersistor.class)
-    @Widget(title = "Reference column (in second input)",
-        description = "The column from the filter table that should be used for comparison.")
-    @ChoicesWidget(choices = ReferenceColumnChoices.class, showRowKeysColumn = true)
-    String m_referenceColumn = SpecialColumns.ROWID.getId();
-
-    @Widget(title = "Update domains of all columns", description = """
-            Advanced setting to enable recomputation of the domains of all \
-            columns in the output table such that the domains' bounds exactly \
-            match the bounds of the data in the output table.
-            """, advanced = true)
-    @Migrate(loadDefaultIfAbsent = true)
-    @Persistor(UpdateDomainsPersistor.class)
-    boolean m_updateDomains;
 }

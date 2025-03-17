@@ -52,6 +52,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.lang.ref.WeakReference;
 import java.util.Iterator;
+import java.util.function.Supplier;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -75,6 +76,7 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.workflow.SingleNodeContainer;
 import org.knime.core.node.workflow.virtual.parchunk.VirtualParallelizedChunkPortObjectInNodeFactory;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
@@ -82,9 +84,63 @@ import org.knime.core.node.workflow.virtual.parchunk.VirtualParallelizedChunkPor
 @SuppressWarnings("javadoc")
 public class AbstractRowRefNodeModelTest {
 
-    private static final class TestRowRefNodeModel extends AbstractRowRefNodeModel {
-        public TestRowRefNodeModel(final boolean isSplitter) {
-            super(isSplitter);
+    private static final class TestRowRefNodeSettings extends AbstractRowFilterRefNodeSettings {
+
+    }
+
+    private static final class TestRowRefNodeModel extends AbstractRowRefNodeModel<TestRowRefNodeSettings> {
+
+        static final WebUINodeConfiguration TEST_CONFIGURATION =
+            WebUINodeConfiguration.builder().name("TestRowRefNode").icon(null).shortDescription(null)
+                .fullDescription(null).modelSettingsClass(TestRowRefNodeSettings.class).build();
+
+        public TestRowRefNodeModel() {
+            super(TEST_CONFIGURATION, TestRowRefNodeSettings.class);
+        }
+
+        @Override
+        DataTableSpec[] getOutputSpecs(final DataTableSpec inputSpec) {
+            return new DataTableSpec[]{inputSpec};
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        BufferedDataTable[] noopExecute(final BufferedDataTable inputTable) {
+            return new BufferedDataTable[]{inputTable};
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        OutputCreator createOutputCreator(final DataTableSpec spec, final ExecutionContext exec,
+            final TestRowRefNodeSettings settings) {
+            return new OutputCreator(spec, exec);
+        }
+
+        static final class OutputCreator extends AbstractRowRefNodeModel.OutputCreator {
+
+            private final BufferedDataContainer m_container;
+
+            OutputCreator(final DataTableSpec spec, final ExecutionContext exec) {
+                m_container = exec.createDataContainer(spec);
+            }
+
+            @Override
+            void addRow(final DataRow row, final boolean isIncluded) {
+                if (isIncluded) {
+                    m_container.addRowToTable(row);
+                }
+            }
+
+            @Override
+            BufferedDataTable[] createTables(final boolean updateDomains,
+                final Supplier<ExecutionContext> domainUpdateExecSupplier) {
+                m_container.close();
+                return new BufferedDataTable[]{m_container.getTable()};
+            }
         }
     }
 
@@ -132,9 +188,9 @@ public class AbstractRowRefNodeModelTest {
 
     @Test
     public void testSmallInputSmallReference() throws Exception {
-        final TestRowRefNodeModel model = new TestRowRefNodeModel(false);
+        final TestRowRefNodeModel model = new TestRowRefNodeModel();
         final BufferedDataTable[] inData = new BufferedDataTable[]{generateData(1, 64), generateData(33, 96)};
-        final BufferedDataTable[] outData = model.execute(inData, m_exec);
+        final BufferedDataTable[] outData = model.execute(inData, m_exec, new TestRowRefNodeSettings());
         compare(generateData(33, 64), outData[0]);
     }
 
@@ -150,10 +206,10 @@ public class AbstractRowRefNodeModelTest {
                 forceGC();
             }
 
-            final TestRowRefNodeModel model = new TestRowRefNodeModel(false);
+            final TestRowRefNodeModel model = new TestRowRefNodeModel();
             final BufferedDataTable emptyTable = generateData(0, -1);
             final BufferedDataTable[] inData = new BufferedDataTable[]{emptyTable, generateData(0, 128)};
-            final BufferedDataTable[] outData = model.execute(inData, m_exec);
+            final BufferedDataTable[] outData = model.execute(inData, m_exec, new TestRowRefNodeSettings());
 
             compare(emptyTable, outData[0]);
 

@@ -121,18 +121,8 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/startColumnName",
         "options" : {
-          "possibleValues" : [ {
-            "id" : "test1",
-            "text" : "test1"
-          }, {
-            "id" : "test2",
-            "text" : "test2"
-          } ],
-          "format" : "dropDown",
-          "showNoneColumn" : false,
-          "showRowKeys" : false,
-          "showSearch" : true,
-          "showMode" : true
+          "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
+          "format" : "dropDown"
         },
         "rule" : {
           "effect" : "SHOW",
@@ -149,18 +139,8 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/endColumnName",
         "options" : {
-          "possibleValues" : [ {
-            "id" : "test1",
-            "text" : "test1"
-          }, {
-            "id" : "test2",
-            "text" : "test2"
-          } ],
-          "format" : "dropDown",
-          "showNoneColumn" : false,
-          "showRowKeys" : false,
-          "showSearch" : true,
-          "showMode" : true
+          "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
+          "format" : "dropDown"
         },
         "rule" : {
           "effect" : "SHOW",
@@ -334,5 +314,27 @@
         }
       }
     }
-  }
+  },
+  "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test1",
+        "text" : "test1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Floating Decimal)"
+        }
+      }, {
+        "id" : "test2",
+        "text" : "test2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ]
 }

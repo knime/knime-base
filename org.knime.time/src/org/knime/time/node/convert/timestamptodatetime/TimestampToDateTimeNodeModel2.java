@@ -87,9 +87,9 @@ final class TimestampToDateTimeNodeModel2
     @Override
     protected ColumnRearranger createColumnRearranger(final DataTableSpec inSpec,
         final TimestampToDateTimeNodeSettings settings) throws InvalidSettingsException {
-        final var timestampColumns = inSpec.stream().filter(TimestampToDateTimeNodeSettings::isTimestampColumn)
-            .map(DataColumnSpec::getName).toArray(String[]::new);
-        final String[] includeList = settings.m_timestampColumns.getSelected(timestampColumns, inSpec);
+        final var timestampColumns =
+            inSpec.stream().filter(TimestampToDateTimeNodeSettings::isTimestampColumn).toList();
+        final String[] includeList = settings.m_timestampColumns.filter(timestampColumns);
         return settings.m_appendOrReplace.createRearranger(includeList, inSpec, (col, newName) -> {
             final var dataColumnSpec =
                 new DataColumnSpecCreator(newName, settings.m_outputType.getDataType()).createSpec();

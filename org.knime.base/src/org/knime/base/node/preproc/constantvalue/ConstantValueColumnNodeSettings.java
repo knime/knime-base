@@ -49,6 +49,7 @@
 package org.knime.base.node.preproc.constantvalue;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -63,13 +64,13 @@ import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.DataTypeChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.DataTypeChoicesStateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
@@ -121,12 +122,12 @@ final class ConstantValueColumnNodeSettings implements DefaultNodeSettings {
         String m_columnNameToAppend = "New column";
 
         @Widget(title = "Replace column", description = "The name of the column to replace.")
-        @ChoicesWidget(choices = ReplaceableColumnProvider.class)
+        @ChoicesProvider(AllColumnsProvider.class)
         @Effect(predicate = AppendOrReplace.IsReplace.class, type = EffectType.SHOW)
         String m_columnNameToReplace;
 
         @Widget(title = "Column type", description = "The type of the new column.")
-        @ChoicesWidget(choicesProvider = SupportedDataTypeChoicesProvider.class)
+        @ChoicesProvider(SupportedDataTypeChoicesProvider.class)
         DataType m_type = StringCellFactory.TYPE;
 
         @Widget(title = "Fill value", description = """
@@ -140,17 +141,6 @@ final class ConstantValueColumnNodeSettings implements DefaultNodeSettings {
         @Widget(title = "Custom value", description = "The value to be used when filling the output column.")
         @Effect(predicate = CustomOrMissingValue.IsMissing.class, type = EffectType.HIDE)
         String m_value = "";
-
-        static final class ReplaceableColumnProvider implements ColumnChoicesProvider {
-
-            @Override
-            public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
-                return context.getDataTableSpec(0) //
-                    .map(DataTableSpec::stream) //
-                    .map(s -> s.toArray(DataColumnSpec[]::new)) //
-                    .orElseGet(() -> new DataColumnSpec[0]);
-            }
-        }
 
         enum AppendOrReplace {
 
@@ -224,13 +214,12 @@ final class ConstantValueColumnNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public DataType[] choices(final DefaultNodeSettingsContext context) {
+        public List<DataType> choices(final DefaultNodeSettingsContext context) {
             return DataTypeRegistry.getInstance().availableDataTypes().stream() //
                 .filter(d -> {
                     var factory = d.getCellFactory(null);
                     return factory.map(FromString.class::isInstance).orElse(false);
-                }) //
-                .toArray(DataType[]::new);
+                }).toList();
         }
 
         static Optional<DataCell> createDataCellFromString(final String value, final DataType type,

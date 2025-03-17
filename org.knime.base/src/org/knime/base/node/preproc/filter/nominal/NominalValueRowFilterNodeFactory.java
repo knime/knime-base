@@ -54,12 +54,12 @@ import org.knime.core.webui.node.impl.WebUINodeFactory;
  * @author Jakob Sanowski, KNIME GmbH, Konstanz
  * @since 5.3
  */
+@SuppressWarnings("restriction")
 public class NominalValueRowFilterNodeFactory extends WebUINodeFactory<NominalValueRowFilterNodeModel> {
 
     /**
      * @since 5.3
      */
-    @SuppressWarnings("restriction")
     private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
         .name("Nominal Value Row Filter")//
         .icon("./nominal_value_filter.png")//

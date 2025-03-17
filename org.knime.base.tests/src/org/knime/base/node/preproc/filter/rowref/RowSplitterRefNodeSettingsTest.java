@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.preproc.filter.rowref;
 
+import static org.knime.base.node.preproc.filter.rowref.RowFilterRefNodeSettingsTest.TEST_SPEC;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 
@@ -71,6 +73,7 @@ final class RowSplitRefNodeSettingsTest extends DefaultNodeSettingsSnapshotTest 
 
     private static SnapshotTestConfiguration getConfig() {
         return SnapshotTestConfiguration.builder() //
+            .withInputPortObjectSpecs(TEST_SPEC) //
             .testJsonFormsForModel(RowSplitRefNodeSettings.class) //
             .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
             .testNodeSettingsStructure(() -> readSettings()) //

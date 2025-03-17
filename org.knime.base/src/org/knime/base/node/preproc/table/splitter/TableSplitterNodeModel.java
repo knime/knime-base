@@ -85,9 +85,6 @@ import org.knime.core.webui.node.impl.WebUINodeModel;
 @SuppressWarnings("restriction") // uses the restricted WebUI API
 final class TableSplitterNodeModel extends WebUINodeModel<TableSplitterNodeSettings> {
 
-    /** Placeholder string for the RowID column */
-    static final String ROWID_PLACEHOLDER = "<row-keys>";
-
     // Warning and error messages
 
     private static final String NO_MATCHING_ROW_WARNING = "No matching row found. Bottom output table is empty.";
@@ -115,26 +112,24 @@ final class TableSplitterNodeModel extends WebUINodeModel<TableSplitterNodeSetti
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final TableSplitterNodeSettings settings)
         throws InvalidSettingsException {
         final var spec = inSpecs[0];
-        final var rowidSelected = ROWID_PLACEHOLDER.equals(settings.m_lookupColumn);
-        final var selectedColumn = spec.stream().filter(c -> settings.m_lookupColumn.equals(c.getName())).findAny();
+        final var lookupColumn = settings.m_lookupColumn;
+        final var rowidSelected = lookupColumn.getEnumChoice().isPresent();
 
-        // Check that the selected column is still available
-        if (!rowidSelected && selectedColumn.isEmpty()) {
-            throw new InvalidSettingsException(String.format(SELECTED_COLUMN_MISSING_ERROR, settings.m_lookupColumn));
+        if (!rowidSelected) {
+            final var lookupColumnName = lookupColumn.getStringChoice();
+            final var selectedColumn = spec.stream().filter(c -> lookupColumnName.equals(c.getName())).findAny();
+            if (selectedColumn.isEmpty()) {
+                throw new InvalidSettingsException(String.format(SELECTED_COLUMN_MISSING_ERROR, lookupColumnName));
+            }
+            if (settings.m_matchingCriteria == MatchingCriteria.EQUALS) {
+                checkColumnTypeAndSearchPattern(selectedColumn.get(), settings.m_searchPattern);
+            }
         }
 
-        // Check if the search pattern fits the type of the selected column
-        if (!rowidSelected && settings.m_matchingCriteria == MatchingCriteria.EQUALS) {
-            // NB: selectedColumn.isPresent() -> true because otherwise we throw the exception earlier
-            checkColumnTypeAndSearchPattern(selectedColumn.get(), settings.m_searchPattern);
-        }
-
-        // Warning if RowID is selected and the matching criteria is "Missing"
         if (rowidSelected && settings.m_matchingCriteria == MatchingCriteria.MISSING) {
             setWarningMessage(ROWID_MISSING_CRITERIA_WARNING);
         }
 
-        // Output two tables with the same spec as the input table
         return new DataTableSpec[]{spec, spec};
     }
 
@@ -260,10 +255,10 @@ final class TableSplitterNodeModel extends WebUINodeModel<TableSplitterNodeSetti
     /** Create a table filter that only materializes the column we check on */
     private static TableFilter createColumnFilter(final BufferedDataTable table,
         final TableSplitterNodeSettings settings) {
-        if (ROWID_PLACEHOLDER.equals(settings.m_lookupColumn)) {
+        if (settings.m_lookupColumn.getEnumChoice().isPresent()) {
             return TableFilter.materializeCols();
         } else {
-            return TableFilter.materializeCols(table.getDataTableSpec(), settings.m_lookupColumn);
+            return TableFilter.materializeCols(table.getDataTableSpec(), settings.m_lookupColumn.getStringChoice());
         }
     }
 
@@ -287,7 +282,7 @@ final class TableSplitterNodeModel extends WebUINodeModel<TableSplitterNodeSetti
     /** Create a predicate that returns true if a given row matches according to the settings */
     private static Predicate<RowRead> createRowMatcher(final DataTableSpec spec,
         final TableSplitterNodeSettings settings) {
-        if (ROWID_PLACEHOLDER.equals(settings.m_lookupColumn)) {
+        if (settings.m_lookupColumn.getEnumChoice().isPresent()) {
             if (settings.m_matchingCriteria == MatchingCriteria.EQUALS) {
                 return row -> settings.m_searchPattern.equals(row.getRowKey().getString());
             } else if (settings.m_matchingCriteria == MatchingCriteria.EMPTY) {
@@ -297,7 +292,7 @@ final class TableSplitterNodeModel extends WebUINodeModel<TableSplitterNodeSetti
                 return row -> false;
             }
         } else {
-            final int columnIdx = spec.findColumnIndex(settings.m_lookupColumn);
+            final int columnIdx = spec.findColumnIndex(settings.m_lookupColumn.getStringChoice());
             if (settings.m_matchingCriteria == MatchingCriteria.EQUALS) {
                 return createEqualsColumnRowMatcher(spec, columnIdx, settings.m_searchPattern);
             } else if (settings.m_matchingCriteria == MatchingCriteria.EMPTY) {

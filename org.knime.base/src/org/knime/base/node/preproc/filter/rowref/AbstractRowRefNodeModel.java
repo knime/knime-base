@@ -44,143 +44,150 @@
  */
 package org.knime.base.node.preproc.filter.rowref;
 
-import java.io.File;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableDomainCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.util.memory.MemoryAlertSystem;
-import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
+import org.knime.core.node.util.CheckUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeModel;
 
 /**
  * The Reference Row Filter node allow the filtering of row IDs based on a second reference table. Two modes are
  * possible, either the corresponding row IDs of the first table are included or excluded in the resulting output table.
  *
  * @author Christian Dietz, University of Konstanz
+ * @author Paul Baernreuther, KNIME
+ * @param <S> the model settings
  * @since 3.1
  */
-public abstract class AbstractRowRefNodeModel extends NodeModel {
-
-    private static final String CFG_UPDATE_DOMAINS = "updateDomains";
+@SuppressWarnings("restriction")
+public abstract class AbstractRowRefNodeModel<S extends AbstractRowFilterRefNodeSettings> extends WebUINodeModel<S> {
 
     /** The minimum number of elements that is being read from the reference table even if memory is low. */
     private static final long MIN_ELEMENTS_READ = 128;
 
-    /** Settings model for the reference column of the data table to filter. */
-    private final SettingsModelColumnName m_dataTableCol = createDataTableColModel();
-
-    /** Settings model for the reference column of the reference table. */
-    private final SettingsModelColumnName m_referenceTableCol = createReferenceTableColModel();
-
-    /** If domains should be updated. This element is only shown in the modern UI, defaults to "false" otherwise. */
-    private final SettingsModelBoolean m_updateDomains = new SettingsModelBoolean(CFG_UPDATE_DOMAINS, false);
-
-    /* Indicator if splitter mode or default row reference filter */
-    private boolean m_isSplitter;
+    static final double FRACTION_DOMAIN_UPDATE = 0.2;
 
     /**
-     * Creates a new reference row filter node model with two inputs and one filtered output.
-     *
-     * @param isSplitter indicator if class is used by row reference splitter or row-reference filter.
+     * @param config
+     * @param settingsClass
+     * @since 5.5
      */
-    public AbstractRowRefNodeModel(final boolean isSplitter) {
-        super(2, isSplitter ? 2 : 1);
-        this.m_isSplitter = isSplitter;
+    public AbstractRowRefNodeModel(final WebUINodeConfiguration config, final Class<S> settingsClass) {
+        super(config, settingsClass);
     }
 
+    abstract DataTableSpec[] getOutputSpecs(DataTableSpec inputSpec);
+
+    abstract BufferedDataTable[] noopExecute(BufferedDataTable inputTable);
+
+    abstract OutputCreator createOutputCreator(DataTableSpec spec, ExecutionContext exec, S settings);
+
+    static abstract class OutputCreator {
+
+        abstract void addRow(DataRow row, boolean isInSet);
+
+        abstract BufferedDataTable[] createTables(boolean updateDomains,
+            Supplier<ExecutionContext> domainUpdateExecSupplier) throws CanceledExecutionException;
+
+    }
+
+    /**
+     * @since 5.5
+     */
     @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
-        if (!m_dataTableCol.useRowID()) {
-            final DataColumnSpec dataColSpec = inSpecs[0].getColumnSpec(m_dataTableCol.getColumnName());
+    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final S settings)
+        throws InvalidSettingsException {
+        final var dataColumn = settings.m_dataColumn;
+        final var dataColumnUsesRowID = dataColumn.getEnumChoice().isPresent();
+        if (!dataColumnUsesRowID) {
+            final var dataColName = dataColumn.getStringChoice();
+            final DataColumnSpec dataColSpec = inSpecs[0].getColumnSpec(dataColName);
             if (dataColSpec == null) {
-                throw new InvalidSettingsException("The selected data column \"" + m_dataTableCol.getColumnName()
+                throw new InvalidSettingsException("The selected data column \"" + dataColName
                     + "\" does not exist in the table that should be filtered.");
             }
         }
-        if (!m_referenceTableCol.useRowID()) {
-            final DataColumnSpec refColSpec = inSpecs[1].getColumnSpec(m_referenceTableCol.getColumnName());
+        final var refColumn = settings.m_referenceColumn;
+        final var refColumnUsesRowID = refColumn.getEnumChoice().isPresent();
+        if (!refColumnUsesRowID) {
+            final var refColName = refColumn.getStringChoice();
+            final DataColumnSpec refColSpec = inSpecs[1].getColumnSpec(refColName);
             if (refColSpec == null) {
-                throw new InvalidSettingsException("The selected reference column \""
-                    + m_referenceTableCol.getColumnName() + "\" does not exist in the reference table.");
+                throw new InvalidSettingsException(
+                    "The selected reference column \"" + refColName + "\" does not exist in the reference table.");
             }
         }
-        if (m_dataTableCol.useRowID() != m_referenceTableCol.useRowID()) {
-            if (m_dataTableCol.useRowID()) {
-                setWarningMessage("Using string representation of reference table column "
-                    + m_referenceTableCol.getColumnName() + " for RowID comparison.");
+        if (dataColumnUsesRowID != refColumnUsesRowID) {
+            if (dataColumnUsesRowID) {
+                setWarningMessage("Using string representation of reference table column " + refColumnUsesRowID
+                    + " for RowID comparison.");
             } else {
-                setWarningMessage("Using string representation of data table column " + m_dataTableCol.getColumnName()
+                setWarningMessage("Using string representation of data table column " + dataColumn.getStringChoice()
                     + " for RowID comparison.");
             }
-        } else if (!m_dataTableCol.useRowID()) {
-            final DataColumnSpec dataColSpec = inSpecs[0].getColumnSpec(m_dataTableCol.getColumnName());
-            final DataColumnSpec refColSpec = inSpecs[1].getColumnSpec(m_referenceTableCol.getColumnName());
+        } else if (!dataColumnUsesRowID) { // i.e. both use column names
+            final DataColumnSpec dataColSpec = inSpecs[0].getColumnSpec(dataColumn.getStringChoice());
+            final DataColumnSpec refColSpec = inSpecs[1].getColumnSpec(refColumn.getStringChoice());
+
             if (!refColSpec.getType().equals(dataColSpec.getType())) {
                 setWarningMessage(
                     "The selected columns have different type. Using string representation for comparison.");
             }
         }
-        return m_isSplitter ? new DataTableSpec[]{inSpecs[0], inSpecs[0]} : new DataTableSpec[]{inSpecs[0]};
+        return getOutputSpecs(inSpecs[0]);
     }
 
+    /**
+     * @since 5.5
+     */
     @SuppressWarnings({"null", "resource"})
     @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
-        throws Exception {
+    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec,
+        final S settings) throws Exception {
 
         final BufferedDataTable dataTable = inData[0];
         if (dataTable.size() < 1) {
-            return m_isSplitter ? new BufferedDataTable[]{dataTable, dataTable} : new BufferedDataTable[]{dataTable};
+            return noopExecute(dataTable);
         }
-        final String dataColName = m_dataTableCol.getColumnName();
-        final boolean useDataRowKey = m_dataTableCol.useRowID();
         final DataTableSpec dataTableSpec = dataTable.getSpec();
-        final int dataColIdx = dataTableSpec.findColumnIndex(dataColName);
-        if (!useDataRowKey && dataColIdx < 0) {
-            throw new InvalidSettingsException("The selected data column \"" + dataColName
-                + "\" does not exist in the table that should be filtered.");
-        }
         final BufferedDataTable refTable = inData[1];
-        final String refColName = m_referenceTableCol.getColumnName();
-        final boolean useRefRowKey = m_referenceTableCol.useRowID();
         final DataTableSpec refTableSpec = refTable.getSpec();
-        final int refColIdx = refTableSpec.findColumnIndex(refColName);
-        if (!useRefRowKey && refColIdx < 0) {
-            throw new InvalidSettingsException(
-                "The selected reference column \"" + refColName + "\" does not exist in the reference table.");
-        }
         //check if we have to use String for comparison
         boolean filterByString = false;
+        final var dataColumn = settings.m_dataColumn;
+        final var refColumn = settings.m_referenceColumn;
+        final var useDataRowKey = dataColumn.getEnumChoice().isPresent();
+        final var useRefRowKey = refColumn.getEnumChoice().isPresent();
         if (useDataRowKey != useRefRowKey) {
             filterByString = true;
         } else if (!useDataRowKey) {
-            final DataColumnSpec refColSpec = refTableSpec.getColumnSpec(refColName);
-            final DataColumnSpec datColSpec = dataTableSpec.getColumnSpec(dataColName);
+            final DataColumnSpec refColSpec = refTableSpec.getColumnSpec(refColumn.getStringChoice());
+            final DataColumnSpec datColSpec = dataTableSpec.getColumnSpec(dataColumn.getStringChoice());
             if (!refColSpec.getType().equals(datColSpec.getType())) {
                 filterByString = true;
             }
         }
 
-        final boolean isInvertInclusion = isInvertInclusion();
-        final BufferedDataContainer firstBuf = exec.createDataContainer(dataTableSpec);
-        final BufferedDataContainer secondBuf = m_isSplitter ? exec.createDataContainer(dataTableSpec) : null;
+        final var outputCreator = createOutputCreator(dataTableSpec, exec, settings);
 
         final double refTableSizeFraction = (double)refTable.size() / (refTable.size() + dataTable.size());
-        final double fractionWithoutDomainUpdate = m_updateDomains.getBooleanValue() ? 0.8 : 1.0;
+        final double fractionWithoutDomainUpdate = settings.m_updateDomains ? 1.0 - FRACTION_DOMAIN_UPDATE : 1.0;
         final ExecutionMonitor readRefMon =
             exec.createSubExecutionContext(refTableSizeFraction * fractionWithoutDomainUpdate);
         final ExecutionMonitor writeMon =
@@ -193,6 +200,8 @@ public abstract class AbstractRowRefNodeModel extends NodeModel {
 
         long rowCnt = 0;
         final Iterator<DataRow> it = refTable.iterator();
+        final var refColIdx = toColIndex(refTableSpec, refColumn);
+        final var dataColIdx = toColIndex(dataTableSpec, dataColumn);
         do {
             //create the set to filter by
             final Set<Object> keySet = new HashSet<Object>();
@@ -201,16 +210,16 @@ public abstract class AbstractRowRefNodeModel extends NodeModel {
             while (it.hasNext()) {
                 exec.checkCanceled();
                 if (filterByString) {
-                    if (useRefRowKey) {
+                    if (refColIdx.isEmpty()) {
                         keySet.add(it.next().getKey().getString());
                     } else {
-                        keySet.add(it.next().getCell(refColIdx).toString());
+                        keySet.add(it.next().getCell(refColIdx.get()).toString());
                     }
                 } else {
-                    if (useRefRowKey) {
+                    if (dataColIdx.isEmpty()) {
                         keySet.add(it.next().getKey());
                     } else {
-                        keySet.add(it.next().getCell(refColIdx));
+                        keySet.add(it.next().getCell(dataColIdx.get()));
                     }
                 }
                 readRefMon.setProgress(rowCnt++ / (double)refTable.size(), () -> "Reading reference table...");
@@ -236,28 +245,23 @@ public abstract class AbstractRowRefNodeModel extends NodeModel {
                 //get the right value to check for...
                 final Object val2Compare;
                 if (filterByString) {
-                    if (useDataRowKey) {
+                    if (dataColIdx.isEmpty()) {
                         val2Compare = row.getKey().getString();
                     } else {
-                        val2Compare = row.getCell(dataColIdx).toString();
+                        val2Compare = row.getCell(dataColIdx.get()).toString();
                     }
                 } else {
-                    if (useDataRowKey) {
+                    if (dataColIdx.isEmpty()) {
                         val2Compare = row.getKey();
                     } else {
-                        val2Compare = row.getCell(dataColIdx);
+                        val2Compare = row.getCell(dataColIdx.get());
                     }
                 }
 
                 if (fullyFitsIntoMemory) {
                     //...include/exclude matching rows by checking the val2Compare
                     writeMon.setProgress(rowCnt++ / (double)dataTable.size(), () -> "Filtering...");
-                    if ((keySet.contains(val2Compare) && !isInvertInclusion)
-                        || (!keySet.contains(val2Compare) && isInvertInclusion)) {
-                        firstBuf.addRowToTable(row);
-                    } else if (m_isSplitter) {
-                        secondBuf.addRowToTable(row);
-                    }
+                    outputCreator.addRow(row, keySet.contains(val2Compare));
                 } else {
                     // use the bit array to memorize which rows to keep / discard
                     if (keySet.contains(val2Compare)) {
@@ -276,118 +280,34 @@ public abstract class AbstractRowRefNodeModel extends NodeModel {
             for (final DataRow row : dataTable) {
                 exec.checkCanceled();
                 writeMon.setProgress(rowCnt++ / (double)dataTable.size(), () -> "Filtering...");
-                final boolean bit = bitArray.getBit();
-                if ((bit && !isInvertInclusion) || (!bit && isInvertInclusion)) {
-                    firstBuf.addRowToTable(row);
-                } else if (m_isSplitter) {
-                    secondBuf.addRowToTable(row);
-                }
+                outputCreator.addRow(row, bitArray.getBit());
             }
             bitArray.close();
         }
 
-        firstBuf.close();
-        var firstTable = firstBuf.getTable();
-        BufferedDataTable secondTable = null;
-        if (m_isSplitter) {
-            secondBuf.close();
-            secondTable = secondBuf.getTable();
-        }
+        return outputCreator.createTables(settings.m_updateDomains,
+            () -> exec.createSubExecutionContext(FRACTION_DOMAIN_UPDATE));
 
-        if (m_updateDomains.getBooleanValue()) {
-            var domainUpdateExec = exec.createSubExecutionContext(1.0 - fractionWithoutDomainUpdate);
-            firstTable = updateDomain(firstTable,
-                m_isSplitter ? domainUpdateExec.createSubExecutionContext(0.5) : domainUpdateExec);
-            if (m_isSplitter) {
-                secondTable = updateDomain(secondTable, domainUpdateExec.createSubExecutionContext(0.5));
-            }
-        }
-
-        return m_isSplitter ? new BufferedDataTable[]{firstTable, secondTable} : new BufferedDataTable[]{firstTable};
     }
 
     /**
-     * It's a hack to get row-reference filter working. Row Reference filter can override this method and determine is
-     * mode.
-     *
-     * @return true if rows available in the reference table should be excluded
+     * @return either an empty optional if row keys are used or containing a non-negative column index
      */
-    protected boolean isInvertInclusion() {
-        return false;
-    }
-
-    @Override
-    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec) {
-        //nothing to load
-    }
-
-    @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        try {
-            m_dataTableCol.loadSettingsFrom(settings);
-            m_referenceTableCol.loadSettingsFrom(settings);
-            if (settings.containsKey(CFG_UPDATE_DOMAINS)) {
-                m_updateDomains.loadSettingsFrom(settings);
-            }
-        } catch (final InvalidSettingsException e) {
-            //the previous version had no column options use the rowkey for both
-            //Introduced in KNIME 2.0
-            m_dataTableCol.setSelection(null, true);
-            m_referenceTableCol.setSelection(null, true);
+    private static Optional<Integer> toColIndex(final DataTableSpec spec, final StringOrEnum<RowIDChoice> column) {
+        if (column.getEnumChoice().isPresent()) {
+            return Optional.empty();
         }
+        final var colIndex = spec.findColumnIndex(column.getStringChoice());
+        CheckUtils.checkState(colIndex >= 0, "Column not found: " + column.getStringChoice());
+        return Optional.of(colIndex);
     }
 
-    @Override
-    protected void reset() {
-        //nothing to reset
-    }
-
-    @Override
-    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec) {
-        //nothing to save
-    }
-
-    @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
-        m_dataTableCol.saveSettingsTo(settings);
-        m_referenceTableCol.saveSettingsTo(settings);
-        m_updateDomains.saveSettingsTo(settings);
-    }
-
-    @Override
-    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_dataTableCol.validateSettings(settings);
-        m_referenceTableCol.validateSettings(settings);
-
-        if (settings.containsKey(CFG_UPDATE_DOMAINS)) {
-            m_updateDomains.validateSettings(settings);
-        }
-    }
-
-    private static BufferedDataTable updateDomain(final BufferedDataTable table, final ExecutionContext exec)
+    static BufferedDataTable updateDomain(final BufferedDataTable table, final ExecutionContext exec)
         throws CanceledExecutionException {
         var domainCalculator = new DataTableDomainCreator(table.getDataTableSpec(), false);
         domainCalculator.updateDomain(table, exec);
         var specWithNewDomain = domainCalculator.createSpec();
         return exec.createSpecReplacerTable(table, specWithNewDomain);
-    }
-
-    /**
-     * @return setting model for for the column of the table to filter
-     */
-    private static SettingsModelColumnName createDataTableColModel() {
-        final SettingsModelColumnName col = new SettingsModelColumnName("dataTableColumn", null);
-        col.setSelection(null, true);
-        return col;
-    }
-
-    /**
-     * @return setting model for the column of the reference table
-     */
-    private static SettingsModelColumnName createReferenceTableColModel() {
-        final SettingsModelColumnName col = new SettingsModelColumnName("referenceTableColumn", null);
-        col.setSelection(null, true);
-        return col;
     }
 
 }

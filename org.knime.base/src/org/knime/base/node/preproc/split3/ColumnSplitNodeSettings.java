@@ -51,10 +51,11 @@ package org.knime.base.node.preproc.split3;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TwinlistWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
 
 /**
  * Settings for the new WebUI version of the column splitter node.
@@ -68,11 +69,8 @@ final class ColumnSplitNodeSettings implements DefaultNodeSettings {
             Columns on the right side of the splitter will be included in the first output table. \
             Those on the left side will be included in the second output table.
             """)
-    @ChoicesWidget( //
-        choices = AllColumnsProvider.class, //
-        includedLabel = "First table", //
-        excludedLabel = "Second table" //
-    )
+    @ChoicesProvider(AllColumnsProvider.class)
+    @TwinlistWidget(includedLabel = "First table", excludedLabel = "Second table")
     ColumnFilter m_columnsToInclude = new ColumnFilter();
 
     ColumnSplitNodeSettings() {
@@ -84,19 +82,5 @@ final class ColumnSplitNodeSettings implements DefaultNodeSettings {
             .flatMap(DataTableSpec::stream) //
             .map(DataColumnSpec::getName) //
             .toArray(String[]::new));
-    }
-
-    /**
-     * Match every column in the input table.
-     */
-    static final class AllColumnsProvider implements ColumnChoicesProvider {
-
-        @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0) //
-                .stream() //
-                .flatMap(DataTableSpec::stream) //
-                .toArray(DataColumnSpec[]::new);
-        }
     }
 }

@@ -116,21 +116,6 @@
                     "items" : {
                       "type" : "string"
                     }
-                  },
-                  "typeDisplays" : {
-                    "default" : [ ],
-                    "type" : "array",
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "id" : {
-                          "type" : "string"
-                        },
-                        "text" : {
-                          "type" : "string"
-                        }
-                      }
-                    }
                   }
                 },
                 "default" : {
@@ -243,12 +228,10 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/columnFilter",
       "options" : {
-        "format" : "columnFilter",
-        "choicesProvider" : "org.knime.time.node.manipulate.datetimeshift.TimeShiftNodeSettings$ColumnProvider",
-        "showNoneColumn" : false,
-        "showRowKeys" : false,
-        "showSearch" : true,
-        "showMode" : true
+        "format" : "typedNameFilter",
+        "unknownValuesText" : "Any unknown column",
+        "emptyStateLabel" : "No columns in this list.",
+        "choicesProvider" : "org.knime.time.node.manipulate.datetimeshift.TimeShiftNodeSettings$ColumnProvider"
       }
     }, {
       "type" : "Control",
@@ -278,20 +261,8 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/durationColumn",
       "options" : {
-        "possibleValues" : [ {
-          "id" : "durationTest",
-          "text" : "durationTest",
-          "type" : {
-            "id" : "org.knime.core.data.time.duration.DurationValue",
-            "text" : "Duration (Time-based)"
-          },
-          "compatibleTypes" : [ "org.knime.core.data.time.duration.DurationValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
-        } ],
-        "format" : "dropDown",
-        "showNoneColumn" : false,
-        "showRowKeys" : false,
-        "showSearch" : true,
-        "showMode" : true
+        "choicesProvider" : "org.knime.time.util.DateTimeUtils$DurationColumnProvider",
+        "format" : "dropDown"
       },
       "rule" : {
         "effect" : "SHOW",
@@ -309,11 +280,7 @@
       "scope" : "#/properties/model/properties/numericalColumn",
       "options" : {
         "choicesProvider" : "org.knime.time.node.manipulate.datetimeshift.DateTimeShiftSettingsUtils$NumberColumnProvider",
-        "format" : "dropDown",
-        "showNoneColumn" : false,
-        "showRowKeys" : false,
-        "showSearch" : true,
-        "showMode" : true
+        "format" : "dropDown"
       },
       "rule" : {
         "effect" : "SHOW",
@@ -394,10 +361,7 @@
               "typeFilter" : {
                 "type" : "object",
                 "properties" : {
-                  "selectedTypes" : { },
-                  "typeDisplays" : {
-                    "configPaths" : [ ]
-                  }
+                  "selectedTypes" : { }
                 }
               }
             }
@@ -431,24 +395,35 @@
         "type" : {
           "id" : "org.knime.core.data.time.localtime.LocalTimeValue",
           "text" : "Time"
-        },
-        "compatibleTypes" : [ "org.knime.core.data.time.localtime.LocalTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
+        }
       }, {
         "id" : "localDateTimeTest",
         "text" : "localDateTimeTest",
         "type" : {
           "id" : "org.knime.core.data.time.localdatetime.LocalDateTimeValue",
           "text" : "Date&time (Local)"
-        },
-        "compatibleTypes" : [ "org.knime.core.data.time.localdatetime.LocalDateTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
+        }
       }, {
         "id" : "zonedDateTimeTest",
         "text" : "zonedDateTimeTest",
         "type" : {
           "id" : "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue",
           "text" : "Date&time (Zoned)"
-        },
-        "compatibleTypes" : [ "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
+        }
+      } ]
+    } ]
+  }, {
+    "scopes" : null,
+    "id" : "org.knime.time.util.DateTimeUtils$DurationColumnProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "durationTest",
+        "text" : "durationTest",
+        "type" : {
+          "id" : "org.knime.core.data.time.duration.DurationValue",
+          "text" : "Duration (Time-based)"
+        }
       } ]
     } ]
   } ],

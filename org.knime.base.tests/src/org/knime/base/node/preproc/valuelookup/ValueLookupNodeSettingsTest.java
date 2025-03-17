@@ -65,38 +65,37 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction")// WebUI* classes
+@SuppressWarnings("restriction") // WebUI* classes
 class ValueLookupNodeSettingsTest {
 
     @Test
     void testColumnChoicesProvider() {
-        final var dataTableSpec = new DataTableSpecCreator().addColumns(
-            new DataColumnSpecCreator("Int1", IntCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("Double1", DoubleCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("Bool1", BooleanCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("String1", StringCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("Int2", IntCell.TYPE).createSpec()
-            ).createSpec();
+        final var dataTableSpec =
+            new DataTableSpecCreator().addColumns(new DataColumnSpecCreator("Int1", IntCell.TYPE).createSpec(),
+                new DataColumnSpecCreator("Double1", DoubleCell.TYPE).createSpec(),
+                new DataColumnSpecCreator("Bool1", BooleanCell.TYPE).createSpec(),
+                new DataColumnSpecCreator("String1", StringCell.TYPE).createSpec(),
+                new DataColumnSpecCreator("Int2", IntCell.TYPE).createSpec()).createSpec();
 
-        final var dictionaryTableSpec = new DataTableSpecCreator().addColumns(
-            new DataColumnSpecCreator("DictInt1", IntCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("DictDouble1", DoubleCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("DictBool1", BooleanCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("DictString1", StringCell.TYPE).createSpec(),
-            new DataColumnSpecCreator("DictInt2", IntCell.TYPE).createSpec()
-            ).createSpec();
+        final var dictionaryTableSpec =
+            new DataTableSpecCreator().addColumns(new DataColumnSpecCreator("DictInt1", IntCell.TYPE).createSpec(),
+                new DataColumnSpecCreator("DictDouble1", DoubleCell.TYPE).createSpec(),
+                new DataColumnSpecCreator("DictBool1", BooleanCell.TYPE).createSpec(),
+                new DataColumnSpecCreator("DictString1", StringCell.TYPE).createSpec(),
+                new DataColumnSpecCreator("DictInt2", IntCell.TYPE).createSpec()).createSpec();
 
-        final var ctx = DefaultNodeSettings.createDefaultNodeSettingsContext(
-            new DataTableSpec[] { dataTableSpec, dictionaryTableSpec });
+        final var ctx = DefaultNodeSettings
+            .createDefaultNodeSettingsContext(new DataTableSpec[]{dataTableSpec, dictionaryTableSpec});
 
         // should pick all from data table (port 0)
-        final var dataTableChoices = new ValueLookupNodeSettings.DataTableChoices().columnChoices(ctx);
-        assertArrayEquals(dataTableSpec.stream().toArray(DataColumnSpec[]::new), dataTableChoices,
-            "Wrong \"data table\" column choices.");
+        final var dataTableChoices = new ValueLookupNodeSettings.DataTableChoices().columnChoices(ctx).stream()
+            .map(DataColumnSpec::getName).toArray(String[]::new);
+        assertArrayEquals(dataTableSpec.getColumnNames(), dataTableChoices, "Wrong \"data table\" column choices.");
 
         // should pick all from dictionary table (port 1)
-        final var dictTableChoices = new ValueLookupNodeSettings.DictionaryTableChoices().columnChoices(ctx);
-        assertArrayEquals(dictionaryTableSpec.stream().toArray(DataColumnSpec[]::new), dictTableChoices,
+        final var dictTableChoices = new ValueLookupNodeSettings.DictionaryTableChoices().columnChoices(ctx).stream()
+            .map(DataColumnSpec::getName).toArray(String[]::new);
+        assertArrayEquals(dictionaryTableSpec.getColumnNames(), dictTableChoices,
             "Wrong \"dictionary table\" column choices.");
     }
 

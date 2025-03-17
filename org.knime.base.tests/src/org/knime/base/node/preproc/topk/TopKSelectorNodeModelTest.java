@@ -74,7 +74,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.workflow.NodeContainerState;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
 
@@ -95,7 +95,7 @@ public class TopKSelectorNodeModelTest {
     void testExecute() throws InvalidSettingsException, IOException {
         final var settings = new TopKSelectorNodeSettings();
         settings.m_sortingCriteria =
-            new SortingCriterionSettings[]{new SortingCriterionSettings(new ColumnSelection(INPUT_COLUMNS[0], null),
+            new SortingCriterionSettings[]{new SortingCriterionSettings(new StringOrEnum<>(INPUT_COLUMNS[0]),
                 SortingOrder.ASCENDING, StringComparison.NATURAL)};
         settings.m_amount = 2;
         settings.m_filterMode = FilterMode.UNIQUE_VALUES;

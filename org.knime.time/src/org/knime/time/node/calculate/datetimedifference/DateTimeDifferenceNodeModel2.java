@@ -61,6 +61,7 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
+import org.knime.core.data.DataType;
 import org.knime.core.data.MissingCell;
 import org.knime.core.data.append.AppendedColumnRow;
 import org.knime.core.data.container.ColumnRearranger;
@@ -80,6 +81,7 @@ import org.knime.core.webui.node.impl.WebUINodeModel;
 import org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings.Mode;
 import org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings.OutputNumberType;
 import org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings.SecondDateTimeValueType;
+import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.Granularity;
 import org.knime.time.util.TemporalCellUtils;
 
@@ -137,9 +139,16 @@ public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDiffere
 
         var inSpec = inSpecs[0];
 
-        validateInputColumn(inSpec, modelSettings.m_firstColumnSelection.getSelected());
+        final var firstColumnType = validateInputColumn("first", inSpec, modelSettings.m_firstColumnSelection);
         if (modelSettings.m_secondDateTimeValueType == SecondDateTimeValueType.COLUMN) {
-            validateInputColumn(inSpec, modelSettings.m_secondColumnSelection.getSelected());
+            final var secondColumnType = validateInputColumn("second", inSpec, modelSettings.m_secondColumnSelection);
+            final var firstColumnDataValue =
+                DateTimeDifferenceNodeSettings.SecondColumnProvider.toCompatibleDateTimeDataValue(firstColumnType);
+            if (!secondColumnType.isCompatible(firstColumnDataValue)) {
+                throw new InvalidSettingsException(String.format(
+                    "The second selected column '%s' of type '%s' is not compatible with the first column of type '%s'.",
+                    modelSettings.m_secondColumnSelection, secondColumnType.getName(), firstColumnType.getName()));
+            }
         }
 
         return new DataTableSpec[]{ //
@@ -147,12 +156,23 @@ public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDiffere
         };
     }
 
-    private static void validateInputColumn(final DataTableSpec inSpec, final String column)
-        throws InvalidSettingsException {
-        if (inSpec.findColumnIndex(column) == -1) {
+    private static DataType validateInputColumn(final String firstOrSecond, final DataTableSpec inSpec,
+        final String column) throws InvalidSettingsException {
+        final var colIndex = inSpec.findColumnIndex(column);
+        if (colIndex == -1) {
             throw new InvalidSettingsException(
-                String.format("The column '%s' is configured but no longer exists in the input table.", column));
+                String.format("The %s selected column '%s' is configured but no longer exists in the input table.",
+                    firstOrSecond, column));
         }
+        final var colSpec = inSpec.getColumnSpec(colIndex);
+        final var colType = colSpec.getType();
+        if (!DateTimeUtils.isDateTimeCompatible(colType)) {
+            throw new InvalidSettingsException(
+                String.format("The %s selected column '%s' of type '%s' is not a date time column.", firstOrSecond,
+                    colSpec.getName(), colType.getName()));
+        }
+        return colType;
+
     }
 
     private static ColumnRearranger createColumnRearranger(final DataTableSpec inSpec,
@@ -171,7 +191,7 @@ public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDiffere
     private static DataColumnSpec createNewColumnSpec(final DataTableSpec inSpec,
         final DateTimeDifferenceNodeSettings settings) {
 
-        var selectedFirstColumnSpec = inSpec.getColumnSpec(settings.m_firstColumnSelection.m_selected);
+        var selectedFirstColumnSpec = inSpec.getColumnSpec(settings.m_firstColumnSelection);
         var selectedGranularitySupportsExactDifferences = settings.m_granularity.supportsExactDifferences();
 
         var type = switch (settings.m_outputType) {
@@ -201,7 +221,7 @@ public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDiffere
             m_settings = settings;
             m_inSpec = inSpec;
 
-            m_firstColumnIndex = m_inSpec.findColumnIndex(m_settings.m_firstColumnSelection.m_selected);
+            m_firstColumnIndex = m_inSpec.findColumnIndex(m_settings.m_firstColumnSelection);
         }
 
         @Override
@@ -215,7 +235,7 @@ public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDiffere
             var firstTemporal = TemporalCellUtils.getTemporalFromCell(firstCell);
 
             if (m_settings.m_secondDateTimeValueType == SecondDateTimeValueType.COLUMN) {
-                var secondColumnIndex = m_inSpec.findColumnIndex(m_settings.m_secondColumnSelection.m_selected);
+                var secondColumnIndex = m_inSpec.findColumnIndex(m_settings.m_secondColumnSelection);
                 var secondCell = row.getCell(secondColumnIndex);
 
                 if (secondCell.isMissing()) {
@@ -266,7 +286,7 @@ public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDiffere
             return containerWritable.getDataTable();
         }
 
-        var firstColumnIndex = inData.getDataTableSpec().findColumnIndex(settings.m_firstColumnSelection.m_selected);
+        var firstColumnIndex = inData.getDataTableSpec().findColumnIndex(settings.m_firstColumnSelection);
 
         try (var inDataIterator = inData.iterator()) {
             var previousRow = inDataIterator.next();

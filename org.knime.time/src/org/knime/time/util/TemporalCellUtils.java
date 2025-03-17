@@ -56,14 +56,14 @@ import java.time.temporal.Temporal;
 import java.time.temporal.TemporalAccessor;
 
 import org.knime.core.data.DataCell;
-import org.knime.core.data.time.localdate.LocalDateCell;
 import org.knime.core.data.time.localdate.LocalDateCellFactory;
-import org.knime.core.data.time.localdatetime.LocalDateTimeCell;
+import org.knime.core.data.time.localdate.LocalDateValue;
 import org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory;
-import org.knime.core.data.time.localtime.LocalTimeCell;
+import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
 import org.knime.core.data.time.localtime.LocalTimeCellFactory;
-import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCell;
+import org.knime.core.data.time.localtime.LocalTimeValue;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFactory;
+import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
 
 /**
  *
@@ -107,14 +107,14 @@ public final class TemporalCellUtils {
      */
     public static Temporal getTemporalFromCell(final DataCell cell) {
 
-        if (cell instanceof ZonedDateTimeCell zonedDateTimeCell) {
-            return zonedDateTimeCell.getZonedDateTime();
-        } else if (cell instanceof LocalDateTimeCell localDateTimeCell) {
-            return localDateTimeCell.getLocalDateTime();
-        } else if (cell instanceof LocalTimeCell localTimeCell) {
-            return localTimeCell.getLocalTime();
-        } else if (cell instanceof LocalDateCell localDateCell) {
-            return localDateCell.getLocalDate();
+        if (cell instanceof ZonedDateTimeValue zonedDateTimeValue) {
+            return zonedDateTimeValue.getZonedDateTime();
+        } else if (cell instanceof LocalDateTimeValue localDateTimeValue) {
+            return localDateTimeValue.getLocalDateTime();
+        } else if (cell instanceof LocalTimeValue localTimeValue) {
+            return localTimeValue.getLocalTime();
+        } else if (cell instanceof LocalDateValue localDateValue) {
+            return localDateValue.getLocalDate();
         } else {
             throw new IllegalArgumentException("Unsupported Temporal type: " + cell.getClass());
         }

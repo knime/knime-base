@@ -69,7 +69,8 @@ import org.knime.core.data.join.KeepRowKeysFactory;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.util.Pair;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 
 /**
  * This class serves as an adapter of the {@link Joiner3NodeSettings} to be used in the {@link Joiner3NodeModel}.
@@ -107,16 +108,13 @@ final class JoinSpecificationCreator {
 
         // left (top port) input table
         DataTableSpec left = (DataTableSpec)portSpecs[0];
-        String[] leftIncludes =
-            m_joinerNodeSettings.m_leftColumnSelectionConfigV2.getSelected(left.getColumnNames(), left);
+        String[] leftIncludes = m_joinerNodeSettings.m_leftColumnSelectionConfigV2.filterFromFullSpec(left);
         var leftSettings =
             new JoinTableSettings(isIncludeLeftUnmatched(), getLeftJoinColumns(), leftIncludes, InputTable.LEFT, left);
 
         // right (bottom port) input table
         DataTableSpec right = (DataTableSpec)portSpecs[1];
-        String[] rightIncludes =
-            m_joinerNodeSettings.m_rightColumnSelectionConfigV2.getSelected(right.getColumnNames(),
-                right);
+        String[] rightIncludes = m_joinerNodeSettings.m_rightColumnSelectionConfigV2.filterFromFullSpec(right);
         var rightSettings = new JoinTableSettings(isIncludeRightUnmatched(), getRightJoinColumns(), rightIncludes,
             InputTable.RIGHT, right);
 
@@ -135,8 +133,7 @@ final class JoinSpecificationCreator {
             .outputRowOrder(getOutputRowOrder())//
             .retainMatched(isIncludeMatches())//
             .mergeJoinColumns(m_joinerNodeSettings.m_mergeJoinColumns)//
-            .columnNameDisambiguator(columnNameDisambiguator)
-            .dataCellComparisonMode(getDataCellComparisonMode())//
+            .columnNameDisambiguator(columnNameDisambiguator).dataCellComparisonMode(getDataCellComparisonMode())//
             .rowKeyFactory(rowKeyFactory.getFirst(), rowKeyFactory.getSecond())//
             .build();
 
@@ -162,11 +159,11 @@ final class JoinSpecificationCreator {
             .map(JoinSpecificationCreator::toJoinColumn).toArray(JoinColumn[]::new);
     }
 
-    private static JoinColumn toJoinColumn(final String columnName) {
-        if (SpecialColumns.ROWID.getId().equals(columnName)) {
+    private static JoinColumn toJoinColumn(final StringOrEnum<RowIDChoice> columnName) {
+        if (columnName.getEnumChoice().isPresent()) {
             return new JoinColumn(SpecialJoinColumn.ROW_KEY);
         }
-        return new JoinColumn(columnName);
+        return new JoinColumn(columnName.getStringChoice());
     }
 
     private DataCellComparisonMode getDataCellComparisonMode() {
@@ -186,7 +183,7 @@ final class JoinSpecificationCreator {
 
     /**
      * @return Pair of the row key factory and a flag whether in the context of this node the factory is guaranteed to
-     * create unique keys. Note that KEEP_ROWID is only applicable if Row ID equality is enforced.
+     *         create unique keys. Note that KEEP_ROWID is only applicable if Row ID equality is enforced.
      * @see KeepRowKeysFactory#applicable(JoinSpecification, boolean)
      */
     private Pair<BiFunction<DataRow, DataRow, RowKey>, Boolean> getRowKeyFactory() {
@@ -219,8 +216,8 @@ final class JoinSpecificationCreator {
 
         private final boolean m_includeRightUnmatchedRows;
 
-        JoinMode(final String uiDisplayText, final boolean includeMatchingRows,
-            final boolean includeLeftUnmatchedRows, final boolean includeRightUnmatchedRows) {
+        JoinMode(final String uiDisplayText, final boolean includeMatchingRows, final boolean includeLeftUnmatchedRows,
+            final boolean includeRightUnmatchedRows) {
             m_uiDisplayText = uiDisplayText;
             m_includeMatchingRows = includeMatchingRows;
             m_includeLeftUnmatchedRows = includeLeftUnmatchedRows;

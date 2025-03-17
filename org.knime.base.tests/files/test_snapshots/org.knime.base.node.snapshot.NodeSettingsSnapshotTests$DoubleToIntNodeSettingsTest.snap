@@ -127,21 +127,6 @@
                     "items" : {
                       "type" : "string"
                     }
-                  },
-                  "typeDisplays" : {
-                    "default" : [ ],
-                    "type" : "array",
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "id" : {
-                          "type" : "string"
-                        },
-                        "text" : {
-                          "type" : "string"
-                        }
-                      }
-                    }
                   }
                 },
                 "default" : {
@@ -189,15 +174,10 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/inclCols",
         "options" : {
-          "format" : "columnFilter",
-          "possibleValues" : [ {
-            "id" : "test1",
-            "text" : "test1"
-          } ],
-          "showNoneColumn" : false,
-          "showRowKeys" : false,
-          "showSearch" : true,
-          "showMode" : true
+          "format" : "typedNameFilter",
+          "unknownValuesText" : "Any unknown column",
+          "emptyStateLabel" : "No columns in this list.",
+          "choicesProvider" : "org.knime.base.node.preproc.double2int2.DoubleToIntNodeSettings$NumericalColumns"
         }
       } ]
     }, {
@@ -236,5 +216,20 @@
         }
       }
     }
-  }
+  },
+  "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.base.node.preproc.double2int2.DoubleToIntNodeSettings$NumericalColumns",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test1",
+        "text" : "test1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Floating Decimal)"
+        }
+      } ]
+    } ]
+  } ]
 }

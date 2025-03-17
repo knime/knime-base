@@ -108,7 +108,7 @@ final class NominalValueRowFilterNodeModel extends WebUINodeModel<NominalValueRo
         long currentRow = 0;
         for (DataRow row : inData[0]) {
             // if row matches to included...
-            if (matches(row)) {
+            if (matches(row, settings)) {
                 positive.addRowToTable(row);
             }
             exec.setProgress(currentRow / (double)inData[0].size(), "filtering row # " + currentRow);
@@ -128,11 +128,10 @@ final class NominalValueRowFilterNodeModel extends WebUINodeModel<NominalValueRo
      * Check if the value in the selected column is in the selected possible
      * values.
      */
-    private boolean matches(final DataRow row) {
+    private boolean matches(final DataRow row, final NominalValueRowFilterNodeSettings settings) {
         DataCell dc = row.getCell(m_selectedColIdx);
         if (dc.isMissing()) {
-            return getSettings().orElseThrow(IllegalStateException::new//
-            ).m_missingValueHandling == NominalValueRowFilterNodeSettings.MissingValueHandling.INCLUDE;
+            return settings.m_missingValueHandling == NominalValueRowFilterNodeSettings.MissingValueHandling.INCLUDE;
         } else {
             return m_selectedAttr.contains(dc.toString());
         }
@@ -140,7 +139,8 @@ final class NominalValueRowFilterNodeModel extends WebUINodeModel<NominalValueRo
 
     @Override
     public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
-        final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        final PortObjectSpec[] inSpecs, final NominalValueRowFilterNodeSettings settings)
+        throws InvalidSettingsException {
         return new StreamableOperator() {
 
             @Override
@@ -156,7 +156,7 @@ final class NominalValueRowFilterNodeModel extends WebUINodeModel<NominalValueRo
                         exec.setProgress("Adding row " + rowIdx + ".");
                         exec.checkCanceled();
 
-                        if (matches(row)) {
+                        if (matches(row, settings)) {
                             match.push(row);
                         }
                     }
@@ -211,7 +211,7 @@ final class NominalValueRowFilterNodeModel extends WebUINodeModel<NominalValueRo
                 Optional.ofNullable(inSpecs[0].getColumnSpec(m_selectedColIdx).getDomain().getValues()) //
                     .map(values -> values.stream().map(DataCell::toString).toArray(String[]::new)) //
                     .orElse(new String[0]);
-            m_selectedAttr.addAll(Arrays.asList(settings.m_nominalValueSelection.getNonMissingSelected(domainValues)));
+            m_selectedAttr.addAll(Arrays.asList(settings.m_nominalValueSelection.filter(domainValues)));
             // all values included?
             boolean validAttrVal = false;
             if (inSpecs[0].getColumnSpec(m_selectedColIdx).getDomain().hasValues()) {

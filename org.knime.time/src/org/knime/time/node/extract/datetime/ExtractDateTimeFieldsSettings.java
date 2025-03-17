@@ -57,7 +57,6 @@ import java.util.function.Supplier;
 import org.apache.commons.lang3.NotImplementedException;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataValue;
 import org.knime.core.data.time.localdate.LocalDateValue;
 import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
 import org.knime.core.data.time.localtime.LocalTimeValue;
@@ -70,20 +69,21 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.CompatibleColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.EnumChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.EnumChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings.ColumnNameProvider.DateTimeFieldReference;
+import org.knime.time.util.DateTimeUtils.DateTimeColumnProvider;
 
 /**
  *
@@ -135,7 +135,7 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
         description = "Select the column containing Date, Time, Date&amp;time (Local), or Date&amp;time (Zoned) values "
             + "from which you want to extract specific fields.")
     @Persist(configKey = "col_select")
-    @ChoicesWidget(choices = DateTimeColumnChoices.class)
+    @ChoicesProvider(DateTimeColumnProvider.class)
     @ValueReference(SelectedColumnRef.class)
     @ValueProvider(AutoGuessColumnValueProvider.class)
     public String m_selectedColumn;
@@ -144,7 +144,7 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
 
     static final class DefaultExtractFieldProvider implements StateProvider<ExtractField> {
 
-        private Supplier<IdAndText[]> m_choicesSupplier;
+        private Supplier<List<EnumChoice<DateTimeField>>> m_choicesSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
@@ -154,10 +154,10 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
         @Override
         public ExtractField computeState(final DefaultNodeSettingsContext context) {
             final var choices = m_choicesSupplier.get();
-            if (choices == null || choices.length == 0) {
+            if (choices == null || choices.size() == 0) {
                 return new ExtractField();
             }
-            return new ExtractField(DateTimeField.valueOf(choices[0].id()), "");
+            return new ExtractField(choices.get(0).id(), "");
         }
     }
 
@@ -171,20 +171,8 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
         description = "The locale that governs the localization of output strings "
             + "(month, day of week, time zone offset) and takes care of local calendrical characteristics "
             + "(week and day of week numbering).")
-    @ChoicesWidget(choices = LocaleChoices.class)
+    @ChoicesProvider(LocaleChoices.class)
     public String m_locale = getDefaultLocale().toLanguageTag();
-
-    /**
-     * The supported date and time types
-     */
-    public static final List<Class<? extends DataValue>> compatibleDateTimeColumns =
-        List.of(LocalDateValue.class, LocalTimeValue.class, LocalDateTimeValue.class, ZonedDateTimeValue.class);
-
-    static final class DateTimeColumnChoices extends CompatibleColumnChoicesProvider {
-        DateTimeColumnChoices() {
-            super(compatibleDateTimeColumns);
-        }
-    }
 
     static final class ExtractField implements DefaultNodeSettings {
 
@@ -201,7 +189,7 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
         }
 
         @Widget(title = "Field", description = "The type of field to extract.")
-        @ChoicesWidget(choicesProvider = FilteredPossibleFieldsChoices.class)
+        @ChoicesProvider(FilteredPossibleFieldsChoices.class)
         @Layout(ExtractFieldLayout.class)
         @ValueReference(DateTimeFieldReference.class)
         public DateTimeField m_field;
@@ -310,17 +298,6 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
         }
     }
 
-    private static IdAndText toIdAndText(final DateTimeField dateTimeField) {
-        String fieldName = dateTimeField.name();
-        try {
-            Label fieldLabel = DateTimeField.class.getField(fieldName).getAnnotation(Label.class);
-            return new IdAndText(fieldName, fieldLabel.value());
-        } catch (NoSuchFieldException | SecurityException ex) {
-            LOGGER.warn("Could not create date&time field", ex);
-            return new IdAndText(fieldName, fieldName);
-        }
-    }
-
     private static DateTimeField[] dateFields =
         new DateTimeField[]{DateTimeField.YEAR, DateTimeField.YEAR_WEEK_BASED, DateTimeField.QUARTER,
             DateTimeField.MONTH_NUMBER, DateTimeField.MONTH_NAME, DateTimeField.WEEK, DateTimeField.DAY_OF_YEAR,
@@ -332,37 +309,34 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
     private static DateTimeField[] timeZoneFields =
         new DateTimeField[]{DateTimeField.TIME_ZONE_NAME, DateTimeField.TIME_ZONE_OFFSET};
 
-    static final class FilteredPossibleFieldsChoices implements StringChoicesStateProvider {
+    static final class FilteredPossibleFieldsChoices implements EnumChoicesProvider<DateTimeField> {
 
         private Supplier<String> m_selectedColumnSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
-            StringChoicesStateProvider.super.init(initializer);
+            EnumChoicesProvider.super.init(initializer);
             m_selectedColumnSupplier = initializer.computeFromValueSupplier(SelectedColumnRef.class);
         }
 
         @Override
-        public IdAndText[] computeState(final DefaultNodeSettingsContext context) throws WidgetHandlerException {
-            List<IdAndText> filteredChoices = new ArrayList<>();
+        public List<DateTimeField> choices(final DefaultNodeSettingsContext context) throws WidgetHandlerException {
+            List<DateTimeField> filteredChoices = new ArrayList<>();
             var spec = context.getDataTableSpec(0);
             var selectedColumn = m_selectedColumnSupplier.get();
             if (selectedColumn != null && spec.isPresent() && spec.get() != null) {
                 var colSpec = spec.get().getColumnSpec(selectedColumn);
                 if (isDateType(colSpec)) {
-                    filteredChoices
-                        .addAll(Arrays.stream(dateFields).map(ExtractDateTimeFieldsSettings::toIdAndText).toList());
+                    filteredChoices.addAll(Arrays.stream(dateFields).toList());
                 }
                 if (isTimeType(colSpec)) {
-                    filteredChoices
-                        .addAll(Arrays.stream(timeFields).map(ExtractDateTimeFieldsSettings::toIdAndText).toList());
+                    filteredChoices.addAll(Arrays.stream(timeFields).toList());
                 }
                 if (isZonedType(colSpec)) {
-                    filteredChoices
-                        .addAll(Arrays.stream(timeZoneFields).map(ExtractDateTimeFieldsSettings::toIdAndText).toList());
+                    filteredChoices.addAll(Arrays.stream(timeZoneFields).toList());
                 }
             }
-            return filteredChoices.toArray(IdAndText[]::new);
+            return filteredChoices;
         }
     }
 
@@ -436,13 +410,12 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
         return false;
     }
 
-    static final class LocaleChoices implements ChoicesProvider {
+    static final class LocaleChoices implements StringChoicesProvider {
 
         @Override
-        public IdAndText[] choicesWithIdAndText(final DefaultNodeSettingsContext context) {
+        public List<StringChoice> computeState(final DefaultNodeSettingsContext context) {
             return Arrays.stream(LocaleProvider.JAVA_11.getLocales())
-                .map(locale -> new IdAndText(locale.toLanguageTag(), locale.getDisplayName()))
-                .toArray(IdAndText[]::new);
+                .map(locale -> new StringChoice(locale.toLanguageTag(), locale.getDisplayName())).toList();
         }
     }
 

@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.preproc.topk;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice.ROW_ID;
+
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -63,13 +65,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 
 /**
@@ -222,8 +223,7 @@ final class TopKSelectorNodeSettings implements DefaultNodeSettings {
             final var compKeys = comps != null ? comps : new boolean[columns.length];
             return IntStream.range(0, columns.length)
                 .mapToObj(i -> new SortingCriterionSettings(
-                    columns[i].equals("-ROWKEY -") ? SpecialColumns.ROWID.toColumnSelection()
-                        : new ColumnSelection(columns[i], null),
+                    columns[i].equals("-ROWKEY -") ? new StringOrEnum<>(ROW_ID) : new StringOrEnum<>(columns[i]),
                     sortKeys[i] ? SortingOrder.ASCENDING : SortingOrder.DESCENDING,
                     compKeys[i] ? StringComparison.NATURAL : StringComparison.LEXICOGRAPHIC))
                 .toArray(SortingCriterionSettings[]::new);

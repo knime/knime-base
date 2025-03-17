@@ -49,6 +49,7 @@
 package org.knime.time.node.convert.timestamptodatetime;
 
 import java.time.ZoneId;
+import java.util.List;
 import java.util.Set;
 
 import org.knime.core.data.DataColumnSpec;
@@ -56,12 +57,12 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.IntValue;
 import org.knime.core.data.LongValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
@@ -95,14 +96,13 @@ final class TimestampToDateTimeNodeSettings implements DefaultNodeSettings {
     static final class TimestampColumnsProvider implements ColumnChoicesProvider {
 
         @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
+        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0).stream().flatMap(DataTableSpec::stream)
-                .filter(TimestampToDateTimeNodeSettings::isTimestampColumn).toArray(DataColumnSpec[]::new);
+                .filter(TimestampToDateTimeNodeSettings::isTimestampColumn).toList();
         }
-
     }
 
-    @ChoicesWidget(choices = TimestampColumnsProvider.class)
+    @ChoicesProvider(TimestampColumnsProvider.class)
     @Widget(title = "Timestamp columns", description = "The columns to convert to date&amp;time columns.")
     ColumnFilter m_timestampColumns = new ColumnFilter();
 

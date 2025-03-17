@@ -48,20 +48,28 @@
  */
 package org.knime.base.node.preproc.rowagg;
 
-import java.util.stream.Stream;
+import static org.knime.base.node.preproc.rowagg.RowAggregatorNodeModel.isAggregatableColumn;
+import static org.knime.base.node.preproc.rowagg.RowAggregatorNodeModel.isWeightColumn;
+import static org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.NoneChoice.NONE;
+
+import java.util.Optional;
 
 import org.knime.base.node.preproc.rowagg.RowAggregatorNodeModel.AggregationFunction;
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.StringToStringWithNoneChoiceMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.NoneChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
+import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.FilteredInputTableColumnsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
@@ -77,28 +85,38 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
 @SuppressWarnings("restriction")
 public final class RowAggregatorSettings implements DefaultNodeSettings {
 
-    interface CategoryColumnRef extends Reference<String> {
+    interface CategoryColumnRef extends Reference<StringOrEnum<NoneChoice>> {
     }
 
     static final class IsNoneCategoryColumnSelected implements PredicateProvider {
         @Override
         public Predicate init(final PredicateInitializer i) {
-            return i.getString(CategoryColumnRef.class).isNoneString();
+            return i.getStringOrEnum(CategoryColumnRef.class).isEnumChoice(NONE);
         }
     }
 
     @Widget(title = "Category column", description = "Select the column that defines the category on which rows "
         + "are grouped. If no category column is selected, \"grand total\" values in which all rows belong to the same "
         + "group will be calculated.")
-    @ChoicesWidget(choices = CategoryColumns.class, showNoneColumn = true)
+    @ChoicesProvider(AllColumnsProvider.class)
     @ValueReference(CategoryColumnRef.class)
-    String m_categoryColumn = SpecialColumns.NONE.getId();
+    @Migration(CategoryColumnMigration.class)
+    @Persist(configKey = "categoryColumnV2")
+    StringOrEnum<NoneChoice> m_categoryColumn = new StringOrEnum<>(NONE);
 
-    static final class CategoryColumns implements ChoicesProvider {
-        @Override
-        public String[] choices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0).map(DataTableSpec::getColumnNames).orElse(new String[0]);
+    static final class CategoryColumnMigration extends StringToStringWithNoneChoiceMigration {
+        protected CategoryColumnMigration() {
+            super("categoryColumn");
         }
+
+        @Override
+        public Optional<NoneChoice> loadEnumFromLegacyString(final String legacyCategoryColumnString) {
+            if (legacyCategoryColumnString == null || legacyCategoryColumnString.isEmpty()) {
+                return Optional.of(NONE);
+            }
+            return super.loadEnumFromLegacyString(legacyCategoryColumnString);
+        }
+
     }
 
     interface AggregationFunctionRef extends Reference<AggregationFunction> {
@@ -120,52 +138,53 @@ public final class RowAggregatorSettings implements DefaultNodeSettings {
     }
 
     @Widget(title = "Aggregation",
-        description = "Select the aggregation function to be applied on all rows belonging to the same category."
-            + "<ul>"
-            // COUNT
-            + "<li><i>Occurrence count:</i>" + " Count how many rows occur</li>"
-            // SUM
-            + "<li><i>Sum:</i>" + " Sum up values, optionally weighted by the value from the weight column</li>"
-            // AVERAGE
-            + "<li><i>Average:</i>"
-            + " Calculate the mean value, optionally weighted by the value from the weight column</li>"
-            // MIN
-            + "<li><i>Minimum:</i>" + " Calculate the minimum value</li>"
-            // MAX
-            + "<li><i>Maximum:</i>" + " Calculate the maximum value</li>" + "</ul>")
+        description = "Select the aggregation function to be applied on all rows belonging to the same category.")
     @RadioButtonsWidget(horizontal = true)
     @ValueReference(AggregationFunctionRef.class)
     AggregationFunction m_aggregationMethod = AggregationFunction.SUM;
 
     @Widget(title = "Aggregation columns", description = "Select the columns to apply the aggregation function to.")
-    @ChoicesWidget(choices = AggregatableColumns.class)
+    @ChoicesProvider(AggregatableColumns.class)
     @Effect(predicate = AggregationFunctionIsCount.class, type = EffectType.DISABLE)
     ColumnFilter m_frequencyColumns;
 
-    static final class AggregatableColumns implements ColumnChoicesProvider {
+    static final class AggregatableColumns implements FilteredInputTableColumnsProvider {
+
         @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0).map(DataTableSpec::stream)//
-                .orElseGet(Stream::empty)//
-                .filter(RowAggregatorNodeModel::isAggregatableColumn)//
-                .toArray(DataColumnSpec[]::new);
+        public boolean isIncluded(final DataColumnSpec col) {
+            return isAggregatableColumn(col);
         }
     }
 
     @Widget(title = "Weight column", description = "Select the column that defines the weight with which a "
         + "value is multiplied before aggregation. Note, that only the aggregation functions \"Sum\" and \"Average\" "
         + "support a weight column")
-    @ChoicesWidget(choices = WeightColumns.class, showNoneColumn = true)
+    @ChoicesProvider(WeightColumns.class)
     @Effect(predicate = AggregationFunctionIsCountOrMinOrMax.class, type = EffectType.DISABLE)
-    String m_weightColumn;
+    @Persist(configKey = "weightColumnV2")
+    @Migration(WeightColumnMigration.class)
+    StringOrEnum<NoneChoice> m_weightColumn = new StringOrEnum<>(NONE);
 
-    static final class WeightColumns implements ChoicesProvider {
+    static final class WeightColumnMigration extends StringToStringWithNoneChoiceMigration {
+        protected WeightColumnMigration() {
+            super("weightColumn");
+        }
+
         @Override
-        public String[] choices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0).map(DataTableSpec::stream)//
-                .orElseGet(Stream::empty)//
-                .filter(RowAggregatorNodeModel::isWeightColumn)//
-                .map(DataColumnSpec::getName).toArray(String[]::new);
+        public Optional<NoneChoice> loadEnumFromLegacyString(final String legacyWeightColumnString) {
+            if (legacyWeightColumnString == null) {
+                return Optional.of(NONE);
+            }
+            return super.loadEnumFromLegacyString(legacyWeightColumnString);
+        }
+
+    }
+
+    static final class WeightColumns implements FilteredInputTableColumnsProvider {
+
+        @Override
+        public boolean isIncluded(final DataColumnSpec col) {
+            return isWeightColumn(col);
         }
     }
 
@@ -181,14 +200,14 @@ public final class RowAggregatorSettings implements DefaultNodeSettings {
     @Migrate(loadDefaultIfAbsent = true)
     boolean m_enableHiliting;
 
-    /**
-     * Constructor for de/serialization.
-     */
     RowAggregatorSettings() {
-        // required by interface
+        m_frequencyColumns = new ColumnFilter().withIncludeUnknownColumns();
     }
 
     RowAggregatorSettings(final DefaultNodeSettingsContext ctx) {
-        m_frequencyColumns = ColumnFilter.createDefault(AggregatableColumns.class, ctx);
+        m_frequencyColumns = new ColumnFilter(
+            ColumnSelectionUtil.getFilteredColumns(ctx, 0, RowAggregatorNodeModel::isAggregatableColumn))
+                .withIncludeUnknownColumns();
     }
+
 }

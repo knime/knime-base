@@ -61,8 +61,8 @@ import org.knime.core.data.DataValue;
 import org.knime.core.data.MissingCell;
 import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.node.message.MessageBuilder;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.time.util.DateTimeUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.time.util.TemporalCellUtils;
 
 /**
@@ -130,6 +130,6 @@ final class DateTimeRoundModelUtils {
     static String[] getSelectedColumns(final DataTableSpec spec,
         final Collection<Class<? extends DataValue>> valueClasses, final ColumnFilter columnFilter) {
 
-        return columnFilter.getSelected(DateTimeUtils.getCompatibleColumns(spec, valueClasses), spec);
+        return columnFilter.filter(ColumnSelectionUtil.getCompatibleColumns(spec, valueClasses));
     }
 }

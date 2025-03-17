@@ -3,8 +3,14 @@
     <entry key="compositionMode" type="xstring" value="MATCH_ALL"/>
     <config key="matchingCriteria">
         <config key="0">
-            <entry key="leftTableColumn" type="xstring" value="&lt;row-keys&gt;"/>
-            <entry key="rightTableColumn" type="xstring" value="&lt;row-keys&gt;"/>
+            <config key="leftTableColumnV2">
+                <entry key="regularChoice" type="xstring" isnull="true" value=""/>
+                <entry key="specialChoice_Internals" type="xstring" value="ROW_ID"/>
+            </config>
+            <config key="rightTableColumnV2">
+                <entry key="regularChoice" type="xstring" isnull="true" value=""/>
+                <entry key="specialChoice_Internals" type="xstring" value="ROW_ID"/>
+            </config>
         </config>
     </config>
     <entry key="dataCellComparisonMode" type="xstring" value="STRICT"/>

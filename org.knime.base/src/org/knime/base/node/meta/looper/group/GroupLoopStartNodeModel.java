@@ -67,16 +67,14 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.workflow.LoopStartNodeTerminator;
 import org.knime.core.util.DuplicateChecker;
 import org.knime.core.util.DuplicateKeyException;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 
 /**
- * The node model of the group loop start node. Optionally sorting data and
- * looping over the groups. Groups are build based on specified columns.
- * Sorting can be switched. In this case an already properly sorted input table
- * is required. If sorting is switched off but input table is not properly
- * sorted an error will occur (Exception thrown).
+ * The node model of the group loop start node. Optionally sorting data and looping over the groups. Groups are build
+ * based on specified columns. Sorting can be switched. In this case an already properly sorted input table is required.
+ * If sorting is switched off but input table is not properly sorted an error will occur (Exception thrown).
  *
  * @author Kilian Thiel, KNIME.com, Berlin, Germany
  */
@@ -122,6 +120,7 @@ class GroupLoopStartNodeModel extends WebUINodeModel<GroupLoopStartNodeSettings>
 
     /**
      * Creates a new model with given node configuration.
+     *
      * @param config The {@link WebUINodeConfiguration}
      */
     public GroupLoopStartNodeModel(final WebUINodeConfiguration config) {
@@ -137,13 +136,11 @@ class GroupLoopStartNodeModel extends WebUINodeModel<GroupLoopStartNodeSettings>
         m_spec = inSpecs[0];
 
         // check if all included columns are available in the spec
-        List<String> includedColNames =
-            Arrays.asList(settings.m_categoryColumns.getSelected(m_spec.getColumnNames(), m_spec));
+        List<String> includedColNames = Arrays.asList(settings.m_categoryColumns.filterFromFullSpec(m_spec));
 
         // at least one column containing double values must be specified
         if (includedColNames.size() <= 0) {
-            throw new InvalidSettingsException(
-                    "Select at least one column containing group information!");
+            throw new InvalidSettingsException("Select at least one column containing group information!");
         }
 
         assert m_iteration == 0;
@@ -183,12 +180,11 @@ class GroupLoopStartNodeModel extends WebUINodeModel<GroupLoopStartNodeSettings>
             // sort if not already sorted
             if (settings.m_alreadySorted == YesOrNo.NO) {
                 // asc
-                final String[] includes = settings.m_categoryColumns.getSelected(m_spec.getColumnNames(), m_spec);
+                final String[] includes = settings.m_categoryColumns.filterFromFullSpec(m_spec);
                 boolean[] sortAsc = new boolean[includes.length];
                 Arrays.fill(sortAsc, true);
                 BufferedDataTableSorter tableSorter =
-                    new BufferedDataTableSorter(table,
-                            Arrays.asList(includes), sortAsc, false);
+                    new BufferedDataTableSorter(table, Arrays.asList(includes), sortAsc, false);
                 m_sortedTable = tableSorter.sort(exec);
             } else {
                 // no sort necessary
@@ -200,7 +196,6 @@ class GroupLoopStartNodeModel extends WebUINodeModel<GroupLoopStartNodeSettings>
             assert getLoopEndNode() != null : "No end node set";
             assert table == m_table : "Input tables differ between iterations";
         }
-
 
         ///////////////////////////
         //
@@ -218,7 +213,6 @@ class GroupLoopStartNodeModel extends WebUINodeModel<GroupLoopStartNodeSettings>
             m_currentGroupingState = new GroupingState("", false, null);
         }
         m_lastGroupingState = m_currentGroupingState;
-
 
         ///////////////////////////
         //
@@ -252,8 +246,7 @@ class GroupLoopStartNodeModel extends WebUINodeModel<GroupLoopStartNodeSettings>
             if (m_lastRow == null) {
                 m_lastGroupingState = m_currentGroupingState;
                 if (checkDuplicates) {
-                    m_duplicateChecker.addKey(
-                            m_currentGroupingState.getGroupIdentifier());
+                    m_duplicateChecker.addKey(m_currentGroupingState.getGroupIdentifier());
                 }
             }
             m_lastRow = row;
@@ -263,18 +256,16 @@ class GroupLoopStartNodeModel extends WebUINodeModel<GroupLoopStartNodeSettings>
                 cont.addRowToTable(row);
                 m_lastGroupingState = m_currentGroupingState;
 
-            // if group end has been reached add identifier of new group to
-            // duplicate checker
+                // if group end has been reached add identifier of new group to
+                // duplicate checker
             } else {
                 if (checkDuplicates) {
                     try {
-                        m_duplicateChecker.addKey(
-                            m_currentGroupingState.getGroupIdentifier());
+                        m_duplicateChecker.addKey(m_currentGroupingState.getGroupIdentifier());
                     } catch (DuplicateKeyException e) {
-                        throw new DuplicateKeyException("Input table was "
-                             + "not sorted, found duplicate (group identifier:"
-                             + m_currentGroupingState.getGroupIdentifier()
-                             + ")");
+                        throw new DuplicateKeyException(
+                            "Input table was " + "not sorted, found duplicate (group identifier:"
+                                + m_currentGroupingState.getGroupIdentifier() + ")");
                     }
                 }
             }
@@ -310,11 +301,10 @@ class GroupLoopStartNodeModel extends WebUINodeModel<GroupLoopStartNodeSettings>
         // push variables
         pushFlowVariableInt("currentIteration", m_iteration);
         pushGroupColumnValuesAsFlowVariables(m_lastGroupingState);
-        pushFlowVariableString("groupIdentifier",
-                m_lastGroupingState.getGroupIdentifier());
+        pushFlowVariableString("groupIdentifier", m_lastGroupingState.getGroupIdentifier());
         m_iteration++;
 
-        return new BufferedDataTable[] {cont.getTable()};
+        return new BufferedDataTable[]{cont.getTable()};
     }
 
     /**
@@ -358,7 +348,7 @@ class GroupLoopStartNodeModel extends WebUINodeModel<GroupLoopStartNodeSettings>
     @Override
     public BufferedDataTable[] getInternalTables() {
         if (!m_endLoop) {
-            return new BufferedDataTable[] {m_sortedTable};
+            return new BufferedDataTable[]{m_sortedTable};
         }
         return null;
     }
@@ -381,8 +371,7 @@ class GroupLoopStartNodeModel extends WebUINodeModel<GroupLoopStartNodeSettings>
                 for (int i = 0; i < cells.length; i++) {
                     DataCell c = cells[i];
                     int j = m_includedColIndices[i];
-                    pushVariable(c.getType(), m_spec.getColumnSpec(j).getName(),
-                            c);
+                    pushVariable(c.getType(), m_spec.getColumnSpec(j).getName(), c);
                 }
             }
         }
@@ -393,7 +382,7 @@ class GroupLoopStartNodeModel extends WebUINodeModel<GroupLoopStartNodeSettings>
      */
     private void initGroupColumnsAsFlowVariables(final ColumnFilter columnFilter) {
         if (m_spec != null && columnFilter != null) {
-            List<String> inclCols = Arrays.asList(columnFilter.getSelected(m_spec.getColumnNames(), m_spec));
+            List<String> inclCols = Arrays.asList(columnFilter.filterFromFullSpec(m_spec));
             for (String colName : inclCols) {
                 DataType dt = m_spec.getColumnSpec(colName).getType();
                 pushVariable(dt, m_spec.getColumnSpec(colName).getName(), null);
@@ -408,8 +397,7 @@ class GroupLoopStartNodeModel extends WebUINodeModel<GroupLoopStartNodeSettings>
      * @param name The name of the variable to push.
      * @param c The value of the variable to push.
      */
-    private void pushVariable(final DataType type, final String name,
-            final DataCell c) {
+    private void pushVariable(final DataType type, final String name, final DataCell c) {
         DataType dt = type;
         if (c != null) {
             dt = c.getType();
@@ -445,12 +433,10 @@ class GroupLoopStartNodeModel extends WebUINodeModel<GroupLoopStartNodeSettings>
     private GroupingState getGroupingState(final DataRow row) {
         // sanity checks
         if (row == null) {
-            throw new IllegalArgumentException(
-                    "Row to check for group end may not be null!");
+            throw new IllegalArgumentException("Row to check for group end may not be null!");
         }
         if (m_includedColIndices == null) {
-            throw new IllegalStateException(
-                    "Indices of included columns may not be null!");
+            throw new IllegalStateException("Indices of included columns may not be null!");
         }
         if (m_spec == null) {
             throw new IllegalStateException("Data table spec may not be null!");
@@ -477,14 +463,12 @@ class GroupLoopStartNodeModel extends WebUINodeModel<GroupLoopStartNodeSettings>
 
                     // compare last and new values, if one value differs, group
                     // end is reached
-                    if (m_spec.getColumnSpec(c).getType().getComparator()
-                            .compare(lastCell, newCell) != 0) {
+                    if (m_spec.getColumnSpec(c).getType().getComparator().compare(lastCell, newCell) != 0) {
                         isGroupEnd = true;
                     }
                 }
 
-                groupIdentifier += GROUP_SEPARATOR + row.getCell(c).toString()
-                                 + GROUP_SEPARATOR;
+                groupIdentifier += GROUP_SEPARATOR + row.getCell(c).toString() + GROUP_SEPARATOR;
 
                 // get current group cell
                 groupCells[currIncludedColIndex] = row.getCell(c);
@@ -492,8 +476,7 @@ class GroupLoopStartNodeModel extends WebUINodeModel<GroupLoopStartNodeSettings>
                 // get index of next included column
                 currIncludedColIndex++;
                 if (currIncludedColIndex < m_includedColIndices.length) {
-                    nextIncludedColIndex =
-                        m_includedColIndices[currIncludedColIndex];
+                    nextIncludedColIndex = m_includedColIndices[currIncludedColIndex];
                 }
             }
         }
@@ -502,14 +485,13 @@ class GroupLoopStartNodeModel extends WebUINodeModel<GroupLoopStartNodeSettings>
     }
 
     /**
-     * Creates and returns an array containing the indices of the included
-     * columns in the input data table spec.
+     * Creates and returns an array containing the indices of the included columns in the input data table spec.
      *
      * @param dataSpec The input data table spec.
      * @return An array containing the indices of the included columns.
      */
     private static int[] getIncludedColIndices(final DataTableSpec dataSpec, final ColumnFilter columnFilter) {
-        List<String> includedColNames = Arrays.asList(columnFilter.getSelected(dataSpec.getColumnNames(), dataSpec));
+        List<String> includedColNames = Arrays.asList(columnFilter.filterFromFullSpec(dataSpec));
         int[] includedColIndices = new int[includedColNames.size()];
         int noCols = dataSpec.getNumColumns();
         int j = 0;
@@ -524,18 +506,19 @@ class GroupLoopStartNodeModel extends WebUINodeModel<GroupLoopStartNodeSettings>
     }
 
     /**
-     * Encapsulates the grouping state, consisting of the group identifier and
-     * a flag specifying whether group has been reached or not.
+     * Encapsulates the grouping state, consisting of the group identifier and a flag specifying whether group has been
+     * reached or not.
      *
      * @author Kilian Thiel, KNIME.com, Berlin, Germany
      */
     private static class GroupingState {
         private String m_groupIdentifier;
+
         private boolean m_groupEnd;
+
         private DataCell[] m_cells;
 
-        public GroupingState(final String groupIdentifier,
-                final boolean groupEnd, final DataCell[] cells) {
+        public GroupingState(final String groupIdentifier, final boolean groupEnd, final DataCell[] cells) {
             m_groupIdentifier = groupIdentifier;
             m_groupEnd = groupEnd;
             m_cells = cells;

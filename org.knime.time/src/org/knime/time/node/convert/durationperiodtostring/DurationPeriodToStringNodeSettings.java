@@ -57,13 +57,14 @@ import org.knime.core.data.time.period.PeriodValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage.InputPreviewMessageProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
@@ -89,8 +90,8 @@ final class DurationPeriodToStringNodeSettings implements DefaultNodeSettings {
         var spec = context.getDataTableSpec(0);
 
         if (spec.isPresent()) {
-            m_filter =
-                new ColumnFilter(DateTimeUtils.getCompatibleColumns(spec.get(), DateTimeUtils.INTERVAL_COLUMN_TYPES));
+            m_filter = new ColumnFilter(
+                ColumnSelectionUtil.getCompatibleColumns(spec.get(), DateTimeUtils.INTERVAL_COLUMN_TYPES));
         }
     }
 
@@ -102,7 +103,7 @@ final class DurationPeriodToStringNodeSettings implements DefaultNodeSettings {
     }
 
     @Widget(title = "Duration columns", description = "The columns to convert to a string.")
-    @ChoicesWidget(choices = DateTimeUtils.IntervalColumnProvider.class)
+    @ChoicesProvider(DateTimeUtils.IntervalColumnProvider.class)
     @Persistor(FilterPersistor.class)
     @ValueReference(ColumnFilterRef.class)
     ColumnFilter m_filter = new ColumnFilter();

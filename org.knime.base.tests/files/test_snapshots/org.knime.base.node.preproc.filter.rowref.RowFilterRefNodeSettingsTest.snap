@@ -1,10 +1,14 @@
 {
   "data" : {
     "model" : {
-      "dataColumn" : "<row-keys>",
-      "referenceColumn" : "<row-keys>",
-      "inexclude" : "INCLUDE",
-      "updateDomains" : false
+      "dataColumn" : {
+        "specialChoice" : "ROW_ID"
+      },
+      "referenceColumn" : {
+        "specialChoice" : "ROW_ID"
+      },
+      "updateDomains" : false,
+      "inexclude" : "INCLUDE"
     }
   },
   "schema" : {
@@ -14,10 +18,23 @@
         "type" : "object",
         "properties" : {
           "dataColumn" : {
-            "type" : "string",
+            "type" : "object",
+            "properties" : {
+              "regularChoice" : {
+                "type" : "string"
+              },
+              "specialChoice" : {
+                "oneOf" : [ {
+                  "const" : "ROW_ID",
+                  "title" : "RowID"
+                } ]
+              }
+            },
             "title" : "Data column (in top/first input)",
             "description" : "The column from the table to be filtered that should be used for comparison.",
-            "default" : "<row-keys>"
+            "default" : {
+              "specialChoice" : "ROW_ID"
+            }
           },
           "inexclude" : {
             "oneOf" : [ {
@@ -32,10 +49,23 @@
             "default" : "INCLUDE"
           },
           "referenceColumn" : {
-            "type" : "string",
+            "type" : "object",
+            "properties" : {
+              "regularChoice" : {
+                "type" : "string"
+              },
+              "specialChoice" : {
+                "oneOf" : [ {
+                  "const" : "ROW_ID",
+                  "title" : "RowID"
+                } ]
+              }
+            },
             "title" : "Reference column (in bottom/second input)",
             "description" : "The column from the filter table that should be used for comparison.",
-            "default" : "<row-keys>"
+            "default" : {
+              "specialChoice" : "ROW_ID"
+            }
           },
           "updateDomains" : {
             "type" : "boolean",
@@ -52,32 +82,23 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/dataColumn",
       "options" : {
-        "possibleValues" : [ {
-          "id" : "A",
-          "text" : "A"
-        }, {
-          "id" : "B",
-          "text" : "B"
+        "format" : "singleSelection",
+        "specialChoices" : [ {
+          "id" : "ROW_ID",
+          "text" : "RowID"
         } ],
-        "format" : "dropDown",
-        "showNoneColumn" : false,
-        "showRowKeys" : true,
-        "showSearch" : true,
-        "showMode" : true
+        "choicesProvider" : "org.knime.base.node.preproc.filter.rowref.AbstractRowFilterRefNodeSettings$DataColumnChoices"
       }
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/referenceColumn",
       "options" : {
-        "possibleValues" : [ {
-          "id" : "C",
-          "text" : "C"
+        "format" : "singleSelection",
+        "specialChoices" : [ {
+          "id" : "ROW_ID",
+          "text" : "RowID"
         } ],
-        "format" : "dropDown",
-        "showNoneColumn" : false,
-        "showRowKeys" : true,
-        "showSearch" : true,
-        "showMode" : true
+        "choicesProvider" : "org.knime.base.node.preproc.filter.rowref.AbstractRowFilterRefNodeSettings$ReferenceColumnChoices"
       }
     }, {
       "type" : "Control",
@@ -101,19 +122,79 @@
         "type" : "object",
         "properties" : {
           "dataColumn" : {
-            "configPaths" : [ [ "dataTableColumn", "columnName" ], [ "dataTableColumn", "useRowID" ] ]
+            "type" : "object",
+            "properties" : {
+              "regularChoice" : { },
+              "specialChoice" : {
+                "configPaths" : [ ]
+              }
+            },
+            "configKey" : "dataTableColumnV2",
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "dataTableColumn" ] ]
+            }, {
+              "deprecated" : [ ]
+            } ]
           },
           "referenceColumn" : {
-            "configPaths" : [ [ "referenceTableColumn", "columnName" ], [ "referenceTableColumn", "useRowID" ] ]
+            "type" : "object",
+            "properties" : {
+              "regularChoice" : { },
+              "specialChoice" : {
+                "configPaths" : [ ]
+              }
+            },
+            "configKey" : "referenceTableColumnV2",
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "referenceTableColumn" ] ]
+            }, {
+              "deprecated" : [ ]
+            } ]
           },
+          "updateDomains" : { },
           "inexclude" : {
-            "configPaths" : [ [ "inexclude" ] ]
-          },
-          "updateDomains" : {
-            "configPaths" : [ [ "updateDomains" ] ]
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "inexclude" ] ]
+            } ]
           }
         }
       }
     }
-  }
+  },
+  "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.base.node.preproc.filter.rowref.AbstractRowFilterRefNodeSettings$DataColumnChoices",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "A",
+        "text" : "A",
+        "type" : {
+          "id" : "org.knime.core.data.IntValue",
+          "text" : "Number (Integer)"
+        }
+      }, {
+        "id" : "B",
+        "text" : "B",
+        "type" : {
+          "id" : "org.knime.core.data.IntValue",
+          "text" : "Number (Integer)"
+        }
+      } ]
+    } ]
+  }, {
+    "scopes" : null,
+    "id" : "org.knime.base.node.preproc.filter.rowref.AbstractRowFilterRefNodeSettings$ReferenceColumnChoices",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "C",
+        "text" : "C",
+        "type" : {
+          "id" : "org.knime.core.data.IntValue",
+          "text" : "Number (Integer)"
+        }
+      } ]
+    } ]
+  } ]
 }

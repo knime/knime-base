@@ -137,21 +137,6 @@
                     "items" : {
                       "type" : "string"
                     }
-                  },
-                  "typeDisplays" : {
-                    "default" : [ ],
-                    "type" : "array",
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "id" : {
-                          "type" : "string"
-                        },
-                        "text" : {
-                          "type" : "string"
-                        }
-                      }
-                    }
                   }
                 },
                 "default" : {
@@ -243,20 +228,10 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/columnsToFormat",
         "options" : {
-          "format" : "columnFilter",
-          "possibleValues" : [ {
-            "id" : "test1",
-            "text" : "test1",
-            "type" : {
-              "id" : "org.knime.core.data.DoubleValue",
-              "text" : "Number (Floating Decimal)"
-            },
-            "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
-          } ],
-          "showNoneColumn" : false,
-          "showRowKeys" : false,
-          "showSearch" : true,
-          "showMode" : true
+          "format" : "typedNameFilter",
+          "unknownValuesText" : "Any unknown column",
+          "emptyStateLabel" : "No columns in this list.",
+          "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider$DoubleColumnsProvider"
         }
       } ]
     }, {
@@ -269,12 +244,12 @@
           "scope" : "#/properties/model/properties/minimumDecimals",
           "options" : {
             "validations" : [ {
+              "errorMessage" : "The value must be at least 0.",
               "id" : "min",
               "parameters" : {
                 "min" : 0.0,
                 "isExclusive" : false
-              },
-              "errorMessage" : "The value must be at least 0."
+              }
             } ]
           }
         }, {
@@ -282,12 +257,12 @@
           "scope" : "#/properties/model/properties/maximumDecimals",
           "options" : {
             "validations" : [ {
+              "errorMessage" : "The value must be at least 0.",
               "id" : "min",
               "parameters" : {
                 "min" : 0.0,
                 "isExclusive" : false
-              },
-              "errorMessage" : "The value must be at least 0."
+              }
             } ]
           }
         } ]
@@ -352,10 +327,7 @@
               "typeFilter" : {
                 "type" : "object",
                 "properties" : {
-                  "selectedTypes" : { },
-                  "typeDisplays" : {
-                    "configPaths" : [ ]
-                  }
+                  "selectedTypes" : { }
                 }
               }
             }
@@ -369,5 +341,20 @@
         }
       }
     }
-  }
+  },
+  "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider$DoubleColumnsProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test1",
+        "text" : "test1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Floating Decimal)"
+        }
+      } ]
+    } ]
+  } ]
 }

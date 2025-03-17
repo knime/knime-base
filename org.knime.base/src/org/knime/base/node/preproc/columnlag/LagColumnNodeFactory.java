@@ -46,79 +46,59 @@
  */
 package org.knime.base.node.preproc.columnlag;
 
-import java.util.Map;
-
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
-import org.knime.core.webui.node.dialog.NodeDialog;
-import org.knime.core.webui.node.dialog.NodeDialogFactory;
-import org.knime.core.webui.node.dialog.NodeDialogManager;
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
-import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
-import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.base.node.preproc.column.renamer.ColumnRenamerSettings;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
  *
  * @author wiswedel
  */
 @SuppressWarnings("restriction")
-public final class LagColumnNodeFactory extends NodeFactory<LagColumnNodeModel>
-    implements NodeDialogFactory, KaiNodeInterfaceFactory {
+public final class LagColumnNodeFactory extends WebUINodeFactory<LagColumnNodeModel> {
 
-    /**
-     * {@inheritDoc}
-     */
+    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
+        .name("Lag Column")//
+        .icon("./lag_column.png")//
+        .shortDescription("Copies column values from preceding rows into the current row.")//
+        .fullDescription(
+            """
+                     Copies column values from preceding rows into the current row. The node can be used to
+                     <ol>
+                       <li>make a copy of the selected column and shift the cells <i>I</i> steps up (<i>I</i> = lag interval)</li>
+                       <li>make <i>L</i> copies of the selected column and shift the cells of each copy
+                         1, 2, 3, ... <i>L</i>-1 steps up (<i>L</i> = lag = number of copies)
+                       </li>
+                     </ol>
+                    <p>
+                      The option "Number of copies" (<i>L</i>) in this node is useful for time series prediction. If the rows are sorted in time
+                      increasing order, to apply a lag <i>D</i> to the selected column means to place <i>D</i>-1 past values of the column
+                      and the current value of the column on one row. The data table can then be used for time series prediction.
+                    </p>
+                    <p>
+                      The lag interval option <i>I</i> (periodicity or seasonality) in this node is useful to compare values
+                      from the past to the current values. Again if the rows are sorted in time increasing order, to apply a
+                      lag interval <i>I</i> means to set aside on the same row the current value and the value
+                      occurring <i>I</i> steps before.
+                    </p>
+                    <p>
+                      <i>L</i> and <i>I</i> can be combined to obtain <i>L</i>-1 copies of the selected column,
+                      each one shifted <i>I</i>, 2*<i>I</i>, 3*<i>I</i>, ... (<i>L</i>-1)*<i>I</i> steps backwards.
+                    </p>""")//
+        .modelSettingsClass(ColumnRenamerSettings.class)//
+        .addInputTable("Input", "Input data")//
+        .addOutputTable("Output", "Input data with additional columns copying the values from preceding rows.")//
+        .keywords("Copy column", "Shift", "Offset", "Previous")//
+        .build();
+
+    @SuppressWarnings("javadoc")
+    public LagColumnNodeFactory() {
+        super(CONFIG);
+    }
+
     @Override
     public LagColumnNodeModel createNodeModel() {
-        return new LagColumnNodeModel();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<LagColumnNodeModel> createNodeView(final int viewIndex, final LagColumnNodeModel nodeModel) {
-        throw new IndexOutOfBoundsException();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeDialog createNodeDialog() {
-        return new DefaultNodeDialog(SettingsType.MODEL, LagColumnNodeSettings.class);
-    }
-
-    @Override
-    public KaiNodeInterface createKaiNodeInterface() {
-        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, LagColumnNodeSettings.class));
+        return new LagColumnNodeModel(CONFIG);
     }
 
 }

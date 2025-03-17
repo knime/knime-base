@@ -48,8 +48,9 @@
  */
 package org.knime.base.node.preproc.rounddouble;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil.getDoubleColumnsOfFirstPort;
+
 import java.math.RoundingMode;
-import java.util.stream.Stream;
 
 import org.knime.base.node.preproc.rounddouble.RoundDoubleMigrations.NumberModeMigration;
 import org.knime.base.node.preproc.rounddouble.RoundDoubleMigrations.OutputColumnMigration;
@@ -63,15 +64,15 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider.DoubleColumnsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
@@ -253,7 +254,7 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
 
     // Settings
     @Widget(title = "Columns to round", description = "Select the numeric input columns to round.")
-    @ChoicesWidget(choices = NumberColumns.class)
+    @ChoicesProvider(DoubleColumnsProvider.class)
     @Migration(ColumnsToFormatMigration.class)
     ColumnFilter m_columnsToFormat;
 
@@ -326,16 +327,6 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
     OutputMode m_outputMode = OutputMode.AUTO;
 
     // Utilities
-    static final class NumberColumns implements ColumnChoicesProvider {
-        @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0)//
-                .map(DataTableSpec::stream)//
-                .orElseGet(Stream::empty)//
-                .filter(RoundDoubleNodeModel::isTargetColumn)//
-                .toArray(DataColumnSpec[]::new);
-        }
-    }
 
     static RoundingMode getRoundingModeFromMethod(final RoundingMethod roundingMethod) {
         if (roundingMethod.m_standard == Standard.HALF_AWAY_FROM_ZERO) {
@@ -353,7 +344,7 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
 
     // Constructors
     RoundDoubleNodeSettings(final DefaultNodeSettingsContext ctx) {
-        m_columnsToFormat = ColumnFilter.createDefault(NumberColumns.class, ctx);
+        m_columnsToFormat = new ColumnFilter(getDoubleColumnsOfFirstPort(ctx)).withIncludeUnknownColumns();
     }
 
     RoundDoubleNodeSettings() {

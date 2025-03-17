@@ -63,7 +63,7 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
@@ -71,11 +71,13 @@ import org.knime.testing.node.dialog.SnapshotTestConfiguration;
  *
  * @author Paul Bärnreuther
  */
+@SuppressWarnings("restriction")
 public class SorterNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
     static final DataTableSpec SPEC =
         new DataTableSpec(new String[]{"test1", "test2"}, new DataType[]{DoubleCell.TYPE, StringCell.TYPE});
 
+    @SuppressWarnings("javadoc")
     protected SorterNodeSettingsTest() {
         super(getConfig());
     }
@@ -107,7 +109,7 @@ public class SorterNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
     }
 
     private static SortingCriterionSettings createCriterion() {
-        final var criterion = new SortingCriterionSettings(new ColumnSelection(SPEC.getColumnSpec(0)),
+        final var criterion = new SortingCriterionSettings(new StringOrEnum<>(SPEC.getColumnSpec(0).getName()),
             SortingOrder.ASCENDING, StringComparison.NATURAL);
         return criterion;
     }

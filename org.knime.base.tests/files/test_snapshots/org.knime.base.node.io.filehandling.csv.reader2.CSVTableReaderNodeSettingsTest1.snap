@@ -256,31 +256,31 @@
                   "fileEncoding" : {
                     "oneOf" : [ {
                       "const" : "DEFAULT",
-                      "title" : ""
+                      "title" : "OS default"
                     }, {
                       "const" : "ISO_8859_1",
-                      "title" : ""
+                      "title" : "ISO-8859-1"
                     }, {
                       "const" : "US_ASCII",
-                      "title" : ""
+                      "title" : "US-ASCII"
                     }, {
                       "const" : "UTF_8",
-                      "title" : ""
+                      "title" : "UTF-8"
                     }, {
                       "const" : "UTF_16",
-                      "title" : ""
+                      "title" : "UTF-16"
                     }, {
                       "const" : "UTF_16BE",
-                      "title" : ""
+                      "title" : "UTF-16BE"
                     }, {
                       "const" : "UTF_16LE",
-                      "title" : ""
+                      "title" : "UTF-16LE"
                     }, {
                       "const" : "OTHER",
-                      "title" : ""
+                      "title" : "Other"
                     } ],
                     "title" : "File encoding",
-                    "description" : "Defines the character set used to read a CSV file that contains characters in a different encoding. You\ncan choose from a list of character encodings (UTF-8, UTF-16, etc.), or specify any other encoding\nsupported by your Java Virtual Machine (VM). The default value uses the default encoding of the Java VM,\nwhich may depend on the locale or the Java property &quot;file.encoding&quot;.\n\n<ul>\n<li><b></b>: Uses the default decoding set by the operating system.</li>\n<li><b></b>: ISO Latin Alphabet No. 1, a.k.a. ISO-LATIN-1.</li>\n<li><b></b>: Seven-bit ASCII, also referred to as US-ASCII.</li>\n<li><b></b>: Eight-bit UCS Transformation Format.</li>\n<li><b></b>: Sixteen-bit UCS Transformation Format, byte order identified by an optional byte-order mark in the file.\n</li>\n<li><b></b>: Sixteen-bit UCS Transformation Format, big-endian byte order.</li>\n<li><b></b>: Sixteen-bit UCS Transformation Format, little-endian byte order.</li>\n<li><b></b>: Enter a valid charset name supported by the Java Virtual Machine.</li>\n</ul>",
+                    "description" : "Defines the character set used to read a CSV file that contains characters in a different encoding. You\ncan choose from a list of character encodings (UTF-8, UTF-16, etc.), or specify any other encoding\nsupported by your Java Virtual Machine (VM). The default value uses the default encoding of the Java VM,\nwhich may depend on the locale or the Java property &quot;file.encoding&quot;.\n\n<ul>\n<li><b>OS default</b>: Uses the default decoding set by the operating system.</li>\n<li><b>ISO-8859-1</b>: ISO Latin Alphabet No. 1, a.k.a. ISO-LATIN-1.</li>\n<li><b>US-ASCII</b>: Seven-bit ASCII, also referred to as US-ASCII.</li>\n<li><b>UTF-8</b>: Eight-bit UCS Transformation Format.</li>\n<li><b>UTF-16</b>: Sixteen-bit UCS Transformation Format, byte order identified by an optional byte-order mark in the file.\n</li>\n<li><b>UTF-16BE</b>: Sixteen-bit UCS Transformation Format, big-endian byte order.</li>\n<li><b>UTF-16LE</b>: Sixteen-bit UCS Transformation Format, little-endian byte order.</li>\n<li><b>Other</b>: Enter a valid charset name supported by the Java Virtual Machine.</li>\n</ul>",
                     "default" : "DEFAULT"
                   }
                 },
@@ -586,28 +586,28 @@
                       "fileEncoding" : {
                         "oneOf" : [ {
                           "const" : "DEFAULT",
-                          "title" : ""
+                          "title" : "OS default"
                         }, {
                           "const" : "ISO_8859_1",
-                          "title" : ""
+                          "title" : "ISO-8859-1"
                         }, {
                           "const" : "US_ASCII",
-                          "title" : ""
+                          "title" : "US-ASCII"
                         }, {
                           "const" : "UTF_8",
-                          "title" : ""
+                          "title" : "UTF-8"
                         }, {
                           "const" : "UTF_16",
-                          "title" : ""
+                          "title" : "UTF-16"
                         }, {
                           "const" : "UTF_16BE",
-                          "title" : ""
+                          "title" : "UTF-16BE"
                         }, {
                           "const" : "UTF_16LE",
-                          "title" : ""
+                          "title" : "UTF-16LE"
                         }, {
                           "const" : "OTHER",
-                          "title" : ""
+                          "title" : "Other"
                         } ],
                         "default" : "DEFAULT"
                       },
@@ -840,36 +840,8 @@
         "scope" : "#/properties/model/properties/encoding/properties/charset/properties/fileEncoding",
         "options" : {
           "isAdvanced" : true,
-          "possibleValues" : [ {
-            "id" : "DEFAULT",
-            "text" : "OS default (UTF-8)"
-          }, {
-            "id" : "ISO_8859_1",
-            "text" : "ISO-8859-1"
-          }, {
-            "id" : "US_ASCII",
-            "text" : "US-ASCII"
-          }, {
-            "id" : "UTF_8",
-            "text" : "UTF-8"
-          }, {
-            "id" : "UTF_16",
-            "text" : "UTF-16"
-          }, {
-            "id" : "UTF_16BE",
-            "text" : "UTF-16BE"
-          }, {
-            "id" : "UTF_16LE",
-            "text" : "UTF-16LE"
-          }, {
-            "id" : "OTHER",
-            "text" : "Other"
-          } ],
-          "format" : "dropDown",
-          "showNoneColumn" : false,
-          "showRowKeys" : false,
-          "showSearch" : true,
-          "showMode" : true
+          "choicesProvider" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$EncodingChoicesProvider",
+          "format" : "dropDown"
         }
       }, {
         "type" : "Control",
@@ -909,7 +881,6 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/settings/properties/commentLineCharacter",
         "options" : {
-          "hideOnNull" : false,
           "validations" : [ {
             "id" : "maxLength",
             "parameters" : {
@@ -928,7 +899,6 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/settings/properties/customRowDelimiter",
         "options" : {
-          "hideOnNull" : false,
           "validations" : [ {
             "id" : "pattern",
             "parameters" : {
@@ -952,7 +922,6 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/settings/properties/columnDelimiter",
         "options" : {
-          "hideOnNull" : false,
           "validations" : [ {
             "id" : "pattern",
             "parameters" : {
@@ -973,7 +942,6 @@
           "type" : "Control",
           "scope" : "#/properties/model/properties/settings/properties/quoteCharacter",
           "options" : {
-            "hideOnNull" : false,
             "validations" : [ {
               "id" : "maxLength",
               "parameters" : {
@@ -986,7 +954,6 @@
           "type" : "Control",
           "scope" : "#/properties/model/properties/settings/properties/quoteEscapeCharacter",
           "options" : {
-            "hideOnNull" : false,
             "validations" : [ {
               "id" : "maxLength",
               "parameters" : {
@@ -1098,7 +1065,6 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/advancedSettings/properties/decimalSeparator",
         "options" : {
-          "hideOnNull" : false,
           "validations" : [ {
             "id" : "pattern",
             "parameters" : {
@@ -1111,7 +1077,6 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/advancedSettings/properties/thousandsSeparator",
         "options" : {
-          "hideOnNull" : false,
           "validations" : [ {
             "id" : "maxLength",
             "parameters" : {
@@ -1294,11 +1259,7 @@
             "options" : {
               "hideControlHeader" : true,
               "choicesProvider" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders$TypeChoicesProvider",
-              "format" : "dropDown",
-              "showNoneColumn" : false,
-              "showRowKeys" : false,
-              "showSearch" : true,
-              "showMode" : true
+              "format" : "dropDown"
             },
             "rule" : {
               "effect" : "SHOW",
@@ -1639,6 +1600,37 @@
     "values" : [ {
       "indices" : [ ],
       "value" : "UNION"
+    } ]
+  }, {
+    "scopes" : null,
+    "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$EncodingChoicesProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "DEFAULT",
+        "text" : "OS default (UTF-8)"
+      }, {
+        "id" : "ISO_8859_1",
+        "text" : "ISO-8859-1"
+      }, {
+        "id" : "US_ASCII",
+        "text" : "US-ASCII"
+      }, {
+        "id" : "UTF_8",
+        "text" : "UTF-8"
+      }, {
+        "id" : "UTF_16",
+        "text" : "UTF-16"
+      }, {
+        "id" : "UTF_16BE",
+        "text" : "UTF-16BE"
+      }, {
+        "id" : "UTF_16LE",
+        "text" : "UTF-16LE"
+      }, {
+        "id" : "OTHER",
+        "text" : ""
+      } ]
     } ]
   }, {
     "scopes" : null,

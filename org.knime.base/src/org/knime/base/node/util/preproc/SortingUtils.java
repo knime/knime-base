@@ -48,24 +48,38 @@
  */
 package org.knime.base.node.util.preproc;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.StringValue;
+import org.knime.core.data.sort.RowComparator;
+import org.knime.core.data.sort.RowComparator.ColumnComparatorBuilder;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DoNotPersistBoolean;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelectionToStringWithRowIDChoiceMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.AllColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.BooleanReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
@@ -125,7 +139,7 @@ public final class SortingUtils {
          * @param sortingOrder
          * @param stringComparison
          */
-        public SortingCriterionSettings(final ColumnSelection column, final SortingOrder sortingOrder,
+        public SortingCriterionSettings(final StringOrEnum<RowIDChoice> column, final SortingOrder sortingOrder,
             final StringComparison stringComparison) {
             m_column = column;
             m_sortingOrder = sortingOrder;
@@ -157,26 +171,65 @@ public final class SortingUtils {
          * @param colSpec
          */
         public SortingCriterionSettings(final DataColumnSpec colSpec) {
-            m_column = colSpec == null ? SpecialColumns.ROWID.toColumnSelection() : new ColumnSelection(colSpec);
+            m_column = colSpec == null ? new StringOrEnum<>(RowIDChoice.ROW_ID) : new StringOrEnum<>(colSpec.getName());
         }
 
-        interface ColumnRef extends Reference<ColumnSelection> {
-        }
-
-        static final class IsStringColumn implements PredicateProvider {
-            @Override
-            public Predicate init(final PredicateInitializer i) {
-                return i.getColumnSelection(ColumnRef.class).hasColumnType(StringValue.class);
-            }
+        interface ColumnRef extends Reference<StringOrEnum<RowIDChoice>> {
         }
 
         @Widget(title = "Column", description = """
                 Sort rows by the values in this column. If you set multiple sorting criteria, the table is \
                 sorted by the first criterion. The following criteria are only considered, if the comparison \
                 by all previous criteria results in a tie.""")
-        @ChoicesWidget(choices = AllColumnChoicesProvider.class, showRowKeysColumn = true)
+        @ChoicesProvider(AllColumnsProvider.class)
         @ValueReference(ColumnRef.class)
-        ColumnSelection m_column;
+        @Persist(configKey = "columnV2")
+        @Migration(ColumnSelectionMigration.class)
+        StringOrEnum<RowIDChoice> m_column;
+
+        static final class ColumnSelectionMigration extends ColumnSelectionToStringWithRowIDChoiceMigration {
+            ColumnSelectionMigration() {
+                super("column");
+            }
+        }
+
+        static final class IsStringColumnProvider implements StateProvider<Boolean> {
+
+            private Supplier<StringOrEnum<RowIDChoice>> m_columnSupplier;
+
+            @Override
+            public void init(final StateProviderInitializer i) {
+                i.computeBeforeOpenDialog();
+                m_columnSupplier = i.computeFromValueSupplier(ColumnRef.class);
+            }
+
+            @Override
+            public Boolean computeState(final DefaultNodeSettingsContext context) {
+                final var tableSpecOptional = context.getDataTableSpec(0);
+                if (tableSpecOptional.isEmpty()) {
+                    return false;
+                }
+                final var tableSpec = tableSpecOptional.get();
+                final var column = m_columnSupplier.get();
+                if (column.getEnumChoice().isPresent()) {
+                    return true;
+                }
+                final var colSpec = tableSpec.getColumnSpec(column.getStringChoice());
+                if (colSpec == null) {
+                    return false;
+                }
+                return colSpec.getType().isCompatible(StringValue.class);
+            }
+
+        }
+
+        static final class IsStringColumn implements BooleanReference {
+        }
+
+        @ValueProvider(IsStringColumnProvider.class)
+        @ValueReference(IsStringColumn.class)
+        @Persistor(DoNotPersistBoolean.class)
+        boolean m_isStringColumn;
 
         @Widget(title = "Order", description = "Specifies the sorting order:")
         @ValueSwitchWidget
@@ -191,7 +244,7 @@ public final class SortingUtils {
         /**
          * @return the column
          */
-        public ColumnSelection getColumn() {
+        public StringOrEnum<RowIDChoice> getColumn() {
             return m_column;
         }
 
@@ -208,5 +261,68 @@ public final class SortingUtils {
         public StringComparison getStringComparison() {
             return m_stringComparison;
         }
+
+    }
+
+    /**
+     * Obtain columns specified in sorting criteria but missing in data table spec.
+     *
+     * @param sortingCriteria
+     * @param spec
+     * @return missing columns
+     */
+    public static List<String> getMissing(final SortingCriterionSettings[] sortingCriteria, final DataTableSpec spec) {
+        return Stream.of(sortingCriteria)//
+            .map(SortingCriterionSettings::getColumn)//
+            .filter(col -> col.getEnumChoice().isEmpty())//
+            .map(StringOrEnum::getStringChoice)//
+            .filter(name -> spec.findColumnIndex(name) == -1)//
+            .toList();
+    }
+
+    /**
+     * Converts the given sorting criteria into a row comparator for the given data table.
+     *
+     * @param spec data table to compare rows of
+     * @param sortingCriteria to convert
+     * @param missingsLast whether to always put missing cells at the end of the table, regardless of sort order
+     * @return a row comparator to compare rows of given data table with
+     */
+    public static RowComparator toRowComparator(final DataTableSpec spec,
+        final SortingCriterionSettings[] sortingCriteria, final boolean missingsLast) {
+        final var rc = RowComparator.on(spec);
+        Arrays.stream(sortingCriteria).forEach(criterion -> {
+            final var ascending = criterion.getSortingOrder() == SortingOrder.ASCENDING;
+            final var alphaNum = criterion.getStringComparison() == StringComparison.NATURAL;
+            resolveColumnName(spec, criterion.getColumn()).ifPresentOrElse(
+                col -> rc.thenComparingColumn(col,
+                    c -> configureColumnComparatorBuilder(spec, missingsLast, ascending, alphaNum, col, c)),
+                () -> rc.thenComparingRowKey(
+                    k -> k.withDescendingSortOrder(!ascending).withAlphanumericComparison(alphaNum)));
+        });
+        return rc.build();
+    }
+
+    private static ColumnComparatorBuilder configureColumnComparatorBuilder(final DataTableSpec spec,
+        final boolean missingsLast, final boolean ascending, final boolean alphaNum, final int col,
+        final ColumnComparatorBuilder c) {
+        var compBuilder = c.withDescendingSortOrder(!ascending);
+        if (spec.getColumnSpec(col).getType().isCompatible(StringValue.class)) {
+            compBuilder.withAlphanumericComparison(alphaNum);
+        }
+        return compBuilder.withMissingsLast(missingsLast);
+    }
+
+    private static OptionalInt resolveColumnName(final DataTableSpec dts, final StringOrEnum<RowIDChoice> column) {
+        if (column.getEnumChoice().isPresent()) {
+            return OptionalInt.empty();
+        }
+        final var colName = column.getStringChoice();
+        final var idx = dts.findColumnIndex(colName);
+        if (idx == -1) {
+            throw new IllegalArgumentException(
+                "The column identifier \"" + colName + "\" does not refer to a known column.");
+        }
+        return OptionalInt.of(idx);
     }
 }

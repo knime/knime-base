@@ -47,12 +47,14 @@
  */
 package org.knime.base.node.flowvariable.credentialspropertiesextractor;
 
+import java.util.List;
+
 import org.knime.core.node.workflow.VariableType.CredentialsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
 
 /**
  * @author Carl Witt, KNIME AG, Zurich, Switzerland
@@ -65,14 +67,14 @@ public final class CredentialsPropertyExtractorSettings implements DefaultNodeSe
     }
 
     CredentialsPropertyExtractorSettings(final DefaultNodeSettingsContext context) {
-        m_selectedCredentials = ColumnFilter.createDefault(CredentialsFlowVariables.class, context);
+        m_selectedCredentials = new StringFilter(CredentialsFlowVariables.getAllCredentialsVariables(context));
     }
 
     @Widget(title = "Credentials Selection", description = """
             Select the credentials flow variables for which to extract properties.
             """)
-    @ChoicesWidget(choices = CredentialsFlowVariables.class)
-    ColumnFilter m_selectedCredentials;
+    @ChoicesProvider(CredentialsFlowVariables.class)
+    StringFilter m_selectedCredentials = new StringFilter();
 
     @Widget(title = "Fail if selected credentials have no user name set", description = """
             Select this to prevent execution of subsequent nodes in case the selected credentials have
@@ -93,11 +95,16 @@ public final class CredentialsPropertyExtractorSettings implements DefaultNodeSe
     boolean m_failOnEmptySecondAuthenticationFactor;
 
     /** Select all credentials variables by default. */
-    private static final class CredentialsFlowVariables implements ChoicesProvider {
+    private static final class CredentialsFlowVariables implements StringChoicesProvider {
         @Override
-        public String[] choices(final DefaultNodeSettingsContext context) {
+        public List<String> choices(final DefaultNodeSettingsContext context) {
+            return getAllCredentialsVariables(context);
+        }
+
+        static List<String> getAllCredentialsVariables(final DefaultNodeSettingsContext context) {
             final var credentialVariables = context.getAvailableInputFlowVariables(CredentialsType.INSTANCE);
-            return credentialVariables.keySet().toArray(String[]::new);
+            return credentialVariables.keySet().stream().toList();
+
         }
     }
 }
