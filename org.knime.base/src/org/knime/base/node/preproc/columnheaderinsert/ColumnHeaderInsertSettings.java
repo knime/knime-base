@@ -52,8 +52,8 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.StringValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -66,18 +66,18 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 @SuppressWarnings("restriction")
 public final class ColumnHeaderInsertSettings implements DefaultNodeSettings {
 
-    // TODO: UIEXT-1007 migrate String to ColumnSelection
+    
 
     @Persist(configKey = ColumnHeaderInsertConfig.CFG_LOOKUP_COLUMN)
     @Widget(title = "Lookup column",
         description = "The column in the 2nd input table containing the \"old\" names of the columns.")
-    @ChoicesWidget(choices = StringColumnsSecondTable.class, showRowKeysColumn = true)
+    @ChoicesProvider(StringColumnsSecondTable.class, showRowKeysColumn = true)
     String m_lookupColumn;
 
     @Persist(configKey = ColumnHeaderInsertConfig.CFG_VALUE_COLUMN)
     @Widget(title = "Names column",
         description = "The column in the 2nd input table containing the \"new\" names of the columns.")
-    @ChoicesWidget(choices = StringColumnsSecondTable.class)
+    @ChoicesProvider(StringColumnsSecondTable.class)
     String m_valueColumn;
 
     @Persist(configKey = ColumnHeaderInsertConfig.CFG_FAIL_IF_NO_MATCH)
@@ -86,10 +86,10 @@ public final class ColumnHeaderInsertSettings implements DefaultNodeSettings {
             + " in the dictionary table. Otherwise it will keep the original column name.")
     boolean m_failIfNoMatch;
 
-    private static final class StringColumnsSecondTable implements ChoicesProvider {
+    private static final class StringColumnsSecondTable implements StringChoicesProvider {
 
         @Override
-        public String[] choices(final DefaultNodeSettingsContext context) {
+        public List<String> choices(final DefaultNodeSettingsContext context) {
             var spec = context.getDataTableSpecs()[1];
             if (spec == null) {
                 return new String[0];

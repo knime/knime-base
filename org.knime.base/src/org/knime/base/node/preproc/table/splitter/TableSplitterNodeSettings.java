@@ -55,8 +55,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -91,7 +91,7 @@ public final class TableSplitterNodeSettings implements DefaultNodeSettings {
         title = "Lookup column",
         description = "Select the column that should be used to evaluate the matching criteria. "
             + "Only columns of type String, Number (integer), or Number (long) can be selected.")
-    @ChoicesWidget(choices = ColumnChoices.class, showRowKeysColumn = true)
+    @ChoicesProvider(ColumnChoices.class, showRowKeysColumn = true)
     @Layout(FindSplittingRowSection.class)
     String m_lookupColumn = TableSplitterNodeModel.ROWID_PLACEHOLDER;
 
@@ -176,10 +176,10 @@ public final class TableSplitterNodeSettings implements DefaultNodeSettings {
      * A column provider that gives the names of the columns that are compatible according to
      * {@link TableSplitterNodeModel#isCompatible}
      */
-    private static final class ColumnChoices implements ChoicesProvider {
+    private static final class ColumnChoices implements StringChoicesProvider {
 
         @Override
-        public String[] choices(final DefaultNodeSettingsContext context) {
+        public List<String> choices(final DefaultNodeSettingsContext context) {
             final DataTableSpec specs = context.getDataTableSpecs()[0];
             if (specs == null) {
                 return new String[0];

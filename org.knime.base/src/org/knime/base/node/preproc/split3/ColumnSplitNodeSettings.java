@@ -51,9 +51,9 @@ package org.knime.base.node.preproc.split3;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -68,7 +68,7 @@ final class ColumnSplitNodeSettings implements DefaultNodeSettings {
             Columns on the right side of the splitter will be included in the first output table. \
             Those on the left side will be included in the second output table.
             """)
-    @ChoicesWidget(choices = AllColumnsProvider.class)
+    @ChoicesProvider(AllColumnsProvider.class)
     ColumnFilter m_columnsToInclude = new ColumnFilter();
 
     ColumnSplitNodeSettings() {
@@ -88,7 +88,7 @@ final class ColumnSplitNodeSettings implements DefaultNodeSettings {
     static final class AllColumnsProvider implements ColumnChoicesProvider {
 
         @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
+        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0) //
                 .stream() //
                 .flatMap(DataTableSpec::stream) //

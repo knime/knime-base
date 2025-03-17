@@ -91,9 +91,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.WidgetGroupModifier;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.TypeReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
@@ -492,7 +492,7 @@ public final class CommonReaderTransformationSettingsStateProviders {
      *
      * @param <T> the type used to represent external data [T]ypes
      */
-    public abstract static class TypeChoicesProvider<T> implements StringChoicesStateProvider,
+    public abstract static class TypeChoicesProvider<T> implements StringChoicesProvider,
         ProductionPathProviderAndTypeHierarchy<T>, TypedReaderTableSpecsProvider.Dependent<T> {
 
         static final String DEFAULT_COLUMNTYPE_ID = "<default-columntype>";
@@ -511,28 +511,28 @@ public final class CommonReaderTransformationSettingsStateProviders {
         }
 
         @Override
-        public IdAndText[] computeState(final DefaultNodeSettingsContext context) {
+        public List<StringChoice> computeState(final DefaultNodeSettingsContext context) {
             final var columnName = m_columnNameSupplier.get();
 
             if (columnName == null) { // i.e., any unknown column
-                final var defaultChoice = new IdAndText(DEFAULT_COLUMNTYPE_ID, DEFAULT_COLUMNTYPE_TEXT);
+                final var defaultChoice = new StringChoice(DEFAULT_COLUMNTYPE_ID, DEFAULT_COLUMNTYPE_TEXT);
                 final var dataTypeChoices = getProductionPathProvider().getAvailableDataTypes().stream()
                     .sorted((t1, t2) -> t1.toPrettyString().compareTo(t2.toPrettyString()))
-                    .map(type -> new IdAndText(getDataTypeId(type), type.toPrettyString())).toList();
-                return Stream.concat(Stream.of(defaultChoice), dataTypeChoices.stream()).toArray(IdAndText[]::new);
+                    .map(type -> new StringChoice(getDataTypeId(type), type.toPrettyString())).toList();
+                return Stream.concat(Stream.of(defaultChoice), dataTypeChoices.stream()).toArray(StringChoice[]::new);
             }
 
             final var union = toRawSpec(m_specSupplier.get()).getUnion();
             final var columnSpecOpt =
                 union.stream().filter(colSpec -> colSpec.getName().get().equals(columnName)).findAny();
             if (columnSpecOpt.isEmpty()) {
-                return new IdAndText[0];
+                return new StringChoice[0];
             }
             final var columnSpec = columnSpecOpt.get();
             final var productionPaths = getProductionPathProvider().getAvailableProductionPaths(columnSpec.getType());
             return productionPaths.stream().map(
-                p -> new IdAndText(p.getConverterFactory().getIdentifier(), p.getDestinationType().toPrettyString()))
-                .toArray(IdAndText[]::new);
+                p -> new StringChoice(p.getConverterFactory().getIdentifier(), p.getDestinationType().toPrettyString()))
+                .toArray(StringChoice[]::new);
         }
 
     }

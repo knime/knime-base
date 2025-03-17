@@ -49,8 +49,8 @@
 package org.knime.base.node.preproc.table.cellextractor;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
@@ -108,7 +108,7 @@ public final class CellExtractorSettings implements DefaultNodeSettings {
     ColumnSpecificationMode m_columnSpecificationMode = ColumnSpecificationMode.BY_NAME;
 
     @Widget(title = "Column name", description = "Select the column that contains the target cell.")
-    @ChoicesWidget(choices = AllColumns.class)
+    @ChoicesProvider(AllColumns.class)
     @Effect(predicate = SpecifyByName.class, type = EffectType.SHOW)
     String m_columnName;
 
@@ -125,9 +125,9 @@ public final class CellExtractorSettings implements DefaultNodeSettings {
         description = "If selected, the rows will be counted from the end of the table.")
     boolean m_countFromEnd;
 
-    private static final class AllColumns implements ChoicesProvider {
+    private static final class AllColumns implements StringChoicesProvider {
         @Override
-        public String[] choices(final DefaultNodeSettingsContext context) {
+        public List<String> choices(final DefaultNodeSettingsContext context) {
             var specs = context.getDataTableSpecs();
             var spec = specs[0];
 

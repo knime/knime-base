@@ -70,15 +70,15 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelectionToStringMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesStateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
@@ -144,10 +144,10 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
             }
         }
 
-        private static class ColumnsWithTypeMapping implements ColumnChoicesStateProvider {
+        private static class ColumnsWithTypeMapping implements ColumnChoicesProvider {
 
             @Override
-            public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
+            public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
                 return context.getDataTableSpec(0) //
                     .map(DataTableSpec::stream) //
                     .orElseGet(Stream::empty) //
@@ -587,7 +587,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
     /**
      * Compute choices for the filter operator based on the selected column and compare mode
      */
-    static class TypeBasedOperatorChoices implements StringChoicesStateProvider {
+    static class TypeBasedOperatorChoices implements StringChoicesProvider {
 
         private Supplier<List<FilterOperator>> m_typeBasedOperators;
 
@@ -597,9 +597,9 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public IdAndText[] computeState(final DefaultNodeSettingsContext context) throws WidgetHandlerException {
-            return m_typeBasedOperators.get().stream().map(op -> new IdAndText(op.name(), op.label())) //
-                .toArray(IdAndText[]::new);
+        public List<StringChoice> computeState(final DefaultNodeSettingsContext context) throws WidgetHandlerException {
+            return m_typeBasedOperators.get().stream().map(op -> new StringChoice(op.name(), op.label())) //
+                .toArray(StringChoice[]::new);
         }
     }
 

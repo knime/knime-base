@@ -59,9 +59,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
@@ -130,7 +130,7 @@ public final class StringFormatManagerNodeSettings implements DefaultNodeSetting
             Select the columns to attach the selected format to.
             This does not change the data, but only the way the strings are being displayed in views.
             """)
-    @ChoicesWidget(choices = StringColumns.class)
+    @ChoicesProvider(StringColumns.class)
     @Layout(DialogLayout.Columns.class)
     ColumnFilter m_columnsToFormat;
 
@@ -255,7 +255,7 @@ public final class StringFormatManagerNodeSettings implements DefaultNodeSetting
 
     static final class StringColumns implements ColumnChoicesProvider {
         @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
+        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0).map(DataTableSpec::stream)//
                 .orElseGet(Stream::empty)//
                 .filter(StringFormatManagerNodeModel::isStringCell)//

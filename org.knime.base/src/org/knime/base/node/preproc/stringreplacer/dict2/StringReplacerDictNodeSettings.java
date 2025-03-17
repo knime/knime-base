@@ -58,9 +58,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -133,7 +133,7 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
     /** Provides the string column choices of the table at input port 0 */
     static final class TargetColumnChoices implements ColumnChoicesProvider {
         @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
+        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0)// data table
                 .map(s -> getStringCompatibleColumns(s))//
                 .orElse(new DataColumnSpec[]{});
@@ -143,7 +143,7 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
     /** Provides the string column choices of the table at input port 1, including collections */
     static final class PatternAndReplacementColumnChoices implements ColumnChoicesProvider {
         @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
+        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(1)// dictionary table
                 .map(s -> getStringCompatibleColumns(s))//
                 .orElse(new DataColumnSpec[]{});
@@ -167,7 +167,7 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
 
     @Layout(DialogSections.ColumnSelection.class)
     @Widget(title = "Target columns", description = "Select the columns in which the strings should be replaced.")
-    @ChoicesWidget(choices = TargetColumnChoices.class)
+    @ChoicesProvider(TargetColumnChoices.class)
     ColumnFilter m_targetColumns;
 
     @Layout(DialogSections.FindAndReplace.class)
@@ -196,7 +196,7 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
             The column containing literal strings, wildcard patterns or regular expressions, depending on the pattern
             type selected above.
             """)
-    @ChoicesWidget(choices = PatternAndReplacementColumnChoices.class)
+    @ChoicesProvider(PatternAndReplacementColumnChoices.class)
     String m_patternColumn;
 
     @Layout(DialogSections.FindAndReplace.class)
@@ -206,7 +206,7 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
             capture group, named capture groups can also be used with <tt>(?&lt;group&gt;)</tt> and <tt>${group}</tt>
             to refer to them).
             """)
-    @ChoicesWidget(choices = PatternAndReplacementColumnChoices.class)
+    @ChoicesProvider(PatternAndReplacementColumnChoices.class)
     String m_replacementColumn;
 
     @Layout(DialogSections.FindAndReplace.class)

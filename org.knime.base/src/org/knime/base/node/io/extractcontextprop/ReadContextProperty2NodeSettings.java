@@ -52,8 +52,8 @@ import org.knime.core.util.ContextProperties;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
@@ -75,7 +75,7 @@ final class ReadContextProperty2NodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Selected Properties",
         description = "Properties that should be extracted from the workflow context.")
-    @ChoicesWidget(choices = ContextPropsChoicesProvider.class)
+    @ChoicesProvider(ContextPropsChoicesProvider.class)
     @Effect(predicate = IsExtractAllProps.class, type = EffectType.DISABLE)
     String[] m_selectedProps;
 
@@ -96,9 +96,9 @@ final class ReadContextProperty2NodeSettings implements DefaultNodeSettings {
     boolean m_isExtractAllProps = true;
 
     /** Provider for the extractable properties' names. */
-    private static final class ContextPropsChoicesProvider implements ChoicesProvider {
+    private static final class ContextPropsChoicesProvider implements StringChoicesProvider {
         @Override
-        public String[] choices(final DefaultNodeSettingsContext context) {
+        public List<String> choices(final DefaultNodeSettingsContext context) {
             return ALL_PROP_KEYS;
         }
     }

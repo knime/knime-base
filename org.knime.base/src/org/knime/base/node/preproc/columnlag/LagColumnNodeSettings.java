@@ -57,8 +57,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
@@ -92,7 +92,7 @@ public final class LagColumnNodeSettings implements DefaultNodeSettings {
 
     @Persistor(ColumnNodeSettingsPersistor.class)
     @Widget(title = "Column to lag", description = "The column to be lagged.")
-    @ChoicesWidget(choices = AllColumns.class, showRowKeysColumn = true)
+    @ChoicesProvider(AllColumns.class, showRowKeysColumn = true)
     String m_column = ROW_KEYS;
 
     @Persist(configKey = LagColumnConfiguration.CFG_LAG)
@@ -143,7 +143,7 @@ public final class LagColumnNodeSettings implements DefaultNodeSettings {
     private static final class AllColumns implements ColumnChoicesProvider {
 
         @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
+        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0)//
                 .stream()//
                 .flatMap(DataTableSpec::stream)//

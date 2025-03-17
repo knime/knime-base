@@ -74,13 +74,13 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyNameFilterPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.NameFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyNameFilterPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.NameFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DomainValuesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
@@ -107,7 +107,7 @@ abstract sealed class NominalValueRowCommonSettings implements DefaultNodeSettin
 
     @Widget(title = SettingsUtils.TITLE_FILTER_COLUMN, description = SettingsUtils.DESC_FILTER_COLUMN)
     @ValueReference(SelectedColumnDependency.class)
-    @ChoicesWidget(choices = NominalColumnWithDomainChoicesProider.class)
+    @ChoicesProvider(NominalColumnWithDomainChoicesProider.class)
     @Persist(configKey = "selected_column")
     String m_selectedColumn;
 
@@ -340,12 +340,12 @@ abstract sealed class NominalValueRowCommonSettings implements DefaultNodeSettin
         }
 
         static final class SelectedColumnDomainChoicesStateProviderOnInitAndDepChange
-            implements StringChoicesStateProvider {
+            implements StringChoicesProvider {
 
             private Supplier<List<String>> m_domainValues;
 
             @Override
-            public String[] choices(final DefaultNodeSettingsContext context) {
+            public List<String> choices(final DefaultNodeSettingsContext context) {
                 return m_domainValues.get().toArray(String[]::new);
             }
 
@@ -389,7 +389,7 @@ abstract sealed class NominalValueRowCommonSettings implements DefaultNodeSettin
         static final class NominalColumnWithDomainChoicesProider implements ColumnChoicesProvider {
 
             @Override
-            public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
+            public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
                 final var spec = context.getDataTableSpec(0);
                 return getNominalColumnsWithDomain(spec.orElse(null)).toArray(DataColumnSpec[]::new);
             }

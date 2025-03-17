@@ -60,7 +60,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -79,13 +79,13 @@ public final class RowFilterRefNodeSettings implements DefaultNodeSettings {
     @Persistor(DataColumnPersistor.class)
     @Widget(title = "Data column (in top/first input)",
         description = "The column from the table to be filtered that should be used for comparison.")
-    @ChoicesWidget(choices = DataColumnChoices.class, showRowKeysColumn = true)
+    @ChoicesProvider(DataColumnChoices.class, showRowKeysColumn = true)
     String m_dataColumn = SpecialColumns.ROWID.getId();
 
     @Persistor(ReferenceColumnPersistor.class)
     @Widget(title = "Reference column (in bottom/second input)",
         description = "The column from the filter table that should be used for comparison.")
-    @ChoicesWidget(choices = ReferenceColumnChoices.class, showRowKeysColumn = true)
+    @ChoicesProvider(ReferenceColumnChoices.class, showRowKeysColumn = true)
     String m_referenceColumn = SpecialColumns.ROWID.getId();
 
     @Persistor(IncludeOrExcludeRowsPersistor.class)

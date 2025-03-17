@@ -62,9 +62,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
@@ -185,7 +185,7 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     /** Provides the column choices of the table at input port 0 */
     static final class DataTableChoices implements ColumnChoicesProvider {
         @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
+        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0)//
                 .map(DataTableSpec::stream)//
                 .orElseGet(Stream::empty)//
@@ -196,7 +196,7 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     /** Provides the column choices of the table at input port 1 */
     static final class DictionaryTableChoices implements ColumnChoicesProvider {
         @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
+        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(1)//
                 .map(DataTableSpec::stream)//
                 .orElseGet(Stream::empty)//
@@ -217,14 +217,14 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     /** The name of the lookup column in the data table */
     @Widget(title = "Lookup column (data table)", //
         description = "The column in the data table that will be used to look up cells in the dictionary.") //
-    @ChoicesWidget(choices = DataTableChoices.class)
+    @ChoicesProvider(DataTableChoices.class)
     @Layout(MatchingSection.class)
     String m_lookupCol;
 
     /** The name of the key column in the dictionary table */
     @Widget(title = "Key column (dictionary table)", //
         description = "The column in the dictionary table that contains the search key / criterion.") //
-    @ChoicesWidget(choices = DictionaryTableChoices.class)
+    @ChoicesProvider(DictionaryTableChoices.class)
     @Layout(MatchingSection.class)
     String m_dictKeyCol;
 
@@ -321,7 +321,7 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
                 The column from the dictionary table that provides
                 the new values for the lookup column in the data table.
                 """)
-    @ChoicesWidget(choices = DictionaryTableChoices.class)
+    @ChoicesProvider(DictionaryTableChoices.class)
     @Effect(type = EffectType.SHOW, predicate = ShowLookupColumnReplacement.class)
     @Layout(OutputSection.class)
     @Migrate(loadDefaultIfAbsent = true)
@@ -347,7 +347,7 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     /** The names of the columns from the dictionary table that shall be added to the output table */
     @Widget(title = "Append columns (from dictionary table)", //
         description = "The columns in the dictionary table that contain the values added to the data table.") //
-    @ChoicesWidget(choices = DictionaryTableChoices.class)
+    @ChoicesProvider(DictionaryTableChoices.class)
     @Layout(OutputSection.class)
     ColumnFilter m_dictValueCols;
 

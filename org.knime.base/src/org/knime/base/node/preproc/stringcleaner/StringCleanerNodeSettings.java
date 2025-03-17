@@ -55,9 +55,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
@@ -121,9 +121,9 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
 
     // Settings
 
-    static final class StringColumnChoicesProvider implements ColumnChoicesProvider {
+    static final class StringColumnsProvider implements ColumnChoicesProvider {
         @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
+        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0).map(StringCleanerNodeModel::stringColumns)
                 .orElse(new DataColumnSpec[]{});
         }
@@ -133,7 +133,7 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
             Select which columns should be cleaned. \
             The strings in these columns will be modified according to the configuration of this node.
             """)
-    @ChoicesWidget(choices = StringColumnChoicesProvider.class)
+    @ChoicesProvider(StringColumnsProvider.class)
     @Layout(DialogLayout.ColumnSelection.class)
     ColumnFilter m_columnsToClean;
 
@@ -509,6 +509,6 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
     }
 
     StringCleanerNodeSettings(final DefaultNodeSettingsContext ctx) {
-        m_columnsToClean = ColumnFilter.createDefault(StringColumnChoicesProvider.class, ctx);
+        m_columnsToClean = ColumnFilter.createDefault(StringColumnsProvider.class, ctx);
     }
 }

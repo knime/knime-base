@@ -58,11 +58,11 @@ import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.AllColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
 
 /**
  * The settings for the "Table Column to Variable" node.
@@ -94,7 +94,7 @@ final class TableColumnToVariable4NodeSettings implements DefaultNodeSettings {
     }
 
     @Widget(title = "Column name", description = "Name of the column for the values.")
-    @ChoicesWidget(choices = AllColumnChoicesProvider.class)
+    @ChoicesProvider(AllColumnsProvider.class)
     String m_column;
 
     @Widget(title = "If value in cell is missing", description = "Action to take if the value in cell is missing.")

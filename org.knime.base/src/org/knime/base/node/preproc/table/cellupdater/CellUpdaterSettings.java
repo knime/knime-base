@@ -56,9 +56,9 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
@@ -116,10 +116,10 @@ public final class CellUpdaterSettings implements DefaultNodeSettings {
     @ValueReference(ColumnModeRef.class)
     ColumnMode m_columnMode = ColumnMode.BY_NAME;
 
-    // TODO: UIEXT-1007 migrate String to ColumnSelection
+    
 
     @Widget(title = "Column name", description = "Select the column that contains the target cell.")
-    @ChoicesWidget(choices = AllColumns.class)
+    @ChoicesProvider(AllColumns.class)
     @Effect(predicate =  ColumnModeIsByName.class, type = EffectType.SHOW)
     String m_columnName;
 
@@ -137,21 +137,21 @@ public final class CellUpdaterSettings implements DefaultNodeSettings {
     boolean m_countFromEnd = false;
 
     @Widget(title = "New cell value", description = "Select the flow variable containing the new cell value.")
-    @ChoicesWidget(choices = AllVariables.class)
+    @ChoicesProvider(AllVariables.class)
     String m_flowVariableName;
 
     private static final class AllColumns implements ColumnChoicesProvider {
         @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
+        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(1).stream()//
                 .flatMap(DataTableSpec::stream)//
                 .toArray(DataColumnSpec[]::new);
         }
     }
 
-    private static final class AllVariables implements ChoicesProvider {
+    private static final class AllVariables implements StringChoicesProvider {
         @Override
-        public String[] choices(final DefaultNodeSettingsContext context) {
+        public List<String> choices(final DefaultNodeSettingsContext context) {
             return context.getAvailableFlowVariableNames();
         }
     }

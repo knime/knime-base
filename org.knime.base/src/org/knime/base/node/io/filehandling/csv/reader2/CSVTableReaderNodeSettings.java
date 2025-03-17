@@ -100,8 +100,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettin
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
@@ -110,7 +110,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.Icon;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
@@ -625,12 +625,12 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
                 }
             }
 
-            static final class EncodingChoicesProvider implements ChoicesProvider {
+            static final class EncodingChoicesProvider implements StringChoicesProvider {
                 @Override
-                public IdAndText[] choicesWithIdAndText(final DefaultNodeSettingsContext context) {
+                public StringChoice[] choicesWithStringChoice(final DefaultNodeSettingsContext context) {
                     return Arrays.stream(FileEncodingOption.values())
-                        .map(fileEncoding -> new IdAndText(fileEncoding.name(), fileEncoding.m_displayText))
-                        .toArray(IdAndText[]::new);
+                        .map(fileEncoding -> new StringChoice(fileEncoding.name(), fileEncoding.m_displayText))
+                        .toArray(StringChoice[]::new);
                 }
             }
 
@@ -648,7 +648,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
 
             @Widget(title = "File encoding", description = FileEncoding.DESCRIPTION, advanced = true)
             @ValueReference(FileEncodingRef.class)
-            @ChoicesWidget(choices = EncodingChoicesProvider.class)
+            @ChoicesProvider(EncodingChoicesProvider.class)
             @Layout(FileEncoding.class)
             FileEncodingOption m_fileEncoding;
 

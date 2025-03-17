@@ -55,10 +55,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -72,7 +72,7 @@ public final class Unpivot2NodeSettings implements DefaultNodeSettings {
     @Persistor(ValueColumnsPersistor.class)
     @Widget(title = "Value columns",
         description = "This list contains the columns that are rotated into one single column.")
-    @ChoicesWidget(choices = AllColumns.class)
+    @ChoicesProvider(AllColumns.class)
     ColumnFilter m_valueColumns = new ColumnFilter();
 
     @Persistor(MissingValuesPersistor.class)
@@ -84,7 +84,7 @@ public final class Unpivot2NodeSettings implements DefaultNodeSettings {
     @Widget(title = "Retained columns",
         description = "This list contains the columns "
             + "which are duplicated by the number of selected value columns.")
-    @ChoicesWidget(choices = AllColumns.class)
+    @ChoicesProvider(AllColumns.class)
     ColumnFilter m_retainedColumns = new ColumnFilter();
 
     @Section(title = "Performance", advanced = true)
@@ -99,7 +99,7 @@ public final class Unpivot2NodeSettings implements DefaultNodeSettings {
     private static final class AllColumns implements ColumnChoicesProvider {
 
         @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
+        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0)//
                 .stream()//
                 .flatMap(DataTableSpec::stream)//

@@ -65,8 +65,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettin
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.BooleanReference;
@@ -108,7 +108,7 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
     @Layout(DialogSections.ColumnSelection.class)
     @Persist(configKey = StringReplacerSettings.CFG_COL_NAME)
     @Widget(title = "Target column", description = "Select the column in which the strings should be replaced.")
-    @ChoicesWidget(choices = StringColumnChoices.class)
+    @ChoicesProvider(StringColumnChoices.class)
     String m_colName;
 
     interface PatternTypeRef extends Reference<PatternType> {
@@ -239,9 +239,9 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    private static final class StringColumnChoices implements ChoicesProvider {
+    private static final class StringColumnChoices implements StringChoicesProvider {
         @Override
-        public String[] choices(final DefaultNodeSettingsContext context) {
+        public List<String> choices(final DefaultNodeSettingsContext context) {
             final DataTableSpec specs = context.getDataTableSpecs()[0];
             if (specs == null) {
                 return new String[0];

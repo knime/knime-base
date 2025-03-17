@@ -64,10 +64,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -97,7 +97,7 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
     @Widget(title = "Choose columns for duplicates detection",
         description = "Allows the selection of columns identifying the duplicates. "
             + "Columns not selected are handled under \"Row selection\" in the \"Advanced\" settings.")
-    @ChoicesWidget(choices = AllColumns.class)
+    @ChoicesProvider(AllColumns.class)
     @Layout(DuplicateDetectionSection.class)
     ColumnFilter m_consideredColumns;
 
@@ -225,7 +225,7 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
 
     @Persist(configKey = DuplicateRowFilterSettings.REFERENCE_COL_KEY)
     @Widget(title = "Column", description = "")
-    @ChoicesWidget(choices = AllColumns.class)
+    @ChoicesProvider(AllColumns.class)
     @Effect(predicate = IsFirstOrLast.class, type = EffectType.HIDE)
     @Layout(DuplicateHandlingSection.class)
     String m_selectedColumn;
@@ -340,7 +340,7 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
     /** Provide all columns as choices */
     static final class AllColumns implements ColumnChoicesProvider {
         @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
+        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0).map(DataTableSpec::stream)//
                 .orElseGet(Stream::empty)//
                 .toArray(DataColumnSpec[]::new);

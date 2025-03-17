@@ -87,7 +87,7 @@ import org.knime.core.data.xml.XMLCell;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalArrayWidget;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
@@ -439,7 +439,7 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
         assertSizeAndIndices(typeChoicesProviderResult, 3);
         assertThat(typeChoicesProviderResult.get(0).value()).isEqualTo(typeChoices(getIntType()));
         assertThat(typeChoicesProviderResult.get(1).value()).isEqualTo(typeChoices(getStringType()));
-        assertThat(((IdAndText[])typeChoicesProviderResult.get(2).value())[0].id()).isEqualTo("<default-columntype>");
+        assertThat(((StringChoice[])typeChoicesProviderResult.get(2).value())[0].id()).isEqualTo("<default-columntype>");
 
     }
 
@@ -507,10 +507,10 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
 
     protected abstract Class<? extends TypeChoicesProvider<T>> getTypeChoicesProviderClass();
 
-    private IdAndText[] typeChoices(final T type) {
+    private StringChoice[] typeChoices(final T type) {
         final var productionPaths = getProductionPathProvider().getAvailableProductionPaths(type);
-        return productionPaths.stream().map(path -> new IdAndText(path.getConverterFactory().getIdentifier(),
-            path.getDestinationType().toPrettyString())).toArray(IdAndText[]::new);
+        return productionPaths.stream().map(path -> new StringChoice(path.getConverterFactory().getIdentifier(),
+            path.getDestinationType().toPrettyString())).toArray(StringChoice[]::new);
     }
 
     protected Object getSpecsValueUpdate(final UpdateSimulatorResult simulatorResult) {

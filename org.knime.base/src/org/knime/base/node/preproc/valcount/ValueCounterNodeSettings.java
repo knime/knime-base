@@ -45,7 +45,7 @@
 package org.knime.base.node.preproc.valcount;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil;
 
@@ -58,7 +58,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoic
 final class ValueCounterNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Column", description = "The column whose values should be counted.")
-    @ChoicesWidget(choices = ColumnChoicesProviderUtil.AllColumnChoicesProvider.class)
+    @ChoicesProvider(ColumnChoicesProviderUtil.AllColumnsProvider.class)
     String m_columnName;
 
     @Widget(title = "Enable hiliting", advanced = true, description = """

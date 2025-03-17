@@ -66,10 +66,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -107,7 +107,7 @@ public final class DoubleToIntNodeSettings implements DefaultNodeSettings {
 
     @Persistor(InclColsPersistor.class)
     @Widget(title = "Column Selection", description = "Move the columns of interest into the &quot;Includes&quot; list")
-    @ChoicesWidget(choices = NumericalColumns.class)
+    @ChoicesProvider(NumericalColumns.class)
     @Layout(ColumnSelectionSection.class)
     ColumnFilter m_inclCols = new ColumnFilter();
 
@@ -159,10 +159,10 @@ public final class DoubleToIntNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    static final class NumericalColumns implements ChoicesProvider {
+    static final class NumericalColumns implements StringChoicesProvider {
 
         @Override
-        public String[] choices(final DefaultNodeSettingsContext context) {
+        public List<String> choices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0)//
                 .map(DataTableSpec::stream)//
                 .orElseGet(Stream::empty)//

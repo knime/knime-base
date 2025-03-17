@@ -55,10 +55,10 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
@@ -90,13 +90,13 @@ public final class RowAggregatorSettings implements DefaultNodeSettings {
     @Widget(title = "Category column", description = "Select the column that defines the category on which rows "
         + "are grouped. If no category column is selected, \"grand total\" values in which all rows belong to the same "
         + "group will be calculated.")
-    @ChoicesWidget(choices = CategoryColumns.class, showNoneColumn = true)
+    @ChoicesProvider(CategoryColumns.class, showNoneColumn = true)
     @ValueReference(CategoryColumnRef.class)
     String m_categoryColumn = SpecialColumns.NONE.getId();
 
-    static final class CategoryColumns implements ChoicesProvider {
+    static final class CategoryColumns implements StringChoicesProvider {
         @Override
-        public String[] choices(final DefaultNodeSettingsContext context) {
+        public List<String> choices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0).map(DataTableSpec::getColumnNames).orElse(new String[0]);
         }
     }
@@ -138,13 +138,13 @@ public final class RowAggregatorSettings implements DefaultNodeSettings {
     AggregationFunction m_aggregationMethod = AggregationFunction.SUM;
 
     @Widget(title = "Aggregation columns", description = "Select the columns to apply the aggregation function to.")
-    @ChoicesWidget(choices = AggregatableColumns.class)
+    @ChoicesProvider(AggregatableColumns.class)
     @Effect(predicate = AggregationFunctionIsCount.class, type = EffectType.DISABLE)
     ColumnFilter m_frequencyColumns;
 
     static final class AggregatableColumns implements ColumnChoicesProvider {
         @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
+        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0).map(DataTableSpec::stream)//
                 .orElseGet(Stream::empty)//
                 .filter(RowAggregatorNodeModel::isAggregatableColumn)//
@@ -155,13 +155,13 @@ public final class RowAggregatorSettings implements DefaultNodeSettings {
     @Widget(title = "Weight column", description = "Select the column that defines the weight with which a "
         + "value is multiplied before aggregation. Note, that only the aggregation functions \"Sum\" and \"Average\" "
         + "support a weight column")
-    @ChoicesWidget(choices = WeightColumns.class, showNoneColumn = true)
+    @ChoicesProvider(WeightColumns.class, showNoneColumn = true)
     @Effect(predicate = AggregationFunctionIsCountOrMinOrMax.class, type = EffectType.DISABLE)
     String m_weightColumn;
 
-    static final class WeightColumns implements ChoicesProvider {
+    static final class WeightColumns implements StringChoicesProvider {
         @Override
-        public String[] choices(final DefaultNodeSettingsContext context) {
+        public List<String> choices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0).map(DataTableSpec::stream)//
                 .orElseGet(Stream::empty)//
                 .filter(RowAggregatorNodeModel::isWeightColumn)//

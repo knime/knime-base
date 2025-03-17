@@ -51,9 +51,9 @@ import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.FlowVariable.Scope;
 import org.knime.core.node.workflow.VariableTypeRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.NameFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.NameFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -68,13 +68,13 @@ final class VariableFilterSettings implements DefaultNodeSettings {
     @Widget(title = "Flow Variable Filter",
         description = "The names of the flow variables that pass this filter node. See the general node description "
             + "for details regarding which variables can be filtered.")
-    @ChoicesWidget(choices = FlowVariableNamesChoicesProvider.class)
+    @ChoicesProvider(FlowVariableNamesChoicesProvider.class)
     NameFilter m_filter = new NameFilter();
 
     /** Provider for the available flow variables, excluding constants. */
-    private static final class FlowVariableNamesChoicesProvider implements ChoicesProvider {
+    private static final class FlowVariableNamesChoicesProvider implements StringChoicesProvider {
         @Override
-        public String[] choices(final DefaultNodeSettingsContext context) {
+        public List<String> choices(final DefaultNodeSettingsContext context) {
             return context.getAvailableInputFlowVariables(VariableTypeRegistry.getInstance().getAllTypes()) //
                     .values().stream() //
                     .filter(v -> Scope.Flow == v.getScope()) //

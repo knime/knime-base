@@ -55,10 +55,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DefaultPro
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
@@ -86,12 +86,12 @@ final class MissingValueColumnFilterNodeSettings implements DefaultNodeSettings 
 
     @Migration(ColumnFilterMigration.class)
     @Widget(title = "Input columns", description = "Select the columns to test for missing values.")
-    @ChoicesWidget(choices = AllColumns.class, excludedLabel = "Retained columns", includedLabel = "Columns to test")
+    @ChoicesProvider(AllColumns.class, excludedLabel = "Retained columns", includedLabel = "Columns to test")
     ColumnFilter m_columnFilter;
 
     private static final class AllColumns implements ColumnChoicesProvider {
         @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
+        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0) //
                 .stream() //
                 .flatMap(DataTableSpec::stream) //
