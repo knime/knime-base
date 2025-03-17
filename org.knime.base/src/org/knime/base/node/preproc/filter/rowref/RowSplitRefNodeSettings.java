@@ -67,22 +67,22 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColu
 final class RowSplitRefNodeSettings implements DefaultNodeSettings {
 
     @Persistor(DataColumnPersistor.class)
-    @Widget(title = "Data column (in top/first input)",
+    @Widget(title = "Data column (in first input)",
         description = "The column from the table to be split that should be used for comparison.")
     @ChoicesWidget(choices = DataColumnChoices.class, showRowKeysColumn = true)
     String m_dataColumn = SpecialColumns.ROWID.getId();
 
     @Persistor(ReferenceColumnPersistor.class)
-    @Widget(title = "Reference column (in bottom/second input)",
+    @Widget(title = "Reference column (in second input)",
         description = "The column from the filter table that should be used for comparison.")
     @ChoicesWidget(choices = ReferenceColumnChoices.class, showRowKeysColumn = true)
     String m_referenceColumn = SpecialColumns.ROWID.getId();
 
-    @Widget( //
-        title = "Update domains of all columns", //
-        description = "Advanced setting to enable recomputation of the domains of all columns in the output table " //
-            + "such that the domains' bounds exactly match the bounds of the data in the output table.", //
-        advanced = true)
+    @Widget(title = "Update domains of all columns", description = """
+            Advanced setting to enable recomputation of the domains of all \
+            columns in the output table such that the domains' bounds exactly \
+            match the bounds of the data in the output table.
+            """, advanced = true)
     @Migrate(loadDefaultIfAbsent = true)
     @Persistor(UpdateDomainsPersistor.class)
     boolean m_updateDomains;

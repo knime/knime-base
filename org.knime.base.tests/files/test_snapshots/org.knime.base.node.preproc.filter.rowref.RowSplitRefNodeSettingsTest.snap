@@ -14,20 +14,20 @@
         "properties" : {
           "dataColumn" : {
             "type" : "string",
-            "title" : "Data column (in top/first input)",
+            "title" : "Data column (in first input)",
             "description" : "The column from the table to be split that should be used for comparison.",
             "default" : "<row-keys>"
           },
           "referenceColumn" : {
             "type" : "string",
-            "title" : "Reference column (in bottom/second input)",
+            "title" : "Reference column (in second input)",
             "description" : "The column from the filter table that should be used for comparison.",
             "default" : "<row-keys>"
           },
           "updateDomains" : {
             "type" : "boolean",
             "title" : "Update domains of all columns",
-            "description" : "Advanced setting to enable recomputation of the domains of all columns in the output table such that the domains' bounds exactly match the bounds of the data in the output table.",
+            "description" : "Advanced setting to enable recomputation of the domains of all columns in the output table such that the domains' bounds exactly match the bounds of the data in the output table.\n",
             "default" : false
           }
         }
