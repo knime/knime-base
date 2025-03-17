@@ -127,7 +127,7 @@ final class VariableCreatorNodeModelTest {
 
         assertThrowsInvalidSettingsException(() -> {
             m_model.validateSettings(m_settings);
-        }, "Expected validation error on duplicate flowvar names", "already used", "var1");
+        }, "Expected validation error on duplicate flowvar names", "used", "multiple", "var1");
     }
 
     @Test
@@ -138,7 +138,7 @@ final class VariableCreatorNodeModelTest {
 
         assertThrowsInvalidSettingsException(() -> {
             m_model.validateSettings(m_settings);
-        }, "Expected validation error on empty flowvar name", "non-empty", "name");
+        }, "Expected validation error on empty flowvar name", "empty", "name");
     }
 
     @Test
@@ -231,17 +231,6 @@ final class VariableCreatorNodeModelTest {
         assertWarns(m_model::addWarningListener, () -> {
             m_model.execute(new PortObject[0], m_nodeContainer.createExecutionContext(), m_settings);
         }, "Expected warning message", "override");
-    }
-
-    @Test
-    void testWarnsIfStringValueEmpty() throws Exception {
-        m_settings.m_newFlowVariables = new NewFlowVariableSettings[]{ //
-            new NewFlowVariableSettings("var1", FlowVariableType.STRING, ""), //
-        };
-
-        assertWarns(m_model::addWarningListener, () -> {
-            m_model.execute(new PortObject[0], m_nodeContainer.createExecutionContext(), m_settings);
-        }, "Expected warning", "blank");
     }
 
     @Test

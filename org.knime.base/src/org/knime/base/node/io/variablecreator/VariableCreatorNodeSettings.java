@@ -255,9 +255,7 @@ final class VariableCreatorNodeSettings implements DefaultNodeSettings {
         }
 
         private static ParseResult<?> parseString(final String value) { // NOSONAR
-            return new ParseResult<>(Optional.of(value), value.isBlank() //
-                ? Optional.of("Value is blank") //
-                : Optional.empty());
+            return new ParseResult<>(Optional.of(value), Optional.empty());
         }
 
         /**

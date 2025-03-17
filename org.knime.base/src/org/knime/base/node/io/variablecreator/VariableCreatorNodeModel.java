@@ -48,10 +48,9 @@
  */
 package org.knime.base.node.io.variablecreator;
 
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 import org.knime.base.node.io.variablecreator.VariableCreatorNodeSettings.FlowVariableType;
 import org.knime.base.node.io.variablecreator.VariableCreatorNodeSettings.NewFlowVariableSettings;
@@ -236,20 +235,23 @@ final class VariableCreatorNodeModel extends WebUINodeModel<VariableCreatorNodeS
 
     @Override
     protected void validateSettings(final VariableCreatorNodeSettings settings) throws InvalidSettingsException {
-        Set<String> usedNames = new HashSet<>();
+        Map<String, Integer> usedNames = new HashMap<>();
         for (int i = 0; i < settings.m_newFlowVariables.length; i++) {
             var type = settings.m_newFlowVariables[i].m_type;
             var name = settings.m_newFlowVariables[i].m_name;
             var valueString = settings.m_newFlowVariables[i].m_value;
 
-            CheckUtils.checkSetting(!name.isEmpty(), "Please use a (non-empty) name for variable %d!", i + 1);
-            CheckUtils.checkSetting(!usedNames.contains(name),
-                "Please use a name that is not already used by another variable (%s) for variable %d!", name, i + 1);
-            usedNames.add(name);
+            CheckUtils.checkSetting(!name.isEmpty(), "The name of variable %d is empty.", i + 1);
+            if (usedNames.containsKey(name)) {
+                throw new InvalidSettingsException(
+                    "Variable %d uses the name '%s', which is used multiple times (first used by variable %d)."
+                        .formatted(i + 1, name, usedNames.get(name) + 1));
+            }
+            usedNames.put(name, i);
 
             final Pair<Optional<Object>, Optional<String>> checked = checkVariableValueString(type, valueString);
-            CheckUtils.checkSetting(checked.getFirst().isPresent(), "Please check variable %d (%s) for errors: %s",
-                i + 1, name, checked.getSecond().orElse("(Unknown error)"));
+            CheckUtils.checkSetting(checked.getFirst().isPresent(), "Error parsing variable %d (%s): %s", i + 1, name,
+                checked.getSecond().orElse("(Unknown error)"));
         }
     }
 
