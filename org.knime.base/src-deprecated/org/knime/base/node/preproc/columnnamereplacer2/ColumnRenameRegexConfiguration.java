@@ -43,7 +43,7 @@
  * ------------------------------------------------------------------------
  *
  */
-package org.knime.base.node.preproc.columnrenameregex;
+package org.knime.base.node.preproc.columnnamereplacer2;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -62,6 +62,7 @@ import org.knime.core.node.NodeSettingsWO;
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  * @since 2.12
  */
+@Deprecated
 public final class ColumnRenameRegexConfiguration {
 
     private String m_searchString;

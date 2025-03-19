@@ -43,7 +43,7 @@
  * ------------------------------------------------------------------------
  *
  */
-package org.knime.base.node.preproc.columnrenameregex;
+package org.knime.base.node.preproc.columnnamereplacer2;
 
 import java.io.File;
 import java.io.IOException;
@@ -71,6 +71,7 @@ import org.knime.core.node.streamable.StreamableOperator;
 /** Model to node.
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  */
+@Deprecated
 final class ColumnRenameRegexNodeModel extends NodeModel {
 
     private ColumnRenameRegexConfiguration m_config;

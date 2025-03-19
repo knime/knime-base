@@ -43,7 +43,7 @@
  * ------------------------------------------------------------------------
  *
  */
-package org.knime.base.node.preproc.columnrenameregex;
+package org.knime.base.node.preproc.columnnamereplacer2;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -65,6 +65,7 @@ import org.knime.core.node.NotConfigurableException;
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  * @since 2.12
  */
+@Deprecated
 public class ColumnRenameRegexNodeDialogPane extends NodeDialogPane {
 
     private final JTextField m_searchField;

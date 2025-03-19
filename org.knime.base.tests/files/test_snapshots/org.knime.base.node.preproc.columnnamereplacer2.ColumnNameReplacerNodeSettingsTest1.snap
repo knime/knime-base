@@ -1,0 +1,114 @@
+{
+  "data" : {
+    "model" : {
+      "patternType" : "REGEX",
+      "caseSensitivity" : "CASE_SENSITIVE",
+      "pattern" : "(\\s)",
+      "replacement" : "something$1",
+      "replacementStrategy" : "ALL_OCCURENCES"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "caseSensitivity" : {
+            "oneOf" : [ {
+              "const" : "CASE_SENSITIVE",
+              "title" : "Case sensitive"
+            }, {
+              "const" : "CASE_INSENSITIVE",
+              "title" : "Case insensitive"
+            } ],
+            "title" : "Case sensitivity",
+            "description" : "Specifies whether matching will distinguish between upper and lower case letters.\n\n<ul>\n<li><b>Case sensitive</b>: The pattern is case sensitive, so \"Example\" will not match \"example\".\n</li>\n<li><b>Case insensitive</b>: The pattern is case insensitive, so \"Example\" will match \"example\".\n</li>\n</ul>",
+            "default" : "CASE_SENSITIVE"
+          },
+          "pattern" : {
+            "type" : "string",
+            "title" : "Pattern",
+            "description" : "A literal string, wildcard pattern or regular expression, depending on the pattern type selected above.\n",
+            "default" : ""
+          },
+          "patternType" : {
+            "oneOf" : [ {
+              "const" : "LITERAL",
+              "title" : "Literal"
+            }, {
+              "const" : "WILDCARD",
+              "title" : "Wildcard"
+            }, {
+              "const" : "REGEX",
+              "title" : "Regular expression"
+            } ],
+            "title" : "Pattern type",
+            "description" : "The type of pattern to use for renaming columns.\n<ul>\n<li><b>Literal</b>: Replace the exact string specified in the pattern with the replacement text.\n</li>\n<li><b>Wildcard</b>: Use wildcards to match multiple characters. The wildcard character \"*\" matches any number of characters and the wildcard character \"?\" matches exactly one character.\n</li>\n<li><b>Regular expression</b>: Use a regular expression to match the pattern. This allows for more complex pattern matching. See <a href=\"https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html\">the Java documentation</a> for more information on regular expressions.\n</li>\n</ul>",
+            "default" : "LITERAL"
+          },
+          "replacement" : {
+            "type" : "string",
+            "title" : "Replacement text",
+            "description" : "The replacement text for the pattern. If you are using a regular expression, you may also use backreferences (e.g. $1 to refer to the first capture group. Named capture groups can also be used with (?&lt;group&gt;) and ${group} to refer to them).\n",
+            "default" : ""
+          },
+          "replacementStrategy" : {
+            "oneOf" : [ {
+              "const" : "WHOLE_STRING",
+              "title" : "Whole string"
+            }, {
+              "const" : "ALL_OCCURENCES",
+              "title" : "All occurrences"
+            } ],
+            "title" : "Replacement strategy",
+            "description" : "Specifies how the replacement text is applied to the matched pattern.\n\n<ul>\n<li><b>Whole string</b>: replaces the entire string with the replacement string, requiring an exact match of the whole string.\n</li>\n<li><b>All occurrences</b>: All occurrences replaces all occurrences of the pattern with the replacement string. Note that when e.g. matching on the RegEx-pattern .*, an empty string at the end of the input is also matched and replaced. To avoid that, use e.g. the pattern ^.* to indicate that the match has to start at the beginning of the string.\n</li>\n</ul>",
+            "default" : "WHOLE_STRING"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/patternType",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/caseSensitivity",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/pattern"
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/replacement"
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/replacementStrategy",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "patternType" : { },
+          "caseSensitivity" : { },
+          "pattern" : { },
+          "replacement" : { },
+          "replacementStrategy" : { }
+        }
+      }
+    }
+  }
+}

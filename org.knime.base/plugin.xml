@@ -829,7 +829,12 @@
             factory-class="org.knime.base.node.preproc.rename.RenameNodeFactory"/>
       <node
             category-path="/manipulation/column/column-convert+replace"
-            factory-class="org.knime.base.node.preproc.columnrenameregex.ColumnRenameRegexNodeFactory"
+            factory-class="org.knime.base.node.preproc.columnnamereplacer2.ColumnRenameRegexNodeFactory"
+            after="org.knime.base.node.preproc.column.renamer.ColumnRenamerNodeFactory"
+            deprecated="true"/>
+      <node
+            category-path="/manipulation/column/column-convert+replace"
+            factory-class="org.knime.base.node.preproc.columnnamereplacer2.ColumnNameReplacer2NodeFactory"
             after="org.knime.base.node.preproc.column.renamer.ColumnRenamerNodeFactory"/>
       <node
             category-path="/manipulation/column/column-convert+replace"
@@ -2756,7 +2761,7 @@
               impl="org.knime.base.node.preproc.columnresorter.ColumnResorterNodeFunc">
         </nodeFunc>
         <nodeFunc
-              impl="org.knime.base.node.preproc.columnrenameregex.ColumnRenameRegexNodeFunc">
+              impl="org.knime.base.node.preproc.columnnamereplacer2.ColumnRenameRegexNodeFunc">
         </nodeFunc>
         <nodeFunc
               impl="org.knime.base.node.preproc.pivot.PivotNodeFunc">

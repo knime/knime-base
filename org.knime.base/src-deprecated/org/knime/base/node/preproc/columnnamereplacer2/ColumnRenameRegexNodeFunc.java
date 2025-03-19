@@ -46,7 +46,7 @@
  * History
  *   Nov 12, 2023 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.columnrenameregex;
+package org.knime.base.node.preproc.columnnamereplacer2;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeFactory;
@@ -62,6 +62,7 @@ import org.knime.core.node.port.PortObjectSpec;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @since 5.2
  */
+@Deprecated
 public final class ColumnRenameRegexNodeFunc implements SimpleNodeFunc {
 
     private static final String CASE_SENSITIVE = "case_sensitive";
