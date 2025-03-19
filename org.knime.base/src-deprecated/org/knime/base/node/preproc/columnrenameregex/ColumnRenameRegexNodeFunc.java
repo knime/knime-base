@@ -44,68 +44,63 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   23 Jun 2023 (carlwitt): created
+ *   Nov 12, 2023 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.stringreplacer;
+package org.knime.base.node.preproc.columnrenameregex;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.node.func.ArgumentDefinition.PrimitiveArgumentType;
+import org.knime.core.node.func.NodeFuncApi;
+import org.knime.core.node.func.SimpleNodeFunc;
+import org.knime.core.node.port.PortObjectSpec;
 
 /**
- * Whether to distinguish between upper-case and lower-case letters during string replacement.
  *
- * @author Carl Witt, KNIME AG, Zurich, Switzerland
- * @since 5.1
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @since 5.2
+ * @deprecated see {@link ColumnNameReplacer2NodeFactory} for the replacement node.
  */
-@SuppressWarnings("restriction")
-public enum CaseMatching {
-        /** Respect case when matching strings. */
-        @Label("Case sensitive")
-        CASESENSITIVE, //
-        /** Disregard case when matching strings. */
-        @Label("Case insensitive")
-        CASEINSENSITIVE;
+@Deprecated
+public final class ColumnRenameRegexNodeFunc implements SimpleNodeFunc {
 
-    /** Recommended default setting. */
-    public static final CaseMatching DEFAULT = CASESENSITIVE;
+    private static final String CASE_SENSITIVE = "case_sensitive";
 
-    /** Displayed in dialogs as title for controls. */
-    public static final String OPTION_NAME = "Case sensitive";
+    private static final String REPLACEMENT = "replacement";
 
-    /** Displayed in dialogs as help text on controls. */
-    public static final String OPTION_DESCRIPTION =
-        "Specifies whether matching will distinguish between upper and lower case letters.";
+    private static final String REGEX = "regex";
 
-    /**
-     * Store the selected option as a boolean value under the key {@code caseSensitive}.
-     *
-     * This is for compatibility with legacy node settings. However, newer nodes, e.g., String Replacer (Dictionary) use
-     * this too for consistency.
-     */
-    public static final class Persistor implements NodeSettingsPersistor<CaseMatching> {
-
-        static final String CFG_CASE_SENSITIVE = "caseSensitive";
-
-        @Override
-        public CaseMatching load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return settings.getBoolean(CFG_CASE_SENSITIVE) ? CaseMatching.CASESENSITIVE : CaseMatching.CASEINSENSITIVE;
-        }
-
-        @Override
-        public void save(final CaseMatching matchingStrategy, final NodeSettingsWO settings) {
-            settings.addBoolean(CFG_CASE_SENSITIVE, matchingStrategy == CaseMatching.CASESENSITIVE);
-        }
-
-        /**
-         * @since 5.5
-         */
-        @Override
-        public String[][] getConfigPaths() {
-            return new String[][]{{CFG_CASE_SENSITIVE}};
-        }
-
+    @Override
+    public void saveSettings(final NodeSettingsRO arguments, final PortObjectSpec[] inputSpecs,
+        final NodeSettingsWO settings) throws InvalidSettingsException {
+        var colRegexRenameConfig = new ColumnRenameRegexConfiguration();
+        colRegexRenameConfig.setSearchString(arguments.getString(REGEX));
+        colRegexRenameConfig.setReplaceString(arguments.getString(REPLACEMENT));
+        colRegexRenameConfig.setCaseInsensitive(arguments.getBoolean(CASE_SENSITIVE));
+        colRegexRenameConfig.saveConfiguration(settings);
     }
+
+    @Override
+    public NodeFuncApi getApi() {
+        return NodeFuncApi.builder("regex_column_rename")//
+            .withInputTable("table", "Table in which to rename columns.")//
+            .withDescription("Renames columns in the input table that match the give regular expression.")//
+            .withArgument(REGEX, "The Java regular expression to match.", PrimitiveArgumentType.STRING)//
+            .withArgument(REPLACEMENT, """
+                    The string to replace the matched columns by.
+                    Groups in the matched input can be captured using '$1', '$2', etc.
+                    The special placeholder '$i' represents the column index.
+                            """, PrimitiveArgumentType.STRING)//
+            .withArgument(CASE_SENSITIVE, "Whether the matching should be case-senstivie or not.",
+                PrimitiveArgumentType.BOOLEAN)//
+            .build();
+    }
+
+    @Override
+    public Class<? extends NodeFactory<?>> getNodeFactoryClass() {
+        return ColumnRenameRegexNodeFactory.class;
+    }
+
 }

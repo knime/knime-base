@@ -1,6 +1,9 @@
-/*
- * ------------------------------------------------------------------------
- *
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+
+<!--
+========================================================================
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -41,64 +44,11 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ---------------------------------------------------------------------
- *
- * History
- *   2 May 2023 (jasper): created
- */
-package org.knime.base.node.preproc.stringreplacer.dict2;
-
-import java.util.Optional;
-import java.util.regex.Pattern;
-
-import org.knime.base.node.util.regex.RegexReplaceUtils;
-import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalReplacementException;
-import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalSearchPatternException;
-
-/**
- * Replacer dictionary implementation that has compiled RegEx patterns as lookup keys
- *
- * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
- */
-final class PatternReplacer extends DictReplacer<Pattern> {
-
-    /**
-     * Creates a new PatternReplacer instance. Reads {@link StringReplacerDictNodeSettings#m_caseMatching} at
-     * instantiation and sets RegEx flags accordingly.
-     *
-     * @param modelSettings the settings of the String Replacer (Dictionary) node instance
-     */
-    PatternReplacer(final StringReplacerDictNodeSettings modelSettings) {
-        super(modelSettings);
-    }
-
-    @Override
-    protected Pattern compilePattern(final String pattern) throws IllegalSearchPatternException {
-        return RegexReplaceUtils.compilePattern( //
-            pattern, //
-            m_settings.m_patternType, //
-            m_settings.m_caseMatching, //
-            m_settings.m_enableEscaping //
-        );
-    }
-
-    /**
-     * Removes back-references from the replacement string if wildcard matching is enabled. {@inheritDoc}
-     */
-    @Override
-    protected String prepareReplacementString(final String replacement) {
-        return RegexReplaceUtils.processReplacementString(replacement, m_settings.m_patternType);
-    }
-
-    @Override
-    protected Optional<String> processSingleReplacement(final Pattern pattern, final String input,
-        final String replacement) throws IllegalReplacementException {
-        return RegexReplaceUtils.doReplacement( //
-            pattern, //
-            m_settings.m_replacementStrategy, //
-            m_settings.m_patternType, //
-            input, //
-            replacement //
-        ).asOptional();
-    }
-}
+====================================================================
+-->
+</head>
+<body>
+ Contains a node that renames columns in a table according to regular expression
+ search & replace filter.
+</body>
+</html>

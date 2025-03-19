@@ -54,12 +54,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
-import org.knime.base.node.preproc.stringreplacer.CaseMatching;
-import org.knime.base.node.preproc.stringreplacer.PatternType;
-import org.knime.base.node.preproc.stringreplacer.ReplacementStrategy;
-import org.knime.base.node.preproc.stringreplacer.dict2.DictReplacer.IllegalReplacementException;
-import org.knime.base.node.preproc.stringreplacer.dict2.DictReplacer.IllegalSearchPatternException;
 import org.knime.base.node.preproc.stringreplacer.dict2.StringReplacerDictNodeSettings.MultipleMatchHandling;
+import org.knime.base.node.util.regex.CaseMatching;
+import org.knime.base.node.util.regex.PatternType;
+import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalReplacementException;
+import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalSearchPatternException;
+import org.knime.base.node.util.regex.ReplacementStrategy;
 import org.knime.filehandling.core.util.WildcardToRegexUtil;
 
 /**
@@ -202,7 +202,7 @@ class PatternReplacerTest {
         settings.m_caseMatching = caseSensitive ? CaseMatching.CASESENSITIVE : CaseMatching.CASEINSENSITIVE;
         settings.m_replacementStrategy = replacementStrategy;
 
-        var replacer = PatternType == org.knime.base.node.preproc.stringreplacer.PatternType.LITERAL ? new StringReplacer(settings)
+        var replacer = PatternType == org.knime.base.node.util.regex.PatternType.LITERAL ? new StringReplacer(settings)
             : new PatternReplacer(settings);
         replacer.addToDictionary(pattern, replace);
 

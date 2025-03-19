@@ -55,6 +55,8 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.knime.base.node.preproc.stringreplacer.dict2.StringReplacerDictNodeSettings.MultipleMatchHandling;
+import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalReplacementException;
+import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalSearchPatternException;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.StringValue;
 
@@ -65,37 +67,6 @@ import org.knime.core.data.StringValue;
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  */
 public abstract sealed class DictReplacer<K> permits StringReplacer, PatternReplacer {
-
-    /**
-     * Exception that indicates that pattern is malformed and could therefore not be inserted in the dictionary
-     */
-    static class IllegalSearchPatternException extends Exception {
-        private static final long serialVersionUID = -4102522911614414788L;
-
-        IllegalSearchPatternException(final String message) {
-            super(message);
-        }
-
-        IllegalSearchPatternException(final String message, final Throwable cause) {
-            super(message, cause);
-        }
-    }
-
-    /**
-     * Exception that indicates that a pattern replacement could not be executed (e.g. there is not enough capture
-     * groups)
-     */
-    static class IllegalReplacementException extends Exception {
-        private static final long serialVersionUID = -34519310831437955L;
-
-        IllegalReplacementException(final String message) {
-            super(message);
-        }
-
-        IllegalReplacementException(final String message, final Throwable cause) {
-            super(message, cause);
-        }
-    }
 
     /**
      * A linked-list representation of the Pattern-Replacement pairs from the dictionary

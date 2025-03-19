@@ -44,61 +44,55 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 12, 2023 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   23 Jun 2023 (carlwitt): created
  */
-package org.knime.base.node.preproc.columnrenameregex;
+package org.knime.base.node.util.regex;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.func.ArgumentDefinition.PrimitiveArgumentType;
-import org.knime.core.node.func.NodeFuncApi;
-import org.knime.core.node.func.SimpleNodeFunc;
-import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 
 /**
+ * Defines how to interpret a search pattern during string replacement.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @since 5.2
+ * @author Carl Witt, KNIME AG, Zurich, Switzerland
+ * @since 5.5
  */
-public final class ColumnRenameRegexNodeFunc implements SimpleNodeFunc {
+@SuppressWarnings("restriction")
+public enum PatternType {
 
-    private static final String CASE_SENSITIVE = "case_sensitive";
+        /** No interpolation. */
+        @Label("Literal")
+        LITERAL,
 
-    private static final String REPLACEMENT = "replacement";
+        /** Supports meta characters {@code *} and {@code ?}. */
+        @Label("Wildcard")
+        WILDCARD,
 
-    private static final String REGEX = "regex";
+        /** Java regular expressions. */
+        @Label("Regular expression")
+        REGEX;
 
-    @Override
-    public void saveSettings(final NodeSettingsRO arguments, final PortObjectSpec[] inputSpecs,
-        final NodeSettingsWO settings) throws InvalidSettingsException {
-        var colRegexRenameConfig = new ColumnRenameRegexConfiguration();
-        colRegexRenameConfig.setSearchString(arguments.getString(REGEX));
-        colRegexRenameConfig.setReplaceString(arguments.getString(REPLACEMENT));
-        colRegexRenameConfig.setCaseInsensitive(arguments.getBoolean(CASE_SENSITIVE));
-        colRegexRenameConfig.saveConfiguration(settings);
-    }
+    /** Recommended default setting. */
+    public static final PatternType DEFAULT = LITERAL;
 
-    @Override
-    public NodeFuncApi getApi() {
-        return NodeFuncApi.builder("regex_column_rename")//
-            .withInputTable("table", "Table in which to rename columns.")//
-            .withDescription("Renames columns in the input table that match the give regular expression.")//
-            .withArgument(REGEX, "The Java regular expression to match.", PrimitiveArgumentType.STRING)//
-            .withArgument(REPLACEMENT, """
-                    The string to replace the matched columns by.
-                    Groups in the matched input can be captured using '$1', '$2', etc.
-                    The special placeholder '$i' represents the column index.
-                            """, PrimitiveArgumentType.STRING)//
-            .withArgument(CASE_SENSITIVE, "Whether the matching should be case-senstivie or not.",
-                PrimitiveArgumentType.BOOLEAN)//
-            .build();
-    }
+    /** Displayed in dialogs as title for controls. */
+    public static final String OPTION_NAME = "Pattern type";
 
-    @Override
-    public Class<? extends NodeFactory<?>> getNodeFactoryClass() {
-        return ColumnRenameRegexNodeFactory.class;
-    }
-
+    /** Displayed in dialogs as help text on controls. */
+    public static final String OPTION_DESCRIPTION = """
+            Select the type of pattern which you want to use.
+            <ul>
+                <li><i>Literal</i> matches the pattern as is.</li>
+                <li>
+                    <i>Wildcard</i> matches <tt>*</tt> to zero or more arbitrary characters and matches
+                    <tt>?</tt> to any single character.
+                </li>
+                <li>
+                    <i>Regular expression</i>
+                    matches using the full functionality of Java regular expressions, including back references
+                    in the replacement text. See the
+                    <a href="http://docs.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html">Java API
+                    </a> for details.
+                </li>
+            </ul>
+            """;
 }

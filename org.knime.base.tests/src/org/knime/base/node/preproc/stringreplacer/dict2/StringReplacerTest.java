@@ -53,12 +53,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
-import org.knime.base.node.preproc.stringreplacer.CaseMatching;
-import org.knime.base.node.preproc.stringreplacer.PatternType;
-import org.knime.base.node.preproc.stringreplacer.ReplacementStrategy;
-import org.knime.base.node.preproc.stringreplacer.dict2.DictReplacer.IllegalReplacementException;
-import org.knime.base.node.preproc.stringreplacer.dict2.DictReplacer.IllegalSearchPatternException;
 import org.knime.base.node.preproc.stringreplacer.dict2.StringReplacerDictNodeSettings.MultipleMatchHandling;
+import org.knime.base.node.util.regex.CaseMatching;
+import org.knime.base.node.util.regex.PatternType;
+import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalReplacementException;
+import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalSearchPatternException;
+import org.knime.base.node.util.regex.ReplacementStrategy;
 
 /**
  * This class tests the {@link StringReplacer} from the String Replacer (Dictionary) node

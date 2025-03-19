@@ -44,61 +44,48 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   2 May 2023 (jasper): created
+ *   23 Jun 2023 (carlwitt): created
  */
-package org.knime.base.node.preproc.stringreplacer.dict2;
+package org.knime.base.node.util.regex;
 
-import java.util.Optional;
-import java.util.regex.Pattern;
-
-import org.knime.base.node.util.regex.RegexReplaceUtils;
-import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalReplacementException;
-import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalSearchPatternException;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 
 /**
- * Replacer dictionary implementation that has compiled RegEx patterns as lookup keys
+ * The behaviour to use when replacing a string matching a pattern.
  *
- * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
+ * @author Carl Witt
+ * @since 5.5
  */
-final class PatternReplacer extends DictReplacer<Pattern> {
+@SuppressWarnings("restriction")
+public enum ReplacementStrategy {
+        /** Output the replacement pattern as is. */
+        @Label("Whole string")
+        WHOLE_STRING,
 
-    /**
-     * Creates a new PatternReplacer instance. Reads {@link StringReplacerDictNodeSettings#m_caseMatching} at
-     * instantiation and sets RegEx flags accordingly.
-     *
-     * @param modelSettings the settings of the String Replacer (Dictionary) node instance
-     */
-    PatternReplacer(final StringReplacerDictNodeSettings modelSettings) {
-        super(modelSettings);
-    }
+        /** Replace all matches of the search pattern with the replacement pattern. */
+        @Label("All occurrences")
+        ALL_OCCURRENCES;
 
-    @Override
-    protected Pattern compilePattern(final String pattern) throws IllegalSearchPatternException {
-        return RegexReplaceUtils.compilePattern( //
-            pattern, //
-            m_settings.m_patternType, //
-            m_settings.m_caseMatching, //
-            m_settings.m_enableEscaping //
-        );
-    }
+    /** Recommended default setting. */
+    public static final ReplacementStrategy DEFAULT = WHOLE_STRING;
 
-    /**
-     * Removes back-references from the replacement string if wildcard matching is enabled. {@inheritDoc}
-     */
-    @Override
-    protected String prepareReplacementString(final String replacement) {
-        return RegexReplaceUtils.processReplacementString(replacement, m_settings.m_patternType);
-    }
+    /** Displayed in dialogs as title for controls. */
+    public static final String OPTION_NAME = "Replacement strategy";
 
-    @Override
-    protected Optional<String> processSingleReplacement(final Pattern pattern, final String input,
-        final String replacement) throws IllegalReplacementException {
-        return RegexReplaceUtils.doReplacement( //
-            pattern, //
-            m_settings.m_replacementStrategy, //
-            m_settings.m_patternType, //
-            input, //
-            replacement //
-        ).asOptional();
-    }
+    /** Displayed in dialogs as help text on controls. */
+    public static final String OPTION_DESCRIPTION = """
+            Select what to replace in case a string matches a pattern.
+            <ul>
+                <li>
+                    <i>Whole string</i> replaces the entire string with the replacement string, requiring an
+                    exact  match of the whole string.
+                </li>
+                <li>
+                    <i>All occurrences</i> replaces all occurrences of the pattern with the replacement string.
+                    Note that when e.g. matching on the RegEx-pattern <tt>.*</tt>, an empty string at the end
+                    of the input is also matched and replaced. To avoid that, use e.g. the pattern <tt>^.*</tt>
+                    to indicate that the match has to start at the beginning of the string.
+                </li>
+            </ul>
+            """;
 }

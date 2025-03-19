@@ -1,0 +1,114 @@
+{
+  "data" : {
+    "model" : {
+      "patternType" : "LITERAL",
+      "caseSensitivity" : "CASESENSITIVE",
+      "pattern" : "",
+      "replacement" : "",
+      "replacementStrategy" : "WHOLE_STRING"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "caseSensitivity" : {
+            "oneOf" : [ {
+              "const" : "CASESENSITIVE",
+              "title" : "Case sensitive"
+            }, {
+              "const" : "CASEINSENSITIVE",
+              "title" : "Case insensitive"
+            } ],
+            "title" : "Case sensitive",
+            "description" : "Specifies whether matching will distinguish between upper and lower case letters.",
+            "default" : "CASESENSITIVE"
+          },
+          "pattern" : {
+            "type" : "string",
+            "title" : "Pattern",
+            "description" : "A literal string, wildcard pattern or regular expression, depending on the pattern type selected above.\n",
+            "default" : ""
+          },
+          "patternType" : {
+            "oneOf" : [ {
+              "const" : "LITERAL",
+              "title" : "Literal"
+            }, {
+              "const" : "WILDCARD",
+              "title" : "Wildcard"
+            }, {
+              "const" : "REGEX",
+              "title" : "Regular expression"
+            } ],
+            "title" : "Pattern type",
+            "description" : "Select the type of pattern which you want to use.\n<ul>\n    <li><i>Literal</i> matches the pattern as is.</li>\n    <li>\n        <i>Wildcard</i> matches <tt>*</tt> to zero or more arbitrary characters and matches\n        <tt>?</tt> to any single character.\n    </li>\n    <li>\n        <i>Regular expression</i>\n        matches using the full functionality of Java regular expressions, including back references\n        in the replacement text. See the\n        <a href=\"http://docs.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html\">Java API\n        </a> for details.\n    </li>\n</ul>\n",
+            "default" : "LITERAL"
+          },
+          "replacement" : {
+            "type" : "string",
+            "title" : "Replacement text",
+            "description" : "The replacement text for the pattern. If you are using a regular expression, you may also use backreferences (e.g. $1 to refer to the first capture group. Named capture groups can also be used with (?&lt;group&gt;) and ${group} to refer to them).\n",
+            "default" : ""
+          },
+          "replacementStrategy" : {
+            "oneOf" : [ {
+              "const" : "WHOLE_STRING",
+              "title" : "Whole string"
+            }, {
+              "const" : "ALL_OCCURRENCES",
+              "title" : "All occurrences"
+            } ],
+            "title" : "Replacement strategy",
+            "description" : "Select what to replace in case a string matches a pattern.\n<ul>\n    <li>\n        <i>Whole string</i> replaces the entire string with the replacement string, requiring an\n        exact  match of the whole string.\n    </li>\n    <li>\n        <i>All occurrences</i> replaces all occurrences of the pattern with the replacement string.\n        Note that when e.g. matching on the RegEx-pattern <tt>.*</tt>, an empty string at the end\n        of the input is also matched and replaced. To avoid that, use e.g. the pattern <tt>^.*</tt>\n        to indicate that the match has to start at the beginning of the string.\n    </li>\n</ul>\n",
+            "default" : "WHOLE_STRING"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/patternType",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/caseSensitivity",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/pattern"
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/replacement"
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/replacementStrategy",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "patternType" : { },
+          "caseSensitivity" : { },
+          "pattern" : { },
+          "replacement" : { },
+          "replacementStrategy" : { }
+        }
+      }
+    }
+  }
+}

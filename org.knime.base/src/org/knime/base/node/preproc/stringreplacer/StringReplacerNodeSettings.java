@@ -50,6 +50,9 @@ package org.knime.base.node.preproc.stringreplacer;
 
 import java.util.List;
 
+import org.knime.base.node.util.regex.CaseMatching;
+import org.knime.base.node.util.regex.PatternType;
+import org.knime.base.node.util.regex.ReplacementStrategy;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.StringValue;
 import org.knime.core.node.InvalidSettingsException;
@@ -157,7 +160,7 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Pattern", description = """
             A literal string, wildcard pattern or regular expression, depending on the pattern type selected above.
             """)
-    String m_pattern;
+    String m_pattern = "";
 
     @Layout(DialogSections.FindAndReplace.class)
     @Persist(configKey = StringReplacerSettings.CFG_REPLACEMENT)
@@ -167,7 +170,7 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
             named capture groups can also be used with <tt>(?&lt;group&gt;)</tt> and <tt>${group}</tt> to refer to
             them).
             """)
-    String m_replacement;
+    String m_replacement = "";
 
     @Layout(DialogSections.FindAndReplace.class)
     @Persistor(ReplacementStrategyPersistor.class)

@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,50 +41,51 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
+ * History
+ *   Mar 19, 2025 (david): created
  */
-package org.knime.base.node.preproc.columnrenameregex;
+package org.knime.base.node.preproc.columnnamereplacer2;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import org.knime.base.node.util.regex.CaseMatching;
+import org.knime.base.node.util.regex.PatternType;
+import org.knime.base.node.util.regex.ReplacementStrategy;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
-/** Factory to node.
- * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
+/**
+ * Settings for the Column Name Replacer node (formerly Column Rename (Regex)).
+ *
+ * @author David Hickey, TNG Technology Consulting GmbH
  */
-public final class ColumnRenameRegexNodeFactory extends
-        NodeFactory<ColumnRenameRegexNodeModel> {
+@SuppressWarnings("restriction")
+final class ColumnNameReplacer2NodeSettings implements DefaultNodeSettings {
 
-    /** {@inheritDoc} */
-    @Override
-    public ColumnRenameRegexNodeModel createNodeModel() {
-        return new ColumnRenameRegexNodeModel();
-    }
+    @Widget(title = PatternType.OPTION_NAME, description = PatternType.OPTION_DESCRIPTION)
+    @ValueSwitchWidget
+    PatternType m_patternType = PatternType.LITERAL;
 
-    /** {@inheritDoc} */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
+    @Widget(title = CaseMatching.OPTION_NAME, description = CaseMatching.OPTION_DESCRIPTION)
+    @ValueSwitchWidget
+    CaseMatching m_caseSensitivity = CaseMatching.CASESENSITIVE;
 
-    /** {@inheritDoc} */
-    @Override
-    public NodeView<ColumnRenameRegexNodeModel> createNodeView(
-            final int viewIndex, final ColumnRenameRegexNodeModel nodeModel) {
-        return null;
-    }
+    @Widget(title = "Pattern", description = """
+            A literal string, wildcard pattern or regular expression, depending on \
+            the pattern type selected above.
+            """)
+    String m_pattern = "";
 
-    /** {@inheritDoc} */
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
+    @Widget(title = "Replacement text", description = """
+            The replacement text for the pattern. If you are using a regular \
+            expression, you may also use backreferences (e.g. $1 to refer to \
+            the first capture group. Named capture groups can also be used with \
+            (?&lt;group&gt;) and ${group} to refer to them).
+            """)
+    String m_replacement = "";
 
-    /** {@inheritDoc} */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new ColumnRenameRegexNodeDialogPane();
-    }
-
+    @Widget(title = ReplacementStrategy.OPTION_NAME, description = ReplacementStrategy.OPTION_DESCRIPTION)
+    @ValueSwitchWidget
+    ReplacementStrategy m_replacementStrategy = ReplacementStrategy.WHOLE_STRING;
 }

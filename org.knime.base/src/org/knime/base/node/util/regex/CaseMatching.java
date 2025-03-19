@@ -44,61 +44,68 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   2 May 2023 (jasper): created
+ *   23 Jun 2023 (carlwitt): created
  */
-package org.knime.base.node.preproc.stringreplacer.dict2;
+package org.knime.base.node.util.regex;
 
-import java.util.Optional;
-import java.util.regex.Pattern;
-
-import org.knime.base.node.util.regex.RegexReplaceUtils;
-import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalReplacementException;
-import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalSearchPatternException;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 
 /**
- * Replacer dictionary implementation that has compiled RegEx patterns as lookup keys
+ * Whether to distinguish between upper-case and lower-case letters during string replacement.
  *
- * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
+ * @author Carl Witt, KNIME AG, Zurich, Switzerland
+ * @since 5.5
  */
-final class PatternReplacer extends DictReplacer<Pattern> {
+@SuppressWarnings("restriction")
+public enum CaseMatching {
+        /** Respect case when matching strings. */
+        @Label("Case sensitive")
+        CASESENSITIVE, //
+        /** Disregard case when matching strings. */
+        @Label("Case insensitive")
+        CASEINSENSITIVE;
+
+    /** Recommended default setting. */
+    public static final CaseMatching DEFAULT = CASESENSITIVE;
+
+    /** Displayed in dialogs as title for controls. */
+    public static final String OPTION_NAME = "Case sensitive";
+
+    /** Displayed in dialogs as help text on controls. */
+    public static final String OPTION_DESCRIPTION =
+        "Specifies whether matching will distinguish between upper and lower case letters.";
 
     /**
-     * Creates a new PatternReplacer instance. Reads {@link StringReplacerDictNodeSettings#m_caseMatching} at
-     * instantiation and sets RegEx flags accordingly.
+     * Store the selected option as a boolean value under the key {@code caseSensitive}.
      *
-     * @param modelSettings the settings of the String Replacer (Dictionary) node instance
+     * This is for compatibility with legacy node settings. However, newer nodes, e.g., String Replacer (Dictionary) use
+     * this too for consistency.
      */
-    PatternReplacer(final StringReplacerDictNodeSettings modelSettings) {
-        super(modelSettings);
-    }
+    public static final class Persistor implements NodeSettingsPersistor<CaseMatching> {
 
-    @Override
-    protected Pattern compilePattern(final String pattern) throws IllegalSearchPatternException {
-        return RegexReplaceUtils.compilePattern( //
-            pattern, //
-            m_settings.m_patternType, //
-            m_settings.m_caseMatching, //
-            m_settings.m_enableEscaping //
-        );
-    }
+        static final String CFG_CASE_SENSITIVE = "caseSensitive";
 
-    /**
-     * Removes back-references from the replacement string if wildcard matching is enabled. {@inheritDoc}
-     */
-    @Override
-    protected String prepareReplacementString(final String replacement) {
-        return RegexReplaceUtils.processReplacementString(replacement, m_settings.m_patternType);
-    }
+        @Override
+        public CaseMatching load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return settings.getBoolean(CFG_CASE_SENSITIVE) ? CaseMatching.CASESENSITIVE : CaseMatching.CASEINSENSITIVE;
+        }
 
-    @Override
-    protected Optional<String> processSingleReplacement(final Pattern pattern, final String input,
-        final String replacement) throws IllegalReplacementException {
-        return RegexReplaceUtils.doReplacement( //
-            pattern, //
-            m_settings.m_replacementStrategy, //
-            m_settings.m_patternType, //
-            input, //
-            replacement //
-        ).asOptional();
+        @Override
+        public void save(final CaseMatching matchingStrategy, final NodeSettingsWO settings) {
+            settings.addBoolean(CFG_CASE_SENSITIVE, matchingStrategy == CaseMatching.CASESENSITIVE);
+        }
+
+        /**
+         * @since 5.5
+         */
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{{CFG_CASE_SENSITIVE}};
+        }
+
     }
 }

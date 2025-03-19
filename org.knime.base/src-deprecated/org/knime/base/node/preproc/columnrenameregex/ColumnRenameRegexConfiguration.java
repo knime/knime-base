@@ -61,7 +61,10 @@ import org.knime.core.node.NodeSettingsWO;
 /** Settings proxy for the node.
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  * @since 2.12
+ *
+ * @deprecated see {@link ColumnNameReplacer2NodeFactory} for the replacement node.
  */
+@Deprecated
 public final class ColumnRenameRegexConfiguration {
 
     private String m_searchString;

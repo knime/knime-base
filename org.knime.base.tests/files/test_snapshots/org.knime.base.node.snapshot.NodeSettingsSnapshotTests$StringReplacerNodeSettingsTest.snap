@@ -5,6 +5,8 @@
       "patternType" : "LITERAL",
       "enableEscaping" : false,
       "caseMatching" : "CASESENSITIVE",
+      "pattern" : "",
+      "replacement" : "",
       "replacementStrategy" : "WHOLE_STRING",
       "createNewCol" : false,
       "newColName" : "ReplacedColumn",
@@ -60,7 +62,8 @@
           "pattern" : {
             "type" : "string",
             "title" : "Pattern",
-            "description" : "A literal string, wildcard pattern or regular expression, depending on the pattern type selected above.\n"
+            "description" : "A literal string, wildcard pattern or regular expression, depending on the pattern type selected above.\n",
+            "default" : ""
           },
           "patternType" : {
             "oneOf" : [ {
@@ -80,7 +83,8 @@
           "replacement" : {
             "type" : "string",
             "title" : "Replacement text",
-            "description" : "The text that replaces the previous value in the cell if the pattern matched it. If you are using a\nregular expression, you may also use backreferences (e.g. <tt>$1</tt> to refer to the first capture group,\nnamed capture groups can also be used with <tt>(?&lt;group&gt;)</tt> and <tt>${group}</tt> to refer to\nthem).\n"
+            "description" : "The text that replaces the previous value in the cell if the pattern matched it. If you are using a\nregular expression, you may also use backreferences (e.g. <tt>$1</tt> to refer to the first capture group,\nnamed capture groups can also be used with <tt>(?&lt;group&gt;)</tt> and <tt>${group}</tt> to refer to\nthem).\n",
+            "default" : ""
           },
           "replacementStrategy" : {
             "oneOf" : [ {

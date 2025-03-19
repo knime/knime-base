@@ -830,6 +830,11 @@
       <node
             category-path="/manipulation/column/column-convert+replace"
             factory-class="org.knime.base.node.preproc.columnrenameregex.ColumnRenameRegexNodeFactory"
+            after="org.knime.base.node.preproc.column.renamer.ColumnRenamerNodeFactory"
+            deprecated="true"/>
+      <node
+            category-path="/manipulation/column/column-convert+replace"
+            factory-class="org.knime.base.node.preproc.columnnamereplacer2.ColumnNameReplacer2NodeFactory"
             after="org.knime.base.node.preproc.column.renamer.ColumnRenamerNodeFactory"/>
       <node
             category-path="/manipulation/column/column-convert+replace"

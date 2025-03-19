@@ -1,6 +1,5 @@
 /*
  * ------------------------------------------------------------------------
- *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -41,48 +40,53 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ---------------------------------------------------------------------
+ * ------------------------------------------------------------------------
  *
- * History
- *   23 Jun 2023 (carlwitt): created
  */
-package org.knime.base.node.preproc.stringreplacer;
+package org.knime.base.node.preproc.columnrenameregex;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
 
 /**
- * @since 5.1
+ * Factory for the column rename (regex) node.
+ *
+ * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
+ * @deprecated see {@link ColumnNameReplacer2NodeFactory} for the replacement node.
  */
-@SuppressWarnings("restriction")
-public enum ReplacementStrategy {
-        /** Output the replacement pattern as is. */
-        @Label("Whole string")
-        WHOLE_STRING,
+@Deprecated
+public final class ColumnRenameRegexNodeFactory extends NodeFactory<ColumnRenameRegexNodeModel> {
 
-        /** Replace all matches of the search pattern with the replacement pattern. */
-        @Label("All occurrences")
-        ALL_OCCURRENCES;
+    /** {@inheritDoc} */
+    @Override
+    public ColumnRenameRegexNodeModel createNodeModel() {
+        return new ColumnRenameRegexNodeModel();
+    }
 
-    /** Recommended default setting. */
-    public static final ReplacementStrategy DEFAULT = WHOLE_STRING;
+    /** {@inheritDoc} */
+    @Override
+    protected int getNrNodeViews() {
+        return 0;
+    }
 
-    /** Displayed in dialogs as title for controls. */
-    public static final String OPTION_NAME = "Replacement strategy";
+    /** {@inheritDoc} */
+    @Override
+    public NodeView<ColumnRenameRegexNodeModel> createNodeView(final int viewIndex,
+        final ColumnRenameRegexNodeModel nodeModel) {
+        return null;
+    }
 
-    /** Displayed in dialogs as help text on controls. */
-    public static final String OPTION_DESCRIPTION = """
-            Select what to replace in case a string matches a pattern.
-            <ul>
-                <li>
-                    <i>Whole string</i> replaces the entire string with the replacement string, requiring an
-                    exact  match of the whole string.
-                </li>
-                <li>
-                    <i>All occurrences</i> replaces all occurrences of the pattern with the replacement string.
-                    Note that when e.g. matching on the RegEx-pattern <tt>.*</tt>, an empty string at the end
-                    of the input is also matched and replaced. To avoid that, use e.g. the pattern <tt>^.*</tt>
-                    to indicate that the match has to start at the beginning of the string.
-                </li>
-            </ul>
-            """;
+    /** {@inheritDoc} */
+    @Override
+    protected boolean hasDialog() {
+        return true;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    protected NodeDialogPane createNodeDialogPane() {
+        return new ColumnRenameRegexNodeDialogPane();
+    }
+
 }

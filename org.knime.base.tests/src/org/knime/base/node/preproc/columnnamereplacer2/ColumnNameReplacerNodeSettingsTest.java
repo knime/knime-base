@@ -44,68 +44,57 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   23 Jun 2023 (carlwitt): created
+ *   Mar 19, 2025 (david): created
  */
-package org.knime.base.node.preproc.stringreplacer;
+package org.knime.base.node.preproc.columnnamereplacer2;
 
-import java.util.Optional;
+import java.io.FileInputStream;
+import java.io.IOException;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.def.StringCell.StringCellFactory;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * Defines how to interpret a search pattern during string replacement.
  *
- * @author Carl Witt, KNIME AG, Zurich, Switzerland
- * @since 5.1
+ * @author David Hickey, TNG Technology Consulting GmbH
  */
-@SuppressWarnings("restriction")
-public enum PatternType {
-        /** No interpolation. */
-        @Label("Literal")
-        LITERAL,
+final class ColumnNameReplacerNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
-        /** Supports meta characters {@code *} and {@code ?}. */
-        @Label("Wildcard")
-        WILDCARD,
+    static final PortObjectSpec[] TEST_TABLE_SPECS =
+        new PortObjectSpec[]{new DataTableSpec(new String[]{"test"}, new DataType[]{StringCellFactory.TYPE})};
 
-        /** Java regular expressions. */
-        @Label("Regular expression")
-        REGEX;
+    ColumnNameReplacerNodeSettingsTest() {
+        super(getConfig());
+    }
 
-    /** Recommended default setting. */
-    public static final PatternType DEFAULT = LITERAL;
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .withInputPortObjectSpecs(TEST_TABLE_SPECS) //
+            .testJsonFormsForModel(ColumnNameReplacer2NodeSettings.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
+    }
 
-    /** Displayed in dialogs as title for controls. */
-    public static final String OPTION_NAME = "Pattern type";
-
-    /** Displayed in dialogs as help text on controls. */
-    public static final String OPTION_DESCRIPTION = """
-            Select the type of pattern which you want to use.
-            <ul>
-                <li><i>Literal</i> matches the pattern as is.</li>
-                <li>
-                    <i>Wildcard</i> matches <tt>*</tt> to zero or more arbitrary characters and matches
-                    <tt>?</tt> to any single character.
-                </li>
-                <li>
-                    <i>Regular expression</i>
-                    matches using the full functionality of Java regular expressions, including back references
-                    in the replacement text. See the
-                    <a href="http://docs.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html">Java API
-                    </a> for details.
-                </li>
-            </ul>
-            """;
-
-    static Optional<PatternType> get(final String name) {
-        if (LITERAL.name().equals(name)) {
-            return Optional.of(LITERAL);
-        } else if (WILDCARD.name().equals(name)) {
-            return Optional.of(WILDCARD);
-        } else if (REGEX.name().equals(name)) {
-            return Optional.of(REGEX);
-        } else {
-            return Optional.empty();
+    private static ColumnNameReplacer2NodeSettings readSettings() {
+        try {
+            var path = getSnapshotPath(ColumnNameReplacer2NodeSettings.class).getParent().resolve("node_settings")
+                .resolve("ColumnNameReplacerNodeSettings.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return DefaultNodeSettings.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    ColumnNameReplacer2NodeSettings.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
         }
     }
 }

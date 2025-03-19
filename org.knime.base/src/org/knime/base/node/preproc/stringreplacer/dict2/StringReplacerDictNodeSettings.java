@@ -50,9 +50,9 @@ package org.knime.base.node.preproc.stringreplacer.dict2;
 
 import static org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil.getStringColumnsOfFirstPort;
 
-import org.knime.base.node.preproc.stringreplacer.CaseMatching;
-import org.knime.base.node.preproc.stringreplacer.PatternType;
-import org.knime.base.node.preproc.stringreplacer.ReplacementStrategy;
+import org.knime.base.node.util.regex.CaseMatching;
+import org.knime.base.node.util.regex.PatternType;
+import org.knime.base.node.util.regex.ReplacementStrategy;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;

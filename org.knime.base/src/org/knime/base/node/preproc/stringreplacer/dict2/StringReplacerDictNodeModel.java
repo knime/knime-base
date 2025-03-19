@@ -52,9 +52,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.knime.base.node.preproc.stringreplacer.PatternType;
-import org.knime.base.node.preproc.stringreplacer.dict2.DictReplacer.IllegalReplacementException;
-import org.knime.base.node.preproc.stringreplacer.dict2.DictReplacer.IllegalSearchPatternException;
+import org.knime.base.node.util.regex.PatternType;
+import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalReplacementException;
+import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalSearchPatternException;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;

@@ -70,7 +70,9 @@ import org.knime.core.node.streamable.StreamableOperator;
 
 /** Model to node.
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
+ * @deprecated see {@link ColumnNameReplacer2NodeFactory} for the replacement node.
  */
+@Deprecated
 final class ColumnRenameRegexNodeModel extends NodeModel {
 
     private ColumnRenameRegexConfiguration m_config;

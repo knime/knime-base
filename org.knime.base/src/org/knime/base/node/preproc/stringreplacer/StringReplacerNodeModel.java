@@ -49,14 +49,12 @@ package org.knime.base.node.preproc.stringreplacer;
 
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.validateColumnName;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringUtils;
-import org.knime.base.util.WildcardMatcher;
+import org.knime.base.node.util.regex.RegexReplaceUtils;
+import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalReplacementException;
+import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalSearchPatternException;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
@@ -65,9 +63,9 @@ import org.knime.core.data.StringValue;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionMonitor;
+import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.KNIMEException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationMessageBuilder;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.InvalidColumnNameState;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
@@ -90,16 +88,6 @@ public class StringReplacerNodeModel extends WebUISimpleStreamableFunctionNodeMo
     }
 
     /**
-     * A pre-compiled {@link Pattern} that matches a back-reference in a replacement string and captures them.
-     *
-     * See https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html#cg
-     *
-     * We match on numerical and named back-references as specified in the above doc
-     */
-    private static final Pattern backreferencePattern = //
-        Pattern.compile("(\\$\\d+|\\$\\{[A-Za-z][A-Za-z0-9]*\\})"); //NOSONAR: only match spec
-
-    /**
      * @since 5.5
      */
     @Override
@@ -110,7 +98,12 @@ public class StringReplacerNodeModel extends WebUISimpleStreamableFunctionNodeMo
                 + "' is not available. Please reconfigure the node.");
         }
 
-        final var compiledPattern = createPattern(modelSettings);
+        Pattern compiledPattern;
+        try {
+            compiledPattern = createPattern(modelSettings);
+        } catch (IllegalSearchPatternException e) {
+            throw new InvalidSettingsException("Invalid search pattern: " + e.getMessage(), e);
+        }
 
         var newColumnName = modelSettings.m_createNewCol ? modelSettings.m_newColName : modelSettings.m_colName;
         var colSpec = new DataColumnSpecCreator(newColumnName, StringCell.TYPE).createSpec();
@@ -125,15 +118,23 @@ public class StringReplacerNodeModel extends WebUISimpleStreamableFunctionNodeMo
                     return cell;
                 }
                 final var originalStringValue = ((StringValue)cell).getStringValue();
-                if (modelSettings.m_patternType == PatternType.LITERAL) {
-                    return new StringCell(getLiteralReplacementString(modelSettings, replacement, originalStringValue));
-                } else if (compiledPattern.isPresent() && (modelSettings.m_patternType == PatternType.REGEX
-                    || modelSettings.m_patternType == PatternType.WILDCARD)) {
-                    return new StringCell(getPatternReplacementString(modelSettings, compiledPattern.get(), replacement,
-                        originalStringValue));
-                } else {
-                    return new StringCell(originalStringValue);
+
+                String newStringValue;
+                try {
+                    newStringValue = RegexReplaceUtils.doReplacement(compiledPattern, //
+                        modelSettings.m_replacementStrategy, //
+                        modelSettings.m_patternType, //
+                        originalStringValue, //
+                        replacement //
+                    ).asOptional().orElse(originalStringValue);
+                } catch (IllegalReplacementException e) {
+                    throw new KNIMEException(
+                        "Invalid replacement string '%s'; does it contain an invalid backreference?"
+                            .formatted(replacement),
+                        e).toUnchecked();
                 }
+
+                return StringCellFactory.create(newStringValue);
             }
         };
 
@@ -151,106 +152,24 @@ public class StringReplacerNodeModel extends WebUISimpleStreamableFunctionNodeMo
     }
 
     private static String createReplacement(final StringReplacerNodeSettings modelSettings) {
-        if (modelSettings.m_patternType == PatternType.WILDCARD) {
-            // Remove back-references when matching with wildcards
-            var backreferenceMatcher = backreferencePattern.matcher(modelSettings.m_replacement);
-            return backreferenceMatcher.replaceAll("\\\\$1");
-        }
-        return modelSettings.m_replacement;
+        return RegexReplaceUtils.processReplacementString(modelSettings.m_replacement, modelSettings.m_patternType);
     }
 
     /**
-     * Optionally (depending on the node settings) compile the pattern that will matched to the string cells
+     * Compile the pattern that will match the string cells
      *
      * @param settings The node settings instance of the current node
-     * @return A compiled {@link Pattern}, or {@code Optional.empty()} if compilation is not necessary
+     * @return A compiled {@link Pattern} with flags set according to the settings
+     * @throws IllegalSearchPatternException if the pattern is invalid
      */
-    private static Optional<Pattern> createPattern(final StringReplacerNodeSettings settings) {
-        String regex;
-        var flags = 0;
-        if (settings.m_patternType == PatternType.REGEX) {
-            regex = settings.m_pattern;
-        } else if (settings.m_patternType == PatternType.WILDCARD) {
-            regex = WildcardMatcher.wildcardToRegex(settings.m_pattern, settings.m_enableEscaping);
-            flags = Pattern.DOTALL | Pattern.MULTILINE;
-        } else {
-            // no Pattern needs be compiled for other types of patterns
-            return Optional.empty();
-        }
-        // support for \n and international characters
-
-        if (settings.m_caseMatching == CaseMatching.CASEINSENSITIVE) {
-            flags |= Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
-        }
-        return Optional.of(Pattern.compile(regex, flags));
-    }
-
-    /**
-     * Perform the replacement operation for literal string matching on one input string
-     *
-     * @param settings The relevant node settings instance
-     * @param replacement The replacement string
-     * @param originalStringValue The original string (the cell content before any modification)
-     * @return A new string that has all occurrences of the literal pattern replaced by the replacement string
-     */
-    private static String getLiteralReplacementString(final StringReplacerNodeSettings settings,
-        final String replacement, final String originalStringValue) {
-        if (settings.m_caseMatching == CaseMatching.CASESENSITIVE) {
-            if (settings.m_replacementStrategy == ReplacementStrategy.ALL_OCCURRENCES
-                && StringUtils.contains(originalStringValue, settings.m_pattern)) {
-                // we check for contains so we can return Optional.empty() else
-                return StringUtils.replace(originalStringValue, settings.m_pattern, replacement);
-            } else if (settings.m_replacementStrategy != ReplacementStrategy.ALL_OCCURRENCES
-                && StringUtils.equals(originalStringValue, settings.m_pattern)) {
-                // replace whole string
-                return replacement;
-            }
-        } else {
-            if (settings.m_replacementStrategy == ReplacementStrategy.ALL_OCCURRENCES
-                && StringUtils.containsIgnoreCase(originalStringValue, settings.m_pattern)) {
-                // we check for contains so we can return Optional.empty() else
-                return StringUtils.replaceIgnoreCase(originalStringValue, settings.m_pattern, replacement);
-            } else if (settings.m_replacementStrategy != ReplacementStrategy.ALL_OCCURRENCES
-                && StringUtils.equalsIgnoreCase(originalStringValue, settings.m_pattern)) {
-                // replace whole string
-                return replacement;
-            }
-        }
-        return originalStringValue;
-    }
-
-    /**
-     * Perform the replacement operation for string matching with RegEx or Wildcard on one input string
-     *
-     * @param settings The relevant node settings instance
-     * @param pattern The compiled pattern that will be used to search in the input string
-     * @param replacement The replacement string
-     * @param originalStringValue The original string (the cell content before any modification)
-     * @return A new string that has all occurrences of the literal pattern replaced by the replacement string
-     */
-    private static String getPatternReplacementString(final StringReplacerNodeSettings settings, final Pattern pattern,
-        final String replacement, final String originalStringValue) {
-        var m = pattern.matcher(originalStringValue);
-        if (settings.m_replacementStrategy == ReplacementStrategy.ALL_OCCURRENCES) {
-            return switch (settings.m_patternType) {
-                // Intentionally don't alter any regex behaviour here so we can rely on the Java Pattern Doc
-                case REGEX -> m.replaceAll(replacement);
-                // Replace e.g. "*" only once, otherwise fall back to replaceAll
-                case WILDCARD -> m.matches() ? replacement : m.replaceAll(replacement);
-                default -> throw new IllegalStateException(
-                    "The PatternReplacer can only handle RegEx and Wildcard Replacements");
-            };
-        } else if (m.matches()) { // whole string matches, replace whole string
-            // Here, there used to be a check whether the pattern is `.*`
-            // This has been removed, since m.matches() already indicates that the whole string matches.
-            // We use the state of the matcher now (i.e. start() and end() point to the start and end of the
-            // string) to build a new string from the replacement. The replacement might contain
-            // back-references.
-            var sb = new StringBuilder();
-            m.appendReplacement(sb, replacement);
-            return sb.toString();
-        }
-        return originalStringValue;
+    private static Pattern createPattern(final StringReplacerNodeSettings settings)
+        throws IllegalSearchPatternException {
+        return RegexReplaceUtils.compilePattern( //
+            settings.m_pattern, //
+            settings.m_patternType, //
+            settings.m_caseMatching, //
+            settings.m_enableEscaping //
+        );
     }
 
     private static final Function<InvalidColumnNameState, String> INVALID_COL_NAME_TO_ERROR_MSG =
@@ -270,39 +189,12 @@ public class StringReplacerNodeModel extends WebUISimpleStreamableFunctionNodeMo
             if (settings.m_colName == null) {
                 throw new InvalidSettingsException("No column selected");
             }
-            if (settings.m_pattern == null) {
-                throw new InvalidSettingsException("No pattern given");
-            }
-            if (settings.m_replacement == null) {
-                throw new InvalidSettingsException("No replacement string given");
-            }
+        }
+
+        try {
+            createPattern(settings);
+        } catch (IllegalSearchPatternException e) {
+            throw new InvalidSettingsException("Invalid search pattern: " + settings.m_pattern, e);
         }
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
-        // nothing to do
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void reset() {
-        // nothing to do
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
-        // nothing to do
-    }
-
 }

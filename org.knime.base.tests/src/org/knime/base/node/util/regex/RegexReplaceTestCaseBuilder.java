@@ -44,61 +44,82 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   2 May 2023 (jasper): created
+ *   May 6, 2025 (david): created
  */
-package org.knime.base.node.preproc.stringreplacer.dict2;
+package org.knime.base.node.util.regex;
 
-import java.util.Optional;
-import java.util.regex.Pattern;
-
-import org.knime.base.node.util.regex.RegexReplaceUtils;
-import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalReplacementException;
-import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalSearchPatternException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
- * Replacer dictionary implementation that has compiled RegEx patterns as lookup keys
  *
- * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
+ * @author david
  */
-final class PatternReplacer extends DictReplacer<Pattern> {
+final class RegexReplaceTestCaseBuilder {
 
-    /**
-     * Creates a new PatternReplacer instance. Reads {@link StringReplacerDictNodeSettings#m_caseMatching} at
-     * instantiation and sets RegEx flags accordingly.
-     *
-     * @param modelSettings the settings of the String Replacer (Dictionary) node instance
-     */
-    PatternReplacer(final StringReplacerDictNodeSettings modelSettings) {
-        super(modelSettings);
+    record TestCase( //
+        String searchPattern, //
+        String replacement, //
+        String input, //
+        String expected, //
+        PatternType patternType, //
+        CaseMatching caseMatching, //
+        ReplacementStrategy replacementStrategy //
+    ) {
     }
 
-    @Override
-    protected Pattern compilePattern(final String pattern) throws IllegalSearchPatternException {
-        return RegexReplaceUtils.compilePattern( //
-            pattern, //
-            m_settings.m_patternType, //
-            m_settings.m_caseMatching, //
-            m_settings.m_enableEscaping //
-        );
+    private String m_searchPattern;
+
+    private String m_replacement;
+
+    private String m_input;
+
+    private String m_expected;
+
+    private PatternType[] m_patternTypes = PatternType.values();
+
+    private List<CaseMatching> m_caseMatchings = Arrays.asList(CaseMatching.values());
+
+    private List<ReplacementStrategy> m_replacementStrategies = Arrays.asList(ReplacementStrategy.values());
+
+    public RegexReplaceTestCaseBuilder(final String searchPattern, final String replacement, final String input,
+        final String expected) {
+        this.m_searchPattern = searchPattern;
+        this.m_replacement = replacement;
+        this.m_input = input;
+        this.m_expected = expected;
     }
 
-    /**
-     * Removes back-references from the replacement string if wildcard matching is enabled. {@inheritDoc}
-     */
-    @Override
-    protected String prepareReplacementString(final String replacement) {
-        return RegexReplaceUtils.processReplacementString(replacement, m_settings.m_patternType);
+    public RegexReplaceTestCaseBuilder patternType(final PatternType... patternTypes) {
+        this.m_patternTypes = patternTypes;
+        return this;
     }
 
-    @Override
-    protected Optional<String> processSingleReplacement(final Pattern pattern, final String input,
-        final String replacement) throws IllegalReplacementException {
-        return RegexReplaceUtils.doReplacement( //
-            pattern, //
-            m_settings.m_replacementStrategy, //
-            m_settings.m_patternType, //
-            input, //
-            replacement //
-        ).asOptional();
+    public RegexReplaceTestCaseBuilder caseMatching(final CaseMatching caseMatching) {
+        this.m_caseMatchings = List.of(caseMatching);
+        return this;
+    }
+
+    public RegexReplaceTestCaseBuilder replacementStrategy(final ReplacementStrategy strategy) {
+        this.m_replacementStrategies = List.of(strategy);
+        return this;
+    }
+
+    public List<TestCase> build() {
+        List<TestCase> result = new ArrayList<>();
+        for (PatternType pt : m_patternTypes) {
+            for (CaseMatching cm : m_caseMatchings) {
+                for (ReplacementStrategy rs : m_replacementStrategies) {
+                    result.add(new TestCase(m_searchPattern, m_replacement, m_input, m_expected, pt, cm, rs));
+                }
+            }
+        }
+        return result;
+    }
+
+    static RegexReplaceTestCaseBuilder builder(final String searchPattern, final String replacement, final String input,
+        final String expected) {
+        return new RegexReplaceTestCaseBuilder(searchPattern, replacement, input, expected);
     }
 }

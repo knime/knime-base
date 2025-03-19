@@ -48,11 +48,18 @@
  */
 package org.knime.base.node.preproc.stringreplacer.dict2;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringUtils;
-import org.knime.base.node.preproc.stringreplacer.CaseMatching;
-import org.knime.base.node.preproc.stringreplacer.ReplacementStrategy;
+import org.knime.base.node.util.regex.CaseMatching;
+import org.knime.base.node.util.regex.PatternType;
+import org.knime.base.node.util.regex.RegexReplaceUtils;
+import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalReplacementException;
+import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalSearchPatternException;
+import org.knime.base.node.util.regex.RegexReplaceUtils.ReplacementResult;
+import org.knime.base.node.util.regex.ReplacementStrategy;
 
 /**
  * Replacer dictionary implementation that has plain strings as lookup keys
@@ -60,6 +67,8 @@ import org.knime.base.node.preproc.stringreplacer.ReplacementStrategy;
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  */
 public final class StringReplacer extends DictReplacer<String> {
+
+    private final CachingRegexReplacer m_replacer = new CachingRegexReplacer();
 
     StringReplacer(final StringReplacerDictNodeSettings modelSettings) {
         super(modelSettings);
@@ -78,25 +87,91 @@ public final class StringReplacer extends DictReplacer<String> {
     @Override
     protected Optional<String> processSingleReplacement(final String pattern, final String input,
         final String replacement) {
-        if (m_settings.m_caseMatching == CaseMatching.CASESENSITIVE) {
-            if (m_settings.m_replacementStrategy == ReplacementStrategy.ALL_OCCURRENCES
-                && StringUtils.contains(input, pattern)) {
-                // we check for contains so we can return Optional.empty() else
-                return Optional.of(StringUtils.replace(input, pattern, replacement));
-            } else if (m_settings.m_replacementStrategy == ReplacementStrategy.WHOLE_STRING
-                && StringUtils.equals(input, pattern)) { // replace whole string
-                return Optional.of(replacement);
-            }
-        } else if (m_settings.m_caseMatching == CaseMatching.CASEINSENSITIVE) {
-            if (m_settings.m_replacementStrategy == ReplacementStrategy.ALL_OCCURRENCES
-                && StringUtils.containsIgnoreCase(input, pattern)) {
-                // we check for contains so we can return Optional.empty() else
-                return Optional.of(StringUtils.replaceIgnoreCase(input, pattern, replacement));
-            } else if (m_settings.m_replacementStrategy == ReplacementStrategy.WHOLE_STRING
-                    && StringUtils.equalsIgnoreCase(input, pattern)) { // replace whole string
-                return Optional.of(replacement);
-            }
+
+        // This node was designed so that if the replacement pattern is empty, it makes no
+        // replacement but reports that a replacement was made. We include this line here
+        // to keep this behaviour for backwards compatibility.
+        if (pattern.isEmpty()) {
+            return Optional.of(input);
         }
-        return Optional.empty();
+
+        try {
+            return m_replacer.doReplacement( //
+                pattern, //
+                PatternType.LITERAL, //
+                m_settings.m_caseMatching, //
+                m_settings.m_replacementStrategy, //
+                input, //
+                replacement //
+            ).asOptional();
+        } catch (IllegalReplacementException | IllegalSearchPatternException e) {
+            // neither of these should ever happen
+            throw new IllegalStateException( //
+                "Implementation error: unexpected exception while performing replacement: " + e.getMessage(), e //
+            );
+        }
+    }
+
+    /**
+     * Caches compiled regex patterns for performance. If you expect to provide the same pattern as a string multiple
+     * times, you can use this class to cache the compiled pattern and reuse it, which will avoid a substantial
+     * performance hit.
+     */
+    private static class CachingRegexReplacer {
+
+        private record PatternCacheKey( //
+            String patternString, //
+            PatternType patternType, //
+            CaseMatching caseMatching //
+        ) {
+        }
+
+        private final Map<PatternCacheKey, Pattern> m_cache = new HashMap<>();
+
+        /**
+         * <p>
+         * Caching proxy for
+         * {@link #doReplacement(String, PatternType, CaseMatching, ReplacementStrategy, String, String)}. See that
+         * method for more details.
+         * </p>
+         * <p>
+         * The specific combination of pattern string, pattern type and case matching is cached so calling this method
+         * again with those same parameters will reuse the cached pattern (even if the 'input', 'replacement', and
+         * 'replacementStrategy' arguments are different).
+         * </p>
+         */
+        @SuppressWarnings("javadoc")
+        public ReplacementResult doReplacement( //
+            final String patternString, //
+            final PatternType patternType, //
+            final CaseMatching caseMatching, //
+            final ReplacementStrategy replacementStrategy, //
+            final String input, //
+            final String replacement //
+        ) throws IllegalReplacementException, IllegalSearchPatternException {
+            var pattern = getFromCacheOrCompile(patternString, patternType, caseMatching);
+            return RegexReplaceUtils.doReplacement( //
+                pattern, //
+                replacementStrategy, //
+                patternType, //
+                input, //
+                RegexReplaceUtils.processReplacementString(replacement, patternType) //
+            );
+        }
+
+        private Pattern getFromCacheOrCompile( //
+            final String patternString, //
+            final PatternType patternType, //
+            final CaseMatching caseMatching //
+        ) throws IllegalSearchPatternException {
+            var key = new PatternCacheKey(patternString, patternType, caseMatching);
+
+            if (!m_cache.containsKey(key)) {
+                var compiled = RegexReplaceUtils.compilePattern(patternString, patternType, caseMatching, false);
+                m_cache.put(key, compiled);
+            }
+
+            return m_cache.get(key);
+        }
     }
 }
