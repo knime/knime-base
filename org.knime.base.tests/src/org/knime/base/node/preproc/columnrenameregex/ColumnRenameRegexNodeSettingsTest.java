@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,51 +41,60 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
+ * History
+ *   Mar 19, 2025 (david): created
  */
 package org.knime.base.node.preproc.columnrenameregex;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.def.StringCell.StringCellFactory;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * Factory for the column rename (regex) node.
  *
- * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
+ * @author David Hickey, TNG Technology Consulting GmbH
  */
-public final class ColumnRenameRegexNodeFactory extends NodeFactory<ColumnRenameRegexNodeModel> {
+final class ColumnRenameRegexNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
-    /** {@inheritDoc} */
-    @Override
-    public ColumnRenameRegexNodeModel createNodeModel() {
-        return new ColumnRenameRegexNodeModel();
+    static final PortObjectSpec[] TEST_TABLE_SPECS =
+        new PortObjectSpec[]{new DataTableSpec(new String[]{"test"}, new DataType[]{StringCellFactory.TYPE})};
+
+    ColumnRenameRegexNodeSettingsTest() {
+        super(getConfig());
     }
 
-    /** {@inheritDoc} */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .withInputPortObjectSpecs(TEST_TABLE_SPECS) //
+            .testJsonFormsForModel(ColumnRenameRegexNodeSettings.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
     }
 
-    /** {@inheritDoc} */
-    @Override
-    public NodeView<ColumnRenameRegexNodeModel> createNodeView(final int viewIndex,
-        final ColumnRenameRegexNodeModel nodeModel) {
-        return null;
+    private static ColumnRenameRegexNodeSettings readSettings() {
+        try {
+            var path = getSnapshotPath(ColumnRenameRegexNodeSettings.class).getParent().resolve("node_settings")
+                .resolve("ColumnRenameRegexNodeSettings.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return DefaultNodeSettings.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    ColumnRenameRegexNodeSettings.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
+        }
     }
-
-    /** {@inheritDoc} */
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new ColumnRenameRegexNodeDialogPane();
-    }
-
 }
