@@ -51,7 +51,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.OptionalInt;
-import java.util.function.Predicate;
 
 import org.knime.base.node.preproc.sorter.SorterNodeSettings.SortingCriterionSettings.SortingOrder;
 import org.knime.base.node.preproc.sorter.SorterNodeSettings.SortingCriterionSettings.StringComparison;
@@ -68,7 +67,8 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.ConvenienceMethods;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 
@@ -170,7 +170,7 @@ public class SorterNodeModel extends WebUINodeModel<SorterNodeSettings> {
         Arrays.stream(modelSettings.m_sortingCriteria).forEach(criterion -> {
             final var ascending = criterion.m_sortingOrder == SortingOrder.ASCENDING;
             final var alphaNum = criterion.m_stringComparison == StringComparison.NATURAL;
-            resolveColumnName(spec, criterion.m_column.getSelected(), SorterNodeModel::isRowKey).ifPresentOrElse(
+            resolveColumnName(spec, criterion.m_column).ifPresentOrElse(
                 col -> rc.thenComparingColumn(col,
                     c -> configureColumnComparatorBuilder(spec, modelSettings, ascending, alphaNum, col, c)),
                 () -> rc.thenComparingRowKey(
@@ -189,21 +189,17 @@ public class SorterNodeModel extends WebUINodeModel<SorterNodeSettings> {
         return compBuilder.withMissingsLast(modelSettings.m_sortMissingCellsToEndOfList);
     }
 
-    private static OptionalInt resolveColumnName(final DataTableSpec dts, final String colName,
-        final Predicate<String> isRowKey) {
-        final var idx = dts.findColumnIndex(colName);
-        if (idx == -1) {
-            if (!isRowKey.test(colName)) {
-                throw new IllegalArgumentException(
-                    "The column identifier \"" + colName + "\" does not refer to a known column.");
-            }
+    private static OptionalInt resolveColumnName(final DataTableSpec dts, final StringOrEnum<RowIDChoice> column) {
+        if (column.getEnumChoice().isPresent()) {
             return OptionalInt.empty();
         }
+        final var colName = column.getStringChoice();
+        final var idx = dts.findColumnIndex(colName);
+        if (idx == -1) {
+            throw new IllegalArgumentException(
+                "The column identifier \"" + colName + "\" does not refer to a known column.");
+        }
         return OptionalInt.of(idx);
-    }
-
-    private static boolean isRowKey(final String colName) {
-        return SpecialColumns.ROWID.getId().equals(colName);
     }
 
     /**
@@ -226,11 +222,12 @@ public class SorterNodeModel extends WebUINodeModel<SorterNodeSettings> {
         final List<String> notAvailableCols = new ArrayList<>();
         final var spec = inSpecs[INPORT];
         for (var ic : modelSettings.m_sortingCriteria) {
-            final var id = ic.m_column.getSelected();
-            if (!isRowKey(id)) {
-                final var idx = spec.findColumnIndex(id);
+            final var column = ic.m_column;
+            if (column.getEnumChoice().isEmpty()) {
+                final var columnName = column.getStringChoice();
+                final var idx = spec.findColumnIndex(columnName);
                 if (idx == -1) {
-                    notAvailableCols.add(id);
+                    notAvailableCols.add(columnName);
                 }
             }
         }

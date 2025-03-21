@@ -141,7 +141,7 @@ final class Normalizer3NodeModel extends WebUINodeModel<NormalizerNodeSettings> 
         final var numericCols = spec.stream()//
             .filter(colSpec -> colSpec.getType().isCompatible(DoubleValue.class)).map(DataColumnSpec::getName)//
             .toArray(String[]::new);
-        final var nonMissingSelected = modelSettings.m_dataColumnFilterConfig.getSelected(numericCols, spec);
+        final var nonMissingSelected = modelSettings.m_dataColumnFilterConfig.getNonMissingSelected(numericCols, spec);
 
         if (nonMissingSelected.length == 0) {
             final var warnings = new StringBuilder("No columns included - input stays unchanged.");

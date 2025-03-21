@@ -48,8 +48,11 @@
  */
 package org.knime.base.node.preproc.sorter;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice.ROW_ID;
+
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import org.knime.base.node.preproc.sorter.SorterNodeSettings.SortingCriterionSettings.SortingOrder;
 import org.knime.base.node.preproc.sorter.SorterNodeSettings.SortingCriterionSettings.StringComparison;
@@ -68,19 +71,21 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelectionToStringMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelectionToStringWithRowIDChoiceMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.BooleanReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
@@ -99,7 +104,7 @@ final class SorterNodeSettings implements DefaultNodeSettings {
 
     static final class SortingCriterionSettings implements DefaultNodeSettings {
 
-        private SortingCriterionSettings(final ColumnSelection column, final SortingOrder sortingOrder,
+        private SortingCriterionSettings(final StringOrEnum<RowIDChoice> column, final SortingOrder sortingOrder,
             final StringComparison stringComparison) {
             m_column = column;
             m_sortingOrder = sortingOrder;
@@ -117,17 +122,10 @@ final class SorterNodeSettings implements DefaultNodeSettings {
         }
 
         SortingCriterionSettings(final DataColumnSpec colSpec) {
-            m_column = colSpec == null ? SpecialColumns.ROWID.toColumnSelection() : new ColumnSelection(colSpec);
+            m_column = colSpec == null ? new StringOrEnum<>(ROW_ID) : new StringOrEnum<>(colSpec.getName());
         }
 
-        interface ColumnRef extends Reference<ColumnSelection> {
-        }
-
-        static final class IsStringColumn implements PredicateProvider {
-            @Override
-            public Predicate init(final PredicateInitializer i) {
-                return i.getColumnSelection(ColumnRef.class).hasColumnType(StringValue.class);
-            }
+        interface ColumnRef extends Reference<StringOrEnum<RowIDChoice>> {
         }
 
         @Widget(title = "Column",
@@ -135,9 +133,53 @@ final class SorterNodeSettings implements DefaultNodeSettings {
                 + "If you set multiple sorting criteria, the table is sorted by the first criterion. "
                 + "The following criteria are only considered, if the comparison by all previous "
                 + "criteria results in a tie.")
-        @ChoicesProvider(AllColumnsProvider.class, showRowKeysColumn = true)
+        @ChoicesProvider(AllColumnsProvider.class)
         @ValueReference(ColumnRef.class)
-        ColumnSelection m_column;
+        @Persist(configKey = "columnV2")
+        @Migration(ColumnSelectionMigration.class)
+        StringOrEnum<RowIDChoice> m_column;
+
+        static final class IsStringColumnProvider implements StateProvider<Boolean> {
+
+            private Supplier<StringOrEnum<RowIDChoice>> m_columnSupplier;
+
+            @Override
+            public void init(final StateProviderInitializer i) {
+                m_columnSupplier = i.computeFromValueSupplier(ColumnRef.class);
+            }
+
+            @Override
+            public Boolean computeState(final DefaultNodeSettingsContext context) {
+                final var tableSpecOptional = context.getDataTableSpec(0);
+                if (tableSpecOptional.isEmpty()) {
+                    return false;
+                }
+                final var tableSpec = tableSpecOptional.get();
+                final var column = m_columnSupplier.get();
+                if (column.getEnumChoice().isPresent()) {
+                    return true;
+                }
+                final var colSpec = tableSpec.getColumnSpec(column.getStringChoice());
+                if (colSpec == null) {
+                    return false;
+                }
+                return colSpec.getType().isCompatible(StringValue.class);
+            }
+
+        }
+
+        static final class IsStringColumn implements BooleanReference {
+        }
+
+        @ValueProvider(IsStringColumnProvider.class)
+        @ValueReference(IsStringColumn.class)
+        boolean m_isStringColumn;
+
+        static final class ColumnSelectionMigration extends ColumnSelectionToStringWithRowIDChoiceMigration {
+            ColumnSelectionMigration() {
+                super("column");
+            }
+        }
 
         enum SortingOrder {
                 @Label(value = "Ascending",
@@ -215,12 +257,12 @@ final class SorterNodeSettings implements DefaultNodeSettings {
 
         }
 
-        private static ColumnSelection getColumnSelection(final SortKeyItem item) {
+        private static StringOrEnum<RowIDChoice> getColumnSelection(final SortKeyItem item) {
             final var identifier = item.getIdentifier();
             if (LEGACY_ROW_ID.equals(identifier)) {
-                return SpecialColumns.ROWID.toColumnSelection();
+                return new StringOrEnum<>(ROW_ID);
             }
-            return new ColumnSelection(item.getIdentifier(), null);
+            return new StringOrEnum<>(identifier);
         }
 
         @Override

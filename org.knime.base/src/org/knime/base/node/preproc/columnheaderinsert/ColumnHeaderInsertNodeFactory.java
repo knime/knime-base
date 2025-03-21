@@ -45,74 +45,49 @@
  */
 package org.knime.base.node.preproc.columnheaderinsert;
 
-import java.util.Map;
-
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
-import org.knime.core.webui.node.dialog.NodeDialog;
-import org.knime.core.webui.node.dialog.NodeDialogFactory;
-import org.knime.core.webui.node.dialog.NodeDialogManager;
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
-import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
-import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  */
 @SuppressWarnings("restriction")
-public final class ColumnHeaderInsertNodeFactory extends NodeFactory<ColumnHeaderInsertNodeModel>
-    implements NodeDialogFactory, KaiNodeInterfaceFactory {
+public final class ColumnHeaderInsertNodeFactory extends WebUINodeFactory<ColumnHeaderInsertNodeModel> {
 
-    /** {@inheritDoc} */
+    private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
+        .name("Column Renamer (Dictionary)") //
+        .icon("insert_col_header.png") //
+        .shortDescription("Updates column names of a table according to the mapping in a second dictionary table.") //
+        .fullDescription("""
+                <p>
+                    Updates column names of a table according to the mapping in
+                    second dictionary table. The dictionary table needs to contain two
+                    columns, one of which contains the lookup (i.e. the column names of
+                    the table to be renamed), the other column containing the new
+                    column names. The lookup column may be the RowID column.
+                </p>
+                <p>
+                    If the assigned new value in the value column is missing, the original
+                    column name will be retained. If the lookup column contains duplicates
+                    of the original column names, the node will fail.
+                </p>
+                    """) //
+        .modelSettingsClass(ColumnHeaderInsertSettings.class) //
+        .addInputTable("Data table", "Table whose columns are to be renamed.") //
+        .addInputTable("Dictionary table", "Table containing two columns: lookup and new value.") //
+        .addOutputTable("Data Table with new column names",
+            "Input table, whereby the columns are renamed according to the dictionary.") //
+        .keywords("Rename column") //
+        .build();
+
+    @SuppressWarnings("javadoc")
+    public ColumnHeaderInsertNodeFactory() {
+        super(CONFIGURATION);
+    }
+
     @Override
     public ColumnHeaderInsertNodeModel createNodeModel() {
-        return new ColumnHeaderInsertNodeModel();
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public NodeView<ColumnHeaderInsertNodeModel> createNodeView(final int viewIndex,
-        final ColumnHeaderInsertNodeModel nodeModel) {
-        return null;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
-
-    }
-
-    /**
-     * @since 5.0
-     */
-    @Override
-    public NodeDialog createNodeDialog() {
-        return new DefaultNodeDialog(SettingsType.MODEL, ColumnHeaderInsertSettings.class);
-
-    }
-
-    /**
-     * @since 5.5
-     */
-    @Override
-    public KaiNodeInterface createKaiNodeInterface() {
-        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, ColumnHeaderInsertSettings.class));
+        return new ColumnHeaderInsertNodeModel(CONFIGURATION);
     }
 
 }

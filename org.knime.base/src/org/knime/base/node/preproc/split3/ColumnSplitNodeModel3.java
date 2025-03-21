@@ -77,7 +77,7 @@ final class ColumnSplitNodeModel3 extends WebUINodeModel<ColumnSplitNodeSettings
         final ColumnSplitNodeSettings modelSettings) throws Exception {
 
         var selectedColumns = modelSettings.m_columnsToInclude
-            .getSelected(inData[0].getDataTableSpec().getColumnNames(), inData[0].getDataTableSpec());
+            .getNonMissingSelected(inData[0].getDataTableSpec().getColumnNames(), inData[0].getDataTableSpec());
 
         var columnRearrangers = createColumnRearrangers(inData[0].getDataTableSpec(), selectedColumns);
 
@@ -95,7 +95,7 @@ final class ColumnSplitNodeModel3 extends WebUINodeModel<ColumnSplitNodeSettings
 
         var availableColumns = inSpecs[0].getColumnNames();
 
-        var selectedColumns = modelSettings.m_columnsToInclude.getSelected(availableColumns, inSpecs[0]);
+        var selectedColumns = modelSettings.m_columnsToInclude.getNonMissingSelected(availableColumns, inSpecs[0]);
         var selectedColumnsIncludingOnesThatNoLongerExist =
             modelSettings.m_columnsToInclude.getSelectedIncludingMissing(availableColumns, inSpecs[0]);
 

@@ -47,14 +47,16 @@
  */
 package org.knime.base.node.flowvariable.filter;
 
+import java.util.List;
+
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.FlowVariable.Scope;
 import org.knime.core.node.workflow.VariableTypeRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.NameFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
 
 /**
  * Settings for Variable Filter node.
@@ -69,17 +71,22 @@ final class VariableFilterSettings implements DefaultNodeSettings {
         description = "The names of the flow variables that pass this filter node. See the general node description "
             + "for details regarding which variables can be filtered.")
     @ChoicesProvider(FlowVariableNamesChoicesProvider.class)
-    NameFilter m_filter = new NameFilter();
+    FlowVariableFilter m_filter = new FlowVariableFilter();
+
+    // TODO
+    static final class StringFilterToFlowVariableFilterMigration extends NodeSettingsMigration<FlowVariableFilter>{
+
+    }
 
     /** Provider for the available flow variables, excluding constants. */
     private static final class FlowVariableNamesChoicesProvider implements StringChoicesProvider {
         @Override
         public List<String> choices(final DefaultNodeSettingsContext context) {
             return context.getAvailableInputFlowVariables(VariableTypeRegistry.getInstance().getAllTypes()) //
-                    .values().stream() //
-                    .filter(v -> Scope.Flow == v.getScope()) //
-                    .map(FlowVariable::getName) //
-                    .toArray(String[]::new);
+                .values().stream() //
+                .filter(v -> Scope.Flow == v.getScope()) //
+                .map(FlowVariable::getName) //
+                .toList();
         }
     }
 }

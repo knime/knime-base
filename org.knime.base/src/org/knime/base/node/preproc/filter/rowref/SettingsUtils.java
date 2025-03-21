@@ -48,13 +48,9 @@
  */
 package org.knime.base.node.preproc.filter.rowref;
 
-import java.util.Optional;
-
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelColumnNamePersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
 
 /**
  * Common utilities for settings for row splitter nodes.
@@ -74,38 +70,17 @@ final class SettingsUtils {
         // no instantiation
     }
 
-    abstract static class AllColumnChoices implements StringChoicesProvider {
+    static final class DataColumnChoices extends AllColumnsProvider {
 
-        private final int m_portIdx;
+    }
 
-        AllColumnChoices(final int portIdx) {
-            m_portIdx = portIdx;
-        }
+    static final class ReferenceColumnChoices extends AllColumnsProvider {
 
         @Override
-        public List<String> choices(final DefaultNodeSettingsContext context) {
-            // This check is needed for the settings tests, which creates a dummy node
-            // with no ports.
-            Optional<DataTableSpec> specs = context.getDataTableSpecs().length > 0 //
-                ? context.getDataTableSpec(m_portIdx) //
-                : Optional.empty();
-
-            return specs //
-                .map(DataTableSpec::getColumnNames) //
-                .orElse(new String[0]);
+        public int getInputTableIndex() {
+            return 1;
         }
-    }
 
-    static final class DataColumnChoices extends AllColumnChoices {
-        public DataColumnChoices() {
-            super(0);
-        }
-    }
-
-    static final class ReferenceColumnChoices extends AllColumnChoices {
-        public ReferenceColumnChoices() {
-            super(1);
-        }
     }
 
     static final class DataColumnPersistor extends SettingsModelColumnNamePersistor {

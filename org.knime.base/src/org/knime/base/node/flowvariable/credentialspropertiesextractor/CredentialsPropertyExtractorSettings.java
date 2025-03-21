@@ -47,12 +47,14 @@
  */
 package org.knime.base.node.flowvariable.credentialspropertiesextractor;
 
+import java.util.List;
+
 import org.knime.core.node.workflow.VariableType.CredentialsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
 
 /**
  * @author Carl Witt, KNIME AG, Zurich, Switzerland
@@ -72,7 +74,7 @@ public final class CredentialsPropertyExtractorSettings implements DefaultNodeSe
             Select the credentials flow variables for which to extract properties.
             """)
     @ChoicesProvider(CredentialsFlowVariables.class)
-    ColumnFilter m_selectedCredentials;
+    ColumnFilter m_selectedCredentials; // TODO! Not a columnFilter!!
 
     @Widget(title = "Fail if selected credentials have no user name set", description = """
             Select this to prevent execution of subsequent nodes in case the selected credentials have
@@ -97,7 +99,7 @@ public final class CredentialsPropertyExtractorSettings implements DefaultNodeSe
         @Override
         public List<String> choices(final DefaultNodeSettingsContext context) {
             final var credentialVariables = context.getAvailableInputFlowVariables(CredentialsType.INSTANCE);
-            return credentialVariables.keySet().toArray(String[]::new);
+            return credentialVariables.keySet().stream().toList();
         }
     }
 }

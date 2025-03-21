@@ -48,18 +48,14 @@
  */
 package org.knime.base.node.preproc.filter.column;
 
-import java.util.stream.Stream;
-
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
 
 /**
  * Settings for the Column Filter node.
@@ -71,7 +67,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 public final class ColumnFilterNodeSettings implements DefaultNodeSettings {
 
     ColumnFilterNodeSettings(final DefaultNodeSettingsContext context) {
-        m_columnFilter = ColumnFilter.createDefault(AllColumns.class, context);
+        m_columnFilter = ColumnFilter.createDefault(AllColumnsProvider.class, context);
     }
 
     /**
@@ -90,18 +86,7 @@ public final class ColumnFilterNodeSettings implements DefaultNodeSettings {
     @Persistor(ColumnFilterPersistor.class)
     @Migrate(loadDefaultIfAbsent = true)
     @Widget(title = "Column filter", description = "Select the columns to include in the output table.")
-    @ChoicesProvider(AllColumns.class)
+    @ChoicesProvider(AllColumnsProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
-
-    static final class AllColumns implements ColumnChoicesProvider {
-
-        @Override
-        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0).map(DataTableSpec::stream)//
-                .orElseGet(Stream::empty)//
-                .toArray(DataColumnSpec[]::new);
-        }
-
-    }
 
 }

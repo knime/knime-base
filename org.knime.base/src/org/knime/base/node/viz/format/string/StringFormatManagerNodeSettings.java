@@ -48,11 +48,10 @@
  */
 package org.knime.base.node.viz.format.string;
 
-import java.util.stream.Stream;
+import static org.knime.base.node.viz.format.string.StringFormatManagerNodeModel.isStringCell;
 
 import org.knime.base.node.viz.format.AlignmentSuggestionOption;
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
@@ -60,12 +59,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.FilteredInputTableColumnsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
@@ -130,7 +129,7 @@ public final class StringFormatManagerNodeSettings implements DefaultNodeSetting
             Select the columns to attach the selected format to.
             This does not change the data, but only the way the strings are being displayed in views.
             """)
-    @ChoicesProvider(StringColumns.class)
+    @ChoicesProvider(StringCellColumns.class)
     @Layout(DialogLayout.Columns.class)
     ColumnFilter m_columnsToFormat;
 
@@ -248,18 +247,16 @@ public final class StringFormatManagerNodeSettings implements DefaultNodeSetting
     }
 
     StringFormatManagerNodeSettings(final DefaultNodeSettingsContext ctx) {
-        m_columnsToFormat = ColumnFilter.createDefault(StringColumns.class, ctx);
+        m_columnsToFormat = ColumnFilter.createDefault(StringCellColumns.class, ctx);
     }
 
     // Column choices
 
-    static final class StringColumns implements ColumnChoicesProvider {
+    static final class StringCellColumns implements FilteredInputTableColumnsProvider {
+
         @Override
-        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0).map(DataTableSpec::stream)//
-                .orElseGet(Stream::empty)//
-                .filter(StringFormatManagerNodeModel::isStringCell)//
-                .toArray(DataColumnSpec[]::new);
+        public boolean isIncluded(final DataColumnSpec col) {
+            return isStringCell(col);
         }
     }
 }

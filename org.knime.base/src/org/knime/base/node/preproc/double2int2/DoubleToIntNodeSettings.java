@@ -48,11 +48,7 @@
  */
 package org.knime.base.node.preproc.double2int2;
 
-import java.util.stream.Stream;
-
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataType;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.IntValue;
 import org.knime.core.node.InvalidSettingsException;
@@ -68,11 +64,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.FilteredInputTableColumnsProvider;
 
 /**
  * Settings for the Web UI dialog of the Double to Int node. Double check backwards compatible loading if this class is
@@ -159,19 +155,11 @@ public final class DoubleToIntNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    static final class NumericalColumns implements StringChoicesProvider {
+    static final class NumericalColumns implements FilteredInputTableColumnsProvider {
 
         @Override
-        public List<String> choices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0)//
-                .map(DataTableSpec::stream)//
-                .orElseGet(Stream::empty)//
-                .filter(c -> include(c.getType()))//
-                .map(DataColumnSpec::getName)//
-                .toArray(String[]::new);
-        }
-
-        private static boolean include(final DataType type) {
+        public boolean isIncluded(final DataColumnSpec colSpec) {
+            final var type = colSpec.getType();
             return type.isCompatible(DoubleValue.class) && !type.isCompatible(IntValue.class);
         }
 

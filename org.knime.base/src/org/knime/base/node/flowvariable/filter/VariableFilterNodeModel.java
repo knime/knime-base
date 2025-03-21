@@ -51,7 +51,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.knime.core.node.CanceledExecutionException;
@@ -98,15 +97,15 @@ final class VariableFilterNodeModel extends NodeModel {
     }
 
     private void pushHidingVariables() {
-        final Set<String> availableFlowVariableNames =
+        final var availableFlowVariableNames =
             getAvailableFlowVariables(VariableTypeRegistry.getInstance().getAllTypes()).values().stream() //
                 .filter(fv -> fv.getScope() == Scope.Flow) //
-                .map(FlowVariable::getName) //
                 .collect(Collectors.toCollection(LinkedHashSet::new));
-        final String[] namesAsArray = availableFlowVariableNames.toArray(String[]::new);
 
-        availableFlowVariableNames.removeAll(Arrays.asList(m_settings.m_filter.getSelected(namesAsArray)));
+        availableFlowVariableNames
+            .removeAll(Arrays.asList(m_settings.m_filter.getSelected(availableFlowVariableNames)));
         availableFlowVariableNames.stream() //
+            .map(FlowVariable::getName) //
             .map(FlowVariable::newHidingVariable) //
             .forEach(fv -> Node.invokePushFlowVariable(this, fv));
     }

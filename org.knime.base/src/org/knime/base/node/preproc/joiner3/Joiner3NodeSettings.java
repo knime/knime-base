@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.preproc.joiner3;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice.ROW_ID;
+
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -65,18 +67,21 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.StringToStringWithRowIDChoiceMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
@@ -134,10 +139,10 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
     }
 
     Joiner3NodeSettings(final DefaultNodeSettingsContext context) {
-        context.getDataTableSpec(0).ifPresent(
-            spec -> m_leftColumnSelectionConfigV2 = new ColumnFilter(spec.getColumnNames()).withIncludeUnknownColumns());
-        context.getDataTableSpec(1).ifPresent(
-            spec -> m_rightColumnSelectionConfigV2 = new ColumnFilter(spec.getColumnNames()).withIncludeUnknownColumns());
+        context.getDataTableSpec(0).ifPresent(spec -> m_leftColumnSelectionConfigV2 =
+            new ColumnFilter(spec.getColumnNames()).withIncludeUnknownColumns());
+        context.getDataTableSpec(1).ifPresent(spec -> m_rightColumnSelectionConfigV2 =
+            new ColumnFilter(spec.getColumnNames()).withIncludeUnknownColumns());
     }
 
     enum CompositionMode {
@@ -182,10 +187,10 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
     static class MatchingCriterion implements PersistableSettings, WidgetGroup {
 
         MatchingCriterion() {
-            this(SpecialColumns.ROWID.getId(), SpecialColumns.ROWID.getId());
         }
 
-        MatchingCriterion(final String leftColumnName, final String rightColumnName) {
+        MatchingCriterion(final StringOrEnum<RowIDChoice> leftColumnName,
+            final StringOrEnum<RowIDChoice> rightColumnName) {
             m_leftTableColumn = leftColumnName;
             m_rightTableColumn = rightColumnName;
         }
@@ -195,20 +200,35 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
 
         }
 
-        @ChoicesWidget(choicesProvider = LeftTableChoices.class, showRowKeysColumn = true)
+        @ChoicesProvider(LeftTableChoices.class)
         @Widget(title = "Top input ('left' table)",
             description = "Select the column from the top input table that should be "
                 + "used to compare with the column selected for the bottom input.")
         @Layout(Horizontal.class)
-        String m_leftTableColumn;
+        @Persist(configKey = "leftTableColumnV2")
+        @Migration(LeftTableColumnMigration.class)
+        StringOrEnum<RowIDChoice> m_leftTableColumn = new StringOrEnum<>(ROW_ID);
 
-        @ChoicesWidget(choicesProvider = RightTableChoices.class, showRowKeysColumn = true)
+        @ChoicesProvider(RightTableChoices.class)
         @Widget(title = "Bottom input ('right' table)",
             description = "Select the column from the bottom input table that should be "
                 + "used to compare with the column selected for the top input.")
         @Layout(Horizontal.class)
-        String m_rightTableColumn;
+        @Persist(configKey = "rightTableColumnV2")
+        @Migration(RightTableColumnMigration.class)
+        StringOrEnum<RowIDChoice> m_rightTableColumn = new StringOrEnum<>(ROW_ID);
 
+        static final class LeftTableColumnMigration extends StringToStringWithRowIDChoiceMigration {
+            LeftTableColumnMigration() {
+                super("leftTableColumn");
+            }
+        }
+
+        static final class RightTableColumnMigration extends StringToStringWithRowIDChoiceMigration {
+            RightTableColumnMigration() {
+                super("rightTableColumn");
+            }
+        }
     }
 
     /**
@@ -247,15 +267,15 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
             return new MatchingCriterion(getNthColumnName(i, leftColumns), getNthColumnName(i, rightColumns));
         }
 
-        private static String getNthColumnName(final int i, final String[] columns) {
+        private static StringOrEnum<RowIDChoice> getNthColumnName(final int i, final String[] columns) {
             if (i >= columns.length) {
-                return null;
+                return new StringOrEnum<>((String)null);
             }
             final var column = columns[i];
             if (LEGACY_ROW_ID_COLUMN_ID.equals(column)) {
-                return SpecialColumns.ROWID.getId();
+                return new StringOrEnum<>(ROW_ID);
             }
-            return column;
+            return new StringOrEnum<>(column);
         }
 
     }
@@ -333,7 +353,7 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
         description = "Select columns from top input ('left' table) that should be included or excluded in the output table.")
     @Layout(OutputColumnsSection.class)
     @Migration(LeftColumnSelectionMigration.class)
-    @ChoicesWidget(choicesProvider = LeftTableChoices.class)
+    @ChoicesProvider(LeftTableChoices.class)
     ColumnFilter m_leftColumnSelectionConfigV2 = new ColumnFilter();
 
     static final class RightColumnSelectionMigration extends LegacyColumnFilterMigration {
@@ -347,7 +367,7 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
         description = "Select columns from bottom input ('right' table) that should be included or excluded in the output table.")
     @Layout(OutputColumnsSection.class)
     @Migration(RightColumnSelectionMigration.class)
-    @ChoicesWidget(choicesProvider = RightTableChoices.class)
+    @ChoicesProvider(RightTableChoices.class)
     ColumnFilter m_rightColumnSelectionConfigV2 = new ColumnFilter();
 
     @Widget(title = "Merge join columns",

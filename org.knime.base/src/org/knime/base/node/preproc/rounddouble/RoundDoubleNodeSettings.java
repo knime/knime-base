@@ -48,16 +48,16 @@
  */
 package org.knime.base.node.preproc.rounddouble;
 
-import java.math.RoundingMode;
-import java.util.stream.Stream;
+import static org.knime.base.node.preproc.rounddouble.RoundDoubleNodeModel.isTargetColumn;
 
-import org.knime.base.node.preproc.rounddouble.RoundDoubleNodeSettings.RoundingMethod.Standard;
+import java.math.RoundingMode;
+
 import org.knime.base.node.preproc.rounddouble.RoundDoubleMigrations.NumberModeMigration;
 import org.knime.base.node.preproc.rounddouble.RoundDoubleMigrations.OutputColumnMigration;
 import org.knime.base.node.preproc.rounddouble.RoundDoubleMigrations.OutputModeMigration;
 import org.knime.base.node.preproc.rounddouble.RoundDoubleMigrations.RoundingMethodMigration;
+import org.knime.base.node.preproc.rounddouble.RoundDoubleNodeSettings.RoundingMethod.Standard;
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
@@ -65,14 +65,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.FilteredInputTableColumnsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
@@ -319,15 +319,13 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
     OutputMode m_outputMode = OutputMode.AUTO;
 
     // Utilities
-    static final class NumberColumns implements ColumnChoicesProvider {
+    static final class NumberColumns implements FilteredInputTableColumnsProvider{
+
         @Override
-        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0)//
-                .map(DataTableSpec::stream)//
-                .orElseGet(Stream::empty)//
-                .filter(RoundDoubleNodeModel::isTargetColumn)//
-                .toArray(DataColumnSpec[]::new);
+        public boolean isIncluded(final DataColumnSpec col) {
+            return isTargetColumn(col);
         }
+
     }
 
     static RoundingMode getRoundingModeFromMethod(final RoundingMethod roundingMethod) {

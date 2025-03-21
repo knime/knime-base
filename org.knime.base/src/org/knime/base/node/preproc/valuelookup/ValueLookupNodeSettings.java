@@ -48,8 +48,6 @@
  */
 package org.knime.base.node.preproc.valuelookup;
 
-import java.util.stream.Stream;
-
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
@@ -63,12 +61,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
@@ -183,24 +181,16 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     }
 
     /** Provides the column choices of the table at input port 0 */
-    static final class DataTableChoices implements ColumnChoicesProvider {
-        @Override
-        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0)//
-                .map(DataTableSpec::stream)//
-                .orElseGet(Stream::empty)//
-                .toArray(DataColumnSpec[]::new);
-        }
+    static final class DataTableChoices extends AllColumnsProvider {
+
     }
 
     /** Provides the column choices of the table at input port 1 */
-    static final class DictionaryTableChoices implements ColumnChoicesProvider {
+    static final class DictionaryTableChoices extends AllColumnsProvider {
+
         @Override
-        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(1)//
-                .map(DataTableSpec::stream)//
-                .orElseGet(Stream::empty)//
-                .toArray(DataColumnSpec[]::new);
+        public int getInputTableIndex() {
+            return 1;
         }
 
         static String[] choices(final DataTableSpec spec) {

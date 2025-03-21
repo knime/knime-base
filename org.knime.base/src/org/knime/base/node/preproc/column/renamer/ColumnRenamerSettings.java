@@ -52,10 +52,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
 
 /**
  * Settings of the Column Renamer node.
@@ -87,7 +87,7 @@ public final class ColumnRenamerSettings implements DefaultNodeSettings {
     @ArrayWidget(addButtonText = "Add column")
     public Renaming[] m_renamings = new Renaming[0];
 
-    
+
 
     static final class Renaming implements DefaultNodeSettings {
 
@@ -96,7 +96,7 @@ public final class ColumnRenamerSettings implements DefaultNodeSettings {
         }
 
         @Widget(title = "Column", description = "The column to rename.")
-        @ChoicesProvider(AllColumns.class)
+        @ChoicesProvider(AllColumnsProvider.class)
         @Layout(RenamingLayout.class)
         public String m_oldName;
 
@@ -107,14 +107,5 @@ public final class ColumnRenamerSettings implements DefaultNodeSettings {
         public String m_newName;
     }
 
-    private static final class AllColumns implements StringChoicesProvider {
-
-        @Override
-        public List<String> choices(final DefaultNodeSettingsContext context) {
-            var spec = context.getDataTableSpecs()[0];
-            return spec == null ? new String[0] : spec.getColumnNames();
-        }
-
-    }
 
 }

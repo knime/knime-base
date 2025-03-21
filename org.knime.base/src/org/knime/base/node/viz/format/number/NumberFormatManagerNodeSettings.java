@@ -48,11 +48,10 @@
  */
 package org.knime.base.node.viz.format.number;
 
-import java.util.stream.Stream;
+import static org.knime.base.node.viz.format.number.NumberFormatManagerNodeModel.isTargetColumn;
 
 import org.knime.base.node.viz.format.AlignmentSuggestionOption;
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
@@ -60,12 +59,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.FilteredInputTableColumnsProvider;
 
 /**
  * @author Carl Witt, KNIME AG, Zurich, Switzerland
@@ -210,14 +209,11 @@ public final class NumberFormatManagerNodeSettings implements DefaultNodeSetting
         // required by framework for serialization/deserialization
     }
 
-    static final class NumberColumns implements ColumnChoicesProvider {
+    static final class NumberColumns implements FilteredInputTableColumnsProvider {
 
         @Override
-        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0).map(DataTableSpec::stream)//
-                .orElseGet(Stream::empty)//
-                .filter(NumberFormatManagerNodeModel::isTargetColumn)//
-                .toArray(DataColumnSpec[]::new);
+        public boolean isIncluded(final DataColumnSpec col) {
+            return isTargetColumn(col);
         }
 
     }

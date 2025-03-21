@@ -84,8 +84,8 @@ final class NumberFormatManagerNodeModel extends WebUINodeModel<NumberFormatMana
         var valueFormatHandler = handlerFor(modelSettings);
         var inSpec = inSpecs[0];
         String[] numberColumnNames = numberColumns(inSpec);
-        var result = createOutputSpec(inSpec, modelSettings.m_columnsToFormat.getSelected(numberColumnNames, inSpec),
-            valueFormatHandler);
+        var result = createOutputSpec(inSpec,
+            modelSettings.m_columnsToFormat.getNonMissingSelected(numberColumnNames, inSpec), valueFormatHandler);
         return new DataTableSpec[]{result};
     }
 
@@ -97,7 +97,7 @@ final class NumberFormatManagerNodeModel extends WebUINodeModel<NumberFormatMana
         var valueFormatHandler = handlerFor(modelSettings);
         String[] numberColumnNames = numberColumns(inSpec);
         final var outputTableSpec = createOutputSpec(inSpec,
-            modelSettings.m_columnsToFormat.getSelected(numberColumnNames, inSpec), valueFormatHandler);
+            modelSettings.m_columnsToFormat.getNonMissingSelected(numberColumnNames, inSpec), valueFormatHandler);
         final var outputTable = outputTableSpec == inSpec ? in : exec.createSpecReplacerTable(in, outputTableSpec);
         return new BufferedDataTable[]{outputTable};
     }

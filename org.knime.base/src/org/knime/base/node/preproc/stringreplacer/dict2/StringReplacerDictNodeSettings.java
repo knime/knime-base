@@ -51,19 +51,17 @@ package org.knime.base.node.preproc.stringreplacer.dict2;
 import org.knime.base.node.preproc.stringreplacer.CaseMatching;
 import org.knime.base.node.preproc.stringreplacer.PatternType;
 import org.knime.base.node.preproc.stringreplacer.ReplacementStrategy;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.StringValue;
+import org.knime.base.node.preproc.stringreplacer.dict2.StringReplacerDictNodeSettings.TargetColumnChoices;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider.StringColumnsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.BooleanReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
@@ -91,19 +89,19 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
 
         static final String OPTION_DESCRIPTION =
             """
-            Select the strategy to use if multiple patterns match.
-            <ul>
-                <li>
-                    <i>Apply first matching</i> only applies the first replacement that has a matching pattern.
-                </li>
-                <li>
-                    <i>Apply all sequentially</i> applies all replacements with matching patterns from the dictionary
-                    table sequentially. This means that later patterns can also match the output of another
-                    replacement: For example, when the input is "A" and there are the replacements A -> B and B -> C,
-                    the resulting string is "C".
-                </li>
-            </ul>
-            """;
+                    Select the strategy to use if multiple patterns match.
+                    <ul>
+                        <li>
+                            <i>Apply first matching</i> only applies the first replacement that has a matching pattern.
+                        </li>
+                        <li>
+                            <i>Apply all sequentially</i> applies all replacements with matching patterns from the dictionary
+                            table sequentially. This means that later patterns can also match the output of another
+                            replacement: For example, when the input is "A" and there are the replacements A -> B and B -> C,
+                            the resulting string is "C".
+                        </li>
+                    </ul>
+                    """;
     }
 
     // Rules
@@ -120,33 +118,16 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
     }
 
     /** Indicates that the option "Append column" is enabled **/
-    interface IsAppendColumns {}
+    interface IsAppendColumns {
+    }
 
     // Helper methods
 
-    /** Filter a table spec for the string-compatible columns */
-    static DataColumnSpec[] getStringCompatibleColumns(final DataTableSpec tableSpec) {
-        return tableSpec.stream().filter(spec -> spec.getType().isCompatible(StringValue.class))
-            .toArray(DataColumnSpec[]::new);
-    }
-
-    /** Provides the string column choices of the table at input port 0 */
-    static final class TargetColumnChoices implements ColumnChoicesProvider {
-        @Override
-        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0)// data table
-                .map(s -> getStringCompatibleColumns(s))//
-                .orElse(new DataColumnSpec[]{});
-        }
-    }
-
     /** Provides the string column choices of the table at input port 1, including collections */
-    static final class PatternAndReplacementColumnChoices implements ColumnChoicesProvider {
+    static final class PatternAndReplacementColumnChoices extends StringColumnsProvider {
         @Override
-        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(1)// dictionary table
-                .map(s -> getStringCompatibleColumns(s))//
-                .orElse(new DataColumnSpec[]{});
+        public int getInputTableIndex() {
+            return 1;
         }
     }
 
@@ -154,20 +135,23 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
 
     interface DialogSections {
         @Section(title = "Column Selection")
-        interface ColumnSelection {}
+        interface ColumnSelection {
+        }
 
         @Section(title = "Find & Replace")
-        interface FindAndReplace {}
+        interface FindAndReplace {
+        }
 
         @Section(title = "Output")
-        interface Output {}
+        interface Output {
+        }
     }
 
     // Settings
 
     @Layout(DialogSections.ColumnSelection.class)
     @Widget(title = "Target columns", description = "Select the columns in which the strings should be replaced.")
-    @ChoicesProvider(TargetColumnChoices.class)
+    @ChoicesProvider(StringColumnsProvider.class)
     ColumnFilter m_targetColumns;
 
     @Layout(DialogSections.FindAndReplace.class)

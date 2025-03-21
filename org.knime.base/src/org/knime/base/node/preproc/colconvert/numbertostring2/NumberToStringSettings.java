@@ -48,19 +48,14 @@
  */
 package org.knime.base.node.preproc.colconvert.numbertostring2;
 
-import java.util.stream.Stream;
-
 import org.knime.base.node.preproc.pmml.numbertostring3.AbstractNumberToStringNodeModel;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DoubleValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider.DoubleColumnsProvider;
 
 /**
  * Settings for the Number to String Web UI dialog.
@@ -77,7 +72,7 @@ public final class NumberToStringSettings implements DefaultNodeSettings {
      * @param context of the settings creation
      */
     NumberToStringSettings(final DefaultNodeSettingsContext context) {
-        m_columns = ColumnFilter.createDefault(NumericalColumns.class, context);
+        m_columns = ColumnFilter.createDefault(DoubleColumnsProvider.class, context);
     }
 
     /**
@@ -89,7 +84,7 @@ public final class NumberToStringSettings implements DefaultNodeSettings {
 
     @Persistor(ColumnsPersistor.class)
     @Widget(title = "Columns", description = "Select the columns to convert to String.")
-    @ChoicesProvider(NumericalColumns.class)
+    @ChoicesProvider(DoubleColumnsProvider.class)
     ColumnFilter m_columns = new ColumnFilter();
 
     static final class ColumnsPersistor extends LegacyColumnFilterPersistor {
@@ -99,17 +94,4 @@ public final class NumberToStringSettings implements DefaultNodeSettings {
         }
     }
 
-    static final class NumericalColumns implements StringChoicesProvider {
-
-        @Override
-        public List<String> choices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0)//
-                .map(DataTableSpec::stream)//
-                .orElseGet(Stream::empty)//
-                .filter(c -> c.getType().isCompatible(DoubleValue.class))//
-                .map(DataColumnSpec::getName)//
-                .toArray(String[]::new);
-        }
-
-    }
 }

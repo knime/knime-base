@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.preproc.table.splitter;
 
+import java.util.List;
+
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
@@ -56,6 +58,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.FilteredInputTableColumnsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
@@ -176,19 +179,12 @@ public final class TableSplitterNodeSettings implements DefaultNodeSettings {
      * A column provider that gives the names of the columns that are compatible according to
      * {@link TableSplitterNodeModel#isCompatible}
      */
-    private static final class ColumnChoices implements StringChoicesProvider {
+    private static final class ColumnChoices implements FilteredInputTableColumnsProvider {
 
         @Override
-        public List<String> choices(final DefaultNodeSettingsContext context) {
-            final DataTableSpec specs = context.getDataTableSpecs()[0];
-            if (specs == null) {
-                return new String[0];
-            } else {
-                return specs.stream() //
-                    .filter(TableSplitterNodeModel::isCompatible) //
-                    .map(DataColumnSpec::getName) //
-                    .toArray(String[]::new);
-            }
+        public boolean isIncluded(final DataColumnSpec col) {
+            return TableSplitterNodeModel.isCompatible(col);
         }
+
     }
 }

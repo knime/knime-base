@@ -58,7 +58,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -108,6 +107,8 @@ import org.knime.core.node.property.hilite.DefaultHiLiteMapper;
 import org.knime.core.node.property.hilite.HiLiteHandler;
 import org.knime.core.node.property.hilite.HiLiteTranslator;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.NoneChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
@@ -115,8 +116,8 @@ import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 
 /**
- * A simplified {@link GroupByNodeModel} to aggregate numeric columns of an input table,
- * optionally grouped by a single column ("category attribute"), with a single aggregation method.
+ * A simplified {@link GroupByNodeModel} to aggregate numeric columns of an input table, optionally grouped by a single
+ * column ("category attribute"), with a single aggregation method.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
@@ -125,18 +126,10 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(RowAggregatorNodeModel.class);
 
-    // The JSON Forms represent the "None" column (i.e. no column selected) with "<none>"
-    private static final String NONE_COLUMN_PLACEHOLDER = "<none>";
-    // The "empty string" column name results from our choices provider when the data table spec is null
-    // (we return an empty string array, since the API does not like a "null" array)
-    /** Values meaning "no column selected" which are potentially returned by the settings
-     * (through the JSON Forms API) */
-    private static final Set<String> NOTHING_SELECTION = Set.of(NONE_COLUMN_PLACEHOLDER, "");
-
-
     /** Settings error message that all aggregation functions except "count" need at least one aggregation column. */
     private static final String MISSING_AGGREGATION_COLUMNS = "Choose at least one aggregation column to aggregate or "
         + "choose the \"Occurrence count\" aggregation function.";
+
     /** Settings error message that input is missing. */
     private static final String INPUT_MISSING = "No input specification available.";
 
@@ -148,6 +141,7 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
 
     /** The original column name can be retained since the node only supports using each column once. */
     private static final ColumnNamePolicy COL_NAME_POLICY = ColumnNamePolicy.KEEP_ORIGINAL_NAME;
+
     /** The column name for the COUNT aggregation method which does not use an input column to derive a name from. */
     private static final String COUNT_COLUMN_NAME = "OCCURRENCE_COUNT";
 
@@ -164,8 +158,9 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
     }
 
     /**
-     * Determine whether the given column is an aggregatable column,
-     * i.e. a column compatible with {@link DoubleValue}, {@link IntValue}, or {@link LongValue}.
+     * Determine whether the given column is an aggregatable column, i.e. a column compatible with {@link DoubleValue},
+     * {@link IntValue}, or {@link LongValue}.
+     *
      * @param column data column spec
      * @return {@code true} if the column can be aggregated, {@code false} otherwise
      */
@@ -183,10 +178,10 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
         return SumNumeric.supportsDataType(t) && AverageNumeric.supportsDataType(t);
     }
 
-
     /**
-     * Determine whether the given column can be a weight column,
-     * i.e. a column compatible with {@link DoubleValue}, {@link IntValue}, or {@link LongValue}.
+     * Determine whether the given column can be a weight column, i.e. a column compatible with {@link DoubleValue},
+     * {@link IntValue}, or {@link LongValue}.
+     *
      * @param column data column spec
      * @return {@code true} if the column can be a weight column, {@code false} otherwise
      */
@@ -200,60 +195,50 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
         return MultiplyNumeric.supportsDataTypes(l, w);
     }
 
-
     enum AggregationFunction {
-        @Label("Occurrence count")
-        COUNT(null, null),
-        @Label("Sum")
-        SUM(
-            (gs, os) -> DataValueAggregate.create()
+            @Label("Occurrence count")
+            COUNT(null, null), @Label("Sum")
+            SUM((gs, os) -> DataValueAggregate.create()
                 .withOperatorInfo("SumNumeric_1.0", "Sum",
                     "Calculates the sum per group, ignoring missing cells in the input. "
-                    + "The operator returns a missing cell if the result value exceeds the "
-                    + "limits of the column's data type (numeric overflow).")
+                        + "The operator returns a missing cell if the result value exceeds the "
+                        + "limits of the column's data type (numeric overflow).")
                 // Use double since int and long are both compatible with it
-                .withSupportedClass(DoubleValue.class)
-                .withAggregate(SumNumeric::new)
-                .build(gs, os),
-            // weighted aggregate
-            (weight, gs, os) -> DataValueAggregate.create()
-                .withOperatorInfo("WeightedSumNumeric_1.0", "Weighted Sum",
+                .withSupportedClass(DoubleValue.class).withAggregate(SumNumeric::new).build(gs, os),
+                // weighted aggregate
+                (weight, gs, os) -> DataValueAggregate.create().withOperatorInfo("WeightedSumNumeric_1.0",
+                    "Weighted Sum",
                     "Calculates the weighted sum per group. "
-                    + "The operator returns a missing cell if the result value exceeds the "
-                    + "limits of the column's data type (numeric overflow) or any of the data or weight cells are "
-                    + "missing.")
-                .withSupportedClass(DoubleValue.class)
-                .withWeightedAggregate(weight, MultiplyNumeric::new, SumNumeric::new)
-                .build(gs, os)
-        ),
-        @Label("Average")
-        AVERAGE(
-            (gs, os) -> DataValueAggregate.create()
-                .withOperatorInfo("AverageNumeric_1.0", "Average",
-                    "Calculates the average (arithmetic mean) per group, ignoring missing cells in the input.")
-                // Use double since int and long are both compatible with it
-                .withSupportedClass(DoubleValue.class)
-                .withAggregate(AverageNumeric::new)
-                .build(gs, os),
-            // weighted aggregate
-            (weight, gs, os) -> DataValueAggregate.<DoubleValue, DoubleValue, DoubleValue, DoubleValue>create()
-                .withOperatorInfo("WeightedAverageNumeric_1.0", "Weighted Average",
-                    "Calculates the weighted average per group. If any of the data or weight cells are missing, "
-                    + "the result is not added to the aggregate.")
-                .withSupportedClass(DoubleValue.class)
-                .withWeightedAggregate(weight, WeightedAverageNumeric::new)
-                .build(gs, os)
-        ),
-        @Label("Minimum")
-        MIN(MinOperator::new, null),
-        @Label("Maximum")
-        MAX(MaxOperator::new, null);
+                        + "The operator returns a missing cell if the result value exceeds the "
+                        + "limits of the column's data type (numeric overflow) or any of the data or weight cells are "
+                        + "missing.")
+                    .withSupportedClass(DoubleValue.class)
+                    .withWeightedAggregate(weight, MultiplyNumeric::new, SumNumeric::new).build(gs, os)),
+            @Label("Average")
+            AVERAGE(
+                (gs, os) -> DataValueAggregate.create()
+                    .withOperatorInfo("AverageNumeric_1.0", "Average",
+                        "Calculates the average (arithmetic mean) per group, ignoring missing cells in the input.")
+                    // Use double since int and long are both compatible with it
+                    .withSupportedClass(DoubleValue.class).withAggregate(AverageNumeric::new).build(gs, os),
+                // weighted aggregate
+                (weight, gs, os) -> DataValueAggregate.<DoubleValue, DoubleValue, DoubleValue, DoubleValue> create()
+                    .withOperatorInfo("WeightedAverageNumeric_1.0", "Weighted Average",
+                        "Calculates the weighted average per group. If any of the data or weight cells are missing, "
+                            + "the result is not added to the aggregate.")
+                    .withSupportedClass(DoubleValue.class).withWeightedAggregate(weight, WeightedAverageNumeric::new)
+                    .build(gs, os)),
+            @Label("Minimum")
+            MIN(MinOperator::new, null), @Label("Maximum")
+            MAX(MaxOperator::new, null);
 
         private BiFunction<GlobalSettings, OperatorColumnSettings, AggregationOperator> m_unweighted;
-        private TriFunction<String, GlobalSettings, OperatorColumnSettings, AggregationOperator>  m_weighted;
+
+        private TriFunction<String, GlobalSettings, OperatorColumnSettings, AggregationOperator> m_weighted;
 
         /**
          * Constructor.
+         *
          * @param unweighted function for an unweighted aggregation operator
          * @param weighted function for a weighted aggregation operator using the given column name
          */
@@ -267,8 +252,8 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
             final OperatorColumnSettings opColSettings) {
             if (m_weighted == null && m_unweighted == null) {
                 // e.g. COUNT
-                throw new IllegalStateException(String.format("Aggregation method \"%s\" does not support getting an "
-                    + "operator.", this));
+                throw new IllegalStateException(
+                    String.format("Aggregation method \"%s\" does not support getting an " + "operator.", this));
             }
             if (weightColumnName != null) {
                 if (m_weighted == null) {
@@ -313,10 +298,13 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
 
         /** The function to use for all aggregated columns. */
         private AggregationFunction m_agg;
+
         /** The (optional) column to group by. */
         private String m_groupByColumn;
+
         /** The aggregated columns, null if counting rows. */
         private String[] m_aggregatedColumns;
+
         /** The optional weight column if supported by the aggregation function. */
         private String m_weightColumn;
 
@@ -327,14 +315,15 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
             // agg cols null <=> COUNT
             if (m_agg == AggregationFunction.COUNT) {
                 CheckUtils.checkArgument(aggregatedColumns == null,
-                        "Cannot aggregate columns with \"COUNT\" aggregation function.");
+                    "Cannot aggregate columns with \"COUNT\" aggregation function.");
             } else {
                 CheckUtils.checkArgument(aggregatedColumns != null && aggregatedColumns.length > 0,
-                        "All non-count aggregation functions need at least one column to aggregate.");
+                    "All non-count aggregation functions need at least one column to aggregate.");
             }
             m_aggregatedColumns = aggregatedColumns;
-            CheckUtils.checkArgument(weightColumn == null || agg.supportsWeightColumn(), "Aggregation function does not"
-                + " support weighted aggregation, but weight column \"%s\" was given.", weightColumn);
+            CheckUtils.checkArgument(weightColumn == null || agg.supportsWeightColumn(),
+                "Aggregation function does not" + " support weighted aggregation, but weight column \"%s\" was given.",
+                weightColumn);
             m_weightColumn = weightColumn;
         }
 
@@ -353,10 +342,8 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
                 return new ColumnAggregator[0];
             }
             final var op = m_agg.getOperator(m_weightColumn, globalSettings, OPERATOR_MISSING_HANDLING);
-            return Arrays.stream(m_aggregatedColumns)
-                    .map(colSpecs)
-                    .map(cs -> new ColumnAggregator(cs, op))
-                    .toList().toArray(ColumnAggregator[]::new);
+            return Arrays.stream(m_aggregatedColumns).map(colSpecs).map(cs -> new ColumnAggregator(cs, op)).toList()
+                .toArray(ColumnAggregator[]::new);
         }
     }
 
@@ -366,20 +353,18 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
 
     /** Create a builder with common config of #configure and #execute. */
     private static GlobalSettingsBuilder createGlobalSettingsBuilder() {
-        return GlobalSettings.builder()
-                .setValueDelimiter(GlobalSettings.STANDARD_DELIMITER)
-                .setAggregationContext(AggregationContext.ROW_AGGREGATION);
+        return GlobalSettings.builder().setValueDelimiter(GlobalSettings.STANDARD_DELIMITER)
+            .setAggregationContext(AggregationContext.ROW_AGGREGATION);
     }
 
     /** Get the aggregated columns value to pass to the row aggregator. */
     private static Optional<String[]> getEffectiveAggregatedColumns(final DataTableSpec dts,
-            final RowAggregatorSettings settings) {
+        final RowAggregatorSettings settings) {
         final var agg = settings.m_aggregationMethod;
-        final var aggCols = settings.m_frequencyColumns.getSelectedIncludingMissing(
-            dts.stream()//
-                .filter(RowAggregatorNodeModel::isAggregatableColumn)//
-                .map(DataColumnSpec::getName)//
-                .toArray(String[]::new), dts);
+        final var aggCols = settings.m_frequencyColumns.getSelectedIncludingMissing(dts.stream()//
+            .filter(RowAggregatorNodeModel::isAggregatableColumn)//
+            .map(DataColumnSpec::getName)//
+            .toArray(String[]::new), dts);
         if (agg == AggregationFunction.COUNT || aggCols.length == 0) {
             // UI could still report an old value that is not used by COUNT (and is disabled/greyed-out in the UI)
             return Optional.empty();
@@ -391,19 +376,17 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
     /** Get the group by column value to pass to the row aggregator. */
     private static Optional<String> getEffectiveGroupByColumn(final RowAggregatorSettings settings) {
         // the field might contain a placeholder value from the forms
-        return settings.m_categoryColumn == null
-                || NOTHING_SELECTION.contains(settings.m_categoryColumn) ? Optional.empty()
-                    : Optional.of(settings.m_categoryColumn);
+        return isNone(settings.m_categoryColumn) ? Optional.empty()
+            : Optional.of(settings.m_categoryColumn.getStringChoice());
     }
 
     /** Get the weight column value to pass to the row aggregator. */
     private static Optional<String> getEffectiveWeightColumn(final RowAggregatorSettings settings) {
-        final var weighted = settings.m_weightColumn != null
-                && !NONE_COLUMN_PLACEHOLDER.equals(settings.m_weightColumn);
+        final var weighted = !isNone(settings.m_weightColumn);
         // when the user previously selected a weight column and then changes to an aggregation method that does
         // not support a weight column (min, max, ...), the input is disabled but still reports a value...
-        return weighted && settings.m_aggregationMethod.supportsWeightColumn() ?
-            Optional.of(settings.m_weightColumn) : Optional.empty();
+        return weighted && settings.m_aggregationMethod.supportsWeightColumn()
+            ? Optional.of(settings.m_weightColumn.getStringChoice()) : Optional.empty();
     }
 
     @Override
@@ -412,7 +395,7 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
         CheckUtils.checkSettingNotNull(inSpecs, INPUT_MISSING);
         CheckUtils.checkSettingNotNull(inSpecs[0], INPUT_MISSING);
 
-        final var origSpec = (DataTableSpec) inSpecs[0];
+        final var origSpec = (DataTableSpec)inSpecs[0];
         if (origSpec.getNumColumns() < 1) {
             setWarningMessage(INPUT_NO_COLUMNS);
         }
@@ -429,8 +412,9 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
             }
             final var aggCols = aggregatedColumns.get();
             // only placeholder set, behave as if missing columns
-            final var onlyPlaceholder = aggCols.length == 1 && NOTHING_SELECTION.contains(aggCols[0]);
-            CheckUtils.checkSetting(!onlyPlaceholder, MISSING_AGGREGATION_COLUMNS);
+            // TODO: Check this? Why should there ever be placeholders in there???
+//            final var onlyPlaceholder = aggCols.length == 1 && NOTHING_SELECTION.contains(aggCols[0]);
+//            CheckUtils.checkSetting(!onlyPlaceholder, MISSING_AGGREGATION_COLUMNS);
         }
         if (aggregatedColumns.isPresent()) {
             checkSettingMissingAggregatedColumns(origSpec, aggregatedColumns.get());
@@ -440,32 +424,32 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
             col -> String.format("Missing category column: \"%s\".", col));
 
         final var weightColumn = checkSetting(getEffectiveWeightColumn(settings).orElse(null), origSpec::containsName,
-                    col -> String.format("Missing weight column: \"%s\".", col));
+            col -> String.format("Missing weight column: \"%s\".", col));
 
         final var rowAgg = new RowAggregator(agg, groupByColumn.orElse(null), aggregatedColumns.orElse(null),
             weightColumn.orElse(null));
 
         final var groupByColAsList = rowAgg.getGroupByColumn().stream().toList();
-        final var groupByGlobalSettings = createGlobalSettingsBuilder()
-                .setDataTableSpec(origSpec)
-                .setGroupColNames(groupByColAsList).build();
+        final var groupByGlobalSettings =
+            createGlobalSettingsBuilder().setDataTableSpec(origSpec).setGroupColNames(groupByColAsList).build();
         // we have at least one column to aggregate, except for COUNT where we just count rows
         final var aggregators = rowAgg.getAggregators(groupByGlobalSettings, origSpec::getColumnSpec);
 
-        final var countColumnName = settings.m_aggregationMethod == AggregationFunction.COUNT
-                ? COUNT_COLUMN_NAME : null;
+        final var countColumnName =
+            settings.m_aggregationMethod == AggregationFunction.COUNT ? COUNT_COLUMN_NAME : null;
 
         final var groupedSpec = GroupByTable.createGroupByTableSpec(origSpec, groupByColAsList, aggregators,
             countColumnName, COL_NAME_POLICY);
 
         final var noTotals = (groupByColumn.isEmpty() || !settings.m_grandTotals);
 
-        return new PortObjectSpec[] {
-            groupedSpec,
-            noTotals ? InactiveBranchPortObjectSpec.INSTANCE
-                : GroupByTable.createGroupByTableSpec(origSpec, Collections.emptyList(), aggregators, countColumnName,
-                    COL_NAME_POLICY)
-        };
+        return new PortObjectSpec[]{groupedSpec, noTotals ? InactiveBranchPortObjectSpec.INSTANCE : GroupByTable
+            .createGroupByTableSpec(origSpec, Collections.emptyList(), aggregators, countColumnName, COL_NAME_POLICY)};
+    }
+
+    private static final boolean isNone(final StringOrEnum<NoneChoice> choice) {
+        // TODO: Check whether empty strings and null have to be handled
+        return choice == null || choice.getEnumChoice().isPresent() || choice.getStringChoice().isEmpty();
     }
 
     /**
@@ -479,7 +463,7 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
      * @throws InvalidSettingsException
      */
     private static <T> Optional<T> checkSetting(final T toCheck, final Predicate<T> checkFn,
-            final Function<T, String> errorMsg) throws InvalidSettingsException {
+        final Function<T, String> errorMsg) throws InvalidSettingsException {
         if (toCheck == null) {
             return Optional.empty();
         }
@@ -490,16 +474,13 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
     }
 
     private static void checkSettingMissingAggregatedColumns(final DataTableSpec dts, final String[] columns)
-            throws InvalidSettingsException {
+        throws InvalidSettingsException {
         final var missing = Arrays.stream(columns).filter(Predicate.not(dts::containsName)).toList();
         if (missing.isEmpty()) {
             return;
         }
-        throw new InvalidSettingsException(
-            missing.stream()
-                .map(col -> "\"" + col + "\"")
-                .collect(Collectors.joining(", ",
-                    "Missing aggregation column" + (missing.size() > 1 ? "s" : "") + ": ", ".")));
+        throw new InvalidSettingsException(missing.stream().map(col -> "\"" + col + "\"").collect(
+            Collectors.joining(", ", "Missing aggregation column" + (missing.size() > 1 ? "s" : "") + ": ", ".")));
     }
 
     @Override
@@ -509,12 +490,11 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
             throw new IllegalArgumentException("Missing input table");
         }
 
-        final var table = (BufferedDataTable) inPortObjects[0];
+        final var table = (BufferedDataTable)inPortObjects[0];
         final var inSpec = table.getDataTableSpec();
-        final var gsb = createGlobalSettingsBuilder()
-                .setFileStoreFactory(FileStoreFactory.createWorkflowFileStoreFactory(exec))
-                .setDataTableSpec(inSpec)
-                .setNoOfRows(table.size());
+        final var gsb =
+            createGlobalSettingsBuilder().setFileStoreFactory(FileStoreFactory.createWorkflowFileStoreFactory(exec))
+                .setDataTableSpec(inSpec).setNoOfRows(table.size());
 
         final var aggregatedColumns = getEffectiveAggregatedColumns(inSpec, settings);
         final var weightColumn = getEffectiveWeightColumn(settings);
@@ -535,19 +515,13 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
         final BufferedDataTable groupedAggregates;
         if (!groupByColumn.isEmpty()) {
             exec.setMessage("Calculating group-by aggregate");
-            final var groupedResult = new BigGroupByTable(exec, inputTable,
-                groupByColAsList,
-                aggregators,
-                countColumnName,
-                groupByGlobalSettings,
-                settings.m_enableHiliting,
-                COL_NAME_POLICY,
-                RETAIN_ORDER);
+            final var groupedResult = new BigGroupByTable(exec, inputTable, groupByColAsList, aggregators,
+                countColumnName, groupByGlobalSettings, settings.m_enableHiliting, COL_NAME_POLICY, RETAIN_ORDER);
             warnSkippedGroups(groupedResult);
             groupedAggregates = groupedResult.getBufferedTable();
             m_hiliteTranslator.setMapper(new DefaultHiLiteMapper(groupedResult.getHiliteMapping()));
             if (!settings.m_grandTotals) {
-                return new PortObject[] { groupedAggregates, InactiveBranchPortObject.INSTANCE };
+                return new PortObject[]{groupedAggregates, InactiveBranchPortObject.INSTANCE};
             }
         } else {
             // let in-memory aggregate handle the grand total if no class column is selected
@@ -556,14 +530,8 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
 
         exec.setMessage("Calculating \"grand total\" aggregate");
         final var totalsGlobalSettings = gsb.setGroupColNames(Collections.emptyList()).build();
-        final var totalAggregates = new MemoryGroupByTable(exec, table,
-            new ArrayList<>(),
-            aggregators,
-            countColumnName,
-            totalsGlobalSettings,
-            settings.m_enableHiliting,
-            COL_NAME_POLICY,
-            RETAIN_ORDER);
+        final var totalAggregates = new MemoryGroupByTable(exec, table, new ArrayList<>(), aggregators, countColumnName,
+            totalsGlobalSettings, settings.m_enableHiliting, COL_NAME_POLICY, RETAIN_ORDER);
         warnSkippedGroups(totalAggregates);
         final var bufTotals = totalAggregates.getBufferedTable();
 
@@ -572,17 +540,16 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
         // grand totals get put into first output table, when no class column is selected
         final var first = groupedAggregates != null ? groupedAggregates : totalResult;
         final var second = groupedAggregates != null ? totalResult : InactiveBranchPortObject.INSTANCE;
-        return new PortObject[] {
-            first, second
-        };
+        return new PortObject[]{first, second};
     }
 
     /**
      * Gets a single-row totals result according to our expected behavior for empty GroupBy results:
      * <ul>
-     *  <li>COUNT should never return an empty table, nor a missing cell. It should always return a count.</li>
-     *  <li>Other aggregates should return missing cells for the expected table columns if the input is empty.</li>
+     * <li>COUNT should never return an empty table, nor a missing cell. It should always return a count.</li>
+     * <li>Other aggregates should return missing cells for the expected table columns if the input is empty.</li>
      * </ul>
+     *
      * @param exec context
      * @param countColumnName column name for count result column or {@code null} if aggregation functio is not COUNT
      * @param totalsResult data from the grand total aggregation
@@ -605,8 +572,7 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
         } else if (totalSize == 0) {
             // empty input: fill agg columns with missing cells
             totalOut.addRowToTable(new DefaultRow(RowKey.createRowKey(0L),
-                Arrays.stream(resultSpec.getColumnNames())
-                        .map(c -> DataType.getMissingCell()).toList()));
+                Arrays.stream(resultSpec.getColumnNames()).map(c -> DataType.getMissingCell()).toList()));
             totalOut.close();
             return totalOut.getTable();
         } else {

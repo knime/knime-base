@@ -54,12 +54,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
@@ -123,13 +123,13 @@ public final class TableCropperSettings implements DefaultNodeSettings {
     ColumnRangeMode m_columnRangeMode = ColumnRangeMode.BY_NAME;
 
     @Widget(title = "Start column", description = "Select the first column to include.")
-    @ChoicesProvider(AllColumns.class)
+    @ChoicesProvider(AllColumnsProvider.class)
     @Effect(predicate = ColumnRangeModeIsByName.class, type = EffectType.SHOW)
     @Layout(ColumnsSection.class)
     String m_startColumnName;
 
     @Widget(title = "End column (inclusive)", description = "Select the last column to include.")
-    @ChoicesProvider(AllColumns.class)
+    @ChoicesProvider(AllColumnsProvider.class)
     @Effect(predicate = ColumnRangeModeIsByName.class, type = EffectType.SHOW)
     @Layout(ColumnsSection.class)
     String m_endColumnName;
@@ -199,14 +199,6 @@ public final class TableCropperSettings implements DefaultNodeSettings {
     @Migrate(loadDefaultIfAbsent = true)
     @Layout(OutputSection.class)
     boolean m_updateDomains;
-
-    private static final class AllColumns implements StringChoicesProvider {
-        @Override
-        public List<String> choices(final DefaultNodeSettingsContext context) {
-            var spec = context.getDataTableSpecs()[0];
-            return spec != null ? spec.getColumnNames() : new String[0];
-        }
-    }
 
     enum ColumnRangeMode {
             @Label("By name") //
