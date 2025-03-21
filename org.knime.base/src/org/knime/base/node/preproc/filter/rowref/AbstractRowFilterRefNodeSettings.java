@@ -44,77 +44,79 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 9, 2023 (benjamin): created
+ *   Mar 21, 2025 (paulbaernreuther): created
  */
 package org.knime.base.node.preproc.filter.rowref;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
+import static org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice.ROW_ID;
+
+import org.knime.base.node.preproc.filter.rowref.SettingsUtils.DataColumnChoices;
+import org.knime.base.node.preproc.filter.rowref.SettingsUtils.DataColumnPersistor;
+import org.knime.base.node.preproc.filter.rowref.SettingsUtils.ReferenceColumnChoices;
+import org.knime.base.node.preproc.filter.rowref.SettingsUtils.ReferenceColumnPersistor;
+import org.knime.base.node.preproc.filter.rowref.SettingsUtils.UpdateDomainsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 
 /**
  * {@link DefaultNodeSettings} implementation for the Reference Row Filter to auto-generate a Web-UI based dialog. Note
  * that this class is only used for the dialog generation and not by the node model.
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
- * @since 5.1
  */
 @SuppressWarnings("restriction")
-public final class RowFilterRefNodeSettings extends AbstractRowFilterRefNodeSettings {
+class AbstractRowFilterRefNodeSettings implements DefaultNodeSettings {
 
-    @After(ColumnsLayout.class)
     @Before(UpdateDomainsLayout.class)
-    interface IncludeOrExcludeRowsLayout {
+    interface ColumnsLayout {
     }
 
-    @Persistor(IncludeOrExcludeRowsPersistor.class)
-    @Widget(title = "Include or exclude rows from the reference table",
-        description = "Includes or excludes all rows from the reference table in the resulting table from the first "
-            + "input.")
-    @ValueSwitchWidget
-    @Layout(IncludeOrExcludeRowsLayout.class)
-    IncludeOrExcludeRows m_inexclude = IncludeOrExcludeRows.INCLUDE;
-
-    enum IncludeOrExcludeRows {
-            @Label("Include")
-            INCLUDE,
-
-            @Label("Exclude")
-            EXCLUDE;
+    interface UpdateDomainsLayout {
     }
 
-    static final class IncludeOrExcludeRowsPersistor implements NodeSettingsPersistor<IncludeOrExcludeRows> {
-
-        private static final String KEY_INCLUDE_EXCLUDE = "inexclude";
-
-        @Override
-        public IncludeOrExcludeRows load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return SettingsUtils.INCLUDE.equals(settings.getString(KEY_INCLUDE_EXCLUDE)) //
-                ? IncludeOrExcludeRows.INCLUDE //
-                : IncludeOrExcludeRows.EXCLUDE;
-        }
-
-        @Override
-        public void save(final IncludeOrExcludeRows obj, final NodeSettingsWO settings) {
-            settings.addString(KEY_INCLUDE_EXCLUDE, //
-                obj == IncludeOrExcludeRows.INCLUDE //
-                    ? SettingsUtils.INCLUDE //
-                    : SettingsUtils.EXCLUDE //
-            );
-        }
-
-        @Override
-        public String[][] getConfigPaths() {
-            return new String[][]{{KEY_INCLUDE_EXCLUDE}};
-        }
+    private interface DataColumn extends Modification.Reference {
     }
+
+    static abstract class AdjustDataColumnDescriptionsForSplitter implements Modifier {
+
+        @Override
+        public void modify(final WidgetGroupModifier group) {
+            group.find(DataColumn.class).modifyAnnotation(Widget.class).withProperty("description",
+                "The column from the table to be split that should be used for comparison.").modify();
+        }
+
+    }
+
+    @Persistor(DataColumnPersistor.class)
+    @Widget(title = "Data column (in top/first input)",
+        description = "The column from the table to be filtered that should be used for comparison.")
+    @ChoicesProvider(DataColumnChoices.class)
+    @Modification.WidgetReference(DataColumn.class)
+    @Layout(ColumnsLayout.class)
+    StringOrEnum<RowIDChoice> m_dataColumn = new StringOrEnum<>(ROW_ID);
+
+    @Persistor(ReferenceColumnPersistor.class)
+    @Widget(title = "Reference column (in bottom/second input)",
+        description = "The column from the filter table that should be used for comparison.")
+    @ChoicesProvider(ReferenceColumnChoices.class)
+    @Layout(ColumnsLayout.class)
+    StringOrEnum<RowIDChoice> m_referenceColumn = new StringOrEnum<>(ROW_ID);
+
+    @Widget( //
+        title = "Update domains of all columns", //
+        description = "Advanced setting to enable recomputation of the domains of all columns in the output table " //
+            + "such that the domains' bounds exactly match the bounds of the data in the output table.", //
+        advanced = true)
+    @Migrate(loadDefaultIfAbsent = true)
+    @Persistor(UpdateDomainsPersistor.class) // TODO remove
+    @Layout(UpdateDomainsLayout.class)
+    boolean m_updateDomains;
+
 }

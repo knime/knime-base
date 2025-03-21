@@ -60,11 +60,12 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeModel;
 
 /**
  * The Reference Row Filter node allow the filtering of row IDs based on a second reference table. Two modes are
@@ -73,7 +74,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
  * @author Christian Dietz, University of Konstanz
  * @since 3.1
  */
-public abstract class AbstractRowRefNodeModel extends NodeModel {
+public abstract class AbstractRowRefNodeModel<S extends AbstractRowFilterRefNodeSettings> extends WebUINodeModel<S> {
 
     private static final String CFG_UPDATE_DOMAINS = "updateDomains";
 
@@ -90,15 +91,15 @@ public abstract class AbstractRowRefNodeModel extends NodeModel {
     private final SettingsModelBoolean m_updateDomains = new SettingsModelBoolean(CFG_UPDATE_DOMAINS, false);
 
     /* Indicator if splitter mode or default row reference filter */
-    private boolean m_isSplitter;
 
     /**
      * Creates a new reference row filter node model with two inputs and one filtered output.
      *
      * @param isSplitter indicator if class is used by row reference splitter or row-reference filter.
+     * @since 5.5
      */
-    public AbstractRowRefNodeModel(final boolean isSplitter) {
-        super(2, isSplitter ? 2 : 1);
+    public AbstractRowRefNodeModel(final WebUINodeConfiguration config, final Class<S> settingsClass) {
+        super(config, settingsClass);
         this.m_isSplitter = isSplitter;
     }
 

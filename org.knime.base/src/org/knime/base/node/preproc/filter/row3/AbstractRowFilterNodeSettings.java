@@ -179,7 +179,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
             }
 
             @Override
-            protected Optional<RowIdentifiers> loadFromLegacyString(final String legacyString) {
+            public Optional<RowIdentifiers> loadEnumFromLegacyString(final String legacyString) {
                 if (LEGACY_ROW_KEYS_IDENTIFIER.equals(legacyString)) {
                     return Optional.of(ROW_ID);
                 }

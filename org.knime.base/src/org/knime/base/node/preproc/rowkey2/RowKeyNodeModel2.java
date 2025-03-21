@@ -169,6 +169,9 @@ public class RowKeyNodeModel2 extends WebUINodeModel<RowKeyNodeSettings> {
         return new BufferedDataTable[]{outData};
     }
 
+    /**
+     * @since 5.5
+     */
     @Override
     public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
         final PortObjectSpec[] inSpecs, final RowKeyNodeSettings settings) throws InvalidSettingsException {
@@ -329,6 +332,9 @@ public class RowKeyNodeModel2 extends WebUINodeModel<RowKeyNodeSettings> {
         m_hilite.addToHiLiteHandler(hiLiteHdl);
     }
 
+    /**
+     * @since 5.5
+     */
     @Override
     protected HiLiteHandler getOutHiLiteHandler(final int outIndex, final RowKeyNodeSettings modelSettings) {
         if (modelSettings.m_appendRowKey && !modelSettings.m_replaceRowKey) {

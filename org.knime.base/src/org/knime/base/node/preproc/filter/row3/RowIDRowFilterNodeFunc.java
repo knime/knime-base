@@ -54,7 +54,7 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.func.NodeFuncApi.Builder;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 
 /**
@@ -73,7 +73,7 @@ public class RowIDRowFilterNodeFunc extends AbstractRowFilterNodeFunc {
         var regex = arguments.getString(REGEX);
 
         var criterion = new FilterCriterion();
-        criterion.m_column.m_selected = SpecialColumns.ROWID.getId();
+        criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_ID);
         criterion.m_operator = FilterOperator.REGEX;
 
         var stringCell = new StringCell.StringCellFactory().createCell(regex);
