@@ -52,6 +52,8 @@ import static org.knime.base.node.preproc.rowagg.RowAggregatorNodeModel.isAggreg
 import static org.knime.base.node.preproc.rowagg.RowAggregatorNodeModel.isWeightColumn;
 import static org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.NoneChoice.NONE;
 
+import java.util.Optional;
+
 import org.knime.base.node.preproc.rowagg.RowAggregatorNodeModel.AggregationFunction;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
@@ -136,19 +138,7 @@ public final class RowAggregatorSettings implements DefaultNodeSettings {
     }
 
     @Widget(title = "Aggregation",
-        description = "Select the aggregation function to be applied on all rows belonging to the same category."
-            + "<ul>"
-            // COUNT
-            + "<li><i>Occurrence count:</i>" + " Count how many rows occur</li>"
-            // SUM
-            + "<li><i>Sum:</i>" + " Sum up values, optionally weighted by the value from the weight column</li>"
-            // AVERAGE
-            + "<li><i>Average:</i>"
-            + " Calculate the mean value, optionally weighted by the value from the weight column</li>"
-            // MIN
-            + "<li><i>Minimum:</i>" + " Calculate the minimum value</li>"
-            // MAX
-            + "<li><i>Maximum:</i>" + " Calculate the maximum value</li>" + "</ul>")
+        description = "Select the aggregation function to be applied on all rows belonging to the same category.")
     @RadioButtonsWidget(horizontal = true)
     @ValueReference(AggregationFunctionRef.class)
     AggregationFunction m_aggregationMethod = AggregationFunction.SUM;
@@ -210,11 +200,8 @@ public final class RowAggregatorSettings implements DefaultNodeSettings {
     @Migrate(loadDefaultIfAbsent = true)
     boolean m_enableHiliting;
 
-    /**
-     * Constructor for de/serialization.
-     */
     RowAggregatorSettings() {
-        // required by interface
+        m_frequencyColumns = new ColumnFilter().withIncludeUnknownColumns();
     }
 
     RowAggregatorSettings(final DefaultNodeSettingsContext ctx) {

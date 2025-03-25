@@ -142,21 +142,6 @@
                     "items" : {
                       "type" : "string"
                     }
-                  },
-                  "typeDisplays" : {
-                    "default" : [ ],
-                    "type" : "array",
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "id" : {
-                          "type" : "string"
-                        },
-                        "text" : {
-                          "type" : "string"
-                        }
-                      }
-                    }
                   }
                 },
                 "default" : {
@@ -2048,11 +2033,7 @@
           "id" : "Zulu",
           "text" : "Zulu"
         } ],
-        "hideOnNull" : true,
-        "showNoneColumn" : false,
-        "showRowKeys" : false,
-        "showSearch" : true,
-        "showMode" : true
+        "hideOnNull" : true
       },
       "rule" : {
         "effect" : "SHOW",
@@ -2069,12 +2050,10 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/columnFilter",
       "options" : {
-        "format" : "columnFilter",
-        "choicesProvider" : "org.knime.time.node.manipulate.modifytime.ModifyTimeNodeSettings$ColumnProvider",
-        "showNoneColumn" : false,
-        "showRowKeys" : false,
-        "showSearch" : true,
-        "showMode" : true
+        "format" : "typedNameFilter",
+        "unknownValuesText" : "Any unknown column",
+        "emptyStateLabel" : "No columns in this list.",
+        "choicesProvider" : "org.knime.time.node.manipulate.modifytime.ModifyTimeNodeSettings$ColumnProvider"
       }
     }, {
       "type" : "Control",
@@ -2133,10 +2112,7 @@
               "typeFilter" : {
                 "type" : "object",
                 "properties" : {
-                  "selectedTypes" : { },
-                  "typeDisplays" : {
-                    "configPaths" : [ ]
-                  }
+                  "selectedTypes" : { }
                 }
               }
             }
@@ -2158,8 +2134,7 @@
         "type" : {
           "id" : "org.knime.core.data.time.localdatetime.LocalDateTimeValue",
           "text" : "Date&time (Local)"
-        },
-        "compatibleTypes" : [ "org.knime.core.data.time.localdatetime.LocalDateTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
+        }
       } ]
     } ]
   } ],

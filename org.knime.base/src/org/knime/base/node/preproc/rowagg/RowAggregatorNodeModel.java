@@ -198,8 +198,10 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
     }
 
     enum AggregationFunction {
-            @Label("Occurrence count")
-            COUNT(null, null), @Label("Sum")
+            @Label(value = "Occurrence count", description = "Count how many rows occur")
+            COUNT(null, null), //
+            @Label(value = "Sum",
+                description = "Sum up values, optionally weighted by the value from the weight column")
             SUM((gs, os) -> DataValueAggregate.create()
                 .withOperatorInfo("SumNumeric_1.0", "Sum",
                     "Calculates the sum per group, ignoring missing cells in the input. "
@@ -216,7 +218,8 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
                         + "missing.")
                     .withSupportedClass(DoubleValue.class)
                     .withWeightedAggregate(weight, MultiplyNumeric::new, SumNumeric::new).build(gs, os)),
-            @Label("Average")
+            @Label(value = "Average",
+                description = "Calculate the mean value, optionally weighted by the value from the weight column")
             AVERAGE(
                 (gs, os) -> DataValueAggregate.create()
                     .withOperatorInfo("AverageNumeric_1.0", "Average",
@@ -230,8 +233,9 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
                             + "the result is not added to the aggregate.")
                     .withSupportedClass(DoubleValue.class).withWeightedAggregate(weight, WeightedAverageNumeric::new)
                     .build(gs, os)),
-            @Label("Minimum")
-            MIN(MinOperator::new, null), @Label("Maximum")
+            @Label(value = "Minimum", description = "Calculate the minimum value")
+            MIN(MinOperator::new, null), //
+            @Label(value = "Maximum", description = "Calculate the maximum value")
             MAX(MaxOperator::new, null);
 
         private BiFunction<GlobalSettings, OperatorColumnSettings, AggregationOperator> m_unweighted;
@@ -411,11 +415,6 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
             if (aggregatedColumns.isEmpty()) {
                 throw new InvalidSettingsException(MISSING_AGGREGATION_COLUMNS);
             }
-            final var aggCols = aggregatedColumns.get();
-            // only placeholder set, behave as if missing columns
-            // TODO: Check this? Why should there ever be placeholders in there???
-            //            final var onlyPlaceholder = aggCols.length == 1 && NOTHING_SELECTION.contains(aggCols[0]);
-            //            CheckUtils.checkSetting(!onlyPlaceholder, MISSING_AGGREGATION_COLUMNS);
         }
 
         final var groupByColumn = checkSetting(getEffectiveGroupByColumn(settings).orElse(null), origSpec::containsName,
@@ -446,8 +445,7 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
     }
 
     private static final boolean isNone(final StringOrEnum<NoneChoice> choice) {
-        // TODO: Check whether empty strings and null have to be handled
-        return choice == null || choice.getEnumChoice().isPresent() || choice.getStringChoice().isEmpty();
+        return choice.getEnumChoice().isPresent();
     }
 
     /**

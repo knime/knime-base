@@ -127,21 +127,6 @@
                     "items" : {
                       "type" : "string"
                     }
-                  },
-                  "typeDisplays" : {
-                    "default" : [ ],
-                    "type" : "array",
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "id" : {
-                          "type" : "string"
-                        },
-                        "text" : {
-                          "type" : "string"
-                        }
-                      }
-                    }
                   }
                 },
                 "default" : {
@@ -195,28 +180,10 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/columnFilter",
       "options" : {
-        "format" : "columnFilter",
-        "possibleValues" : [ {
-          "id" : "duration",
-          "text" : "duration",
-          "type" : {
-            "id" : "org.knime.core.data.time.duration.DurationValue",
-            "text" : "Duration (Time-based)"
-          },
-          "compatibleTypes" : [ "org.knime.core.data.time.duration.DurationValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
-        }, {
-          "id" : "period",
-          "text" : "period",
-          "type" : {
-            "id" : "org.knime.core.data.time.period.PeriodValue",
-            "text" : "Duration (Date-based)"
-          },
-          "compatibleTypes" : [ "org.knime.core.data.time.period.PeriodValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
-        } ],
-        "showNoneColumn" : false,
-        "showRowKeys" : false,
-        "showSearch" : true,
-        "showMode" : true
+        "format" : "typedNameFilter",
+        "unknownValuesText" : "Any unknown column",
+        "emptyStateLabel" : "No columns in this list.",
+        "choicesProvider" : "org.knime.time.util.DateTimeUtils$IntervalColumnProvider"
       }
     }, {
       "type" : "Control",
@@ -264,10 +231,7 @@
               "typeFilter" : {
                 "type" : "object",
                 "properties" : {
-                  "selectedTypes" : { },
-                  "typeDisplays" : {
-                    "configPaths" : [ ]
-                  }
+                  "selectedTypes" : { }
                 }
               }
             }
@@ -277,5 +241,27 @@
         }
       }
     }
-  }
+  },
+  "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.time.util.DateTimeUtils$IntervalColumnProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "duration",
+        "text" : "duration",
+        "type" : {
+          "id" : "org.knime.core.data.time.duration.DurationValue",
+          "text" : "Duration (Time-based)"
+        }
+      }, {
+        "id" : "period",
+        "text" : "period",
+        "type" : {
+          "id" : "org.knime.core.data.time.period.PeriodValue",
+          "text" : "Duration (Date-based)"
+        }
+      } ]
+    } ]
+  } ]
 }

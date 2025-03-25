@@ -54,13 +54,14 @@ import java.util.function.Supplier;
 import org.knime.core.data.DataTable;
 import org.knime.core.data.time.duration.DurationValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage.InputPreviewMessageProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
@@ -86,12 +87,13 @@ final class DurationToNumberNodeSettings implements DefaultNodeSettings {
         var spec = context.getDataTableSpec(0);
 
         if (spec.isPresent()) {
-            m_filter = new ColumnFilter(DateTimeUtils.getCompatibleColumns(spec.get(), DurationValue.class));
+            final var durationColumns = ColumnSelectionUtil.getCompatibleColumns(spec.get(), DurationValue.class);
+            m_filter = new ColumnFilter(durationColumns);
         }
     }
 
     @Widget(title = "Duration columns", description = "The columns to convert to a number.")
-    @ChoicesWidget(choices = DateTimeUtils.DurationColumnProvider.class)
+    @ChoicesProvider(DateTimeUtils.DurationColumnProvider.class)
     @ValueReference(ColumnFilterRef.class)
     ColumnFilter m_filter = new ColumnFilter();
 

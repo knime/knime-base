@@ -52,12 +52,13 @@ import java.util.Locale;
 
 import org.knime.base.node.viz.format.AlignmentSuggestionOption;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.LocaleStateProvider;
 
@@ -74,13 +75,13 @@ final class DateTimeFormatManagerNodeSettings implements DefaultNodeSettings {
         var spec = context.getDataTableSpec(0);
 
         if (spec.isPresent()) {
-            m_columnFilter =
-                new ColumnFilter(DateTimeUtils.getCompatibleColumns(spec.get(), DateTimeUtils.DATE_TIME_COLUMN_TYPES));
+            m_columnFilter = new ColumnFilter(
+                ColumnSelectionUtil.getCompatibleColumns(spec.get(), DateTimeUtils.DATE_TIME_COLUMN_TYPES));
         }
     }
 
     @Widget(title = "Date&time columns", description = "The date&amp;time columns to create a formatter for.")
-    @ChoicesWidget(choices = DateTimeUtils.DateTimeColumnProvider.class)
+    @ChoicesProvider(DateTimeUtils.DateTimeColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
     @Widget(title = "Locale", description = """
@@ -88,7 +89,7 @@ final class DateTimeFormatManagerNodeSettings implements DefaultNodeSettings {
             Names of months and days of the week will be translated \
             according to the selected locale.
             """)
-    @ChoicesWidget(choicesProvider = LocaleStateProvider.class)
+    @ChoicesProvider(LocaleStateProvider.class)
     String m_locale = Locale.ENGLISH.toLanguageTag();
 
     @Widget(title = "Date&time format", description = """

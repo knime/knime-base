@@ -78,28 +78,8 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/selectedColumn",
       "options" : {
-        "possibleValues" : [ {
-          "id" : "periodTest",
-          "text" : "periodTest",
-          "type" : {
-            "id" : "org.knime.core.data.time.period.PeriodValue",
-            "text" : "Duration (Date-based)"
-          },
-          "compatibleTypes" : [ "org.knime.core.data.time.period.PeriodValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
-        }, {
-          "id" : "durationTest",
-          "text" : "durationTest",
-          "type" : {
-            "id" : "org.knime.core.data.time.duration.DurationValue",
-            "text" : "Duration (Time-based)"
-          },
-          "compatibleTypes" : [ "org.knime.core.data.time.duration.DurationValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
-        } ],
-        "format" : "dropDown",
-        "showNoneColumn" : false,
-        "showRowKeys" : false,
-        "showSearch" : true,
-        "showMode" : true
+        "choicesProvider" : "org.knime.time.node.extract.durationperiod.ExtractDurationPeriodFieldsNodeSettings$SelectedInputColumnHelpers$ColumnChoicesProvider",
+        "format" : "dropDown"
       }
     }, {
       "type" : "Control",
@@ -112,17 +92,12 @@
             "scope" : "#/properties/field",
             "options" : {
               "choicesProvider" : "org.knime.time.node.extract.durationperiod.ExtractFieldSettings$FilteredPossibleFieldsChoices",
-              "format" : "dropDown",
-              "showNoneColumn" : false,
-              "showRowKeys" : false,
-              "showSearch" : true,
-              "showMode" : true
+              "format" : "dropDown"
             }
           }, {
             "type" : "Control",
             "scope" : "#/properties/outputcolumnName",
             "options" : {
-              "hideOnNull" : false,
               "placeholderProvider" : "org.knime.time.node.extract.durationperiod.ExtractFieldSettings$OutputColumnNamePlaceholderProvider",
               "validations" : [ {
                 "id" : "pattern",
@@ -162,6 +137,27 @@
     }
   },
   "initialUpdates" : [ {
+    "scopes" : null,
+    "id" : "org.knime.time.node.extract.durationperiod.ExtractDurationPeriodFieldsNodeSettings$SelectedInputColumnHelpers$ColumnChoicesProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "periodTest",
+        "text" : "periodTest",
+        "type" : {
+          "id" : "org.knime.core.data.time.period.PeriodValue",
+          "text" : "Duration (Date-based)"
+        }
+      }, {
+        "id" : "durationTest",
+        "text" : "durationTest",
+        "type" : {
+          "id" : "org.knime.core.data.time.duration.DurationValue",
+          "text" : "Duration (Time-based)"
+        }
+      } ]
+    } ]
+  }, {
     "scopes" : null,
     "id" : "org.knime.time.node.extract.durationperiod.ExtractFieldSettings$OutputColumnNamePlaceholderProvider",
     "values" : [ ]

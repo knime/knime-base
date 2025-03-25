@@ -54,7 +54,7 @@
               "title" : "Maximum"
             } ],
             "title" : "Aggregation",
-            "description" : "Select the aggregation function to be applied on all rows belonging to the same category.<ul><li><i>Occurrence count:</i> Count how many rows occur</li><li><i>Sum:</i> Sum up values, optionally weighted by the value from the weight column</li><li><i>Average:</i> Calculate the mean value, optionally weighted by the value from the weight column</li><li><i>Minimum:</i> Calculate the minimum value</li><li><i>Maximum:</i> Calculate the maximum value</li></ul>",
+            "description" : "Select the aggregation function to be applied on all rows belonging to the same category.\n<ul>\n<li><b>Occurrence count</b>: Count how many rows occur</li>\n<li><b>Sum</b>: Sum up values, optionally weighted by the value from the weight column</li>\n<li><b>Average</b>: Calculate the mean value, optionally weighted by the value from the weight column</li>\n<li><b>Minimum</b>: Calculate the minimum value</li>\n<li><b>Maximum</b>: Calculate the maximum value</li>\n</ul>",
             "default" : "SUM"
           },
           "categoryColumn" : {

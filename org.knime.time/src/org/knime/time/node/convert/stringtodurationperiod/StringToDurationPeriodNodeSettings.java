@@ -49,21 +49,20 @@
 package org.knime.time.node.convert.stringtodurationperiod;
 
 import org.knime.core.data.DataType;
-import org.knime.core.data.StringValue;
 import org.knime.core.data.time.duration.DurationCellFactory;
 import org.knime.core.data.time.period.PeriodCellFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.StringColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider.StringColumnsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.time.util.ActionIfExtractionFails;
-import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.ReplaceOrAppend;
 
 /**
@@ -78,7 +77,7 @@ final class StringToDurationPeriodNodeSettings implements DefaultNodeSettings {
         var spec = context.getDataTableSpec(0);
 
         if (spec.isPresent()) {
-            m_columnFilter = new ColumnFilter(DateTimeUtils.getCompatibleColumns(spec.get(), StringValue.class));
+            m_columnFilter = new ColumnFilter(ColumnSelectionUtil.getStringColumns(spec.get()));
         }
     }
 
@@ -87,7 +86,7 @@ final class StringToDurationPeriodNodeSettings implements DefaultNodeSettings {
     }
 
     @Widget(title = "String columns", description = "The string columns to convert to duration columns.")
-    @ChoicesWidget(choices = StringColumnChoicesProvider.class)
+    @ChoicesProvider(StringColumnsProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
     @Widget(title = "Duration type", description = "The type of the duration to parse.")

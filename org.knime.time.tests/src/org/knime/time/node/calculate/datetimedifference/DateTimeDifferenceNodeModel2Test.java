@@ -88,7 +88,6 @@ import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.testing.util.InputTableNode.InputDataNodeFactory;
 import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
@@ -272,8 +271,7 @@ final class DateTimeDifferenceNodeModel2Test {
 
         var table = createInputTable(false, type, arg1, arg2);
 
-        settings.m_firstColumnSelection =
-            new ColumnSelection(table.get().getDataTableSpec().getColumnSpec(COLUMN_1_NAME));
+        settings.m_firstColumnSelection = COLUMN_1_NAME;
         settings.m_mode = negated ? Mode.FIRST_MINUS_SECOND : Mode.SECOND_MINUS_FIRST;
         settings.m_secondDateTimeValueType = SecondDateTimeValueType.PREVIOUS_ROW;
         settings.m_outputType = OutputType.DURATION_OR_PERIOD;
@@ -303,7 +301,7 @@ final class DateTimeDifferenceNodeModel2Test {
 
         var table = createInputTable(false, type, arg1, arg2);
 
-        settings.m_firstColumnSelection = new ColumnSelection(table.get().getSpec().getColumnSpec(COLUMN_1_NAME));
+        settings.m_firstColumnSelection = COLUMN_1_NAME;
         settings.m_mode = negated ? Mode.FIRST_MINUS_SECOND : Mode.SECOND_MINUS_FIRST;
         settings.m_secondDateTimeValueType = SecondDateTimeValueType.PREVIOUS_ROW;
         settings.m_outputType = OutputType.NUMBER;
@@ -335,8 +333,7 @@ final class DateTimeDifferenceNodeModel2Test {
 
         var table = createInputTable(false, type, arg1, arg2);
 
-        settings.m_firstColumnSelection =
-            new ColumnSelection(table.get().getDataTableSpec().getColumnSpec(COLUMN_1_NAME));
+        settings.m_firstColumnSelection = COLUMN_1_NAME;
         settings.m_mode = negated ? Mode.FIRST_MINUS_SECOND : Mode.SECOND_MINUS_FIRST;
         settings.m_secondDateTimeValueType = SecondDateTimeValueType.PREVIOUS_ROW;
         settings.m_outputType = OutputType.NUMBER;
@@ -363,8 +360,7 @@ final class DateTimeDifferenceNodeModel2Test {
         var settings = new DateTimeDifferenceNodeSettings();
         var table = createInputTable(false, LocalTimeCellFactory.TYPE, (Temporal)null, BASE_TIME);
 
-        settings.m_firstColumnSelection =
-            new ColumnSelection(table.get().getDataTableSpec().getColumnSpec(COLUMN_1_NAME));
+        settings.m_firstColumnSelection = COLUMN_1_NAME;
         settings.m_mode = Mode.FIRST_MINUS_SECOND;
         settings.m_secondDateTimeValueType = SecondDateTimeValueType.PREVIOUS_ROW;
         settings.m_outputType = OutputType.DURATION_OR_PERIOD;
@@ -388,8 +384,7 @@ final class DateTimeDifferenceNodeModel2Test {
         var settings = new DateTimeDifferenceNodeSettings();
         var table = createInputTable(false, LocalTimeCellFactory.TYPE, BASE_TIME, (Temporal)null);
 
-        settings.m_firstColumnSelection =
-            new ColumnSelection(table.get().getDataTableSpec().getColumnSpec(COLUMN_1_NAME));
+        settings.m_firstColumnSelection = COLUMN_1_NAME;
         settings.m_mode = Mode.FIRST_MINUS_SECOND;
         settings.m_secondDateTimeValueType = SecondDateTimeValueType.PREVIOUS_ROW;
         settings.m_outputType = OutputType.DURATION_OR_PERIOD;
@@ -413,8 +408,7 @@ final class DateTimeDifferenceNodeModel2Test {
         var settings = new DateTimeDifferenceNodeSettings();
         var table = createInputTable(false, LocalTimeCellFactory.TYPE, (Temporal)null, (Temporal)null);
 
-        settings.m_firstColumnSelection =
-            new ColumnSelection(table.get().getDataTableSpec().getColumnSpec(COLUMN_1_NAME));
+        settings.m_firstColumnSelection = COLUMN_1_NAME;
         settings.m_mode = Mode.FIRST_MINUS_SECOND;
         settings.m_secondDateTimeValueType = SecondDateTimeValueType.PREVIOUS_ROW;
         settings.m_outputType = OutputType.DURATION_OR_PERIOD;
@@ -440,8 +434,7 @@ final class DateTimeDifferenceNodeModel2Test {
             .build();
         var emptyTable = new TableTestUtil.TableBuilder(tableSpec).build();
 
-        settings.m_firstColumnSelection =
-            new ColumnSelection(emptyTable.get().getDataTableSpec().getColumnSpec(COLUMN_1_NAME));
+        settings.m_firstColumnSelection = COLUMN_1_NAME;
         settings.m_mode = Mode.FIRST_MINUS_SECOND;
         settings.m_secondDateTimeValueType = SecondDateTimeValueType.PREVIOUS_ROW;
         settings.m_outputType = OutputType.DURATION_OR_PERIOD;
@@ -460,10 +453,8 @@ final class DateTimeDifferenceNodeModel2Test {
         var settings = new DateTimeDifferenceNodeSettings();
         var table = createInputTable(true, type, arg1, arg2);
 
-        settings.m_firstColumnSelection =
-            new ColumnSelection(table.get().getDataTableSpec().getColumnSpec(COLUMN_1_NAME));
-        settings.m_secondColumnSelection =
-            new ColumnSelection(table.get().getDataTableSpec().getColumnSpec(COLUMN_2_NAME));
+        settings.m_firstColumnSelection = COLUMN_1_NAME;
+        settings.m_secondColumnSelection = COLUMN_2_NAME;
         settings.m_mode = negated ? Mode.FIRST_MINUS_SECOND : Mode.SECOND_MINUS_FIRST;
         settings.m_outputType = OutputType.DURATION_OR_PERIOD;
 
@@ -482,10 +473,8 @@ final class DateTimeDifferenceNodeModel2Test {
         var settings = new DateTimeDifferenceNodeSettings();
         var table = createInputTable(true, type, arg1, arg2);
 
-        settings.m_firstColumnSelection =
-            new ColumnSelection(table.get().getDataTableSpec().getColumnSpec(COLUMN_1_NAME));
-        settings.m_secondColumnSelection =
-            new ColumnSelection(table.get().getDataTableSpec().getColumnSpec(COLUMN_2_NAME));
+        settings.m_firstColumnSelection = COLUMN_1_NAME;
+        settings.m_secondColumnSelection = COLUMN_2_NAME;
         settings.m_mode = negated ? Mode.FIRST_MINUS_SECOND : Mode.SECOND_MINUS_FIRST;
         settings.m_outputType = OutputType.NUMBER;
         settings.m_outputNumberType = OutputNumberType.DECIMALS;
@@ -506,10 +495,8 @@ final class DateTimeDifferenceNodeModel2Test {
         var settings = new DateTimeDifferenceNodeSettings();
         var table = createInputTable(true, type, arg1, arg2);
 
-        settings.m_firstColumnSelection =
-            new ColumnSelection(table.get().getDataTableSpec().getColumnSpec(COLUMN_1_NAME));
-        settings.m_secondColumnSelection =
-            new ColumnSelection(table.get().getDataTableSpec().getColumnSpec(COLUMN_2_NAME));
+        settings.m_firstColumnSelection = COLUMN_1_NAME;
+        settings.m_secondColumnSelection = COLUMN_2_NAME;
         settings.m_mode = negated ? Mode.FIRST_MINUS_SECOND : Mode.SECOND_MINUS_FIRST;
         settings.m_outputType = OutputType.NUMBER;
         settings.m_outputNumberType = OutputNumberType.NO_DECIMALS;
@@ -527,10 +514,8 @@ final class DateTimeDifferenceNodeModel2Test {
         var settings = new DateTimeDifferenceNodeSettings();
         var table = createInputTable(true, LocalTimeCellFactory.TYPE, (Temporal)null, BASE_TIME);
 
-        settings.m_firstColumnSelection =
-            new ColumnSelection(table.get().getDataTableSpec().getColumnSpec(COLUMN_1_NAME));
-        settings.m_secondColumnSelection =
-            new ColumnSelection(table.get().getDataTableSpec().getColumnSpec(COLUMN_2_NAME));
+        settings.m_firstColumnSelection = COLUMN_1_NAME;
+        settings.m_secondColumnSelection = COLUMN_2_NAME;
         settings.m_mode = Mode.FIRST_MINUS_SECOND;
         settings.m_outputType = OutputType.DURATION_OR_PERIOD;
 
@@ -545,10 +530,8 @@ final class DateTimeDifferenceNodeModel2Test {
         var settings = new DateTimeDifferenceNodeSettings();
         var table = createInputTable(true, LocalTimeCellFactory.TYPE, BASE_TIME, (Temporal)null);
 
-        settings.m_firstColumnSelection =
-            new ColumnSelection(table.get().getDataTableSpec().getColumnSpec(COLUMN_1_NAME));
-        settings.m_secondColumnSelection =
-            new ColumnSelection(table.get().getDataTableSpec().getColumnSpec(COLUMN_2_NAME));
+        settings.m_firstColumnSelection = COLUMN_1_NAME;
+        settings.m_secondColumnSelection = COLUMN_2_NAME;
         settings.m_mode = Mode.FIRST_MINUS_SECOND;
         settings.m_outputType = OutputType.DURATION_OR_PERIOD;
 
@@ -563,10 +546,8 @@ final class DateTimeDifferenceNodeModel2Test {
         var settings = new DateTimeDifferenceNodeSettings();
         var table = createInputTable(true, LocalTimeCellFactory.TYPE, (Temporal)null, (Temporal)null);
 
-        settings.m_firstColumnSelection =
-            new ColumnSelection(table.get().getDataTableSpec().getColumnSpec(COLUMN_1_NAME));
-        settings.m_secondColumnSelection =
-            new ColumnSelection(table.get().getDataTableSpec().getColumnSpec(COLUMN_2_NAME));
+        settings.m_firstColumnSelection = COLUMN_1_NAME;
+        settings.m_secondColumnSelection = COLUMN_2_NAME;
         settings.m_mode = Mode.FIRST_MINUS_SECOND;
         settings.m_outputType = OutputType.DURATION_OR_PERIOD;
 
@@ -582,8 +563,8 @@ final class DateTimeDifferenceNodeModel2Test {
             .addColumn(COLUMN_2_NAME, LocalTimeCellFactory.TYPE).build();
         var emptyTable = new TableTestUtil.TableBuilder(tableSpec).build();
 
-        settings.m_firstColumnSelection = new ColumnSelection(emptyTable.get().getSpec().getColumnSpec(COLUMN_1_NAME));
-        settings.m_secondColumnSelection = new ColumnSelection(emptyTable.get().getSpec().getColumnSpec(COLUMN_2_NAME));
+        settings.m_firstColumnSelection = COLUMN_1_NAME;
+        settings.m_secondColumnSelection = COLUMN_2_NAME;
         settings.m_mode = Mode.FIRST_MINUS_SECOND;
         settings.m_outputType = OutputType.DURATION_OR_PERIOD;
 
@@ -601,8 +582,7 @@ final class DateTimeDifferenceNodeModel2Test {
         var settings = new DateTimeDifferenceNodeSettings();
         var table = createInputTable(false, type, arg1);
 
-        settings.m_firstColumnSelection =
-            new ColumnSelection(table.get().getDataTableSpec().getColumnSpec(COLUMN_1_NAME));
+        settings.m_firstColumnSelection = COLUMN_1_NAME;
 
         setFixedFieldsInSettings(settings, arg2);
 
@@ -624,8 +604,7 @@ final class DateTimeDifferenceNodeModel2Test {
         var settings = new DateTimeDifferenceNodeSettings();
         var table = createInputTable(false, type, arg1);
 
-        settings.m_firstColumnSelection =
-            new ColumnSelection(table.get().getDataTableSpec().getColumnSpec(COLUMN_1_NAME));
+        settings.m_firstColumnSelection = COLUMN_1_NAME;
 
         setFixedFieldsInSettings(settings, arg2);
 
@@ -649,8 +628,7 @@ final class DateTimeDifferenceNodeModel2Test {
         var settings = new DateTimeDifferenceNodeSettings();
         var table = createInputTable(false, type, arg1);
 
-        settings.m_firstColumnSelection =
-            new ColumnSelection(table.get().getDataTableSpec().getColumnSpec(COLUMN_1_NAME));
+        settings.m_firstColumnSelection = COLUMN_1_NAME;
 
         setFixedFieldsInSettings(settings, arg2);
 
@@ -670,8 +648,7 @@ final class DateTimeDifferenceNodeModel2Test {
         var settings = new DateTimeDifferenceNodeSettings();
         var table = createInputTable(false, LocalTimeCellFactory.TYPE, (Temporal)null);
 
-        settings.m_firstColumnSelection =
-            new ColumnSelection(table.get().getDataTableSpec().getColumnSpec(COLUMN_1_NAME));
+        settings.m_firstColumnSelection = COLUMN_1_NAME;
 
         setFixedFieldsInSettings(settings, BASE_ZONED_DATE_TIME);
 
@@ -692,8 +669,7 @@ final class DateTimeDifferenceNodeModel2Test {
             .build();
         var emptyTable = new TableTestUtil.TableBuilder(tableSpec).build();
 
-        settings.m_firstColumnSelection =
-            new ColumnSelection(emptyTable.get().getDataTableSpec().getColumnSpec(COLUMN_1_NAME));
+        settings.m_firstColumnSelection = COLUMN_1_NAME;
 
         setFixedFieldsInSettings(settings, BASE_ZONED_DATE_TIME);
 
@@ -739,8 +715,7 @@ final class DateTimeDifferenceNodeModel2Test {
         workflowManager.loadNodeSettings(node.getID(), nodeSettings);
 
         // populate the input table
-        var tableSupplierNode =
-            WorkflowManagerUtil.createAndAddNode(workflowManager, new InputDataNodeFactory(table));
+        var tableSupplierNode = WorkflowManagerUtil.createAndAddNode(workflowManager, new InputDataNodeFactory(table));
 
         // link the nodes
         workflowManager.addConnection(tableSupplierNode.getID(), 1, node.getID(), 1);

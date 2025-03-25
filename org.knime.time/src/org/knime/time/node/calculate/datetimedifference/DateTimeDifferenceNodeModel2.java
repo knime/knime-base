@@ -137,9 +137,9 @@ public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDiffere
 
         var inSpec = inSpecs[0];
 
-        validateInputColumn(inSpec, modelSettings.m_firstColumnSelection.getSelected());
+        validateInputColumn(inSpec, modelSettings.m_firstColumnSelection);
         if (modelSettings.m_secondDateTimeValueType == SecondDateTimeValueType.COLUMN) {
-            validateInputColumn(inSpec, modelSettings.m_secondColumnSelection.getSelected());
+            validateInputColumn(inSpec, modelSettings.m_secondColumnSelection);
         }
 
         return new DataTableSpec[]{ //
@@ -171,7 +171,7 @@ public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDiffere
     private static DataColumnSpec createNewColumnSpec(final DataTableSpec inSpec,
         final DateTimeDifferenceNodeSettings settings) {
 
-        var selectedFirstColumnSpec = inSpec.getColumnSpec(settings.m_firstColumnSelection.m_selected);
+        var selectedFirstColumnSpec = inSpec.getColumnSpec(settings.m_firstColumnSelection);
         var selectedGranularitySupportsExactDifferences = settings.m_granularity.supportsExactDifferences();
 
         var type = switch (settings.m_outputType) {
@@ -201,7 +201,7 @@ public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDiffere
             m_settings = settings;
             m_inSpec = inSpec;
 
-            m_firstColumnIndex = m_inSpec.findColumnIndex(m_settings.m_firstColumnSelection.m_selected);
+            m_firstColumnIndex = m_inSpec.findColumnIndex(m_settings.m_firstColumnSelection);
         }
 
         @Override
@@ -215,7 +215,7 @@ public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDiffere
             var firstTemporal = TemporalCellUtils.getTemporalFromCell(firstCell);
 
             if (m_settings.m_secondDateTimeValueType == SecondDateTimeValueType.COLUMN) {
-                var secondColumnIndex = m_inSpec.findColumnIndex(m_settings.m_secondColumnSelection.m_selected);
+                var secondColumnIndex = m_inSpec.findColumnIndex(m_settings.m_secondColumnSelection);
                 var secondCell = row.getCell(secondColumnIndex);
 
                 if (secondCell.isMissing()) {
@@ -266,7 +266,7 @@ public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDiffere
             return containerWritable.getDataTable();
         }
 
-        var firstColumnIndex = inData.getDataTableSpec().findColumnIndex(settings.m_firstColumnSelection.m_selected);
+        var firstColumnIndex = inData.getDataTableSpec().findColumnIndex(settings.m_firstColumnSelection);
 
         try (var inDataIterator = inData.iterator()) {
             var previousRow = inDataIterator.next();

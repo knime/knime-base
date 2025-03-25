@@ -53,6 +53,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.knime.time.node.extract.durationperiod.ExtractFieldSettings.OutputColumnNamePlaceholderProvider.getPlaceholder;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -76,7 +77,7 @@ import org.knime.core.node.InvalidSettingsException;
  *
  * @author David Hickey, TNG Technology Consulting GmbH
  */
-@SuppressWarnings({"restriction", "squid:S5960", "squid:S1192"})
+@SuppressWarnings({"restriction", "squid:S5960", "squid:S1192", "static-method"})
 final class ExtractDurationPeriodFieldsNodeModel2Test {
 
     private record TestCase<I>(I input, ExtractableField targetUnit, long expectedTruncatedOutput) {
@@ -183,7 +184,7 @@ final class ExtractDurationPeriodFieldsNodeModel2Test {
         var outputColumnNames = outputTable.getDataTableSpec().getColumnNames();
 
         for (int i = 0; i < durationFields.size(); i++) {
-            assertEquals(durationFields.get(i).niceName(), outputColumnNames[i + 1],
+            assertEquals(getPlaceholder(durationFields.get(i)), outputColumnNames[i + 1],
                 "Output column name is not as expected");
         }
     }
@@ -206,7 +207,7 @@ final class ExtractDurationPeriodFieldsNodeModel2Test {
         var outputColumnNames = outputTable.getDataTableSpec().getColumnNames();
 
         for (int i = 0; i < periodFields.size(); i++) {
-            assertEquals(periodFields.get(i).niceName(), outputColumnNames[i + 1],
+            assertEquals(getPlaceholder(periodFields.get(i)), outputColumnNames[i + 1],
                 "Output column name is not as expected");
         }
     }

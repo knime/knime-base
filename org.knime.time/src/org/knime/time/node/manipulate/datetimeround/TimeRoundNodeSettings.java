@@ -56,11 +56,12 @@ import java.util.stream.Collectors;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.OverwriteDialogTitle;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
@@ -76,7 +77,7 @@ import org.knime.time.util.ReplaceOrAppend;
 public class TimeRoundNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Date&time columns", description = "The date&amp;time columns whose values are shifted.")
-    @ChoicesWidget(choices = DateTimeUtils.TimeColumnProvider.class)
+    @ChoicesProvider(DateTimeUtils.TimeColumnProvider.class)
     @Layout(DateTimeRoundNodeLayout.Top.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
@@ -121,7 +122,8 @@ public class TimeRoundNodeSettings implements DefaultNodeSettings {
 
     TimeRoundNodeSettings(final DataTableSpec spec) {
         if (spec != null) {
-            m_columnFilter = new ColumnFilter(DateTimeUtils.getCompatibleTimeColumns(spec));
+            m_columnFilter =
+                new ColumnFilter(ColumnSelectionUtil.getCompatibleColumns(spec, DateTimeUtils.TIME_COLUMN_TYPES));
         }
     }
 

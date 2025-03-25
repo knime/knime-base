@@ -48,6 +48,8 @@
  */
 package org.knime.time.node.extract.durationperiod;
 
+import static org.knime.time.node.extract.durationperiod.ExtractFieldSettings.OutputColumnNamePlaceholderProvider.getPlaceholder;
+
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -119,7 +121,7 @@ public class ExtractDurationPeriodFieldsNodeModel2
         for (var extractedFieldSetting : modelSettings.m_extractFields) {
             var name = uniqueNameGenerator.newName( //
                 extractedFieldSetting.m_outputcolumnName.isEmpty() //
-                    ? extractedFieldSetting.m_field.niceName() //
+                    ? getPlaceholder(extractedFieldSetting.m_field) //
                     : extractedFieldSetting.m_outputcolumnName //
             );
 

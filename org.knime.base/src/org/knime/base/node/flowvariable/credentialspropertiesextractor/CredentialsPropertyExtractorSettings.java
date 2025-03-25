@@ -74,7 +74,7 @@ public final class CredentialsPropertyExtractorSettings implements DefaultNodeSe
             Select the credentials flow variables for which to extract properties.
             """)
     @ChoicesProvider(CredentialsFlowVariables.class)
-    StringFilter m_selectedCredentials; // TODO! Not a columnFilter!!
+    StringFilter m_selectedCredentials = new StringFilter();
 
     @Widget(title = "Fail if selected credentials have no user name set", description = """
             Select this to prevent execution of subsequent nodes in case the selected credentials have

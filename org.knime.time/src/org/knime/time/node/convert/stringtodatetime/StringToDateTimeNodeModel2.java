@@ -74,6 +74,7 @@ import org.knime.core.node.KNIMEException;
 import org.knime.core.node.message.MessageBuilder;
 import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat.FormatTemporalType;
+import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 import org.knime.time.util.ActionIfExtractionFails;
@@ -114,12 +115,9 @@ final class StringToDateTimeNodeModel2 extends WebUISimpleStreamableFunctionNode
 
         DateTimeFormatStringHistoryManager.addFormatToStringHistoryIfNotPresent(modelSettings.m_format.format());
 
-        var supportedColumns = spec.stream() //
-            .filter(colSpec -> colSpec.getType().isCompatible(StringValue.class)) //
-            .map(DataColumnSpec::getName) //
-            .toArray(String[]::new);
+        var supportedColumns = ColumnSelectionUtil.getStringColumns(spec);
 
-        var targetColumnNames = modelSettings.m_columnFilter.getSelected(supportedColumns, spec);
+        var targetColumnNames = modelSettings.m_columnFilter.filter(supportedColumns);
 
         var messageBuilder = createMessageBuilder();
 

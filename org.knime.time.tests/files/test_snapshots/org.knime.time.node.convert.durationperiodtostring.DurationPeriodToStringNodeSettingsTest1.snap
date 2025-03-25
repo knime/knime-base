@@ -125,21 +125,6 @@
                     "items" : {
                       "type" : "string"
                     }
-                  },
-                  "typeDisplays" : {
-                    "default" : [ ],
-                    "type" : "array",
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "id" : {
-                          "type" : "string"
-                        },
-                        "text" : {
-                          "type" : "string"
-                        }
-                      }
-                    }
                   }
                 },
                 "default" : {
@@ -202,28 +187,10 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/filter",
       "options" : {
-        "format" : "columnFilter",
-        "possibleValues" : [ {
-          "id" : "periodTest",
-          "text" : "periodTest",
-          "type" : {
-            "id" : "org.knime.core.data.time.period.PeriodValue",
-            "text" : "Duration (Date-based)"
-          },
-          "compatibleTypes" : [ "org.knime.core.data.time.period.PeriodValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
-        }, {
-          "id" : "durationTest",
-          "text" : "durationTest",
-          "type" : {
-            "id" : "org.knime.core.data.time.duration.DurationValue",
-            "text" : "Duration (Time-based)"
-          },
-          "compatibleTypes" : [ "org.knime.core.data.time.duration.DurationValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
-        } ],
-        "showNoneColumn" : false,
-        "showRowKeys" : false,
-        "showSearch" : true,
-        "showMode" : true
+        "format" : "typedNameFilter",
+        "unknownValuesText" : "Any unknown column",
+        "emptyStateLabel" : "No columns in this list.",
+        "choicesProvider" : "org.knime.time.util.DateTimeUtils$IntervalColumnProvider"
       }
     }, {
       "type" : "Control",
@@ -293,6 +260,27 @@
         "description" : "No input data available. Execute upstream nodes.",
         "type" : "INFO"
       }
+    } ]
+  }, {
+    "scopes" : null,
+    "id" : "org.knime.time.util.DateTimeUtils$IntervalColumnProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "periodTest",
+        "text" : "periodTest",
+        "type" : {
+          "id" : "org.knime.core.data.time.period.PeriodValue",
+          "text" : "Duration (Date-based)"
+        }
+      }, {
+        "id" : "durationTest",
+        "text" : "durationTest",
+        "type" : {
+          "id" : "org.knime.core.data.time.duration.DurationValue",
+          "text" : "Duration (Time-based)"
+        }
+      } ]
     } ]
   } ],
   "globalUpdates" : [ {

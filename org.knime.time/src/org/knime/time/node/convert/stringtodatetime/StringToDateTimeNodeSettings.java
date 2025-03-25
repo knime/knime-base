@@ -56,16 +56,17 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.StringValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat.FormatTemporalType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.StringColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider.StringColumnsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
@@ -77,7 +78,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.time.util.ActionIfExtractionFails;
-import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.LocaleStateProvider;
 import org.knime.time.util.ReplaceOrAppend;
 
@@ -94,12 +94,13 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
         var spec = context.getDataTableSpec(0);
 
         if (spec.isPresent()) {
-            m_columnFilter = new ColumnFilter(DateTimeUtils.getCompatibleColumns(spec.get(), StringValue.class));
+            final var stringColumns = ColumnSelectionUtil.getStringColumns(spec.get());
+            m_columnFilter = new ColumnFilter(stringColumns);
         }
     }
 
     @Widget(title = "String columns", description = "The string columns to convert to date&amp;time columns.")
-    @ChoicesWidget(choices = StringColumnChoicesProvider.class)
+    @ChoicesProvider(StringColumnsProvider.class)
     @ValueReference(ColumnFilterValueRef.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
@@ -107,7 +108,7 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
             A locale can be chosen, which determines the language \
             and geographic region for terms such as months or weekdays.
             """)
-    @ChoicesWidget(choicesProvider = LocaleStateProvider.class)
+    @ChoicesProvider(LocaleStateProvider.class)
     String m_locale = Locale.getDefault().toLanguageTag();
 
     @Widget(title = "Input format", description = """
@@ -214,10 +215,8 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
         }
 
         // now get the first selected col
-        var selectedCols = selectedColumns.get().getSelected(inputTableSpec.get().stream() //
-            .filter(StringToDateTimeNodeSettings::isStringCompatible) //
-            .map(DataColumnSpec::getName) //
-            .toArray(String[]::new), inputTableSpec.get());
+        final var stringColumns = ColumnSelectionUtil.getStringColumns(inputTableSpec.get());
+        var selectedCols = selectedColumns.get().filter(stringColumns);
 
         if (selectedCols.length == 0) {
             throw new WidgetHandlerException("Could not guess a format because there are no selected columns.");
