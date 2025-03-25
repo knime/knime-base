@@ -56,6 +56,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation;
 
 /**
  * Settings of the Column Renamer node.
@@ -95,6 +96,13 @@ public final class ColumnRenamerSettings implements DefaultNodeSettings {
         interface RenamingLayout {
         }
 
+        static final class StartsWithNonWhiteSpaceValidation extends PatternValidation {
+            @Override
+            protected String getPattern() {
+                return "\\S+.*";
+            }
+        }
+
         @Widget(title = "Column", description = "The column to rename.")
         @ChoicesWidget(choices = AllColumns.class)
         @Layout(RenamingLayout.class)
@@ -102,7 +110,7 @@ public final class ColumnRenamerSettings implements DefaultNodeSettings {
 
         @Widget(title = "New name",
             description = "The new column name. Must not be empty or consist only of whitespaces.")
-        @TextInputWidget(pattern = "\\S+.*")
+        @TextInputWidget(validation = StartsWithNonWhiteSpaceValidation.class)
         @Layout(RenamingLayout.class)
         public String m_newName;
     }

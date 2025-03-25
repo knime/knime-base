@@ -40,7 +40,14 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/headerRowIndex",
       "options" : {
-        "min" : 0.0
+        "validations" : [ {
+          "id" : "min",
+          "parameters" : {
+            "min" : 0.0,
+            "isExclusive" : false
+          },
+          "errorMessage" : "The value must be at least 0."
+        } ]
       }
     }, {
       "type" : "Control",

@@ -56,7 +56,7 @@
                 "outputcolumnName" : {
                   "type" : "string",
                   "title" : "Column name",
-                  "description" : "The name of the column populated with the values of the selected field. The field cannot be empty (it must contain at least one character)."
+                  "description" : "The name of the column populated with the values of the selected field."
                 }
               }
             },
@@ -123,7 +123,14 @@
             "scope" : "#/properties/outputcolumnName",
             "options" : {
               "hideOnNull" : false,
-              "placeholderProvider" : "org.knime.time.node.extract.durationperiod.ExtractFieldSettings$OutputColumnNamePlaceholderProvider"
+              "placeholderProvider" : "org.knime.time.node.extract.durationperiod.ExtractFieldSettings$OutputColumnNamePlaceholderProvider",
+              "validations" : [ {
+                "id" : "pattern",
+                "parameters" : {
+                  "pattern" : "^(\\S(.*\\S)?)?$"
+                },
+                "errorMessage" : "The string must match the pattern: ^(\\S(.*\\S)?)?$"
+              } ]
             }
           } ]
         } ],

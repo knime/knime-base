@@ -68,6 +68,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.ColumnNameValidation;
 
 /**
  * The settings for the "Table Structure Creator" node.
@@ -95,8 +96,8 @@ final class CreateTableStructureNodeSettings implements DefaultNodeSettings {
         }
 
         @Widget(title = "Column name ", description = "Name of the created column")
-        @TextInputWidget(minLength = 1)
-        String m_columnName = "Column ";
+        @TextInputWidget(validation = ColumnNameValidation.class)
+        String m_columnName = "";
 
         @Widget(title = "Column type", description = "Type of the created column")
         DataType m_colType = StringCellFactory.TYPE;

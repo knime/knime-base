@@ -201,7 +201,14 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/amount",
         "options" : {
-          "min" : 1.0
+          "validations" : [ {
+            "id" : "min",
+            "parameters" : {
+              "min" : 1.0,
+              "isExclusive" : false
+            },
+            "errorMessage" : "The value must be at least 1."
+          } ]
         }
       } ]
     }, {

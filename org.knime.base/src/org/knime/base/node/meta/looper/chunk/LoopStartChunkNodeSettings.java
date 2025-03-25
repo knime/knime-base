@@ -59,6 +59,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 
 /**
  * Settings for node.
@@ -99,7 +100,7 @@ public final class LoopStartChunkNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Rows per chunk", description = """
             Set the number of rows per chunk. The number of iterations is the row count of the input table divided by this value. To implement a streaming approach with one row at a time, set this value to 1.
             """)
-    @NumberInputWidget(min = 1.0)
+    @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
     @Effect(type = EffectType.SHOW, predicate = IsRowPerChunk.class)
     int m_nrRowsPerChunk = 1;
 
@@ -108,6 +109,6 @@ public final class LoopStartChunkNodeSettings implements DefaultNodeSettings {
             Set the number of chunks. The number of rows per chunk is the row count of the input table divided by this value.
             """)
     @Effect(type = EffectType.HIDE, predicate = IsRowPerChunk.class)
-    @NumberInputWidget(min = 1.0)
+    @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
     int m_nrOfChunks = 1;
 }

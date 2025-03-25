@@ -112,7 +112,14 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/columnNumber",
       "options" : {
-        "min" : 1.0
+        "validations" : [ {
+          "id" : "min",
+          "parameters" : {
+            "min" : 1.0,
+            "isExclusive" : false
+          },
+          "errorMessage" : "The value must be at least 1."
+        } ]
       },
       "rule" : {
         "effect" : "HIDE",
@@ -129,7 +136,14 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/rowNumber",
       "options" : {
-        "min" : 1.0
+        "validations" : [ {
+          "id" : "min",
+          "parameters" : {
+            "min" : 1.0,
+            "isExclusive" : false
+          },
+          "errorMessage" : "The value must be at least 1."
+        } ]
       }
     }, {
       "type" : "Control",

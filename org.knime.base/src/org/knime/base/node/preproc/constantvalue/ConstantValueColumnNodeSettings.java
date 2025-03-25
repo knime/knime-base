@@ -77,6 +77,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicatePr
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.ColumnNameValidation;
 
 /**
  * Settings for the Constant Value Column WebUI node.
@@ -116,7 +117,7 @@ final class ConstantValueColumnNodeSettings implements DefaultNodeSettings {
 
         @Widget(title = "New column", description = "The name of the new column.")
         @Effect(predicate = AppendOrReplace.IsReplace.class, type = EffectType.HIDE)
-        @TextInputWidget(placeholder = "New column name", pattern = "^\\s*\\S.*$")
+        @TextInputWidget(placeholder = "New column name", validation = ColumnNameValidation.class)
         String m_columnNameToAppend = "New column";
 
         @Widget(title = "Replace column", description = "The name of the column to replace.")

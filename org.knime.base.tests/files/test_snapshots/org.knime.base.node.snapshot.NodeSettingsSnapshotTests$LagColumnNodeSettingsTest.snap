@@ -82,13 +82,27 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/lag",
       "options" : {
-        "min" : 1.0
+        "validations" : [ {
+          "id" : "min",
+          "parameters" : {
+            "min" : 1.0,
+            "isExclusive" : false
+          },
+          "errorMessage" : "The value must be at least 1."
+        } ]
       }
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/lagInterval",
       "options" : {
-        "min" : 1.0
+        "validations" : [ {
+          "id" : "min",
+          "parameters" : {
+            "min" : 1.0,
+            "isExclusive" : false
+          },
+          "errorMessage" : "The value must be at least 1."
+        } ]
       }
     }, {
       "type" : "Control",

@@ -72,6 +72,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 
 /**
  * Settings for the {@link StringFormatManagerNodeModel}
@@ -139,7 +140,7 @@ public final class StringFormatManagerNodeSettings implements DefaultNodeSetting
             If a string's length is longer than the permitted length, it will be truncated. \
             This does not change the data, but only the way the strings are being displayed in views.
             """)
-    @NumberInputWidget(min = 0)
+    @NumberInputWidget(validation = IsNonNegativeValidation.class)
     @Layout(DialogLayout.Format.FirstLast.class)
     int m_nFirstChars = 500;
 
@@ -148,7 +149,7 @@ public final class StringFormatManagerNodeSettings implements DefaultNodeSetting
             If a string's length is longer than the permitted length, it will be truncated. \
             This does not change the data, but only the way the strings are being displayed in views.
             """)
-    @NumberInputWidget(min = 0)
+    @NumberInputWidget(validation = IsNonNegativeValidation.class)
     @Layout(DialogLayout.Format.FirstLast.class)
     int m_nLastChars = 5;
 

@@ -119,6 +119,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicatePr
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.MaxLengthValidation.HasAtMaxOneCharValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.IsSingleCharacterValidation;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
@@ -224,7 +229,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
 
         @Widget(title = "Comment line character", description = CommentLineCharacter.DESCRIPTION)
         @ValueReference(CommentStartRef.class)
-        @TextInputWidget(maxLength = 1)
+        @TextInputWidget(validation = HasAtMaxOneCharValidation.class)
         @Layout(CommentLineCharacter.class)
         @Persist(configKey = "comment_char")
         String m_commentLineCharacter = "#";
@@ -249,7 +254,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         }
 
         @Widget(title = "Column delimiter", description = ColumnDelimiter.DESCRIPTION)
-        @TextInputWidget(minLength = 1)
+        @TextInputWidget(validation = IsSingleCharacterValidation.class)
         @Layout(ColumnDelimiter.class)
         @Persistor(ColumnDelimiterPersistor.class)
         @ValueReference(ColumnDelimiterRef.class)
@@ -267,7 +272,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         }
 
         @Widget(title = "Quote character", description = QuoteCharacter.DESCRIPTION)
-        @TextInputWidget(maxLength = 1)
+        @TextInputWidget(validation = HasAtMaxOneCharValidation.class)
         @Layout(QuoteCharacter.class)
         @Persist(configKey = "quote_char")
         @ValueReference(QuoteCharacterRef.class)
@@ -285,7 +290,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         }
 
         @Widget(title = "Quote escape character", description = QuoteEscapeCharacter.DESCRIPTION)
-        @TextInputWidget(maxLength = 1)
+        @TextInputWidget(validation = HasAtMaxOneCharValidation.class)
         @Layout(QuoteEscapeCharacter.class)
         @Persist(configKey = "quote_escape_char")
         @ValueReference(QuoteEscapeCharacterRef.class)
@@ -368,8 +373,20 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
             }
         }
 
+        static final class CustomRowDelimiterPatternValidation extends PatternValidation {
+            @Override
+            protected String getPattern() {
+                return ".|\\\\(t|r|n)|\\\\r\\\\n";
+            }
+
+            @Override
+            public String getErrorMessage() {
+                return "The value must be a single character, “\\t”, ”\\n”, “\\r”, or “\\r\\n”.";
+            }
+        }
+
         @Widget(title = "Custom row delimiter", description = CustomRowDelimiter.DESCRIPTION)
-        @TextInputWidget(minLength = 1, pattern = ".|[\\t\\r\\n]|\\r\\n")
+        @TextInputWidget(validation = CustomRowDelimiterPatternValidation.class)
         @Layout(CustomRowDelimiter.class)
         @Effect(predicate = HasCustomRowDelimiter.class, type = EffectType.SHOW)
         @Persistor(CustomRowDelimiterPersistor.class)
@@ -383,7 +400,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @Widget(title = "Number of characters for autodetection",
             description = NumberOfCharactersForAutodetection.DESCRIPTION, advanced = true)
         @ValueReference(BufferSizeRef.class)
-        @NumberInputWidget(min = 1)
+        @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
         @Layout(NumberOfCharactersForAutodetection.class)
         @Persist(configKey = "autodetect_buffer_size")
         int m_numberOfCharactersForAutodetection = CSVTableReaderConfig.DEFAULT_AUTODETECTION_BUFFER_SIZE;
@@ -434,7 +451,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
 
         @Widget(title = "", description = "", hideControlHeader = true)
         @ValueReference(MaxDataRowsScannedRef.class)
-        @NumberInputWidget(min = 0)
+        @NumberInputWidget(validation = IsNonNegativeValidation.class)
         @Layout(LimitScannedRows.class)
         @Effect(predicate = LimitScannedRowsPredicate.class, type = EffectType.SHOW)
         @Persist(configKey = "max_data_rows_scanned")
@@ -454,7 +471,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
 
         @Widget(title = "Maximum number of columns", description = MaximumNumberOfColumns.DESCRIPTION)
         @ValueReference(MaximumNumberOfColumnsRef.class)
-        @NumberInputWidget(min = 0)
+        @NumberInputWidget(validation = IsNonNegativeValidation.class)
         @Layout(MaximumNumberOfColumns.class)
         @Persist(configKey = "maximum_number_of_columns")
         int m_maximumNumberOfColumns = 8192;
@@ -504,6 +521,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
 
         @Widget(title = "Thousands separator", description = ThousandsSeparator.DESCRIPTION)
         @ValueReference(ThousandsSeparatorRef.class)
+        @TextInputWidget(validation = HasAtMaxOneCharValidation.class)
         @Layout(ThousandsSeparator.class)
         @Persist(configKey = "thousands_separator")
         String m_thousandsSeparator = "";
@@ -513,7 +531,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
 
         @Widget(title = "Decimal separator", description = DecimalSeparator.DESCRIPTION)
         @ValueReference(DecimalSeparatorRef.class)
-        @TextInputWidget(minLength = 1)
+        @TextInputWidget(validation = IsSingleCharacterValidation.class)
         @Layout(DecimalSeparator.class)
         @Persist(configKey = "decimal_separator")
         String m_decimalSeparator = ".";
@@ -550,7 +568,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
 
         @Widget(title = "Skip first lines of file", description = SkipFirstLines.DESCRIPTION)
         @ValueReference(SkipFirstLinesRef.class)
-        @NumberInputWidget(min = 0)
+        @NumberInputWidget(validation = IsNonNegativeValidation.class)
         @Layout(SkipFirstLines.class)
         @Persistor(SkipFirstLinesPersistor.class)
         long m_skipFirstLines;
@@ -560,7 +578,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
 
         @Widget(title = "Skip first data rows", description = SkipFirstDataRows.DESCRIPTION)
         @ValueReference(SkipFirstDataRowsRef.class)
-        @NumberInputWidget(min = 0)
+        @NumberInputWidget(validation = IsNonNegativeValidation.class)
         @Layout(SkipFirstDataRows.class)
         @Persistor(CommonReaderNodeSettings.SkipFirstDataRowsPersistor.class)
         long m_skipFirstDataRows;
@@ -573,7 +591,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         // TODO merge into a single widget with UIEXT-1742
 
         @Widget(title = "Maximum number of rows", description = MaximumNumberOfRows.DESCRIPTION)
-        @NumberInputWidget(min = 0)
+        @NumberInputWidget(validation = IsNonNegativeValidation.class)
         @Layout(MaximumNumberOfRows.class)
         @Effect(predicate = CommonReaderNodeSettings.LimitNumberOfRowsPredicate.class, type = EffectType.SHOW)
         @Persist(configKey = "max_rows")

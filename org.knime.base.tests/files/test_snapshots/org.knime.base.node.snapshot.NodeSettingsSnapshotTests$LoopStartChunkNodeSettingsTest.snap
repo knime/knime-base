@@ -53,7 +53,14 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/nrRowsPerChunk",
       "options" : {
-        "min" : 1.0
+        "validations" : [ {
+          "id" : "min",
+          "parameters" : {
+            "min" : 1.0,
+            "isExclusive" : false
+          },
+          "errorMessage" : "The value must be at least 1."
+        } ]
       },
       "rule" : {
         "effect" : "SHOW",
@@ -70,7 +77,14 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/nrOfChunks",
       "options" : {
-        "min" : 1.0
+        "validations" : [ {
+          "id" : "min",
+          "parameters" : {
+            "min" : 1.0,
+            "isExclusive" : false
+          },
+          "errorMessage" : "The value must be at least 1."
+        } ]
       },
       "rule" : {
         "effect" : "HIDE",

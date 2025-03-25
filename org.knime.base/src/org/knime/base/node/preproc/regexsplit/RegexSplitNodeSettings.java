@@ -72,6 +72,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.IsNotEmptyValidation;
 
 /**
  * Settings class for the String Splitter (Regex) (formerly known as Regex Split)
@@ -145,7 +146,7 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
             If you want to use non-capturing groups, construct them with
             <tt>(?:pattern)</tt>
             """)
-    @TextInputWidget(minLength = 1)
+    @TextInputWidget(validation = IsNotEmptyValidation.class)
     @Persistor(PatternPersistor.class)
     String m_pattern = "(.*)";
 

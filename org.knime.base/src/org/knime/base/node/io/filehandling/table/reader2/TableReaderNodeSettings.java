@@ -63,6 +63,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
@@ -102,7 +103,7 @@ public class TableReaderNodeSettings implements DefaultNodeSettings {
     static class AdvancedSettings extends CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling {
 
         @Widget(title = "Skip first data rows", description = SkipFirstDataRows.DESCRIPTION)
-        @NumberInputWidget(min = 0)
+        @NumberInputWidget(validation = IsNonNegativeValidation.class)
         @Layout(SkipFirstDataRows.class)
         @Persistor(CommonReaderNodeSettings.SkipFirstDataRowsPersistor.class)
         long m_skipFirstDataRows;
@@ -115,7 +116,7 @@ public class TableReaderNodeSettings implements DefaultNodeSettings {
         // TODO NOSONAR merge into a single widget with UIEXT-1742
 
         @Widget(title = "Maximum number of rows", description = MaximumNumberOfRows.DESCRIPTION)
-        @NumberInputWidget(min = 0)
+        @NumberInputWidget(validation = IsNonNegativeValidation.class)
         @Layout(MaximumNumberOfRows.class)
         @Effect(predicate = CommonReaderNodeSettings.LimitNumberOfRowsPredicate.class, type = EffectType.SHOW)
         @Persist(configKey = "max_rows")

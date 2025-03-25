@@ -234,8 +234,21 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/percentage",
       "options" : {
-        "min" : 0.0,
-        "max" : 100.0
+        "validations" : [ {
+          "id" : "min",
+          "parameters" : {
+            "min" : 0.0,
+            "isExclusive" : false
+          },
+          "errorMessage" : "The value must be at least 0."
+        }, {
+          "id" : "max",
+          "parameters" : {
+            "max" : 100.0,
+            "isExclusive" : false
+          },
+          "errorMessage" : "The value must be less than 100."
+        } ]
       },
       "rule" : {
         "effect" : "SHOW",
@@ -252,7 +265,14 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/number",
       "options" : {
-        "min" : 0.0
+        "validations" : [ {
+          "id" : "min",
+          "parameters" : {
+            "min" : 0.0,
+            "isExclusive" : false
+          },
+          "errorMessage" : "The value must be at least 0."
+        } ]
       },
       "rule" : {
         "effect" : "SHOW",

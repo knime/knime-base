@@ -40,8 +40,7 @@
                   "type" : "string",
                   "title" : "Column name ",
                   "description" : "Name of the created column",
-                  "default" : "Column ",
-                  "minLength" : 1
+                  "default" : ""
                 }
               }
             },
@@ -64,7 +63,14 @@
           "type" : "Control",
           "scope" : "#/properties/columnName",
           "options" : {
-            "hideOnNull" : false
+            "hideOnNull" : false,
+            "validations" : [ {
+              "id" : "pattern",
+              "parameters" : {
+                "pattern" : "^(\\S(.*\\S)?)?$"
+              },
+              "errorMessage" : "The string must match the pattern: ^(\\S(.*\\S)?)?$"
+            } ]
           }
         }, {
           "type" : "Control",

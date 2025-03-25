@@ -128,8 +128,7 @@
                 "type" : "string",
                 "title" : "Decimal separator",
                 "description" : "Specifies the decimal separator character for parsing numbers. The decimal separator is only used for\nthe parsing of double values. Note that the decimal separator must differ from the thousands separator.\nYou must always provide a decimal separator.\n",
-                "default" : ".",
-                "minLength" : 1
+                "default" : "."
               },
               "filePathColumnName" : {
                 "type" : "string",
@@ -359,23 +358,19 @@
                 "type" : "string",
                 "title" : "Column delimiter",
                 "description" : "Defines the character string delimiting columns. Use '\\t' for tab characters. Can get detected\nautomatically.\n",
-                "default" : ",",
-                "minLength" : 1
+                "default" : ","
               },
               "commentLineCharacter" : {
                 "type" : "string",
                 "title" : "Comment line character",
                 "description" : "Defines the character indicating line comments.",
-                "default" : "#",
-                "maxLength" : 1
+                "default" : "#"
               },
               "customRowDelimiter" : {
                 "type" : "string",
                 "title" : "Custom row delimiter",
                 "description" : "Defines the character to be used as custom row delimiter.",
-                "default" : "\n",
-                "minLength" : 1,
-                "pattern" : ".|[\\t\\r\\n]|\\r\\n"
+                "default" : "\n"
               },
               "fileSelectionInternal" : {
                 "type" : "object",
@@ -435,15 +430,13 @@
                 "type" : "string",
                 "title" : "Quote character",
                 "description" : "The character indicating quotes. Can get detected automatically.",
-                "default" : "\"",
-                "maxLength" : 1
+                "default" : "\""
               },
               "quoteEscapeCharacter" : {
                 "type" : "string",
                 "title" : "Quote escape character",
                 "description" : "The character used for escaping quotes inside an already quoted value. Can get detected\nautomatically.\n",
-                "default" : "\"",
-                "maxLength" : 1
+                "default" : "\""
               },
               "rowDelimiterOption" : {
                 "oneOf" : [ {
@@ -846,8 +839,8 @@
         "scope" : "#/properties/model/properties/settings/properties/source",
         "options" : {
           "format" : "fileChooser",
-          "mountId" : "Local space",
           "isLocal" : true,
+          "mountId" : "Local space",
           "fileExtensions" : [ "csv", "tsv", "txt", "gz" ]
         }
       }, {
@@ -911,13 +904,27 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/limitRows/properties/skipFirstLines",
         "options" : {
-          "min" : 0.0
+          "validations" : [ {
+            "id" : "min",
+            "parameters" : {
+              "min" : 0.0,
+              "isExclusive" : false
+            },
+            "errorMessage" : "The value must be at least 0."
+          } ]
         }
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/settings/properties/commentLineCharacter",
         "options" : {
-          "hideOnNull" : false
+          "hideOnNull" : false,
+          "validations" : [ {
+            "id" : "maxLength",
+            "parameters" : {
+              "maxLength" : 1
+            },
+            "errorMessage" : "The string must not exceed 1 character."
+          } ]
         }
       }, {
         "type" : "Control",
@@ -929,7 +936,14 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/settings/properties/customRowDelimiter",
         "options" : {
-          "hideOnNull" : false
+          "hideOnNull" : false,
+          "validations" : [ {
+            "id" : "pattern",
+            "parameters" : {
+              "pattern" : ".|\\\\(t|r|n)|\\\\r\\\\n"
+            },
+            "errorMessage" : "The value must be a single character, “\\t”, ”\\n”, “\\r”, or “\\r\\n”."
+          } ]
         },
         "rule" : {
           "effect" : "SHOW",
@@ -946,7 +960,14 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/settings/properties/columnDelimiter",
         "options" : {
-          "hideOnNull" : false
+          "hideOnNull" : false,
+          "validations" : [ {
+            "id" : "pattern",
+            "parameters" : {
+              "pattern" : "^.$"
+            },
+            "errorMessage" : "The string must be a single character."
+          } ]
         }
       }, {
         "type" : "Control",
@@ -960,13 +981,27 @@
           "type" : "Control",
           "scope" : "#/properties/model/properties/settings/properties/quoteCharacter",
           "options" : {
-            "hideOnNull" : false
+            "hideOnNull" : false,
+            "validations" : [ {
+              "id" : "maxLength",
+              "parameters" : {
+                "maxLength" : 1
+              },
+              "errorMessage" : "The string must not exceed 1 character."
+            } ]
           }
         }, {
           "type" : "Control",
           "scope" : "#/properties/model/properties/settings/properties/quoteEscapeCharacter",
           "options" : {
-            "hideOnNull" : false
+            "hideOnNull" : false,
+            "validations" : [ {
+              "id" : "maxLength",
+              "parameters" : {
+                "maxLength" : 1
+              },
+              "errorMessage" : "The string must not exceed 1 character."
+            } ]
           }
         } ]
       }, {
@@ -990,7 +1025,14 @@
         "scope" : "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection",
         "options" : {
           "isAdvanced" : true,
-          "min" : 1.0
+          "validations" : [ {
+            "id" : "min",
+            "parameters" : {
+              "min" : 1.0,
+              "isExclusive" : false
+            },
+            "errorMessage" : "The value must be at least 1."
+          } ]
         }
       } ]
     }, {
@@ -1006,7 +1048,14 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/limitRows/properties/skipFirstDataRows",
         "options" : {
-          "min" : 0.0
+          "validations" : [ {
+            "id" : "min",
+            "parameters" : {
+              "min" : 0.0,
+              "isExclusive" : false
+            },
+            "errorMessage" : "The value must be at least 0."
+          } ]
         }
       }, {
         "type" : "Control",
@@ -1019,7 +1068,14 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/limitRows/properties/maximumNumberOfRows",
         "options" : {
-          "min" : 0.0
+          "validations" : [ {
+            "id" : "min",
+            "parameters" : {
+              "min" : 0.0,
+              "isExclusive" : false
+            },
+            "errorMessage" : "The value must be at least 0."
+          } ]
         },
         "rule" : {
           "effect" : "SHOW",
@@ -1050,11 +1106,28 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/advancedSettings/properties/decimalSeparator",
         "options" : {
-          "hideOnNull" : false
+          "hideOnNull" : false,
+          "validations" : [ {
+            "id" : "pattern",
+            "parameters" : {
+              "pattern" : "^.$"
+            },
+            "errorMessage" : "The string must be a single character."
+          } ]
         }
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/advancedSettings/properties/thousandsSeparator"
+        "scope" : "#/properties/model/properties/advancedSettings/properties/thousandsSeparator",
+        "options" : {
+          "hideOnNull" : false,
+          "validations" : [ {
+            "id" : "maxLength",
+            "parameters" : {
+              "maxLength" : 1
+            },
+            "errorMessage" : "The string must not exceed 1 character."
+          } ]
+        }
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/advancedSettings/properties/replaceEmptyQuotedStringsByMissingValues",
@@ -1087,7 +1160,14 @@
         "scope" : "#/properties/model/properties/advancedSettings/properties/maxDataRowsScanned",
         "options" : {
           "hideControlHeader" : true,
-          "min" : 0.0
+          "validations" : [ {
+            "id" : "min",
+            "parameters" : {
+              "min" : 0.0,
+              "isExclusive" : false
+            },
+            "errorMessage" : "The value must be at least 0."
+          } ]
         },
         "rule" : {
           "effect" : "SHOW",
@@ -1110,7 +1190,14 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/advancedSettings/properties/maximumNumberOfColumns",
         "options" : {
-          "min" : 0.0
+          "validations" : [ {
+            "id" : "min",
+            "parameters" : {
+              "min" : 0.0,
+              "isExclusive" : false
+            },
+            "errorMessage" : "The value must be at least 0."
+          } ]
         }
       }, {
         "type" : "Control",

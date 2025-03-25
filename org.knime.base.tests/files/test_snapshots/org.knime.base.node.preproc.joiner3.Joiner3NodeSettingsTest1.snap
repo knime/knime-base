@@ -636,7 +636,14 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/maxOpenFiles",
         "options" : {
-          "min" : 3.0
+          "validations" : [ {
+            "id" : "max",
+            "parameters" : {
+              "max" : 3.0,
+              "isExclusive" : false
+            },
+            "errorMessage" : "The value must be less than 3."
+          } ]
         }
       }, {
         "type" : "Control",

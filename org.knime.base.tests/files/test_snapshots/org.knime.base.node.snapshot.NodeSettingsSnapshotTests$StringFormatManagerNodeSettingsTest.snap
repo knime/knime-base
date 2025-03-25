@@ -280,13 +280,27 @@
           "type" : "Control",
           "scope" : "#/properties/model/properties/nFirstChars",
           "options" : {
-            "min" : 0.0
+            "validations" : [ {
+              "id" : "min",
+              "parameters" : {
+                "min" : 0.0,
+                "isExclusive" : false
+              },
+              "errorMessage" : "The value must be at least 0."
+            } ]
           }
         }, {
           "type" : "Control",
           "scope" : "#/properties/model/properties/nLastChars",
           "options" : {
-            "min" : 0.0
+            "validations" : [ {
+              "id" : "min",
+              "parameters" : {
+                "min" : 0.0,
+                "isExclusive" : false
+              },
+              "errorMessage" : "The value must be at least 0."
+            } ]
           }
         } ]
       }, {

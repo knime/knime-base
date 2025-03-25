@@ -177,7 +177,14 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/startColumnNumber",
         "options" : {
-          "min" : 1.0
+          "validations" : [ {
+            "id" : "min",
+            "parameters" : {
+              "min" : 1.0,
+              "isExclusive" : false
+            },
+            "errorMessage" : "The value must be at least 1."
+          } ]
         },
         "rule" : {
           "effect" : "HIDE",
@@ -211,7 +218,14 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/endColumnNumber",
         "options" : {
-          "min" : 1.0
+          "validations" : [ {
+            "id" : "min",
+            "parameters" : {
+              "min" : 1.0,
+              "isExclusive" : false
+            },
+            "errorMessage" : "The value must be at least 1."
+          } ]
         },
         "rule" : {
           "effect" : "HIDE",
@@ -249,7 +263,14 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/startRowNumber",
         "options" : {
-          "min" : 1.0
+          "validations" : [ {
+            "id" : "min",
+            "parameters" : {
+              "min" : 1.0,
+              "isExclusive" : false
+            },
+            "errorMessage" : "The value must be at least 1."
+          } ]
         }
       }, {
         "type" : "Control",
@@ -261,7 +282,14 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/endRowNumber",
         "options" : {
-          "min" : 1.0
+          "validations" : [ {
+            "id" : "min",
+            "parameters" : {
+              "min" : 1.0,
+              "isExclusive" : false
+            },
+            "errorMessage" : "The value must be at least 1."
+          } ]
         }
       }, {
         "type" : "Control",

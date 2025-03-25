@@ -64,6 +64,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.IsNotEmptyValidation;
 
 /**
  * The output settings, output as columns, rows, collection, what to do if the pattern does not match, etc.
@@ -242,7 +243,7 @@ final class OutputSettings implements DefaultNodeSettings {
 
     @Layout(DialogSections.Output.class)
     @Widget(title = "Output column name", description = "Choose a name for the output column")
-    @TextInputWidget(minLength = 1)
+    @TextInputWidget(validation = IsNotEmptyValidation.class)
     @Effect(predicate = OutputModeIsColumnsOrSingleOutpuModeIsReplace.class, type = EffectType.HIDE)
     @Migrate(loadDefaultIfAbsent = true)
     String m_columnName = "Split";

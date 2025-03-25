@@ -26,8 +26,7 @@
                   "type" : "string",
                   "title" : "New column",
                   "description" : "The name of the new column.",
-                  "default" : "New column",
-                  "pattern" : "^\\s*\\S.*$"
+                  "default" : "New column"
                 },
                 "columnNameToReplace" : {
                   "type" : "string",
@@ -101,7 +100,14 @@
           "scope" : "#/properties/columnNameToAppend",
           "options" : {
             "hideOnNull" : false,
-            "placeholder" : "New column name"
+            "placeholder" : "New column name",
+            "validations" : [ {
+              "id" : "pattern",
+              "parameters" : {
+                "pattern" : "^(\\S(.*\\S)?)?$"
+              },
+              "errorMessage" : "The string must match the pattern: ^(\\S(.*\\S)?)?$"
+            } ]
           },
           "rule" : {
             "effect" : "HIDE",

@@ -70,6 +70,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.IsNotEmptyValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.IsSingleCharacterValidation;
 
 /**
  * Node Settings for the Value Lookup Node
@@ -397,7 +400,7 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
             Here, custom characters can be defined after which characters should be capitalized. \
             The characters are all interpreted literally.
             """)
-    @TextInputWidget(minLength = 1)
+    @TextInputWidget(validation = IsNotEmptyValidation.class)
     @Layout(DialogLayout.Manipulation.CapitalizeAndPad.class)
     @Effect(predicate = CapitalizeAfterCustom.class, type = EffectType.SHOW)
     String m_changeCasingCapitalizeAfterCharacters = "";
@@ -441,14 +444,14 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
             """)
     @ValueSwitchWidget
     @Layout(DialogLayout.Manipulation.CapitalizeAndPad.class)
-@ValueReference(PadOptionRef.class)
+    @ValueReference(PadOptionRef.class)
     PadOption m_pad = PadOption.NO;
 
     @Widget(title = "Minimum string length", description = """
             Define the minimum string length. \
             If a string is shorter than this value, a pad will be added to make the string length equal to it.
             """)
-    @NumberInputWidget(min = 1)
+    @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
     @Layout(DialogLayout.Manipulation.PadOptions.class)
     @Effect(predicate = DoPad.class, type = EffectType.SHOW)
     int m_padMinimumStringLength = 1;
@@ -456,7 +459,7 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Fill character", description = """
             Define the fill character that is used to pad the string.
             """)
-    @TextInputWidget(minLength = 1, maxLength = 1)
+    @TextInputWidget(validation = IsSingleCharacterValidation.class)
     @Layout(DialogLayout.Manipulation.PadOptions.class)
     @Effect(predicate = DoPad.class, type = EffectType.SHOW)
     String m_padFillCharacter = "_";
@@ -468,17 +471,15 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
             APPEND
     }
 
-
     class OutputOptionRef implements Reference<OutputOption> {
 
     }
 
     static final class AppendColumnsWithSuffix implements PredicateProvider {
 
-
         @Override
         public Predicate init(final PredicateInitializer i) {
-               return i.getEnum(OutputOptionRef.class).isOneOf(OutputOption.APPEND);
+            return i.getEnum(OutputOptionRef.class).isOneOf(OutputOption.APPEND);
         }
 
     }
@@ -494,7 +495,7 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Output column suffix", description = """
             Define a suffix that is appended to the column names of the input table.
             """)
-    @TextInputWidget(minLength = 1)
+    @TextInputWidget(validation = IsNotEmptyValidation.class)
     @Layout(DialogLayout.Output.class)
     @Effect(predicate = AppendColumnsWithSuffix.class, type = EffectType.SHOW)
     String m_outputSuffix = " (Cleaned)";

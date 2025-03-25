@@ -66,6 +66,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 
 /**
  * Settings of the Range Filter node.
@@ -136,7 +137,7 @@ public final class TableCropperSettings implements DefaultNodeSettings {
 
     @Widget(title = "Start column number",
         description = "Select the first column to include (the first column of the table has number 1).")
-    @NumberInputWidget(min = 1)
+    @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
     @Effect(predicate = ColumnRangeModeIsByName.class, type = EffectType.HIDE)
     @Layout(ColumnsSection.class)
     int m_startColumnNumber = 1;
@@ -148,7 +149,7 @@ public final class TableCropperSettings implements DefaultNodeSettings {
     boolean m_startColumnCountFromEnd;
 
     @Widget(title = "End column number (inclusive)", description = "Select the last column to include.")
-    @NumberInputWidget(min = 1)
+    @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
     @Effect(predicate = ColumnRangeModeIsByName.class, type = EffectType.HIDE)
     @Layout(ColumnsSection.class)
     int m_endColumnNumber = 1;
@@ -167,7 +168,7 @@ public final class TableCropperSettings implements DefaultNodeSettings {
 
     @Widget(title = "Start row number",
         description = "Select the first row to include (the first row of the table has number 1).")
-    @NumberInputWidget(min = 1)
+    @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
     @Layout(RowsSection.class)
     long m_startRowNumber = 1;
 
@@ -177,7 +178,7 @@ public final class TableCropperSettings implements DefaultNodeSettings {
     boolean m_startRowCountFromEnd;
 
     @Widget(title = "End row number (inclusive)", description = "Select the last row to include.")
-    @NumberInputWidget(min = 1)
+    @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
     @Layout(RowsSection.class)
     long m_endRowNumber = 1;
 

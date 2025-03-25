@@ -51,11 +51,11 @@ package org.knime.base.node.preproc.rounddouble;
 import java.math.RoundingMode;
 import java.util.stream.Stream;
 
-import org.knime.base.node.preproc.rounddouble.RoundDoubleNodeSettings.RoundingMethod.Standard;
 import org.knime.base.node.preproc.rounddouble.RoundDoubleMigrations.NumberModeMigration;
 import org.knime.base.node.preproc.rounddouble.RoundDoubleMigrations.OutputColumnMigration;
 import org.knime.base.node.preproc.rounddouble.RoundDoubleMigrations.OutputModeMigration;
 import org.knime.base.node.preproc.rounddouble.RoundDoubleMigrations.RoundingMethodMigration;
+import org.knime.base.node.preproc.rounddouble.RoundDoubleNodeSettings.RoundingMethod.Standard;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
@@ -70,7 +70,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvid
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
@@ -79,6 +78,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MaxValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 
 /**
  * Node settings for the 'Number Rounder' node
@@ -278,11 +279,18 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
     @Migration(NumberModeMigration.class)
     NumberMode m_numberModeV2 = NumberMode.DECIMALS;
 
+    static final class PrecisionMaxValidation extends MaxValidation {
+        @Override
+        protected double getMax() {
+            return 350;
+        }
+    }
+
     @Widget(title = "Rounding to digits", description = """
             When rounding to <b>Decimals</b>, this sets the number of decimal places to keep.<br/>
             When rounding to <b>Significant digits</b>, this sets the number of significant digits to keep.
             """)
-    @NumberInputWidget(min = 0, max = 350)
+    @NumberInputWidget(validation = {IsNonNegativeValidation.class, PrecisionMaxValidation.class})
     @Effect(predicate = NumberModeIsInteger.class, type = EffectType.HIDE)
     @Persist(configKey = "PrecisionNumer")
     int m_precision = 3;
@@ -307,7 +315,6 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
     OutputColumn m_outputColumn = OutputColumn.APPEND;
 
     @Widget(title = "Output column suffix", description = "Set the suffix to append to the new column names.")
-    @TextInputWidget
     @Effect(predicate = OutputColumnIsReplace.class, type = EffectType.HIDE)
     @Persist(configKey = "ColumnSuffix")
     String m_suffix = " (Rounded)";

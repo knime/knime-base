@@ -75,6 +75,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesStateP
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
@@ -86,6 +87,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.ColumnNameValidation;
 import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.Granularity;
 
@@ -140,14 +142,12 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
     @Layout(DifferencingSettingsSection.class)
     LocalTime m_localTimeFixed = LocalTime.now();
 
-    @Widget(title = "Local date&time",
-        description = "The fixed local date&amp;time to calculate the difference to.")
+    @Widget(title = "Local date&time", description = "The fixed local date&amp;time to calculate the difference to.")
     @Effect(predicate = FirstColumnIsDateTimeAndFixedDateTime.class, type = EffectType.SHOW)
     @Layout(DifferencingSettingsSection.class)
     LocalDateTime m_localDateTimeFixed = LocalDateTime.now();
 
-    @Widget(title = "Zoned date&time",
-        description = "The fixed zoned date&amp;time to calculate the difference to.")
+    @Widget(title = "Zoned date&time", description = "The fixed zoned date&amp;time to calculate the difference to.")
     @Effect(predicate = FirstColumnIsZonedDateTimeAndFixedDateTime.class, type = EffectType.SHOW)
     @Layout(DifferencingSettingsSection.class)
     ZonedDateTime m_zonedDateTimeFixed = ZonedDateTime.now();
@@ -183,6 +183,7 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Output column name", description = "The name of the output column.")
     @Layout(OutputSettingsSection.class)
+    @TextInputWidget(validation = ColumnNameValidation.class)
     String m_outputColumnName = "Date&Time Difference";
 
     DateTimeDifferenceNodeSettings() {

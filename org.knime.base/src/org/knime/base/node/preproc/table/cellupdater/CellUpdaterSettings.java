@@ -69,6 +69,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 
 /**
  * Settings of the Cell Updater node.
@@ -124,12 +125,12 @@ public final class CellUpdaterSettings implements DefaultNodeSettings {
     String m_columnName;
 
     @Widget(title = "Column number", description = "Provide the number of the column that contains the target cell.")
-    @NumberInputWidget(min = 1)
+    @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
     @Effect(predicate =  ColumnModeIsByName.class, type = EffectType.HIDE)
     int m_columnNumber = 1;
 
     @Widget(title = "Row number", description = "Provide the number of the row that contains the target cell.")
-    @NumberInputWidget(min = 1)
+    @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
     int m_rowNumber = 1;
 
     @Widget(title = "Count rows from the end of the table",

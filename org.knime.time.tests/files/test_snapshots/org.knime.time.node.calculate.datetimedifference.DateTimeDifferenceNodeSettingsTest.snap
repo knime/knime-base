@@ -2290,7 +2290,17 @@
         }
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/outputColumnName"
+        "scope" : "#/properties/model/properties/outputColumnName",
+        "options" : {
+          "hideOnNull" : false,
+          "validations" : [ {
+            "id" : "pattern",
+            "parameters" : {
+              "pattern" : "^(\\S(.*\\S)?)?$"
+            },
+            "errorMessage" : "The string must match the pattern: ^(\\S(.*\\S)?)?$"
+          } ]
+        }
       } ]
     } ]
   },

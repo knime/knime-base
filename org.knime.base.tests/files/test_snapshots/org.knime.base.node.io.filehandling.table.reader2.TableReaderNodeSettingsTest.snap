@@ -378,8 +378,8 @@
         "scope" : "#/properties/model/properties/settings/properties/source",
         "options" : {
           "format" : "fileChooser",
-          "mountId" : "Local space",
           "isLocal" : true,
+          "mountId" : "Local space",
           "fileExtensions" : [ "table" ]
         }
       } ]
@@ -390,7 +390,14 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/advancedSettings/properties/skipFirstDataRows",
         "options" : {
-          "min" : 0.0
+          "validations" : [ {
+            "id" : "min",
+            "parameters" : {
+              "min" : 0.0,
+              "isExclusive" : false
+            },
+            "errorMessage" : "The value must be at least 0."
+          } ]
         }
       }, {
         "type" : "Control",
@@ -403,7 +410,14 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/advancedSettings/properties/maximumNumberOfRows",
         "options" : {
-          "min" : 0.0
+          "validations" : [ {
+            "id" : "min",
+            "parameters" : {
+              "min" : 0.0,
+              "isExclusive" : false
+            },
+            "errorMessage" : "The value must be at least 0."
+          } ]
         },
         "rule" : {
           "effect" : "SHOW",

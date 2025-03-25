@@ -69,6 +69,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MaxValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 
 /**
  * Settings for Missing Value Column Filter node
@@ -146,17 +148,24 @@ final class MissingValueColumnFilterNodeSettings implements DefaultNodeSettings 
     @Migration(RemovalCriterionDefaultProvider.class) // added during webui transition
     RemovalCriterion m_removeColumnsBy = RemovalCriterion.ONLY;
 
+    private static final class PercentageMaxValidation extends MaxValidation {
+        @Override
+        protected double getMax() {
+            return 100;
+        }
+    }
+
     // "more-than-or-equal" is legacy behavior
     @Widget(title = "Threshold percentage (equal or more than %)", //
         description = "Selected columns with at least this percentage of missing values are filtered out.")
-    @NumberInputWidget(max = 100, min = 0)
+    @NumberInputWidget(validation = {IsNonNegativeValidation.class, PercentageMaxValidation.class})
     @Persist(configKey = "missing_value_percentage")
     @Effect(type = EffectType.SHOW, predicate = ByPercentage.class)
     double m_percentage = 100.0;
 
     @Widget(title = "Threshold number (equal or more than)", //
         description = "Selected columns with at least this number of missing values are filtered out.")
-    @NumberInputWidget(min = 0)
+    @NumberInputWidget(validation = IsNonNegativeValidation.class)
     @Effect(type = EffectType.SHOW, predicate = ByNumber.class)
     @Migrate(loadDefaultIfAbsent = true)
     long m_number = 1;

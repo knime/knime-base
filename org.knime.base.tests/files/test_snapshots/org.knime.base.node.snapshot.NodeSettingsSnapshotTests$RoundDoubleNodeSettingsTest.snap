@@ -303,8 +303,21 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/precision",
       "options" : {
-        "min" : 0.0,
-        "max" : 350.0
+        "validations" : [ {
+          "id" : "min",
+          "parameters" : {
+            "min" : 0.0,
+            "isExclusive" : false
+          },
+          "errorMessage" : "The value must be at least 0."
+        }, {
+          "id" : "max",
+          "parameters" : {
+            "max" : 350.0,
+            "isExclusive" : false
+          },
+          "errorMessage" : "The value must be less than 350."
+        } ]
       },
       "rule" : {
         "effect" : "HIDE",
@@ -350,9 +363,6 @@
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/suffix",
-      "options" : {
-        "hideOnNull" : false
-      },
       "rule" : {
         "effect" : "HIDE",
         "condition" : {

@@ -59,7 +59,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettin
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.EnumSettingsModelStringPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget.DoubleProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
@@ -67,7 +66,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.Effe
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MaxValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 
 /**
  * Settings for the Column Appender node.
@@ -108,7 +110,7 @@ public final class ColumnAppenderSettings implements DefaultNodeSettings {
     @RadioButtonsWidget
     RowKeyMode m_rowIdMode = RowKeyMode.IDENTICAL;
 
-    static final class NumTables implements DoubleProvider {
+    static final class NumTablesMaxValidation implements StateProvider<MaxValidation> {
 
         @Override
         public void init(final StateProviderInitializer initializer) {
@@ -116,8 +118,19 @@ public final class ColumnAppenderSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public Double computeState(final DefaultNodeSettingsContext context) {
-            return (double)context.getDataTableSpecs().length;
+        public MaxValidation computeState(final DefaultNodeSettingsContext context) {
+            final var max = context.getDataTableSpecs().length;
+            return new MaxValidation() {
+                @Override
+                protected double getMax() {
+                    return max;
+                }
+
+                @Override
+                public String getErrorMessage() {
+                    return String.format("Only %d table input ports available.", max);
+                }
+            };
         }
 
     }
@@ -125,7 +138,8 @@ public final class ColumnAppenderSettings implements DefaultNodeSettings {
     @Persistor(RowIdTableSelectPersistor.class)
     @Widget(title = "RowID table number",
         description = "Select the table whose RowIDs should be used for the output table.")
-    @NumberInputWidget(min = 1, maxProvider = NumTables.class)
+    @NumberInputWidget(validation = IsPositiveIntegerValidation.class,
+        validationProvider = NumTablesMaxValidation.class)
     @Effect(type = EffectType.SHOW, predicate = IsKeyTable.class)
     int m_rowIdTableSelect = 1;
 

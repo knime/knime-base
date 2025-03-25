@@ -26,8 +26,21 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/loops",
       "options" : {
-        "min" : 1.0,
-        "max" : 2147483647
+        "validations" : [ {
+          "id" : "min",
+          "parameters" : {
+            "min" : 1.0,
+            "isExclusive" : false
+          },
+          "errorMessage" : "The value must be at least 1."
+        }, {
+          "id" : "max",
+          "parameters" : {
+            "max" : 2.147483647E9,
+            "isExclusive" : false
+          },
+          "errorMessage" : "The value must be less than 2147483647."
+        } ]
       }
     } ]
   },

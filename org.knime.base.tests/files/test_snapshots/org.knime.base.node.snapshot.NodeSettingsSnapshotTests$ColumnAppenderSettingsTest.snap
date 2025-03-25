@@ -49,8 +49,15 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/rowIdTableSelect",
       "options" : {
-        "min" : 1.0,
-        "maxProvider" : "org.knime.base.node.preproc.columnappend2.ColumnAppenderSettings$NumTables"
+        "validations" : [ {
+          "id" : "min",
+          "parameters" : {
+            "min" : 1.0,
+            "isExclusive" : false
+          },
+          "errorMessage" : "The value must be at least 1."
+        } ],
+        "validationProviders" : [ "org.knime.base.node.preproc.columnappend2.ColumnAppenderSettings$NumTablesMaxValidation" ]
       },
       "rule" : {
         "effect" : "SHOW",
@@ -83,10 +90,17 @@
   },
   "initialUpdates" : [ {
     "scopes" : null,
-    "id" : "org.knime.base.node.preproc.columnappend2.ColumnAppenderSettings$NumTables",
+    "id" : "org.knime.base.node.preproc.columnappend2.ColumnAppenderSettings$NumTablesMaxValidation",
     "values" : [ {
       "indices" : [ ],
-      "value" : 1.0
+      "value" : {
+        "id" : "max",
+        "parameters" : {
+          "max" : 1.0,
+          "isExclusive" : false
+        },
+        "errorMessage" : "Only 1 table input ports available."
+      }
     } ]
   } ]
 }

@@ -2102,7 +2102,14 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/numberOfRows",
         "options" : {
-          "min" : 1.0
+          "validations" : [ {
+            "id" : "min",
+            "parameters" : {
+              "min" : 1.0,
+              "isExclusive" : false
+            },
+            "errorMessage" : "The value must be at least 1."
+          } ]
         },
         "rule" : {
           "effect" : "SHOW",
@@ -4079,7 +4086,17 @@
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/outputColumnName"
+        "scope" : "#/properties/model/properties/outputColumnName",
+        "options" : {
+          "hideOnNull" : false,
+          "validations" : [ {
+            "id" : "pattern",
+            "parameters" : {
+              "pattern" : "^(\\S(.*\\S)?)?$"
+            },
+            "errorMessage" : "The string must match the pattern: ^(\\S(.*\\S)?)?$"
+          } ]
+        }
       } ]
     } ]
   },

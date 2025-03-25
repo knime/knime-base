@@ -70,6 +70,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 
 /**
  * The settings for the "Top k Row Filter" node.
@@ -166,7 +167,7 @@ final class TopKSelectorNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Number of rows / unique values",
         description = "The number of rows to select from the input table based on the specified mode.")
-    @NumberInputWidget(min = 1)
+    @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
     @Layout(FilterSection.class)
     @Migration(KSettingsMigration.class)
     long m_amount = 5;

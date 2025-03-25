@@ -64,6 +64,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
@@ -73,6 +74,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicatePr
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.ColumnNameValidation;
 import org.knime.time.util.DateTimeType;
 import org.knime.time.util.DateTimeType.IsDateTimeTypeAndNotDisabled;
 
@@ -158,7 +161,7 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
             The number of rows to create.
             """)
     @Effect(predicate = FixedSteps.IncludesNumber.class, type = EffectType.SHOW)
-    @NumberInputWidget(min = 1)
+    @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
     long m_numberOfRows = 1000;
 
     @Layout(value = RangeSettingsSection.class)
@@ -213,6 +216,7 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
 
     @Layout(value = OutputSettingsSection.class)
     @Widget(title = "Output column name", description = "The name of the output column.")
+    @TextInputWidget(validation = ColumnNameValidation.class)
     String m_outputColumnName = "Date";
 
     enum FixedSteps {

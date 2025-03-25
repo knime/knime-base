@@ -62,8 +62,21 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/maxDepth",
       "options" : {
-        "min" : 0.0,
-        "max" : 2147483647
+        "validations" : [ {
+          "id" : "min",
+          "parameters" : {
+            "min" : 0.0,
+            "isExclusive" : false
+          },
+          "errorMessage" : "The value must be at least 0."
+        }, {
+          "id" : "max",
+          "parameters" : {
+            "max" : 2.147483647E9,
+            "isExclusive" : false
+          },
+          "errorMessage" : "The value must be less than 2147483647."
+        } ]
       },
       "rule" : {
         "effect" : "DISABLE",

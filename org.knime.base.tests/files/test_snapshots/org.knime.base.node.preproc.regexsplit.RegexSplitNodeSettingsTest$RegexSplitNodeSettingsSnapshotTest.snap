@@ -122,8 +122,7 @@
                 "type" : "string",
                 "title" : "Output column name",
                 "description" : "Choose a name for the output column",
-                "default" : "Split",
-                "minLength" : 1
+                "default" : "Split"
               },
               "columnPrefix" : {
                 "type" : "string",
@@ -209,8 +208,7 @@
             "type" : "string",
             "title" : "Pattern",
             "description" : "Define a pattern according to which the input string will be split. The capture groups that are defined in\nthis pattern will correspond to the output values. A group can be defined in one of two ways:\n<ul>\n    <li>For a named group, define <tt>(?&lt;groupName&gt;pattern)</tt>,\n    where <tt>groupName</tt> is the name of the group and <tt>pattern</tt> can be replaced by any regular\n    expression that should be matched. Note that group names need to start with a letter and may\n    contain only letters and digits, no spaces.</li>\n    <li>For an unnamed capture group, simply use parenthesis around your pattern:\n    <tt>(pattern)</tt>, where again <tt>pattern</tt> can be replaced by any\n    pattern. Unnamed capture groups are simply identified by their position in the pattern string, and they\n    are enumerated starting at 1.</li>\n</ul>\nIf you want to use non-capturing groups, construct them with\n<tt>(?:pattern)</tt>\n",
-            "default" : "(.*)",
-            "minLength" : 1
+            "default" : "(.*)"
           },
           "requireWholeMatch" : {
             "type" : "boolean",
@@ -249,7 +247,14 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/pattern",
         "options" : {
-          "hideOnNull" : false
+          "hideOnNull" : false,
+          "validations" : [ {
+            "id" : "pattern",
+            "parameters" : {
+              "pattern" : ".+"
+            },
+            "errorMessage" : "The field cannot be empty (it must contain at least one character)."
+          } ]
         }
       }, {
         "type" : "Control",
@@ -408,7 +413,14 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/output/properties/columnName",
         "options" : {
-          "hideOnNull" : false
+          "hideOnNull" : false,
+          "validations" : [ {
+            "id" : "pattern",
+            "parameters" : {
+              "pattern" : ".+"
+            },
+            "errorMessage" : "The field cannot be empty (it must contain at least one character)."
+          } ]
         },
         "rule" : {
           "effect" : "HIDE",

@@ -61,6 +61,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 
 /**
  *
@@ -97,14 +98,14 @@ public final class LagColumnNodeSettings implements DefaultNodeSettings {
 
     @Persist(configKey = LagColumnConfiguration.CFG_LAG)
     @Widget(title = "Number of copies", description = " <i>L</i> = defines how many lagged column copies to create.")
-    @NumberInputWidget(min = 1)
+    @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
     int m_lag = 1;
 
     @Persist(configKey = LagColumnConfiguration.CFG_LAG_INTERVAL)
     @Widget(title = "Lag per copy",
         description = "<i>I</i> = lag interval (sometimes also called periodicity or seasonality), defines "
             + "how many rows to shift per column copy.")
-    @NumberInputWidget(min = 1)
+    @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
     int m_lagInterval = 1;
 
     @Persist(configKey = LagColumnConfiguration.CFG_SKIP_INITIAL_COMPLETE_ROWS)

@@ -54,6 +54,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.set
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelIntegerPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 
 /**
  * Settings class for the Row to Column Header node.
@@ -66,7 +67,7 @@ public final class RowToColumnHeaderSettings implements DefaultNodeSettings {
     @Persistor(HeaderRowIndexPersistor.class)
     @Widget(title = "Number of rows before the header",
         description = "Number of rows in the input table that precede the row that should be used as new column header")
-    @NumberInputWidget(min = 0)
+    @NumberInputWidget(validation = IsNonNegativeValidation.class)
     int m_headerRowIndex;
 
     @Persistor(DiscardBeforePersistor.class)

@@ -83,6 +83,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MaxValidation;
 
 /**
  *
@@ -448,6 +449,13 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
     @ValueSwitchWidget
     OutputRowOrder m_outputRowOrder = OutputRowOrder.ARBITRARY;
 
+    static final class OpenFilesMaxValidation extends MaxValidation {
+        @Override
+        protected double getMax() {
+            return 3;
+        }
+    }
+
     @Widget(title = "Maximum number of temporary files",
         description = """
                  Defines the number of temporary files that can be created during the join operation and possibly subsequent sorting operations.
@@ -455,7 +463,7 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
                  Be aware that the operating system might impose a limit on the maximum number of open files.
                 """)
     @Layout(PerformanceSection.class)
-    @NumberInputWidget(min = 3)
+    @NumberInputWidget(validation = OpenFilesMaxValidation.class)
     int m_maxOpenFiles = 200;
 
     @Widget(title = "Hiliting enabled",

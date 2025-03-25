@@ -63,6 +63,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MaxValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 
 /**
  * Node settings for the 'Timer Info' node.
@@ -113,10 +115,18 @@ public class TimerinfoNodeSettings implements DefaultNodeSettings {
         }
     }
 
+    // TODO(UIEXT-2654): Remove when it is part of the framework
+    private static final class MaxIntegerMaxValidation extends MaxValidation {
+        @Override
+        protected double getMax() {
+            return Integer.MAX_VALUE;
+        }
+    }
+
     @Widget(title = "Max Depth", description = """
             Controls depth of reporting of nodes in (nested) metanodes and components.
             """)
-    @NumberInputWidget(min = 0, max = Integer.MAX_VALUE)
+    @NumberInputWidget(validation = {IsNonNegativeValidation.class, MaxIntegerMaxValidation.class})
     @Effect(predicate = MaxDepthDisabledPolicy.class, type = EffectType.DISABLE)
     @Persist(configKey = "MaxDepth")
     int m_maxDepth = 2;
