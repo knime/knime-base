@@ -48,15 +48,13 @@
  */
 package org.knime.base.node.preproc.split3;
 
-import java.util.List;
-
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
 
 /**
  * Settings for the new WebUI version of the column splitter node.
@@ -82,19 +80,5 @@ final class ColumnSplitNodeSettings implements DefaultNodeSettings {
             .flatMap(DataTableSpec::stream) //
             .map(DataColumnSpec::getName) //
             .toArray(String[]::new));
-    }
-
-    /**
-     * Match every column in the input table.
-     */
-    static final class AllColumnsProvider implements ColumnChoicesProvider {
-
-        @Override
-        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0) //
-                .stream() //
-                .flatMap(DataTableSpec::stream) //
-                .toList();
-        }
     }
 }

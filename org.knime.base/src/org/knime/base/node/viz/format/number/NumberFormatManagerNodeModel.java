@@ -49,9 +49,6 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
-import org.knime.core.data.DoubleValue;
-import org.knime.core.data.IntValue;
-import org.knime.core.data.LongValue;
 import org.knime.core.data.property.ValueFormatHandler;
 import org.knime.core.data.property.ValueFormatModelNumber;
 import org.knime.core.node.BufferedDataTable;
@@ -148,17 +145,5 @@ final class NumberFormatManagerNodeModel extends WebUINodeModel<NumberFormatMana
     @Override
     protected void validateSettings(final NumberFormatManagerNodeSettings settings) throws InvalidSettingsException {
         handlerFor(settings);
-    }
-
-    /**
-     * Determine whether the given column is an aggregatable column, i.e. a column compatible with {@link DoubleValue},
-     * {@link IntValue}, or {@link LongValue}.
-     *
-     * @param column data column spec
-     * @return {@code true} if the column can be aggregated, {@code false} otherwise
-     */
-    static boolean isTargetColumn(final DataColumnSpec column) {
-        final var t = column.getType();
-        return t.isCompatible(DoubleValue.class);
     }
 }

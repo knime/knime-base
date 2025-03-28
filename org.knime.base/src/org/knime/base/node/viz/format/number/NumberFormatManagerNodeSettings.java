@@ -48,11 +48,9 @@
  */
 package org.knime.base.node.viz.format.number;
 
-import static org.knime.base.node.viz.format.number.NumberFormatManagerNodeModel.isTargetColumn;
 import static org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil.getDoubleColumnsOfFirstPort;
 
 import org.knime.base.node.viz.format.AlignmentSuggestionOption;
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
@@ -64,9 +62,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.FilteredInputTableColumnsProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider.DoubleColumnsProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 
 /**
  * @author Carl Witt, KNIME AG, Zurich, Switzerland
@@ -154,7 +152,7 @@ public final class NumberFormatManagerNodeSettings implements DefaultNodeSetting
             Select the columns to attach the selected format to.
             This does not change the data, only the way the values in the column are displayed in views.
             """)
-    @ChoicesProvider(NumberColumns.class)
+    @ChoicesProvider(DoubleColumnsProvider.class)
     @Layout(DialogLayout.ColumnSelection.class)
     ColumnFilter m_columnsToFormat;
 
@@ -211,14 +209,4 @@ public final class NumberFormatManagerNodeSettings implements DefaultNodeSetting
     NumberFormatManagerNodeSettings() {
         // required by framework for serialization/deserialization
     }
-
-    static final class NumberColumns implements FilteredInputTableColumnsProvider {
-
-        @Override
-        public boolean isIncluded(final DataColumnSpec col) {
-            return isTargetColumn(col);
-        }
-
-    }
-
 }
