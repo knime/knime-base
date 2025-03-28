@@ -3,8 +3,7 @@
 <knimeNode icon="timestamptotime.png" type="Manipulator">
 	<name>UNIX Timestamp to Date&amp;Time</name>
 	<shortDescription>
-		Parses date and/or time strings into Date&amp;Time
-		cells.
+		Parses integer and/or long into Date&amp;Time cells.
 	</shortDescription>
 	<fullDescription>
 		<intro>
