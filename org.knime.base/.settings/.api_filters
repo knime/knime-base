@@ -72,10 +72,26 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="src/org/knime/base/node/io/filehandling/webui/reader/CommonReaderNodeSettings.java" type="org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$SkipFirstDataRowsPersistor">
+        <filter id="338792546">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.SkipFirstDataRowsPersistor"/>
+                <message_argument value="getConfigKeys()"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="src/org/knime/base/node/io/variablecreator/VariableCreatorNodeFactory.java" type="org.knime.base.node.io.variablecreator.VariableCreatorNodeFactory">
         <filter id="305365105">
             <message_arguments>
                 <message_argument value="org.knime.base.node.io.variablecreator.VariableCreatorNodeFactory"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/createtablestructure/CreateTableStructureNodeFactory.java" type="org.knime.base.node.preproc.createtablestructure.CreateTableStructureNodeFactory">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.createtablestructure.CreateTableStructureNodeFactory"/>
                 <message_argument value="org.knime.base_5.5.0"/>
             </message_arguments>
         </filter>
@@ -135,6 +151,14 @@
             <message_arguments>
                 <message_argument value="org.knime.base.node.preproc.filter.rowref.RowSplitRefNodeFactory"/>
                 <message_argument value="createNodeView(int, RowSplitRefNodeModel)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/stringreplacer/CaseMatching.java" type="org.knime.base.node.preproc.stringreplacer.CaseMatching$Persistor">
+        <filter id="338792546">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.stringreplacer.CaseMatching.Persistor"/>
+                <message_argument value="getConfigKeys()"/>
             </message_arguments>
         </filter>
     </resource>
