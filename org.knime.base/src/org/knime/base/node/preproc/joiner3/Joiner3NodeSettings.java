@@ -83,7 +83,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MaxValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation;
 
 /**
  *
@@ -449,9 +449,9 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
     @ValueSwitchWidget
     OutputRowOrder m_outputRowOrder = OutputRowOrder.ARBITRARY;
 
-    static final class OpenFilesMaxValidation extends MaxValidation {
+    static final class OpenFilesMinValidation extends MinValidation {
         @Override
-        protected double getMax() {
+        protected double getMin() {
             return 3;
         }
     }
@@ -463,7 +463,7 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
                  Be aware that the operating system might impose a limit on the maximum number of open files.
                 """)
     @Layout(PerformanceSection.class)
-    @NumberInputWidget(validation = OpenFilesMaxValidation.class)
+    @NumberInputWidget(validation = OpenFilesMinValidation.class)
     int m_maxOpenFiles = 200;
 
     @Widget(title = "Hiliting enabled",

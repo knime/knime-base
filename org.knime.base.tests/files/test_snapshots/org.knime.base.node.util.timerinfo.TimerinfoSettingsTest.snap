@@ -75,7 +75,7 @@
             "max" : 2.147483647E9,
             "isExclusive" : false
           },
-          "errorMessage" : "The value must be less than 2147483647."
+          "errorMessage" : "The value must not exceed 2147483647."
         } ]
       },
       "rule" : {

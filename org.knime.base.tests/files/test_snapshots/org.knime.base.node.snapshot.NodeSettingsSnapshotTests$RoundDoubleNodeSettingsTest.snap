@@ -316,7 +316,7 @@
             "max" : 350.0,
             "isExclusive" : false
           },
-          "errorMessage" : "The value must be less than 350."
+          "errorMessage" : "The value must not exceed 350."
         } ]
       },
       "rule" : {

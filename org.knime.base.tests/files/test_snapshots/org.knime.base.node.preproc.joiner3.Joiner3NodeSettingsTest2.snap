@@ -637,12 +637,12 @@
         "scope" : "#/properties/model/properties/maxOpenFiles",
         "options" : {
           "validations" : [ {
-            "id" : "max",
+            "id" : "min",
             "parameters" : {
-              "max" : 3.0,
+              "min" : 3.0,
               "isExclusive" : false
             },
-            "errorMessage" : "The value must be less than 3."
+            "errorMessage" : "The value must be at least 3."
           } ]
         }
       }, {

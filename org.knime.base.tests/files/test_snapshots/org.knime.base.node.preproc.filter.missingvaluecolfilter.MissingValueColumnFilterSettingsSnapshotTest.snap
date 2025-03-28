@@ -247,7 +247,7 @@
             "max" : 100.0,
             "isExclusive" : false
           },
-          "errorMessage" : "The value must be less than 100."
+          "errorMessage" : "The value must not exceed 100."
         } ]
       },
       "rule" : {
