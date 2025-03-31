@@ -133,7 +133,7 @@
                 }
               }
             },
-            "title" : "Column to output in first table",
+            "title" : "Assign columns to output tables",
             "description" : "Columns on the right side of the splitter will be included in the first output table. Those on the left side will be included in the second output table.\n",
             "default" : {
               "selected" : [ "test1", "test2" ],
@@ -184,7 +184,9 @@
         "showNoneColumn" : false,
         "showRowKeys" : false,
         "showSearch" : true,
-        "showMode" : true
+        "showMode" : true,
+        "includedLabel" : "First table",
+        "excludedLabel" : "Second table"
       }
     } ]
   },

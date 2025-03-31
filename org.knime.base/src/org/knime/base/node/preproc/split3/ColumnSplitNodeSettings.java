@@ -64,11 +64,15 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 @SuppressWarnings("restriction")
 final class ColumnSplitNodeSettings implements DefaultNodeSettings {
 
-    @Widget(title = "Column to output in first table", description = """
+    @Widget(title = "Assign columns to output tables", description = """
             Columns on the right side of the splitter will be included in the first output table. \
             Those on the left side will be included in the second output table.
             """)
-    @ChoicesWidget(choices = AllColumnsProvider.class)
+    @ChoicesWidget( //
+        choices = AllColumnsProvider.class, //
+        includedLabel = "First table", //
+        excludedLabel = "Second table" //
+    )
     ColumnFilter m_columnsToInclude = new ColumnFilter();
 
     ColumnSplitNodeSettings() {
