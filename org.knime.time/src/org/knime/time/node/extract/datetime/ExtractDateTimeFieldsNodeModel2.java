@@ -48,6 +48,8 @@
  */
 package org.knime.time.node.extract.datetime;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.validatePossiblyEmptyColumnName;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -108,7 +110,10 @@ public class ExtractDateTimeFieldsNodeModel2
         if (Arrays.stream(settings.m_extractFields).anyMatch(field -> field.m_field == null)) {
             throw new InvalidSettingsException("No empty fields allowed. Please remove to continue.");
         }
-        super.validateSettings(settings);
+        for (final var columnSetting : settings.m_extractFields) {
+            validatePossiblyEmptyColumnName(columnSetting.m_columnName,
+                String.format("%s.Column name", columnSetting.m_field.getLabelValue()));
+        }
     }
 
     /**

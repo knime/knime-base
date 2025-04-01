@@ -64,6 +64,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.Colu
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
@@ -74,6 +75,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.AbstractIsColumnNameValidationV2Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.ColumnNameValidationV2;
 
 /**
  * {@link DefaultNodeSettings} implementation for the Duplicate Row Filter to auto-generate a Web-UI based dialog. Note
@@ -171,6 +174,7 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
             + "('unique', 'chosen', 'duplicate') should be outputted.")
     @Effect(predicate = KeepDuplicatesAndAddUniqueLabel.class, type = EffectType.SHOW)
     @Layout(DuplicateHandlingSection.class)
+    @TextInputWidget(validation = ColumnNameValidationV2.class)
     String m_uniqueStatusColumnName = "Duplicate Status";
 
     @Persist(configKey = DuplicateRowFilterSettings.ADD_ROW_ID_FLAG_KEY)
@@ -189,7 +193,17 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
             + "of the chosen row for each duplicate row should be outputted.")
     @Effect(predicate = KeepDuplicatesAndAddChosenRowIdsColumn.class, type = EffectType.SHOW)
     @Layout(DuplicateHandlingSection.class)
+    @TextInputWidget(validation = ColumnNameValidationV2.class)
     String m_chosenRowIdsColumnName = "Duplicate Chosen";
+
+    static final class IsColumnNameValidationV2Persistor extends AbstractIsColumnNameValidationV2Persistor {
+        protected IsColumnNameValidationV2Persistor() {
+            super("isColumnNameValidationV2");
+        }
+    }
+
+    @Persistor(IsColumnNameValidationV2Persistor.class)
+    boolean m_isColumnNameValidationV2 = true;
 
     interface RowSelectionRef extends Reference<RowSelection> {
     }

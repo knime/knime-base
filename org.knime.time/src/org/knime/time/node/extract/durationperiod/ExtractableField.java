@@ -56,6 +56,7 @@ import java.util.Optional;
 import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.LongCell.LongCellFactory;
@@ -110,6 +111,18 @@ enum ExtractableField {
                 10.123456789 seconds would have 789 nanoseconds.
                 """)
         NANOS_PART(Duration.class, (DurationToLongCellExtractor)d -> d.toNanosPart() % 1_000, null);
+
+    String getLabelValue() {
+        try {
+            Label label = ExtractableField.class.getField(this.name()).getAnnotation(Label.class);
+            if (label == null) {
+                throw new NoSuchFieldException("ExtractableField must provide 'Label' annotation");
+            }
+            return label.value();
+        } catch (NoSuchFieldException | SecurityException ex) {
+            throw new NotImplementedException(ex);
+        }
+    }
 
     interface NumberCellExtractor {
         DataCell extractNumberCellFromTemporalAmount(TemporalAmount amount);

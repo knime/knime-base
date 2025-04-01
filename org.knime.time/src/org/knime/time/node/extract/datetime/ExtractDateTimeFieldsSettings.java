@@ -82,6 +82,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.EmptyOrColumnNameValidation;
 import org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings.ColumnNameProvider.DateTimeFieldReference;
 import org.knime.time.util.DateTimeUtils.DateTimeColumnProvider;
 
@@ -198,7 +199,7 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
             description = "The name of the column populated with the values of the selected field. "
                 + "The field cannot be empty (it must contain at least one character).")
         @Layout(ExtractFieldLayout.class)
-        @TextInputWidget(placeholderProvider = ColumnNameProvider.class)
+        @TextInputWidget(placeholderProvider = ColumnNameProvider.class, validation = EmptyOrColumnNameValidation.class)
         public String m_columnName;
     }
 

@@ -2,7 +2,10 @@
   "data" : {
     "model" : {
       "primaryColumn" : "",
-      "secondaryColumn" : ""
+      "secondaryColumn" : "",
+      "outputPlacement" : "ReplaceBoth",
+      "outputName" : "NewColumn",
+      "isColumnNameValidationV2" : true
     }
   },
   "schema" : {
@@ -11,10 +14,15 @@
       "model" : {
         "type" : "object",
         "properties" : {
+          "isColumnNameValidationV2" : {
+            "type" : "boolean",
+            "default" : true
+          },
           "outputName" : {
             "type" : "string",
             "title" : "New column name",
-            "description" : "The name for the new column."
+            "description" : "The name for the new column.",
+            "default" : "NewColumn"
           },
           "outputPlacement" : {
             "oneOf" : [ {
@@ -31,7 +39,8 @@
               "title" : "Append as new column"
             } ],
             "title" : "Replace/append columns",
-            "description" : "Choose where to put the result column:<ul><li><b>Replace primary and delete secondary</b>: Replace the primary column with the merge result and remove the secondary column.</li><li><b>Replace primary</b>: Replace the primary column with the merge result and keep the secondary column.</li><li><b>Replace secondary</b>: Keep the primary column and replace the secondary column with the merge result.</li><li><b>Append as new column</b>: Append a new column with the name provided below.</li></ul>"
+            "description" : "Choose where to put the result column:<ul><li><b>Replace primary and delete secondary</b>: Replace the primary column with the merge result and remove the secondary column.</li><li><b>Replace primary</b>: Replace the primary column with the merge result and keep the secondary column.</li><li><b>Replace secondary</b>: Keep the primary column and replace the secondary column with the merge result.</li><li><b>Append as new column</b>: Append a new column with the name provided below.</li></ul>",
+            "default" : "ReplaceBoth"
           },
           "primaryColumn" : {
             "type" : "string",
@@ -74,6 +83,15 @@
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/outputName",
+      "options" : {
+        "validations" : [ {
+          "errorMessage" : "The string must start and end with a non-whitespace character.",
+          "id" : "pattern",
+          "parameters" : {
+            "pattern" : "\\S(.*\\S)?"
+          }
+        } ]
+      },
       "rule" : {
         "effect" : "SHOW",
         "condition" : {
@@ -104,6 +122,9 @@
           },
           "outputName" : {
             "configPaths" : [ [ "outputName" ] ]
+          },
+          "isColumnNameValidationV2" : {
+            "configPaths" : [ ]
           }
         }
       }

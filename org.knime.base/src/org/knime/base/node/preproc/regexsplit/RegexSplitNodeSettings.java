@@ -72,6 +72,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProv
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider.StringColumnsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.AbstractIsColumnNameValidationV2Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.IsNotEmptyValidation;
 
 /**
@@ -339,6 +340,15 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
     OutputSettings m_output = new OutputSettings();
 
     // Utility
+
+    static final class IsColumnNameValidationV2Persistor extends AbstractIsColumnNameValidationV2Persistor {
+        protected IsColumnNameValidationV2Persistor() {
+            super("isColumnNameValidationV2");
+        }
+    }
+
+    @Persistor(IsColumnNameValidationV2Persistor.class)
+    boolean m_isColumnNameValidationV2 = true;
 
     static class TrueProvider implements DefaultProvider<Boolean> {
         @Override

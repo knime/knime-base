@@ -47,6 +47,8 @@
  */
 package org.knime.base.node.preproc.stringreplacer;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.validateColumnName;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
@@ -63,23 +65,27 @@ import org.knime.core.data.StringValue;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.streamable.simple.SimpleStreamableFunctionNodeModel;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 
 /**
  * This is the model for the string replacer node that does the work.
  *
  * @author Thorsten Meinl, University of Konstanz
  */
-public class StringReplacerNodeModel extends SimpleStreamableFunctionNodeModel {
+@SuppressWarnings("restriction")
+public class StringReplacerNodeModel extends WebUISimpleStreamableFunctionNodeModel<StringReplacerNodeSettings> {
 
-    private final StringReplacerSettings m_settings = new StringReplacerSettings();
+    /**
+     * @param config the {@link WebUINodeConfiguration}
+     * @since 5.5
+     */
+    protected StringReplacerNodeModel(final WebUINodeConfiguration config) {
+        super(config, StringReplacerNodeSettings.class);
+    }
 
     /**
      * A pre-compiled {@link Pattern} that matches a back-reference in a replacement string and captures them.
@@ -92,27 +98,32 @@ public class StringReplacerNodeModel extends SimpleStreamableFunctionNodeModel {
         Pattern.compile("(\\$\\d+|\\$\\{[A-Za-z][A-Za-z0-9]*\\})"); //NOSONAR: only match spec
 
     /**
-     * Creates the column rearranger that computes the new cells.
-     *
-     * @param spec the spec of the input table
-     * @return a column rearranger
+     * @since 5.5
      */
     @Override
-    protected ColumnRearranger createColumnRearranger(final DataTableSpec spec) throws InvalidSettingsException {
-        final var compiledPattern = createPattern(m_settings);
+    protected ColumnRearranger createColumnRearranger(final DataTableSpec spec,
+        final StringReplacerNodeSettings modelSettings) throws InvalidSettingsException {
+        if (modelSettings.m_colName == null) {
+            modelSettings.m_colName = getLastStringColumn(spec);
+        } else if (spec.findColumnIndex(modelSettings.m_colName) == -1) {
+            throw new InvalidSettingsException("The previously selected column '" + modelSettings.m_colName
+                + "' is not available. Please reconfigure the node.");
+        }
 
-        var newColumnName = m_settings.createNewColumn() ? m_settings.newColumnName() : m_settings.columnName();
+        final var compiledPattern = createPattern(modelSettings);
+
+        var newColumnName = modelSettings.m_createNewCol ? modelSettings.m_newColName : modelSettings.m_colName;
         var colSpec = new DataColumnSpecCreator(newColumnName, StringCell.TYPE).createSpec();
 
         final String replacement;
-        if (m_settings.patternType() == PatternType.WILDCARD) {
+        if (modelSettings.m_patternType == PatternType.WILDCARD) {
             // Remove back-references when matching with wildcards
-            var backreferenceMatcher = backreferencePattern.matcher(m_settings.replacement());
+            var backreferenceMatcher = backreferencePattern.matcher(modelSettings.m_replacement);
             replacement = backreferenceMatcher.replaceAll("\\\\$1");
         } else {
-            replacement = m_settings.replacement();
+            replacement = modelSettings.m_replacement;
         }
-        final int index = spec.findColumnIndex(m_settings.columnName());
+        final int index = spec.findColumnIndex(modelSettings.m_colName);
         SingleCellFactory cf = new SingleCellFactory(colSpec) {
             @Override
             public DataCell getCell(final DataRow row) {
@@ -121,11 +132,11 @@ public class StringReplacerNodeModel extends SimpleStreamableFunctionNodeModel {
                     return cell;
                 }
                 final var originalStringValue = ((StringValue)cell).getStringValue();
-                if (m_settings.patternType() == PatternType.LITERAL) {
-                    return new StringCell(getLiteralReplacementString(m_settings, replacement, originalStringValue));
-                } else if (compiledPattern.isPresent() && (m_settings.patternType() == PatternType.REGEX
-                    || m_settings.patternType() == PatternType.WILDCARD)) {
-                    return new StringCell(getPatternReplacementString(m_settings, compiledPattern.get(), replacement,
+                if (modelSettings.m_patternType == PatternType.LITERAL) {
+                    return new StringCell(getLiteralReplacementString(modelSettings, replacement, originalStringValue));
+                } else if (compiledPattern.isPresent() && (modelSettings.m_patternType == PatternType.REGEX
+                    || modelSettings.m_patternType == PatternType.WILDCARD)) {
+                    return new StringCell(getPatternReplacementString(modelSettings, compiledPattern.get(), replacement,
                         originalStringValue));
                 } else {
                     return new StringCell(originalStringValue);
@@ -134,13 +145,13 @@ public class StringReplacerNodeModel extends SimpleStreamableFunctionNodeModel {
         };
 
         var crea = new ColumnRearranger(spec);
-        if (m_settings.createNewColumn()) {
-            if (spec.containsName(m_settings.newColumnName())) {
-                throw new InvalidSettingsException("Duplicate column name: " + m_settings.newColumnName());
+        if (modelSettings.m_createNewCol) {
+            if (spec.containsName(modelSettings.m_newColName)) {
+                throw new InvalidSettingsException("Duplicate column name: " + modelSettings.m_newColName);
             }
             crea.append(cf);
         } else {
-            crea.replace(cf, m_settings.columnName());
+            crea.replace(cf, modelSettings.m_colName);
         }
 
         return crea;
@@ -148,23 +159,25 @@ public class StringReplacerNodeModel extends SimpleStreamableFunctionNodeModel {
 
     /**
      * Optionally (depending on the node settings) compile the pattern that will matched to the string cells
+     *
      * @param settings The node settings instance of the current node
      * @return A compiled {@link Pattern}, or {@code Optional.empty()} if compilation is not necessary
      */
-    private static Optional<Pattern> createPattern(final StringReplacerSettings settings) {
+    private static Optional<Pattern> createPattern(final StringReplacerNodeSettings settings) {
         String regex;
         var flags = 0;
-        if (settings.patternType() == PatternType.REGEX) {
-            regex = settings.pattern();
-        } else if (settings.patternType() == PatternType.WILDCARD) {
-            regex = WildcardMatcher.wildcardToRegex(settings.pattern(), settings.enableEscaping());
+        if (settings.m_patternType == PatternType.REGEX) {
+            regex = settings.m_pattern;
+        } else if (settings.m_patternType == PatternType.WILDCARD) {
+            regex = WildcardMatcher.wildcardToRegex(settings.m_pattern, settings.m_enableEscaping);
             flags = Pattern.DOTALL | Pattern.MULTILINE;
         } else {
             // no Pattern needs be compiled for other types of patterns
             return Optional.empty();
         }
         // support for \n and international characters
-        if (!settings.caseSensitive()) {
+
+        if (settings.m_caseMatching == CaseMatching.CASEINSENSITIVE) {
             flags |= Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
         }
         return Optional.of(Pattern.compile(regex, flags));
@@ -178,25 +191,25 @@ public class StringReplacerNodeModel extends SimpleStreamableFunctionNodeModel {
      * @param originalStringValue The original string (the cell content before any modification)
      * @return A new string that has all occurrences of the literal pattern replaced by the replacement string
      */
-    private static String getLiteralReplacementString(final StringReplacerSettings settings, final String replacement,
-        final String originalStringValue) {
-        if (settings.caseSensitive()) {
-            if (settings.replaceAllOccurrences() && StringUtils.contains(originalStringValue, settings.pattern())) {
+    private static String getLiteralReplacementString(final StringReplacerNodeSettings settings,
+        final String replacement, final String originalStringValue) {
+        if (settings.m_caseMatching == CaseMatching.CASESENSITIVE) {
+            if (settings.m_replacementStrategy == ReplacementStrategy.ALL_OCCURRENCES
+                && StringUtils.contains(originalStringValue, settings.m_pattern)) {
                 // we check for contains so we can return Optional.empty() else
-                return StringUtils.replace(originalStringValue, settings.pattern(), replacement);
-            } else if (!settings.replaceAllOccurrences()
-                && StringUtils.equals(originalStringValue, settings.pattern())) {
+                return StringUtils.replace(originalStringValue, settings.m_pattern, replacement);
+            } else if (settings.m_replacementStrategy != ReplacementStrategy.ALL_OCCURRENCES
+                && StringUtils.equals(originalStringValue, settings.m_pattern)) {
                 // replace whole string
                 return replacement;
             }
         } else {
-            if (settings.replaceAllOccurrences()
-                && StringUtils.containsIgnoreCase(originalStringValue, settings.pattern())) {
+            if (settings.m_replacementStrategy == ReplacementStrategy.ALL_OCCURRENCES
+                && StringUtils.containsIgnoreCase(originalStringValue, settings.m_pattern)) {
                 // we check for contains so we can return Optional.empty() else
-                return
-                    StringUtils.replaceIgnoreCase(originalStringValue, settings.pattern(), replacement);
-            } else if (!settings.replaceAllOccurrences()
-                && StringUtils.equalsIgnoreCase(originalStringValue, settings.pattern())) {
+                return StringUtils.replaceIgnoreCase(originalStringValue, settings.m_pattern, replacement);
+            } else if (settings.m_replacementStrategy != ReplacementStrategy.ALL_OCCURRENCES
+                && StringUtils.equalsIgnoreCase(originalStringValue, settings.m_pattern)) {
                 // replace whole string
                 return replacement;
             }
@@ -213,11 +226,11 @@ public class StringReplacerNodeModel extends SimpleStreamableFunctionNodeModel {
      * @param originalStringValue The original string (the cell content before any modification)
      * @return A new string that has all occurrences of the literal pattern replaced by the replacement string
      */
-    private static String getPatternReplacementString(final StringReplacerSettings settings, final Pattern pattern,
+    private static String getPatternReplacementString(final StringReplacerNodeSettings settings, final Pattern pattern,
         final String replacement, final String originalStringValue) {
         var m = pattern.matcher(originalStringValue);
-        if (settings.replaceAllOccurrences()) {
-            return switch (settings.patternType()) {
+        if (settings.m_replacementStrategy == ReplacementStrategy.ALL_OCCURRENCES) {
+            return switch (settings.m_patternType) {
                 // Intentionally don't alter any regex behaviour here so we can rely on the Java Pattern Doc
                 case REGEX -> m.replaceAll(replacement);
                 // Replace e.g. "*" only once, otherwise fall back to replaceAll
@@ -238,23 +251,6 @@ public class StringReplacerNodeModel extends SimpleStreamableFunctionNodeModel {
         return originalStringValue;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
-        if (m_settings.columnName() == null) {
-            m_settings.columnName(getLastStringColumn(inSpecs[0]));
-            setWarningMessage("No column selected, using '" + m_settings.columnName() + "'.");
-        } else if (inSpecs[0].findColumnIndex(m_settings.columnName()) == -1) {
-            throw new InvalidSettingsException("The previously selected column '" + m_settings.columnName()
-                + "' is not available. " + "Please reconfigure the node.");
-        }
-
-        var crea = createColumnRearranger(inSpecs[0]);
-        return new DataTableSpec[]{crea.createSpec()};
-    }
-
     private static String getLastStringColumn(final DataTableSpec dataTableSpec) throws InvalidSettingsException {
         final var lastMatchingColumn = IntStream.range(0, dataTableSpec.getNumColumns()) //
             .map(i -> dataTableSpec.getNumColumns() - i - 1) //
@@ -266,14 +262,19 @@ public class StringReplacerNodeModel extends SimpleStreamableFunctionNodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @since 5.5
      */
     @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
-        throws Exception {
-        exec.setMessage("Searching & Replacing");
-        var crea = createColumnRearranger(inData[0].getDataTableSpec());
-        return new BufferedDataTable[]{exec.createColumnRearrangeTable(inData[0], crea, exec)};
+    protected void validateSettings(final StringReplacerNodeSettings settings) throws InvalidSettingsException {
+        if (settings.m_createNewCol) {
+            if (settings.m_isColumnNameValidationV2) {
+                validateColumnName(settings.m_newColName, "New column name");
+            } else {
+                if (settings.m_newColName == null || settings.m_newColName.trim().length() == 0) {
+                    throw new InvalidSettingsException("No name for the new column given");
+                }
+            }
+        }
     }
 
     /**
@@ -283,14 +284,6 @@ public class StringReplacerNodeModel extends SimpleStreamableFunctionNodeModel {
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
         // nothing to do
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_settings.loadSettings(settings);
     }
 
     /**
@@ -308,38 +301,6 @@ public class StringReplacerNodeModel extends SimpleStreamableFunctionNodeModel {
     protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
         // nothing to do
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
-        m_settings.saveSettings(settings);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        var s = new StringReplacerSettings();
-        s.loadSettings(settings);
-
-        if (s.createNewColumn() && (s.newColumnName() == null || s.newColumnName().trim().length() == 0)) {
-            throw new InvalidSettingsException("No name for the new column given");
-        }
-        if (s.columnName() == null) {
-            throw new InvalidSettingsException("No column selected");
-        }
-        if (s.pattern() == null) {
-            throw new InvalidSettingsException("No pattern given");
-        }
-        if (s.replacement() == null) {
-            throw new InvalidSettingsException("No replacement string given");
-        }
-
-        createPattern(s);
     }
 
 }

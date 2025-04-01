@@ -16,7 +16,8 @@
       }, {
         "columnName" : "Column 4",
         "colType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.IntCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
-      } ]
+      } ],
+      "isColumnNameValidationV2" : false
     }
   },
   "schema" : {
@@ -49,6 +50,10 @@
               "columnName" : "Column 1",
               "colType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
             } ]
+          },
+          "isColumnNameValidationV2" : {
+            "type" : "boolean",
+            "default" : true
           }
         }
       }
@@ -64,11 +69,11 @@
           "scope" : "#/properties/columnName",
           "options" : {
             "validations" : [ {
+              "errorMessage" : "The string must start and end with a non-whitespace character.",
               "id" : "pattern",
               "parameters" : {
-                "pattern" : "^(\\S(.*\\S)?)?$"
-              },
-              "errorMessage" : "The string must match the pattern: ^(\\S(.*\\S)?)?$"
+                "pattern" : "\\S(.*\\S)?"
+              }
             } ]
           }
         }, {
@@ -106,6 +111,9 @@
             "deprecatedConfigKeys" : [ {
               "deprecated" : [ [ "colCount" ], [ "colPrefix" ], [ "colType" ] ]
             } ]
+          },
+          "isColumnNameValidationV2" : {
+            "configPaths" : [ ]
           }
         }
       }

@@ -203,10 +203,28 @@
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/decimalSep"
+        "scope" : "#/properties/model/properties/decimalSep",
+        "options" : {
+          "validations" : [ {
+            "id" : "maxLength",
+            "parameters" : {
+              "maxLength" : 1
+            },
+            "errorMessage" : "The string must not exceed 1 character."
+          } ]
+        }
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/thousandsSep"
+        "scope" : "#/properties/model/properties/thousandsSep",
+        "options" : {
+          "validations" : [ {
+            "id" : "maxLength",
+            "parameters" : {
+              "maxLength" : 1
+            },
+            "errorMessage" : "The string must not exceed 1 character."
+          } ]
+        }
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/parseType"

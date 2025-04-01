@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.preproc.createtablestructure;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.validateColumnName;
+
 import java.util.Arrays;
 
 import org.knime.core.data.DataColumnSpec;
@@ -98,5 +100,15 @@ final class CreateTableStructureNodeModel extends WebUINodeModel<CreateTableStru
             .map(setting -> (new DataColumnSpecCreator(setting.m_columnName, setting.m_colType)).createSpec())
             .toArray(DataColumnSpec[]::new);
         return new DataTableSpec("Table Structure", specs);
+    }
+
+    @Override
+    protected void validateSettings(final CreateTableStructureNodeSettings settings) throws InvalidSettingsException {
+        if (settings.m_isColumnNameValidationV2) {
+            for (var i = 0; i < settings.m_columnSettings.length; i++) {
+                final var columnSetting = settings.m_columnSettings[i];
+                validateColumnName(columnSetting.m_columnName, String.format("Column %d.Column name", i + 1));
+            }
+        }
     }
 }

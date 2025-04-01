@@ -170,7 +170,14 @@
             "type" : "Control",
             "scope" : "#/properties/columnName",
             "options" : {
-              "placeholderProvider" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$ColumnNameProvider"
+              "placeholderProvider" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$ColumnNameProvider",
+              "validations" : [ {
+                "id" : "pattern",
+                "parameters" : {
+                  "pattern" : "(\\S(.*\\S)?)?"
+                },
+                "errorMessage" : "The string must either be empty or start and end with a non-whitespace character."
+              } ]
             }
           } ]
         } ],

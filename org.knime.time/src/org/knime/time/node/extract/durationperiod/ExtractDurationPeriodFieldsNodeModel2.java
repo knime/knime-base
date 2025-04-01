@@ -48,6 +48,7 @@
  */
 package org.knime.time.node.extract.durationperiod;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.validatePossiblyEmptyColumnName;
 import static org.knime.time.node.extract.durationperiod.ExtractFieldSettings.OutputColumnNamePlaceholderProvider.getPlaceholder;
 
 import java.util.Arrays;
@@ -87,7 +88,10 @@ public class ExtractDurationPeriodFieldsNodeModel2
     @Override
     protected void validateSettings(final ExtractDurationPeriodFieldsNodeSettings settings)
         throws InvalidSettingsException {
-
+        for (final var columnSetting : settings.m_extractFields) {
+            validatePossiblyEmptyColumnName(columnSetting.m_outputcolumnName,
+                String.format("%s.Column name", columnSetting.m_field.getLabelValue()));
+        }
         var firstDuplicateColumnName = Arrays.stream(settings.m_extractFields) //
             .filter(extractField -> !extractField.m_outputcolumnName.isEmpty())
             .collect(Collectors.groupingBy(extractField -> extractField.m_outputcolumnName)) //

@@ -57,12 +57,15 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettin
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelStringPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.AbstractIsColumnNameValidationV2Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.ColumnNameValidationV2;
 
 /**
  *
@@ -109,7 +112,7 @@ public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
         + "</ul>")
     @RadioButtonsWidget
     @ValueReference(OutputPlacement.Ref.class)
-    OutputPlacement m_outputPlacement;
+    OutputPlacement m_outputPlacement = OutputPlacement.ReplaceBoth;
 
     static final class OutputNamePersisor extends SettingsModelStringPersistor {
         OutputNamePersisor() {
@@ -120,7 +123,17 @@ public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
     @Persistor(OutputNamePersisor.class)
     @Widget(title = "New column name", description = "The name for the new column.")
     @Effect(predicate = OutputPlacement.IsAppendAsNewColumn.class, type = EffectType.SHOW)
-    String m_outputName;
+    @TextInputWidget(validation = ColumnNameValidationV2.class)
+    String m_outputName = "NewColumn";
+
+    static final class IsColumnNameValidationV2Persistor extends AbstractIsColumnNameValidationV2Persistor {
+        protected IsColumnNameValidationV2Persistor() {
+            super("isColumnNameValidationV2");
+        }
+    }
+
+    @Persistor(IsColumnNameValidationV2Persistor.class)
+    boolean m_isColumnNameValidationV2 = true;
 
     private static final class OutputPlacementOptionsPersistor implements NodeSettingsPersistor<OutputPlacement> {
 

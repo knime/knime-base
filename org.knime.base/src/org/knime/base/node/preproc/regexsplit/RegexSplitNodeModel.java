@@ -47,6 +47,8 @@
  */
 package org.knime.base.node.preproc.regexsplit;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.validateColumnName;
+
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
@@ -155,6 +157,10 @@ final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
     @Override
     protected void validateSettings(final RegexSplitNodeSettings settings) throws InvalidSettingsException {
         RegexSplitter.fromSettings(settings); // might throw
+        if (settings.m_isColumnNameValidationV2 && settings.m_output.m_mode != OutputMode.COLUMNS
+            && settings.m_output.m_singleOutputColumnMode == SingleOutputColumnMode.APPEND) {
+            validateColumnName(settings.m_output.m_columnName, "Output column name");
+        }
     }
 
     // ##################################

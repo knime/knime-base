@@ -25,6 +25,7 @@
       "quoteInputs" : "ONLY_NECESSARY",
       "replacementDelimiter" : "",
       "outputColumnName" : "Combined String",
+      "isColumnNameValidationV2" : true,
       "removeInputColumns" : false
     }
   },
@@ -167,6 +168,10 @@
             "description" : "If true the node will fail when there are missing columns selected",
             "default" : false
           },
+          "isColumnNameValidationV2" : {
+            "type" : "boolean",
+            "default" : true
+          },
           "outputColumnName" : {
             "type" : "string",
             "title" : "Output column name",
@@ -294,7 +299,16 @@
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/outputColumnName"
+        "scope" : "#/properties/model/properties/outputColumnName",
+        "options" : {
+          "validations" : [ {
+            "errorMessage" : "The string must start and end with a non-whitespace character.",
+            "id" : "pattern",
+            "parameters" : {
+              "pattern" : "\\S(.*\\S)?"
+            }
+          } ]
+        }
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/removeInputColumns",
@@ -374,6 +388,9 @@
           },
           "outputColumnName" : {
             "configKey" : "new_column_name"
+          },
+          "isColumnNameValidationV2" : {
+            "configPaths" : [ ]
           },
           "removeInputColumns" : {
             "configKey" : "remove_included_columns"

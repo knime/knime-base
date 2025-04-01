@@ -9,4 +9,5 @@
     <entry key="enableHilite" type="xboolean" value="false"/>
     <entry key="appendRowKeyCol" type="xboolean" value="false"/>
     <entry key="newColumnName4RowKeyValues" type="xstring" value="appendedColumn"/>
+    <entry key="isColumnNameValidationV2_Internals" type="xboolean" value="true"/>
 </config>

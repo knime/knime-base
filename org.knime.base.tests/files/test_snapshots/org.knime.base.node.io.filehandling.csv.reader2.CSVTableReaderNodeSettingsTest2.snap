@@ -877,12 +877,12 @@
         "scope" : "#/properties/model/properties/limitRows/properties/skipFirstLines",
         "options" : {
           "validations" : [ {
+            "errorMessage" : "The value must be at least 0.",
             "id" : "min",
             "parameters" : {
               "min" : 0.0,
               "isExclusive" : false
-            },
-            "errorMessage" : "The value must be at least 0."
+            }
           } ]
         }
       }, {
@@ -890,11 +890,11 @@
         "scope" : "#/properties/model/properties/settings/properties/commentLineCharacter",
         "options" : {
           "validations" : [ {
+            "errorMessage" : "The string must not exceed 1 character.",
             "id" : "maxLength",
             "parameters" : {
               "maxLength" : 1
-            },
-            "errorMessage" : "The string must not exceed 1 character."
+            }
           } ]
         }
       }, {
@@ -908,11 +908,11 @@
         "scope" : "#/properties/model/properties/settings/properties/customRowDelimiter",
         "options" : {
           "validations" : [ {
+            "errorMessage" : "The value must be a single character, “\\t”, ”\\n”, “\\r”, or “\\r\\n”.",
             "id" : "pattern",
             "parameters" : {
               "pattern" : ".|\\\\(t|r|n)|\\\\r\\\\n"
-            },
-            "errorMessage" : "The value must be a single character, “\\t”, ”\\n”, “\\r”, or “\\r\\n”."
+            }
           } ]
         },
         "rule" : {
@@ -931,11 +931,11 @@
         "scope" : "#/properties/model/properties/settings/properties/columnDelimiter",
         "options" : {
           "validations" : [ {
+            "errorMessage" : "The string must be a single character.",
             "id" : "pattern",
             "parameters" : {
               "pattern" : "^.$"
-            },
-            "errorMessage" : "The string must be a single character."
+            }
           } ]
         }
       }, {
@@ -951,11 +951,11 @@
           "scope" : "#/properties/model/properties/settings/properties/quoteCharacter",
           "options" : {
             "validations" : [ {
+              "errorMessage" : "The string must not exceed 1 character.",
               "id" : "maxLength",
               "parameters" : {
                 "maxLength" : 1
-              },
-              "errorMessage" : "The string must not exceed 1 character."
+              }
             } ]
           }
         }, {
@@ -963,11 +963,11 @@
           "scope" : "#/properties/model/properties/settings/properties/quoteEscapeCharacter",
           "options" : {
             "validations" : [ {
+              "errorMessage" : "The string must not exceed 1 character.",
               "id" : "maxLength",
               "parameters" : {
                 "maxLength" : 1
-              },
-              "errorMessage" : "The string must not exceed 1 character."
+              }
             } ]
           }
         } ]
@@ -993,12 +993,12 @@
         "options" : {
           "isAdvanced" : true,
           "validations" : [ {
+            "errorMessage" : "The value must be at least 1.",
             "id" : "min",
             "parameters" : {
               "min" : 1.0,
               "isExclusive" : false
-            },
-            "errorMessage" : "The value must be at least 1."
+            }
           } ]
         }
       } ]
@@ -1016,12 +1016,12 @@
         "scope" : "#/properties/model/properties/limitRows/properties/skipFirstDataRows",
         "options" : {
           "validations" : [ {
+            "errorMessage" : "The value must be at least 0.",
             "id" : "min",
             "parameters" : {
               "min" : 0.0,
               "isExclusive" : false
-            },
-            "errorMessage" : "The value must be at least 0."
+            }
           } ]
         }
       }, {
@@ -1036,12 +1036,12 @@
         "scope" : "#/properties/model/properties/limitRows/properties/maximumNumberOfRows",
         "options" : {
           "validations" : [ {
+            "errorMessage" : "The value must be at least 0.",
             "id" : "min",
             "parameters" : {
               "min" : 0.0,
               "isExclusive" : false
-            },
-            "errorMessage" : "The value must be at least 0."
+            }
           } ]
         },
         "rule" : {
@@ -1074,11 +1074,11 @@
         "scope" : "#/properties/model/properties/advancedSettings/properties/decimalSeparator",
         "options" : {
           "validations" : [ {
+            "errorMessage" : "The string must be a single character.",
             "id" : "pattern",
             "parameters" : {
               "pattern" : "^.$"
-            },
-            "errorMessage" : "The string must be a single character."
+            }
           } ]
         }
       }, {
@@ -1086,11 +1086,11 @@
         "scope" : "#/properties/model/properties/advancedSettings/properties/thousandsSeparator",
         "options" : {
           "validations" : [ {
+            "errorMessage" : "The string must not exceed 1 character.",
             "id" : "maxLength",
             "parameters" : {
               "maxLength" : 1
-            },
-            "errorMessage" : "The string must not exceed 1 character."
+            }
           } ]
         }
       }, {
@@ -1126,12 +1126,12 @@
         "options" : {
           "hideControlHeader" : true,
           "validations" : [ {
+            "errorMessage" : "The value must be at least 0.",
             "id" : "min",
             "parameters" : {
               "min" : 0.0,
               "isExclusive" : false
-            },
-            "errorMessage" : "The value must be at least 0."
+            }
           } ]
         },
         "rule" : {
@@ -1156,12 +1156,12 @@
         "scope" : "#/properties/model/properties/advancedSettings/properties/maximumNumberOfColumns",
         "options" : {
           "validations" : [ {
+            "errorMessage" : "The value must be at least 0.",
             "id" : "min",
             "parameters" : {
               "min" : 0.0,
               "isExclusive" : false
-            },
-            "errorMessage" : "The value must be at least 0."
+            }
           } ]
         }
       }, {
@@ -1198,6 +1198,15 @@
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/advancedSettings/properties/filePathColumnName",
+        "options" : {
+          "validations" : [ {
+            "errorMessage" : "The string must start and end with a non-whitespace character.",
+            "id" : "pattern",
+            "parameters" : {
+              "pattern" : "\\S(.*\\S)?"
+            }
+          } ]
+        },
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
@@ -1240,7 +1249,14 @@
             "type" : "Control",
             "scope" : "#/properties/columnRename",
             "options" : {
-              "hideControlHeader" : true
+              "hideControlHeader" : true,
+              "validations" : [ {
+                "errorMessage" : "The string must start and end with a non-whitespace character.",
+                "id" : "pattern",
+                "parameters" : {
+                  "pattern" : "\\S(.*\\S)?"
+                }
+              } ]
             },
             "rule" : {
               "effect" : "SHOW",

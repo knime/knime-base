@@ -93,7 +93,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.ColumnNameValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.ColumnNameValidationV2;
 import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.Granularity;
 
@@ -277,7 +277,7 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Output column name", description = "The name of the output column.")
     @Layout(OutputSettingsSection.class)
-    @TextInputWidget(validation = ColumnNameValidation.class)
+    @TextInputWidget(validation = ColumnNameValidationV2.class)
     String m_outputColumnName = "Date&Time Difference";
 
     DateTimeDifferenceNodeSettings() {

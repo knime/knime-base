@@ -48,6 +48,8 @@
  */
 package org.knime.time.node.calculate.datetimedifference;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.validateColumnName;
+
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -104,6 +106,11 @@ public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDiffere
      */
     protected DateTimeDifferenceNodeModel2(final WebUINodeConfiguration configuration) {
         super(configuration, DateTimeDifferenceNodeSettings.class);
+    }
+
+    @Override
+    protected void validateSettings(final DateTimeDifferenceNodeSettings settings) throws InvalidSettingsException {
+        validateColumnName(settings.m_outputColumnName, "Output column name");
     }
 
     @Override

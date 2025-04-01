@@ -37,4 +37,5 @@
             </config>
         </config>
     </config>
+    <entry key="isColumnNameValidationV2_Internals" type="xboolean" value="true"/>
 </config>

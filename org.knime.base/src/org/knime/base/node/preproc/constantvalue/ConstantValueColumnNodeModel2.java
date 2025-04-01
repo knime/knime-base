@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.preproc.constantvalue;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.validateColumnName;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -100,12 +102,6 @@ final class ConstantValueColumnNodeModel2
                     + firstInvalidCustomValue.get().m_type.toPrettyString() + ".");
         }
 
-        var anyColumnWasBlank = Arrays.stream(settings.m_newColumnSettings) //
-            .anyMatch(s -> s.m_replaceOrAppend == AppendOrReplace.APPEND && s.m_columnNameToAppend.isBlank());
-        if (anyColumnWasBlank) {
-            throw new InvalidSettingsException("The column name to append must not be blank.");
-        }
-
         // check no column is appended twice
         var outputColumnNames = Arrays.stream(settings.m_newColumnSettings) //
             .filter(s -> s.m_replaceOrAppend == AppendOrReplace.APPEND) //
@@ -115,6 +111,16 @@ final class ConstantValueColumnNodeModel2
         if (firstDuplicateColumnName.isPresent()) {
             throw new InvalidSettingsException(
                 "The column name '" + firstDuplicateColumnName.get() + "' is appended multiple times.");
+        }
+        if (!outputColumnNames.isEmpty()) {
+            for (var i = 0; i < settings.m_newColumnSettings.length; i++) {
+                final var columnSetting = settings.m_newColumnSettings[i];
+                if (columnSetting.m_replaceOrAppend == AppendOrReplace.APPEND) {
+                    validateColumnName(columnSetting.m_columnNameToAppend,
+                        String.format("Constant column %d.New column", i + 1));
+                }
+
+            }
         }
 
         // check no column is replaced twice

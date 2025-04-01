@@ -4,7 +4,8 @@
       "renamings" : [ {
         "oldName" : "test2",
         "newName" : "test2"
-      } ]
+      } ],
+      "isColumnNameValidationV2" : true
     }
   },
   "schema" : {
@@ -13,6 +14,10 @@
       "model" : {
         "type" : "object",
         "properties" : {
+          "isColumnNameValidationV2" : {
+            "type" : "boolean",
+            "default" : true
+          },
           "renamings" : {
             "type" : "array",
             "items" : {
@@ -60,11 +65,11 @@
             "scope" : "#/properties/newName",
             "options" : {
               "validations" : [ {
+                "errorMessage" : "The string must start and end with a non-whitespace character.",
                 "id" : "pattern",
                 "parameters" : {
-                  "pattern" : "\\S+.*"
-                },
-                "errorMessage" : "The string must match the pattern: \\S+.*"
+                  "pattern" : "\\S(.*\\S)?"
+                }
               } ]
             }
           } ]
@@ -88,6 +93,9 @@
                 "newName" : { }
               }
             }
+          },
+          "isColumnNameValidationV2" : {
+            "configPaths" : [ ]
           }
         }
       }

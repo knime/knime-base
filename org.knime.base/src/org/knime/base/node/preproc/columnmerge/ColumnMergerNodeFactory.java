@@ -45,19 +45,8 @@
  */
 package org.knime.base.node.preproc.columnmerge;
 
-import java.util.Map;
-
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
-import org.knime.core.webui.node.dialog.NodeDialog;
-import org.knime.core.webui.node.dialog.NodeDialogFactory;
-import org.knime.core.webui.node.dialog.NodeDialogManager;
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
-import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
-import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
  * Factory to column merger node.
@@ -65,55 +54,49 @@ import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  */
 @SuppressWarnings("restriction")
-public final class ColumnMergerNodeFactory extends NodeFactory<ColumnMergerNodeModel>
-    implements NodeDialogFactory, KaiNodeInterfaceFactory {
+public final class ColumnMergerNodeFactory extends WebUINodeFactory<ColumnMergerNodeModel> {
 
-    /** {@inheritDoc} */
+    private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
+        .name("Column Merger") //
+        .icon("./column_merger.png") //
+        .shortDescription("Merges two columns into one by choosing the cell that is non-missing.") //
+        .fullDescription("""
+                        <p>
+                  Merges two columns into one by choosing the cell that is
+                  non-missing. The configuration dialog allows you to choose a
+                  primary and a secondary column. The output of the node will
+                  be a new column (or a replacement of the selected input columns),
+                  whereby the output value for each row will be
+                  <ul>
+                    <li>the value in the primary column if it is not missing,</li>
+                    <li>the value in the secondary column otherwise.</li>
+                  </ul>
+                </p>
+                <p>
+                  Note that the output value might be missing if and only if the
+                  secondary column contains a missing value. Also note that the type
+                  of the output column is a super type of both selected inputs, i.e.
+                  if you choose to merge a number and a string column, the output
+                  column will have a very general data type.
+                </p>
+                        """) //
+        .modelSettingsClass(ColumnMergerNodeSettings.class) //
+        .nodeType(NodeType.Manipulator) //
+        .addInputTable("Input", "Input with two columns to merge.") //
+        .addOutputTable("Input with amended column", "Input along with the merged column.") //
+        .keywords("Coalesce") //
+        .build();
+
+    /**
+     * Create a new {@link ColumnMergerNodeFactory}
+     */
+    public ColumnMergerNodeFactory() {
+        super(CONFIGURATION);
+    }
+
     @Override
     public ColumnMergerNodeModel createNodeModel() {
-        return new ColumnMergerNodeModel();
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public NodeView<ColumnMergerNodeModel> createNodeView(final int viewIndex, final ColumnMergerNodeModel nodeModel) {
-        return null;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @since 5.0
-     */
-    @Override
-    public NodeDialog createNodeDialog() {
-        return new DefaultNodeDialog(SettingsType.MODEL, ColumnMergerNodeSettings.class);
-    }
-
-    /**
-     * @since 5.5
-     */
-    @Override
-    public KaiNodeInterface createKaiNodeInterface() {
-        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, ColumnMergerNodeSettings.class));
+        return new ColumnMergerNodeModel(CONFIGURATION);
     }
 
 }

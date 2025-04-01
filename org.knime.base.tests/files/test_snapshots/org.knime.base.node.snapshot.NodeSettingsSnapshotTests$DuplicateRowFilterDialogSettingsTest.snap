@@ -6,6 +6,7 @@
       "uniqueStatusColumnName" : "Duplicate Status",
       "addRowIdLabel" : false,
       "chosenRowIdsColumnName" : "Duplicate Chosen",
+      "isColumnNameValidationV2" : true,
       "rowSelectionType" : "FIRST",
       "selectedColumn" : "test1",
       "inMemory" : false,
@@ -148,6 +149,10 @@
             "description" : "If selected, computation is sped up by utilizing working memory (RAM). The amount of required memory is higher than for a regular computation and also depends on the amount of input data.",
             "default" : false
           },
+          "isColumnNameValidationV2" : {
+            "type" : "boolean",
+            "default" : true
+          },
           "retainOrder" : {
             "type" : "boolean",
             "title" : "Retain row order",
@@ -237,6 +242,15 @@
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/uniqueStatusColumnName",
+        "options" : {
+          "validations" : [ {
+            "errorMessage" : "The string must start and end with a non-whitespace character.",
+            "id" : "pattern",
+            "parameters" : {
+              "pattern" : "\\S(.*\\S)?"
+            }
+          } ]
+        },
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
@@ -276,6 +290,15 @@
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/chosenRowIdsColumnName",
+        "options" : {
+          "validations" : [ {
+            "errorMessage" : "The string must start and end with a non-whitespace character.",
+            "id" : "pattern",
+            "parameters" : {
+              "pattern" : "\\S(.*\\S)?"
+            }
+          } ]
+        },
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
@@ -373,6 +396,9 @@
           },
           "chosenRowIdsColumnName" : {
             "configKey" : "row_id_flag_column_name"
+          },
+          "isColumnNameValidationV2" : {
+            "configPaths" : [ ]
           },
           "rowSelectionType" : {
             "configKey" : "row_selection"

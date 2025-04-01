@@ -103,9 +103,9 @@
             "validations" : [ {
               "id" : "pattern",
               "parameters" : {
-                "pattern" : "^(\\S(.*\\S)?)?$"
+                "pattern" : "\\S(.*\\S)?"
               },
-              "errorMessage" : "The string must match the pattern: ^(\\S(.*\\S)?)?$"
+              "errorMessage" : "The string must start and end with a non-whitespace character."
             } ]
           },
           "rule" : {

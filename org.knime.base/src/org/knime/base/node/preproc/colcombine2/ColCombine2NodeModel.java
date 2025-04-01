@@ -44,6 +44,8 @@
  */
 package org.knime.base.node.preproc.colcombine2;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.validateColumnName;
+
 import java.util.Arrays;
 import java.util.HashSet;
 
@@ -188,29 +190,43 @@ public class ColCombine2NodeModel extends WebUISimpleStreamableFunctionNodeModel
     @Override
     protected void validateSettings(final ColCombine2NodeSettings modelSettings) throws InvalidSettingsException {
         if (modelSettings != null) {
+            validateOutputColumnNameSetting(modelSettings);
+            validateDelimiterSettings(modelSettings);
+        }
+    }
+
+    private static void validateDelimiterSettings(final ColCombine2NodeSettings modelSettings)
+        throws InvalidSettingsException {
+        if (modelSettings.m_delimiter == null) {
+            throw new InvalidSettingsException("A delimiter must be specified");
+        }
+        modelSettings.m_delimiter = trimDelimString(modelSettings.m_delimiter);
+
+        if (modelSettings.m_delimiterInputs == DelimiterInputs.QUOTE) {
+            if (Character.isWhitespace(modelSettings.m_quoteCharacter)) {
+                throw new InvalidSettingsException("Can't use white space as quote char");
+            }
+            if (modelSettings.m_delimiter.contains(Character.toString(modelSettings.m_quoteCharacter))) {
+                throw new InvalidSettingsException("Delimiter String \"" + modelSettings.m_delimiter
+                    + "\" must not contain quote character ('" + modelSettings.m_quoteCharacter + "')");
+            }
+        } else {
+            if ((modelSettings.m_delimiter.length() > 0)
+                && (modelSettings.m_replacementDelimiter.contains(modelSettings.m_delimiter))) {
+                throw new InvalidSettingsException("Replacement string \"" + modelSettings.m_replacementDelimiter
+                    + "\" must not contain delimiter string \"" + modelSettings.m_delimiter + "\"");
+            }
+        }
+
+    }
+
+    private static void validateOutputColumnNameSetting(final ColCombine2NodeSettings modelSettings)
+        throws InvalidSettingsException {
+        if (modelSettings.m_isColumnNameValidationV2) {
+            validateColumnName(modelSettings.m_outputColumnName, "Output column name");
+        } else {
             if (modelSettings.m_outputColumnName == null || modelSettings.m_outputColumnName.trim().length() == 0) {
                 throw new InvalidSettingsException("Name of new column must not be empty");
-            }
-
-            if (modelSettings.m_delimiter == null) {
-                throw new InvalidSettingsException("A delimiter must be specified");
-            }
-            modelSettings.m_delimiter = trimDelimString(modelSettings.m_delimiter);
-
-            if (modelSettings.m_delimiterInputs == DelimiterInputs.QUOTE) {
-                if (Character.isWhitespace(modelSettings.m_quoteCharacter)) {
-                    throw new InvalidSettingsException("Can't use white space as quote char");
-                }
-                if (modelSettings.m_delimiter.contains(Character.toString(modelSettings.m_quoteCharacter))) {
-                    throw new InvalidSettingsException("Delimiter String \"" + modelSettings.m_delimiter
-                        + "\" must not contain quote character ('" + modelSettings.m_quoteCharacter + "')");
-                }
-            } else {
-                if ((modelSettings.m_delimiter.length() > 0)
-                    && (modelSettings.m_replacementDelimiter.contains(modelSettings.m_delimiter))) {
-                    throw new InvalidSettingsException("Replacement string \"" + modelSettings.m_replacementDelimiter
-                        + "\" must not contain delimiter string \"" + modelSettings.m_delimiter + "\"");
-                }
             }
         }
     }
