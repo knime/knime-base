@@ -51,12 +51,14 @@ package org.knime.base.node.preproc.column.renamer;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.AbstractIsColumnNameValidationV2Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.ColumnNameValidationV2;
 
 /**
  * Settings of the Column Renamer node.
@@ -88,19 +90,10 @@ public final class ColumnRenamerSettings implements DefaultNodeSettings {
     @ArrayWidget(addButtonText = "Add column")
     public Renaming[] m_renamings = new Renaming[0];
 
-
-
     static final class Renaming implements DefaultNodeSettings {
 
         @HorizontalLayout
         interface RenamingLayout {
-        }
-
-        static final class StartsWithNonWhiteSpaceValidation extends PatternValidation {
-            @Override
-            protected String getPattern() {
-                return "\\S+.*";
-            }
         }
 
         @Widget(title = "Column", description = "The column to rename.")
@@ -110,10 +103,18 @@ public final class ColumnRenamerSettings implements DefaultNodeSettings {
 
         @Widget(title = "New name",
             description = "The new column name. Must not be empty or consist only of whitespaces.")
-        @TextInputWidget(validation = StartsWithNonWhiteSpaceValidation.class)
+        @TextInputWidget(validation = ColumnNameValidationV2.class)
         @Layout(RenamingLayout.class)
         public String m_newName;
     }
 
+    static final class IsColumnNameValidationV2Persistor extends AbstractIsColumnNameValidationV2Persistor {
+        protected IsColumnNameValidationV2Persistor() {
+            super("isColumnNameValidationV2");
+        }
+    }
+
+    @Persistor(IsColumnNameValidationV2Persistor.class)
+    boolean m_isColumnNameValidationV2 = true;
 
 }

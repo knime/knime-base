@@ -61,7 +61,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
@@ -73,6 +75,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.AbstractIsColumnNameValidationV2Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.ColumnNameValidationV2;
 
 /**
  * Settings for {@link RowKeyNodeModel2}.
@@ -174,10 +178,20 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
     boolean m_appendRowKey;
 
     @Persist(configKey = "newColumnName4RowKeyValues")
-    @Widget(title = "Column Name", description = "The name of the column to append to the table.")
+    @Widget(title = "Column name", description = "The name of the column to append to the table.")
     @Effect(predicate = AppendRowKey.class, type = EffectType.SHOW)
     @Layout(ExtractRowIdsSection.class)
+    @TextInputWidget(validation = ColumnNameValidationV2.class)
     String m_appendedColumnName = "Old RowID";
+
+    static final class IsColumnNameValidationV2Persistor extends AbstractIsColumnNameValidationV2Persistor {
+        protected IsColumnNameValidationV2Persistor() {
+            super("isColumnNameValidationV2");
+        }
+    }
+
+    @Persistor(IsColumnNameValidationV2Persistor.class)
+    boolean m_isColumnNameValidationV2 = true;
 
     /**
      * How to replace the RowID column, if at all.

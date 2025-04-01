@@ -22,6 +22,7 @@
         "groupLabels" : "CAPTURE_GROUP_NAMES",
         "removeInputColumn" : false
       },
+      "isColumnNameValidationV2" : true,
       "isLiteral" : false,
       "isComments" : false
     }
@@ -61,6 +62,10 @@
             "title" : "Enable canonical equivalence",
             "description" : "When enabled, two characters will be considered to match if, and only if, their full canonical\ndecompositions match. The expression \"a\\u030A\", for example, will match the string \"\\u00E5\" when this is\nenabled. By default, matching does not take canonical equivalence into account.",
             "default" : false
+          },
+          "isColumnNameValidationV2" : {
+            "type" : "boolean",
+            "default" : true
           },
           "isComments" : {
             "type" : "boolean",
@@ -236,11 +241,11 @@
         "scope" : "#/properties/model/properties/pattern",
         "options" : {
           "validations" : [ {
+            "errorMessage" : "The field cannot be empty (it must contain at least one character).",
             "id" : "pattern",
             "parameters" : {
               "pattern" : ".+"
-            },
-            "errorMessage" : "The field cannot be empty (it must contain at least one character)."
+            }
           } ]
         }
       }, {
@@ -401,11 +406,11 @@
         "scope" : "#/properties/model/properties/output/properties/columnName",
         "options" : {
           "validations" : [ {
+            "errorMessage" : "The string must start and end with a non-whitespace character.",
             "id" : "pattern",
             "parameters" : {
-              "pattern" : ".+"
-            },
-            "errorMessage" : "The field cannot be empty (it must contain at least one character)."
+              "pattern" : "\\S(.*\\S)?"
+            }
           } ]
         },
         "rule" : {
@@ -511,6 +516,9 @@
             "deprecatedConfigKeys" : [ {
               "deprecated" : [ ]
             } ]
+          },
+          "isColumnNameValidationV2" : {
+            "configPaths" : [ ]
           },
           "isLiteral" : {
             "configPaths" : [ [ "isLiteral" ] ]

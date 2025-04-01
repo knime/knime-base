@@ -68,6 +68,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.Lega
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage.MessageType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage.SimpleTextMessageProvider;
@@ -79,6 +80,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.ColumnNameValidationV2;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 
 /**
@@ -385,6 +387,7 @@ public final class CommonReaderNodeSettings {
         @Layout(CommonReaderLayout.MultipleFileHandling.FilePathColumnName.class)
         @Effect(predicate = AppendPathColumn.class, type = EffectType.SHOW)
         @Persist(configKey = "path_column_name", hidden = true)
+        @TextInputWidget(validation = ColumnNameValidationV2.class)
         public String m_filePathColumnName = "File Path";
 
     }

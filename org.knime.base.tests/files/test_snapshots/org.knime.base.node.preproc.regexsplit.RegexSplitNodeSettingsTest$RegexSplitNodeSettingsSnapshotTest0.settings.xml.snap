@@ -53,6 +53,7 @@
         <entry key="groupLabels" type="xstring" value="CAPTURE_GROUP_NAMES"/>
         <entry key="removeInputColumn" type="xboolean" value="false"/>
     </config>
+    <entry key="isColumnNameValidationV2_Internals" type="xboolean" value="true"/>
     <config key="isLiteral_Internals">
         <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
         <entry key="EnabledStatus" type="xboolean" value="true"/>

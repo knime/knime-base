@@ -68,9 +68,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.Colu
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider.StringColumnsProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.MaxLengthValidation.HasAtMaxOneCharValidation;
 
 /**
  *
@@ -110,12 +112,14 @@ public final class StringToNumber2NodeSettings implements DefaultNodeSettings {
     @Widget(title = "Decimal separator",
         description = "Choose a decimal separator, which is used to mark the boundary between the integral and the "
             + " fractional parts of the decimal string.")
+    @TextInputWidget(validation = HasAtMaxOneCharValidation.class)
     String m_decimalSep = AbstractStringToNumberNodeModel.DEFAULT_DECIMAL_SEPARATOR;
 
     /** The thousands separator. */
     @Persistor(ThousSepPersistor.class)
     @Widget(title = "Thousands separator",
         description = "Choose a thousands separator used in the decimal string to group together three digits.")
+    @TextInputWidget(validation = HasAtMaxOneCharValidation.class)
     String m_thousandsSep = AbstractStringToNumberNodeModel.DEFAULT_THOUSANDS_SEPARATOR;
 
     @Persistor(DataTypeOptionssPersistor.class)

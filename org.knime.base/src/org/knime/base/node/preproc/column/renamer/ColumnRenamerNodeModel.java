@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.preproc.column.renamer;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.validateColumnName;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -75,8 +77,10 @@ import org.knime.core.webui.node.impl.WebUINodeModel;
 @SuppressWarnings("restriction")
 final class ColumnRenamerNodeModel extends WebUINodeModel<ColumnRenamerSettings> {
 
-    /** Added as part of UIEXT-1766 - settings are "sometimes" not applied and the below sys property will
-     * add additional debug out. */
+    /**
+     * Added as part of UIEXT-1766 - settings are "sometimes" not applied and the below sys property will add additional
+     * debug out.
+     */
     private static final boolean SYSPROP_DEBUG_PRINT = Boolean.getBoolean("knime.renamer.debug");
 
     protected ColumnRenamerNodeModel(final WebUINodeConfiguration configuration) {
@@ -113,7 +117,6 @@ final class ColumnRenamerNodeModel extends WebUINodeModel<ColumnRenamerSettings>
                     .map(e -> String.format("  old name: '%s'; new name: '%s'", e.getKey(), e.getValue())) //
                     .forEach(getLogger()::debug);
             }
-
         }
     }
 
@@ -132,8 +135,12 @@ final class ColumnRenamerNodeModel extends WebUINodeModel<ColumnRenamerSettings>
                 CheckUtils.checkSetting(m_nameMap.put(oldName, renaming.m_newName) == null,
                     "The column '%s' is renamed more than once. There must be only one renaming per column.", oldName);
                 var newName = renaming.m_newName;
-                CheckUtils.checkSetting(StringUtils.isNotBlank(newName),
-                    "The new name for '%s' is invalid because it is blank. Enter a non-empty new name.", oldName);
+                if (settings.m_isColumnNameValidationV2) {
+                    validateColumnName(newName, String.format("%s.New name", oldName));
+                } else {
+                    CheckUtils.checkSetting(StringUtils.isNotBlank(newName),
+                        "The new name for '%s' is invalid because it is blank. Enter a non-empty new name.", oldName);
+                }
                 CheckUtils.checkSetting(newNames.add(newName),
                     "Multiple columns have been renamed to '%s'. Column names must be unique.", newName);
             }

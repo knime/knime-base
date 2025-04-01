@@ -60,18 +60,24 @@ import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.streamable.simple.SimpleStreamableFunctionNodeModel;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 
 /**
  * Model to column merger.
  *
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  */
-final class ColumnMergerNodeModel extends SimpleStreamableFunctionNodeModel {
+@SuppressWarnings("restriction")
+final class ColumnMergerNodeModel extends WebUISimpleStreamableFunctionNodeModel<ColumnMergerNodeSettings> {
 
-    private ColumnMergerConfiguration m_configuration;
+    /**
+     * @param configuration
+     */
+    protected ColumnMergerNodeModel(final WebUINodeConfiguration configuration) {
+        super(configuration, ColumnMergerNodeSettings.class);
+    }
 
     /**
      * Creates column rearranger doing all the work.
@@ -80,27 +86,29 @@ final class ColumnMergerNodeModel extends SimpleStreamableFunctionNodeModel {
      * @return The rearranger creating the output table/spec.
      */
     @Override
-    protected ColumnRearranger createColumnRearranger(final DataTableSpec spec) throws InvalidSettingsException {
-        if (m_configuration == null) {
-            m_configuration = autoConfigure(spec);
+    protected ColumnRearranger createColumnRearranger(final DataTableSpec spec,
+        final ColumnMergerNodeSettings modelSettings) throws InvalidSettingsException {
+        if (modelSettings.m_primaryColumn == null && modelSettings.m_secondaryColumn == null) {
+            String lastCol = getLastColumnName(spec);
+            modelSettings.m_primaryColumn = lastCol;
+            modelSettings.m_secondaryColumn = lastCol;
         }
-        ColumnMergerConfiguration cfg = m_configuration;
 
-        final int primColIndex = spec.findColumnIndex(cfg.getPrimaryColumn());
-        final int secColIndex = spec.findColumnIndex(cfg.getSecondaryColumn());
-
+        final int primColIndex = spec.findColumnIndex(modelSettings.m_primaryColumn);
         if (primColIndex < 0) {
-            throw new InvalidSettingsException(
-                "The selected primary column \"" + cfg.getPrimaryColumn() + "\" does not exist in the input table.");
+            throw new InvalidSettingsException("The selected primary column \"" + modelSettings.m_primaryColumn
+                + "\" does not exist in the input table.");
         }
+
+        final int secColIndex = spec.findColumnIndex(modelSettings.m_secondaryColumn);
         if (secColIndex < 0) {
-            throw new InvalidSettingsException("The selected secondary column \"" + cfg.getSecondaryColumn()
+            throw new InvalidSettingsException("The selected secondary column \"" + modelSettings.m_secondaryColumn
                 + "\" does not exist in the input table.");
         }
         DataColumnSpec c1 = spec.getColumnSpec(primColIndex);
         DataColumnSpec c2 = spec.getColumnSpec(secColIndex);
         DataType commonType = DataType.getCommonSuperType(c1.getType(), c2.getType());
-        String name = getNewColumnName(spec, cfg, c1, c2);
+        String name = getNewColumnName(spec, modelSettings, c1, c2);
 
         DataColumnSpec outColSpec = new DataColumnSpecCreator(name, commonType).createSpec();
         SingleCellFactory fac = new SingleCellFactory(outColSpec) {
@@ -113,12 +121,12 @@ final class ColumnMergerNodeModel extends SimpleStreamableFunctionNodeModel {
             }
         };
 
-        return getResult(spec, cfg, fac, primColIndex, secColIndex);
+        return getResult(spec, modelSettings, fac, primColIndex, secColIndex);
     }
 
-    private static String getNewColumnName(final DataTableSpec spec, final ColumnMergerConfiguration cfg,
+    private static String getNewColumnName(final DataTableSpec spec, final ColumnMergerNodeSettings modelSettings,
         final DataColumnSpec c1, final DataColumnSpec c2) throws InvalidSettingsException {
-        switch (cfg.getOutputPlacement()) {
+        switch (modelSettings.m_outputPlacement) {
             case ReplacePrimary:
 
             case ReplaceBoth:
@@ -126,18 +134,18 @@ final class ColumnMergerNodeModel extends SimpleStreamableFunctionNodeModel {
             case ReplaceSecondary:
                 return c2.getName();
             case AppendAsNewColumn:
-                return DataTableSpec.getUniqueColumnName(spec, cfg.getOutputName());
+                return DataTableSpec.getUniqueColumnName(spec, modelSettings.m_outputName);
             default:
                 throw new InvalidSettingsException("Coding problem: Unrecognized option \""
-                    + cfg.getOutputPlacement().toString() + "\" for output placement selection.");
+                    + modelSettings.m_outputPlacement.toString() + "\" for output placement selection.");
         }
     }
 
-    private static ColumnRearranger getResult(final DataTableSpec spec, final ColumnMergerConfiguration cfg,
+    private static ColumnRearranger getResult(final DataTableSpec spec, final ColumnMergerNodeSettings modelSettings,
         final SingleCellFactory fac, final int primColIndex, final int secColIndex) throws InvalidSettingsException {
 
         ColumnRearranger result = new ColumnRearranger(spec);
-        switch (cfg.getOutputPlacement()) {
+        switch (modelSettings.m_outputPlacement) {
             case ReplacePrimary:
                 result.replace(fac, primColIndex);
                 return result;
@@ -153,19 +161,8 @@ final class ColumnMergerNodeModel extends SimpleStreamableFunctionNodeModel {
                 return result;
             default:
                 throw new InvalidSettingsException("Coding problem: Unrecognized option \""
-                    + cfg.getOutputPlacement().toString() + "\" for output placement selection.");
+                    + modelSettings.m_outputPlacement.toString() + "\" for output placement selection.");
         }
-    }
-
-    private static ColumnMergerConfiguration autoConfigure(final DataTableSpec spec) throws InvalidSettingsException {
-        var config = new ColumnMergerConfiguration();
-        config.setOutputName("NewColumn");
-        config.setOutputPlacement(OutputPlacement.ReplaceBoth);
-        String lastCol = getLastColumnName(spec);
-        config.setPrimaryColumn(lastCol);
-        config.setSecondaryColumn(lastCol);
-        return config;
-
     }
 
     private static String getLastColumnName(final DataTableSpec dictSpec) throws InvalidSettingsException {
@@ -178,27 +175,18 @@ final class ColumnMergerNodeModel extends SimpleStreamableFunctionNodeModel {
 
     }
 
-    /** {@inheritDoc} */
     @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
-        if (m_configuration != null) {
-            m_configuration.saveConfiguration(settings);
+    protected void validateSettings(final ColumnMergerNodeSettings settings) throws InvalidSettingsException {
+        if (settings.m_outputPlacement == OutputPlacement.AppendAsNewColumn) {
+            if (settings.m_isColumnNameValidationV2) {
+                ColumnNameValidationV2Utils.validateColumnName(settings.m_outputName, "New column name");
+            } else {
+                if (settings.m_outputName == null || settings.m_outputName.length() == 0) {
+                    throw new InvalidSettingsException(
+                        "Output column name must not be empty if 'Append as new column' is selected.");
+                }
+            }
         }
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        ColumnMergerConfiguration c = new ColumnMergerConfiguration();
-        c.loadConfigurationInModel(settings);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        ColumnMergerConfiguration c = new ColumnMergerConfiguration();
-        c.loadConfigurationInModel(settings);
-        m_configuration = c;
     }
 
     /** {@inheritDoc} */

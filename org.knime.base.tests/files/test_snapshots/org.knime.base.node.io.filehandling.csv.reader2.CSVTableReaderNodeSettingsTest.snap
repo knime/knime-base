@@ -1190,6 +1190,15 @@
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/advancedSettings/properties/filePathColumnName",
+        "options" : {
+          "validations" : [ {
+            "id" : "pattern",
+            "parameters" : {
+              "pattern" : "\\S(.*\\S)?"
+            },
+            "errorMessage" : "The string must start and end with a non-whitespace character."
+          } ]
+        },
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
@@ -1232,7 +1241,14 @@
             "type" : "Control",
             "scope" : "#/properties/columnRename",
             "options" : {
-              "hideControlHeader" : true
+              "hideControlHeader" : true,
+              "validations" : [ {
+                "id" : "pattern",
+                "parameters" : {
+                  "pattern" : "\\S(.*\\S)?"
+                },
+                "errorMessage" : "The string must start and end with a non-whitespace character."
+              } ]
             },
             "rule" : {
               "effect" : "SHOW",

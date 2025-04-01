@@ -61,10 +61,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
@@ -75,6 +77,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.AbstractIsColumnNameValidationV2Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.ColumnNameValidationV2;
 
 /**
  *
@@ -197,7 +201,17 @@ public final class ColCombine2NodeSettings implements DefaultNodeSettings {
     @Persist(configKey = "new_column_name")
     @Migrate(loadDefaultIfAbsent = true)
     @Layout(Output.class)
+    @TextInputWidget(validation = ColumnNameValidationV2.class)
     String m_outputColumnName = "Combined String";
+
+    static final class IsColumnNameValidationV2Persistor extends AbstractIsColumnNameValidationV2Persistor {
+        protected IsColumnNameValidationV2Persistor() {
+            super("isColumnNameValidationV2");
+        }
+    }
+
+    @Persistor(IsColumnNameValidationV2Persistor.class)
+    boolean m_isColumnNameValidationV2 = true;
 
     @Widget(title = "Remove input columns",
         description = "If selected, removes the columns in the &quot;Include&quot; " + "list from the output.")

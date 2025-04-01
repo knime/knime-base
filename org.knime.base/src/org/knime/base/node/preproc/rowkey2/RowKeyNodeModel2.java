@@ -46,6 +46,8 @@
  */
 package org.knime.base.node.preproc.rowkey2;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.validateColumnName;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -276,37 +278,38 @@ public class RowKeyNodeModel2 extends WebUINodeModel<RowKeyNodeSettings> {
 
     /**
      * @param origSpec the original table specification (could be <code>null</code>)
-     * @param appendRowKey <code>true</code> if a new column should be created
-     * @param newColName the name of the new column to append
-     * @param replaceRowKeyMode if and how the row key should be replaced
+     * @param modelSettings the current node settings
      * @param newRowKeyCol the name of the row key column
-     * @param removeRowKeyCol removes the selected row key column if set to <code>true</code>
-     * @param replaceRowKey
      * @throws InvalidSettingsException if the settings are invalid
-     * @since 5.3
+     * @since 5.5
      */
-    protected static void validateInput(final DataTableSpec origSpec, final boolean appendRowKey,
-        final String newColName, final ReplacementMode replaceRowKeyMode, final String newRowKeyCol,
-        final boolean removeRowKeyCol, final boolean replaceRowKey) throws InvalidSettingsException {
-
-        if (replaceRowKey) {
-            if (replaceRowKeyMode == ReplacementMode.USE_COLUMN) {
-                if (newRowKeyCol == null) {
-                    throw new InvalidSettingsException("No column selected for replacing the RowID.");
-                }
-                if (origSpec != null && !origSpec.containsName(newRowKeyCol)) {
-                    throw new InvalidSettingsException(
-                        "Selected column: '" + newRowKeyCol + "' not found in input table.");
-                }
+    protected static void validateInput(final DataTableSpec origSpec, final RowKeyNodeSettings modelSettings,
+        final String newRowKeyCol) throws InvalidSettingsException {
+        if (modelSettings.m_replaceRowKey && modelSettings.m_replaceRowKeyMode == ReplacementMode.USE_COLUMN) {
+            if (newRowKeyCol == null) {
+                throw new InvalidSettingsException("No column selected for replacing the RowID.");
+            }
+            if (origSpec != null && !origSpec.containsName(newRowKeyCol)) {
+                throw new InvalidSettingsException("Selected column: '" + newRowKeyCol + "' not found in input table.");
             }
         }
-        if (appendRowKey) {
-            if (newColName == null || newColName.trim().length() < 1) {
-                throw new InvalidSettingsException("Please provide a valid" + " name for the new column.");
-            }
-            if (origSpec != null && origSpec.containsName(newColName)
-                && (!replaceRowKey || !removeRowKeyCol || !newRowKeyCol.equals(newColName))) {
+        if (modelSettings.m_appendRowKey) {
+            final var newColName = modelSettings.m_appendedColumnName;
+            validateColumnNameFormat(modelSettings.m_isColumnNameValidationV2, newColName);
+            if (origSpec != null && origSpec.containsName(newColName) && (!modelSettings.m_replaceRowKey
+                || !modelSettings.m_removeRowKeyColumn || !newRowKeyCol.equals(newColName))) {
                 throw new InvalidSettingsException("Column with name: '" + newColName + "' already exists.");
+            }
+        }
+    }
+
+    private static void validateColumnNameFormat(final boolean isColumnNameValidationV2, final String newColName)
+        throws InvalidSettingsException {
+        if (isColumnNameValidationV2) {
+            validateColumnName(newColName, "Column name");
+        } else {
+            if (newColName == null || newColName.trim().length() < 1) {
+                throw new InvalidSettingsException("Please provide a valid name for the new column.");
             }
         }
     }
@@ -372,9 +375,7 @@ public class RowKeyNodeModel2 extends WebUINodeModel<RowKeyNodeSettings> {
             ? modelSettings.m_newRowKeyColumnV2 //
             : null;
 
-        validateInput(spec, modelSettings.m_appendRowKey, modelSettings.m_appendedColumnName,
-            modelSettings.m_replaceRowKeyMode, newRowKeyColumn, modelSettings.m_removeRowKeyColumn,
-            modelSettings.m_replaceRowKey);
+        validateInput(spec, modelSettings, newRowKeyColumn);
         DataTableSpec resSpec = spec;
         if (modelSettings.m_replaceRowKeyMode == ReplacementMode.USE_COLUMN && modelSettings.m_removeRowKeyColumn) {
             resSpec = RowKeyUtil2.createTableSpec(resSpec, newRowKeyColumn);
@@ -393,8 +394,7 @@ public class RowKeyNodeModel2 extends WebUINodeModel<RowKeyNodeSettings> {
      */
     @Override
     protected void validateSettings(final RowKeyNodeSettings settings) throws InvalidSettingsException {
-        validateInput(null, settings.m_appendRowKey, settings.m_appendedColumnName, settings.m_replaceRowKeyMode,
-            settings.m_newRowKeyColumnV2, settings.m_removeRowKeyColumn, settings.m_replaceRowKey);
+        validateInput(null, settings, settings.m_newRowKeyColumnV2);
     }
 
     @Override

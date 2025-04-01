@@ -47,76 +47,48 @@
  */
 package org.knime.base.node.preproc.stringreplacer;
 
-import java.util.Map;
-
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
-import org.knime.core.webui.node.dialog.NodeDialog;
-import org.knime.core.webui.node.dialog.NodeDialogFactory;
-import org.knime.core.webui.node.dialog.NodeDialogManager;
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
-import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
-import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
- * This is the factory for the string replacer node that creates all necessary
- * objects.
+ * This is the factory for the string replacer node that creates all necessary objects.
  *
  * @author Thorsten Meinl, University of Konstanz
  * @author Carsten Haubold, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public class StringReplacerNodeFactory extends NodeFactory<StringReplacerNodeModel>
-    implements NodeDialogFactory, KaiNodeInterfaceFactory {
+public class StringReplacerNodeFactory extends WebUINodeFactory<StringReplacerNodeModel> {
 
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
-    }
-
-    /**
-     * @since 5.2
-     */
-    @Override
-    public StringReplacerNodeModel createNodeModel() {
-        return new StringReplacerNodeModel();
-    }
-
-    /**
-     * @since 5.2
-     */
-    @Override
-    public NodeView<StringReplacerNodeModel> createNodeView(final int viewIndex,
-            final StringReplacerNodeModel nodeModel) {
-        return null;
-    }
-
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
+    private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
+        .name("String Replacer") //
+        .icon("./stringreplace.png") //
+        .shortDescription("Replaces strings if they match a certain pattern.") //
+        .fullDescription("""
+                    This node replaces strings in a selected target column.
+                In the configuration dialog, a pattern and a replacement text are specified.
+                If the pattern doesn't match, the result string equals the input string.
+                You can choose to modify strings in-place or add the result strings to a new column.
+                    """) //
+        .modelSettingsClass(StringReplacerNodeSettings.class) //
+        .nodeType(NodeType.Manipulator) //
+        .addInputTable("Input", "The input table contains the string column to perform the replacement on.") //
+        .addOutputTable("Input with replaced strings",
+            "Input table with updated string column or an additional column.") //
+        .keywords("RegEx", "Find replace") //
+        .build();
 
     /**
-     * @since 5.0
+     * Create a new {@link StringReplacerNodeFactory}
      */
-    @Override
-    public NodeDialog createNodeDialog() {
-        return new DefaultNodeDialog(SettingsType.MODEL, StringReplacerNodeSettings.class);
+    public StringReplacerNodeFactory() {
+        super(CONFIGURATION);
     }
 
     /**
      * @since 5.5
      */
     @Override
-    public KaiNodeInterface createKaiNodeInterface() {
-        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, StringReplacerNodeSettings.class));
+    public StringReplacerNodeModel createNodeModel() {
+        return new StringReplacerNodeModel(CONFIGURATION);
     }
 }

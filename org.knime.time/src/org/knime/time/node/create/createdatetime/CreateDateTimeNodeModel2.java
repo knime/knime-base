@@ -48,6 +48,8 @@
  */
 package org.knime.time.node.create.createdatetime;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.validateColumnName;
+
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -101,15 +103,8 @@ final class CreateDateTimeNodeModel2 extends WebUINodeModel<CreateDateTimeNodeSe
         // the outmode mode is TIME, since they loop around.
         assertOrderOfStartAndEnd(loadedSettings);
 
-        // Also check if the output column name is empty (blank is allowed)
-        assertNonEmptyOutputColumnName(loadedSettings);
-    }
-
-    private static void assertNonEmptyOutputColumnName(final CreateDateTimeNodeSettings loadedSettings)
-        throws InvalidSettingsException {
-        if (loadedSettings.m_outputColumnName.isEmpty()) {
-            throw new InvalidSettingsException("The output column name must not be empty.");
-        }
+        // Also check if the output column name starts and ends with a non-whitespace character
+        validateColumnName(loadedSettings.m_outputColumnName, "Output column name");
     }
 
     private static void assertOrderOfStartAndEnd(final CreateDateTimeNodeSettings loadedSettings)

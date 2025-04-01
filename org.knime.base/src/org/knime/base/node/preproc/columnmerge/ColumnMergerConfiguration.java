@@ -45,12 +45,6 @@
  */
 package org.knime.base.node.preproc.columnmerge;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.StringValue;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
@@ -71,14 +65,6 @@ final class ColumnMergerConfiguration {
     static final String CFG_OUTPUT_PLACEMENT = "outputPlacement";
 
     static final String CFG_OUTPUT_NAME = "outputName";
-
-    private String m_primaryColumn;
-
-    private String m_secondaryColumn;
-
-    private OutputPlacement m_outputPlacement;
-
-    private String m_outputName;
 
     /** Policy how to place output. */
     enum OutputPlacement {
@@ -104,121 +90,6 @@ final class ColumnMergerConfiguration {
                 return i.getEnum(Ref.class).isOneOf(OutputPlacement.AppendAsNewColumn);
             }
         }
-    }
-
-    /** @return the primaryColumn */
-    String getPrimaryColumn() {
-        return m_primaryColumn;
-    }
-
-    /** @param primaryColumn the primaryColumn to set */
-    void setPrimaryColumn(final String primaryColumn) {
-        m_primaryColumn = primaryColumn;
-    }
-
-    /** @return the secondaryColumn */
-    String getSecondaryColumn() {
-        return m_secondaryColumn;
-    }
-
-    /** @param secondaryColumn the secondaryColumn to set */
-    void setSecondaryColumn(final String secondaryColumn) {
-        m_secondaryColumn = secondaryColumn;
-    }
-
-    /** @return the outputPlacement */
-    OutputPlacement getOutputPlacement() {
-        return m_outputPlacement;
-    }
-
-    /** @return the outputName */
-    String getOutputName() {
-        return m_outputName;
-    }
-
-    /** @param outputName the outputName to set */
-    void setOutputName(final String outputName) {
-        m_outputName = outputName;
-    }
-
-    /** @param outputPlacement the outputPlacement to set */
-    void setOutputPlacement(final OutputPlacement outputPlacement) {
-        if (outputPlacement == null) {
-            throw new NullPointerException();
-        }
-        m_outputPlacement = outputPlacement;
-    }
-
-    /**
-     * Save current config to argument.
-     *
-     * @param settings
-     */
-    void saveConfiguration(final NodeSettingsWO settings) {
-        settings.addString(CFG_PRIMARY, m_primaryColumn);
-        settings.addString(CFG_SECONDARY, m_secondaryColumn);
-        settings.addString(CFG_OUTPUT_PLACEMENT, m_outputPlacement.name());
-        settings.addString(CFG_OUTPUT_NAME, m_outputName);
-    }
-
-    /**
-     * Load config from argument.
-     *
-     * @param settings To load from.
-     * @throws InvalidSettingsException If inconsistent/missing.
-     */
-    void loadConfigurationInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_primaryColumn = settings.getString(CFG_PRIMARY);
-        m_secondaryColumn = settings.getString(CFG_SECONDARY);
-        String outputPlacement = settings.getString(CFG_OUTPUT_PLACEMENT);
-        try {
-            m_outputPlacement = OutputPlacement.valueOf(outputPlacement);
-        } catch (Exception e) {
-            throw new InvalidSettingsException(
-                "Unrecognized option \"" + outputPlacement + "\" for output placement selection.", e);
-        }
-        m_outputName = settings.getString(CFG_OUTPUT_NAME);
-        switch (m_outputPlacement) {
-            case AppendAsNewColumn:
-                if (m_outputName == null || m_outputName.length() == 0) {
-                    throw new InvalidSettingsException(
-                        "Output column name must not be empty if 'Append as new column' is selected.");
-                }
-                break;
-            default:
-                // ignore
-        }
-    }
-
-    /**
-     * Load config in dialog, init defaults if necessary.
-     *
-     * @param settings to load from.
-     * @param spec The input spec to load defaults from.
-     */
-    void loadConfigurationInDialog(final NodeSettingsRO settings, final DataTableSpec spec) {
-        String firstStringCol = null;
-        String secondStringCol = null;
-        for (DataColumnSpec col : spec) {
-            if (col.getType().isCompatible(StringValue.class)) {
-                if (firstStringCol == null) {
-                    firstStringCol = col.getName();
-                } else if (secondStringCol == null) {
-                    secondStringCol = col.getName();
-                } else {
-                    break;
-                }
-            }
-        }
-        m_primaryColumn = settings.getString(CFG_PRIMARY, firstStringCol);
-        m_secondaryColumn = settings.getString(CFG_SECONDARY, secondStringCol);
-        String outputPlacement = settings.getString(CFG_OUTPUT_PLACEMENT, OutputPlacement.ReplaceBoth.name());
-        try {
-            m_outputPlacement = OutputPlacement.valueOf(outputPlacement);
-        } catch (Exception e) {
-            m_outputPlacement = OutputPlacement.ReplaceBoth;
-        }
-        m_outputName = settings.getString(CFG_OUTPUT_NAME, m_outputName);
     }
 
 }

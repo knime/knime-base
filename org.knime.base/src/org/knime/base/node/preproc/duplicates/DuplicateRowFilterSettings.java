@@ -48,10 +48,13 @@
  */
 package org.knime.base.node.preproc.duplicates;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.validateColumnName;
+
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
@@ -135,6 +138,8 @@ final class DuplicateRowFilterSettings {
     /** The column name of row id flag config key. */
     static final String ROW_ID_FLAG_COLUMN_NAME_KEY = "row_id_flag_column_name";
 
+    static final String IS_NEW_COLUMN_NAME_VALIDATION_KEY = "isColumnNameValidationV2" + SettingsModel.CFGKEY_INTERNAL;
+
     static final String REFERENCE_COL_KEY = "reference_col";
 
     static final String UPDATE_DOMAINS_KEY = "update_domains";
@@ -163,7 +168,11 @@ final class DuplicateRowFilterSettings {
 
     /** Settings model storing the column name of the chosen row ids. */
     private final SettingsModelString m_chosenRowIdsColumnName =
-            new SettingsModelString(ROW_ID_FLAG_COLUMN_NAME_KEY, "Duplicate Chosen");
+        new SettingsModelString(ROW_ID_FLAG_COLUMN_NAME_KEY, "Duplicate Chosen");
+
+    /** Settings model storing the is column name validation v2 flag. */
+    private final SettingsModelBoolean m_isColumnNameValidationV2 =
+        new SettingsModelBoolean(IS_NEW_COLUMN_NAME_VALIDATION_KEY, false);
 
     /** Settings model storing the reference column name. */
     private final SettingsModelString m_referenceCol = new SettingsModelString(REFERENCE_COL_KEY, null);
@@ -237,6 +246,10 @@ final class DuplicateRowFilterSettings {
         return m_chosenRowIdsColumnName.getStringValue();
     }
 
+    boolean isColumnNameValidationV2() {
+        return m_isColumnNameValidationV2.getBooleanValue();
+    }
+
     String getReferenceCol() {
         return m_referenceCol.getStringValue();
     }
@@ -270,6 +283,7 @@ final class DuplicateRowFilterSettings {
         m_uniqueStatusColumnName.saveSettingsTo(settings);
         m_addRowLabel.saveSettingsTo(settings);
         m_chosenRowIdsColumnName.saveSettingsTo(settings);
+        m_isColumnNameValidationV2.saveSettingsTo(settings);
         m_inMemory.saveSettingsTo(settings);
         saveSettingsForDialog(settings);
         m_updateDomains.saveSettingsTo(settings);
@@ -294,6 +308,7 @@ final class DuplicateRowFilterSettings {
         if (settings.containsKey(UNIQUE_FLAG_COLUMN_NAME_KEY)) {
             // Added in 5.2, defaults to old column name
             m_uniqueStatusColumnName.loadSettingsFrom(settings);
+
         } else {
             m_uniqueStatusColumnName.setStringValue("duplicate-type-classifier");
         }
@@ -303,6 +318,12 @@ final class DuplicateRowFilterSettings {
             m_chosenRowIdsColumnName.loadSettingsFrom(settings);
         } else {
             m_chosenRowIdsColumnName.setStringValue("duplicate-row-identifier");
+        }
+        if (settings.containsKey(IS_NEW_COLUMN_NAME_VALIDATION_KEY)) {
+            // Added in 5.5, defaults to false
+            m_isColumnNameValidationV2.loadSettingsFrom(settings);
+        } else {
+            m_isColumnNameValidationV2.setBooleanValue(false);
         }
         m_inMemory.loadSettingsFrom(settings);
         loadSettingsForDialog(settings);
@@ -324,15 +345,9 @@ final class DuplicateRowFilterSettings {
         m_retainOrder.validateSettings(settings);
         m_removeDuplicates.validateSettings(settings);
         m_addUniqueLabel.validateSettings(settings);
-        if (settings.containsKey(UNIQUE_FLAG_COLUMN_NAME_KEY)) {
-            // Added in 5.2
-            m_uniqueStatusColumnName.validateSettings(settings);
-        }
+        validateUniqueStatusColumnNameSetting(settings);
         m_addRowLabel.validateSettings(settings);
-        if (settings.containsKey(ROW_ID_FLAG_COLUMN_NAME_KEY)) {
-            // Added in 5.2
-            m_chosenRowIdsColumnName.validateSettings(settings);
-        }
+        validateChosenRowIdsColumnNameSetting(settings);
         m_referenceCol.validateSettings(settings);
         m_inMemory.validateSettings(settings);
         if (settings.containsKey(UPDATE_DOMAINS_KEY)) {
@@ -348,4 +363,29 @@ final class DuplicateRowFilterSettings {
         }
     }
 
+    private void validateUniqueStatusColumnNameSetting(final NodeSettingsRO settings) throws InvalidSettingsException {
+        if (settings.containsKey(UNIQUE_FLAG_COLUMN_NAME_KEY)) {
+            if (settings.containsKey(IS_NEW_COLUMN_NAME_VALIDATION_KEY)
+                && settings.getBoolean(IS_NEW_COLUMN_NAME_VALIDATION_KEY)) {
+                // Added in 5.5
+                validateColumnName(settings.getString(UNIQUE_FLAG_COLUMN_NAME_KEY), "Column name of row status");
+            } else {
+                // Added in 5.2
+                m_uniqueStatusColumnName.validateSettings(settings);
+            }
+        }
+    }
+
+    private void validateChosenRowIdsColumnNameSetting(final NodeSettingsRO settings) throws InvalidSettingsException {
+        if (settings.containsKey(ROW_ID_FLAG_COLUMN_NAME_KEY)) {
+            if (settings.containsKey(IS_NEW_COLUMN_NAME_VALIDATION_KEY)
+                && settings.getBoolean(IS_NEW_COLUMN_NAME_VALIDATION_KEY)) {
+                // Added in 5.5
+                validateColumnName(settings.getString(ROW_ID_FLAG_COLUMN_NAME_KEY), "Column name of chosen RowIDs");
+            } else {
+                // Added in 5.2
+                m_chosenRowIdsColumnName.validateSettings(settings);
+            }
+        }
+    }
 }

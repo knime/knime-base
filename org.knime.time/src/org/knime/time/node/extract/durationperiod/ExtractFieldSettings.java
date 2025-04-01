@@ -71,7 +71,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandl
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.ColumnNameValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.EmptyOrColumnNameValidation;
 import org.knime.time.node.extract.durationperiod.ExtractDurationPeriodFieldsNodeSettings.SelectedInputColumnHelpers;
 import org.knime.time.node.extract.durationperiod.ExtractFieldSettings.OutputColumnNamePlaceholderProvider.ExtractableFieldsReference;
 
@@ -106,7 +106,7 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
         description = "The name of the column populated with the values of the selected field.")
     @Layout(ExtractFieldWidgetLayout.class)
     @TextInputWidget(placeholderProvider = OutputColumnNamePlaceholderProvider.class,
-        validation = ColumnNameValidation.class)
+        validation = EmptyOrColumnNameValidation.class)
     String m_outputcolumnName;
 
     /**
