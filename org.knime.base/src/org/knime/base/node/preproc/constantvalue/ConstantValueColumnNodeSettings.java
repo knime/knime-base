@@ -61,11 +61,18 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.DataTypeRegistry;
 import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.DynamicDefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DataTypeChoicesStateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
@@ -125,8 +132,12 @@ final class ConstantValueColumnNodeSettings implements DefaultNodeSettings {
         @Effect(predicate = AppendOrReplace.IsReplace.class, type = EffectType.SHOW)
         String m_columnNameToReplace;
 
+        static final class ColumnTypeRef implements Reference<DataType> {
+        }
+
         @Widget(title = "Column type", description = "The type of the new column.")
         @ChoicesWidget(choicesProvider = SupportedDataTypeChoicesProvider.class)
+        @ValueReference(ColumnTypeRef.class)
         DataType m_type = StringCellFactory.TYPE;
 
         @Widget(title = "Fill value", description = """
@@ -137,9 +148,60 @@ final class ConstantValueColumnNodeSettings implements DefaultNodeSettings {
         @ValueSwitchWidget
         CustomOrMissingValue m_customOrMissingValue = CustomOrMissingValue.MISSING;
 
-        @Widget(title = "Custom value", description = "The value to be used when filling the output column.")
+
+
+
+
+
+
+        static final class StringX implements DynamicDefaultNodeSettings {
+            @Widget(title = "Title", description = "Description")
+            String m_dynamicSetting = "Dynamic Value";
+        }
+
+
+
+
+        final static class DynamicSettings implements StateProvider<DynamicDefaultNodeSettings> {
+
+            private Supplier<DataType> dataTypeSupplier;
+
+            @Override
+            public void init(final StateProviderInitializer initializer) {
+                initializer.computeAfterOpenDialog();
+                dataTypeSupplier = initializer.computeFromValueSupplier(ColumnTypeRef.class);
+            }
+
+            @Override
+            public DynamicDefaultNodeSettings computeState(final DefaultNodeSettingsContext context) {
+                final var name = dataTypeSupplier.get().getName();
+                return new StringX();
+            }
+        }
+
         @Effect(predicate = CustomOrMissingValue.IsMissing.class, type = EffectType.HIDE)
-        String m_value = "";
+        @DynamicSettingsWidget(dynamicSettingsProvider = DynamicSettings.class)
+        @Persistor(DynSetPersistor.class)
+        DynamicDefaultNodeSettings m_dynamicSettings = null;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         static final class ReplaceableColumnProvider implements ColumnChoicesProvider {
 
@@ -149,6 +211,23 @@ final class ConstantValueColumnNodeSettings implements DefaultNodeSettings {
                     .map(DataTableSpec::stream) //
                     .map(s -> s.toArray(DataColumnSpec[]::new)) //
                     .orElseGet(() -> new DataColumnSpec[0]);
+            }
+        }
+
+        static final class DynSetPersistor implements NodeSettingsPersistor<DynamicDefaultNodeSettings> {
+
+            @Override
+            public String[][] getConfigPaths() {
+                return null;
+            }
+
+            @Override
+            public DynamicDefaultNodeSettings load(final NodeSettingsRO settings) throws InvalidSettingsException {
+                return null;
+            }
+
+            @Override
+            public void save(final DynamicDefaultNodeSettings obj, final NodeSettingsWO settings) {
             }
         }
 

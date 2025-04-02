@@ -95,9 +95,9 @@ final class ConstantValueColumnNodeModel2
             .filter(ConstantValueColumnNodeModel2::hasInvalidValue) //
             .findFirst();
         if (firstInvalidCustomValue.isPresent()) {
-            throw new InvalidSettingsException(
-                "The value '" + firstInvalidCustomValue.get().m_value + "' is not a valid value for the selected type "
-                    + firstInvalidCustomValue.get().m_type.toPrettyString() + ".");
+            throw new InvalidSettingsException("The value '" + firstInvalidCustomValue.get().m_dynamicSettings
+                + "' is not a valid value for the selected type "
+                + firstInvalidCustomValue.get().m_type.toPrettyString() + ".");
         }
 
         var anyColumnWasBlank = Arrays.stream(settings.m_newColumnSettings) //
@@ -130,7 +130,8 @@ final class ConstantValueColumnNodeModel2
     }
 
     private static boolean hasInvalidValue(final NewColumnSettings s) {
-        return SupportedDataTypeChoicesProvider.createDataCellFromString(s.m_value, s.m_type, null).isEmpty();
+        return false;
+        //        return SupportedDataTypeChoicesProvider.createDataCellFromString(s.m_value, s.m_type, null).isEmpty();
     }
 
     /** Get the first duplicate element in a list, if it exists */
@@ -210,11 +211,11 @@ final class ConstantValueColumnNodeModel2
                 return new MissingCell("Missing cell from 'Constant Value Column'");
             }
 
-            var dataCell = SupportedDataTypeChoicesProvider.createDataCellFromString(m_singleColumnSettings.m_value,
-                m_singleColumnSettings.m_type, m_ctx);
+            var dataCell = SupportedDataTypeChoicesProvider.createDataCellFromString(
+                m_singleColumnSettings.toString(), m_singleColumnSettings.m_type, m_ctx);
 
             return dataCell.orElseThrow(() -> new IllegalStateException("Could not create cell of type "
-                + m_singleColumnSettings.m_type + " from string '" + m_singleColumnSettings.m_value + "'."));
+                + m_singleColumnSettings.m_type + " from string '" + m_singleColumnSettings.m_dynamicSettings + "'."));
         }
     }
 }
