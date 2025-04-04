@@ -80,10 +80,34 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="src/org/knime/base/node/io/filehandling/webui/reader/CommonReaderTransformationSettingsStateProviders.java" type="org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders$TypeChoicesProvider">
+        <filter id="338792546">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TypeChoicesProvider"/>
+                <message_argument value="computeState(DefaultNodeSettings.DefaultNodeSettingsContext)"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="src/org/knime/base/node/io/variablecreator/VariableCreatorNodeFactory.java" type="org.knime.base.node.io.variablecreator.VariableCreatorNodeFactory">
         <filter id="305365105">
             <message_arguments>
                 <message_argument value="org.knime.base.node.io.variablecreator.VariableCreatorNodeFactory"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/columnheaderinsert/ColumnHeaderInsertNodeFactory.java" type="org.knime.base.node.preproc.columnheaderinsert.ColumnHeaderInsertNodeFactory">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.columnheaderinsert.ColumnHeaderInsertNodeFactory"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/columnheaderinsert/ColumnHeaderInsertSettings.java" type="org.knime.base.node.preproc.columnheaderinsert.ColumnHeaderInsertSettings">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.columnheaderinsert.ColumnHeaderInsertSettings"/>
                 <message_argument value="org.knime.base_5.5.0"/>
             </message_arguments>
         </filter>
@@ -141,24 +165,131 @@
             </message_arguments>
         </filter>
     </resource>
-    <resource path="src/org/knime/base/node/preproc/filter/rowref/RowSplitRefNodeFactory.java" type="org.knime.base.node.preproc.filter.rowref.RowSplitRefNodeFactory">
-        <filter id="337768515">
+    <resource path="src/org/knime/base/node/preproc/filter/rowref/AbstractRowRefNodeModel.java" type="org.knime.base.node.preproc.filter.rowref.AbstractRowRefNodeModel">
+        <filter id="305365105">
             <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.filter.rowref.RowSplitRefNodeFactory"/>
-            </message_arguments>
-        </filter>
-        <filter id="338792546">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.filter.rowref.RowSplitRefNodeFactory"/>
-                <message_argument value="createNodeView(int, RowSplitRefNodeModel)"/>
+                <message_argument value="org.knime.base.node.preproc.filter.rowref.AbstractRowRefNodeModel"/>
+                <message_argument value="org.knime.base_5.5.0"/>
             </message_arguments>
         </filter>
     </resource>
-    <resource path="src/org/knime/base/node/preproc/stringreplacer/CaseMatching.java" type="org.knime.base.node.preproc.stringreplacer.CaseMatching$Persistor">
-        <filter id="338792546">
+    <resource path="src/org/knime/base/node/preproc/filter/rowref/RowFilterRefNodeFactory.java" type="org.knime.base.node.preproc.filter.rowref.RowFilterRefNodeFactory">
+        <filter id="305365105">
             <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.stringreplacer.CaseMatching.Persistor"/>
-                <message_argument value="getConfigKeys()"/>
+                <message_argument value="org.knime.base.node.preproc.filter.rowref.RowFilterRefNodeFactory"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/rowref/RowFilterRefNodeFunc.java" type="org.knime.base.node.preproc.filter.rowref.RowFilterRefNodeFunc">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.filter.rowref.RowFilterRefNodeFunc"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/rowref/RowFilterRefNodeModel.java" type="org.knime.base.node.preproc.filter.rowref.RowFilterRefNodeModel">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.filter.rowref.RowFilterRefNodeModel"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/rowref/RowFilterRefNodeSettings.java" type="org.knime.base.node.preproc.filter.rowref.RowFilterRefNodeSettings">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.filter.rowref.RowFilterRefNodeSettings"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/rowref/RowSplitRefNodeFactory.java" type="org.knime.base.node.preproc.filter.rowref.RowSplitRefNodeFactory">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.filter.rowref.RowSplitRefNodeFactory"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/rowref/RowSplitRefNodeModel.java" type="org.knime.base.node.preproc.filter.rowref.RowSplitRefNodeModel">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.filter.rowref.RowSplitRefNodeModel"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/stringreplacer/CaseMatching.java" type="org.knime.base.node.preproc.stringreplacer.CaseMatching">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.stringreplacer.CaseMatching"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/stringreplacer/PatternType.java" type="org.knime.base.node.preproc.stringreplacer.PatternType">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.stringreplacer.PatternType"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/stringreplacer/ReplacementStrategy.java" type="org.knime.base.node.preproc.stringreplacer.ReplacementStrategy">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.stringreplacer.ReplacementStrategy"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/stringreplacer/StringReplacerDialog.java" type="org.knime.base.node.preproc.stringreplacer.StringReplacerDialog">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.stringreplacer.StringReplacerDialog"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/stringreplacer/StringReplacerNodeFactory.java" type="org.knime.base.node.preproc.stringreplacer.StringReplacerNodeFactory">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.stringreplacer.StringReplacerNodeFactory"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/stringreplacer/StringReplacerNodeFunc.java" type="org.knime.base.node.preproc.stringreplacer.StringReplacerNodeFunc">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.stringreplacer.StringReplacerNodeFunc"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/stringreplacer/StringReplacerNodeModel.java" type="org.knime.base.node.preproc.stringreplacer.StringReplacerNodeModel">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.stringreplacer.StringReplacerNodeModel"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/stringreplacer/StringReplacerNodeSettings.java" type="org.knime.base.node.preproc.stringreplacer.StringReplacerNodeSettings">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.stringreplacer.StringReplacerNodeSettings"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/stringreplacer/StringReplacerSettings.java" type="org.knime.base.node.preproc.stringreplacer.StringReplacerSettings">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.stringreplacer.StringReplacerSettings"/>
+                <message_argument value="org.knime.base_5.5.0"/>
             </message_arguments>
         </filter>
     </resource>
