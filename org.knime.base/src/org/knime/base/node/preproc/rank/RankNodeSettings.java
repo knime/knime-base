@@ -49,6 +49,7 @@
 package org.knime.base.node.preproc.rank;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -72,19 +73,20 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.MinLengthValidation;
 
 /**
  * The settings for the "Rank" node.
@@ -199,7 +201,7 @@ final class RankNodeSettings implements DefaultNodeSettings {
             separately within each unique group defined by the selected columns. If no category columns are \
             specified, ranking is applied to the entire dataset.""")
     @Layout(RankingSection.class)
-    @ChoicesWidget(choicesProvider = CategoryColumnChoiceProvider.class)
+    @ChoicesProvider(CategoryColumnChoiceProvider.class)
     @Migration(CategoryColumnSettingsMigration.class)
     @ValueReference(CategoryColumnsRef.class)
     ColumnFilter m_categoryColumns = new ColumnFilter();
@@ -210,9 +212,16 @@ final class RankNodeSettings implements DefaultNodeSettings {
     @Migration(RankModeSettingsMigration.class)
     RankMode m_rankMode = RankMode.STANDARD;
 
+    private static final class MinLenValidation extends MinLengthValidation {
+        @Override
+        public int getMinLength() {
+            return 1;
+        }
+    }
+
     @Widget(title = "Rank column name",
         description = "Defines the name of the appended ranking column. This field cannot be left empty.")
-    @TextInputWidget(minLength = 1)
+    @TextInputWidget(validation = MinLenValidation.class)
     @Layout(RankingSection.class)
     @Persist(configKey = "RankOutFieldName")
     String m_rankOutFieldName = "Rank";
@@ -252,9 +261,8 @@ final class RankNodeSettings implements DefaultNodeSettings {
             this.getSortingOrderModifier(group).modifyAnnotation(Widget.class)
                 .withProperty("description", "Determines whether ranking is done in ascending or descending order:")
                 .modify();
-            this.getColumnModifier(group).modifyAnnotation(ChoicesWidget.class)
-                .withProperty("choicesProvider", CriterionColumnChoicesProvider.class)
-                .withProperty("choices", ChoicesProvider.class).modify();
+            this.getColumnModifier(group).modifyAnnotation(ChoicesProvider.class)
+                .withValue(CriterionColumnChoicesProvider.class).modify();
         }
 
     }
@@ -267,7 +275,7 @@ final class RankNodeSettings implements DefaultNodeSettings {
             super();
         }
 
-        RankingCriterionSettings(final ColumnSelection column, final SortingOrder sortingOrder,
+        RankingCriterionSettings(final StringOrEnum<RowIDChoice> column, final SortingOrder sortingOrder,
             final StringComparison stringComparison) {
             super(column, sortingOrder, stringComparison);
         }
@@ -282,7 +290,7 @@ final class RankNodeSettings implements DefaultNodeSettings {
 
     }
 
-    static final class CategoryColumnChoiceProvider implements ColumnChoicesStateProvider {
+    static final class CategoryColumnChoiceProvider implements ColumnChoicesProvider {
 
         private Supplier<RankingCriterionSettings[]> m_criterion;
 
@@ -293,12 +301,12 @@ final class RankNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
+        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
             final var criterion = Arrays.stream(m_criterion.get()).map(RankingCriterionSettings::getColumn)
-                .map(ColumnSelection::getSelected).toList();
+                .filter(column -> column.getEnumChoice().isEmpty()).map(StringOrEnum::getStringChoice).toList();
             return context.getDataTableSpec(0).map(DataTableSpec::stream) //
                 .orElseGet(Stream::empty) //
-                .filter(spec -> !criterion.contains(spec.getName())).toArray(DataColumnSpec[]::new);
+                .filter(spec -> !criterion.contains(spec.getName())).toList();
         }
     }
 
@@ -384,7 +392,7 @@ final class RankNodeSettings implements DefaultNodeSettings {
             final var columns = settings.getStringArray(COL_KEY);
             final var sortKeys = settings.getStringArray(COL_ORDER_KEY);
             return IntStream.range(0, columns.length)
-                .mapToObj(i -> new RankingCriterionSettings(new ColumnSelection(columns[i], null),
+                .mapToObj(i -> new RankingCriterionSettings(new StringOrEnum<>(columns[i]),
                     "Ascending".equals(sortKeys[i]) ? SortingOrder.ASCENDING : SortingOrder.DESCENDING,
                     StringComparison.LEXICOGRAPHIC))
                 .toArray(RankingCriterionSettings[]::new);
@@ -418,11 +426,11 @@ final class RankNodeSettings implements DefaultNodeSettings {
             if (spec.isEmpty()) {
                 return new RankingCriterionSettings();
             }
-            final var usedColumns =
-                Stream.concat(Arrays.stream(this.m_categoryColumns.get().getSelectedFromFullSpec(spec.get())),
+            final var usedColumns = Stream
+                .concat(Arrays.stream(this.m_categoryColumns.get().filterFromFullSpec(spec.get())),
                     Arrays.stream(this.m_criterion.get()).map(RankingCriterionSettings::getColumn)
-                        .map(ColumnSelection::getSelected))
-                    .toList();
+                        .filter(column -> column.getEnumChoice().isEmpty()).map(StringOrEnum::getStringChoice))
+                .toList();
             final var firstAvailableColumn =
                 spec.get().stream().filter(colSpec -> !usedColumns.contains(colSpec.getName())).findFirst();
             return firstAvailableColumn.map(RankingCriterionSettings::new).orElse(new RankingCriterionSettings());
@@ -430,7 +438,7 @@ final class RankNodeSettings implements DefaultNodeSettings {
 
     }
 
-    static final class CriterionColumnChoicesProvider implements ColumnChoicesStateProvider {
+    static final class CriterionColumnChoicesProvider implements ColumnChoicesProvider {
         private Supplier<ColumnFilter> m_categoryColumns;
 
         @Override
@@ -440,14 +448,13 @@ final class RankNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
+        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
             final var spec = context.getDataTableSpec(0);
             if (spec.isEmpty()) {
-                return new DataColumnSpec[0];
+                return Collections.emptyList();
             }
-            final var columns = Arrays.stream(m_categoryColumns.get().getSelectedFromFullSpec(spec.get())).toList();
-            return spec.get().stream().filter(colSpec -> !columns.contains(colSpec.getName()))
-                .toArray(DataColumnSpec[]::new);
+            final var columns = Arrays.stream(m_categoryColumns.get().filterFromFullSpec(spec.get())).toList();
+            return spec.get().stream().filter(colSpec -> !columns.contains(colSpec.getName())).toList();
         }
     }
 }

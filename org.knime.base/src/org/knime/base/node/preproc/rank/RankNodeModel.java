@@ -51,7 +51,6 @@ package org.knime.base.node.preproc.rank;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.OptionalInt;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import org.knime.base.node.preproc.rank.RankNodeSettings.RankDataType;
@@ -79,8 +78,8 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.UniqueNameGenerator;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 
@@ -118,8 +117,9 @@ final class RankNodeModel extends WebUINodeModel<RankNodeSettings> {
         }
         var tableSpec = inSpecs[0];
         checkAllContained(Arrays.stream(rankCols).map(SortingCriterionSettings::getColumn)
-            .map(ColumnSelection::getSelected).toArray(String[]::new), "ranking", tableSpec);
-        checkAllContained(modelSettings.m_categoryColumns.getSelectedFromFullSpec(inSpecs[0]), "grouping", tableSpec);
+            .filter(column -> column.getEnumChoice().isEmpty()).map(StringOrEnum::getStringChoice)
+            .toArray(String[]::new), "ranking", tableSpec);
+        checkAllContained(modelSettings.m_categoryColumns.filterFromFullSpec(inSpecs[0]), "grouping", tableSpec);
 
         // check if a name for the column that will contain the ranks in the outputs is provided.
         if (modelSettings.m_rankOutFieldName.isEmpty()) {
@@ -167,9 +167,6 @@ final class RankNodeModel extends WebUINodeModel<RankNodeSettings> {
     private static void checkAllContained(final String[] columnNames, final String columnPurpose,
         final DataTableSpec tableSpec) throws InvalidSettingsException {
         for (String colName : columnNames) {
-            if (SpecialColumns.ROWID.getId().equals(colName)) {
-                continue;
-            }
             CheckUtils.checkSetting(tableSpec.containsName(colName),
                 "The selected %s column '%s' is not contained in the input table.", columnPurpose, colName);
         }
@@ -208,7 +205,7 @@ final class RankNodeModel extends WebUINodeModel<RankNodeSettings> {
         Arrays.stream(modelSettings.m_sortingCriteria).forEach(criterion -> {
             final var ascending = criterion.getSortingOrder() == SortingOrder.ASCENDING;
             final var alphaNum = criterion.getStringComparison() == StringComparison.NATURAL;
-            resolveColumnName(spec, criterion.getColumn().getSelected(), RankNodeModel::isRowKey).ifPresentOrElse(
+            resolveColumnName(spec, criterion.getColumn()).ifPresentOrElse(
                 col -> rc.thenComparingColumn(col,
                     c -> configureColumnComparatorBuilder(spec, modelSettings, ascending, alphaNum, col, c)),
                 () -> rc.thenComparingRowKey(
@@ -227,21 +224,18 @@ final class RankNodeModel extends WebUINodeModel<RankNodeSettings> {
         return compBuilder.withMissingsLast(modelSettings.m_missingToEnd);
     }
 
-    private static OptionalInt resolveColumnName(final DataTableSpec dts, final String colName,
-        final Predicate<String> isRowKey) {
-        final var idx = dts.findColumnIndex(colName);
-        if (idx == -1) {
-            if (!isRowKey.test(colName)) {
-                throw new IllegalArgumentException(
-                    "The column identifier \"" + colName + "\" does not refer to a known column.");
-            }
+    private static OptionalInt resolveColumnName(final DataTableSpec dts, final StringOrEnum<RowIDChoice> column) {
+
+        if (column.getEnumChoice().isPresent()) {
             return OptionalInt.empty();
         }
+        final var colName = column.getStringChoice();
+        final var idx = dts.findColumnIndex(colName);
+        if (idx == -1) {
+            throw new IllegalArgumentException(
+                "The column identifier \"" + colName + "\" does not refer to a known column.");
+        }
         return OptionalInt.of(idx);
-    }
-
-    private static boolean isRowKey(final String colName) {
-        return SpecialColumns.ROWID.getId().equals(colName);
     }
 
     private static BufferedDataTable appendRank(final ExecutionContext exec, final BufferedDataTable sortedTable,
@@ -249,11 +243,13 @@ final class RankNodeModel extends WebUINodeModel<RankNodeSettings> {
         var spec = sortedTable.getDataTableSpec();
         var columnRearranger = new ColumnRearranger(spec);
         int[] groupColIndices =
-            getIndicesFromColNameList(modelSettings.m_categoryColumns.getSelectedFromFullSpec(spec), spec);
+            getIndicesFromColNameList(modelSettings.m_categoryColumns.filterFromFullSpec(spec), spec);
         int[] rankColIndices = getIndicesFromColNameList(Arrays.stream(modelSettings.m_sortingCriteria)
-            .map(SortingCriterionSettings::getColumn).map(ColumnSelection::getSelected).toArray(String[]::new), spec);
+            .map(SortingCriterionSettings::getColumn).filter(column -> column.getEnumChoice().isEmpty())
+            .map(StringOrEnum::getStringChoice).toArray(String[]::new), spec);
         // append rank column
-        columnRearranger.append(new RankCellFactory(
+        columnRearranger.append(
+            new RankCellFactory(
             createRankColSpec(modelSettings.m_rankDataType, modelSettings.m_rankOutFieldName), groupColIndices,
             rankColIndices, modelSettings.m_rankMode, modelSettings.m_rankDataType == RankDataType.LONG));
         return exec.createColumnRearrangeTable(sortedTable, columnRearranger, exec);

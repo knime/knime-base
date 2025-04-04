@@ -70,9 +70,9 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.workflow.NodeContainerState;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
 
@@ -94,7 +94,7 @@ public class RankNodeModelTest {
         final var settings = new RankNodeSettings();
         settings.m_categoryColumns = new ColumnFilter(new String[]{INPUT_COLUMNS[0]});
         settings.m_sortingCriteria =
-            new RankingCriterionSettings[]{new RankingCriterionSettings(new ColumnSelection(INPUT_COLUMNS[1], null),
+            new RankingCriterionSettings[]{new RankingCriterionSettings(new StringOrEnum<>(INPUT_COLUMNS[1]),
                 SortingOrder.ASCENDING, StringComparison.LEXICOGRAPHIC)};
         settings.m_rankDataType = RankDataType.INTEGER;
         final var cells = new DataCell[][]{{StringCellFactory.create("A"), IntCellFactory.create(5)}, //
@@ -125,7 +125,7 @@ public class RankNodeModelTest {
         final var settings = new RankNodeSettings();
         settings.m_categoryColumns = new ColumnFilter(new String[]{INPUT_COLUMNS[0]});
         settings.m_sortingCriteria =
-            new RankingCriterionSettings[]{new RankingCriterionSettings(new ColumnSelection(INPUT_COLUMNS[1], null),
+            new RankingCriterionSettings[]{new RankingCriterionSettings(new StringOrEnum<>(INPUT_COLUMNS[1]),
                 SortingOrder.ASCENDING, StringComparison.LEXICOGRAPHIC)};
         settings.m_rankDataType = RankDataType.INTEGER;
         settings.m_rankMode = RankMode.DENSE;
@@ -157,7 +157,7 @@ public class RankNodeModelTest {
         final var settings = new RankNodeSettings();
         settings.m_categoryColumns = new ColumnFilter(new String[]{INPUT_COLUMNS[0]});
         settings.m_sortingCriteria =
-            new RankingCriterionSettings[]{new RankingCriterionSettings(new ColumnSelection(INPUT_COLUMNS[1], null),
+            new RankingCriterionSettings[]{new RankingCriterionSettings(new StringOrEnum<>(INPUT_COLUMNS[1]),
                 SortingOrder.ASCENDING, StringComparison.LEXICOGRAPHIC)};
         settings.m_rankDataType = RankDataType.INTEGER;
         settings.m_rankMode = RankMode.ORDINAL;
@@ -189,7 +189,7 @@ public class RankNodeModelTest {
         final var settings = new RankNodeSettings();
         settings.m_categoryColumns = new ColumnFilter(new String[]{INPUT_COLUMNS[0]});
         settings.m_sortingCriteria =
-            new RankingCriterionSettings[]{new RankingCriterionSettings(new ColumnSelection(INPUT_COLUMNS[1], null),
+            new RankingCriterionSettings[]{new RankingCriterionSettings(new StringOrEnum<>(INPUT_COLUMNS[1]),
                 SortingOrder.DESCENDING, StringComparison.LEXICOGRAPHIC)};
         settings.m_rankDataType = RankDataType.INTEGER;
         settings.m_rowOrder = RowOrder.INPUT_ORDER;
@@ -221,7 +221,7 @@ public class RankNodeModelTest {
         final var settings = new RankNodeSettings();
         settings.m_categoryColumns = new ColumnFilter(new String[]{INPUT_COLUMNS[0]});
         settings.m_sortingCriteria =
-            new RankingCriterionSettings[]{new RankingCriterionSettings(SpecialColumns.ROWID.toColumnSelection(),
+            new RankingCriterionSettings[]{new RankingCriterionSettings(new StringOrEnum<>(RowIDChoice.ROW_ID),
                 SortingOrder.ASCENDING, StringComparison.LEXICOGRAPHIC)};
         settings.m_rankDataType = RankDataType.INTEGER;
         final var cells = new DataCell[][]{{StringCellFactory.create("A"), IntCellFactory.create(5)}, //
