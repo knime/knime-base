@@ -84,6 +84,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.TwinlistWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.DomainChoicesUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
@@ -104,8 +105,14 @@ abstract sealed class NominalValueRowCommonSettings implements DefaultNodeSettin
     }
 
     NominalValueRowCommonSettings(final DefaultNodeSettingsContext context) {
-        var spec = context.getDataTableSpecs()[0];
-        m_selectedColumn = SettingsUtils.getFirstCompatibleColumn(spec).orElse(null);
+        var spec = context.getDataTableSpec(0);
+        if (spec.isPresent()) {
+            m_selectedColumn = spec.flatMap(SettingsUtils::getFirstCompatibleColumn).orElse(null);
+        }
+
+        // select all values by default
+        m_nominalValueSelection =
+            new StringFilter(DomainChoicesUtil.getChoicesByContextAndColumn(context, m_selectedColumn));
     }
 
     @Widget(title = SettingsUtils.TITLE_FILTER_COLUMN, description = SettingsUtils.DESC_FILTER_COLUMN)
@@ -245,12 +252,12 @@ abstract sealed class NominalValueRowCommonSettings implements DefaultNodeSettin
          */
         enum MissingValueHandling {
 
-                @Label(value = "Second/lower", description = """
+                @Label(value = "Second", description = """
                         Missing values are excluded from the first output table. \
                         They will be included in the second table instead.
                         """)
                 LOWER, // equivalent to "EXCLUDE" in NominalValueRowFilterNodeSettings
-                @Label(value = "First/upper", description = """
+                @Label(value = "First", description = """
                         Missing values will be included in the first output \
                         table.
                         """)

@@ -10,7 +10,7 @@
           "isInverted" : false
         },
         "manualFilter" : {
-          "manuallySelected" : [ ],
+          "manuallySelected" : [ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19" ],
           "manuallyDeselected" : [ ],
           "includeUnknownColumns" : false
         }
@@ -27,13 +27,13 @@
           "missingValueHandling" : {
             "oneOf" : [ {
               "const" : "LOWER",
-              "title" : "Second/lower"
+              "title" : "Second"
             }, {
               "const" : "UPPER",
-              "title" : "First/upper"
+              "title" : "First"
             } ],
             "title" : "If value is missing",
-            "description" : "Defines how missing values are handled.\n<ul>\n<li><b>Second/lower</b>: Missing values are excluded from the first output table. They will be included in the second table instead.\n</li>\n<li><b>First/upper</b>: Missing values will be included in the first output table.\n</li>\n</ul>",
+            "description" : "Defines how missing values are handled.\n<ul>\n<li><b>Second</b>: Missing values are excluded from the first output table. They will be included in the second table instead.\n</li>\n<li><b>First</b>: Missing values will be included in the first output table.\n</li>\n</ul>",
             "default" : "LOWER"
           },
           "nominalValueSelection" : {
@@ -117,7 +117,7 @@
                 "isInverted" : false
               },
               "manualFilter" : {
-                "manuallySelected" : [ ],
+                "manuallySelected" : [ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19" ],
                 "manuallyDeselected" : [ ],
                 "includeUnknownColumns" : false
               }
