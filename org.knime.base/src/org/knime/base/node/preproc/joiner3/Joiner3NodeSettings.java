@@ -59,7 +59,6 @@ import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.CheckboxesWithVennDiagram;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
@@ -184,16 +183,10 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
             m_rightTableColumn = rightColumnName;
         }
 
-        @HorizontalLayout
-        interface Horizontal {
-
-        }
-
         @ChoicesProvider(LeftTableChoices.class)
         @Widget(title = "Top input ('left' table)",
             description = "Select the column from the top input table that should be "
                 + "used to compare with the column selected for the bottom input.")
-        @Layout(Horizontal.class)
         @Persist(configKey = "leftTableColumnV2")
         @Migration(LeftTableColumnMigration.class)
         StringOrEnum<RowIDChoice> m_leftTableColumn = new StringOrEnum<>(ROW_ID);
@@ -202,7 +195,6 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
         @Widget(title = "Bottom input ('right' table)",
             description = "Select the column from the bottom input table that should be "
                 + "used to compare with the column selected for the top input.")
-        @Layout(Horizontal.class)
         @Persist(configKey = "rightTableColumnV2")
         @Migration(RightTableColumnMigration.class)
         StringOrEnum<RowIDChoice> m_rightTableColumn = new StringOrEnum<>(ROW_ID);
@@ -277,7 +269,7 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
                  as a string value.
                     """)
     @Layout(MatchingCriteriaSection.class)
-    @ArrayWidget(addButtonText = "Add matching criterion")
+    @ArrayWidget(addButtonText = "Add matching criterion", elementTitle = "Criterion")
     @Migration(MatchingCriteriaMigration.class)
     MatchingCriterion[] m_matchingCriteria = new MatchingCriterion[]{new MatchingCriterion()};
 

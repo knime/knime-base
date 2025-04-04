@@ -487,32 +487,30 @@
         "scope" : "#/properties/model/properties/matchingCriteria",
         "options" : {
           "detail" : [ {
-            "type" : "HorizontalLayout",
-            "elements" : [ {
-              "type" : "Control",
-              "scope" : "#/properties/leftTableColumn",
-              "options" : {
-                "format" : "singleSelection",
-                "specialChoices" : [ {
-                  "id" : "ROW_ID",
-                  "text" : "RowID"
-                } ],
-                "choicesProvider" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$LeftTableChoices"
-              }
-            }, {
-              "type" : "Control",
-              "scope" : "#/properties/rightTableColumn",
-              "options" : {
-                "format" : "singleSelection",
-                "specialChoices" : [ {
-                  "id" : "ROW_ID",
-                  "text" : "RowID"
-                } ],
-                "choicesProvider" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$RightTableChoices"
-              }
-            } ]
+            "type" : "Control",
+            "scope" : "#/properties/leftTableColumn",
+            "options" : {
+              "format" : "singleSelection",
+              "specialChoices" : [ {
+                "id" : "ROW_ID",
+                "text" : "RowID"
+              } ],
+              "choicesProvider" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$LeftTableChoices"
+            }
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/rightTableColumn",
+            "options" : {
+              "format" : "singleSelection",
+              "specialChoices" : [ {
+                "id" : "ROW_ID",
+                "text" : "RowID"
+              } ],
+              "choicesProvider" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$RightTableChoices"
+            }
           } ],
-          "addButtonText" : "Add matching criterion"
+          "addButtonText" : "Add matching criterion",
+          "arrayElementTitle" : "Criterion"
         }
       }, {
         "type" : "Control",

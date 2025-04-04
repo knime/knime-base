@@ -225,7 +225,7 @@
               "format" : "dynamicValue"
             }
           } ],
-          "addButtonText" : "Add criterion",
+          "addButtonText" : "Add filter criterion",
           "arrayElementTitle" : "Criterion",
           "showSortButtons" : true,
           "elementDefaultValueProvider" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$DefaultFilterCriterionProvider"

@@ -409,7 +409,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
     }
 
     @Widget(title = "Filter criteria", description = "The list of criteria that should be filtered on.")
-    @ArrayWidget(elementTitle = "Criterion", showSortButtons = true, addButtonText = "Add criterion",
+    @ArrayWidget(elementTitle = "Criterion", showSortButtons = true, addButtonText = "Add filter criterion",
         elementDefaultValueProvider = DefaultFilterCriterionProvider.class)
     @Layout(DialogSections.Filter.Conditions.class)
     @ValueReference(PredicatesRef.class)
