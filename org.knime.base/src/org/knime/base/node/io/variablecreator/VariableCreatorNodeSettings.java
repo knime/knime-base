@@ -64,6 +64,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.workflow.VariableType;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
@@ -87,7 +88,8 @@ final class VariableCreatorNodeSettings implements DefaultNodeSettings {
     @ArrayWidget( //
         addButtonText = "Add variable", //
         showSortButtons = false, //
-        elementDefaultValueProvider = NewFlowVariableSettings.DefaultNewFlowVariableSettingsProvider.class //
+        elementDefaultValueProvider = NewFlowVariableSettings.DefaultNewFlowVariableSettingsProvider.class, //
+        elementTitle = "Flow variable" //
     )
     @ValueReference(NewFlowVariablesRef.class)
     @Migration(NewFlowVariablesMigrator.class)
@@ -113,7 +115,11 @@ final class VariableCreatorNodeSettings implements DefaultNodeSettings {
         @ValueReference(NewFlowVariablesTypeRef.class)
         FlowVariableType m_type;
 
-        @Layout(NewFlowVariableSettingsLayout.class)
+        @After(NewFlowVariableSettingsLayout.class)
+        interface NewFlowVariableSettingsValueLayout {
+        }
+
+        @Layout(NewFlowVariableSettingsValueLayout.class)
         @Widget(title = "Value", description = "The value of the new flow variable.")
         String m_value;
 
@@ -150,28 +156,13 @@ final class VariableCreatorNodeSettings implements DefaultNodeSettings {
 
     enum FlowVariableType {
 
-            @Label(value = "String", description = """
-                    A string of characters. This is the default when a new variable \
-                    is created. The default value is an empty string.
+            @Label(value = "BooleanType", description = """
+                    A boolean value, either &#8220;true&#8221; or \
+                    &#8220;false&#8221;. Any value that \
+                    is not equal (ignoring case) to 'true' will be treated as false.
                     """)
-            STRING("str", VariableType.StringType.INSTANCE, FlowVariableType::parseString), //
-            @Label(value = "Integer", description = """
-                    An integer number with possible values from 2&#179;&#185;-1 \
-                    to -2&#179;&#185;. The value must be a valid number (consisting only of an \
-                    optional sign (&#8220;+&#8221;/&#8220;-&#8221;) or \
-                    &#8220;0&#8221;-&#8220;9&#8221;) and be in the range above. If the size of your \
-                    value exceeds the limits above, you can try to use a <i>Long</i> or <i>Double</i> \
-                    value instead.
-                    """)
-            INTEGER("int", VariableType.IntType.INSTANCE, FlowVariableType::parseInt), //
-            @Label(value = "Long", description = """
-                    An integer number with possible values from 2&#8310;&#170;-1 \
-                    to -2&#8310;&#170;. The value must be a valid number (consisting only of an \
-                    optional sign (&#8220;+&#8221;/&#8220;-&#8221;) or \
-                    &#8220;0&#8221;-&#8220;9&#8221;) and be in the range above.
-                    """)
-            LONG("long", VariableType.LongType.INSTANCE, FlowVariableType::parseLong), //
-            @Label(value = "Double", description = """
+            BOOLEAN("bool", VariableType.BooleanType.INSTANCE, FlowVariableType::parseBoolean), //
+            @Label(value = "DoubleType", description = """
                     A floating point decimal number with possible values from around \
                     4.9&#183;10&#8315;&#179;&#178;&#8308; to 1.8&#183;10&#179;&#8304;&#8312; \
                     in both the positive and negative range. The value must be a valid number \
@@ -190,12 +181,27 @@ final class VariableCreatorNodeSettings implements DefaultNodeSettings {
                     to zero.
                     """)
             DOUBLE("double", VariableType.DoubleType.INSTANCE, FlowVariableType::parseDouble), //
-            @Label(value = "Boolean", description = """
-                    A boolean value, either &#8220;true&#8221; or \
-                    &#8220;false&#8221;. Any value that \
-                    is not equal (ignoring case) to 'true' will be treated as false.
+            @Label(value = "IntType", description = """
+                    An integer number with possible values from 2&#179;&#185;-1 \
+                    to -2&#179;&#185;. The value must be a valid number (consisting only of an \
+                    optional sign (&#8220;+&#8221;/&#8220;-&#8221;) or \
+                    &#8220;0&#8221;-&#8220;9&#8221;) and be in the range above. If the size of your \
+                    value exceeds the limits above, you can try to use a <i>Long</i> or <i>Double</i> \
+                    value instead.
                     """)
-            BOOLEAN("bool", VariableType.BooleanType.INSTANCE, FlowVariableType::parseBoolean);
+            INTEGER("int", VariableType.IntType.INSTANCE, FlowVariableType::parseInt), //
+            @Label(value = "LongType", description = """
+                    An integer number with possible values from 2&#8310;&#170;-1 \
+                    to -2&#8310;&#170;. The value must be a valid number (consisting only of an \
+                    optional sign (&#8220;+&#8221;/&#8220;-&#8221;) or \
+                    &#8220;0&#8221;-&#8220;9&#8221;) and be in the range above.
+                    """)
+            LONG("long", VariableType.LongType.INSTANCE, FlowVariableType::parseLong), //
+            @Label(value = "StringType", description = """
+                    A string of characters. This is the default when a new variable \
+                    is created. The default value is an empty string.
+                    """)
+            STRING("str", VariableType.StringType.INSTANCE, FlowVariableType::parseString);
 
         final String m_oldConfigValue;
 
