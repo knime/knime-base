@@ -2,7 +2,6 @@
   "data" : {
     "model" : {
       "filter" : {
-        "selected" : [ ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -121,7 +120,6 @@
             "title" : "Flow Variable Filter",
             "description" : "The names of the flow variables that pass this filter node. See the general node description for details regarding which variables can be filtered.",
             "default" : {
-              "selected" : [ ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",
@@ -148,7 +146,7 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/filter",
       "options" : {
-        "format" : "typedNameFilter",
+        "format" : "typedStringFilter",
         "unknownValuesText" : "Any unknown variable",
         "emptyStateLabel" : "No variables in this list.",
         "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.AllFlowVariablesProvider"

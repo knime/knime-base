@@ -2,7 +2,6 @@
   "data" : {
     "model" : {
       "columnsToFormat" : {
-        "selected" : [ "test2" ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -145,7 +144,6 @@
             "title" : "Columns to format",
             "description" : "Select the columns to attach the selected format to.\nThis does not change the data, but only the way the strings are being displayed in views.\n",
             "default" : {
-              "selected" : [ "test2" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",
@@ -240,7 +238,7 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/columnsToFormat",
         "options" : {
-          "format" : "typedNameFilter",
+          "format" : "typedStringFilter",
           "unknownValuesText" : "Any unknown column",
           "emptyStateLabel" : "No columns in this list.",
           "choicesProvider" : "org.knime.base.node.viz.format.string.StringFormatManagerNodeSettings$StringCellColumns"

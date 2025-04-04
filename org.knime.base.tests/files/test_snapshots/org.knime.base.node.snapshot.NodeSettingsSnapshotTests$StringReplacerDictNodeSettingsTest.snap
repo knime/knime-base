@@ -2,7 +2,6 @@
   "data" : {
     "model" : {
       "targetColumns" : {
-        "selected" : [ "test2" ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -207,7 +206,6 @@
             "title" : "Target columns",
             "description" : "Select the columns in which the strings should be replaced.",
             "default" : {
-              "selected" : [ "test2" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",
@@ -237,7 +235,7 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/targetColumns",
         "options" : {
-          "format" : "typedNameFilter",
+          "format" : "typedStringFilter",
           "unknownValuesText" : "Any unknown column",
           "emptyStateLabel" : "No columns in this list.",
           "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider$StringColumnsProvider"

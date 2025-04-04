@@ -2,7 +2,6 @@
   "data" : {
     "model" : {
       "filter" : {
-        "selected" : [ "durationTest" ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -137,7 +136,6 @@
             "title" : "Duration columns",
             "description" : "The columns to convert to a number.",
             "default" : {
-              "selected" : [ "durationTest" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",
@@ -209,7 +207,7 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/filter",
       "options" : {
-        "format" : "typedNameFilter",
+        "format" : "typedStringFilter",
         "unknownValuesText" : "Any unknown column",
         "emptyStateLabel" : "No columns in this list.",
         "choicesProvider" : "org.knime.time.util.DateTimeUtils$DurationColumnProvider"

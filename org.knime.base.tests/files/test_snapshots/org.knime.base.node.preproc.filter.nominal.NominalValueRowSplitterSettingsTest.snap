@@ -99,12 +99,6 @@
                   "isCaseSensitive" : false,
                   "isInverted" : false
                 }
-              },
-              "selected" : {
-                "type" : "array",
-                "items" : {
-                  "type" : "string"
-                }
               }
             },
             "title" : "Values",

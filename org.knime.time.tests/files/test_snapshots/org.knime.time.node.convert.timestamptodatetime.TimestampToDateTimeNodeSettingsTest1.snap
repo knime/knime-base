@@ -2,7 +2,6 @@
   "data" : {
     "model" : {
       "timestampColumns" : {
-        "selected" : [ "IntCol" ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -186,7 +185,6 @@
             "title" : "Timestamp columns",
             "description" : "The columns to convert to date&amp;time columns.",
             "default" : {
-              "selected" : [ "test" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",
@@ -213,7 +211,7 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/timestampColumns",
       "options" : {
-        "format" : "typedNameFilter",
+        "format" : "typedStringFilter",
         "unknownValuesText" : "Any unknown column",
         "emptyStateLabel" : "No columns in this list.",
         "choicesProvider" : "org.knime.time.node.convert.timestamptodatetime.TimestampToDateTimeNodeSettings$TimestampColumnsProvider"

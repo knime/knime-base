@@ -2,7 +2,6 @@
   "data" : {
     "model" : {
       "columnsToFormat" : {
-        "selected" : [ "test1" ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -148,7 +147,6 @@
             "title" : "Columns to format",
             "description" : "Select the columns to attach the selected format to.\nThis does not change the data, only the way the values in the column are displayed in views.\n",
             "default" : {
-              "selected" : [ "test1" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",
@@ -228,7 +226,7 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/columnsToFormat",
         "options" : {
-          "format" : "typedNameFilter",
+          "format" : "typedStringFilter",
           "unknownValuesText" : "Any unknown column",
           "emptyStateLabel" : "No columns in this list.",
           "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider$DoubleColumnsProvider"
