@@ -97,7 +97,7 @@ class AbstractRowFilterRefNodeSettings implements DefaultNodeSettings {
 
     }
 
-    @Widget(title = "Data column (in top/first input)",
+    @Widget(title = "Data column (in first input)",
         description = "The column from the table to be filtered that should be used for comparison.")
     @ChoicesProvider(DataColumnChoices.class)
     @Modification.WidgetReference(DataColumn.class)
@@ -117,7 +117,7 @@ class AbstractRowFilterRefNodeSettings implements DefaultNodeSettings {
 
     }
 
-    @Widget(title = "Reference column (in bottom/second input)",
+    @Widget(title = "Reference column (in second input)",
         description = "The column from the filter table that should be used for comparison.")
     @ChoicesProvider(ReferenceColumnChoices.class)
     @Migration(ReferenceColumnMigration.class)

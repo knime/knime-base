@@ -30,7 +30,7 @@
                 } ]
               }
             },
-            "title" : "Data column (in top/first input)",
+            "title" : "Data column (in first input)",
             "description" : "The column from the table to be filtered that should be used for comparison.",
             "default" : {
               "specialChoice" : "ROW_ID"
@@ -61,7 +61,7 @@
                 } ]
               }
             },
-            "title" : "Reference column (in bottom/second input)",
+            "title" : "Reference column (in second input)",
             "description" : "The column from the filter table that should be used for comparison.",
             "default" : {
               "specialChoice" : "ROW_ID"
