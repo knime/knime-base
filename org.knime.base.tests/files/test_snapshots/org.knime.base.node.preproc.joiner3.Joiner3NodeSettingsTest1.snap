@@ -15,7 +15,6 @@
       "includeLeftUnmatchedInOutput" : false,
       "includeRightUnmatchedInOutput" : false,
       "leftColumnSelectionConfigV2" : {
-        "selected" : [ ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -33,7 +32,6 @@
         }
       },
       "rightColumnSelectionConfigV2" : {
-        "selected" : [ ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -198,7 +196,6 @@
                 }
               },
               "selected" : {
-                "default" : [ ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -224,7 +221,6 @@
             "title" : "Top input ('left' table)",
             "description" : "Select columns from top input ('left' table) that should be included or excluded in the output table.",
             "default" : {
-              "selected" : [ "test1", "test2" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",
@@ -397,7 +393,6 @@
                 }
               },
               "selected" : {
-                "default" : [ ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -423,7 +418,6 @@
             "title" : "Bottom input ('right' table)",
             "description" : "Select columns from bottom input ('right' table) that should be included or excluded in the output table.",
             "default" : {
-              "selected" : [ "test1", "test2" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",
@@ -548,7 +542,7 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/leftColumnSelectionConfigV2",
         "options" : {
-          "format" : "typedNameFilter",
+          "format" : "typedStringFilter",
           "unknownValuesText" : "Any unknown column",
           "emptyStateLabel" : "No columns in this list.",
           "choicesProvider" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$LeftTableChoices"
@@ -557,7 +551,7 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/rightColumnSelectionConfigV2",
         "options" : {
-          "format" : "typedNameFilter",
+          "format" : "typedStringFilter",
           "unknownValuesText" : "Any unknown column",
           "emptyStateLabel" : "No columns in this list.",
           "choicesProvider" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$RightTableChoices"

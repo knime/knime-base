@@ -2,7 +2,6 @@
   "data" : {
     "model" : {
       "columnFilter" : {
-        "selected" : [ "duration", "period" ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -112,7 +111,6 @@
                 }
               },
               "selected" : {
-                "default" : [ ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -138,7 +136,6 @@
             "title" : "Duration columns",
             "description" : "The duration columns to create a formatter for.",
             "default" : {
-              "selected" : [ "duration", "period" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",
@@ -180,7 +177,7 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/columnFilter",
       "options" : {
-        "format" : "typedNameFilter",
+        "format" : "typedStringFilter",
         "unknownValuesText" : "Any unknown column",
         "emptyStateLabel" : "No columns in this list.",
         "choicesProvider" : "org.knime.time.util.DateTimeUtils$IntervalColumnProvider"

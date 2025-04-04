@@ -2,7 +2,6 @@
   "data" : {
     "model" : {
       "categoryColumns" : {
-        "selected" : [ "test1", "test2" ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -108,7 +107,6 @@
                 }
               },
               "selected" : {
-                "default" : [ ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -134,7 +132,6 @@
             "title" : "Category columns",
             "description" : "The columns used to identify the groups.",
             "default" : {
-              "selected" : [ "test1", "test2" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",
@@ -161,7 +158,7 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/categoryColumns",
       "options" : {
-        "format" : "typedNameFilter",
+        "format" : "typedStringFilter",
         "unknownValuesText" : "Any unknown column",
         "emptyStateLabel" : "No columns in this list.",
         "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider"

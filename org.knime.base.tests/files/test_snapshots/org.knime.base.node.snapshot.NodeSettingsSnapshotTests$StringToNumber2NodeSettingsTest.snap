@@ -7,7 +7,6 @@
       "genericParse" : false,
       "failOnError" : false,
       "inclCols" : {
-        "selected" : [ "test2" ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -118,7 +117,6 @@
                 }
               },
               "selected" : {
-                "default" : [ ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -144,7 +142,6 @@
             "title" : "Column selection",
             "description" : "Move the columns of interest into the &quot;Includes&quot; list",
             "default" : {
-              "selected" : [ "test2" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",
@@ -195,7 +192,7 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/inclCols",
         "options" : {
-          "format" : "typedNameFilter",
+          "format" : "typedStringFilter",
           "unknownValuesText" : "Any unknown column",
           "emptyStateLabel" : "No columns in this list.",
           "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider$StringColumnsProvider"

@@ -2,7 +2,6 @@
   "data" : {
     "model" : {
       "columnsToFormat" : {
-        "selected" : [ "test1" ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -104,7 +103,6 @@
                 }
               },
               "selected" : {
-                "default" : [ ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -130,7 +128,6 @@
             "title" : "Columns to round",
             "description" : "Select the numeric input columns to round.",
             "default" : {
-              "selected" : [ "test1" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",
@@ -263,7 +260,7 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/columnsToFormat",
       "options" : {
-        "format" : "typedNameFilter",
+        "format" : "typedStringFilter",
         "unknownValuesText" : "Any unknown column",
         "emptyStateLabel" : "No columns in this list.",
         "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider$DoubleColumnsProvider"

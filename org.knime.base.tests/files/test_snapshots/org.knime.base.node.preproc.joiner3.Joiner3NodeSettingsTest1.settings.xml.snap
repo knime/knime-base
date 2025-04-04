@@ -18,9 +18,6 @@
     <entry key="includeLeftUnmatchedInOutput" type="xboolean" value="false"/>
     <entry key="includeRightUnmatchedInOutput" type="xboolean" value="false"/>
     <config key="leftColumnSelectionConfigV2">
-        <config key="selected_Internals">
-            <entry key="array-size" type="xint" value="0"/>
-        </config>
         <entry key="mode" type="xstring" value="MANUAL"/>
         <config key="patternFilter">
             <entry key="pattern" type="xstring" value=""/>
@@ -48,9 +45,6 @@
         </config>
     </config>
     <config key="rightColumnSelectionConfigV2">
-        <config key="selected_Internals">
-            <entry key="array-size" type="xint" value="0"/>
-        </config>
         <entry key="mode" type="xstring" value="MANUAL"/>
         <config key="patternFilter">
             <entry key="pattern" type="xstring" value=""/>

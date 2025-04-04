@@ -2,7 +2,6 @@
   "data" : {
     "model" : {
       "valueColumns" : {
-        "selected" : [ ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -155,7 +154,6 @@
                 }
               },
               "selected" : {
-                "default" : [ ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -181,7 +179,6 @@
             "title" : "Output as variables",
             "description" : "Select the columns to be converted to flow variables. For each selected column, a flow variable\nis created. The name of the flow variable corresponds to the column name and the value corresponds\nto the value of the first row in that column.\n",
             "default" : {
-              "selected" : [ ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",
@@ -211,7 +208,7 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/valueColumns",
         "options" : {
-          "format" : "typedNameFilter",
+          "format" : "typedStringFilter",
           "unknownValuesText" : "Any unknown column",
           "emptyStateLabel" : "No columns in this list.",
           "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider"

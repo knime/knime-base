@@ -8,7 +8,6 @@
       "lookupColumnOutput" : "RETAIN",
       "columnNoMatchReplacement" : "RETAIN",
       "dictValueCols" : {
-        "selected" : [ "test1", "test2" ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -132,7 +131,6 @@
                 }
               },
               "selected" : {
-                "default" : [ ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -158,7 +156,6 @@
             "title" : "Append columns (from dictionary table)",
             "description" : "The columns in the dictionary table that contain the values added to the data table.",
             "default" : {
-              "selected" : [ "test1", "test2" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",
@@ -376,7 +373,7 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/dictValueCols",
         "options" : {
-          "format" : "typedNameFilter",
+          "format" : "typedStringFilter",
           "unknownValuesText" : "Any unknown column",
           "emptyStateLabel" : "No columns in this list.",
           "choicesProvider" : "org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings$DictionaryTableChoices"

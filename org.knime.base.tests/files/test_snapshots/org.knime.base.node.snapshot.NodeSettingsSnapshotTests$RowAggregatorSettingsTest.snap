@@ -6,7 +6,6 @@
       },
       "aggregationMethod" : "SUM",
       "frequencyColumns" : {
-        "selected" : [ "test1" ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -150,7 +149,6 @@
                 }
               },
               "selected" : {
-                "default" : [ ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -176,7 +174,6 @@
             "title" : "Aggregation columns",
             "description" : "Select the columns to apply the aggregation function to.",
             "default" : {
-              "selected" : [ "test1" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",
@@ -246,7 +243,7 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/frequencyColumns",
       "options" : {
-        "format" : "typedNameFilter",
+        "format" : "typedStringFilter",
         "unknownValuesText" : "Any unknown column",
         "emptyStateLabel" : "No columns in this list.",
         "choicesProvider" : "org.knime.base.node.preproc.rowagg.RowAggregatorSettings$AggregatableColumns"

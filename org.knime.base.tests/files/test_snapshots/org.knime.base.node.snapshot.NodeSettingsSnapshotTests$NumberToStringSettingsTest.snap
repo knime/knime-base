@@ -2,7 +2,6 @@
   "data" : {
     "model" : {
       "columns" : {
-        "selected" : [ "test1" ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -95,7 +94,6 @@
                 }
               },
               "selected" : {
-                "default" : [ ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -121,7 +119,6 @@
             "title" : "Columns",
             "description" : "Select the columns to convert to String.",
             "default" : {
-              "selected" : [ "test1" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",
@@ -148,7 +145,7 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/columns",
       "options" : {
-        "format" : "typedNameFilter",
+        "format" : "typedStringFilter",
         "unknownValuesText" : "Any unknown column",
         "emptyStateLabel" : "No columns in this list.",
         "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider$DoubleColumnsProvider"

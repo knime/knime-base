@@ -2,7 +2,6 @@
   "data" : {
     "model" : {
       "valueColumns" : {
-        "selected" : [ ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -21,7 +20,6 @@
       },
       "missingValues" : false,
       "retainedColumns" : {
-        "selected" : [ ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -127,7 +125,6 @@
                 }
               },
               "selected" : {
-                "default" : [ ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -153,7 +150,6 @@
             "title" : "Retained columns",
             "description" : "This list contains the columns which are duplicated by the number of selected value columns.",
             "default" : {
-              "selected" : [ ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",
@@ -239,7 +235,6 @@
                 }
               },
               "selected" : {
-                "default" : [ ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -265,7 +260,6 @@
             "title" : "Value columns",
             "description" : "This list contains the columns that are rotated into one single column.",
             "default" : {
-              "selected" : [ ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",
@@ -292,7 +286,7 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/valueColumns",
       "options" : {
-        "format" : "typedNameFilter",
+        "format" : "typedStringFilter",
         "unknownValuesText" : "Any unknown column",
         "emptyStateLabel" : "No columns in this list.",
         "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider"
@@ -307,7 +301,7 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/retainedColumns",
       "options" : {
-        "format" : "typedNameFilter",
+        "format" : "typedStringFilter",
         "unknownValuesText" : "Any unknown column",
         "emptyStateLabel" : "No columns in this list.",
         "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider"

@@ -2,7 +2,6 @@
   "data" : {
     "model" : {
       "filter" : {
-        "selected" : [ "periodTest", "durationTest" ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -110,7 +109,6 @@
                 }
               },
               "selected" : {
-                "default" : [ ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -136,7 +134,6 @@
             "title" : "Duration columns",
             "description" : "The columns to convert to a string.",
             "default" : {
-              "selected" : [ "periodTest", "durationTest" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",
@@ -187,7 +184,7 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/filter",
       "options" : {
-        "format" : "typedNameFilter",
+        "format" : "typedStringFilter",
         "unknownValuesText" : "Any unknown column",
         "emptyStateLabel" : "No columns in this list.",
         "choicesProvider" : "org.knime.time.util.DateTimeUtils$IntervalColumnProvider"

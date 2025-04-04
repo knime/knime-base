@@ -5,7 +5,6 @@
       "localDate" : "2024-10-31",
       "timeZone" : "Europe/Berlin",
       "columnFilter" : {
-        "selected" : [ "localDateTime", "zonedDateTime" ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -127,7 +126,6 @@
                 }
               },
               "selected" : {
-                "default" : [ ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -153,7 +151,6 @@
             "title" : "Date&time columns",
             "description" : "The date&amp;time columns whose values are modified.",
             "default" : {
-              "selected" : [ "localDateTime", "zonedDateTime" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",
@@ -2050,7 +2047,7 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/columnFilter",
       "options" : {
-        "format" : "typedNameFilter",
+        "format" : "typedStringFilter",
         "unknownValuesText" : "Any unknown column",
         "emptyStateLabel" : "No columns in this list.",
         "choicesProvider" : "org.knime.time.node.manipulate.modifydate.ModifyDateNodeSettings$ColumnProvider"

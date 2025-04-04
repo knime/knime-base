@@ -1,17 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
     <config key="columnsToInclude">
-        <config key="selected_Internals">
-            <entry key="array-size" type="xint" value="8"/>
-            <entry key="0" type="xstring" value="column1"/>
-            <entry key="1" type="xstring" value="column2"/>
-            <entry key="2" type="xstring" value="column3"/>
-            <entry key="3" type="xstring" value="column4"/>
-            <entry key="4" type="xstring" value="column5"/>
-            <entry key="5" type="xstring" value="column6"/>
-            <entry key="6" type="xstring" value="column7"/>
-            <entry key="7" type="xstring" value="column8"/>
-        </config>
         <entry key="mode" type="xstring" value="MANUAL"/>
         <config key="patternFilter">
             <entry key="pattern" type="xstring" value=""/>
