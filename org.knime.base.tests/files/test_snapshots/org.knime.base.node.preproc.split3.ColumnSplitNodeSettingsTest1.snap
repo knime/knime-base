@@ -131,7 +131,7 @@
               "manualFilter" : {
                 "manuallySelected" : [ "test1", "test2" ],
                 "manuallyDeselected" : [ ],
-                "includeUnknownColumns" : false
+                "includeUnknownColumns" : true
               },
               "typeFilter" : {
                 "selectedTypes" : [ ],

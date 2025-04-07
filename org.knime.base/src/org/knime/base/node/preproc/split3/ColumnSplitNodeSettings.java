@@ -71,7 +71,7 @@ final class ColumnSplitNodeSettings implements DefaultNodeSettings {
             """)
     @ChoicesProvider(AllColumnsProvider.class)
     @TwinlistWidget(includedLabel = "First table", excludedLabel = "Second table")
-    ColumnFilter m_columnsToInclude = new ColumnFilter();
+    ColumnFilter m_columnsToInclude = new ColumnFilter().withIncludeUnknownColumns();
 
     ColumnSplitNodeSettings() {
     }
@@ -81,6 +81,6 @@ final class ColumnSplitNodeSettings implements DefaultNodeSettings {
             .stream() //
             .flatMap(DataTableSpec::stream) //
             .map(DataColumnSpec::getName) //
-            .toArray(String[]::new));
+            .toArray(String[]::new)).withIncludeUnknownColumns();
     }
 }
