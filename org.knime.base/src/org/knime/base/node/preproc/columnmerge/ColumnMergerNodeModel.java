@@ -45,10 +45,13 @@
  */
 package org.knime.base.node.preproc.columnmerge;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.validateColumnName;
+
 import java.io.File;
 import java.io.IOException;
+import java.util.function.Function;
 
-import org.knime.base.node.preproc.columnmerge.ColumnMergerConfiguration.OutputPlacement;
+import org.knime.base.node.preproc.columnmerge.ColumnMergerNodeSettings.OutputPlacement;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -60,7 +63,8 @@ import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationMessageBuilder;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.InvalidColumnNameState;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 
@@ -88,12 +92,6 @@ final class ColumnMergerNodeModel extends WebUISimpleStreamableFunctionNodeModel
     @Override
     protected ColumnRearranger createColumnRearranger(final DataTableSpec spec,
         final ColumnMergerNodeSettings modelSettings) throws InvalidSettingsException {
-        if (modelSettings.m_primaryColumn == null && modelSettings.m_secondaryColumn == null) {
-            String lastCol = getLastColumnName(spec);
-            modelSettings.m_primaryColumn = lastCol;
-            modelSettings.m_secondaryColumn = lastCol;
-        }
-
         final int primColIndex = spec.findColumnIndex(modelSettings.m_primaryColumn);
         if (primColIndex < 0) {
             throw new InvalidSettingsException("The selected primary column \"" + modelSettings.m_primaryColumn
@@ -136,8 +134,9 @@ final class ColumnMergerNodeModel extends WebUISimpleStreamableFunctionNodeModel
             case AppendAsNewColumn:
                 return DataTableSpec.getUniqueColumnName(spec, modelSettings.m_outputName);
             default:
-                throw new InvalidSettingsException("Coding problem: Unrecognized option \""
-                    + modelSettings.m_outputPlacement.toString() + "\" for output placement selection.");
+                throw new InvalidSettingsException(
+                    String.format("Coding problem: Unrecognized option \"%s\" for output placement selection.",
+                        modelSettings.m_outputPlacement));
         }
     }
 
@@ -160,31 +159,23 @@ final class ColumnMergerNodeModel extends WebUISimpleStreamableFunctionNodeModel
                 result.append(fac);
                 return result;
             default:
-                throw new InvalidSettingsException("Coding problem: Unrecognized option \""
-                    + modelSettings.m_outputPlacement.toString() + "\" for output placement selection.");
+                throw new InvalidSettingsException(
+                    String.format("Coding problem: Unrecognized option \"%s\" for output placement selection.",
+                        modelSettings.m_outputPlacement));
         }
     }
 
-    private static String getLastColumnName(final DataTableSpec dictSpec) throws InvalidSettingsException {
-        int number_of_cols = dictSpec.getNumColumns();
-        if (number_of_cols > 0) {
-            return dictSpec.getColumnNames()[number_of_cols - 1]; //return the last column
-        } else {
-            throw new InvalidSettingsException("No columns available in the input.");
-        }
-
-    }
+    private static final Function<InvalidColumnNameState, String> INVALID_COL_NAME_TO_ERROR_MSG =
+            new ColumnNameValidationMessageBuilder("new column name").build();
 
     @Override
     protected void validateSettings(final ColumnMergerNodeSettings settings) throws InvalidSettingsException {
         if (settings.m_outputPlacement == OutputPlacement.AppendAsNewColumn) {
-            if (settings.m_isColumnNameValidationV2) {
-                ColumnNameValidationV2Utils.validateColumnName(settings.m_outputName, "New column name");
-            } else {
-                if (settings.m_outputName == null || settings.m_outputName.length() == 0) {
-                    throw new InvalidSettingsException(
-                        "Output column name must not be empty if 'Append as new column' is selected.");
-                }
+            if (settings.m_doNotAllowBlankOrPaddedColumnName) {
+                validateColumnName(settings.m_outputName, INVALID_COL_NAME_TO_ERROR_MSG);
+            } else if (settings.m_outputName == null || settings.m_outputName.length() == 0) {
+                throw new InvalidSettingsException(
+                    "Output column name must not be empty if 'Append as new column' is selected.");
             }
         }
     }

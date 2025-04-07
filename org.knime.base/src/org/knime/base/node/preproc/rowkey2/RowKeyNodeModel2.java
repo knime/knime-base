@@ -46,12 +46,13 @@
  */
 package org.knime.base.node.preproc.rowkey2;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.validateColumnName;
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.validateColumnName;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.function.Function;
 
 import org.knime.base.data.append.column.AppendedColumnTable;
 import org.knime.base.node.preproc.rowkey2.RowKeyNodeSettings.HandleDuplicateValuesMode;
@@ -86,6 +87,8 @@ import org.knime.core.node.streamable.RowInput;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.core.node.streamable.StreamableFunction;
 import org.knime.core.node.streamable.StreamableOperator;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationMessageBuilder;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.InvalidColumnNameState;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 
@@ -294,23 +297,29 @@ public class RowKeyNodeModel2 extends WebUINodeModel<RowKeyNodeSettings> {
             }
         }
         if (modelSettings.m_appendRowKey) {
-            final var newColName = modelSettings.m_appendedColumnName;
-            validateColumnNameFormat(modelSettings.m_isColumnNameValidationV2, newColName);
-            if (origSpec != null && origSpec.containsName(newColName) && (!modelSettings.m_replaceRowKey
-                || !modelSettings.m_removeRowKeyColumn || !newRowKeyCol.equals(newColName))) {
-                throw new InvalidSettingsException("Column with name: '" + newColName + "' already exists.");
-            }
+            validateColumnNameSetting(origSpec, modelSettings, newRowKeyCol);
         }
     }
 
-    private static void validateColumnNameFormat(final boolean isColumnNameValidationV2, final String newColName)
+    private static void validateColumnNameSetting(final DataTableSpec origSpec, final RowKeyNodeSettings modelSettings,
+        final String newRowKeyCol) throws InvalidSettingsException {
+        final var newColName = modelSettings.m_appendedColumnName;
+        validateColumnNameFormat(modelSettings.m_doNotAllowPaddedColumnName, newColName);
+        if (origSpec != null && origSpec.containsName(newColName) && (!modelSettings.m_replaceRowKey
+            || !modelSettings.m_removeRowKeyColumn || !newRowKeyCol.equals(newColName))) {
+            throw new InvalidSettingsException("Column with name: '" + newColName + "' already exists.");
+        }
+    }
+
+    private static final Function<InvalidColumnNameState, String> INVALID_COL_NAME_TO_ERROR_MSG =
+        new ColumnNameValidationMessageBuilder("column name").build();
+
+    private static void validateColumnNameFormat(final boolean doNotAllowPaddedColumnName, final String newColName)
         throws InvalidSettingsException {
-        if (isColumnNameValidationV2) {
-            validateColumnName(newColName, "Column name");
-        } else {
-            if (newColName == null || newColName.trim().length() < 1) {
-                throw new InvalidSettingsException("Please provide a valid name for the new column.");
-            }
+        if (doNotAllowPaddedColumnName) {
+            validateColumnName(newColName, INVALID_COL_NAME_TO_ERROR_MSG);
+        } else if (newColName == null || newColName.trim().length() < 1) {
+            throw new InvalidSettingsException("Please provide a valid name for the new column.");
         }
     }
 

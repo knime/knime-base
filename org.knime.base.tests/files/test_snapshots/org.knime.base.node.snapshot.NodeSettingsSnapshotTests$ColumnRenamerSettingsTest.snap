@@ -5,7 +5,7 @@
         "oldName" : "test2",
         "newName" : "test2"
       } ],
-      "isColumnNameValidationV2" : true
+      "doNotAllowPaddedColumnName" : true
     }
   },
   "schema" : {
@@ -14,7 +14,7 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "isColumnNameValidationV2" : {
+          "doNotAllowPaddedColumnName" : {
             "type" : "boolean",
             "default" : true
           },
@@ -94,7 +94,7 @@
               }
             }
           },
-          "isColumnNameValidationV2" : {
+          "doNotAllowPaddedColumnName" : {
             "configPaths" : [ ]
           }
         }

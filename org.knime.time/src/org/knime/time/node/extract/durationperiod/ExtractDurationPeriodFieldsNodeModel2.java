@@ -48,7 +48,7 @@
  */
 package org.knime.time.node.extract.durationperiod;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.validatePossiblyEmptyColumnName;
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.validatePossiblyEmptyColumnName;
 import static org.knime.time.node.extract.durationperiod.ExtractFieldSettings.OutputColumnNamePlaceholderProvider.getPlaceholder;
 
 import java.util.Arrays;
@@ -66,6 +66,8 @@ import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.util.UniqueNameGenerator;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationMessageBuilder;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationMessageBuilder.ColumnNameSettingContext;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 
@@ -89,8 +91,10 @@ public class ExtractDurationPeriodFieldsNodeModel2
     protected void validateSettings(final ExtractDurationPeriodFieldsNodeSettings settings)
         throws InvalidSettingsException {
         for (final var columnSetting : settings.m_extractFields) {
-            validatePossiblyEmptyColumnName(columnSetting.m_outputcolumnName,
-                String.format("%s.Column name", columnSetting.m_field.getLabelValue()));
+            final var invalidColNameToErrorMessage = new ColumnNameValidationMessageBuilder("column name") //
+                .withSpecificSettingContext(ColumnNameSettingContext.INSIDE_COMPACT_ARRAY_LAYOUT) //
+                .withArrayItemIdentifier(columnSetting.m_field.getLabelValue()).build();
+            validatePossiblyEmptyColumnName(columnSetting.m_outputcolumnName, invalidColNameToErrorMessage);
         }
         var firstDuplicateColumnName = Arrays.stream(settings.m_extractFields) //
             .filter(extractField -> !extractField.m_outputcolumnName.isEmpty())

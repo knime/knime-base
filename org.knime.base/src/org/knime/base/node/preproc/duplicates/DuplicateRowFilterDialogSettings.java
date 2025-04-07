@@ -60,6 +60,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.booleanhelpers.AlwaysSaveTrueBoolean;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
@@ -75,7 +76,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.AbstractIsColumnNameValidationV2Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.ColumnNameValidationV2;
 
 /**
@@ -196,14 +196,16 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
     @TextInputWidget(validation = ColumnNameValidationV2.class)
     String m_chosenRowIdsColumnName = "Duplicate Chosen";
 
-    static final class IsColumnNameValidationV2Persistor extends AbstractIsColumnNameValidationV2Persistor {
-        protected IsColumnNameValidationV2Persistor() {
-            super("isColumnNameValidationV2");
+    static final String DO_NOT_ALLOW_EMPTY_BLANK_PADDED_COLUMN_NAME_CFG_KEY = "doNotAllowEmptyBlankOrPaddedColumnName";
+
+    static final class DoNotAllowEmptyBlankOrPaddedColumnNamePersistor extends AlwaysSaveTrueBoolean {
+        protected DoNotAllowEmptyBlankOrPaddedColumnNamePersistor() {
+            super(DO_NOT_ALLOW_EMPTY_BLANK_PADDED_COLUMN_NAME_CFG_KEY);
         }
     }
 
-    @Persistor(IsColumnNameValidationV2Persistor.class)
-    boolean m_isColumnNameValidationV2 = true;
+    @Persistor(DoNotAllowEmptyBlankOrPaddedColumnNamePersistor.class)
+    boolean m_doNotAllowEmptyBlankOrPaddedColumnName = true;
 
     interface RowSelectionRef extends Reference<RowSelection> {
     }

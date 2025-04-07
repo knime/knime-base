@@ -25,7 +25,7 @@
       "quoteInputs" : "ONLY_NECESSARY",
       "replacementDelimiter" : "",
       "outputColumnName" : "Combined String",
-      "isColumnNameValidationV2" : true,
+      "doNotAllowPaddedColumnName" : true,
       "removeInputColumns" : false
     }
   },
@@ -162,15 +162,15 @@
             "title" : "Handle delimiter inputs",
             "default" : "QUOTE"
           },
+          "doNotAllowPaddedColumnName" : {
+            "type" : "boolean",
+            "default" : true
+          },
           "failIfMissingColumns" : {
             "type" : "boolean",
             "title" : "Fail if there are missing columns",
             "description" : "If true the node will fail when there are missing columns selected",
             "default" : false
-          },
-          "isColumnNameValidationV2" : {
-            "type" : "boolean",
-            "default" : true
           },
           "outputColumnName" : {
             "type" : "string",
@@ -389,7 +389,7 @@
           "outputColumnName" : {
             "configKey" : "new_column_name"
           },
-          "isColumnNameValidationV2" : {
+          "doNotAllowPaddedColumnName" : {
             "configPaths" : [ ]
           },
           "removeInputColumns" : {

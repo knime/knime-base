@@ -1,11 +1,11 @@
 {
   "data" : {
     "model" : {
-      "primaryColumn" : "",
-      "secondaryColumn" : "",
+      "primaryColumn" : "test2",
+      "secondaryColumn" : "test2",
       "outputPlacement" : "ReplaceBoth",
       "outputName" : "NewColumn",
-      "isColumnNameValidationV2" : true
+      "doNotAllowBlankOrPaddedColumnName" : true
     }
   },
   "schema" : {
@@ -14,7 +14,7 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "isColumnNameValidationV2" : {
+          "doNotAllowBlankOrPaddedColumnName" : {
             "type" : "boolean",
             "default" : true
           },
@@ -46,13 +46,13 @@
             "type" : "string",
             "title" : "Primary column",
             "description" : "The column with the value that will be used, unless it is missing.",
-            "default" : ""
+            "default" : "test2"
           },
           "secondaryColumn" : {
             "type" : "string",
             "title" : "Secondary column",
             "description" : "The column with the value that will be used if it is missing in the primary column.",
-            "default" : ""
+            "default" : "test2"
           }
         }
       }
@@ -123,7 +123,7 @@
           "outputName" : {
             "configPaths" : [ [ "outputName" ] ]
           },
-          "isColumnNameValidationV2" : {
+          "doNotAllowBlankOrPaddedColumnName" : {
             "configPaths" : [ ]
           }
         }

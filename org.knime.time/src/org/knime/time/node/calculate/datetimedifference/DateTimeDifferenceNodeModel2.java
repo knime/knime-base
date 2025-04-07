@@ -48,7 +48,7 @@
  */
 package org.knime.time.node.calculate.datetimedifference;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.validateColumnName;
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.validateColumnName;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -57,6 +57,7 @@ import java.time.LocalTime;
 import java.time.Period;
 import java.time.ZonedDateTime;
 import java.time.temporal.Temporal;
+import java.util.function.Function;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -78,6 +79,8 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.streamable.BufferedDataTableRowOutput;
 import org.knime.core.util.UniqueNameGenerator;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationMessageBuilder;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.InvalidColumnNameState;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 import org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings.Mode;
@@ -108,9 +111,12 @@ public class DateTimeDifferenceNodeModel2 extends WebUINodeModel<DateTimeDiffere
         super(configuration, DateTimeDifferenceNodeSettings.class);
     }
 
+    private static final Function<InvalidColumnNameState, String> INVALID_COL_NAME_TO_ERROR_MSG =
+            new ColumnNameValidationMessageBuilder("output column name").build();
+
     @Override
     protected void validateSettings(final DateTimeDifferenceNodeSettings settings) throws InvalidSettingsException {
-        validateColumnName(settings.m_outputColumnName, "Output column name");
+        validateColumnName(settings.m_outputColumnName, INVALID_COL_NAME_TO_ERROR_MSG);
     }
 
     @Override

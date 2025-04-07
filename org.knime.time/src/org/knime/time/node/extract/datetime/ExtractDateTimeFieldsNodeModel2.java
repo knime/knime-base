@@ -48,7 +48,7 @@
  */
 package org.knime.time.node.extract.datetime;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.validatePossiblyEmptyColumnName;
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.validatePossiblyEmptyColumnName;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -83,6 +83,8 @@ import org.knime.core.data.time.localtime.LocalTimeValue;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.util.UniqueNameGenerator;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationMessageBuilder;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationMessageBuilder.ColumnNameSettingContext;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 import org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings.DateTimeField;
@@ -111,8 +113,10 @@ public class ExtractDateTimeFieldsNodeModel2
             throw new InvalidSettingsException("No empty fields allowed. Please remove to continue.");
         }
         for (final var columnSetting : settings.m_extractFields) {
-            validatePossiblyEmptyColumnName(columnSetting.m_columnName,
-                String.format("%s.Column name", columnSetting.m_field.getLabelValue()));
+            final var invalidColNameToErrorMessage = new ColumnNameValidationMessageBuilder("column name") //
+                .withSpecificSettingContext(ColumnNameSettingContext.INSIDE_COMPACT_ARRAY_LAYOUT) //
+                .withArrayItemIdentifier(columnSetting.m_field.getLabelValue()).build();
+            validatePossiblyEmptyColumnName(columnSetting.m_columnName, invalidColNameToErrorMessage);
         }
     }
 

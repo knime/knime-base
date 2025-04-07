@@ -10,7 +10,7 @@
       "enableHilite" : false,
       "appendRowKey" : true,
       "appendedColumnName" : "appendedColumn",
-      "isColumnNameValidationV2" : false
+      "doNotAllowPaddedColumnName" : false
     }
   },
   "schema" : {
@@ -30,6 +30,10 @@
             "title" : "Column name",
             "description" : "The name of the column to append to the table.",
             "default" : "Old RowID"
+          },
+          "doNotAllowPaddedColumnName" : {
+            "type" : "boolean",
+            "default" : true
           },
           "enableHilite" : {
             "type" : "boolean",
@@ -60,10 +64,6 @@
             "title" : "If ID column contains missing values",
             "description" : "Fail if encountering missing values, or replace them.\n<ul>\n<li><b>Fail</b>: If selected, the node fails if a missing value is encountered in the selected column.</li>\n<li><b>Replace by &quot;?&quot;</b>: If selected, missing values are replaced with \"?\". We recommend also enabling the\"Append counter\" option to handle any duplicate missing values.</li>\n</ul>",
             "default" : "FAIL"
-          },
-          "isColumnNameValidationV2" : {
-            "type" : "boolean",
-            "default" : true
           },
           "newRowKeyColumnV2" : {
             "type" : "string",
@@ -313,7 +313,7 @@
           "appendedColumnName" : {
             "configKey" : "newColumnName4RowKeyValues"
           },
-          "isColumnNameValidationV2" : {
+          "doNotAllowPaddedColumnName" : {
             "configPaths" : [ ]
           }
         }

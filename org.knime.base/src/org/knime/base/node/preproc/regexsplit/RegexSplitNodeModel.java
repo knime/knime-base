@@ -47,12 +47,13 @@
  */
 package org.knime.base.node.preproc.regexsplit;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.validateColumnName;
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.validateColumnName;
 
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.knime.base.node.preproc.regexsplit.CaptureGroupExtractor.CaptureGroup;
@@ -92,6 +93,8 @@ import org.knime.core.node.streamable.RowInput;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationMessageBuilder;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.InvalidColumnNameState;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 
@@ -154,12 +157,15 @@ final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
         return new OutputPortRole[]{OutputPortRole.DISTRIBUTED};
     }
 
+    private static final Function<InvalidColumnNameState, String> INVALID_COL_NAME_TO_ERROR_MSG =
+        new ColumnNameValidationMessageBuilder("output column name").build();
+
     @Override
     protected void validateSettings(final RegexSplitNodeSettings settings) throws InvalidSettingsException {
         RegexSplitter.fromSettings(settings); // might throw
-        if (settings.m_isColumnNameValidationV2 && settings.m_output.m_mode != OutputMode.COLUMNS
+        if (settings.m_doNotAllowEmptyBlankOrPaddedColumnName && settings.m_output.m_mode != OutputMode.COLUMNS
             && settings.m_output.m_singleOutputColumnMode == SingleOutputColumnMode.APPEND) {
-            validateColumnName(settings.m_output.m_columnName, "Output column name");
+            validateColumnName(settings.m_output.m_columnName, INVALID_COL_NAME_TO_ERROR_MSG);
         }
     }
 

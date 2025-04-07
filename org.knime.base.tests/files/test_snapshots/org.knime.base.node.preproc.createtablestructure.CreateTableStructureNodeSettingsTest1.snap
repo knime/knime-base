@@ -17,7 +17,7 @@
         "columnName" : "Column 4",
         "colType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.IntCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
       } ],
-      "isColumnNameValidationV2" : false
+      "validateColumnNames" : false
     }
   },
   "schema" : {
@@ -51,7 +51,7 @@
               "colType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
             } ]
           },
-          "isColumnNameValidationV2" : {
+          "validateColumnNames" : {
             "type" : "boolean",
             "default" : true
           }
@@ -112,7 +112,7 @@
               "deprecated" : [ [ "colCount" ], [ "colPrefix" ], [ "colType" ] ]
             } ]
           },
-          "isColumnNameValidationV2" : {
+          "validateColumnNames" : {
             "configPaths" : [ ]
           }
         }

@@ -52,12 +52,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.booleanhelpers.AlwaysSaveTrueBoolean;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.AbstractIsColumnNameValidationV2Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.ColumnNameValidationV2;
 
 /**
@@ -108,13 +108,13 @@ public final class ColumnRenamerSettings implements DefaultNodeSettings {
         public String m_newName;
     }
 
-    static final class IsColumnNameValidationV2Persistor extends AbstractIsColumnNameValidationV2Persistor {
-        protected IsColumnNameValidationV2Persistor() {
-            super("isColumnNameValidationV2");
+    static final class DoNotAllowPaddedColumnNamePersistor extends AlwaysSaveTrueBoolean {
+        protected DoNotAllowPaddedColumnNamePersistor() {
+            super("doNotAllowPaddedColumnName");
         }
     }
 
-    @Persistor(IsColumnNameValidationV2Persistor.class)
-    boolean m_isColumnNameValidationV2 = true;
+    @Persistor(DoNotAllowPaddedColumnNamePersistor.class)
+    boolean m_doNotAllowPaddedColumnName= true;
 
 }

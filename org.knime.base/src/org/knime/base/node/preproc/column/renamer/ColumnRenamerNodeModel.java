@@ -48,7 +48,7 @@
  */
 package org.knime.base.node.preproc.column.renamer;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.validateColumnName;
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.validateColumnName;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -66,6 +66,8 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.ConvenienceMethods;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationMessageBuilder;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationMessageBuilder.ColumnNameSettingContext;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 
@@ -135,8 +137,11 @@ final class ColumnRenamerNodeModel extends WebUINodeModel<ColumnRenamerSettings>
                 CheckUtils.checkSetting(m_nameMap.put(oldName, renaming.m_newName) == null,
                     "The column '%s' is renamed more than once. There must be only one renaming per column.", oldName);
                 var newName = renaming.m_newName;
-                if (settings.m_isColumnNameValidationV2) {
-                    validateColumnName(newName, String.format("%s.New name", oldName));
+                if (settings.m_doNotAllowPaddedColumnName) {
+                    final var invalidColNameToErrorMessage = new ColumnNameValidationMessageBuilder("new name") //
+                        .withSpecificSettingContext(ColumnNameSettingContext.INSIDE_COMPACT_ARRAY_LAYOUT) //
+                        .withArrayItemIdentifier(oldName).build();
+                    validateColumnName(newName, invalidColNameToErrorMessage);
                 } else {
                     CheckUtils.checkSetting(StringUtils.isNotBlank(newName),
                         "The new name for '%s' is invalid because it is blank. Enter a non-empty new name.", oldName);

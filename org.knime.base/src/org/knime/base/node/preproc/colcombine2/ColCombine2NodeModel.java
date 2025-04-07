@@ -44,10 +44,11 @@
  */
 package org.knime.base.node.preproc.colcombine2;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.validateColumnName;
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.validateColumnName;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.function.Function;
 
 import org.knime.base.node.preproc.colcombine2.ColCombine2NodeSettings.DelimiterInputs;
 import org.knime.base.node.preproc.colcombine2.ColCombine2NodeSettings.QuoteInputs;
@@ -63,6 +64,8 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.ConvenienceMethods;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationMessageBuilder;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.InvalidColumnNameState;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 
@@ -220,14 +223,15 @@ public class ColCombine2NodeModel extends WebUISimpleStreamableFunctionNodeModel
 
     }
 
+    private static final Function<InvalidColumnNameState, String> INVALID_COL_NAME_TO_ERROR_MSG =
+        new ColumnNameValidationMessageBuilder("output column name").build();
+
     private static void validateOutputColumnNameSetting(final ColCombine2NodeSettings modelSettings)
         throws InvalidSettingsException {
-        if (modelSettings.m_isColumnNameValidationV2) {
-            validateColumnName(modelSettings.m_outputColumnName, "Output column name");
-        } else {
-            if (modelSettings.m_outputColumnName == null || modelSettings.m_outputColumnName.trim().length() == 0) {
-                throw new InvalidSettingsException("Name of new column must not be empty");
-            }
+        if (modelSettings.m_doNotAllowPaddedColumnName) {
+            validateColumnName(modelSettings.m_outputColumnName, INVALID_COL_NAME_TO_ERROR_MSG);
+        } else if (modelSettings.m_outputColumnName == null || modelSettings.m_outputColumnName.trim().length() == 0) {
+            throw new InvalidSettingsException("Name of new column must not be empty");
         }
     }
 

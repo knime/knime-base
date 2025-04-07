@@ -48,7 +48,7 @@
  */
 package org.knime.time.node.create.createdatetime;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.validateColumnName;
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.validateColumnName;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -56,6 +56,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.function.Function;
 
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
@@ -70,6 +71,8 @@ import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationMessageBuilder;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.InvalidColumnNameState;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 import org.knime.time.node.create.createdatetime.CreateDateTimeNodeSettings.FixedSteps;
@@ -90,6 +93,10 @@ final class CreateDateTimeNodeModel2 extends WebUINodeModel<CreateDateTimeNodeSe
         super(configuration, CreateDateTimeNodeSettings.class);
     }
 
+    private static final Function<InvalidColumnNameState, String> INVALID_COL_NAME_TO_ERROR_MSG =
+            new ColumnNameValidationMessageBuilder("output column name").build();
+
+
     @Override
     protected void validateSettings(final CreateDateTimeNodeSettings loadedSettings) throws InvalidSettingsException {
         // If the duration is zero and being used, things will go badly, so let's check that first.
@@ -104,7 +111,7 @@ final class CreateDateTimeNodeModel2 extends WebUINodeModel<CreateDateTimeNodeSe
         assertOrderOfStartAndEnd(loadedSettings);
 
         // Also check if the output column name starts and ends with a non-whitespace character
-        validateColumnName(loadedSettings.m_outputColumnName, "Output column name");
+        validateColumnName(loadedSettings.m_outputColumnName, INVALID_COL_NAME_TO_ERROR_MSG);
     }
 
     private static void assertOrderOfStartAndEnd(final CreateDateTimeNodeSettings loadedSettings)

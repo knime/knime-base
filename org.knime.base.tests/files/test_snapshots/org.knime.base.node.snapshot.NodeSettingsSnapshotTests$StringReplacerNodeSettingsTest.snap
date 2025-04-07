@@ -1,13 +1,14 @@
 {
   "data" : {
     "model" : {
+      "colName" : "test2",
       "patternType" : "LITERAL",
       "enableEscaping" : false,
       "caseMatching" : "CASESENSITIVE",
       "replacementStrategy" : "WHOLE_STRING",
       "createNewCol" : false,
       "newColName" : "ReplacedColumn",
-      "isColumnNameValidationV2" : true
+      "doNotAllowPaddedColumnName" : true
     }
   },
   "schema" : {
@@ -31,7 +32,8 @@
           "colName" : {
             "type" : "string",
             "title" : "Target column",
-            "description" : "Select the column in which the strings should be replaced."
+            "description" : "Select the column in which the strings should be replaced.",
+            "default" : "test2"
           },
           "createNewCol" : {
             "type" : "boolean",
@@ -39,15 +41,15 @@
             "description" : "If enabled, the strings will not be replaced in-place but a new column is appended that contains the\noriginal string with the replacement applied.\n",
             "default" : false
           },
+          "doNotAllowPaddedColumnName" : {
+            "type" : "boolean",
+            "default" : true
+          },
           "enableEscaping" : {
             "type" : "boolean",
             "title" : "Use backslash as escape character",
             "description" : "If checked, the backslash character can be used to escape special characters. For instance, <tt>\\?</tt>\nwill match the literal character <tt>?</tt> instead of an arbitrary character. In order to match a\nbackslash you need to escape the backslash, too (<tt>\\</tt>).\n",
             "default" : false
-          },
-          "isColumnNameValidationV2" : {
-            "type" : "boolean",
-            "default" : true
           },
           "newColName" : {
             "type" : "string",
@@ -221,7 +223,7 @@
           "newColName" : {
             "configKey" : "newColName"
           },
-          "isColumnNameValidationV2" : {
+          "doNotAllowPaddedColumnName" : {
             "configPaths" : [ ]
           }
         }

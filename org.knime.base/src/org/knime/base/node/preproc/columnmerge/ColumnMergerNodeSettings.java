@@ -48,14 +48,16 @@
  */
 package org.knime.base.node.preproc.columnmerge;
 
-import org.knime.base.node.preproc.columnmerge.ColumnMergerConfiguration.OutputPlacement;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.booleanhelpers.AlwaysSaveTrueBoolean;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelStringPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -63,8 +65,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProv
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.AbstractIsColumnNameValidationV2Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.ColumnNameValidationV2;
 
 /**
@@ -83,7 +87,7 @@ public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
 
     static final class PrimaryColumnPersistor extends SettingsModelStringPersistor {
         PrimaryColumnPersistor() {
-            super(ColumnMergerConfiguration.CFG_PRIMARY);
+            super("primaryColumn");
         }
     }
 
@@ -95,7 +99,7 @@ public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
 
     static final class SecondaryColumnPersistor extends SettingsModelStringPersistor {
         SecondaryColumnPersistor() {
-            super(ColumnMergerConfiguration.CFG_SECONDARY);
+            super("secondaryColumn");
         }
     }
 
@@ -116,7 +120,7 @@ public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
 
     static final class OutputNamePersisor extends SettingsModelStringPersistor {
         OutputNamePersisor() {
-            super(ColumnMergerConfiguration.CFG_OUTPUT_NAME);
+            super("outputName");
         }
     }
 
@@ -126,20 +130,48 @@ public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
     @TextInputWidget(validation = ColumnNameValidationV2.class)
     String m_outputName = "NewColumn";
 
-    static final class IsColumnNameValidationV2Persistor extends AbstractIsColumnNameValidationV2Persistor {
-        protected IsColumnNameValidationV2Persistor() {
-            super("isColumnNameValidationV2");
+    static final class DoNotAllowBlankOrPaddedColumnNamePersistor extends AlwaysSaveTrueBoolean {
+        protected DoNotAllowBlankOrPaddedColumnNamePersistor() {
+            super("doNotAllowBlankOrPaddedColumnName");
         }
     }
 
-    @Persistor(IsColumnNameValidationV2Persistor.class)
-    boolean m_isColumnNameValidationV2 = true;
+    @Persistor(DoNotAllowBlankOrPaddedColumnNamePersistor.class)
+    boolean m_doNotAllowBlankOrPaddedColumnName = true;
+
+    /** Policy how to place output. */
+    enum OutputPlacement {
+            /** Replace both columns, put output at position of primary column. */
+            @Label("Replace primary and delete secondary")
+            ReplaceBoth,
+            /** Replace primary column. */
+            @Label("Replace primary")
+            ReplacePrimary,
+            /** Replace secondary column. */
+            @Label("Replace secondary")
+            ReplaceSecondary,
+            /** Append as new column. */
+            @Label("Append as new column")
+            AppendAsNewColumn;
+
+        interface Ref extends Reference<OutputPlacement> {
+        }
+
+        static final class IsAppendAsNewColumn implements PredicateProvider {
+            @Override
+            public Predicate init(final PredicateInitializer i) {
+                return i.getEnum(Ref.class).isOneOf(OutputPlacement.AppendAsNewColumn);
+            }
+        }
+    }
 
     private static final class OutputPlacementOptionsPersistor implements NodeSettingsPersistor<OutputPlacement> {
 
+        private static final String OUTPUT_PLACEMENT_CFGKEY = "outputPlacement";
+
         @Override
         public OutputPlacement load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            String outputPlacement = settings.getString(ColumnMergerConfiguration.CFG_OUTPUT_PLACEMENT);
+            String outputPlacement = settings.getString(OUTPUT_PLACEMENT_CFGKEY);
             try {
                 return OutputPlacement.valueOf(outputPlacement);
             } catch (IllegalArgumentException ex) {
@@ -151,15 +183,41 @@ public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
         @Override
         public void save(final OutputPlacement obj, final NodeSettingsWO settings) {
             if (obj == null) {
-                settings.addString(ColumnMergerConfiguration.CFG_OUTPUT_PLACEMENT, OutputPlacement.ReplaceBoth.name());
+                settings.addString(OUTPUT_PLACEMENT_CFGKEY, OutputPlacement.ReplaceBoth.name());
                 return;
             }
-            settings.addString(ColumnMergerConfiguration.CFG_OUTPUT_PLACEMENT, obj.name());
+            settings.addString(OUTPUT_PLACEMENT_CFGKEY, obj.name());
         }
 
         @Override
         public String[][] getConfigPaths() {
-            return new String[][]{{ColumnMergerConfiguration.CFG_OUTPUT_PLACEMENT}};
+            return new String[][]{{OUTPUT_PLACEMENT_CFGKEY}};
         }
+    }
+
+    /**
+     * Create an instance with default values.
+     */
+    public ColumnMergerNodeSettings() {
+        this((DataTableSpec)null);
+    }
+
+    ColumnMergerNodeSettings(final DefaultNodeSettingsContext context) {
+        this(context.getDataTableSpec(0).orElse(null));
+    }
+
+    ColumnMergerNodeSettings(final DataTableSpec spec) {
+        if (spec == null) {
+            return;
+        }
+
+        int numCols = spec.getNumColumns();
+        if (numCols == 0) {
+            return;
+        }
+
+        final var lastCol = spec.getColumnNames()[numCols - 1]; //return the last column
+        m_primaryColumn = lastCol;
+        m_secondaryColumn = lastCol;
     }
 }

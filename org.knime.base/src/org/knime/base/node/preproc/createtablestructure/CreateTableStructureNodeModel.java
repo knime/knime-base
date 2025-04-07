@@ -48,7 +48,7 @@
  */
 package org.knime.base.node.preproc.createtablestructure;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.validateColumnName;
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.validateColumnName;
 
 import java.util.Arrays;
 
@@ -59,6 +59,8 @@ import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationMessageBuilder;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationMessageBuilder.ColumnNameSettingContext;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 
@@ -104,10 +106,13 @@ final class CreateTableStructureNodeModel extends WebUINodeModel<CreateTableStru
 
     @Override
     protected void validateSettings(final CreateTableStructureNodeSettings settings) throws InvalidSettingsException {
-        if (settings.m_isColumnNameValidationV2) {
+        if (settings.m_validateColumnNames) {
             for (var i = 0; i < settings.m_columnSettings.length; i++) {
                 final var columnSetting = settings.m_columnSettings[i];
-                validateColumnName(columnSetting.m_columnName, String.format("Column %d.Column name", i + 1));
+                final var invalidColNameToErrorMessage = new ColumnNameValidationMessageBuilder("column name") //
+                    .withSpecificSettingContext(ColumnNameSettingContext.INSIDE_NON_COMPACT_ARRAY_LAYOUT) //
+                    .withArrayItemIdentifier(String.format("Column %d", i + 1)).build();
+                validateColumnName(columnSetting.m_columnName, invalidColNameToErrorMessage);
             }
         }
     }

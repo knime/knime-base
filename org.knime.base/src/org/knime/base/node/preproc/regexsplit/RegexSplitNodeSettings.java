@@ -62,6 +62,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.booleanhelpers.AlwaysSaveTrueBoolean;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelStringPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
@@ -72,7 +73,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProv
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider.StringColumnsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.AbstractIsColumnNameValidationV2Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.IsNotEmptyValidation;
 
 /**
@@ -341,14 +341,14 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
 
     // Utility
 
-    static final class IsColumnNameValidationV2Persistor extends AbstractIsColumnNameValidationV2Persistor {
-        protected IsColumnNameValidationV2Persistor() {
-            super("isColumnNameValidationV2");
+    static final class DoNotAllowEmptyBlankOrPaddedColumnNamePersistor extends AlwaysSaveTrueBoolean {
+        protected DoNotAllowEmptyBlankOrPaddedColumnNamePersistor() {
+            super("doNotAllowEmptyBlankOrPaddedColumnName");
         }
     }
 
-    @Persistor(IsColumnNameValidationV2Persistor.class)
-    boolean m_isColumnNameValidationV2 = true;
+    @Persistor(DoNotAllowEmptyBlankOrPaddedColumnNamePersistor.class)
+    boolean m_doNotAllowEmptyBlankOrPaddedColumnName = true;
 
     static class TrueProvider implements DefaultProvider<Boolean> {
         @Override

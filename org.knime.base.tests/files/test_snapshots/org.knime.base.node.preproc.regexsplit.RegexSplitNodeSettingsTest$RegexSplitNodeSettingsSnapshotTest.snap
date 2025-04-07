@@ -22,7 +22,7 @@
         "groupLabels" : "CAPTURE_GROUP_NAMES",
         "removeInputColumn" : false
       },
-      "isColumnNameValidationV2" : true,
+      "doNotAllowEmptyBlankOrPaddedColumnName" : true,
       "isLiteral" : false,
       "isComments" : false
     }
@@ -57,15 +57,15 @@
             "description" : "If enabled, the indices of non-named capturing groups start at zero instead of one.\nThis setting is not meant to be manually enabled, but exists solely for the purpose of\nbackwards-compatibility. Earlier versions of this node have this enabled to reflect how the node used to\nbehave.",
             "default" : false
           },
+          "doNotAllowEmptyBlankOrPaddedColumnName" : {
+            "type" : "boolean",
+            "default" : true
+          },
           "isCanonEQ" : {
             "type" : "boolean",
             "title" : "Enable canonical equivalence",
             "description" : "When enabled, two characters will be considered to match if, and only if, their full canonical\ndecompositions match. The expression \"a\\u030A\", for example, will match the string \"\\u00E5\" when this is\nenabled. By default, matching does not take canonical equivalence into account.",
             "default" : false
-          },
-          "isColumnNameValidationV2" : {
-            "type" : "boolean",
-            "default" : true
           },
           "isComments" : {
             "type" : "boolean",
@@ -517,7 +517,7 @@
               "deprecated" : [ ]
             } ]
           },
-          "isColumnNameValidationV2" : {
+          "doNotAllowEmptyBlankOrPaddedColumnName" : {
             "configPaths" : [ ]
           },
           "isLiteral" : {

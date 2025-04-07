@@ -6,7 +6,7 @@
       "uniqueStatusColumnName" : "Duplicate Status",
       "addRowIdLabel" : false,
       "chosenRowIdsColumnName" : "Duplicate Chosen",
-      "isColumnNameValidationV2" : true,
+      "doNotAllowEmptyBlankOrPaddedColumnName" : true,
       "rowSelectionType" : "FIRST",
       "selectedColumn" : "test1",
       "inMemory" : false,
@@ -131,6 +131,10 @@
             "title" : "Choose columns for duplicates detection",
             "description" : "Allows the selection of columns identifying the duplicates. Columns not selected are handled under \"Row selection\" in the \"Advanced\" settings."
           },
+          "doNotAllowEmptyBlankOrPaddedColumnName" : {
+            "type" : "boolean",
+            "default" : true
+          },
           "duplicateHandling" : {
             "oneOf" : [ {
               "const" : "REMOVE",
@@ -148,10 +152,6 @@
             "title" : "Compute in memory",
             "description" : "If selected, computation is sped up by utilizing working memory (RAM). The amount of required memory is higher than for a regular computation and also depends on the amount of input data.",
             "default" : false
-          },
-          "isColumnNameValidationV2" : {
-            "type" : "boolean",
-            "default" : true
           },
           "retainOrder" : {
             "type" : "boolean",
@@ -397,7 +397,7 @@
           "chosenRowIdsColumnName" : {
             "configKey" : "row_id_flag_column_name"
           },
-          "isColumnNameValidationV2" : {
+          "doNotAllowEmptyBlankOrPaddedColumnName" : {
             "configPaths" : [ ]
           },
           "rowSelectionType" : {

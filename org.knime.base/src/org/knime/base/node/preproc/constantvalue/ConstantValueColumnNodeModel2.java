@@ -48,7 +48,7 @@
  */
 package org.knime.base.node.preproc.constantvalue;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.validateColumnName;
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.validateColumnName;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -71,6 +71,8 @@ import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.util.UniqueNameGenerator;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationMessageBuilder;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationMessageBuilder.ColumnNameSettingContext;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 
@@ -116,8 +118,10 @@ final class ConstantValueColumnNodeModel2
             for (var i = 0; i < settings.m_newColumnSettings.length; i++) {
                 final var columnSetting = settings.m_newColumnSettings[i];
                 if (columnSetting.m_replaceOrAppend == AppendOrReplace.APPEND) {
-                    validateColumnName(columnSetting.m_columnNameToAppend,
-                        String.format("Constant column %d.New column", i + 1));
+                    final var invalidColNameToErrorMessage = new ColumnNameValidationMessageBuilder("new column name")
+                        .withSpecificSettingContext(ColumnNameSettingContext.INSIDE_NON_COMPACT_ARRAY_LAYOUT) //
+                        .withArrayItemIdentifier(String.format("Constant column %d", i + 1)).build();
+                    validateColumnName(columnSetting.m_columnNameToAppend, invalidColNameToErrorMessage);
                 }
 
             }

@@ -47,13 +47,13 @@
  */
 package org.knime.base.node.preproc.stringreplacer;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationV2Utils.validateColumnName;
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.validateColumnName;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.regex.Pattern;
-import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.knime.base.util.WildcardMatcher;
@@ -68,6 +68,8 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationMessageBuilder;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.InvalidColumnNameState;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 
@@ -103,9 +105,7 @@ public class StringReplacerNodeModel extends WebUISimpleStreamableFunctionNodeMo
     @Override
     protected ColumnRearranger createColumnRearranger(final DataTableSpec spec,
         final StringReplacerNodeSettings modelSettings) throws InvalidSettingsException {
-        if (modelSettings.m_colName == null) {
-            modelSettings.m_colName = getLastStringColumn(spec);
-        } else if (spec.findColumnIndex(modelSettings.m_colName) == -1) {
+        if (spec.findColumnIndex(modelSettings.m_colName) == -1) {
             throw new InvalidSettingsException("The previously selected column '" + modelSettings.m_colName
                 + "' is not available. Please reconfigure the node.");
         }
@@ -115,14 +115,7 @@ public class StringReplacerNodeModel extends WebUISimpleStreamableFunctionNodeMo
         var newColumnName = modelSettings.m_createNewCol ? modelSettings.m_newColName : modelSettings.m_colName;
         var colSpec = new DataColumnSpecCreator(newColumnName, StringCell.TYPE).createSpec();
 
-        final String replacement;
-        if (modelSettings.m_patternType == PatternType.WILDCARD) {
-            // Remove back-references when matching with wildcards
-            var backreferenceMatcher = backreferencePattern.matcher(modelSettings.m_replacement);
-            replacement = backreferenceMatcher.replaceAll("\\\\$1");
-        } else {
-            replacement = modelSettings.m_replacement;
-        }
+        final String replacement = createReplacement(modelSettings);
         final int index = spec.findColumnIndex(modelSettings.m_colName);
         SingleCellFactory cf = new SingleCellFactory(colSpec) {
             @Override
@@ -155,6 +148,15 @@ public class StringReplacerNodeModel extends WebUISimpleStreamableFunctionNodeMo
         }
 
         return crea;
+    }
+
+    private static String createReplacement(final StringReplacerNodeSettings modelSettings) {
+        if (modelSettings.m_patternType == PatternType.WILDCARD) {
+            // Remove back-references when matching with wildcards
+            var backreferenceMatcher = backreferencePattern.matcher(modelSettings.m_replacement);
+            return backreferenceMatcher.replaceAll("\\\\$1");
+        }
+        return modelSettings.m_replacement;
     }
 
     /**
@@ -251,15 +253,8 @@ public class StringReplacerNodeModel extends WebUISimpleStreamableFunctionNodeMo
         return originalStringValue;
     }
 
-    private static String getLastStringColumn(final DataTableSpec dataTableSpec) throws InvalidSettingsException {
-        final var lastMatchingColumn = IntStream.range(0, dataTableSpec.getNumColumns()) //
-            .map(i -> dataTableSpec.getNumColumns() - i - 1) //
-            .mapToObj(dataTableSpec::getColumnSpec) //
-            .filter(columnSpec -> columnSpec.getType().isCompatible(StringValue.class)) //
-            .findFirst();
-        return lastMatchingColumn.orElseThrow(() -> new InvalidSettingsException("No String column available."))
-            .getName();
-    }
+    private static final Function<InvalidColumnNameState, String> INVALID_COL_NAME_TO_ERROR_MSG =
+        new ColumnNameValidationMessageBuilder("new column name").build();
 
     /**
      * @since 5.5
@@ -267,12 +262,19 @@ public class StringReplacerNodeModel extends WebUISimpleStreamableFunctionNodeMo
     @Override
     protected void validateSettings(final StringReplacerNodeSettings settings) throws InvalidSettingsException {
         if (settings.m_createNewCol) {
-            if (settings.m_isColumnNameValidationV2) {
-                validateColumnName(settings.m_newColName, "New column name");
-            } else {
-                if (settings.m_newColName == null || settings.m_newColName.trim().length() == 0) {
-                    throw new InvalidSettingsException("No name for the new column given");
-                }
+            if (settings.m_doNotAllowPaddedColumnName) {
+                validateColumnName(settings.m_newColName, INVALID_COL_NAME_TO_ERROR_MSG);
+            } else if (settings.m_newColName == null || settings.m_newColName.trim().length() == 0) {
+                throw new InvalidSettingsException("No name for the new column given");
+            }
+            if (settings.m_colName == null) {
+                throw new InvalidSettingsException("No column selected");
+            }
+            if (settings.m_pattern == null) {
+                throw new InvalidSettingsException("No pattern given");
+            }
+            if (settings.m_replacement == null) {
+                throw new InvalidSettingsException("No replacement string given");
             }
         }
     }
