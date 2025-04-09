@@ -46,7 +46,6 @@
  */
 package org.knime.base.node.preproc.columnlag;
 
-import org.knime.base.node.preproc.column.renamer.ColumnRenamerSettings;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeFactory;
 
@@ -85,7 +84,7 @@ public final class LagColumnNodeFactory extends WebUINodeFactory<LagColumnNodeMo
                       <i>L</i> and <i>I</i> can be combined to obtain <i>L</i>-1 copies of the selected column,
                       each one shifted <i>I</i>, 2*<i>I</i>, 3*<i>I</i>, ... (<i>L</i>-1)*<i>I</i> steps backwards.
                     </p>""")//
-        .modelSettingsClass(ColumnRenamerSettings.class)//
+        .modelSettingsClass(LagColumnNodeSettings.class)//
         .addInputTable("Input", "Input data")//
         .addOutputTable("Output", "Input data with additional columns copying the values from preceding rows.")//
         .keywords("Copy column", "Shift", "Offset", "Previous")//
