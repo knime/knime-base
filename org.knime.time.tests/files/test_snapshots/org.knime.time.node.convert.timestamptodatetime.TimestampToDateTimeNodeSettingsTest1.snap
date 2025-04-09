@@ -15,7 +15,10 @@
         },
         "typeFilter" : {
           "selectedTypes" : [ "org.knime.core.data.IntValue" ],
-          "typeDisplays" : [ { } ]
+          "typeDisplays" : [ {
+            "id" : "org.knime.core.data.IntValue",
+            "text" : "Number (Integer)"
+          } ]
         }
       },
       "granularity" : "MICROSECONDS",
