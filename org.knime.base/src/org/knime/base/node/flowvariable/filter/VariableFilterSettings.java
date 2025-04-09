@@ -54,7 +54,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.Fl
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.StringFilterToFlowVariableFilterMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.AllFlowVariablesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.AllFlowScopedFlowVariablesProvider;
 
 /**
  * Settings for Variable Filter node.
@@ -68,7 +68,7 @@ final class VariableFilterSettings implements DefaultNodeSettings {
     @Widget(title = "Flow Variable Filter",
         description = "The names of the flow variables that pass this filter node. See the general node description "
             + "for details regarding which variables can be filtered.")
-    @ChoicesProvider(AllFlowVariablesProvider.class)
+    @ChoicesProvider(AllFlowScopedFlowVariablesProvider.class)
     @Migration(FromStringFilterMigration.class)
     @Persist(configKey = "filterV2")
     FlowVariableFilter m_filter = new FlowVariableFilter();

@@ -148,7 +148,7 @@
         "format" : "typedStringFilter",
         "unknownValuesText" : "Any unknown variable",
         "emptyStateLabel" : "No variables in this list.",
-        "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.AllFlowVariablesProvider"
+        "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.AllFlowScopedFlowVariablesProvider"
       }
     } ]
   },
@@ -199,7 +199,7 @@
   },
   "initialUpdates" : [ {
     "scopes" : null,
-    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.AllFlowVariablesProvider",
+    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.AllFlowScopedFlowVariablesProvider",
     "values" : [ {
       "indices" : [ ],
       "value" : [ ]
