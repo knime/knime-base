@@ -96,20 +96,6 @@
             </message_arguments>
         </filter>
     </resource>
-    <resource path="src/org/knime/base/node/preproc/columnmerge/ColumnMergerNodeFactory.java" type="org.knime.base.node.preproc.columnmerge.ColumnMergerNodeFactory">
-        <filter id="338792546">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.columnmerge.ColumnMergerNodeFactory"/>
-                <message_argument value="createNodeDialog()"/>
-            </message_arguments>
-        </filter>
-        <filter id="338792546">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.columnmerge.ColumnMergerNodeFactory"/>
-                <message_argument value="createNodeView(int, ColumnMergerNodeModel)"/>
-            </message_arguments>
-        </filter>
-    </resource>
     <resource path="src/org/knime/base/node/preproc/columnheaderinsert/ColumnHeaderInsertNodeFactory.java" type="org.knime.base.node.preproc.columnheaderinsert.ColumnHeaderInsertNodeFactory">
         <filter id="305365105">
             <message_arguments>
@@ -123,6 +109,20 @@
             <message_arguments>
                 <message_argument value="org.knime.base.node.preproc.columnheaderinsert.ColumnHeaderInsertSettings"/>
                 <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/columnmerge/ColumnMergerNodeFactory.java" type="org.knime.base.node.preproc.columnmerge.ColumnMergerNodeFactory">
+        <filter id="338792546">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.columnmerge.ColumnMergerNodeFactory"/>
+                <message_argument value="createNodeDialog()"/>
+            </message_arguments>
+        </filter>
+        <filter id="338792546">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.columnmerge.ColumnMergerNodeFactory"/>
+                <message_argument value="createNodeView(int, ColumnMergerNodeModel)"/>
             </message_arguments>
         </filter>
     </resource>
@@ -248,28 +248,6 @@
             <message_arguments>
                 <message_argument value="org.knime.base.node.preproc.stringreplacer.CaseMatching"/>
                 <message_argument value="org.knime.base_5.5.0"/>
-            </message_arguments>
-        </filter>
-    </resource>
-    <resource path="src/org/knime/base/node/preproc/stringreplacer/StringReplacerNodeFactory.java" type="org.knime.base.node.preproc.stringreplacer.StringReplacerNodeFactory">
-        <filter id="338792546">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.stringreplacer.StringReplacerNodeFactory"/>
-                <message_argument value="createNodeDialog()"/>
-            </message_arguments>
-        </filter>
-        <filter id="338792546">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.stringreplacer.StringReplacerNodeFactory"/>
-                <message_argument value="createNodeView(int, StringReplacerNodeModel)"/>
-            </message_arguments>
-        </filter>
-    </resource>
-    <resource path="src/org/knime/base/node/preproc/stringreplacer/StringReplacerNodeModel.java" type="org.knime.base.node.preproc.stringreplacer.StringReplacerNodeModel">
-        <filter id="338722907">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.stringreplacer.StringReplacerNodeModel"/>
-                <message_argument value="StringReplacerNodeModel()"/>
             </message_arguments>
         </filter>
     </resource>
