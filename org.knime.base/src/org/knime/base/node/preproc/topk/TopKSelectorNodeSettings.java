@@ -110,20 +110,20 @@ final class TopKSelectorNodeSettings implements DefaultNodeSettings {
     }
 
     enum RowOrder {
-            @Label(value = "Arbitrary", description = """
-                    The rows are directly output in the order they are returned in by the algorithm. This option \
-                    doesn't incur any additional runtime costs. Note: It is possible but not guaranteed that the \
-                    output order is the same as the input order
-                    """)
-            ARBITRARY(OutputOrder.NO_ORDER), //
+            @Label(value = "Sorted",
+                description = "The rows in the output are sorted according to the specified selection criteria.")
+            SORTED(OutputOrder.SORT), //
             @Label(value = "Input order", description = """
                     The input order is reestablished for the rows returned by the algorithm. This requires \
                     sorting the output table.
                     """)
             INPUT_ORDER(OutputOrder.RETAIN), //
-            @Label(value = "Sorted",
-                description = "The rows in the output are sorted according to the specified selection criteria.")
-            SORTED(OutputOrder.SORT); //
+            @Label(value = "Arbitrary", description = """
+                    The rows are directly output in the order they are returned in by the algorithm. This option \
+                    doesn't incur any additional runtime costs. Note: It is possible but not guaranteed that the \
+                    output order is the same as the input order
+                    """)
+            ARBITRARY(OutputOrder.NO_ORDER); //
 
         OutputOrder m_outputOrder;
 
@@ -149,9 +149,9 @@ final class TopKSelectorNodeSettings implements DefaultNodeSettings {
     interface FilterSection {
     }
 
-    @Section(title = "Special Values and Performance", advanced = true)
+    @Section(title = "Output Sorting")
     @After(FilterSection.class)
-    interface AdvancedSection {
+    interface OutputSortingSection {
     }
 
     @Layout(SortingSection.class)
@@ -173,20 +173,19 @@ final class TopKSelectorNodeSettings implements DefaultNodeSettings {
     @Migration(KSettingsMigration.class)
     long m_amount = 5;
 
-    @Widget(title = "Sort missing values to end of table",
-        description = "If selected, missing values are always considered to be inferior to present cells.",
-        advanced = true)
-    @Layout(AdvancedSection.class)
-    boolean m_missingsToEnd;
+    @Widget(title = "Sort missing values to end",
+        description = "If selected, missing values are always considered to be smaller to present cells.")
+    @Layout(SortingSection.class)
+    boolean m_missingsToEnd = true;
 
-    @Widget(title = "Row order", description = """
+    @Widget(title = "Output order", description = """
             Depending on the settings of the algorithm the order might change in the output and this option \
             allows you to specify constraints on the order.
-            """, advanced = true)
-    @Layout(AdvancedSection.class)
+            """)
+    @Layout(OutputSortingSection.class)
     @ValueSwitchWidget
     @Migration(RowOrderSettingsMigration.class)
-    RowOrder m_rowOrder = RowOrder.ARBITRARY;
+    RowOrder m_rowOrder = RowOrder.SORTED;
 
     static final class LegacySortingSettingsMigration implements NodeSettingsMigration<SortingCriterionSettings[]> {
 

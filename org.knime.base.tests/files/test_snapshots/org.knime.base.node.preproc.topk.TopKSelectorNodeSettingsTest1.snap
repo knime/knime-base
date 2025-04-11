@@ -42,24 +42,24 @@
           },
           "missingsToEnd" : {
             "type" : "boolean",
-            "title" : "Sort missing values to end of table",
-            "description" : "If selected, missing values are always considered to be inferior to present cells.",
-            "default" : false
+            "title" : "Sort missing values to end",
+            "description" : "If selected, missing values are always considered to be smaller to present cells.",
+            "default" : true
           },
           "rowOrder" : {
             "oneOf" : [ {
-              "const" : "ARBITRARY",
-              "title" : "Arbitrary"
+              "const" : "SORTED",
+              "title" : "Sorted"
             }, {
               "const" : "INPUT_ORDER",
               "title" : "Input order"
             }, {
-              "const" : "SORTED",
-              "title" : "Sorted"
+              "const" : "ARBITRARY",
+              "title" : "Arbitrary"
             } ],
-            "title" : "Row order",
-            "description" : "Depending on the settings of the algorithm the order might change in the output and this option allows you to specify constraints on the order.\n\n<ul>\n<li><b>Arbitrary</b>: The rows are directly output in the order they are returned in by the algorithm. This option doesn't incur any additional runtime costs. Note: It is possible but not guaranteed that the output order is the same as the input order\n</li>\n<li><b>Input order</b>: The input order is reestablished for the rows returned by the algorithm. This requires sorting the output table.\n</li>\n<li><b>Sorted</b>: The rows in the output are sorted according to the specified selection criteria.</li>\n</ul>",
-            "default" : "ARBITRARY"
+            "title" : "Output order",
+            "description" : "Depending on the settings of the algorithm the order might change in the output and this option allows you to specify constraints on the order.\n\n<ul>\n<li><b>Sorted</b>: The rows in the output are sorted according to the specified selection criteria.</li>\n<li><b>Input order</b>: The input order is reestablished for the rows returned by the algorithm. This requires sorting the output table.\n</li>\n<li><b>Arbitrary</b>: The rows are directly output in the order they are returned in by the algorithm. This option doesn't incur any additional runtime costs. Note: It is possible but not guaranteed that the output order is the same as the input order\n</li>\n</ul>",
+            "default" : "SORTED"
           },
           "sortingCriteria" : {
             "type" : "array",
@@ -176,6 +176,12 @@
           "arrayElementTitle" : "Criterion",
           "showSortButtons" : true
         }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/missingsToEnd",
+        "options" : {
+          "format" : "checkbox"
+        }
       } ]
     }, {
       "label" : "Filter",
@@ -201,23 +207,12 @@
         }
       } ]
     }, {
-      "label" : "Special Values and Performance",
+      "label" : "Output Sorting",
       "type" : "Section",
-      "options" : {
-        "isAdvanced" : true
-      },
       "elements" : [ {
-        "type" : "Control",
-        "scope" : "#/properties/model/properties/missingsToEnd",
-        "options" : {
-          "format" : "checkbox",
-          "isAdvanced" : true
-        }
-      }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/rowOrder",
         "options" : {
-          "isAdvanced" : true,
           "format" : "valueSwitch"
         }
       } ]
