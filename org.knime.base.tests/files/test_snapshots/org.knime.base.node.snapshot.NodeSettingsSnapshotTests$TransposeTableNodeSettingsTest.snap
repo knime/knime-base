@@ -44,6 +44,23 @@
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/chunkSize",
+      "options" : {
+        "validations" : [ {
+          "errorMessage" : "The value must be at least -2147483648.",
+          "id" : "min",
+          "parameters" : {
+            "min" : -2.147483648E9,
+            "isExclusive" : false
+          }
+        }, {
+          "errorMessage" : "The value must not exceed 2147483647.",
+          "id" : "max",
+          "parameters" : {
+            "max" : 2.147483647E9,
+            "isExclusive" : false
+          }
+        } ]
+      },
       "rule" : {
         "effect" : "SHOW",
         "condition" : {

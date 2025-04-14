@@ -2211,7 +2211,6 @@
         "scope" : "#/properties/model/properties/outputColumnName",
         "options" : {
           "validations" : [ {
-            "errorMessage" : "The string must match the pattern: ^(\\S(.*\\S)?)?$",
             "id" : "pattern",
             "parameters" : {
               "pattern" : "\\S(.*\\S)?"

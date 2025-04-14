@@ -236,6 +236,13 @@
             "isExclusive" : false
           },
           "errorMessage" : "The value must be at least 0."
+        }, {
+          "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
+          "id" : "max",
+          "parameters" : {
+            "max" : 9.007199254740991E15,
+            "isExclusive" : false
+          }
         } ]
       },
       "rule" : {

@@ -48,7 +48,6 @@ package org.knime.base.node.meta.looper;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MaxValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 
 /**
@@ -60,15 +59,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberIn
 @SuppressWarnings("restriction")
 final class LoopStartCountDynamicSettings implements DefaultNodeSettings {
 
-    // TODO(UIEXT-2654): Remove when it is part of the framework
-    private static final class MaxIntegerMaxValidation extends MaxValidation {
-        @Override
-        protected double getMax() {
-            return Integer.MAX_VALUE;
-        }
-    }
-
     @Widget(title = "Number of loops", description = "The number of times the inner workflow should be executed.")
-    @NumberInputWidget(validation = {IsPositiveIntegerValidation.class, MaxIntegerMaxValidation.class})
+    @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
     int m_loops = 10;
 }

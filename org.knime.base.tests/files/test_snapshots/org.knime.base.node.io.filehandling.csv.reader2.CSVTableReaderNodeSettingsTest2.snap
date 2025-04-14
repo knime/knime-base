@@ -883,6 +883,13 @@
               "min" : 0.0,
               "isExclusive" : false
             }
+          }, {
+            "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
+            "id" : "max",
+            "parameters" : {
+              "max" : 9.007199254740991E15,
+              "isExclusive" : false
+            }
           } ]
         }
       }, {
@@ -999,6 +1006,13 @@
               "min" : 1.0,
               "isExclusive" : false
             }
+          }, {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "id" : "max",
+            "parameters" : {
+              "max" : 2.147483647E9,
+              "isExclusive" : false
+            }
           } ]
         }
       } ]
@@ -1022,6 +1036,13 @@
               "min" : 0.0,
               "isExclusive" : false
             }
+          }, {
+            "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
+            "id" : "max",
+            "parameters" : {
+              "max" : 9.007199254740991E15,
+              "isExclusive" : false
+            }
           } ]
         }
       }, {
@@ -1040,6 +1061,13 @@
             "id" : "min",
             "parameters" : {
               "min" : 0.0,
+              "isExclusive" : false
+            }
+          }, {
+            "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
+            "id" : "max",
+            "parameters" : {
+              "max" : 9.007199254740991E15,
               "isExclusive" : false
             }
           } ]
@@ -1132,6 +1160,13 @@
               "min" : 0.0,
               "isExclusive" : false
             }
+          }, {
+            "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
+            "id" : "max",
+            "parameters" : {
+              "max" : 9.007199254740991E15,
+              "isExclusive" : false
+            }
           } ]
         },
         "rule" : {
@@ -1160,6 +1195,13 @@
             "id" : "min",
             "parameters" : {
               "min" : 0.0,
+              "isExclusive" : false
+            }
+          }, {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "id" : "max",
+            "parameters" : {
+              "max" : 2.147483647E9,
               "isExclusive" : false
             }
           } ]

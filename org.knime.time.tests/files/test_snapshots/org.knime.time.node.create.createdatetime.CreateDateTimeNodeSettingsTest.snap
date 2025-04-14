@@ -2109,6 +2109,13 @@
               "isExclusive" : false
             },
             "errorMessage" : "The value must be at least 1."
+          }, {
+            "id" : "max",
+            "parameters" : {
+              "max" : 9.007199254740991E15,
+              "isExclusive" : false
+            },
+            "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991)."
           } ]
         },
         "rule" : {
