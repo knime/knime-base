@@ -1,0 +1,299 @@
+{
+  "data" : {
+    "model" : {
+      "partitioningMode" : "RELATIVE",
+      "percentage" : 70.0,
+      "rowCount" : 100,
+      "mode" : "RANDOM",
+      "classColumn" : "column1",
+      "seed" : 1678807467440,
+      "actionEmpty" : "FAIL"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "actionEmpty" : {
+            "oneOf" : [ {
+              "const" : "FAIL",
+              "title" : "Fail"
+            }, {
+              "const" : "OUTPUT_EMPTY",
+              "title" : "Output empty table(s)"
+            } ],
+            "title" : "If input table is empty",
+            "description" : "Defines how the node should behave when the input table has no rows. Options include generating empty outputs or failing the execution.\n",
+            "default" : "FAIL"
+          },
+          "classColumn" : {
+            "type" : "string",
+            "title" : "Group column",
+            "description" : "Specifies the column whose value distribution should be preserved in stratified sampling. Ensures both output tables reflect the same distribution of values.",
+            "default" : "column1"
+          },
+          "mode" : {
+            "oneOf" : [ {
+              "const" : "RANDOM",
+              "title" : "Random"
+            }, {
+              "const" : "STRATIFIED",
+              "title" : "Stratified"
+            }, {
+              "const" : "LINEAR",
+              "title" : "Linear"
+            }, {
+              "const" : "FIRST_ROWS",
+              "title" : "First rows"
+            } ],
+            "title" : "Sampling strategy",
+            "description" : "Determines how rows are selected for the first partition. Strategies include random, linear, stratified, and first rows (sequential).\n<ul>\n<li><b>Random</b>: Randomly selects rows from the input table. You can optionally specify a random seed for reproducible results.\n</li>\n<li><b>Stratified</b>: Preserves the distribution of values in the selected group column. You can optionally specify a random seed for reproducible stratified sampling.\n</li>\n<li><b>Linear</b>: Selects rows evenly spaced across the input table, always including the first and last row. This method is useful for downsampling sorted columns while preserving boundary values.\n</li>\n<li><b>First rows</b>: Allows you to select the top-most rows of the input table.\n</li>\n</ul>",
+            "default" : "RANDOM"
+          },
+          "partitioningMode" : {
+            "oneOf" : [ {
+              "const" : "RELATIVE",
+              "title" : "Relative (%)"
+            }, {
+              "const" : "ABSOLUTE",
+              "title" : "Absolute"
+            } ],
+            "title" : "First partition type",
+            "description" : "Defines how the size of the first partition is specified: as a percentage of total rows (relative) or as an absolute number of rows.",
+            "default" : "RELATIVE"
+          },
+          "percentage" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Relative size",
+            "description" : "Specifies the percentage of rows from the input table to be included in the first partition. Must be between 0 and 100 (inclusive).",
+            "default" : 70.0
+          },
+          "rowCount" : {
+            "type" : "integer",
+            "format" : "int64",
+            "title" : "Number of rows",
+            "description" : "Specifies the absolute number of rows to include in the first partition. If the input table contains fewer rows than specified, all rows are placed in the first table, and the second table will be empty.",
+            "default" : 100
+          },
+          "seed" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64",
+            "title" : "Fixed random seed",
+            "description" : "Optional seed value for random or stratified sampling. Using a seed ensures the same rows are selected each time the node is executed. Without a seed, a different random selection will occur each time.\n",
+            "default" : 1678807467440
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/partitioningMode",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/percentage",
+      "options" : {
+        "validation" : {
+          "min" : {
+            "parameters" : {
+              "min" : 0.0,
+              "isExclusive" : false
+            },
+            "errorMessage" : "The value must be at least 0."
+          },
+          "max" : {
+            "parameters" : {
+              "max" : 100.0,
+              "isExclusive" : false
+            },
+            "errorMessage" : "The value must not exceed 100."
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/partitioningMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "RELATIVE"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/rowCount",
+      "options" : {
+        "validation" : {
+          "min" : {
+            "parameters" : {
+              "min" : 1.0,
+              "isExclusive" : false
+            },
+            "errorMessage" : "The value must be at least 1."
+          },
+          "max" : {
+            "parameters" : {
+              "max" : 9.007199254740991E15,
+              "isExclusive" : false
+            },
+            "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991)."
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/partitioningMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "ABSOLUTE"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/mode",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/classColumn",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ],
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/mode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "STRATIFIED"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/seed",
+      "options" : {
+        "validation" : {
+          "min" : {
+            "parameters" : {
+              "min" : -9.007199254740991E15,
+              "isExclusive" : false
+            },
+            "errorMessage" : "Value too small to process without risking precision loss (< -9007199254740991)."
+          },
+          "max" : {
+            "parameters" : {
+              "max" : 9.007199254740991E15,
+              "isExclusive" : false
+            },
+            "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991)."
+          }
+        },
+        "hideOnNull" : true
+      },
+      "providedOptions" : [ "default" ],
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/mode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "STRATIFIED"
+            }, {
+              "const" : "RANDOM"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/actionEmpty",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "partitioningMode" : {
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "method" ] ]
+            } ]
+          },
+          "percentage" : {
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "fraction" ] ]
+            } ]
+          },
+          "rowCount" : {
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "count" ] ]
+            } ]
+          },
+          "mode" : {
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "samplingMethod" ], [ "random" ], [ "stratified_sampling" ] ]
+            }, {
+              "deprecated" : [ [ "random" ], [ "stratified_sampling" ] ]
+            } ]
+          },
+          "classColumn" : {
+            "configKey" : "class_column"
+          },
+          "seed" : {
+            "configPaths" : [ [ "seed_is_present" ], [ "seed" ] ],
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "random_seed" ] ]
+            } ]
+          },
+          "actionEmpty" : {
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ ]
+            } ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/classColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "column1",
+        "text" : "column1",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/seed",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : 1678807467440
+    } ]
+  } ]
+}
