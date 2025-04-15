@@ -96,6 +96,14 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.base.node.preproc.partition.PartitionNodeDialog">
+        <filter id="305324134">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.partition.PartitionNodeDialog"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="src/org/knime/base/node/io/filehandling/webui/reader/CommonReaderNodeSettings.java" type="org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$SkipFirstDataRowsPersistor">
         <filter id="338792546">
             <message_arguments>
@@ -269,6 +277,22 @@
         <filter id="305365105">
             <message_arguments>
                 <message_argument value="org.knime.base.node.preproc.filter.rowref.RowSplitRefNodeModel"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/partition/PartitionNodeFactory.java" type="org.knime.base.node.preproc.partition.PartitionNodeFactory">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.partition.PartitionNodeFactory"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/partition/PartitionNodeModel.java" type="org.knime.base.node.preproc.partition.PartitionNodeModel">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.partition.PartitionNodeModel"/>
                 <message_argument value="org.knime.base_5.5.0"/>
             </message_arguments>
         </filter>
