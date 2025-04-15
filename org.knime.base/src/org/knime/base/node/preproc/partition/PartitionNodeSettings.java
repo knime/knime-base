@@ -48,47 +48,55 @@
  */
 package org.knime.base.node.preproc.partition;
 
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.impl.WebUINodeFactory;
+import org.knime.base.node.preproc.partition.PartitionNodeSettings.PartitionModification;
+import org.knime.base.node.preproc.sample.AbstractSamplingNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
 
 /**
- * WebUI node factory for 'Table Partitioner'.
  *
  * @author Martin Sillye, TNG Technology Consulting GmbH
+ * @since 5.5
  */
 @SuppressWarnings("restriction")
-public final class PartitionNodeFactory extends WebUINodeFactory<PartitionNodeModel> {
+@Modification(PartitionModification.class)
+final class PartitionNodeSettings extends AbstractSamplingNodeSettings {
 
-    /**
-     * Default constructor
-     */
-    public PartitionNodeFactory() {
-        super(CONFIG);
+    PartitionNodeSettings() {
+        super();
     }
 
-    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
-        .name("Table Partitioner") //
-        .icon("partition.png") //
-        .shortDescription("Splits table into two partitions.") //
-        .fullDescription("""
-                The input table is split row-wise into two partitions,
-                for instance into a train and test data set.
-                The two partitions are available at the two output ports.
-                        """)//
-        .modelSettingsClass(PartitionNodeSettings.class) //
-        .addInputTable("Input Table", "Table to partition.") //
-        .addOutputTable("First partition",
-            "Rows from the input table that have been selected as per the node configuration.") //
-        .addOutputTable("Second partition", "Remaining rows from the input table.") //
-        .nodeType(NodeType.Manipulator) //
-        .keywords("Partitioning", "Partition")//
-        .build();
-
-    /**
-     * @since 5.5
-     */
-    @Override
-    public PartitionNodeModel createNodeModel() {
-        return new PartitionNodeModel(CONFIG);
+    PartitionNodeSettings(final DefaultNodeSettingsContext context) {
+        super(context);
     }
+
+    static final class PartitionModification extends AbstractSamplingNodeSettings.SamplingModification {
+
+        private static final String DESCRIPTION = "description";
+
+        @Override
+        public void modify(final WidgetGroupModifier group) {
+            getCountModeWidgetModifier(group).withProperty("title", "First partition type")
+                .withProperty(DESCRIPTION, """
+                        Defines how the size of the first partition is specified: as a percentage of total rows \
+                        (relative) or as an absolute number of rows.""").modify();
+            getPercentageWidgetModifier(group)//
+                .withProperty(DESCRIPTION, """
+                        Specifies the percentage of rows from the input table to be included in the first \
+                        partition. Must be between 0 and 100 (inclusive).""").modify();
+            getRowCountWidgetModifier(group)//
+                .withProperty(DESCRIPTION, """
+                        Specifies the absolute number of rows to include in the first partition. If the input \
+                        table contains fewer rows than specified, all rows are placed in the first table, and \
+                        the second table will be empty.""").modify();
+            getSamplingModeWidgetModifier(group)//
+                .withProperty(DESCRIPTION, """
+                        Determines how rows are selected for the first partition. Strategies include random, \
+                        linear, stratified, and first rows (sequential).""").modify();
+            getClassColumnWidgetModifier(group)//
+                .withProperty(DESCRIPTION, """
+                        Specifies the column whose value distribution should be preserved in stratified sampling. \
+                        Ensures both output tables reflect the same distribution of values.""").modify();
+        }
+    }
+
 }
