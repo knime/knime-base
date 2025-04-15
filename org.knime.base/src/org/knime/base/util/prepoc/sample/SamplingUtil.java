@@ -44,52 +44,63 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 14, 2025 (Martin Sillye, TNG Technology Consulting GmbH): created
+ *   Apr 15, 2025 (Martin Sillye, TNG Technology Consulting GmbH): created
  */
-package org.knime.base.node.preproc.partition;
+package org.knime.base.util.prepoc.sample;
 
-import org.knime.core.node.BufferedDataTable;
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.impl.WebUINodeFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 
 /**
- * WebUI node factory for 'Table Partitioner'.
+ * Utility class for Sampling.
  *
  * @author Martin Sillye, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public final class PartitionNodeFactory extends WebUINodeFactory<PartitionNodeModel> {
+public final class SamplingUtil {
 
-    /**
-     * Default constructor
-     */
-    public PartitionNodeFactory() {
-        super(CONFIG);
+    private SamplingUtil() {
+        // Utility class
     }
 
-    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
-        .name("Table Partitioner") //
-        .icon("partition.png") //
-        .shortDescription("Splits table into two partitions.") //
-        .fullDescription("""
-                The input table is split row-wise into two partitions,
-                for instance into a train and test data set.
-                The two partitions are available at the two output ports.
-                        """)//
-        .modelSettingsClass(PartitionNodeSettings.class) //
-        .addInputPort("Input Table", BufferedDataTable.TYPE, "Table to partition.") //
-        .addOutputPort("First partition", BufferedDataTable.TYPE,
-            "Rows from the input table that have been selected as per the node configuration.") //
-        .addOutputPort("Second partition", BufferedDataTable.TYPE, "Remaining rows from the input table.") //
-        .nodeType(NodeType.Manipulator) //
-        .keywords("Partitioning", "Partition")//
-        .build();
+    /**
+     *
+     *
+     * @author Martin Sillye, TNG Technology Consulting GmbH
+     */
+    public enum CountMode {
+
+            @Label("Relative (%)")
+            /** Relative fraction. */
+            RELATIVE, //
+            @Label("Absolute")
+            /** Absolute number. */
+            ABSOLUTE
+    }
 
     /**
-     * @since 5.5
+     *
+     * @author Martin Sillye, TNG Technology Consulting GmbH
      */
-    @Override
-    public PartitionNodeModel createNodeModel() {
-        return new PartitionNodeModel(CONFIG);
-    }
+    public enum SamplingMode {
+        @Label(value = "Random", description = """
+                Randomly selects rows from the input table. You can optionally specify a random seed for \
+                reproducible results.
+                """)
+        RANDOM, //
+        @Label(value = "Stratified", description = """
+                Preserves the distribution of values in the selected group column across both output partitions. \
+                You can optionally specify a random seed for reproducible stratified sampling.
+                """)
+        STRATIFIED, //
+        @Label(value = "Linear", description = """
+                Selects rows evenly spaced across the input table, always including the first and last row. \
+                This method is useful for downsampling sorted columns while preserving boundary values.
+                """)
+        LINEAR, //
+        @Label(value = "First rows", description = """
+                Allows you to select the top-most rows of the input table for the first partition. The remaining \
+                rows are placed in the second table.
+                """)
+        FIRST_ROWS
+}
 }

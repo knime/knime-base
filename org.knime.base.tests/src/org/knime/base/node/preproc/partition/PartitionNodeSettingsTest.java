@@ -1,5 +1,6 @@
-/* 
+/*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,61 +41,62 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * -------------------------------------------------------------------
- * 
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   Apr 15, 2025 (Martin Sillye, TNG Technology Consulting GmbH): created
  */
 package org.knime.base.node.preproc.partition;
 
-import javax.swing.BorderFactory;
+import java.io.FileInputStream;
+import java.io.IOException;
 
-import org.knime.base.node.preproc.sample.SamplingNodeDialogPanel;
-import org.knime.base.node.preproc.sample.SamplingNodeSettings;
-import org.knime.base.node.preproc.sample.SamplingNodeSettings.CountMethods;
+import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * Dialog that allows to define the partitioning of the input table. It is
- * similar to the Sampling node dialog but differs just in the labels.
- * 
- * @author Bernd Wiswedel, University of Konstanz
+ *
+ * @author Martin Sillye, TNG Technology Consulting GmbH
  */
-public class PartitionNodeDialog extends NodeDialogPane {
-    private final SamplingNodeDialogPanel m_panel;
+@SuppressWarnings("restriction")
+final class PartitionNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
-    /**
-     * Creates the dialog.
-     */
-    public PartitionNodeDialog() {
-        super();
-        m_panel = new SamplingNodeDialogPanel();
-        final SamplingNodeSettings settings = m_panel.getSettings();
-        settings.setDefaultCountMethod(CountMethods.Relative);
-        settings.setDefaultFraction(0.7);
-        m_panel.setBorder(BorderFactory
-                .createTitledBorder("Choose size of first partition"));
-        super.addTab("First partition", m_panel);
+    PartitionNodeSettingsTest() {
+        super(getConfig());
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadSettingsFrom(final NodeSettingsRO settings,
-            final DataTableSpec[] specs) throws NotConfigurableException {
-        m_panel.loadSettingsFrom(settings, specs[0]);
+    private static final DataColumnSpecCreator SPEC = new DataColumnSpecCreator("column1", StringCellFactory.TYPE);
+
+    private static final PortObjectSpec[] INPUT_PORT_SPECS = new PortObjectSpec[]{new DataTableSpec(SPEC.createSpec())};
+
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .withInputPortObjectSpecs(INPUT_PORT_SPECS) //
+            .testJsonFormsForModel(PartitionNodeSettings.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings)
-            throws InvalidSettingsException {
-        m_panel.saveSettingsTo(settings);
+    private static PartitionNodeSettings readSettings() {
+        try {
+            var path = getSnapshotPath(PartitionNodeSettings.class).getParent().resolve("node_settings")
+                .resolve("PartitionNodeSettings.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return DefaultNodeSettings.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    PartitionNodeSettings.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

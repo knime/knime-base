@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,58 +41,52 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * -------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
+ * History
+ *   Apr 14, 2025 (Martin Sillye, TNG Technology Consulting GmbH): created
  */
 package org.knime.base.node.preproc.partition;
 
 import org.knime.base.node.preproc.filter.row.rowfilter.EndOfTableException;
 import org.knime.base.node.preproc.filter.row.rowfilter.IRowFilter;
 import org.knime.base.node.preproc.filter.row.rowfilter.IncludeFromNowOn;
-import org.knime.base.node.preproc.sample.AbstractSamplingNodeModel;
-import org.knime.base.node.preproc.sample.SamplingNodeSettings;
-import org.knime.base.node.preproc.sample.SamplingNodeSettings.CountMethods;
+import org.knime.base.node.preproc.partition.PartitionNodeSettings.ActionOnEmptyInput;
+import org.knime.base.node.preproc.sample.AbstractSamplingWebUINodeModel;
 import org.knime.base.node.preproc.sample.StratifiedSamplingRowFilter;
+import org.knime.base.util.prepoc.sample.SamplingUtil.CountMode;
+import org.knime.base.util.prepoc.sample.SamplingUtil.SamplingMode;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.DataContainerSettings;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 
 /**
+ * WebUI node model for 'Table Partitioner'.
  *
- * @author Bernd Wiswedel, University of Konstanz
+ * @author Martin Sillye, TNG Technology Consulting GmbH
  */
-public class PartitionNodeModel extends AbstractSamplingNodeModel {
-    /** Outport for training data: 0. */
-    static final int OUTPORT_A = 0;
+@SuppressWarnings("restriction")
+final class PartitionNodeModel extends AbstractSamplingWebUINodeModel<PartitionNodeSettings> {
 
-    /** Outport for test data: 1. */
-    static final int OUTPORT_B = 1;
-
-    /**
-     * Creates node model, sets outport count to 2.
-     */
-    public PartitionNodeModel() {
-        super(2);
-        final SamplingNodeSettings settings = super.getSettings();
-        settings.setDefaultCountMethod(CountMethods.Relative);
-        settings.setDefaultFraction(0.7);
+    PartitionNodeModel(final WebUINodeConfiguration configuration) {
+        super(configuration, PartitionNodeSettings.class);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
-            final ExecutionContext exec) throws CanceledExecutionException,
-            Exception {
+    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec,
+        final PartitionNodeSettings modelSettings) throws Exception {
         BufferedDataTable in = inData[0];
         BufferedDataTable[] outs = new BufferedDataTable[2];
-        IRowFilter filter = getSamplingRowFilter(in, exec);
+        if (in.size() == 0 && modelSettings.m_actionEmpty.equals(ActionOnEmptyInput.FAIL)) {
+            throw new InvalidSettingsException("Input table is empty.");
+        }
+
+        IRowFilter filter = getSamplingRowFilter(in, exec, modelSettings);
         final var containerSettings = DataContainerSettings.builder()//
             .withCheckDuplicateRowKeys(false)// we only copy parts of the input table
             .withInitializedDomain(true)// the domain of the input table is also valid for the output tables
@@ -110,8 +105,7 @@ public class PartitionNodeModel extends AbstractSamplingNodeModel {
                 boolean matches = putRestInOut1;
                 try {
                     // conditional check, will call "matches" only if necessary
-                    matches |= (!putRestInOut2
-                            && filter.matches(row, count));
+                    matches |= (!putRestInOut2 && filter.matches(row, count));
                 } catch (IncludeFromNowOn icf) {
                     assert !putRestInOut2;
                     putRestInOut1 = true;
@@ -126,8 +120,7 @@ public class PartitionNodeModel extends AbstractSamplingNodeModel {
                 } else {
                     secondOutCont.addRowToTable(row);
                 }
-                exec.setProgress(count / rowCount, "Processed row " + count
-                        + " (\"" + row.getKey() + "\")");
+                exec.setProgress(count / rowCount, "Processed row " + count + " (\"" + row.getKey() + "\")");
                 exec.checkCanceled();
                 count++;
             }
@@ -138,27 +131,57 @@ public class PartitionNodeModel extends AbstractSamplingNodeModel {
         outs[0] = firstOutCont.getTable();
         outs[1] = secondOutCont.getTable();
         if (filter instanceof StratifiedSamplingRowFilter) {
-            int classCount =
-                ((StratifiedSamplingRowFilter)filter).getClassCount();
+            int classCount = ((StratifiedSamplingRowFilter)filter).getClassCount();
             if (classCount > outs[0].size()) {
-                setWarningMessage("Class column contains more classes ("
-                        + classCount + ") than sampled rows ("
-                        + outs[0].size() + ")");
+                setWarningMessage("Class column contains more classes (" + classCount + ") than sampled rows ("
+                    + outs[0].size() + ")");
             }
         }
         return outs;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
-            throws InvalidSettingsException {
-        checkSettings(inSpecs[0]);
+    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final PartitionNodeSettings modelSettings)
+        throws InvalidSettingsException {
+        final var inSpec = inSpecs[0];
+        if (modelSettings.m_mode.equals(SamplingMode.STRATIFIED) && !inSpec.containsName(modelSettings.m_classColumn)) {
+            throw new InvalidSettingsException(
+                "Column '" + modelSettings.m_classColumn + "' for stratified sampling " + "does not exist");
+        }
         DataTableSpec[] outs = new DataTableSpec[2];
-        outs[OUTPORT_A] = inSpecs[0];
-        outs[OUTPORT_B] = inSpecs[0];
+        outs[0] = inSpecs[0];
+        outs[1] = inSpecs[0];
         return outs;
     }
+
+    @Override
+    protected CountMode getCountMode(final PartitionNodeSettings settings) {
+        return settings.m_partitioningMode;
+    }
+
+    @Override
+    protected double getPercentage(final PartitionNodeSettings settings) {
+        return settings.m_percentage;
+    }
+
+    @Override
+    protected int getCount(final PartitionNodeSettings settings) {
+        return settings.m_rowCount;
+    }
+
+    @Override
+    protected SamplingMode getSamplingMode(final PartitionNodeSettings settings) {
+        return settings.m_mode;
+    }
+
+    @Override
+    protected String getClassColumn(final PartitionNodeSettings settings) {
+        return settings.m_classColumn;
+    }
+
+    @Override
+    protected Long getSeed(final PartitionNodeSettings settings) {
+        return settings.m_useFixedRandomSeed ? settings.m_seed : null;
+    }
+
 }
