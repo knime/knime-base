@@ -160,7 +160,7 @@ public class LinearSamplingRowFilter extends RowFilter {
         if (m_count == 1) {
             return false;
         }
-        if ((int)(m_sum - m_rowWeight) < (int) m_sum) {
+        if ((long)(m_sum - m_rowWeight) < (long) m_sum) {
             m_count--;
             return true;
         }
