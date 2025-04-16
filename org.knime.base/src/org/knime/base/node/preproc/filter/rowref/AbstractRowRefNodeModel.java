@@ -199,7 +199,7 @@ public abstract class AbstractRowRefNodeModel<S extends AbstractRowFilterRefNode
         boolean fullyFitsIntoMemory = true;
 
         long rowCnt = 0;
-        final Iterator<DataRow> it = refTable.iterator();
+        final Iterator<DataRow> refTableIterator = refTable.iterator();
         final var refColIdx = toColIndex(refTableSpec, refColumn);
         final var dataColIdx = toColIndex(dataTableSpec, dataColumn);
         do {
@@ -207,19 +207,19 @@ public abstract class AbstractRowRefNodeModel<S extends AbstractRowFilterRefNode
             final Set<Object> keySet = new HashSet<Object>();
 
             long elementsRead = 0;
-            while (it.hasNext()) {
+            while (refTableIterator.hasNext()) {
                 exec.checkCanceled();
                 if (filterByString) {
                     if (refColIdx.isEmpty()) {
-                        keySet.add(it.next().getKey().getString());
+                        keySet.add(refTableIterator.next().getKey().getString());
                     } else {
-                        keySet.add(it.next().getCell(refColIdx.get()).toString());
+                        keySet.add(refTableIterator.next().getCell(refColIdx.get()).toString());
                     }
                 } else {
-                    if (dataColIdx.isEmpty()) {
-                        keySet.add(it.next().getKey());
+                    if (refColIdx.isEmpty()) {
+                        keySet.add(refTableIterator.next().getKey());
                     } else {
-                        keySet.add(it.next().getCell(dataColIdx.get()));
+                        keySet.add(refTableIterator.next().getCell(refColIdx.get()));
                     }
                 }
                 readRefMon.setProgress(rowCnt++ / (double)refTable.size(), () -> "Reading reference table...");
@@ -272,7 +272,7 @@ public abstract class AbstractRowRefNodeModel<S extends AbstractRowFilterRefNode
                 }
             }
 
-        } while (it.hasNext());
+        } while (refTableIterator.hasNext());
 
         if (!fullyFitsIntoMemory) {
             bitArray.setPosition(0);
