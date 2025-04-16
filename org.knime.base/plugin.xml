@@ -1685,6 +1685,11 @@
       </node>
       <node
             category-path="/manipulation/column/binning"
+            factory-class="org.knime.base.node.preproc.autobinner4.AutoBinnerNodeFactory4"
+            >
+      </node>
+      <node
+            category-path="/manipulation/column/binning"
             factory-class="org.knime.base.node.preproc.autobinner.apply.AutoBinnerApplyNodeFactory"
             >
       </node>        
