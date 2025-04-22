@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <entry key="partitioningMode" type="xstring" value="ABSOLUTE"/>
+    <entry key="percentage" type="xdouble" value="10.0"/>
+    <entry key="rowCount" type="xlong" value="100"/>
+    <entry key="mode" type="xstring" value="RANDOM"/>
+    <entry key="class_column" type="xstring" value="Cluster Membership"/>
+    <entry key="seed" type="xlong" value="0"/>
+    <entry key="seed_is_present" type="xboolean" value="false"/>
+    <entry key="actionEmpty" type="xstring" value="OUTPUT_EMPTY"/>
+</config>

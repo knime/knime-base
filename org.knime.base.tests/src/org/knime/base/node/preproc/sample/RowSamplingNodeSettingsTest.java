@@ -44,75 +44,59 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 17, 2025 (Martin Sillye, TNG Technology Consulting GmbH): created
+ *   Apr 15, 2025 (Martin Sillye, TNG Technology Consulting GmbH): created
  */
 package org.knime.base.node.preproc.sample;
 
-import org.knime.base.node.preproc.filter.row.RowFilterIterator;
-import org.knime.base.node.preproc.filter.row.rowfilter.IRowFilter;
-import org.knime.core.data.DataRow;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.node.BufferedDataContainer;
-import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.ExecutionContext;
+import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
  *
  * @author Martin Sillye, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-final class SamplingNodeModel extends AbstractSamplingWebUINodeModel<RowSamplingNodeSettings> {
+final class RowSamplingNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
-    /**
-     * @param configuration
-     * @param modelSettingsClass
-     */
-    SamplingNodeModel(final WebUINodeConfiguration configuration) {
-        super(configuration, RowSamplingNodeSettings.class);
+    RowSamplingNodeSettingsTest() {
+        super(getConfig());
     }
 
-    @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final RowSamplingNodeSettings modelSettings)
-        throws InvalidSettingsException {
-        return inSpecs;
+    private static final DataColumnSpecCreator SPEC = new DataColumnSpecCreator("column1", StringCellFactory.TYPE);
+
+    private static final PortObjectSpec[] INPUT_PORT_SPECS = new PortObjectSpec[]{new DataTableSpec(SPEC.createSpec())};
+
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .withInputPortObjectSpecs(INPUT_PORT_SPECS) //
+            .testJsonFormsForModel(RowSamplingNodeSettings.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
     }
 
-    @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec,
-        final RowSamplingNodeSettings modelSettings) throws Exception {
-        BufferedDataTable in = inData[0];
-        // he following line does not need the exec monitor. It's
-        // only used when the table is traversed in order to count the rows.
-        // This is done only if "in" does not support getRowCount().
-        // But the argument in the execute method surely does!
-        IRowFilter filter = getSamplingRowFilter(in, exec, modelSettings);
-        BufferedDataContainer container = exec.createDataContainer(in.getDataTableSpec());
+    private static RowSamplingNodeSettings readSettings() {
         try {
-            long count = 0;
-            RowFilterIterator it = new RowFilterIterator(in, filter, exec);
-            while (it.hasNext()) {
-                DataRow row = it.next();
-                exec.setMessage(String.format("Adding row %s (\"%s\")", count, row.getKey()));
-                count++;
-                container.addRowToTable(row);
+            var path = getSnapshotPath(RowSamplingNodeSettings.class).getParent().resolve("node_settings")
+                .resolve("RowSamplingNodeSettings.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return DefaultNodeSettings.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    RowSamplingNodeSettings.class);
             }
-        } catch (RowFilterIterator.RuntimeCanceledExecutionException rce) {
-            throw rce.getCause();
-        } finally {
-            container.close();
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
         }
-        BufferedDataTable out = container.getTable();
-        if (filter instanceof StratifiedSamplingRowFilter stratFilter) {
-            int classCount = stratFilter.getClassCount();
-            if (classCount > out.size()) {
-                setWarningMessage(String.format("Class column contains more classes (%d) than sampled rows (%s)",
-                    classCount, out.size()));
-            }
-        }
-
-        return new BufferedDataTable[]{out};
     }
-
 }
