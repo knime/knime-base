@@ -1,5 +1,6 @@
-/* 
+/*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,52 +41,36 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * -------------------------------------------------------------------
- * 
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   Apr 17, 2025 (Martin Sillye, TNG Technology Consulting GmbH): created
  */
 package org.knime.base.node.preproc.sample;
 
+import java.util.stream.Stream;
+
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
+import org.knime.core.data.NominalValue;
 
 /**
- * Dialog for sampling node. It allows to set if the sampling method is absolute
- * (how many rows) or relative (what percentage) and also if to choose the rows
- * random or take from top.
- * 
- * @author Bernd Wiswedel, University of Konstanz
+ *
+ * @author Martin Sillye, TNG Technology Consulting GmbH
  */
-public class SamplingNodeDialog extends NodeDialogPane {
-    private final SamplingNodeDialogPanel m_panel;
+@SuppressWarnings("restriction")
+final class RowSamplingNodeSettings extends AbstractSamplingNodeSettings {
 
-    /**
-     * Constructor that inits the GUI. Nothing fancy.
-     */
-    public SamplingNodeDialog() {
-        super();
-        m_panel = new SamplingNodeDialogPanel();
-        super.addTab("Sampling Method", m_panel);
+    RowSamplingNodeSettings() {
+
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadSettingsFrom(final NodeSettingsRO settings,
-            final DataTableSpec[] specs) throws NotConfigurableException {
-        m_panel.loadSettingsFrom(settings, specs[0]);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings)
-            throws InvalidSettingsException {
-        m_panel.saveSettingsTo(settings);
+    RowSamplingNodeSettings(final DefaultNodeSettingsContext context) {
+        final var firstCol = context.getDataTableSpec(0) //
+            .map(DataTableSpec::stream) //
+            .orElseGet(Stream::empty) //
+            .filter(spec -> spec.getType().isCompatible(NominalValue.class)).findFirst();
+        if (firstCol.isPresent()) {
+            this.m_classColumn = firstCol.get().getName();
+        }
     }
 }

@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,60 +41,52 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * -------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
+ * History
+ *   Apr 17, 2025 (Martin Sillye, TNG Technology Consulting GmbH): created
  */
 package org.knime.base.node.preproc.sample;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
- * Node that samples rows from an input table. It has one inport and one
- * outport.
  *
- * @author Bernd Wiswedel, University of Konstanz
+ * @author Martin Sillye, TNG Technology Consulting GmbH
+ * @since 5.5
  */
-public class SamplingNodeFactory extends NodeFactory<SamplingNodeModel> {
+@SuppressWarnings("restriction")
+public class SamplingNodeFactory extends WebUINodeFactory<SamplingNodeModel> {
+
     /**
-     * {@inheritDoc}
+     * Default constructor
+     */
+    public SamplingNodeFactory() {
+        super(CONFIG);
+    }
+
+    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
+        .name("Row Sampler") //
+        .icon("sampling.png") //
+        .shortDescription("Extracts a sample (a bunch of rows) from the input data.") //
+        .fullDescription("""
+                This node extracts a sample (a bunch of rows) from the input data. The dialog enables you to specify \
+                the sample size.
+                        """)//
+        .modelSettingsClass(RowSamplingNodeSettings.class) //
+        .addInputTable("Table to sample from", "Table to sample from.") //
+        .addOutputTable("The sampled table", "The sampled table.") //
+        .nodeType(NodeType.Manipulator) //
+        .keywords("Row Sampling", "sample", "sampling")//
+        .build();
+
+    /**
+     * @since 5.5
      */
     @Override
     public SamplingNodeModel createNodeModel() {
-        return new SamplingNodeModel();
+        return new SamplingNodeModel(CONFIG);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<SamplingNodeModel> createNodeView(final int viewIndex,
-            final SamplingNodeModel nodeModel) {
-        throw new IndexOutOfBoundsException("No view availabe.");
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return new SamplingNodeDialog();
-    }
 }
