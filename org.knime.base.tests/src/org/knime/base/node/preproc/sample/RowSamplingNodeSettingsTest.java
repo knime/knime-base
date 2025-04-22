@@ -44,49 +44,59 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 17, 2025 (Martin Sillye, TNG Technology Consulting GmbH): created
+ *   Apr 15, 2025 (Martin Sillye, TNG Technology Consulting GmbH): created
  */
 package org.knime.base.node.preproc.sample;
 
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.impl.WebUINodeFactory;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.def.StringCell.StringCellFactory;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
  *
  * @author Martin Sillye, TNG Technology Consulting GmbH
- * @since 5.5
  */
 @SuppressWarnings("restriction")
-public class SamplingNodeFactory extends WebUINodeFactory<SamplingNodeModel> {
+final class RowSamplingNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
-    /**
-     * Default constructor
-     */
-    public SamplingNodeFactory() {
-        super(CONFIG);
+    RowSamplingNodeSettingsTest() {
+        super(getConfig());
     }
 
-    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
-        .name("Row Sampler") //
-        .icon("sampling.png") //
-        .shortDescription("Extracts a sample (a bunch of rows) from the input data.") //
-        .fullDescription("""
-                This node extracts a sample (a bunch of rows) from the input data. The dialog enables you to specify \
-                the sample size.
-                        """)//
-        .modelSettingsClass(RowSamplingNodeSettings.class) //
-        .addInputTable("Table to sample from", "Table to sample from.") //
-        .addOutputTable("The sampled table", "The sampled table.") //
-        .nodeType(NodeType.Manipulator) //
-        .keywords("Row Sampling", "sample", "sampling")//
-        .build();
+    private static final DataColumnSpecCreator SPEC = new DataColumnSpecCreator("column1", StringCellFactory.TYPE);
 
-    /**
-     * @since 5.5
-     */
-    @Override
-    public SamplingNodeModel createNodeModel() {
-        return new SamplingNodeModel(CONFIG);
+    private static final PortObjectSpec[] INPUT_PORT_SPECS = new PortObjectSpec[]{new DataTableSpec(SPEC.createSpec())};
+
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .withInputPortObjectSpecs(INPUT_PORT_SPECS) //
+            .testJsonFormsForModel(RowSamplingNodeSettings.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
     }
 
+    private static RowSamplingNodeSettings readSettings() {
+        try {
+            var path = getSnapshotPath(RowSamplingNodeSettings.class).getParent().resolve("node_settings")
+                .resolve("RowSamplingNodeSettings.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return DefaultNodeSettings.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    RowSamplingNodeSettings.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 }

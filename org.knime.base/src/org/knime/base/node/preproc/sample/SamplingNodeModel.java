@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,55 +41,62 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * -------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
+ * History
+ *   Apr 17, 2025 (Martin Sillye, TNG Technology Consulting GmbH): created
  */
 package org.knime.base.node.preproc.sample;
 
 import org.knime.base.node.preproc.filter.row.RowFilterIterator;
 import org.knime.base.node.preproc.filter.row.rowfilter.IRowFilter;
+import org.knime.base.node.preproc.sample.AbstractSamplingNodeSettings.CountMode;
+import org.knime.base.node.preproc.sample.AbstractSamplingNodeSettings.SamplingMode;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 
 /**
- * NodeModel implementation to sample rows from an input table, thus, this node
- * has one in- and one outport.
  *
- * @author Bernd Wiswedel, University of Konstanz
+ * @author Martin Sillye, TNG Technology Consulting GmbH
  */
-public class SamplingNodeModel extends AbstractSamplingNodeModel {
-    /**
-     * Empty constructor, sets port count in super.
-     */
-    public SamplingNodeModel() {
-        super(1);
-    }
+@SuppressWarnings("restriction")
+final class SamplingNodeModel extends AbstractSamplingWebUINodeModel<RowSamplingNodeSettings> {
 
     /**
-     * {@inheritDoc}
+     * @param configuration
+     * @param modelSettingsClass
      */
+    SamplingNodeModel(final WebUINodeConfiguration configuration) {
+        super(configuration, RowSamplingNodeSettings.class);
+    }
+
     @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
-            final ExecutionContext exec) throws Exception {
+    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final RowSamplingNodeSettings modelSettings)
+        throws InvalidSettingsException {
+        return inSpecs;
+    }
+
+    @Override
+    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec,
+        final RowSamplingNodeSettings modelSettings) throws Exception {
         BufferedDataTable in = inData[0];
         // he following line does not need the exec monitor. It's
         // only used when the table is traversed in order to count the rows.
         // This is done only if "in" does not support getRowCount().
         // But the argument in the execute method surely does!
-        IRowFilter filter = getSamplingRowFilter(in, exec);
-        BufferedDataContainer container = exec.createDataContainer(in
-                .getDataTableSpec());
+        IRowFilter filter = getSamplingRowFilter(in, exec, modelSettings);
+        BufferedDataContainer container = exec.createDataContainer(in.getDataTableSpec());
         try {
             int count = 0;
             RowFilterIterator it = new RowFilterIterator(in, filter, exec);
             while (it.hasNext()) {
                 DataRow row = it.next();
-                exec.setMessage("Adding row " + count + " (\"" + row.getKey()
-                        + "\")");
+                exec.setMessage("Adding row " + count + " (\"" + row.getKey() + "\")");
                 count++;
                 container.addRowToTable(row);
             }
@@ -99,25 +107,44 @@ public class SamplingNodeModel extends AbstractSamplingNodeModel {
         }
         BufferedDataTable out = container.getTable();
         if (filter instanceof StratifiedSamplingRowFilter) {
-            int classCount =
-                    ((StratifiedSamplingRowFilter)filter).getClassCount();
-            if (classCount > out.getRowCount()) {
-                setWarningMessage("Class column contains more classes ("
-                        + classCount + ") than sampled rows ("
-                        + out.getRowCount() + ")");
+            int classCount = ((StratifiedSamplingRowFilter)filter).getClassCount();
+            if (classCount > out.size()) {
+                setWarningMessage(
+                    "Class column contains more classes (" + classCount + ") than sampled rows (" + out.size() + ")");
             }
         }
 
         return new BufferedDataTable[]{out};
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
-            throws InvalidSettingsException {
-        checkSettings(inSpecs[0]);
-        return inSpecs;
+    protected CountMode getCountMode(final RowSamplingNodeSettings settings) {
+        return settings.m_partitioningMode;
     }
+
+    @Override
+    protected double getPercentage(final RowSamplingNodeSettings settings) {
+        return settings.m_percentage;
+    }
+
+    @Override
+    protected int getCount(final RowSamplingNodeSettings settings) {
+        return settings.m_rowCount;
+    }
+
+    @Override
+    protected SamplingMode getSamplingMode(final RowSamplingNodeSettings settings) {
+        return settings.m_mode;
+    }
+
+    @Override
+    protected String getClassColumn(final RowSamplingNodeSettings settings) {
+        return settings.m_classColumn;
+    }
+
+    @Override
+    protected Long getSeed(final RowSamplingNodeSettings settings) {
+        return settings.m_useFixedRandomSeed ? settings.m_seed : null;
+    }
+
 }

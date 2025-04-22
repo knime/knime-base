@@ -78,5 +78,4 @@ public class AppendVariableToTable4NodeSettings implements DefaultNodeSettings {
             super("variable_filter");
         }
     }
-
 }
