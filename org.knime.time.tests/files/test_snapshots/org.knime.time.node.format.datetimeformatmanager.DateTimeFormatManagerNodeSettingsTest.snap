@@ -192,7 +192,8 @@
       "scope" : "#/properties/model/properties/format",
       "options" : {
         "format" : "dateTimeFormat",
-        "formatProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider"
+        "formatProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider",
+        "externalValidationHandler" : "org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidation$DateTimeStringFormatValidation"
       }
     }, {
       "type" : "Control",
