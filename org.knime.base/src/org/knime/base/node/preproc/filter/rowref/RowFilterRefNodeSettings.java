@@ -59,6 +59,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -79,6 +80,7 @@ public final class RowFilterRefNodeSettings extends AbstractRowFilterRefNodeSett
     }
 
     @Migration(IncludeOrExcludeRowsMigration.class)
+    @Persist(configKey = "inexcludeV2")
     @Widget(title = "Include or exclude rows from the reference table",
         description = "Includes or excludes all rows from the reference table in the resulting table from the first "
             + "input.")
@@ -105,7 +107,6 @@ public final class RowFilterRefNodeSettings extends AbstractRowFilterRefNodeSett
          */
         /** Value saved in settings to indicate we should include selected rows. */
         private static final String LEGACY_INCLUDE_VALUE = "Include rows from reference table";
-
 
         @Override
         public List<ConfigMigration<IncludeOrExcludeRows>> getConfigMigrations() {

@@ -153,6 +153,7 @@
           },
           "updateDomains" : { },
           "inexclude" : {
+            "configKey" : "inexcludeV2",
             "deprecatedConfigKeys" : [ {
               "deprecated" : [ [ "inexclude" ] ]
             } ]

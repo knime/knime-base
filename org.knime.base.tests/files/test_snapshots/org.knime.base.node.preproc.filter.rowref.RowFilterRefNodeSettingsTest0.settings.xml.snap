@@ -9,5 +9,5 @@
         <entry key="specialChoice_Internals" type="xstring" isnull="true" value=""/>
     </config>
     <entry key="updateDomains" type="xboolean" value="false"/>
-    <entry key="inexclude" type="xstring" value="EXCLUDE"/>
+    <entry key="inexcludeV2" type="xstring" value="EXCLUDE"/>
 </config>
