@@ -91,6 +91,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.WidgetGroupModifier;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
@@ -153,7 +154,7 @@ public final class CommonReaderTransformationSettingsStateProviders {
         }
 
         @Override
-        public S computeState(final DefaultNodeSettingsContext context) {
+        public S computeState(final DefaultNodeSettingsContext context) throws StateComputationFailureException {
             final var fileSelection = m_fileSelectionSupplier.get();
             if (!WorkflowContextUtil.hasWorkflowContext() // no workflow context available
                 // no file selected (yet)
@@ -180,7 +181,7 @@ public final class CommonReaderTransformationSettingsStateProviders {
             }
         }
 
-        abstract S computeStateFromPaths(List<FSPath> paths);
+        abstract S computeStateFromPaths(List<FSPath> paths) throws StateComputationFailureException;
     }
 
     public static class FSLocationsProvider extends PathsProvider<FSLocation[]> {
@@ -226,18 +227,25 @@ public final class CommonReaderTransformationSettingsStateProviders {
         protected abstract TypeReference<I> getConfigIdTypeReference();
 
         @Override
-        protected Map<String, TypedReaderTableSpec<T>> computeStateFromPaths(final List<FSPath> paths) {
+        protected Map<String, TypedReaderTableSpec<T>> computeStateFromPaths(final List<FSPath> paths)
+            throws StateComputationFailureException {
+            final var config = getMultiTableReadConfig().getTableReadConfig();
+            final var configIdSettings = m_configIdSupplier.get();
+            try {
+                configIdSettings.applyToConfig(config);
+            } catch (IllegalArgumentException e) {
+                LOGGER.error(e);
+                throw new StateComputationFailureException(e.getMessage());
+            }
+
             final var tableReader = getTableReader();
             final var exec = new ExecutionMonitor();
             final var specs = new HashMap<String, TypedReaderTableSpec<T>>();
-            final var config = getMultiTableReadConfig().getTableReadConfig();
-            final var configIdSettings = m_configIdSupplier.get();
-            configIdSettings.applyToConfig(config);
             for (var path : paths) {
                 try {
                     specs.put(path.toFSLocation().getPath(),
                         MultiTableUtils.assignNamesIfMissing(tableReader.readSpec(path, config, exec)));
-                } catch (IOException e) {
+                } catch (IOException | IllegalArgumentException e) {
                     LOGGER.error(e);
                     return Collections.emptyMap();
                 }

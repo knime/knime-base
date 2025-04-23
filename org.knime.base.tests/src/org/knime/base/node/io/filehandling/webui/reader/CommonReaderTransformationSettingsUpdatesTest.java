@@ -468,13 +468,12 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
         final var columnNameReset = getMultiResultInTransformationElementSettings(simulatorResult, "columnRename");
 
         assertSizeAndIndices(typeReset, 3);
-        assertSizeAndIndices(columnNameReset, 3);
+        assertSizeAndIndices(columnNameReset, 2);
         assertThat(typeReset.get(0).value()).isEqualTo(getDefaultPathIdentifier(getIntType()));
         assertThat(typeReset.get(1).value()).isEqualTo(getDefaultPathIdentifier(getStringType()));
         assertThat(typeReset.get(2).value()).isEqualTo("<default-columntype>");
         assertThat(columnNameReset.get(0).value()).isEqualTo("intCol");
         assertThat(columnNameReset.get(1).value()).isEqualTo("stringCol");
-        assertThat(columnNameReset.get(2).value()).isNull();
     }
 
     private List<IndexedValue<Integer>> getMultiResultInTransformationElementSettings(

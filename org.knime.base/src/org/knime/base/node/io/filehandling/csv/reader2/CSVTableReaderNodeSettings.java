@@ -124,6 +124,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberIn
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.MaxLengthValidation.HasAtMaxOneCharValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.IsNotEmptyValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.IsSingleCharacterValidation;
 
 /**
@@ -255,7 +256,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         }
 
         @Widget(title = "Column delimiter", description = ColumnDelimiter.DESCRIPTION)
-        @TextInputWidget(validation = IsSingleCharacterValidation.class)
+        @TextInputWidget(validation = IsNotEmptyValidation.class)
         @Layout(ColumnDelimiter.class)
         @Persistor(ColumnDelimiterPersistor.class)
         @ValueReference(ColumnDelimiterRef.class)

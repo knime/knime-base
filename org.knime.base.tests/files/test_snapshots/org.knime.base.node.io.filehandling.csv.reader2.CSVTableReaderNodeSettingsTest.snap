@@ -932,9 +932,9 @@
           "validations" : [ {
             "id" : "pattern",
             "parameters" : {
-              "pattern" : "^.$"
+              "pattern" : ".+"
             },
-            "errorMessage" : "The string must be a single character."
+            "errorMessage" : "The field cannot be empty (it must contain at least one character)."
           } ]
         }
       }, {

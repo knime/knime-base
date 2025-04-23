@@ -157,10 +157,6 @@
         }
       } ]
     } ]
-  }, {
-    "scopes" : null,
-    "id" : "org.knime.time.node.extract.durationperiod.ExtractFieldSettings$OutputColumnNamePlaceholderProvider",
-    "values" : [ ]
   } ],
   "globalUpdates" : [ {
     "trigger" : {

@@ -69,6 +69,7 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSetting
 import org.knime.base.node.io.filehandling.webui.LocalWorkflowContextTest;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.BaseSettings.FileSelectionRef;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
@@ -124,7 +125,7 @@ class CSVFormatAutoDetectionTest extends LocalWorkflowContextTest {
     }
 
     @Test
-    void testDetectsFormat() throws IOException {
+    void testDetectsFormat() throws IOException, StateComputationFailureException {
         final var file = m_tempFolder.resolve("file.csv").toAbsolutePath().toString();
         final var testFormat = new TestFormat();
         final var testFormatDependencies = new TestFormatDependencies(file);
@@ -182,7 +183,8 @@ class CSVFormatAutoDetectionTest extends LocalWorkflowContextTest {
         return formatProvider.computeState(null);
     }
 
-    private static void assertFormat(final TestFormat testFormat, final CsvFormat detectedFormat) {
+    private static void assertFormat(final TestFormat testFormat, final CsvFormat detectedFormat)
+        throws StateComputationFailureException {
         assertThat(getProvidedState(detectedFormat, CSVTableReaderNodeSettings.Settings.ColumnDelimiterProvider::new))
             .isEqualTo(testFormat.m_columnDelimiter);
 
@@ -204,7 +206,8 @@ class CSVFormatAutoDetectionTest extends LocalWorkflowContextTest {
     }
 
     private static <T> T getProvidedState(final CsvFormat detectedFormat,
-        final Supplier<CSVFormatProvider.ProviderFromCSVFormat<T>> constructor) {
+        final Supplier<CSVFormatProvider.ProviderFromCSVFormat<T>> constructor)
+        throws StateComputationFailureException {
         final var providerFromCSVFormat = constructor.get();
         providerFromCSVFormat.m_csvFormatSupplier = () -> detectedFormat;
         return providerFromCSVFormat.computeState(null);

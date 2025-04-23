@@ -938,11 +938,11 @@
         "scope" : "#/properties/model/properties/settings/properties/columnDelimiter",
         "options" : {
           "validations" : [ {
-            "errorMessage" : "The string must be a single character.",
             "id" : "pattern",
             "parameters" : {
-              "pattern" : "^.$"
-            }
+              "pattern" : ".+"
+            },
+            "errorMessage" : "The field cannot be empty (it must contain at least one character)."
           } ]
         }
       }, {
