@@ -1367,7 +1367,7 @@
             "properties" : {
               "authenticationManagedByPortText" : { },
               "source" : {
-                "configPaths" : [ [ "file_selection" ] ]
+                "configPaths" : [ [ "file_selection", "path" ] ]
               },
               "fileSelectionInternal" : {
                 "type" : "object",
