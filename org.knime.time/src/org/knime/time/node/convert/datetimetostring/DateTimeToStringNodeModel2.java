@@ -48,6 +48,8 @@
  */
 package org.knime.time.node.convert.datetimetostring;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidationUtil.validateFormat;
+
 import java.time.DateTimeException;
 import java.time.chrono.Chronology;
 import java.time.format.DateTimeFormatter;
@@ -93,12 +95,7 @@ final class DateTimeToStringNodeModel2 extends WebUISimpleStreamableFunctionNode
             throw new InvalidSettingsException("Date&Time format must not be empty.");
         }
 
-        try {
-            DateTimeFormatter.ofPattern(settings.m_format);
-        } catch (IllegalArgumentException ex) {
-            throw new InvalidSettingsException(
-                "Invalid date&time format '%s'. Reason: %s".formatted(settings.m_format, ex.getMessage()), ex);
-        }
+        validateFormat(settings.m_format);
     }
 
     @Override

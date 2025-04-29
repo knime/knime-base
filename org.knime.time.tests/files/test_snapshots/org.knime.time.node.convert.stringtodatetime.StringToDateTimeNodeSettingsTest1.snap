@@ -241,7 +241,7 @@
       "options" : {
         "format" : "dateTimeFormatWithType",
         "formatProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider",
-        "externalValidationHandler" : "org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidation$DateTimeTemporalFormatValidation"
+        "externalValidationHandler" : "org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidationUtil$DateTimeTemporalFormatValidation"
       }
     }, {
       "type" : "Control",

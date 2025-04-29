@@ -48,7 +48,7 @@
  */
 package org.knime.time.node.format.datetimeformatmanager;
 
-import java.time.format.DateTimeFormatter;
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidationUtil.validateFormat;
 
 import org.apache.commons.lang3.LocaleUtils;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -106,12 +106,7 @@ final class DateTimeFormatManagerNodeModel extends WebUINodeModel<DateTimeFormat
             throw new InvalidSettingsException("Date&Time format must not be empty.");
         }
 
-        try {
-            DateTimeFormatter.ofPattern(settings.m_format);
-        } catch (IllegalArgumentException e) { // NOSONAR
-            throw new InvalidSettingsException(
-                "Invalid date&time format '%s'. Reason: %s.".formatted(settings.m_format, e.getMessage()));
-        }
+        validateFormat(settings.m_format);
     }
 
     private static DataTableSpec attachFormatterToSelectedColumns(final DataTableSpec spec,
