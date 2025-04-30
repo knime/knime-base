@@ -120,31 +120,19 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
 
     @Layout(BinningSection.class)
     @Widget(title = "", description = "")
-    @ArrayWidget(addButtonText = "New cutoff", showSortButtons = true)
+    @ArrayWidget(elementTitle = "Cutoff", addButtonText = "New cutoff", showSortButtons = true)
     @Effect(predicate = BinningTypeIsCustomCutoffs.class, type = EffectType.SHOW)
     CustomCutoffsWidgetGroup[] m_customCutoffs = new CustomCutoffsWidgetGroup[]{ //
         new CustomCutoffsWidgetGroup() //
     };
 
     @Layout(BinningSection.class)
-    @Widget(title = "Match type", description = "TODO")
-    @ValueSwitchWidget
-    @Effect(predicate = BinningTypeIsCustomCutoffs.class, type = EffectType.SHOW)
-    MatchType m_matchTypeForCustomCutoffs = MatchType.TO_LOWER_BIN;
-
-    @Layout(BinningSection.class)
     @Widget(title = "", description = "")
-    @ArrayWidget(addButtonText = "New quantile", showSortButtons = true)
+    @ArrayWidget(elementTitle = "Quantile", addButtonText = "New quantile", showSortButtons = true)
     @Effect(predicate = BinningTypeIsCustomQuantiles.class, type = EffectType.SHOW)
     CustomQuantilesWidgetGroup[] m_customQuantiles = new CustomQuantilesWidgetGroup[]{ //
         new CustomQuantilesWidgetGroup() //
     };
-
-    @Layout(BinningSection.class)
-    @Widget(title = "Match type", description = "TODO")
-    @ValueSwitchWidget
-    @Effect(predicate = BinningTypeIsCustomQuantiles.class, type = EffectType.SHOW)
-    MatchType m_matchTypeForCustomQuantiles = MatchType.TO_LOWER_BIN;
 
     @Layout(BinningSection.class)
     @Widget(title = "Enforce integer cutoffs", description = "TODO")
@@ -238,14 +226,38 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
     }
 
     enum MatchType {
+            @Label(value = "To lower bin",
+                description = "Values that fall on the bin border will be assigned to the lower bin")
             TO_LOWER_BIN, //
+            @Label(value = "To upper bin",
+                description = "Values that fall on the bin border will be assigned to the upper bin")
             TO_UPPER_BIN;
     }
 
     enum BinNames {
+            @Label(value = "Numbered", description = "Bins will be named by their number, e.g. Bin 1")
             NUMBERED, //
+            @Label(value = "Borders", description = "Bins will be named by their borders, e.g. [0.0, 1.0)")
             BORDERS, //
+            @Label(value = "Midpoints", description = "Bins will be named by their midpoints, e.g. 0.5")
             MIDPOINTS;
+
+        String computedName(final int index, final boolean lowerBoundOpen, final double lowerBound,
+            final boolean upperBoundOpen, final double upperBound) {
+            return switch (this) {
+                case NUMBERED -> "Bin " + (index + 1);
+                case BORDERS -> openChar(lowerBoundOpen) + lowerBound + ", " + upperBound + closeChar(upperBoundOpen);
+                case MIDPOINTS -> String.valueOf((lowerBound + upperBound) / 2);
+            };
+        }
+
+        private static String openChar(final boolean open) {
+            return open ? "(" : "[";
+        }
+
+        private static String closeChar(final boolean open) {
+            return open ? ")" : "]";
+        }
     }
 
     enum NumberFormat {
@@ -446,12 +458,20 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
     static class CustomCutoffsWidgetGroup implements DefaultNodeSettings {
         @Widget(title = "Cutoff", description = "TODO")
         @NumberInputWidget
-        int m_cutoff = 0;
+        double m_cutoff = 0;
+
+        @Widget(title = "Exact match", description = "TODO")
+        @ValueSwitchWidget
+        MatchType m_matchType = MatchType.TO_LOWER_BIN;
     }
 
     static class CustomQuantilesWidgetGroup implements DefaultNodeSettings {
         @Widget(title = "Quantile", description = "TODO")
         @NumberInputWidget(validation = {NumberGreaterThanZeroValidation.class, NumberLessThanOneValidation.class})
         double m_quantile = 0;
+
+        @Widget(title = "Exact match", description = "TODO")
+        @ValueSwitchWidget
+        MatchType m_matchType = MatchType.TO_LOWER_BIN;
     }
 }
