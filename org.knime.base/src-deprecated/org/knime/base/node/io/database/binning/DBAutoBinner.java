@@ -73,8 +73,6 @@ import org.knime.base.node.preproc.autobinner.pmml.PMMLInterval.Closure;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLPreprocDiscretize;
 import org.knime.base.node.preproc.autobinner3.AutoBinner;
 import org.knime.base.node.preproc.autobinner3.AutoBinnerLearnSettings;
-import org.knime.base.node.preproc.pmml.binner.BinnerColumnFactory.Bin;
-import org.knime.base.node.preproc.pmml.binner.NumericBin;
 import org.knime.base.node.preproc.pmml.binner.PMMLBinningTranslator;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -89,6 +87,8 @@ import org.knime.core.node.port.pmml.PMMLPortObjectSpecCreator;
 import org.knime.core.node.port.pmml.preproc.DerivedFieldMapper;
 import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.util.Pair;
+import org.knime.core.util.binning.numeric.Bin;
+import org.knime.core.util.binning.numeric.NumericBin;
 
 /**
  * This class is an extension of class {@link AutoBinner}.

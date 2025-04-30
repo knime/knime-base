@@ -58,7 +58,7 @@ import org.knime.core.data.RowKey;
 import org.knime.core.data.container.CellFactory;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.ExecutionMonitor;
-import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.util.binning.numeric.Bin;
 
 /**
  * Factory to generate binned string cells from a selected column which can be
@@ -163,31 +163,6 @@ final class BinnerColumnFactory implements CellFactory {
             }
         }
         return DataType.getMissingCell();
-    }
-
-    /**
-     * General bin.
-     */
-    public interface Bin {
-
-        /**
-         * @return this bin's name
-         */
-        String getBinName();
-
-        /**
-         * @param value the double value
-         * @return if covered by this interval
-         */
-        boolean covers(DataCell value);
-
-        /**
-         * Save this bin.
-         *
-         * @param set to this settings
-         */
-        void saveToSettings(NodeSettingsWO set);
-
     }
 
     /**

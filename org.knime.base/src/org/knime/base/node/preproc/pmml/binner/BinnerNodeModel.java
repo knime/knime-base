@@ -51,7 +51,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.knime.base.node.preproc.pmml.binner.BinnerColumnFactory.Bin;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.container.ColumnRearranger;
@@ -78,6 +77,8 @@ import org.knime.core.node.streamable.PortObjectInput;
 import org.knime.core.node.streamable.PortObjectOutput;
 import org.knime.core.node.streamable.PortOutput;
 import org.knime.core.node.streamable.StreamableOperator;
+import org.knime.core.util.binning.numeric.Bin;
+import org.knime.core.util.binning.numeric.NumericBin;
 
 /**
  * Bins numeric columns into intervals which are then returned as string-type
