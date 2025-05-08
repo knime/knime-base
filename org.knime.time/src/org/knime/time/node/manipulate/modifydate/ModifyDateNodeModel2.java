@@ -94,7 +94,7 @@ final class ModifyDateNodeModel2 extends WebUISimpleStreamableFunctionNodeModel<
             var dataType = switch (modelSettings.m_behaviourType) {
                 case REMOVE -> LocalTimeCellFactory.TYPE;
                 case CHANGE -> inCol.spec().getType();
-                case APPEND -> modelSettings.m_timeZone == null //
+                case APPEND -> modelSettings.m_timeZone.isEmpty()//
                     ? LocalDateTimeCellFactory.TYPE //
                     : ZonedDateTimeCellFactory.TYPE;
             };
@@ -109,7 +109,7 @@ final class ModifyDateNodeModel2 extends WebUISimpleStreamableFunctionNodeModel<
         final DataColumnSpec outputSpec, final int inputColumnIndex) {
         return switch (settings.m_behaviourType) {
             case APPEND -> new AppendDateCellFactory(outputSpec, inputColumnIndex, settings.m_localDate,
-                settings.m_timeZone);
+                settings.m_timeZone.orElse(null));
             case CHANGE -> new ChangeDateCellFactory(outputSpec, inputColumnIndex, settings.m_localDate);
             case REMOVE -> new RemoveDateCellFactory(outputSpec, inputColumnIndex);
         };

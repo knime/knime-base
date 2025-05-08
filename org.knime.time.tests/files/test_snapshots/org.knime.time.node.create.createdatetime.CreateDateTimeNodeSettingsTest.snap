@@ -199,6 +199,7 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/localTimeStart",
         "options" : {
+          "showMilliseconds" : true,
           "format" : "localTime"
         },
         "rule" : {
@@ -2198,6 +2199,7 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/localTimeEnd",
         "options" : {
+          "showMilliseconds" : true,
           "format" : "localTime"
         },
         "rule" : {

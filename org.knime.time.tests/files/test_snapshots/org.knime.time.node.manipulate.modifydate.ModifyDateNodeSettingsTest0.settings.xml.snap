@@ -3,6 +3,7 @@
     <entry key="behaviourType" type="xstring" value="CHANGE"/>
     <entry key="localDate" type="xstring" value="2025-01-27"/>
     <entry key="timeZone" type="xstring" value="Europe/Berlin"/>
+    <entry key="timeZone_is_present" type="xboolean" value="true"/>
     <config key="columnFilter">
         <entry key="mode" type="xstring" value="MANUAL"/>
         <config key="patternFilter">

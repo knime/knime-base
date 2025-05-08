@@ -58,6 +58,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.knime.NodeModelTestRunnerUtil;
@@ -92,7 +93,7 @@ final class ModifyTimeNodeModel2Test {
         settings.m_appendOrReplace = ReplaceOrAppend.REPLACE;
         settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
         settings.m_localTime = LocalTime.of(21, 43, 57);
-        settings.m_timeZone = null;
+        settings.m_timeZone = Optional.empty();
 
         var testResult =
             RUNNER.setupAndExecuteWorkflow(settings, LocalDateCellFactory.create(LocalDate.of(2001, 1, 2)));
@@ -112,7 +113,7 @@ final class ModifyTimeNodeModel2Test {
         settings.m_appendOrReplace = ReplaceOrAppend.REPLACE;
         settings.m_columnFilter = new ColumnFilter(new String[]{INPUT_COLUMN});
         settings.m_localTime = LocalTime.of(21, 43, 57);
-        settings.m_timeZone = ZoneId.of("Europe/Berlin");
+        settings.m_timeZone = Optional.of(ZoneId.of("Europe/Berlin"));
 
         var testResult =
             RUNNER.setupAndExecuteWorkflow(settings, LocalDateCellFactory.create(LocalDate.of(2001, 1, 2)));

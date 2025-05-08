@@ -52,6 +52,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
@@ -64,7 +65,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.Colu
 import org.knime.core.webui.node.dialog.defaultdialog.widget.CompatibleColumnChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.CompatibleDataValueClassesSupplier;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.OptionalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
@@ -121,10 +121,9 @@ final class ModifyDateNodeSettings implements DefaultNodeSettings {
     LocalDate m_localDate = LocalDate.now();
 
     @Widget(title = "Time zone", description = "The time zone to use when appending a date to time columns.")
-    @OptionalWidget
     @Effect(predicate = BehaviourTypeIsAppend.class, type = EffectType.SHOW)
     @JsonInclude(Include.ALWAYS)
-    ZoneId m_timeZone = ZoneId.systemDefault();
+    Optional<ZoneId> m_timeZone = Optional.of(ZoneId.systemDefault());
 
     @Widget(title = "Date&time columns", description = "The date&amp;time columns whose values are modified.")
     @ChoicesProvider(ColumnProvider.class)

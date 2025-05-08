@@ -182,7 +182,7 @@
             "default" : " (Modified time)"
           },
           "timeZone" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "title" : "Time zone",
             "description" : "If checked, the user can choose a time zone to append.",
             "default" : "Europe/Berlin"
@@ -202,6 +202,7 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/localTime",
       "options" : {
+        "showMilliseconds" : true,
         "format" : "localTime"
       },
       "rule" : {
@@ -2030,7 +2031,8 @@
           "id" : "Zulu",
           "text" : "Zulu"
         } ],
-        "hideOnNull" : true
+        "hideOnNull" : true,
+        "default" : "Europe/Berlin"
       },
       "rule" : {
         "effect" : "SHOW",
@@ -2082,7 +2084,9 @@
         "properties" : {
           "behaviourType" : { },
           "localTime" : { },
-          "timeZone" : { },
+          "timeZone" : {
+            "configPaths" : [ [ "timeZone_is_present" ], [ "timeZone" ] ]
+          },
           "columnFilter" : {
             "type" : "object",
             "properties" : {

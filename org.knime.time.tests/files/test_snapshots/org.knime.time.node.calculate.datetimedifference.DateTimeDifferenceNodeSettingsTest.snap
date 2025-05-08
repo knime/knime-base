@@ -252,6 +252,7 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/localTimeFixed",
         "options" : {
+          "showMilliseconds" : true,
           "format" : "localTime"
         },
         "rule" : {

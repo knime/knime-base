@@ -182,7 +182,7 @@
             "default" : " (Modified date)"
           },
           "timeZone" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "title" : "Time zone",
             "description" : "The time zone to use when appending a date to time columns.",
             "default" : "Europe/Berlin"
@@ -2030,7 +2030,8 @@
           "id" : "Zulu",
           "text" : "Zulu"
         } ],
-        "hideOnNull" : true
+        "hideOnNull" : true,
+        "default" : "Europe/Berlin"
       },
       "rule" : {
         "effect" : "SHOW",
@@ -2082,7 +2083,9 @@
         "properties" : {
           "behaviourType" : { },
           "localDate" : { },
-          "timeZone" : { },
+          "timeZone" : {
+            "configPaths" : [ [ "timeZone_is_present" ], [ "timeZone" ] ]
+          },
           "columnFilter" : {
             "type" : "object",
             "properties" : {
