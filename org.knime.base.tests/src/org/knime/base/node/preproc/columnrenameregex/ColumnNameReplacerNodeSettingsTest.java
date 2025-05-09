@@ -46,46 +46,61 @@
  * History
  *   Mar 19, 2025 (david): created
  */
-package org.knime.base.node.preproc.columnnamereplacer2;
+package org.knime.base.node.preproc.columnrenameregex;
 
-import org.knime.base.node.util.regex.CaseMatching;
-import org.knime.base.node.util.regex.PatternType;
-import org.knime.base.node.util.regex.ReplacementStrategy;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.def.StringCell.StringCellFactory;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * Settings for the Column Name Replacer node (formerly Column Rename (Regex)).
  *
  * @author David Hickey, TNG Technology Consulting GmbH
  */
-@SuppressWarnings("restriction")
-final class ColumnNameReplacer2NodeSettings implements DefaultNodeSettings {
+final class ColumnNameReplacerNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
-    @Widget(title = PatternType.OPTION_NAME, description = PatternType.OPTION_DESCRIPTION)
-    @ValueSwitchWidget
-    PatternType m_patternType = PatternType.LITERAL;
+    static final PortObjectSpec[] TEST_TABLE_SPECS =
+        new PortObjectSpec[]{new DataTableSpec(new String[]{"test"}, new DataType[]{StringCellFactory.TYPE})};
 
-    @Widget(title = CaseMatching.OPTION_NAME, description = CaseMatching.OPTION_DESCRIPTION)
-    @ValueSwitchWidget
-    CaseMatching m_caseSensitivity = CaseMatching.CASESENSITIVE;
+    ColumnNameReplacerNodeSettingsTest() {
+        super(getConfig());
+    }
 
-    @Widget(title = "Pattern", description = """
-            A literal string, wildcard pattern or regular expression, depending on \
-            the pattern type selected above.
-            """)
-    String m_pattern = "";
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .withInputPortObjectSpecs(TEST_TABLE_SPECS) //
+            .testJsonFormsForModel(ColumnNameReplacerNodeSettings.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings("ColumnNameReplacerNodeSettings.xml")) //
+            .testNodeSettingsStructure(() -> readSettings("ColumnNameReplacerNodeSettings.xml")) //
+            /**
+             * the old non-webui version of this node
+             */
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings("ColumnRenameRegex.xml")) //
+            .testNodeSettingsStructure(() -> readSettings("ColumnRenameRegex.xml")) //
 
-    @Widget(title = "Replacement text", description = """
-            The replacement text for the pattern. If you are using a regular \
-            expression, you may also use backreferences (e.g. $1 to refer to \
-            the first capture group. Named capture groups can also be used with \
-            (?&lt;group&gt;) and ${group} to refer to them).
-            """)
-    String m_replacement = "";
+            .build();
+    }
 
-    @Widget(title = ReplacementStrategy.OPTION_NAME, description = ReplacementStrategy.OPTION_DESCRIPTION)
-    @ValueSwitchWidget
-    ReplacementStrategy m_replacementStrategy = ReplacementStrategy.WHOLE_STRING;
+    private static ColumnNameReplacerNodeSettings readSettings(final String fileName) {
+        try {
+            var path = getSnapshotPath(ColumnNameReplacerNodeSettings.class).getParent().resolve("node_settings")
+                .resolve(fileName);
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return DefaultNodeSettings.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    ColumnNameReplacerNodeSettings.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 }

@@ -46,7 +46,7 @@
  * History
  *   Mar 19, 2025 (david): created
  */
-package org.knime.base.node.preproc.columnnamereplacer2;
+package org.knime.base.node.preproc.columnrenameregex;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -70,6 +70,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.knime.base.node.preproc.columnrenameregex.ColumnRenameRegexNodeFactory;
+import org.knime.base.node.preproc.columnrenameregex.ColumnNameReplacerNodeModel;
+import org.knime.base.node.preproc.columnrenameregex.ColumnNameReplacerNodeSettings;
 import org.knime.base.node.util.regex.CaseMatching;
 import org.knime.base.node.util.regex.PatternType;
 import org.knime.base.node.util.regex.ReplacementStrategy;
@@ -93,11 +96,11 @@ import org.knime.testing.util.TableTestUtil;
  *
  * @author David Hickey, TNG Technology Consulting GmbH
  */
-final class ColumnNameReplacer2NodeModelTest {
+final class ColumnNameReplacerNodeModelTest {
 
-    ColumnNameReplacer2NodeSettings m_settings;
+    ColumnNameReplacerNodeSettings m_settings;
 
-    ColumnNameReplacer2NodeModel m_model;
+    ColumnNameReplacerNodeModel m_model;
 
     ExecutionContext m_fakeContext;
 
@@ -115,11 +118,11 @@ final class ColumnNameReplacer2NodeModelTest {
 
     @BeforeEach
     void setup() throws IOException {
-        m_settings = new ColumnNameReplacer2NodeSettings();
-        m_model = new ColumnNameReplacer2NodeModel(ColumnNameReplacer2NodeFactory.CONFIGURATION);
+        m_settings = new ColumnNameReplacerNodeSettings();
+        m_model = new ColumnNameReplacerNodeModel(ColumnRenameRegexNodeFactory.CONFIGURATION);
 
         @SuppressWarnings({"unchecked", "rawtypes"}) // annoying but necessary
-        NodeFactory<NodeModel> factory = (NodeFactory)new ColumnNameReplacer2NodeFactory();
+        NodeFactory<NodeModel> factory = (NodeFactory)new ColumnRenameRegexNodeFactory();
         m_fakeContext = new ExecutionContext(new DefaultNodeProgressMonitor(), new Node(factory),
             SingleNodeContainer.MemoryPolicy.CacheSmallInMemory, NotInWorkflowDataRepository.newInstance());
     }
@@ -192,11 +195,11 @@ final class ColumnNameReplacer2NodeModelTest {
     record TestCase(String pattern, String replacement, PatternType type, CaseMatching sensitivity,
         ReplacementStrategy strat, String... expectedColumns) {
 
-        ColumnNameReplacer2NodeSettings settings() {
-            return settings(new ColumnNameReplacer2NodeSettings());
+        ColumnNameReplacerNodeSettings settings() {
+            return settings(new ColumnNameReplacerNodeSettings());
         }
 
-        ColumnNameReplacer2NodeSettings settings(final ColumnNameReplacer2NodeSettings objectToOverWrite) {
+        ColumnNameReplacerNodeSettings settings(final ColumnNameReplacerNodeSettings objectToOverWrite) {
             objectToOverWrite.m_pattern = pattern;
             objectToOverWrite.m_replacement = replacement;
             objectToOverWrite.m_patternType = type;

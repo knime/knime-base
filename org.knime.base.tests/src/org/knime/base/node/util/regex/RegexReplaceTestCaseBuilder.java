@@ -65,8 +65,10 @@ final class RegexReplaceTestCaseBuilder {
         String expected, //
         PatternType patternType, //
         CaseMatching caseMatching, //
-        ReplacementStrategy replacementStrategy //
+        ReplacementStrategy replacementStrategy, //
+        boolean enableEscapingWildcard //
     ) {
+
     }
 
     private String m_searchPattern;
@@ -82,6 +84,8 @@ final class RegexReplaceTestCaseBuilder {
     private List<CaseMatching> m_caseMatchings = Arrays.asList(CaseMatching.values());
 
     private List<ReplacementStrategy> m_replacementStrategies = Arrays.asList(ReplacementStrategy.values());
+
+    private boolean m_enableEscapingWildcard;
 
     public RegexReplaceTestCaseBuilder(final String searchPattern, final String replacement, final String input,
         final String expected) {
@@ -106,12 +110,18 @@ final class RegexReplaceTestCaseBuilder {
         return this;
     }
 
+    public RegexReplaceTestCaseBuilder enableEscapingWildcard() {
+        this.m_enableEscapingWildcard = true;
+        return this;
+    }
+
     public List<TestCase> build() {
         List<TestCase> result = new ArrayList<>();
         for (PatternType pt : m_patternTypes) {
             for (CaseMatching cm : m_caseMatchings) {
                 for (ReplacementStrategy rs : m_replacementStrategies) {
-                    result.add(new TestCase(m_searchPattern, m_replacement, m_input, m_expected, pt, cm, rs));
+                    result.add(new TestCase(m_searchPattern, m_replacement, m_input, m_expected, pt, cm, rs,
+                        m_enableEscapingWildcard));
                 }
             }
         }

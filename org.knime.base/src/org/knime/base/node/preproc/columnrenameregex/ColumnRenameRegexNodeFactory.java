@@ -46,7 +46,7 @@
  * History
  *   Mar 19, 2025 (david): created
  */
-package org.knime.base.node.preproc.columnnamereplacer2;
+package org.knime.base.node.preproc.columnrenameregex;
 
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeFactory;
@@ -55,21 +55,23 @@ import org.knime.core.webui.node.impl.WebUINodeFactory;
  * The factory for the Column Name Replacer node (formerly Column Rename (Regex)).
  *
  * @author David Hickey, TNG Technology Consulting GmbH
- * @since 5.5
  */
 @SuppressWarnings("restriction")
-public class ColumnNameReplacer2NodeFactory extends WebUINodeFactory<ColumnNameReplacer2NodeModel> {
+public class ColumnRenameRegexNodeFactory extends WebUINodeFactory<ColumnNameReplacerNodeModel> {
 
     /**
      * Constructor for the node factory.
      */
-    public ColumnNameReplacer2NodeFactory() {
+    public ColumnRenameRegexNodeFactory() {
         super(CONFIGURATION);
     }
 
+    /**
+     * @since 5.5
+     */
     @Override
-    public ColumnNameReplacer2NodeModel createNodeModel() {
-        return new ColumnNameReplacer2NodeModel(CONFIGURATION);
+    public ColumnNameReplacerNodeModel createNodeModel() {
+        return new ColumnNameReplacerNodeModel(CONFIGURATION);
     }
 
     static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
@@ -78,10 +80,9 @@ public class ColumnNameReplacer2NodeFactory extends WebUINodeFactory<ColumnNameR
         .shortDescription("Renames all columns based on a regular expression search &amp; replace pattern.") //
         .fullDescription("""
                 <p>
-                  Renames all columns based on a regular expression search \
+                  Renames all columns based on a search \
                   &amp; replace pattern. The search pattern is a regular expression, \
-                  literal, or wildcard expression, in the former case possibly containing \
-                  groups for further back referencing in the replacement text.
+                  literal, or wildcard expression.
                 </p>
                 <p>
                  In the simplest case, you can search and replace string literals.
@@ -120,7 +121,7 @@ public class ColumnNameReplacer2NodeFactory extends WebUINodeFactory<ColumnNameR
                   Matcher</a>.
                 </p>
                 """) //
-        .modelSettingsClass(ColumnNameReplacer2NodeSettings.class) //
+        .modelSettingsClass(ColumnNameReplacerNodeSettings.class) //
         .keywords("regex", "rename", "column", "Column Rename (Regex)", "Column Rename (Replace)") //
         .addInputTable("Input table", "The table with columns to rename.") //
         .addOutputTable("Output table", "The table with renamed columns.") //

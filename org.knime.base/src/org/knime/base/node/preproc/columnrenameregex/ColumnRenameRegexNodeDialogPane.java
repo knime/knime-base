@@ -65,7 +65,7 @@ import org.knime.core.node.NotConfigurableException;
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  * @since 2.12
  *
- * @deprecated see {@link ColumnNameReplacer2NodeFactory} for the replacement node.
+ * @deprecated see {@link ColumnRenameRegexNodeFactory} for the replacement node.
  */
 @Deprecated
 public class ColumnRenameRegexNodeDialogPane extends NodeDialogPane {
