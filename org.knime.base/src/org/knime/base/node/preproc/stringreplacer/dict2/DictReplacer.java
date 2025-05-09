@@ -90,23 +90,46 @@ public abstract sealed class DictReplacer<K> permits StringReplacer, PatternRepl
      * @param row the {@link DataRow} that contains the relevant cells
      * @param patternIndex the column index of the pattern cell
      * @param replacementIndex the column index of the replacement cell
+     * @throws IllegalSearchPatternCellException if the pattern cell is flawed
      * @throws IllegalSearchPatternException if the pattern could not be compiled or is malformed
-     * @throws IllegalReplacementException if the replacement could not be stored (probably a missing cell)
+     * @throws IllegalReplacementCellException if the replacement cell is flawed
+     * @throws IllegalReplacementException if the replacement could not be executed
      */
     void insertDictRow(final DataRow row, final int patternIndex, final int replacementIndex)
-        throws IllegalSearchPatternException, IllegalReplacementException {
+        throws IllegalSearchPatternCellException, IllegalSearchPatternException, IllegalReplacementCellException,
+        IllegalReplacementException {
         var patternCol = row.getCell(patternIndex);
         if (patternCol.isMissing()) {
-            throw new IllegalSearchPatternException("The pattern column contains a missing cell");
+            throw new IllegalSearchPatternCellException("The pattern column contains a missing cell");
         }
         var replacement = row.getCell(replacementIndex);
         if (replacement.isMissing()) {
-            throw new IllegalReplacementException("The replacement column contains a missing cell");
+            throw new IllegalReplacementCellException("The replacement column contains a missing cell");
         }
         if (!patternCol.getType().isCompatible(StringValue.class)) {
-            throw new IllegalSearchPatternException("The pattern column is not string-compatible.");
+            throw new IllegalSearchPatternCellException("The pattern column is not string-compatible.");
         }
         this.addToDictionary(((StringValue)patternCol).getStringValue(), replacement.toString());
+    }
+
+    static final class IllegalSearchPatternCellException extends Exception {
+
+        private static final long serialVersionUID = -6741857197590713069L;
+
+        IllegalSearchPatternCellException(final String message) {
+            super(message);
+        }
+
+    }
+
+    static final class IllegalReplacementCellException extends Exception {
+
+        private static final long serialVersionUID = -6741857197590713069L;
+
+        IllegalReplacementCellException(final String message) {
+            super(message);
+        }
+
     }
 
     /**

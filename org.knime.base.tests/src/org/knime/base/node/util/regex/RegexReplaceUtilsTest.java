@@ -69,6 +69,7 @@ import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalReplacementExcept
 import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalSearchPatternException;
 
 /**
+ * Unit tests for {@link RegexReplaceUtils}.
  *
  * @author David Hickey, TNG Technology Consulting GmbH
  */
@@ -92,7 +93,9 @@ final class RegexReplaceUtilsTest {
         builder("abc", "$1", "abc", "$1").patternType(WILDCARD, LITERAL).build(), //
         builder("", "$1", "", "$1").patternType(WILDCARD).build(), //
         builder("", "abc", "xyz", "abcxabcyabczabc").replacementStrategy(ALL_OCCURRENCES).patternType(REGEX, WILDCARD)
-            .build() //
+            .build(), //
+        builder("\\?", "abc", "?", null).patternType(WILDCARD).build(), //
+        builder("\\?", "abc", "?", "abc").patternType(WILDCARD).enableEscapingWildcard().build()//
     ).flatMap(List::stream);
 
     static Stream<Arguments> provideTestCases() {
@@ -103,8 +106,8 @@ final class RegexReplaceUtilsTest {
     @ParameterizedTest
     @MethodSource("provideTestCases")
     void testReplacement(final TestCase testCase) throws IllegalSearchPatternException, IllegalReplacementException {
-        var pattern =
-            RegexReplaceUtils.compilePattern(testCase.searchPattern(), testCase.patternType(), testCase.caseMatching());
+        var pattern = RegexReplaceUtils.compilePattern(testCase.searchPattern(), testCase.patternType(),
+            testCase.caseMatching(), testCase.enableEscapingWildcard());
         var replacement = RegexReplaceUtils.processReplacementString(testCase.replacement(), testCase.patternType());
         var processedString = RegexReplaceUtils.doReplacement(pattern, testCase.replacementStrategy(),
             testCase.patternType(), testCase.input(), replacement).asOptional().orElse(null);

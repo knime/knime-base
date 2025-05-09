@@ -73,10 +73,10 @@ public final class RegexReplaceUtils {
      * Replaces the given pattern in the input string with the replacement string.
      *
      * @param pattern the regex pattern that should be replaced. See
-     *            {@link #compilePattern(String, PatternType, CaseMatching)} to compile a regex which will have a set of
-     *            flags corresponding to the settings. Note that if the flags in the pattern are inconsistent with the
-     *            settings passed as the other parameters to this method, the resulting behaviour will be potentially
-     *            very buggy.
+     *            {@link #compilePattern(String, PatternType, CaseMatching, boolean)} to compile a regex which will have
+     *            a set of flags corresponding to the settings. Note that if the flags in the pattern are inconsistent
+     *            with the settings passed as the other parameters to this method, the resulting behaviour will be
+     *            potentially very buggy.
      * @param replacementStrategy the replacement strategy
      * @param patternType the pattern type. The behaviour will be different depending on which type is used.
      * @param input the input string to search and make the replacements within
@@ -142,8 +142,7 @@ public final class RegexReplaceUtils {
             }
         } catch (IndexOutOfBoundsException | IllegalArgumentException e) {
             // Most likely a back-reference to a group that doesn't exist in the pattern
-            throw new IllegalReplacementException("Could not replace pattern \"" + pattern.pattern() + "\" in \""
-                + input + "\" with \"" + replacement + "\": " + e.getMessage(), e);
+            throw new IllegalReplacementException(pattern, replacement, input, e);
         }
     }
 
@@ -175,6 +174,61 @@ public final class RegexReplaceUtils {
     }
 
     /**
+     * See {@link #compilePattern(String, PatternType, CaseMatching, boolean)} which should be used in case unicode is
+     * to be properly supported.
+     *
+     * @param pattern the pattern to compile
+     * @param patternType the pattern type. If it is LITERAL, the pattern will be escaped so that it only matches
+     *            strings literally equal to the pattern. If it is WILDCARD, the pattern will be converted to a regex
+     *            pattern before compiling.
+     * @param caseMatching the case matching option. If it is CASEINSENSITIVE, the pattern will be compiled with the
+     *            CASE_INSENSITIVE flag.
+     * @param escapeWildcards whether to escape wildcards. If true, this means that wildcard parameters may use their
+     *            special meaning when escaped, that is, the wildcard string "\*" would match a literal asterisk if this
+     *            parameter is true. If it is false, it would match a literal backslash followed by any number of
+     *            characters. This is only relevant for WILDCARD patterns.
+     * @param supportUnicodeCase whether to support unicode case matching. This should be true unless this would
+     *            introduce breaking changes regarding backwards-compatibility.
+     * @return the compiled pattern
+     * @throws IllegalSearchPatternException if the search pattern is invalid and could not be compiled
+     */
+    public static Pattern compilePattern( //
+        String pattern, //
+        final PatternType patternType, //
+        final CaseMatching caseMatching, //
+        final boolean escapeWildcards, //
+        final boolean supportUnicodeCase //
+    ) throws IllegalSearchPatternException {
+        int flags = settingsToFlags(patternType, caseMatching, supportUnicodeCase);
+        if (patternType == PatternType.WILDCARD) {
+            pattern = WildcardToRegexUtil.wildcardToRegex(pattern, escapeWildcards);
+        } else if (patternType == PatternType.LITERAL) {
+            pattern = pattern.isEmpty() ? pattern : Pattern.quote(pattern);
+        }
+
+        try {
+            return Pattern.compile(pattern, flags);
+        } catch (PatternSyntaxException e) {
+            throw new IllegalSearchPatternException(pattern, e);
+        }
+    }
+
+    private static int settingsToFlags(final PatternType patternType, final CaseMatching caseMatching,
+        final boolean supportUnicodeCase) {
+        int flags = 0;
+        if (caseMatching == CaseMatching.CASEINSENSITIVE) {
+            flags |= Pattern.CASE_INSENSITIVE;
+            if (supportUnicodeCase) {
+                flags |= Pattern.UNICODE_CASE;
+            }
+        }
+        if (patternType == PatternType.WILDCARD) {
+            flags |= Pattern.MULTILINE | Pattern.DOTALL;
+        }
+        return flags;
+    }
+
+    /**
      * Compiles a pattern according to the given pattern and options. The flags are set according to the options.
      *
      * @param pattern the pattern to compile
@@ -186,61 +240,17 @@ public final class RegexReplaceUtils {
      * @param escapeWildcards whether to escape wildcards. If true, this means that wildcard parameters may use their
      *            special meaning when escaped, that is, the wildcard string "\*" would match a literal asterisk if this
      *            parameter is true. If it is false, it would match a literal backslash followed by any number of
-     *            characters. This is only relevant for WILDCARD patterns, and if not provided it will be defaulted to
-     *            true (see {@link #compilePattern(String, PatternType, CaseMatching)}).
-     * @return the compiled pattern
-     * @throws IllegalSearchPatternException if the search pattern is invalid and could not be compiled
-     */
-    public static Pattern compilePattern( //
-        String pattern, //
-        final PatternType patternType, //
-        final CaseMatching caseMatching, //
-        final boolean escapeWildcards //
-    ) throws IllegalSearchPatternException {
-        int flags = settingsToFlags(patternType, caseMatching);
-        if (patternType == PatternType.WILDCARD) {
-            pattern = WildcardToRegexUtil.wildcardToRegex(pattern, escapeWildcards);
-        } else if (patternType == PatternType.LITERAL) {
-            pattern = pattern.isEmpty() ? pattern : Pattern.quote(pattern);
-        }
-
-        try {
-            return Pattern.compile(pattern, flags);
-        } catch (PatternSyntaxException e) {
-            throw new IllegalSearchPatternException("Invalid pattern: " + pattern, e);
-        }
-    }
-
-    private static int settingsToFlags(final PatternType patternType, final CaseMatching caseMatching) {
-        int flags = 0;
-        if (caseMatching == CaseMatching.CASEINSENSITIVE) {
-            flags |= Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
-        }
-        if (patternType == PatternType.WILDCARD) {
-            flags |= Pattern.MULTILINE | Pattern.DOTALL;
-        }
-        return flags;
-    }
-
-    /**
-     * See {@link #compilePattern(String, PatternType, CaseMatching, boolean)}. Note that the escapeWildcards parameter
-     * will be set to true when using this method.
-     *
-     * @param pattern the pattern to compile
-     * @param patternType the pattern type. If it is LITERAL, the pattern will be escaped so that it only matches
-     *            strings literally equal to the pattern. If it is WILDCARD, the pattern will be converted to a regex
-     *            pattern before compiling.
-     * @param caseMatching the case matching option. If it is CASEINSENSITIVE, the pattern will be compiled with the
-     *            CASE_INSENSITIVE flag.
+     *            characters. This is only relevant for WILDCARD patterns.
      * @return the compiled pattern
      * @throws IllegalSearchPatternException if the search pattern is invalid and could not be compiled
      */
     public static Pattern compilePattern( //
         final String pattern, //
         final PatternType patternType, //
-        final CaseMatching caseMatching //
+        final CaseMatching caseMatching, //
+        final boolean escapeWildcards //
     ) throws IllegalSearchPatternException {
-        return compilePattern(pattern, patternType, caseMatching, true);
+        return compilePattern(pattern, patternType, caseMatching, escapeWildcards, true);
     }
 
     /**
@@ -280,23 +290,45 @@ public final class RegexReplaceUtils {
     public static class IllegalSearchPatternException extends Exception {
         private static final long serialVersionUID = -4102522911614414788L;
 
-        /**
-         * Constructs a new exception with the specified detail message.
-         *
-         * @param message the detail message
-         */
-        public IllegalSearchPatternException(final String message) {
-            super(message);
-        }
+        private final String m_pattern;
+
+        private final PatternSyntaxException m_syntaxException;
 
         /**
          * Constructs a new exception with the specified detail message and cause.
          *
-         * @param message the detail message
+         * @param pattern the invalid pattern
          * @param cause the cause of the exception
          */
-        public IllegalSearchPatternException(final String message, final Throwable cause) {
-            super(message, cause);
+        public IllegalSearchPatternException(final String pattern, final PatternSyntaxException cause) {
+            super(cause);
+            m_syntaxException = cause;
+            m_pattern = pattern;
+        }
+
+        /**
+         * @return the invalid pattern
+         */
+        public String getPattern() {
+            return m_pattern;
+        }
+
+        /**
+         * @return the plain syntax error without context information.
+         */
+        public PatternSyntaxException getSyntaxException() {
+            return m_syntaxException;
+        }
+
+        /**
+         * We restrict the message to the pattern on purpose here. Use {@link #getSyntaxException()} to get the plain
+         * error.
+         *
+         * @return the message with the pattern included
+         */
+        @Override
+        public String getMessage() {
+            return String.format("Invalid pattern \"%s\".", getPattern());
         }
     }
 
@@ -307,23 +339,63 @@ public final class RegexReplaceUtils {
     public static class IllegalReplacementException extends Exception {
         private static final long serialVersionUID = -34519310831437955L;
 
-        /**
-         * Constructs a new exception with the specified detail message.
-         *
-         * @param message the detail message
-         */
-        public IllegalReplacementException(final String message) {
-            super(message);
-        }
+        private final Pattern m_pattern;
+
+        private final String m_replacement;
+
+        private final String m_input;
 
         /**
          * Constructs a new exception with the specified detail message and cause.
          *
-         * @param message the detail message
+         * @param pattern the pattern used for the replacement
+         * @param replacement the invalid replacement string
+         * @param input the input string
          * @param cause the cause of the exception
          */
-        public IllegalReplacementException(final String message, final Throwable cause) {
-            super(message, cause);
+        public IllegalReplacementException(final Pattern pattern, final String replacement, final String input,
+            final Throwable cause) {
+            super(cause.getMessage());
+            m_pattern = pattern;
+            m_replacement = replacement;
+            m_input = input;
+        }
+
+        /**
+         * @return the pattern used for the replacement
+         */
+        public Pattern getPattern() {
+            return m_pattern;
+        }
+
+        /**
+         * @return the invalid replacement string
+         */
+        public String getReplacement() {
+            return m_replacement;
+        }
+
+        /**
+         * @return the input string
+         */
+        public String getInput() {
+            return m_input;
+        }
+
+        /**
+         * @return the message with the pattern, replacement and input included
+         */
+        @Override
+        public String getMessage() {
+            return String.format("Could not replace pattern \"%s\" in \"%s\" with \"%s\": %s", getPattern().pattern(),
+                getInput(), getReplacement(), super.getMessage());
+        }
+
+        /**
+         * @return the plain error message without context information.
+         */
+        public String getCauseMessage() {
+            return super.getMessage();
         }
     }
 }

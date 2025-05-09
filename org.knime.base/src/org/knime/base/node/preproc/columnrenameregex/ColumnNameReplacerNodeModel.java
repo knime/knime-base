@@ -45,7 +45,7 @@
  * History
  *   Mar 19, 2025 (david): created
  */
-package org.knime.base.node.preproc.columnnamereplacer2;
+package org.knime.base.node.preproc.columnrenameregex;
 
 import java.util.Map;
 import java.util.Set;
@@ -55,10 +55,10 @@ import org.knime.base.node.util.regex.RegexReplaceUtils;
 import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalReplacementException;
 import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalSearchPatternException;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataType;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.node.InvalidSettingsException;
@@ -72,24 +72,23 @@ import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-final class ColumnNameReplacer2NodeModel
-    extends WebUISimpleStreamableFunctionNodeModel<ColumnNameReplacer2NodeSettings> {
+final class ColumnNameReplacerNodeModel extends WebUISimpleStreamableFunctionNodeModel<ColumnNameReplacerNodeSettings> {
 
     /**
      * Creates a new instance of the model.
      *
      * @param config The configuration for the node.
      */
-    public ColumnNameReplacer2NodeModel(final WebUINodeConfiguration config) {
-        super(config, ColumnNameReplacer2NodeSettings.class);
+    public ColumnNameReplacerNodeModel(final WebUINodeConfiguration config) {
+        super(config, ColumnNameReplacerNodeSettings.class);
     }
 
     @Override
-    protected void validateSettings(final ColumnNameReplacer2NodeSettings settings) throws InvalidSettingsException {
+    protected void validateSettings(final ColumnNameReplacerNodeSettings settings) throws InvalidSettingsException {
         try {
             createColumnRenamePattern(settings);
         } catch (IllegalSearchPatternException e) {
-            throw new InvalidSettingsException("Invalid pattern: " + settings.m_pattern, e);
+            throw new InvalidSettingsException(e.getMessage(), e);
         }
     }
 
@@ -98,18 +97,20 @@ final class ColumnNameReplacer2NodeModel
      *
      * @throws IllegalSearchPatternException if the pattern is invalid
      */
-    private static Pattern createColumnRenamePattern(final ColumnNameReplacer2NodeSettings settings)
+    private static Pattern createColumnRenamePattern(final ColumnNameReplacerNodeSettings settings)
         throws IllegalSearchPatternException {
         return RegexReplaceUtils.compilePattern( //
             settings.m_pattern, //
             settings.m_patternType, //
-            settings.m_caseSensitivity //
+            settings.m_caseSensitivity, //
+            settings.m_enableEscapingWildcard, //
+            settings.m_properlySupportUnicodeCharacters //
         );
     }
 
     @Override
     protected ColumnRearranger createColumnRearranger(final DataTableSpec inSpec,
-        final ColumnNameReplacer2NodeSettings settings) {
+        final ColumnNameReplacerNodeSettings settings) {
         // if there are no columns in the input we can just return right now
         if (inSpec.getNumColumns() == 0) {
             return new ColumnRearranger(inSpec);
@@ -123,6 +124,8 @@ final class ColumnNameReplacer2NodeModel
                 settings.m_patternType, //
                 settings.m_caseSensitivity, //
                 settings.m_replacementStrategy, //
+                settings.m_enableEscapingWildcard, //
+                settings.m_properlySupportUnicodeCharacters, //
                 settings.m_replacement //
             );
         } catch (IllegalSearchPatternException e) {
@@ -133,7 +136,7 @@ final class ColumnNameReplacer2NodeModel
         }
 
         if (renameMapping.isEmpty()) {
-            setWarningMessage("Pattern did not change any column names.");
+            setWarningMessage("Pattern did not match any column names. Input remains unchanged.");
         } else if (ColumnNameReplacerUtils.renamesHaveCollisions(renameMapping)) {
             // if there are now duplicate column names, we should warn. But we'll use a unique name generator
             // so we don't actually have an error.
@@ -148,10 +151,11 @@ final class ColumnNameReplacer2NodeModel
 
         for (final var entry : renameMapping.entrySet()) {
             // add the new column name to the rearranger
+            final var inColIndex = inSpec.findColumnIndex(entry.getKey());
             var newCellFactory = new ColumnRenamingCellFactory( //
                 entry.getValue(), //
-                inSpec.getColumnSpec(entry.getKey()).getType(), //
-                inSpec.findColumnIndex(entry.getKey()) //
+                inSpec.getColumnSpec(inColIndex), //
+                inColIndex//
             );
             rearranger.replace(newCellFactory, entry.getKey());
         }
@@ -166,10 +170,16 @@ final class ColumnNameReplacer2NodeModel
 
         private int m_targetColumnIndex;
 
-        ColumnRenamingCellFactory(final String newName, final DataType type, final int targetColumnIndex) {
-            super(new DataColumnSpecCreator(newName, type).createSpec());
+        ColumnRenamingCellFactory(final String newName, final DataColumnSpec oldSpec, final int targetColumnIndex) {
+            super(renameColumn(oldSpec, newName));
 
             m_targetColumnIndex = targetColumnIndex;
+        }
+
+        private static DataColumnSpec renameColumn(final DataColumnSpec column, final String name) {
+            var creator = new DataColumnSpecCreator(column);
+            creator.setName(name);
+            return creator.createSpec();
         }
 
         @Override

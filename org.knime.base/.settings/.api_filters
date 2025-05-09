@@ -96,38 +96,6 @@
             </message_arguments>
         </filter>
     </resource>
-    <resource path="src-deprecated/org/knime/base/node/preproc/columnrenameregex/ColumnRenameRegexConfiguration.java" type="org.knime.base.node.preproc.columnrenameregex.ColumnRenameRegexConfiguration">
-        <filter id="305365105">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.columnrenameregex.ColumnRenameRegexConfiguration"/>
-                <message_argument value="org.knime.base_5.5.0"/>
-            </message_arguments>
-        </filter>
-    </resource>
-    <resource path="src-deprecated/org/knime/base/node/preproc/columnrenameregex/ColumnRenameRegexNodeDialogPane.java" type="org.knime.base.node.preproc.columnrenameregex.ColumnRenameRegexNodeDialogPane">
-        <filter id="305365105">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.columnrenameregex.ColumnRenameRegexNodeDialogPane"/>
-                <message_argument value="org.knime.base_5.5.0"/>
-            </message_arguments>
-        </filter>
-    </resource>
-    <resource path="src-deprecated/org/knime/base/node/preproc/columnrenameregex/ColumnRenameRegexNodeFactory.java" type="org.knime.base.node.preproc.columnrenameregex.ColumnRenameRegexNodeFactory">
-        <filter id="305365105">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.columnrenameregex.ColumnRenameRegexNodeFactory"/>
-                <message_argument value="org.knime.base_5.5.0"/>
-            </message_arguments>
-        </filter>
-    </resource>
-    <resource path="src-deprecated/org/knime/base/node/preproc/columnrenameregex/ColumnRenameRegexNodeFunc.java" type="org.knime.base.node.preproc.columnrenameregex.ColumnRenameRegexNodeFunc">
-        <filter id="305365105">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.columnrenameregex.ColumnRenameRegexNodeFunc"/>
-                <message_argument value="org.knime.base_5.5.0"/>
-            </message_arguments>
-        </filter>
-    </resource>
     <resource path="src/org/knime/base/node/io/filehandling/webui/reader/CommonReaderNodeSettings.java" type="org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$SkipFirstDataRowsPersistor">
         <filter id="338792546">
             <message_arguments>
@@ -179,6 +147,20 @@
             <message_arguments>
                 <message_argument value="org.knime.base.node.preproc.columnmerge.ColumnMergerNodeFactory"/>
                 <message_argument value="createNodeView(int, ColumnMergerNodeModel)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/columnrenameregex/ColumnRenameRegexNodeFactory.java" type="org.knime.base.node.preproc.columnrenameregex.ColumnRenameRegexNodeFactory">
+        <filter id="338792546">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.columnrenameregex.ColumnRenameRegexNodeFactory"/>
+                <message_argument value="createNodeModel()"/>
+            </message_arguments>
+        </filter>
+        <filter id="338792546">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.columnrenameregex.ColumnRenameRegexNodeFactory"/>
+                <message_argument value="createNodeView(int, ColumnRenameRegexNodeModel)"/>
             </message_arguments>
         </filter>
     </resource>

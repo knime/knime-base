@@ -52,6 +52,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.knime.base.node.preproc.stringreplacer.dict2.DictReplacer.IllegalReplacementCellException;
+import org.knime.base.node.preproc.stringreplacer.dict2.DictReplacer.IllegalSearchPatternCellException;
 import org.knime.base.node.util.regex.PatternType;
 import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalReplacementException;
 import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalSearchPatternException;
@@ -316,13 +318,13 @@ public class StringReplacerDictNodeModel extends WebUINodeModel<StringReplacerDi
                         m_replacer.insertDictRow(row, patternColIndex, replacementColIndex);
                         reportProcessedDictRow(rowCounter);
                     }
-                } catch (IllegalSearchPatternException e) {
+                } catch (IllegalSearchPatternException | IllegalSearchPatternCellException e) {
                     // Most likely a PatternSyntaxException, or some other faulty data that couldn't be processed
                     throw KNIMEException
                         .of(Message.fromRowIssue("Could not insert search pattern in row '" + currentRow.getKey() + "'",
                             1, rowCounter, patternColIndex, e.getMessage()), e)
                         .toUnchecked();
-                } catch (IllegalReplacementException e) {
+                } catch (IllegalReplacementException | IllegalReplacementCellException e) {
                     // Most likely a missing cell in the replacement column
                     throw KNIMEException.of(
                         Message.fromRowIssue("Could not insert replacement string in row '" + currentRow.getKey() + "'",

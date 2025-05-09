@@ -1,11 +1,13 @@
 {
   "data" : {
     "model" : {
-      "patternType" : "REGEX",
+      "patternType" : "LITERAL",
+      "enableEscapingWildcard" : false,
       "caseSensitivity" : "CASESENSITIVE",
-      "pattern" : "(\\s)",
-      "replacement" : "something$1",
-      "replacementStrategy" : "ALL_OCCURRENCES"
+      "pattern" : "",
+      "replacement" : "",
+      "replacementStrategy" : "WHOLE_STRING",
+      "properlySupportUnicodeCharacters" : false
     }
   },
   "schema" : {
@@ -25,6 +27,12 @@
             "title" : "Case sensitive",
             "description" : "Specifies whether matching will distinguish between upper and lower case letters.",
             "default" : "CASESENSITIVE"
+          },
+          "enableEscapingWildcard" : {
+            "type" : "boolean",
+            "title" : "Use backslash as escape character",
+            "description" : "If checked, the backslash character can be used to escape special characters. For instance, <tt>\\?</tt>\nwill match the literal character <tt>?</tt> instead of an arbitrary character. In order to match a\nbackslash you need to escape the backslash, too (<tt>\\</tt>).\n",
+            "default" : false
           },
           "pattern" : {
             "type" : "string",
@@ -46,6 +54,10 @@
             "title" : "Pattern type",
             "description" : "Select the type of pattern which you want to use.\n<ul>\n    <li><i>Literal</i> matches the pattern as is.</li>\n    <li>\n        <i>Wildcard</i> matches <tt>*</tt> to zero or more arbitrary characters and matches\n        <tt>?</tt> to any single character.\n    </li>\n    <li>\n        <i>Regular expression</i>\n        matches using the full functionality of Java regular expressions, including back references\n        in the replacement text. See the\n        <a href=\"http://docs.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html\">Java API\n        </a> for details.\n    </li>\n</ul>\n",
             "default" : "LITERAL"
+          },
+          "properlySupportUnicodeCharacters" : {
+            "type" : "boolean",
+            "default" : false
           },
           "replacement" : {
             "type" : "string",
@@ -78,6 +90,23 @@
       }
     }, {
       "type" : "Control",
+      "scope" : "#/properties/model/properties/enableEscapingWildcard",
+      "options" : {
+        "format" : "checkbox"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/patternType",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "WILDCARD"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
       "scope" : "#/properties/model/properties/caseSensitivity",
       "options" : {
         "format" : "valueSwitch"
@@ -102,11 +131,31 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "patternType" : { },
-          "caseSensitivity" : { },
-          "pattern" : { },
-          "replacement" : { },
-          "replacementStrategy" : { }
+          "patternType" : {
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "isLiteral" ] ]
+            } ]
+          },
+          "enableEscapingWildcard" : { },
+          "caseSensitivity" : {
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "isCaseInsensitive" ] ]
+            } ]
+          },
+          "pattern" : {
+            "configKey" : "searchString"
+          },
+          "replacement" : {
+            "configKey" : "replaceString"
+          },
+          "replacementStrategy" : {
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ ]
+            } ]
+          },
+          "properlySupportUnicodeCharacters" : {
+            "configPaths" : [ ]
+          }
         }
       }
     }

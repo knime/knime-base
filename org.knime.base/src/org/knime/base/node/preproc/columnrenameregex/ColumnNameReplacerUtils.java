@@ -46,7 +46,7 @@
  * History
  *   Mar 21, 2025 (david): created
  */
-package org.knime.base.node.preproc.columnnamereplacer2;
+package org.knime.base.node.preproc.columnrenameregex;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -93,6 +93,12 @@ public final class ColumnNameReplacerUtils {
      * @param patternType the type of pattern to use (literal, wildcard, regex).
      * @param caseMatching the case matching to use for the pattern (case sensitive or insensitive).
      * @param replacementStrategy the strategy to use for replacement (e.g. replace all, replace whole string).
+     * @param escapeWildcards whether to escape wildcards. If true, this means that wildcard parameters may use their
+     *            special meaning when escaped, that is, the wildcard string "\*" would match a literal asterisk if this
+     *            parameter is true. If it is false, it would match a literal backslash followed by any number of
+     *            characters. This is only relevant for WILDCARD patterns.
+     * @param supportUnicodeCase whether to support unicode case matching. This should be true unless this would
+     *            introduce breaking changes regarding backwards-compatibility
      * @param replacement a replacement string that will be used to replace the matched parts of the old column names.
      *            It will be escaped if necessary (i.e. if the pattern type is anything other than regex).
      * @return a map of old names to new names.
@@ -102,17 +108,20 @@ public final class ColumnNameReplacerUtils {
      */
     public static Map<String, String> columnRenameMappings(final String[] oldNames, final String patternString,
         final PatternType patternType, final CaseMatching caseMatching, final ReplacementStrategy replacementStrategy,
-        String replacement) throws IllegalSearchPatternException, IllegalReplacementException {
+        final boolean escapeWildcards, final boolean supportUnicodeCase, String replacement)
+        throws IllegalSearchPatternException, IllegalReplacementException {
 
-        var pattern = RegexReplaceUtils.compilePattern(patternString, patternType, caseMatching);
+        var pattern = RegexReplaceUtils.compilePattern(patternString, patternType, caseMatching, escapeWildcards,
+            supportUnicodeCase);
 
         replacement = RegexReplaceUtils.processReplacementString(replacement, patternType);
 
         LinkedHashMap<String, String> nameMapping = new LinkedHashMap<>(oldNames.length);
-        for (final String oldName : oldNames) {
-            var replacementResult =
-                RegexReplaceUtils.doReplacement(pattern, replacementStrategy, patternType, oldName, replacement);
-
+        for (int i = 0; i < oldNames.length; i++) {
+            final var oldName = oldNames[i];
+            var replacementWithIndex = getReplaceStringWithIndex(replacement, i);
+            var replacementResult = RegexReplaceUtils.doReplacement(pattern, replacementStrategy, patternType, oldName,
+                replacementWithIndex);
             if (replacementResult.wasReplaced()) {
                 // if the replacement was successful, add the new name to the map
                 nameMapping.put(oldName, replacementResult.result());
@@ -120,6 +129,17 @@ public final class ColumnNameReplacerUtils {
         }
 
         return nameMapping;
+    }
+
+    private static String getReplaceStringWithIndex(final String replace, final int index) {
+        if (!replace.contains("$i")) {
+            return replace;
+        }
+        /* replace every $i by index .. unless it is escaped */
+        // check starts with $i
+        String result = replace.replaceAll("^\\$i", Integer.toString(index));
+        // any subsequent occurrence, which is not escaped
+        return result.replaceAll("([^\\\\])\\$i", "$1" + index);
     }
 
     /**
