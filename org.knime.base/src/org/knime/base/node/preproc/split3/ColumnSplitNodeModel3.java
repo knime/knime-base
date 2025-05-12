@@ -48,9 +48,6 @@
  */
 package org.knime.base.node.preproc.split3;
 
-import java.util.Arrays;
-import java.util.stream.Collectors;
-
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.node.BufferedDataTable;
@@ -90,16 +87,6 @@ final class ColumnSplitNodeModel3 extends WebUINodeModel<ColumnSplitNodeSettings
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final ColumnSplitNodeSettings modelSettings)
         throws InvalidSettingsException {
-
-        var missingColumns = modelSettings.m_columnsToInclude.getMissingSelectedFromFullSpec(inSpecs[0]);
-
-        if (missingColumns.length == 1) {
-            setWarningMessage(
-                "The column '%s' is included but no longer exists in the input table.".formatted(missingColumns[0]));
-        } else if (missingColumns.length > 1) {
-            setWarningMessage("These columns are included but no longer exist in the input table: %s."
-                .formatted(Arrays.stream(missingColumns).collect(Collectors.joining(", "))));
-        }
 
         var selectedColumns = modelSettings.m_columnsToInclude.filterFromFullSpec(inSpecs[0]);
         var columnRearrangers = createColumnRearrangers(inSpecs[0], selectedColumns);

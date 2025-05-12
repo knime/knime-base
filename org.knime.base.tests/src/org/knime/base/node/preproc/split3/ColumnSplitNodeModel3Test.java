@@ -48,12 +48,7 @@
 package org.knime.base.node.preproc.split3;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -116,9 +111,6 @@ final class ColumnSplitNodeModel3Test {
         var settings = new ColumnSplitNodeSettings();
         settings.m_columnsToInclude = new ColumnFilter(new String[]{"A", "C"});
 
-        var warningMessageReceived = new AtomicBoolean();
-
-        m_model.addWarningListener(m -> warningMessageReceived.set(true));
         var result = m_model.execute(new BufferedDataTable[]{m_inputTable}, m_fakeContext, settings);
 
         assertEquals(2, result.length, "Expected two output tables");
@@ -137,8 +129,6 @@ final class ColumnSplitNodeModel3Test {
         assertEquals("A", includedTableSpec.getColumnSpec(0).getName(), "Expected column A first in included table");
         assertEquals("C", includedTableSpec.getColumnSpec(1).getName(), "Expected column C second in included table");
 
-        // expect no warning
-        assertFalse(warningMessageReceived.get(), "Expected no warning");
     }
 
     @Test
@@ -146,9 +136,6 @@ final class ColumnSplitNodeModel3Test {
         var settings = new ColumnSplitNodeSettings();
         settings.m_columnsToInclude = new ColumnFilter(new String[]{"A", "B", "C"});
 
-        var warningMessageReceived = new AtomicBoolean();
-
-        m_model.addWarningListener(m -> warningMessageReceived.set(true));
         var result = m_model.execute(new BufferedDataTable[]{m_inputTable}, m_fakeContext, settings);
 
         assertEquals(2, result.length, "Expected two output tables");
@@ -164,8 +151,6 @@ final class ColumnSplitNodeModel3Test {
         assertEquals("B", includedTableSpec.getColumnSpec(1).getName(), "Expected column B second in included table");
         assertEquals("C", includedTableSpec.getColumnSpec(2).getName(), "Expected column C third in included table");
 
-        // expect no warning
-        assertFalse(warningMessageReceived.get(), "Expected no warning");
     }
 
     @Test
@@ -173,9 +158,6 @@ final class ColumnSplitNodeModel3Test {
         var settings = new ColumnSplitNodeSettings();
         settings.m_columnsToInclude = new ColumnFilter(new String[]{});
 
-        var warningMessageReceived = new AtomicBoolean();
-
-        m_model.addWarningListener(m -> warningMessageReceived.set(true));
         var result = m_model.execute(new BufferedDataTable[]{m_inputTable}, m_fakeContext, settings);
 
         assertEquals(2, result.length, "Expected two output tables");
@@ -191,43 +173,6 @@ final class ColumnSplitNodeModel3Test {
         assertEquals("B", excludedTableSpec.getColumnSpec(1).getName(), "Expected column B second in excluded table");
         assertEquals("C", excludedTableSpec.getColumnSpec(2).getName(), "Expected column C third in excluded table");
 
-        // expect no warning
-        assertFalse(warningMessageReceived.get(), "Expected no warning");
     }
 
-    @Test
-    void testWarnsIfColumnNoLongerExists() throws Exception {
-        var nonExistentColumn = "how much wood would a woodchuck chuck";
-
-        var settings = new ColumnSplitNodeSettings();
-        settings.m_columnsToInclude = new ColumnFilter(new String[]{"A", nonExistentColumn});
-
-        AtomicReference<String> warningMessage = new AtomicReference<>();
-        m_model.addWarningListener(m -> warningMessage.set(m.getSummary()));
-
-        m_model.configure(new DataTableSpec[]{m_inputSpec}, settings);
-
-        var warningMessageString = warningMessage.get();
-        assertNotNull(warningMessageString, "expected warning");
-        assertTrue(warningMessageString.contains(nonExistentColumn));
-    }
-
-    @Test
-    void testWarnsIfMultipleColumnNoLongerExist() throws Exception {
-        var nonExistentColumn1 = "how much wood would a woodchuck chuck";
-        var nonExistentColumn2 = "if a woodchuck could chuck wood";
-
-        var settings = new ColumnSplitNodeSettings();
-        settings.m_columnsToInclude = new ColumnFilter(new String[]{"A", nonExistentColumn1, nonExistentColumn2});
-
-        AtomicReference<String> warningMessage = new AtomicReference<>();
-        m_model.addWarningListener(m -> warningMessage.set(m.getSummary()));
-
-        m_model.configure(new DataTableSpec[]{m_inputSpec}, settings);
-
-        var warningMessageString = warningMessage.get();
-        assertNotNull(warningMessageString, "expected warning");
-        assertTrue(warningMessageString.contains(nonExistentColumn1));
-        assertTrue(warningMessageString.contains(nonExistentColumn2));
-    }
 }
