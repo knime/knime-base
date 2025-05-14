@@ -47,12 +47,6 @@
  */
 package org.knime.base.node.preproc.columnrenameregex;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Pattern;
-
-import org.knime.base.node.util.regex.RegexReplaceUtils;
-import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalReplacementException;
 import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalSearchPatternException;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -62,7 +56,6 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.KNIMEException;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 
@@ -74,80 +67,31 @@ import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 @SuppressWarnings("restriction")
 final class ColumnNameReplacerNodeModel extends WebUISimpleStreamableFunctionNodeModel<ColumnNameReplacerNodeSettings> {
 
-    /**
-     * Creates a new instance of the model.
-     *
-     * @param config The configuration for the node.
-     */
-    public ColumnNameReplacerNodeModel(final WebUINodeConfiguration config) {
+    ColumnNameReplacerNodeModel(final WebUINodeConfiguration config) {
         super(config, ColumnNameReplacerNodeSettings.class);
     }
 
     @Override
     protected void validateSettings(final ColumnNameReplacerNodeSettings settings) throws InvalidSettingsException {
         try {
-            createColumnRenamePattern(settings);
+            ColumnNameReplacerUtils.createColumnRenamePattern(settings);
         } catch (IllegalSearchPatternException e) {
             throw new InvalidSettingsException(e.getMessage(), e);
         }
     }
 
-    /**
-     * Use the settings to create a {@link Pattern} that can be used to rename columns.
-     *
-     * @throws IllegalSearchPatternException if the pattern is invalid
-     */
-    private static Pattern createColumnRenamePattern(final ColumnNameReplacerNodeSettings settings)
-        throws IllegalSearchPatternException {
-        return RegexReplaceUtils.compilePattern( //
-            settings.m_pattern, //
-            settings.m_patternType, //
-            settings.m_caseSensitivity, //
-            settings.m_enableEscapingWildcard, //
-            settings.m_properlySupportUnicodeCharacters //
-        );
-    }
-
     @Override
     protected ColumnRearranger createColumnRearranger(final DataTableSpec inSpec,
-        final ColumnNameReplacerNodeSettings settings) {
+        final ColumnNameReplacerNodeSettings settings) throws InvalidSettingsException {
         // if there are no columns in the input we can just return right now
         if (inSpec.getNumColumns() == 0) {
             return new ColumnRearranger(inSpec);
         }
 
-        Map<String, String> renameMapping;
-        try {
-            renameMapping = ColumnNameReplacerUtils.columnRenameMappings( //
-                inSpec.getColumnNames(), //
-                settings.m_pattern, //
-                settings.m_patternType, //
-                settings.m_caseSensitivity, //
-                settings.m_replacementStrategy, //
-                settings.m_enableEscapingWildcard, //
-                settings.m_properlySupportUnicodeCharacters, //
-                settings.m_replacement //
-            );
-        } catch (IllegalSearchPatternException e) {
-            // we should be covered by validateSettings, so this is an implementation error
-            throw new IllegalStateException("Implementation error: " + e.getMessage(), e);
-        } catch (IllegalReplacementException e) {
-            throw new KNIMEException("Replacement string contained an invalid group.", e).toUnchecked();
-        }
+        final var renameMapping = ColumnNameReplacerUtils.createColumnRenameMappings(inSpec.getColumnNames(), settings,
+            this::setWarningMessage);
 
-        if (renameMapping.isEmpty()) {
-            setWarningMessage("Pattern did not match any column names. Input remains unchanged.");
-        } else if (ColumnNameReplacerUtils.renamesHaveCollisions(renameMapping)) {
-            // if there are now duplicate column names, we should warn. But we'll use a unique name generator
-            // so we don't actually have an error.
-            setWarningMessage("Pattern replace resulted in duplicate column names. Conflicts were resolved by adding "
-                + "\"(#index)\" suffix.");
-        }
-
-        // this won't change anything if we have no collisions
-        renameMapping = ColumnNameReplacerUtils.fixCollisions(Set.of(inSpec.getColumnNames()), renameMapping);
-
-        var rearranger = new ColumnRearranger(inSpec);
+        final var rearranger = new ColumnRearranger(inSpec);
 
         for (final var entry : renameMapping.entrySet()) {
             // add the new column name to the rearranger

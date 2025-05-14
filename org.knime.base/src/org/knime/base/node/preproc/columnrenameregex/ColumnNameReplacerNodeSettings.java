@@ -73,12 +73,15 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
- * Settings for the Column Name Replacer node (formerly Column Rename (Regex)).
+ * Settings for the Column Name Replacer node (formerly Column Rename (Regex)). Made public, since other column rename
+ * nodes (e.g., in knime-database) use these settings as well.
+ *
+ * @since 5.5
  *
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-final class ColumnNameReplacerNodeSettings implements DefaultNodeSettings {
+public final class ColumnNameReplacerNodeSettings implements DefaultNodeSettings {
 
     static final class PatternTypeRef implements Reference<PatternType> {
     }

@@ -70,9 +70,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.knime.base.node.preproc.columnrenameregex.ColumnRenameRegexNodeFactory;
-import org.knime.base.node.preproc.columnrenameregex.ColumnNameReplacerNodeModel;
-import org.knime.base.node.preproc.columnrenameregex.ColumnNameReplacerNodeSettings;
 import org.knime.base.node.util.regex.CaseMatching;
 import org.knime.base.node.util.regex.PatternType;
 import org.knime.base.node.util.regex.ReplacementStrategy;
@@ -85,7 +82,6 @@ import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.DefaultNodeProgressMonitor;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.KNIMEException;
 import org.knime.core.node.Node;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
@@ -187,9 +183,10 @@ final class ColumnNameReplacerNodeModelTest {
         m_settings.m_patternType = REGEX;
         m_settings.m_replacement = "$1";
 
-        var thrown = assertThrows(KNIMEException.KNIMERuntimeException.class,
+        var thrown = assertThrows(InvalidSettingsException.class,
             () -> m_model.createColumnRearranger(INPUT_TABLE_SPEC, m_settings));
-        assertTrue(thrown.getMessage().contains("invalid group"), "Expected error message to contain 'invalid group'");
+        assertTrue(thrown.getMessage().contains("Error in replacement string"),
+            "Expected error message to contain 'Error in replacement string'");
     }
 
     record TestCase(String pattern, String replacement, PatternType type, CaseMatching sensitivity,

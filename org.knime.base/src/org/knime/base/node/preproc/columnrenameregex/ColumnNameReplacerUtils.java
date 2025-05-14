@@ -51,7 +51,9 @@ package org.knime.base.node.preproc.columnrenameregex;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.knime.base.node.util.regex.CaseMatching;
 import org.knime.base.node.util.regex.PatternType;
@@ -59,6 +61,7 @@ import org.knime.base.node.util.regex.RegexReplaceUtils;
 import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalReplacementException;
 import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalSearchPatternException;
 import org.knime.base.node.util.regex.ReplacementStrategy;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.util.UniqueNameGenerator;
 
 import com.google.common.collect.Sets;
@@ -177,5 +180,67 @@ public final class ColumnNameReplacerUtils {
         }
 
         return fixed;
+    }
+
+    /**
+     * Use the settings to create a {@link Pattern} that can be used to rename columns.
+     *
+     * @param settings the settings to use
+     * @return a pattern that can be used to rename columns, with flags set according to the settings
+     *
+     * @throws IllegalSearchPatternException if the pattern is invalid
+     */
+    public static Pattern createColumnRenamePattern(final ColumnNameReplacerNodeSettings settings)
+        throws IllegalSearchPatternException {
+        return RegexReplaceUtils.compilePattern( //
+            settings.m_pattern, //
+            settings.m_patternType, //
+            settings.m_caseSensitivity, //
+            settings.m_enableEscapingWildcard, //
+            settings.m_properlySupportUnicodeCharacters //
+        );
+    }
+
+    /**
+     * @param originalNames the original names of the potentially to-be-renamed columns
+     * @param settings the node settings
+     * @param warningMessageConsumer a consumer for warning messages
+     * @return a mapping of renamings from original names to new names
+     * @throws InvalidSettingsException if there is an error in the replacement string
+     */
+    public static Map<String, String> createColumnRenameMappings(final String[] originalNames,
+        final ColumnNameReplacerNodeSettings settings, final Consumer<String> warningMessageConsumer)
+        throws InvalidSettingsException {
+
+        Map<String, String> renameMapping;
+        try {
+            renameMapping = ColumnNameReplacerUtils.columnRenameMappings( //
+                originalNames, //
+                settings.m_pattern, //
+                settings.m_patternType, //
+                settings.m_caseSensitivity, //
+                settings.m_replacementStrategy, //
+                settings.m_enableEscapingWildcard, //
+                settings.m_properlySupportUnicodeCharacters, //
+                settings.m_replacement //
+            );
+        } catch (IllegalSearchPatternException e) {
+            // we should be covered by validateSettings, so this is an implementation error
+            throw new IllegalStateException("Implementation error: " + e.getMessage(), e);
+        } catch (IllegalReplacementException e) {
+            throw new InvalidSettingsException("Error in replacement string: " + e.getCauseMessage(), e);
+        }
+
+        if (renameMapping.isEmpty()) {
+            warningMessageConsumer.accept("Pattern did not match any column names. Input remains unchanged.");
+        } else if (ColumnNameReplacerUtils.renamesHaveCollisions(renameMapping)) {
+            // if there are now duplicate column names, we should warn. But we'll use a unique name generator
+            // so we don't actually have an error.
+            warningMessageConsumer
+                .accept("Pattern replace resulted in duplicate column names. Conflicts were resolved by adding "
+                    + "\"(#index)\" suffix.");
+        }
+
+        return ColumnNameReplacerUtils.fixCollisions(Set.of(originalNames), renameMapping);
     }
 }

@@ -57,7 +57,7 @@ import org.knime.core.webui.node.impl.WebUINodeFactory;
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public class ColumnRenameRegexNodeFactory extends WebUINodeFactory<ColumnNameReplacerNodeModel> {
+public final class ColumnRenameRegexNodeFactory extends WebUINodeFactory<ColumnNameReplacerNodeModel> {
 
     /**
      * Constructor for the node factory.
@@ -74,55 +74,66 @@ public class ColumnRenameRegexNodeFactory extends WebUINodeFactory<ColumnNameRep
         return new ColumnNameReplacerNodeModel(CONFIGURATION);
     }
 
+    /**
+     * @since 5.5
+     */
+    public static final String SHORT_DESCRIPTION =
+        "Renames all columns based on a regular expression search &amp; replace pattern.";
+
+    /**
+     * @since 5.5
+     */
+    public static final String FULL_DESCRIPTION = """
+              <p>
+              Renames all columns based on a search \
+              &amp; replace pattern. The search pattern is a regular expression, \
+              literal, or wildcard expression.
+            </p>
+            <p>
+             In the simplest case, you can search and replace string literals.
+             E.g. if the input columns are called "Foo 1", "Foo 2", "Foo 3",
+             etc and the search string is "Foo", the replacement is "Bar", the
+             output would be "Bar 1", "Bar 2", "Bar 3".
+            </p>
+            <p>
+              More complicated cases contain <a href=\
+              "http://download.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html#cg">
+              capturing groups</a>, i.e. expressions in parentheses that, if
+              matched in a column name, are saved. The groups can be referenced
+              in the replacement string using <tt>$g</tt>, whereby <tt>g</tt>
+              is a number 0-9. These placeholders will be replaced by the
+              original occurrence in the input column name.
+              For instance, to rename the columns that are produced by the
+              Data Generator node (they follow a scheme
+              <tt>Universe_&lt;number1&gt;_&lt;number2&gt;</tt>) to
+              <tt>&lt;number2&gt; (Uni &lt;number1&gt;)</tt>, you would use as
+              search string: "Universe_(\\d+)_(\\d+)" and as replacement:
+              "$2 (Uni $1)".
+            </p>
+            <p>
+              The special sequence <tt>$i</tt> represents the current column
+              index (unless escaped by '\\' (backslash)). E.g. in order to
+              precede each column name with the column index, use as search
+              string "(^.+$)", capturing the entire column name in a group,
+              and as replacement "$i: $1".
+            </p>
+            <p>
+              Further documentation regarding regular expressions can be found
+              in the Java API documentation, in particular the classes <a href=\
+              "http://download.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html">
+              Pattern</a> and <a href=\
+              "http://download.oracle.com/javase/6/docs/api/java/util/regex/Matcher.html">
+              Matcher</a>.
+            </p>
+            """;
+
     static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
         .name("Column Name Replacer") //
         .icon("column_rename_regex.png") //
-        .shortDescription("Renames all columns based on a regular expression search &amp; replace pattern.") //
-        .fullDescription("""
-                <p>
-                  Renames all columns based on a search \
-                  &amp; replace pattern. The search pattern is a regular expression, \
-                  literal, or wildcard expression.
-                </p>
-                <p>
-                 In the simplest case, you can search and replace string literals.
-                 E.g. if the input columns are called "Foo 1", "Foo 2", "Foo 3",
-                 etc and the search string is "Foo", the replacement is "Bar", the
-                 output would be "Bar 1", "Bar 2", "Bar 3".
-                </p>
-                <p>
-                  More complicated cases contain <a href=\
-                  "http://download.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html#cg">
-                  capturing groups</a>, i.e. expressions in parentheses that, if
-                  matched in a column name, are saved. The groups can be referenced
-                  in the replacement string using <tt>$g</tt>, whereby <tt>g</tt>
-                  is a number 0-9. These placeholders will be replaced by the
-                  original occurrence in the input column name.
-                  For instance, to rename the columns that are produced by the
-                  Data Generator node (they follow a scheme
-                  <tt>Universe_&lt;number1&gt;_&lt;number2&gt;</tt>) to
-                  <tt>&lt;number2&gt; (Uni &lt;number1&gt;)</tt>, you would use as
-                  search string: "Universe_(\\d+)_(\\d+)" and as replacement:
-                  "$2 (Uni $1)".
-                </p>
-                <p>
-                  The special sequence <tt>$i</tt> represents the current column
-                  index (unless escaped by '\\' (backslash)). E.g. in order to
-                  precede each column name with the column index, use as search
-                  string "(^.+$)", capturing the entire column name in a group,
-                  and as replacement "$i: $1".
-                </p>
-                <p>
-                  Further documentation regarding regular expressions can be found
-                  in the Java API documentation, in particular the classes <a href=\
-                  "http://download.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html">
-                  Pattern</a> and <a href=\
-                  "http://download.oracle.com/javase/6/docs/api/java/util/regex/Matcher.html">
-                  Matcher</a>.
-                </p>
-                """) //
+        .shortDescription(SHORT_DESCRIPTION) //
+        .fullDescription(FULL_DESCRIPTION) //
         .modelSettingsClass(ColumnNameReplacerNodeSettings.class) //
-        .keywords("regex", "rename", "column", "Column Rename (Regex)", "Column Rename (Replace)") //
+        .keywords("regex", "replace", "rename", "column", "Column Rename (Regex)", "Column Rename (Replace)") //
         .addInputTable("Input table", "The table with columns to rename.") //
         .addOutputTable("Output table", "The table with renamed columns.") //
         .build();
