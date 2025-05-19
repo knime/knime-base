@@ -79,6 +79,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.Ro
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -106,17 +107,17 @@ final class RankNodeSettings implements DefaultNodeSettings {
     }
 
     enum RankMode {
-            @Label(value = "Standard", description = """
+            @Label(value = "Same rank, then gap (e.g., 1, 1, 3, 4…)", description = """
                     Rows with the same value receive the same rank, and the next distinct value receives a rank \
                     incremented by the count of tied rows (i.e., ranking has gaps).
                     """)
             STANDARD(StandardRankAssigner::new, "Standard"), //
-            @Label(value = "Dense", description = """
+            @Label(value = "Same rank, no gap (e.g., 1, 1, 2, 3…)", description = """
                     Rows with the same value receive the same rank, but the next distinct value receives a rank \
                     incremented by only one (i.e., ranking has no gaps).
                     """)
             DENSE(DenseRankAssigner::new, "Dense"), //
-            @Label(value = "Ordinal", description = """
+            @Label(value = "Unique rank, no gap (e.g., 1, 2, 3, 4…)", description = """
                     Each row receives a unique rank, even if values are tied. This means ranking follows the row \
                     order, ensuring no duplicate ranks.
                     """)
@@ -207,8 +208,8 @@ final class RankNodeSettings implements DefaultNodeSettings {
     @ValueReference(CategoryColumnsRef.class)
     ColumnFilter m_categoryColumns = new ColumnFilter();
 
-    @Widget(title = "Rank mode", description = "Defines how tied values are handled in the ranking:")
-    @ValueSwitchWidget
+    @Widget(title = "If there are ties", description = "Defines how tied values are handled in the ranking:")
+    @RadioButtonsWidget
     @Layout(RankingSection.class)
     @Migration(RankModeSettingsMigration.class)
     RankMode m_rankMode = RankMode.STANDARD;
