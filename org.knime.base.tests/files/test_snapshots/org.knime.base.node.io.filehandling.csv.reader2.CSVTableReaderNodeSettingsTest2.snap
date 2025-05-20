@@ -829,11 +829,11 @@
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/settings/properties/authenticationManagedByPortText",
+        "id" : "#/properties/model/properties/settings/properties/authenticationManagedByPortText",
         "options" : {
-          "format" : "textMessage",
-          "messageProvider" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$BaseSettings$FileSystemManagedByPortMessage"
-        }
+          "format" : "textMessage"
+        },
+        "providedOptions" : [ "message" ]
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/settings/properties/source",
@@ -848,9 +848,9 @@
         "scope" : "#/properties/model/properties/encoding/properties/charset/properties/fileEncoding",
         "options" : {
           "isAdvanced" : true,
-          "choicesProvider" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$EncodingChoicesProvider",
           "format" : "dropDown"
-        }
+        },
+        "providedOptions" : [ "possibleValues" ]
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/encoding/properties/charset/properties/customEncoding",
@@ -876,33 +876,35 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/limitRows/properties/skipFirstLines",
         "options" : {
-          "validations" : [ {
-            "errorMessage" : "The value must be at least 0.",
-            "id" : "min",
-            "parameters" : {
-              "min" : 0.0,
-              "isExclusive" : false
+          "validation" : {
+            "max" : {
+              "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
+              "parameters" : {
+                "max" : 9.007199254740991E15,
+                "isExclusive" : false
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 0.",
+              "parameters" : {
+                "min" : 0.0,
+                "isExclusive" : false
+              }
             }
-          }, {
-            "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
-            "id" : "max",
-            "parameters" : {
-              "max" : 9.007199254740991E15,
-              "isExclusive" : false
-            }
-          } ]
+          }
         }
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/settings/properties/commentLineCharacter",
         "options" : {
-          "validations" : [ {
-            "errorMessage" : "The string must not exceed 1 character.",
-            "id" : "maxLength",
-            "parameters" : {
-              "maxLength" : 1
+          "validation" : {
+            "maxLength" : {
+              "errorMessage" : "The string must not exceed 1 character.",
+              "parameters" : {
+                "maxLength" : 1
+              }
             }
-          } ]
+          }
         }
       }, {
         "type" : "Control",
@@ -914,13 +916,14 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/settings/properties/customRowDelimiter",
         "options" : {
-          "validations" : [ {
-            "errorMessage" : "The value must be a single character, “\\t”, ”\\n”, “\\r”, or “\\r\\n”.",
-            "id" : "pattern",
-            "parameters" : {
-              "pattern" : ".|\\\\(t|r|n)|\\\\r\\\\n"
+          "validation" : {
+            "pattern" : {
+              "errorMessage" : "The value must be a single character, “\\t”, ”\\n”, “\\r”, or “\\r\\n”.",
+              "parameters" : {
+                "pattern" : ".|\\\\(t|r|n)|\\\\r\\\\n"
+              }
             }
-          } ]
+          }
         },
         "rule" : {
           "effect" : "SHOW",
@@ -937,13 +940,14 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/settings/properties/columnDelimiter",
         "options" : {
-          "validations" : [ {
-            "id" : "pattern",
-            "parameters" : {
-              "pattern" : ".+"
-            },
-            "errorMessage" : "The field cannot be empty (it must contain at least one character)."
-          } ]
+          "validation" : {
+            "minLength" : {
+              "errorMessage" : "The field cannot be empty (it must contain at least one character).",
+              "parameters" : {
+                "minLength" : 1
+              }
+            }
+          }
         }
       }, {
         "type" : "Control",
@@ -957,25 +961,27 @@
           "type" : "Control",
           "scope" : "#/properties/model/properties/settings/properties/quoteCharacter",
           "options" : {
-            "validations" : [ {
-              "errorMessage" : "The string must not exceed 1 character.",
-              "id" : "maxLength",
-              "parameters" : {
-                "maxLength" : 1
+            "validation" : {
+              "maxLength" : {
+                "errorMessage" : "The string must not exceed 1 character.",
+                "parameters" : {
+                  "maxLength" : 1
+                }
               }
-            } ]
+            }
           }
         }, {
           "type" : "Control",
           "scope" : "#/properties/model/properties/settings/properties/quoteEscapeCharacter",
           "options" : {
-            "validations" : [ {
-              "errorMessage" : "The string must not exceed 1 character.",
-              "id" : "maxLength",
-              "parameters" : {
-                "maxLength" : 1
+            "validation" : {
+              "maxLength" : {
+                "errorMessage" : "The string must not exceed 1 character.",
+                "parameters" : {
+                  "maxLength" : 1
+                }
               }
-            } ]
+            }
           }
         } ]
       }, {
@@ -998,22 +1004,23 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection",
         "options" : {
-          "isAdvanced" : true,
-          "validations" : [ {
-            "errorMessage" : "The value must be at least 1.",
-            "id" : "min",
-            "parameters" : {
-              "min" : 1.0,
-              "isExclusive" : false
+          "validation" : {
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "max" : 2.147483647E9,
+                "isExclusive" : false
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 1.",
+              "parameters" : {
+                "min" : 1.0,
+                "isExclusive" : false
+              }
             }
-          }, {
-            "errorMessage" : "The value must not exceed 2147483647.",
-            "id" : "max",
-            "parameters" : {
-              "max" : 2.147483647E9,
-              "isExclusive" : false
-            }
-          } ]
+          },
+          "isAdvanced" : true
         }
       } ]
     }, {
@@ -1029,21 +1036,22 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/limitRows/properties/skipFirstDataRows",
         "options" : {
-          "validations" : [ {
-            "errorMessage" : "The value must be at least 0.",
-            "id" : "min",
-            "parameters" : {
-              "min" : 0.0,
-              "isExclusive" : false
+          "validation" : {
+            "max" : {
+              "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
+              "parameters" : {
+                "max" : 9.007199254740991E15,
+                "isExclusive" : false
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 0.",
+              "parameters" : {
+                "min" : 0.0,
+                "isExclusive" : false
+              }
             }
-          }, {
-            "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
-            "id" : "max",
-            "parameters" : {
-              "max" : 9.007199254740991E15,
-              "isExclusive" : false
-            }
-          } ]
+          }
         }
       }, {
         "type" : "Control",
@@ -1056,21 +1064,22 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/limitRows/properties/maximumNumberOfRows",
         "options" : {
-          "validations" : [ {
-            "errorMessage" : "The value must be at least 0.",
-            "id" : "min",
-            "parameters" : {
-              "min" : 0.0,
-              "isExclusive" : false
+          "validation" : {
+            "max" : {
+              "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
+              "parameters" : {
+                "max" : 9.007199254740991E15,
+                "isExclusive" : false
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 0.",
+              "parameters" : {
+                "min" : 0.0,
+                "isExclusive" : false
+              }
             }
-          }, {
-            "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
-            "id" : "max",
-            "parameters" : {
-              "max" : 9.007199254740991E15,
-              "isExclusive" : false
-            }
-          } ]
+          }
         },
         "rule" : {
           "effect" : "SHOW",
@@ -1101,25 +1110,27 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/advancedSettings/properties/decimalSeparator",
         "options" : {
-          "validations" : [ {
-            "errorMessage" : "The string must be a single character.",
-            "id" : "pattern",
-            "parameters" : {
-              "pattern" : "^.$"
+          "validation" : {
+            "pattern" : {
+              "errorMessage" : "The string must be a single character.",
+              "parameters" : {
+                "pattern" : "^.$"
+              }
             }
-          } ]
+          }
         }
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/advancedSettings/properties/thousandsSeparator",
         "options" : {
-          "validations" : [ {
-            "errorMessage" : "The string must not exceed 1 character.",
-            "id" : "maxLength",
-            "parameters" : {
-              "maxLength" : 1
+          "validation" : {
+            "maxLength" : {
+              "errorMessage" : "The string must not exceed 1 character.",
+              "parameters" : {
+                "maxLength" : 1
+              }
             }
-          } ]
+          }
         }
       }, {
         "type" : "Control",
@@ -1152,22 +1163,23 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/advancedSettings/properties/maxDataRowsScanned",
         "options" : {
-          "hideControlHeader" : true,
-          "validations" : [ {
-            "errorMessage" : "The value must be at least 0.",
-            "id" : "min",
-            "parameters" : {
-              "min" : 0.0,
-              "isExclusive" : false
+          "validation" : {
+            "max" : {
+              "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
+              "parameters" : {
+                "max" : 9.007199254740991E15,
+                "isExclusive" : false
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 0.",
+              "parameters" : {
+                "min" : 0.0,
+                "isExclusive" : false
+              }
             }
-          }, {
-            "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
-            "id" : "max",
-            "parameters" : {
-              "max" : 9.007199254740991E15,
-              "isExclusive" : false
-            }
-          } ]
+          },
+          "hideControlHeader" : true
         },
         "rule" : {
           "effect" : "SHOW",
@@ -1190,21 +1202,22 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/advancedSettings/properties/maximumNumberOfColumns",
         "options" : {
-          "validations" : [ {
-            "errorMessage" : "The value must be at least 0.",
-            "id" : "min",
-            "parameters" : {
-              "min" : 0.0,
-              "isExclusive" : false
+          "validation" : {
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "max" : 2.147483647E9,
+                "isExclusive" : false
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 0.",
+              "parameters" : {
+                "min" : 0.0,
+                "isExclusive" : false
+              }
             }
-          }, {
-            "errorMessage" : "The value must not exceed 2147483647.",
-            "id" : "max",
-            "parameters" : {
-              "max" : 2.147483647E9,
-              "isExclusive" : false
-            }
-          } ]
+          }
         }
       }, {
         "type" : "Control",
@@ -1241,13 +1254,14 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/advancedSettings/properties/filePathColumnName",
         "options" : {
-          "validations" : [ {
-            "errorMessage" : "The string must start and end with a non-whitespace character.",
-            "id" : "pattern",
-            "parameters" : {
-              "pattern" : "\\S(.*\\S)?"
+          "validation" : {
+            "pattern" : {
+              "errorMessage" : "The string must start and end with a non-whitespace character.",
+              "parameters" : {
+                "pattern" : "\\S(.*\\S)?"
+              }
             }
-          } ]
+          }
         },
         "rule" : {
           "effect" : "SHOW",
@@ -1291,14 +1305,15 @@
             "type" : "Control",
             "scope" : "#/properties/columnRename",
             "options" : {
-              "hideControlHeader" : true,
-              "validations" : [ {
-                "errorMessage" : "The string must start and end with a non-whitespace character.",
-                "id" : "pattern",
-                "parameters" : {
-                  "pattern" : "\\S(.*\\S)?"
+              "validation" : {
+                "pattern" : {
+                  "errorMessage" : "The string must start and end with a non-whitespace character.",
+                  "parameters" : {
+                    "pattern" : "\\S(.*\\S)?"
+                  }
                 }
-              } ]
+              },
+              "hideControlHeader" : true
             },
             "rule" : {
               "effect" : "SHOW",
@@ -1324,9 +1339,9 @@
             "scope" : "#/properties/type",
             "options" : {
               "hideControlHeader" : true,
-              "choicesProvider" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders$TypeChoicesProvider",
               "format" : "dropDown"
             },
+            "providedOptions" : [ "possibleValues" ],
             "rule" : {
               "effect" : "SHOW",
               "condition" : {
@@ -1341,10 +1356,9 @@
           "showSortButtons" : true,
           "hasFixedSize" : true,
           "withEditAndReset" : true,
-          "elementCheckboxScope" : "#/properties/includeInOutput",
-          "elementTitleProvider" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettings$TitleProvider",
-          "elementSubTitleProvider" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettings$SubTitleProvider"
+          "elementCheckboxScope" : "#/properties/includeInOutput"
         },
+        "providedOptions" : [ "arrayElementTitle", "elementSubTitle" ],
         "rule" : {
           "effect" : "HIDE",
           "condition" : {
@@ -1507,169 +1521,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/appendPathColumn" ],
-    "id" : null,
-    "values" : [ {
-      "indices" : [ ],
-      "value" : false
-    } ]
-  }, {
-    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/columnDelimiter" ],
-    "id" : null,
-    "values" : [ {
-      "indices" : [ ],
-      "value" : ","
-    } ]
-  }, {
-    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/commentLineCharacter" ],
-    "id" : null,
-    "values" : [ {
-      "indices" : [ ],
-      "value" : "#"
-    } ]
-  }, {
-    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/customEncoding" ],
-    "id" : null,
-    "values" : [ {
-      "indices" : [ ],
-      "value" : ""
-    } ]
-  }, {
-    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/customRowDelimiter" ],
-    "id" : null,
-    "values" : [ {
-      "indices" : [ ],
-      "value" : "\\n"
-    } ]
-  }, {
-    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/decimalSeparator" ],
-    "id" : null,
-    "values" : [ {
-      "indices" : [ ],
-      "value" : "."
-    } ]
-  }, {
-    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/fileEncoding" ],
-    "id" : null,
-    "values" : [ {
-      "indices" : [ ],
-      "value" : "UTF_8"
-    } ]
-  }, {
-    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/firstColumnContainsRowIds" ],
-    "id" : null,
-    "values" : [ {
-      "indices" : [ ],
-      "value" : false
-    } ]
-  }, {
-    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/firstRowContainsColumnNames" ],
-    "id" : null,
-    "values" : [ {
-      "indices" : [ ],
-      "value" : true
-    } ]
-  }, {
-    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/limitMemoryPerColumn" ],
-    "id" : null,
-    "values" : [ {
-      "indices" : [ ],
-      "value" : true
-    } ]
-  }, {
-    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/limitScannedRows" ],
-    "id" : null,
-    "values" : [ {
-      "indices" : [ ],
-      "value" : true
-    } ]
-  }, {
-    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/maxDataRowsScanned" ],
-    "id" : null,
-    "values" : [ {
-      "indices" : [ ],
-      "value" : 10000
-    } ]
-  }, {
-    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/maximumNumberOfColumns" ],
-    "id" : null,
-    "values" : [ {
-      "indices" : [ ],
-      "value" : 8192
-    } ]
-  }, {
-    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/quoteCharacter" ],
-    "id" : null,
-    "values" : [ {
-      "indices" : [ ],
-      "value" : "\""
-    } ]
-  }, {
-    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/quoteEscapeCharacter" ],
-    "id" : null,
-    "values" : [ {
-      "indices" : [ ],
-      "value" : "\""
-    } ]
-  }, {
-    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/quotedStringsOption" ],
-    "id" : null,
-    "values" : [ {
-      "indices" : [ ],
-      "value" : "REMOVE_QUOTES_AND_TRIM"
-    } ]
-  }, {
-    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/replaceEmptyQuotedStringsByMissingValues" ],
-    "id" : null,
-    "values" : [ {
-      "indices" : [ ],
-      "value" : true
-    } ]
-  }, {
-    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/rowDelimiterOption" ],
-    "id" : null,
-    "values" : [ {
-      "indices" : [ ],
-      "value" : "LINE_BREAK"
-    } ]
-  }, {
-    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/skipFirstDataRows" ],
-    "id" : null,
-    "values" : [ {
-      "indices" : [ ],
-      "value" : 0
-    } ]
-  }, {
-    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/skipFirstLines" ],
-    "id" : null,
-    "values" : [ {
-      "indices" : [ ],
-      "value" : 0
-    } ]
-  }, {
-    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/thousandsSeparator" ],
-    "id" : null,
-    "values" : [ {
-      "indices" : [ ],
-      "value" : "\u0000"
-    } ]
-  }, {
-    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/filePathColumnName" ],
-    "id" : null,
-    "values" : [ {
-      "indices" : [ ],
-      "value" : "Path"
-    } ]
-  }, {
-    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/takeColumnsFrom" ],
-    "id" : null,
-    "values" : [ {
-      "indices" : [ ],
-      "value" : "UNION"
-    } ]
-  }, {
-    "scopes" : null,
-    "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$EncodingChoicesProvider",
+    "scope" : "#/properties/model/properties/encoding/properties/charset/properties/fileEncoding",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
@@ -1699,8 +1552,146 @@
       } ]
     } ]
   }, {
-    "scopes" : null,
-    "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$BaseSettings$FileSystemManagedByPortMessage",
+    "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/appendPathColumn",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : false
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/columnDelimiter",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : ","
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/commentLineCharacter",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "#"
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/customEncoding",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : ""
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/customRowDelimiter",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "\\n"
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/decimalSeparator",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "."
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/fileEncoding",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "UTF_8"
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/firstColumnContainsRowIds",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : false
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/firstRowContainsColumnNames",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : true
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/limitMemoryPerColumn",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : true
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/limitScannedRows",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : true
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/maxDataRowsScanned",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : 10000
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/maximumNumberOfColumns",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : 8192
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/quoteCharacter",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "\""
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/quoteEscapeCharacter",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "\""
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/quotedStringsOption",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "REMOVE_QUOTES_AND_TRIM"
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/replaceEmptyQuotedStringsByMissingValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : true
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/rowDelimiterOption",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "LINE_BREAK"
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/skipFirstDataRows",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : 0
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/skipFirstLines",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : 0
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId/properties/thousandsSeparator",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "\u0000"
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/filePathColumnName",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "Path"
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/takeColumnsFrom",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "UNION"
+    } ]
+  }, {
+    "id" : "#/properties/model/properties/settings/properties/authenticationManagedByPortText",
+    "providedOptionName" : "message",
     "values" : [ {
       "indices" : [ ],
       "value" : null
@@ -1710,332 +1701,147 @@
     "trigger" : {
       "id" : "ElementResetButton"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/columnName" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettings$ColumnNameRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/originalType" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettings$OriginalTypeRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation/items/properties/columnName", "#/properties/model/properties/tableSpecConfig/properties/columnTransformation/items/properties/originalType" ]
   }, {
     "trigger" : {
-      "id" : "after-open-dialog",
-      "triggerInitially" : true
+      "id" : "after-open-dialog"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettingsWithMultipleFileHandling$HowToCombineColumnsOptionRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$BaseSettings$FileSelectionRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TableSpecSettingsRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettingsRef"
-    } ]
-  }, {
-    "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef",
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ]
-    },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ],
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$DecimalSeparatorRef"
-    } ]
-  }, {
-    "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$LimitMemoryPerColumnRef",
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/limitMemoryPerColumn" ]
-    },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/limitMemoryPerColumn" ],
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$LimitMemoryPerColumnRef"
-    } ]
-  }, {
-    "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$LimitScannedRowsRef",
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/limitScannedRows" ]
-    },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/limitScannedRows" ],
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$LimitScannedRowsRef"
-    } ]
-  }, {
-    "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaxDataRowsScannedRef",
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maxDataRowsScanned" ]
-    },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maxDataRowsScanned" ],
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaxDataRowsScannedRef"
-    } ]
-  }, {
-    "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaximumNumberOfColumnsRef",
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maximumNumberOfColumns" ]
-    },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/maximumNumberOfColumns" ],
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$MaximumNumberOfColumnsRef"
-    } ]
-  }, {
-    "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$QuotedStringsOptionRef",
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/quotedStringsOption" ]
-    },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/quotedStringsOption" ],
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$QuotedStringsOptionRef"
-    } ]
-  }, {
-    "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$ReplaceEmptyQuotedStringsByMissingValuesRef",
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/replaceEmptyQuotedStringsByMissingValues" ]
-    },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/replaceEmptyQuotedStringsByMissingValues" ],
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$ReplaceEmptyQuotedStringsByMissingValuesRef"
-    } ]
-  }, {
-    "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$ThousandsSeparatorRef",
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/thousandsSeparator" ]
-    },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/thousandsSeparator" ],
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$AdvancedSettings$ThousandsSeparatorRef"
-    } ]
-  }, {
-    "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$CustomEncodingRef",
-      "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/customEncoding" ]
-    },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/customEncoding" ],
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$CustomEncodingRef"
-    } ]
-  }, {
-    "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$FileEncodingRef",
-      "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/fileEncoding" ]
-    },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/encoding/properties/charset/properties/fileEncoding" ],
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$Charset$FileEncodingRef"
-    } ]
-  }, {
-    "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef",
-      "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ]
-    },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ],
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstDataRowsRef"
-    } ]
-  }, {
-    "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef",
-      "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ]
-    },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
-    } ]
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns", "#/properties/model/properties/settings/properties/source", "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId", "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ]
   }, {
     "trigger" : {
       "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$AutoDetectButtonRef"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/encoding/properties/charset" ],
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Encoding$CharsetRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ],
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$LimitRows$SkipFirstLinesRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection" ],
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$BufferSizeRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$BaseSettings$FileSelectionRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/encoding/properties/charset", "#/properties/model/properties/limitRows/properties/skipFirstLines", "#/properties/model/properties/settings/properties/commentLineCharacter", "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection", "#/properties/model/properties/settings/properties/source" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef",
-      "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ]
+      "scope" : "#/properties/model/properties/advancedSettings/properties/appendPathColumn"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ],
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$ColumnDelimiterRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/advancedSettings/properties/appendPathColumn" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef",
-      "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ]
+      "scope" : "#/properties/model/properties/advancedSettings/properties/decimalSeparator"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ],
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CommentStartRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/advancedSettings/properties/decimalSeparator" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef",
-      "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ]
+      "scope" : "#/properties/model/properties/advancedSettings/properties/filePathColumnName"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ],
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$CustomRowDelimiterRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/advancedSettings/properties/filePathColumnName" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstRowContainsColumnNamesRef",
-      "scopes" : [ "#/properties/model/properties/settings/properties/firstRowContainsColumnNames" ]
+      "scope" : "#/properties/model/properties/advancedSettings/properties/howToCombineColumns"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/settings/properties/firstRowContainsColumnNames" ],
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$FirstRowContainsColumnNamesRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns", "#/properties/model/properties/settings/properties/source", "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId", "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$QuoteCharacterRef",
-      "scopes" : [ "#/properties/model/properties/settings/properties/quoteCharacter" ]
+      "scope" : "#/properties/model/properties/advancedSettings/properties/limitMemoryPerColumn"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/settings/properties/quoteCharacter" ],
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$QuoteCharacterRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/advancedSettings/properties/limitMemoryPerColumn" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$QuoteEscapeCharacterRef",
-      "scopes" : [ "#/properties/model/properties/settings/properties/quoteEscapeCharacter" ]
+      "scope" : "#/properties/model/properties/advancedSettings/properties/limitScannedRows"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/settings/properties/quoteEscapeCharacter" ],
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$QuoteEscapeCharacterRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/advancedSettings/properties/limitScannedRows" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$RowDelimiterOptionRef",
-      "scopes" : [ "#/properties/model/properties/settings/properties/rowDelimiterOption" ]
+      "scope" : "#/properties/model/properties/advancedSettings/properties/maxDataRowsScanned"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/settings/properties/rowDelimiterOption" ],
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings$Settings$RowDelimiterOptionRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/advancedSettings/properties/maxDataRowsScanned" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettingsWithMultipleFileHandling$AppendPathColumnRef",
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/appendPathColumn" ]
+      "scope" : "#/properties/model/properties/advancedSettings/properties/maximumNumberOfColumns"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/appendPathColumn" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettingsWithMultipleFileHandling$AppendPathColumnRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/advancedSettings/properties/maximumNumberOfColumns" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettingsWithMultipleFileHandling$FilePathColumnNameRef",
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/filePathColumnName" ]
+      "scope" : "#/properties/model/properties/advancedSettings/properties/quotedStringsOption"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/filePathColumnName" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettingsWithMultipleFileHandling$FilePathColumnNameRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/advancedSettings/properties/quotedStringsOption" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettingsWithMultipleFileHandling$HowToCombineColumnsOptionRef",
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ]
+      "scope" : "#/properties/model/properties/advancedSettings/properties/replaceEmptyQuotedStringsByMissingValues"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettingsWithMultipleFileHandling$HowToCombineColumnsOptionRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$BaseSettings$FileSelectionRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TableSpecSettingsRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettingsRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/advancedSettings/properties/replaceEmptyQuotedStringsByMissingValues" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$BaseSettings$FileSelectionRef",
-      "scopes" : [ "#/properties/model/properties/settings/properties/source" ]
+      "scope" : "#/properties/model/properties/advancedSettings/properties/thousandsSeparator"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettingsWithMultipleFileHandling$HowToCombineColumnsOptionRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$BaseSettings$FileSelectionRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TableSpecSettingsRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettingsRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/advancedSettings/properties/thousandsSeparator" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$SettingsWithRowId$FirstColumnContainsRowIdsRef",
-      "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ]
+      "scope" : "#/properties/model/properties/encoding/properties/charset/properties/customEncoding"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$SettingsWithRowId$FirstColumnContainsRowIdsRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/encoding/properties/charset/properties/customEncoding" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef",
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ]
+      "scope" : "#/properties/model/properties/encoding/properties/charset/properties/fileEncoding"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettingsWithMultipleFileHandling$HowToCombineColumnsOptionRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$BaseSettings$FileSelectionRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TableSpecSettingsRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettingsRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/encoding/properties/charset/properties/fileEncoding" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TableSpecSettingsRef",
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ]
+      "scope" : "#/properties/model/properties/limitRows/properties/skipFirstDataRows"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$BaseSettings$FileSelectionRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/columnName" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettings$ColumnNameRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/originalTypeLabel" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettings$OriginalTypeLabelRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/limitRows/properties/skipFirstDataRows" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/limitRows/properties/skipFirstLines"
+    },
+    "dependencies" : [ "#/properties/model/properties/limitRows/properties/skipFirstLines" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/settings/properties/columnDelimiter"
+    },
+    "dependencies" : [ "#/properties/model/properties/settings/properties/columnDelimiter" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/settings/properties/commentLineCharacter"
+    },
+    "dependencies" : [ "#/properties/model/properties/settings/properties/commentLineCharacter" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/settings/properties/customRowDelimiter"
+    },
+    "dependencies" : [ "#/properties/model/properties/settings/properties/customRowDelimiter" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/settings/properties/firstColumnContainsRowIds"
+    },
+    "dependencies" : [ "#/properties/model/properties/settings/properties/firstColumnContainsRowIds" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/settings/properties/firstRowContainsColumnNames"
+    },
+    "dependencies" : [ "#/properties/model/properties/settings/properties/firstRowContainsColumnNames" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/settings/properties/quoteCharacter"
+    },
+    "dependencies" : [ "#/properties/model/properties/settings/properties/quoteCharacter" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/settings/properties/quoteEscapeCharacter"
+    },
+    "dependencies" : [ "#/properties/model/properties/settings/properties/quoteEscapeCharacter" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/settings/properties/rowDelimiterOption"
+    },
+    "dependencies" : [ "#/properties/model/properties/settings/properties/rowDelimiterOption" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/settings/properties/source"
+    },
+    "dependencies" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns", "#/properties/model/properties/settings/properties/source", "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId", "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId"
+    },
+    "dependencies" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns", "#/properties/model/properties/settings/properties/source", "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId", "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs"
+    },
+    "dependencies" : [ "#/properties/model/properties/settings/properties/source", "#/properties/model/properties/tableSpecConfig/properties/columnTransformation/items/properties/columnName", "#/properties/model/properties/tableSpecConfig/properties/columnTransformation/items/properties/originalTypeLabel", "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ]
   } ]
 }

@@ -127,9 +127,9 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/newRowKeyColumnV2",
         "options" : {
-          "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
           "format" : "dropDown"
         },
+        "providedOptions" : [ "possibleValues" ],
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
@@ -254,13 +254,14 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/appendedColumnName",
         "options" : {
-          "validations" : [ {
-            "id" : "pattern",
-            "parameters" : {
-              "pattern" : "\\S(.*\\S)?"
-            },
-            "errorMessage" : "The string must start and end with a non-whitespace character."
-          } ]
+          "validation" : {
+            "pattern" : {
+              "errorMessage" : "The string must start and end with a non-whitespace character.",
+              "parameters" : {
+                "pattern" : "\\S(.*\\S)?"
+              }
+            }
+          }
         },
         "rule" : {
           "effect" : "SHOW",
@@ -321,8 +322,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
+    "scope" : "#/properties/model/properties/newRowKeyColumnV2",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {

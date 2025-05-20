@@ -194,9 +194,9 @@
         "options" : {
           "format" : "typedStringFilter",
           "unknownValuesText" : "Any unknown column",
-          "emptyStateLabel" : "No columns in this list.",
-          "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider$StringColumnsProvider"
-        }
+          "emptyStateLabel" : "No columns in this list."
+        },
+        "providedOptions" : [ "possibleValues" ]
       } ]
     }, {
       "label" : "Parsing options",
@@ -205,25 +205,27 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/decimalSep",
         "options" : {
-          "validations" : [ {
-            "id" : "maxLength",
-            "parameters" : {
-              "maxLength" : 1
-            },
-            "errorMessage" : "The string must not exceed 1 character."
-          } ]
+          "validation" : {
+            "maxLength" : {
+              "errorMessage" : "The string must not exceed 1 character.",
+              "parameters" : {
+                "maxLength" : 1
+              }
+            }
+          }
         }
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/thousandsSep",
         "options" : {
-          "validations" : [ {
-            "id" : "maxLength",
-            "parameters" : {
-              "maxLength" : 1
-            },
-            "errorMessage" : "The string must not exceed 1 character."
-          } ]
+          "validation" : {
+            "maxLength" : {
+              "errorMessage" : "The string must not exceed 1 character.",
+              "parameters" : {
+                "maxLength" : 1
+              }
+            }
+          }
         }
       }, {
         "type" : "Control",
@@ -272,8 +274,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider$StringColumnsProvider",
+    "scope" : "#/properties/model/properties/inclCols",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {

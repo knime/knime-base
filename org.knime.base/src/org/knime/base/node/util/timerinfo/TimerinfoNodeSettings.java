@@ -117,7 +117,7 @@ public class TimerinfoNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Max Depth", description = """
             Controls depth of reporting of nodes in (nested) metanodes and components.
             """)
-    @NumberInputWidget(validation = IsNonNegativeValidation.class)
+    @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
     @Effect(predicate = MaxDepthDisabledPolicy.class, type = EffectType.DISABLE)
     @Persist(configKey = "MaxDepth")
     int m_maxDepth = 2;

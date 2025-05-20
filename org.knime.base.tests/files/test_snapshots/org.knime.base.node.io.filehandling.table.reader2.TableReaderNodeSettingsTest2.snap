@@ -368,11 +368,11 @@
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/settings/properties/authenticationManagedByPortText",
+        "id" : "#/properties/model/properties/settings/properties/authenticationManagedByPortText",
         "options" : {
-          "format" : "textMessage",
-          "messageProvider" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$BaseSettings$FileSystemManagedByPortMessage"
-        }
+          "format" : "textMessage"
+        },
+        "providedOptions" : [ "message" ]
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/settings/properties/source",
@@ -390,21 +390,22 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/advancedSettings/properties/skipFirstDataRows",
         "options" : {
-          "validations" : [ {
-            "id" : "min",
-            "parameters" : {
-              "min" : 0.0,
-              "isExclusive" : false
+          "validation" : {
+            "max" : {
+              "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
+              "parameters" : {
+                "max" : 9.007199254740991E15,
+                "isExclusive" : false
+              }
             },
-            "errorMessage" : "The value must be at least 0."
-          }, {
-            "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
-            "id" : "max",
-            "parameters" : {
-              "max" : 9.007199254740991E15,
-              "isExclusive" : false
+            "min" : {
+              "errorMessage" : "The value must be at least 0.",
+              "parameters" : {
+                "min" : 0.0,
+                "isExclusive" : false
+              }
             }
-          } ]
+          }
         }
       }, {
         "type" : "Control",
@@ -417,21 +418,22 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/advancedSettings/properties/maximumNumberOfRows",
         "options" : {
-          "validations" : [ {
-            "id" : "min",
-            "parameters" : {
-              "min" : 0.0,
-              "isExclusive" : false
+          "validation" : {
+            "max" : {
+              "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
+              "parameters" : {
+                "max" : 9.007199254740991E15,
+                "isExclusive" : false
+              }
             },
-            "errorMessage" : "The value must be at least 0."
-          }, {
-            "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
-            "id" : "max",
-            "parameters" : {
-              "max" : 9.007199254740991E15,
-              "isExclusive" : false
+            "min" : {
+              "errorMessage" : "The value must be at least 0.",
+              "parameters" : {
+                "min" : 0.0,
+                "isExclusive" : false
+              }
             }
-          } ]
+          }
         },
         "rule" : {
           "effect" : "SHOW",
@@ -492,13 +494,14 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/advancedSettings/properties/filePathColumnName",
         "options" : {
-          "validations" : [ {
-            "id" : "pattern",
-            "parameters" : {
-              "pattern" : "\\S(.*\\S)?"
-            },
-            "errorMessage" : "The string must start and end with a non-whitespace character."
-          } ]
+          "validation" : {
+            "pattern" : {
+              "errorMessage" : "The string must start and end with a non-whitespace character.",
+              "parameters" : {
+                "pattern" : "\\S(.*\\S)?"
+              }
+            }
+          }
         },
         "rule" : {
           "effect" : "SHOW",
@@ -542,14 +545,15 @@
             "type" : "Control",
             "scope" : "#/properties/columnRename",
             "options" : {
-              "hideControlHeader" : true,
-              "validations" : [ {
-                "id" : "pattern",
-                "parameters" : {
-                  "pattern" : "\\S(.*\\S)?"
-                },
-                "errorMessage" : "The string must start and end with a non-whitespace character."
-              } ]
+              "validation" : {
+                "pattern" : {
+                  "errorMessage" : "The string must start and end with a non-whitespace character.",
+                  "parameters" : {
+                    "pattern" : "\\S(.*\\S)?"
+                  }
+                }
+              },
+              "hideControlHeader" : true
             },
             "rule" : {
               "effect" : "SHOW",
@@ -575,9 +579,9 @@
             "scope" : "#/properties/type",
             "options" : {
               "hideControlHeader" : true,
-              "choicesProvider" : "org.knime.base.node.io.filehandling.table.reader2.TableReaderTransformationSettingsStateProviders$TypeChoicesProvider",
               "format" : "dropDown"
             },
+            "providedOptions" : [ "possibleValues" ],
             "rule" : {
               "effect" : "SHOW",
               "condition" : {
@@ -592,10 +596,9 @@
           "showSortButtons" : true,
           "hasFixedSize" : true,
           "withEditAndReset" : true,
-          "elementCheckboxScope" : "#/properties/includeInOutput",
-          "elementTitleProvider" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettings$TitleProvider",
-          "elementSubTitleProvider" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettings$SubTitleProvider"
+          "elementCheckboxScope" : "#/properties/includeInOutput"
         },
+        "providedOptions" : [ "arrayElementTitle", "elementSubTitle" ],
         "rule" : {
           "effect" : "HIDE",
           "condition" : {
@@ -676,29 +679,26 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/appendPathColumn" ],
-    "id" : null,
+    "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/appendPathColumn",
     "values" : [ {
       "indices" : [ ],
       "value" : false
     } ]
   }, {
-    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/filePathColumnName" ],
-    "id" : null,
+    "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/filePathColumnName",
     "values" : [ {
       "indices" : [ ],
       "value" : "Path"
     } ]
   }, {
-    "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/takeColumnsFrom" ],
-    "id" : null,
+    "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/takeColumnsFrom",
     "values" : [ {
       "indices" : [ ],
       "value" : "UNION"
     } ]
   }, {
-    "scopes" : null,
-    "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$BaseSettings$FileSystemManagedByPortMessage",
+    "id" : "#/properties/model/properties/settings/properties/authenticationManagedByPortText",
+    "providedOptionName" : "message",
     "values" : [ {
       "indices" : [ ],
       "value" : null
@@ -708,132 +708,42 @@
     "trigger" : {
       "id" : "ElementResetButton"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/columnName" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettings$ColumnNameRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/originalType" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettings$OriginalTypeRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation/items/properties/columnName", "#/properties/model/properties/tableSpecConfig/properties/columnTransformation/items/properties/originalType" ]
   }, {
     "trigger" : {
-      "id" : "after-open-dialog",
-      "triggerInitially" : true
+      "id" : "after-open-dialog"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettingsWithMultipleFileHandling$HowToCombineColumnsOptionRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$BaseSettings$FileSelectionRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TableSpecSettingsRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettingsRef"
-    } ]
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns", "#/properties/model/properties/settings/properties/source", "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId", "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettingsWithMultipleFileHandling$AppendPathColumnRef",
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/appendPathColumn" ]
+      "scope" : "#/properties/model/properties/advancedSettings/properties/appendPathColumn"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/appendPathColumn" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettingsWithMultipleFileHandling$AppendPathColumnRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/advancedSettings/properties/appendPathColumn" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettingsWithMultipleFileHandling$FilePathColumnNameRef",
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/filePathColumnName" ]
+      "scope" : "#/properties/model/properties/advancedSettings/properties/filePathColumnName"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/filePathColumnName" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettingsWithMultipleFileHandling$FilePathColumnNameRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/advancedSettings/properties/filePathColumnName" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettingsWithMultipleFileHandling$HowToCombineColumnsOptionRef",
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ]
+      "scope" : "#/properties/model/properties/advancedSettings/properties/howToCombineColumns"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettingsWithMultipleFileHandling$HowToCombineColumnsOptionRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$BaseSettings$FileSelectionRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TableSpecSettingsRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettingsRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns", "#/properties/model/properties/settings/properties/source", "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId", "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$BaseSettings$FileSelectionRef",
-      "scopes" : [ "#/properties/model/properties/settings/properties/source" ]
+      "scope" : "#/properties/model/properties/settings/properties/source"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettingsWithMultipleFileHandling$HowToCombineColumnsOptionRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$BaseSettings$FileSelectionRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TableSpecSettingsRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettingsRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns", "#/properties/model/properties/settings/properties/source", "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId", "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef",
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ]
+      "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$AdvancedSettingsWithMultipleFileHandling$HowToCombineColumnsOptionRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$BaseSettings$FileSelectionRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TableSpecSettingsRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettingsRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/advancedSettings/properties/howToCombineColumns", "#/properties/model/properties/settings/properties/source", "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId", "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TableSpecSettingsRef",
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs" ]
+      "scope" : "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/specs"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/settings/properties/source" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$BaseSettings$FileSelectionRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$ConfigIdRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/columnName" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettings$ColumnNameRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/tableSpecConfig/properties/columnTransformation", "#/properties/originalTypeLabel" ],
-      "id" : "org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings$TransformationElementSettings$OriginalTypeLabelRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/settings/properties/source", "#/properties/model/properties/tableSpecConfig/properties/columnTransformation/items/properties/columnName", "#/properties/model/properties/tableSpecConfig/properties/columnTransformation/items/properties/originalTypeLabel", "#/properties/model/properties/tableSpecConfig/properties/persistorSettings/properties/configId" ]
   } ]
 }

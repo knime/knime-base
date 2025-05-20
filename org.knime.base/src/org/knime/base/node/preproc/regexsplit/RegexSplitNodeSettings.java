@@ -147,7 +147,7 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
             If you want to use non-capturing groups, construct them with
             <tt>(?:pattern)</tt>
             """)
-    @TextInputWidget(validation = IsNotEmptyValidation.class)
+    @TextInputWidget(minLengthValidation = IsNotEmptyValidation.class)
     @Persistor(PatternPersistor.class)
     String m_pattern = "(.*)";
 

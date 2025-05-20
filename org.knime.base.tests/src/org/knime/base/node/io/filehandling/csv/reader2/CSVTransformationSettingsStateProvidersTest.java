@@ -65,33 +65,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.DecimalSeparatorRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.LimitMemoryPerColumnRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.LimitScannedRowsRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.MaxDataRowsScannedRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.MaximumNumberOfColumnsRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.QuotedStringsOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.QuotedStringsOptionRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.ReplaceEmptyQuotedStringsByMissingValuesRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.ThousandsSeparatorRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.CustomEncodingRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.LimitRows.SkipFirstDataRowsRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.LimitRows.SkipFirstLinesRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.ColumnDelimiterRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.CommentStartRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.CustomRowDelimiterRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FirstRowContainsColumnNamesRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.QuoteCharacterRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.QuoteEscapeCharacterRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOptionRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.ConfigIdSettings;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TypeChoicesProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.SettingsWithRowId;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.SettingsWithRowId.FirstColumnContainsRowIdsRef;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviderTestUtils.CommonReaderTransformationSettingsUpdatesTestClassBased;
 import org.knime.core.data.DataType;
@@ -100,7 +80,6 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.testing.node.dialog.updates.DialogUpdateSimulator;
 import org.knime.testing.node.dialog.updates.UpdateSimulator;
@@ -114,91 +93,112 @@ import org.knime.testing.node.dialog.updates.UpdateSimulator.UpdateSimulatorResu
 final class CSVTransformationSettingsStateProvidersTest {
 
     record ConfigIdFieldSpec<T>(String fieldName, BiConsumer<ConfigIdSettings, T> setter,
-        Function<CSVTableReaderNodeSettings, T> dependency, Class<? extends Reference<T>> referenceClass) {
+        Function<CSVTableReaderNodeSettings, T> dependency, List<String> pathToSettings) {
     }
 
     @SuppressWarnings("rawtypes")
-    private static final List<ConfigIdFieldSpec> depedencies = List.of(
+    private static final List<ConfigIdFieldSpec> depedencies = List.of(//
         new ConfigIdFieldSpec<>("firstRowContainsColumnNames", //
             (c, v) -> c.m_firstRowContainsColumnNames = v, //
             s -> s.m_settings.m_firstRowContainsColumnNames, //
-            FirstRowContainsColumnNamesRef.class), //
+            List.of("settings", "firstRowContainsColumnNames") //
+        ), //
         new ConfigIdFieldSpec<>("firstColumnContainsRowIds", //
             (c, v) -> c.m_firstColumnContainsRowIds = v, //
             s -> s.m_settings.m_firstColumnContainsRowIds, //
-            FirstColumnContainsRowIdsRef.class), //
+            List.of("settings", "firstColumnContainsRowIds") //
+        ), //
         new ConfigIdFieldSpec<>("commentLineCharacter", //
             (c, v) -> c.m_commentLineCharacter = v, //
             s -> s.m_settings.m_commentLineCharacter, //
-            CommentStartRef.class), //
+            List.of("settings", "commentLineCharacter")//
+        ), //
         new ConfigIdFieldSpec<>("columnDelimiter", //
             (c, v) -> c.m_columnDelimiter = v, //
             s -> s.m_settings.m_columnDelimiter, //
-            ColumnDelimiterRef.class), //
+            List.of("settings", "columnDelimiter") //
+        ), //
         new ConfigIdFieldSpec<>("quoteCharacter", //
             (c, v) -> c.m_quoteCharacter = v, //
             s -> s.m_settings.m_quoteCharacter, //
-            QuoteCharacterRef.class), //
+            List.of("settings", "quoteCharacter") //
+        ), //
         new ConfigIdFieldSpec<>("quoteEscapeCharacter", //
             (c, v) -> c.m_quoteEscapeCharacter = v, //
             s -> s.m_settings.m_quoteEscapeCharacter, //
-            QuoteEscapeCharacterRef.class), //
+            List.of("settings", "quoteEscapeCharacter") //
+        ), //
         new ConfigIdFieldSpec<>("rowDelimiterOption", //
             (c, v) -> c.m_rowDelimiterOption = v, //
             s -> s.m_settings.m_rowDelimiterOption, //
-            RowDelimiterOptionRef.class), //
+            List.of("settings", "rowDelimiterOption") //
+        ), //
         new ConfigIdFieldSpec<>("customRowDelimiter", //
             (c, v) -> c.m_customRowDelimiter = v, //
             s -> s.m_settings.m_customRowDelimiter, //
-            CustomRowDelimiterRef.class), //
+            List.of("settings", "customRowDelimiter") //
+        ), //
         new ConfigIdFieldSpec<>("quotedStringsOption", //
             (c, v) -> c.m_quotedStringsOption = v, //
             s -> s.m_advancedSettings.m_quotedStringsOption, //
-            QuotedStringsOptionRef.class), //
+            List.of("advancedSettings", "quotedStringsOption") //
+        ), //
         new ConfigIdFieldSpec<>("replaceEmptyQuotedStringsByMissingValues", //
             (c, v) -> c.m_replaceEmptyQuotedStringsByMissingValues = v, //
             s -> s.m_advancedSettings.m_replaceEmptyQuotedStringsByMissingValues, //
-            ReplaceEmptyQuotedStringsByMissingValuesRef.class), //
+            List.of("advancedSettings", "replaceEmptyQuotedStringsByMissingValues") //
+        ), //
         new ConfigIdFieldSpec<>("limitScannedRows", //
             (c, v) -> c.m_limitScannedRows = v, //
             s -> s.m_advancedSettings.m_limitScannedRows, //
-            LimitScannedRowsRef.class), //
+            List.of("advancedSettings", "limitScannedRows") //
+        ), //
         new ConfigIdFieldSpec<>("maxDataRowsScanned", //
             (c, v) -> c.m_maxDataRowsScanned = v, //
             s -> s.m_advancedSettings.m_maxDataRowsScanned, //
-            MaxDataRowsScannedRef.class), //
+            List.of("advancedSettings", "maxDataRowsScanned") //
+        ), //
         new ConfigIdFieldSpec<>("thousandsSeparator", //
             (c, v) -> c.m_thousandsSeparator = v, //
             s -> s.m_advancedSettings.m_thousandsSeparator, //
-            ThousandsSeparatorRef.class), //
+            List.of("advancedSettings", "thousandsSeparator") //
+        ), //
         new ConfigIdFieldSpec<>("decimalSeparator", //
             (c, v) -> c.m_decimalSeparator = v, //
             s -> s.m_advancedSettings.m_decimalSeparator, //
-            DecimalSeparatorRef.class), //
+            List.of("advancedSettings", "decimalSeparator") //
+        ), //
         new ConfigIdFieldSpec<>("fileEncoding", //
             (c, v) -> c.m_fileEncoding = v, //
             s -> s.m_encoding.m_charset.m_fileEncoding, //
-            FileEncodingRef.class), //
+            List.of("encoding", "charset", "fileEncoding") //
+        ), //
         new ConfigIdFieldSpec<>("customEncoding", //
             (c, v) -> c.m_customEncoding = v, //
             s -> s.m_encoding.m_charset.m_customEncoding, //
-            CustomEncodingRef.class), //
+            List.of("encoding", "charset", "customEncoding") //
+        ), //
         new ConfigIdFieldSpec<>("skipFirstLines", //
             (c, v) -> c.m_skipFirstLines = v, //
             s -> s.m_limitRows.m_skipFirstLines, //
-            SkipFirstLinesRef.class), //
+            List.of("limitRows", "skipFirstLines") //
+        ), //
         new ConfigIdFieldSpec<>("skipFirstDataRows", //
             (c, v) -> c.m_skipFirstDataRows = v, //
             s -> s.m_limitRows.m_skipFirstDataRows, //
-            SkipFirstDataRowsRef.class), //
+            List.of("limitRows", "skipFirstDataRows") //
+        ), //
         new ConfigIdFieldSpec<>("limitMemoryPerColumn", //
             (c, v) -> c.m_limitMemoryPerColumn = v, //
             s -> s.m_advancedSettings.m_limitMemoryPerColumn, //
-            LimitMemoryPerColumnRef.class), //
+            List.of("advancedSettings", "limitMemoryPerColumn") //
+        ), //
         new ConfigIdFieldSpec<>("maximumNumberOfColumns", //
             (c, v) -> c.m_maximumNumberOfColumns = v, //
             s -> s.m_advancedSettings.m_maximumNumberOfColumns, //
-            MaximumNumberOfColumnsRef.class) //
+            List.of("advancedSettings", "maximumNumberOfColumns") //
+        ) //
+
     );
 
     @Nested
@@ -243,7 +243,7 @@ final class CSVTransformationSettingsStateProvidersTest {
         @MethodSource
         @SuppressWarnings("static-method")
         void testConfigId(final String fieldName, final Function<CSVTableReaderNodeSettings, Object> dependency,
-            final Class<? extends Reference<?>> referenceClass) {
+            final List<String> referenceClass) {
             final var onValueChangeResult = simulator.simulateValueChange(referenceClass);
             List.of(onValueChangeResult, beforeOpenDialogResults).forEach(result -> {
                 assertThat(result.getValueUpdateAt("tableSpecConfig", "persistorSettings", "configId", fieldName))
@@ -252,7 +252,7 @@ final class CSVTransformationSettingsStateProvidersTest {
         }
 
         static Stream<Arguments> testConfigId() {
-            return depedencies.stream().map(d -> Arguments.of(d.fieldName, d.dependency, d.referenceClass));
+            return depedencies.stream().map(d -> Arguments.of(d.fieldName, d.dependency, d.pathToSettings));
         }
     }
 
@@ -266,7 +266,8 @@ final class CSVTransformationSettingsStateProvidersTest {
         }
 
         @Override
-        protected AdvancedSettingsWithMultipleFileHandling getAdvancedSettings(final CSVTableReaderNodeSettings settings) {
+        protected AdvancedSettingsWithMultipleFileHandling
+            getAdvancedSettings(final CSVTableReaderNodeSettings settings) {
             return settings.m_advancedSettings;
         }
 

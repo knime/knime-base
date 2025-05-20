@@ -201,7 +201,7 @@ final class TopKSelectorNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Number of rows / unique values",
         description = "The number of rows to select from the input table based on the specified mode.")
-    @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
+    @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
     @Layout(FilterSection.class)
     @Migration(KSettingsMigration.class)
     long m_amount = 5;

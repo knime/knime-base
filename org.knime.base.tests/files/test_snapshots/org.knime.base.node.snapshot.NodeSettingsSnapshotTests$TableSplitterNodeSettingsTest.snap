@@ -110,9 +110,9 @@
           "specialChoices" : [ {
             "id" : "ROW_ID",
             "text" : "RowID"
-          } ],
-          "choicesProvider" : "org.knime.base.node.preproc.table.splitter.TableSplitterNodeSettings$ColumnChoices"
-        }
+          } ]
+        },
+        "providedOptions" : [ "possibleValues" ]
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/matchingCriteria"
@@ -186,8 +186,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.base.node.preproc.table.splitter.TableSplitterNodeSettings$ColumnChoices",
+    "scope" : "#/properties/model/properties/lookupColumn",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {

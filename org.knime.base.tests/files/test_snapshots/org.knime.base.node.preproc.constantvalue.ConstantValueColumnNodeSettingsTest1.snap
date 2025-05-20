@@ -99,14 +99,15 @@
           "type" : "Control",
           "scope" : "#/properties/columnNameToAppend",
           "options" : {
-            "placeholder" : "New column name",
-            "validations" : [ {
-              "id" : "pattern",
-              "parameters" : {
-                "pattern" : "\\S(.*\\S)?"
-              },
-              "errorMessage" : "The string must start and end with a non-whitespace character."
-            } ]
+            "validation" : {
+              "pattern" : {
+                "errorMessage" : "The string must start and end with a non-whitespace character.",
+                "parameters" : {
+                  "pattern" : "\\S(.*\\S)?"
+                }
+              }
+            },
+            "placeholder" : "New column name"
           },
           "rule" : {
             "effect" : "HIDE",
@@ -123,9 +124,9 @@
           "type" : "Control",
           "scope" : "#/properties/columnNameToReplace",
           "options" : {
-            "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
             "format" : "dropDown"
           },
+          "providedOptions" : [ "possibleValues" ],
           "rule" : {
             "effect" : "SHOW",
             "condition" : {
@@ -141,9 +142,9 @@
           "type" : "Control",
           "scope" : "#/properties/type",
           "options" : {
-            "format" : "dropDown",
-            "choicesProvider" : "org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings$SupportedDataTypeChoicesProvider"
-          }
+            "format" : "dropDown"
+          },
+          "providedOptions" : [ "possibleValues", "possibleValues" ]
         }, {
           "type" : "Control",
           "scope" : "#/properties/customOrMissingValue",
@@ -166,9 +167,9 @@
           }
         } ],
         "addButtonText" : "Add column",
-        "arrayElementTitle" : "Constant column",
-        "elementDefaultValueProvider" : "org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings$NewColumnSettings$InitialNewColumnSettingsValueProvider"
-      }
+        "arrayElementTitle" : "Constant column"
+      },
+      "providedOptions" : [ "elementDefaultValue" ]
     } ]
   },
   "persist" : {
@@ -198,52 +199,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings$SupportedDataTypeChoicesProvider",
-    "values" : [ {
-      "indices" : [ ],
-      "value" : [ {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Boolean"
-      }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Number (Floating Decimal)"
-      }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.IntCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Number (Integer)"
-      }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.LongCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Number (Long Integer)"
-      }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "String"
-      } ]
-    } ]
-  }, {
-    "scopes" : null,
-    "id" : "org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DefaultDataTypeChoicesProvider",
-    "values" : [ {
-      "indices" : [ ],
-      "value" : [ {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Boolean"
-      }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Number (Floating Decimal)"
-      }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.IntCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Number (Integer)"
-      }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.LongCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Number (Long Integer)"
-      }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "String"
-      } ]
-    } ]
-  }, {
-    "scopes" : null,
-    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
+    "scope" : "#/properties/model/properties/newColumnSettings/items/properties/columnNameToReplace",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
@@ -255,24 +212,39 @@
         }
       } ]
     } ]
+  }, {
+    "scope" : "#/properties/model/properties/newColumnSettings/items/properties/type",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Boolean"
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Number (Floating Decimal)"
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.IntCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Number (Integer)"
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.LongCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Number (Long Integer)"
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "String"
+      } ]
+    } ]
   } ],
   "globalUpdates" : [ {
     "trigger" : {
-      "id" : "after-open-dialog",
-      "triggerInitially" : true
+      "id" : "after-open-dialog"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/newColumnSettings" ],
-      "id" : "org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings$NewColumnSettingsArrayRef"
-    } ]
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/newColumnSettings" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings$NewColumnSettingsArrayRef",
-      "scopes" : [ "#/properties/model/properties/newColumnSettings" ]
+      "scope" : "#/properties/model/properties/newColumnSettings"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/newColumnSettings" ],
-      "id" : "org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings$NewColumnSettingsArrayRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/newColumnSettings" ]
   } ]
 }

@@ -210,9 +210,9 @@
         "options" : {
           "format" : "typedStringFilter",
           "unknownValuesText" : "Any unknown column",
-          "emptyStateLabel" : "No columns in this list.",
-          "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider"
-        }
+          "emptyStateLabel" : "No columns in this list."
+        },
+        "providedOptions" : [ "possibleValues" ]
       } ]
     }, {
       "label" : "Missing Values",
@@ -258,21 +258,22 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/defaultValueInteger",
         "options" : {
-          "validations" : [ {
-            "errorMessage" : "The value must be at least -2147483648.",
-            "id" : "min",
-            "parameters" : {
-              "min" : -2.147483648E9,
-              "isExclusive" : false
+          "validation" : {
+            "min" : {
+              "errorMessage" : "The value must be at least -2147483648.",
+              "parameters" : {
+                "min" : -2.147483648E9,
+                "isExclusive" : false
+              }
+            },
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "max" : 2.147483647E9,
+                "isExclusive" : false
+              }
             }
-          }, {
-            "errorMessage" : "The value must not exceed 2147483647.",
-            "id" : "max",
-            "parameters" : {
-              "max" : 2.147483647E9,
-              "isExclusive" : false
-            }
-          } ]
+          }
         },
         "rule" : {
           "effect" : "SHOW",
@@ -289,21 +290,22 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/defaultValueLong",
         "options" : {
-          "validations" : [ {
-            "errorMessage" : "Value too small to process without risking precision loss (< -9007199254740991).",
-            "id" : "min",
-            "parameters" : {
-              "min" : -9.007199254740991E15,
-              "isExclusive" : false
+          "validation" : {
+            "min" : {
+              "errorMessage" : "Value too small to process without risking precision loss (< -9007199254740991).",
+              "parameters" : {
+                "min" : -9.007199254740991E15,
+                "isExclusive" : false
+              }
+            },
+            "max" : {
+              "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
+              "parameters" : {
+                "max" : 9.007199254740991E15,
+                "isExclusive" : false
+              }
             }
-          }, {
-            "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
-            "id" : "max",
-            "parameters" : {
-              "max" : 9.007199254740991E15,
-              "isExclusive" : false
-            }
-          } ]
+          }
         },
         "rule" : {
           "effect" : "SHOW",
@@ -365,8 +367,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
+    "scope" : "#/properties/model/properties/valueColumns",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {

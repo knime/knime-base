@@ -147,9 +147,9 @@
       "options" : {
         "format" : "typedStringFilter",
         "unknownValuesText" : "Any unknown variable",
-        "emptyStateLabel" : "No variables in this list.",
-        "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.AllFlowScopedFlowVariablesProvider"
-      }
+        "emptyStateLabel" : "No variables in this list."
+      },
+      "providedOptions" : [ "possibleValues" ]
     } ]
   },
   "persist" : {
@@ -198,8 +198,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.AllFlowScopedFlowVariablesProvider",
+    "scope" : "#/properties/model/properties/filter",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ ]

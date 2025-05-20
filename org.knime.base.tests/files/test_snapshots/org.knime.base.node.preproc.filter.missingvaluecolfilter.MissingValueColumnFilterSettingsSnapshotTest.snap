@@ -183,10 +183,10 @@
         "format" : "typedStringFilter",
         "unknownValuesText" : "Any unknown column",
         "emptyStateLabel" : "No columns in this list.",
-        "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
         "includedLabel" : "Columns to test",
         "excludedLabel" : "Retained columns"
-      }
+      },
+      "providedOptions" : [ "possibleValues" ]
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/removeColumnsBy",
@@ -198,21 +198,22 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/percentage",
       "options" : {
-        "validations" : [ {
-          "id" : "min",
-          "parameters" : {
-            "min" : 0.0,
-            "isExclusive" : false
+        "validation" : {
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "min" : 0.0,
+              "isExclusive" : false
+            }
           },
-          "errorMessage" : "The value must be at least 0."
-        }, {
-          "id" : "max",
-          "parameters" : {
-            "max" : 100.0,
-            "isExclusive" : false
-          },
-          "errorMessage" : "The value must not exceed 100."
-        } ]
+          "max" : {
+            "errorMessage" : "The value must not exceed 100.",
+            "parameters" : {
+              "max" : 100.0,
+              "isExclusive" : false
+            }
+          }
+        }
       },
       "rule" : {
         "effect" : "SHOW",
@@ -229,21 +230,22 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/number",
       "options" : {
-        "validations" : [ {
-          "id" : "min",
-          "parameters" : {
-            "min" : 0.0,
-            "isExclusive" : false
+        "validation" : {
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "min" : 0.0,
+              "isExclusive" : false
+            }
           },
-          "errorMessage" : "The value must be at least 0."
-        }, {
-          "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
-          "id" : "max",
-          "parameters" : {
-            "max" : 9.007199254740991E15,
-            "isExclusive" : false
+          "max" : {
+            "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
+            "parameters" : {
+              "max" : 9.007199254740991E15,
+              "isExclusive" : false
+            }
           }
-        } ]
+        }
       },
       "rule" : {
         "effect" : "SHOW",
@@ -312,8 +314,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
+    "scope" : "#/properties/model/properties/columnFilter",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {

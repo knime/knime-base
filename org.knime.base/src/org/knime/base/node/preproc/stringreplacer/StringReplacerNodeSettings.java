@@ -194,7 +194,7 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
     @Persist(configKey = StringReplacerSettings.CFG_NEW_COL_NAME)
     @Widget(title = "New column name", description = "The name of the created column with replaced strings")
     @Effect(predicate = CreateNewCol.class, type = EffectType.SHOW)
-    @TextInputWidget(validation = ColumnNameValidationV2.class)
+    @TextInputWidget(patternValidation = ColumnNameValidationV2.class)
     String m_newColName = "ReplacedColumn";
 
     static final class DoNotAllowPaddedColumnNamePersistor extends AlwaysSaveTrueBoolean {

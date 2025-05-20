@@ -207,16 +207,16 @@
                 }, {
                   "id" : "ROW_NUMBER",
                   "text" : "Row number"
-                } ],
-                "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider"
-              }
+                } ]
+              },
+              "providedOptions" : [ "possibleValues" ]
             }, {
               "type" : "Control",
               "scope" : "#/properties/operator",
               "options" : {
-                "choicesProvider" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$TypeBasedOperatorsProvider",
                 "format" : "dropDown"
-              }
+              },
+              "providedOptions" : [ "possibleValues" ]
             } ]
           }, {
             "type" : "Control",
@@ -227,9 +227,9 @@
           } ],
           "addButtonText" : "Add filter criterion",
           "arrayElementTitle" : "Criterion",
-          "showSortButtons" : true,
-          "elementDefaultValueProvider" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$DefaultFilterCriterionProvider"
-        }
+          "showSortButtons" : true
+        },
+        "providedOptions" : [ "elementDefaultValue" ]
       } ]
     }, {
       "label" : "Output",
@@ -298,29 +298,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$DefaultFilterCriterionProvider",
-    "values" : [ {
-      "indices" : [ ],
-      "value" : {
-        "column" : {
-          "regularChoice" : "BoolCol"
-        },
-        "operator" : "IS_TRUE",
-        "predicateValues" : {
-          "values" : [ {
-            "value" : false,
-            "cellClassName" : "org.knime.core.data.def.BooleanCell",
-            "valueDataType" : "{\"name\":\"dataTypeConfig\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-            "useStringCaseMatchingSettings" : false
-          } ],
-          "inputKind" : "SINGLE"
-        }
-      }
-    } ]
-  }, {
-    "scopes" : null,
-    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
+    "scope" : "#/properties/model/properties/predicates/items/properties/column",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
@@ -353,45 +332,43 @@
         }
       } ]
     } ]
+  }, {
+    "scope" : "#/properties/model/properties/predicates",
+    "providedOptionName" : "elementDefaultValue",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "column" : {
+          "regularChoice" : "BoolCol"
+        },
+        "operator" : "IS_TRUE",
+        "predicateValues" : {
+          "values" : [ {
+            "value" : false,
+            "cellClassName" : "org.knime.core.data.def.BooleanCell",
+            "valueDataType" : "{\"name\":\"dataTypeConfig\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+            "useStringCaseMatchingSettings" : false
+          } ],
+          "inputKind" : "SINGLE"
+        }
+      }
+    } ]
   } ],
   "globalUpdates" : [ {
     "trigger" : {
-      "id" : "after-open-dialog",
-      "triggerInitially" : true
+      "id" : "after-open-dialog"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/predicates", "#/properties/column" ],
-      "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$SelectedColumnRef"
-    } ]
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/predicates/items/properties/column" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$OperatorRef",
-      "scopes" : [ "#/properties/model/properties/predicates", "#/properties/operator" ]
+      "scope" : "#/properties/model/properties/predicates/items/properties/column"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/predicates", "#/properties/predicateValues" ],
-      "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$DynamicValuesInputRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/predicates", "#/properties/operator" ],
-      "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$OperatorRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/predicates", "#/properties/column" ],
-      "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$SelectedColumnRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/predicates/items/properties/column", "#/properties/model/properties/predicates/items/properties/operator", "#/properties/model/properties/predicates/items/properties/predicateValues" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$SelectedColumnRef",
-      "scopes" : [ "#/properties/model/properties/predicates", "#/properties/column" ]
+      "scope" : "#/properties/model/properties/predicates/items/properties/operator"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/predicates", "#/properties/predicateValues" ],
-      "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$DynamicValuesInputRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/predicates", "#/properties/operator" ],
-      "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$OperatorRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/predicates", "#/properties/column" ],
-      "id" : "org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion$SelectedColumnRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/predicates/items/properties/column", "#/properties/model/properties/predicates/items/properties/operator", "#/properties/model/properties/predicates/items/properties/predicateValues" ]
   } ]
 }

@@ -463,7 +463,7 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
                  Be aware that the operating system might impose a limit on the maximum number of open files.
                 """)
     @Layout(PerformanceSection.class)
-    @NumberInputWidget(validation = OpenFilesMinValidation.class)
+    @NumberInputWidget(minValidation = OpenFilesMinValidation.class)
     int m_maxOpenFiles = 200;
 
     @Widget(title = "Hiliting enabled",

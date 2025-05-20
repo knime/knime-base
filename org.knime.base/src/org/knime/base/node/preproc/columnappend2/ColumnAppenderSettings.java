@@ -138,8 +138,8 @@ public final class ColumnAppenderSettings implements DefaultNodeSettings {
     @Persistor(RowIdTableSelectPersistor.class)
     @Widget(title = "RowID table number",
         description = "Select the table whose RowIDs should be used for the output table.")
-    @NumberInputWidget(validation = IsPositiveIntegerValidation.class,
-        validationProvider = NumTablesMaxValidation.class)
+    @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class,
+        maxValidationProvider = NumTablesMaxValidation.class)
     @Effect(type = EffectType.SHOW, predicate = IsKeyTable.class)
     int m_rowIdTableSelect = 1;
 

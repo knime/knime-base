@@ -146,9 +146,9 @@
               "specialChoices" : [ {
                 "id" : "ROW_ID",
                 "text" : "RowID"
-              } ],
-              "choicesProvider" : "org.knime.base.node.preproc.topk.TopKSelectorNodeSettings$TopKCriterionColumnChoicesProvider"
-            }
+              } ]
+            },
+            "providedOptions" : [ "possibleValues" ]
           }, {
             "type" : "Control",
             "scope" : "#/properties/sortingOrder",
@@ -174,9 +174,9 @@
           } ],
           "addButtonText" : "Add sorting criterion",
           "arrayElementTitle" : "Criterion",
-          "showSortButtons" : true,
-          "elementDefaultValueProvider" : "org.knime.base.node.preproc.topk.TopKSelectorNodeSettings$TopKDefaultValueProvider"
-        }
+          "showSortButtons" : true
+        },
+        "providedOptions" : [ "elementDefaultValue" ]
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/missingsToEnd",
@@ -197,21 +197,22 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/amount",
         "options" : {
-          "validations" : [ {
-            "id" : "min",
-            "parameters" : {
-              "min" : 1.0,
-              "isExclusive" : false
+          "validation" : {
+            "max" : {
+              "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
+              "parameters" : {
+                "max" : 9.007199254740991E15,
+                "isExclusive" : false
+              }
             },
-            "errorMessage" : "The value must be at least 1."
-          }, {
-            "id" : "max",
-            "parameters" : {
-              "max" : 9.007199254740991E15,
-              "isExclusive" : false
-            },
-            "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991)."
-          } ]
+            "min" : {
+              "errorMessage" : "The value must be at least 1.",
+              "parameters" : {
+                "min" : 1.0,
+                "isExclusive" : false
+              }
+            }
+          }
         }
       } ]
     }, {
@@ -286,15 +287,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : [ "#/properties/model/properties/sortingCriteria", "#/properties/isStringColumn" ],
-    "id" : null,
-    "values" : [ {
-      "indices" : [ 0 ],
-      "value" : true
-    } ]
-  }, {
-    "scopes" : null,
-    "id" : "org.knime.base.node.preproc.topk.TopKSelectorNodeSettings$TopKCriterionColumnChoicesProvider",
+    "scope" : "#/properties/model/properties/sortingCriteria/items/properties/column",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ 0 ],
       "value" : [ {
@@ -307,8 +301,14 @@
       } ]
     } ]
   }, {
-    "scopes" : null,
-    "id" : "org.knime.base.node.preproc.topk.TopKSelectorNodeSettings$TopKDefaultValueProvider",
+    "scope" : "#/properties/model/properties/sortingCriteria/items/properties/isStringColumn",
+    "values" : [ {
+      "indices" : [ 0 ],
+      "value" : true
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/sortingCriteria",
+    "providedOptionName" : "elementDefaultValue",
     "values" : [ {
       "indices" : [ ],
       "value" : {
@@ -323,24 +323,13 @@
   } ],
   "globalUpdates" : [ {
     "trigger" : {
-      "id" : "org.knime.base.node.preproc.topk.TopKSelectorNodeSettings$SortingCriteriaRef",
-      "scopes" : [ "#/properties/model/properties/sortingCriteria" ]
+      "scope" : "#/properties/model/properties/sortingCriteria"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/sortingCriteria" ],
-      "id" : "org.knime.base.node.preproc.topk.TopKSelectorNodeSettings$SortingCriteriaRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/sortingCriteria", "#/properties/column" ],
-      "id" : "org.knime.base.node.util.preproc.SortingUtils$SortingCriterionSettings$ColumnRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/sortingCriteria", "#/properties/model/properties/sortingCriteria/items/properties/column" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.util.preproc.SortingUtils$SortingCriterionSettings$ColumnRef",
-      "scopes" : [ "#/properties/model/properties/sortingCriteria", "#/properties/column" ]
+      "scope" : "#/properties/model/properties/sortingCriteria/items/properties/column"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/sortingCriteria", "#/properties/column" ],
-      "id" : "org.knime.base.node.util.preproc.SortingUtils$SortingCriterionSettings$ColumnRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/sortingCriteria/items/properties/column" ]
   } ]
 }

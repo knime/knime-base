@@ -221,9 +221,9 @@
       "options" : {
         "format" : "typedStringFilter",
         "unknownValuesText" : "Any unknown column",
-        "emptyStateLabel" : "No columns in this list.",
-        "choicesProvider" : "org.knime.time.node.manipulate.datetimeshift.DateShiftNodeSettings$ColumnProvider"
-      }
+        "emptyStateLabel" : "No columns in this list."
+      },
+      "providedOptions" : [ "possibleValues" ]
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/shiftMode",
@@ -252,9 +252,9 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/periodColumn",
       "options" : {
-        "choicesProvider" : "org.knime.time.util.DateTimeUtils$PeriodColumnProvider",
         "format" : "dropDown"
       },
+      "providedOptions" : [ "possibleValues" ],
       "rule" : {
         "effect" : "SHOW",
         "condition" : {
@@ -270,9 +270,9 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/numericalColumn",
       "options" : {
-        "choicesProvider" : "org.knime.time.node.manipulate.datetimeshift.DateTimeShiftSettingsUtils$NumberColumnProvider",
         "format" : "dropDown"
       },
+      "providedOptions" : [ "possibleValues" ],
       "rule" : {
         "effect" : "SHOW",
         "condition" : {
@@ -369,8 +369,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.time.node.manipulate.datetimeshift.DateShiftNodeSettings$ColumnProvider",
+    "scope" : "#/properties/model/properties/columnFilter",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
@@ -397,15 +397,15 @@
       } ]
     } ]
   }, {
-    "scopes" : null,
-    "id" : "org.knime.time.node.manipulate.datetimeshift.DateTimeShiftSettingsUtils$NumberColumnProvider",
+    "scope" : "#/properties/model/properties/numericalColumn",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ ]
     } ]
   }, {
-    "scopes" : null,
-    "id" : "org.knime.time.util.DateTimeUtils$PeriodColumnProvider",
+    "scope" : "#/properties/model/properties/periodColumn",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
@@ -420,12 +420,8 @@
   } ],
   "globalUpdates" : [ {
     "trigger" : {
-      "id" : "org.knime.time.node.manipulate.datetimeshift.DateShiftNodeSettings$ShiftModeRef",
-      "scopes" : [ "#/properties/model/properties/shiftMode" ]
+      "scope" : "#/properties/model/properties/shiftMode"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/shiftMode" ],
-      "id" : "org.knime.time.node.manipulate.datetimeshift.DateShiftNodeSettings$ShiftModeRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/shiftMode" ]
   } ]
 }

@@ -201,7 +201,7 @@ public final class ColCombine2NodeSettings implements DefaultNodeSettings {
     @Persist(configKey = "new_column_name")
     @Migrate(loadDefaultIfAbsent = true)
     @Layout(Output.class)
-    @TextInputWidget(validation = ColumnNameValidationV2.class)
+    @TextInputWidget(patternValidation = ColumnNameValidationV2.class)
     String m_outputColumnName = "Combined String";
 
     static final class DoNotAllowPaddedColumnNamePersistor extends AlwaysSaveTrueBoolean {

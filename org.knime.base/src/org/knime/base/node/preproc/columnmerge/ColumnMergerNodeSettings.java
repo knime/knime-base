@@ -127,7 +127,7 @@ public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
     @Persistor(OutputNamePersisor.class)
     @Widget(title = "New column name", description = "The name for the new column.")
     @Effect(predicate = OutputPlacement.IsAppendAsNewColumn.class, type = EffectType.SHOW)
-    @TextInputWidget(validation = ColumnNameValidationV2.class)
+    @TextInputWidget(patternValidation = ColumnNameValidationV2.class)
     String m_outputName = "NewColumn";
 
     static final class DoNotAllowBlankOrPaddedColumnNamePersistor extends AlwaysSaveTrueBoolean {

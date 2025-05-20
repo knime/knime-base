@@ -53,12 +53,12 @@ import static org.knime.base.node.io.filehandling.webui.reader.CommonReaderTrans
 
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ColumnSpecSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TableSpecSettings;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TableSpecSettingsRef;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TransformationElementSettings;
 import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.ExternalDataTypeSerializer;
 import org.knime.core.data.DataType;
@@ -226,13 +226,15 @@ public class CommonReaderTransformationSettingsStateProviderTestUtils {
      *
      * @param transformationSettings to modify
      * @param transformationElementSettings received from the simulation
+     * @param combineWithPathToTableSpecSettings to combine the path to the table spec settings
      * @return the further simulation of transitive updates triggered by the change
      */
     public static Function<UpdateSimulator, UpdateSimulatorResult> setTransformationElementSettings(
         final CommonReaderTransformationSettings<?, ?> transformationSettings,
-        final Object transformationElementSettings) {
+        final Object transformationElementSettings, final UnaryOperator<String[]> combineWithPathToTableSpecSettings) {
         transformationSettings.m_columnTransformation = (TransformationElementSettings[])transformationElementSettings;
-        return simulator -> simulator.simulateValueChange(TableSpecSettingsRef.class);
+        return simulator -> simulator
+            .simulateValueChange(combineWithPathToTableSpecSettings.apply(new String[]{"persistorSettings", "specs"}));
     }
 
     private static TransformationElementSettings createDummyElement(final String name) {

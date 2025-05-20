@@ -58,16 +58,16 @@
         "specialChoices" : [ {
           "id" : "ROW_ID",
           "text" : "RowID"
-        } ],
-        "choicesProvider" : "org.knime.base.node.preproc.columnheaderinsert.ColumnHeaderInsertSettings$StringColumnsSecondTable"
-      }
+        } ]
+      },
+      "providedOptions" : [ "possibleValues" ]
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/valueColumn",
       "options" : {
-        "choicesProvider" : "org.knime.base.node.preproc.columnheaderinsert.ColumnHeaderInsertSettings$StringColumnsSecondTable",
         "format" : "dropDown"
-      }
+      },
+      "providedOptions" : [ "possibleValues" ]
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/failIfNoMatch",
@@ -102,8 +102,22 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.base.node.preproc.columnheaderinsert.ColumnHeaderInsertSettings$StringColumnsSecondTable",
+    "scope" : "#/properties/model/properties/lookupColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test2",
+        "text" : "test2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/valueColumn",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {

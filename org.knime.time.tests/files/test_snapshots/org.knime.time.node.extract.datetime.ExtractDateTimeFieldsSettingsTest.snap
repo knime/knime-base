@@ -108,9 +108,9 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/selectedColumn",
       "options" : {
-        "choicesProvider" : "org.knime.time.util.DateTimeUtils$DateTimeColumnProvider",
         "format" : "dropDown"
-      }
+      },
+      "providedOptions" : [ "possibleValues" ]
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/extractFields",
@@ -121,35 +121,36 @@
             "type" : "Control",
             "scope" : "#/properties/field",
             "options" : {
-              "choicesProvider" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$FilteredPossibleFieldsChoices",
               "format" : "dropDown"
-            }
+            },
+            "providedOptions" : [ "possibleValues" ]
           }, {
             "type" : "Control",
             "scope" : "#/properties/columnName",
             "options" : {
-              "placeholderProvider" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$ColumnNameProvider",
-              "validations" : [ {
-                "id" : "pattern",
-                "parameters" : {
-                  "pattern" : "(\\S(.*\\S)?)?"
-                },
-                "errorMessage" : "The string must either be empty or start and end with a non-whitespace character."
-              } ]
-            }
+              "validation" : {
+                "pattern" : {
+                  "errorMessage" : "The string must either be empty or start and end with a non-whitespace character.",
+                  "parameters" : {
+                    "pattern" : "(\\S(.*\\S)?)?"
+                  }
+                }
+              }
+            },
+            "providedOptions" : [ "placeholder" ]
           } ]
         } ],
         "addButtonText" : "Add field",
-        "showSortButtons" : true,
-        "elementDefaultValueProvider" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$DefaultExtractFieldProvider"
-      }
+        "showSortButtons" : true
+      },
+      "providedOptions" : [ "elementDefaultValue" ]
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/locale",
       "options" : {
-        "choicesProvider" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$LocaleChoices",
         "format" : "dropDown"
-      }
+      },
+      "providedOptions" : [ "possibleValues" ]
     } ]
   },
   "persist" : {
@@ -180,18 +181,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$DefaultExtractFieldProvider",
-    "values" : [ {
-      "indices" : [ ],
-      "value" : {
-        "field" : "YEAR",
-        "columnName" : ""
-      }
-    } ]
-  }, {
-    "scopes" : null,
-    "id" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$FilteredPossibleFieldsChoices",
+    "scope" : "#/properties/model/properties/extractFields/items/properties/field",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
@@ -245,8 +236,18 @@
       } ]
     } ]
   }, {
-    "scopes" : null,
-    "id" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$LocaleChoices",
+    "scope" : "#/properties/model/properties/extractFields",
+    "providedOptionName" : "elementDefaultValue",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "field" : "YEAR",
+        "columnName" : ""
+      }
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/locale",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
@@ -2580,8 +2581,8 @@
       } ]
     } ]
   }, {
-    "scopes" : null,
-    "id" : "org.knime.time.util.DateTimeUtils$DateTimeColumnProvider",
+    "scope" : "#/properties/model/properties/selectedColumn",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
@@ -2596,30 +2597,19 @@
   } ],
   "globalUpdates" : [ {
     "trigger" : {
-      "id" : "after-open-dialog",
-      "triggerInitially" : true
+      "id" : "after-open-dialog"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/selectedColumn" ],
-      "id" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$SelectedColumnRef"
-    } ]
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/selectedColumn" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$ColumnNameProvider$DateTimeFieldReference",
-      "scopes" : [ "#/properties/model/properties/extractFields", "#/properties/field" ]
+      "scope" : "#/properties/model/properties/extractFields/items/properties/field"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/extractFields", "#/properties/field" ],
-      "id" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$ColumnNameProvider$DateTimeFieldReference"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/extractFields/items/properties/field" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$SelectedColumnRef",
-      "scopes" : [ "#/properties/model/properties/selectedColumn" ]
+      "scope" : "#/properties/model/properties/selectedColumn"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/selectedColumn" ],
-      "id" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$SelectedColumnRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/selectedColumn" ]
   } ]
 }

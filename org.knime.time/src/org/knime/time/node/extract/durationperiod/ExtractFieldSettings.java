@@ -106,7 +106,7 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
         description = "The name of the column populated with the values of the selected field.")
     @Layout(ExtractFieldWidgetLayout.class)
     @TextInputWidget(placeholderProvider = OutputColumnNamePlaceholderProvider.class,
-        validation = EmptyOrColumnNameValidation.class)
+        patternValidation = EmptyOrColumnNameValidation.class)
     String m_outputcolumnName;
 
     /**

@@ -103,7 +103,7 @@ public class TableReaderNodeSettings implements DefaultNodeSettings {
     static class AdvancedSettings extends CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling {
 
         @Widget(title = "Skip first data rows", description = SkipFirstDataRows.DESCRIPTION)
-        @NumberInputWidget(validation = IsNonNegativeValidation.class)
+        @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
         @Layout(SkipFirstDataRows.class)
         @Persistor(CommonReaderNodeSettings.SkipFirstDataRowsPersistor.class)
         long m_skipFirstDataRows;
@@ -116,7 +116,7 @@ public class TableReaderNodeSettings implements DefaultNodeSettings {
         // TODO NOSONAR merge into a single widget with UIEXT-1742
 
         @Widget(title = "Maximum number of rows", description = MaximumNumberOfRows.DESCRIPTION)
-        @NumberInputWidget(validation = IsNonNegativeValidation.class)
+        @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
         @Layout(MaximumNumberOfRows.class)
         @Effect(predicate = CommonReaderNodeSettings.LimitNumberOfRowsPredicate.class, type = EffectType.SHOW)
         @Persist(configKey = "max_rows")

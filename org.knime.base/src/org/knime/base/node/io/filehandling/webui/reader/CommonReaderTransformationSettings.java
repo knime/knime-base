@@ -385,7 +385,7 @@ public abstract class CommonReaderTransformationSettings<I extends ConfigIdSetti
         @ValueProvider(ColumnNameResetter.class)
         @Effect(predicate = ElementIsEditedAndColumnNameIsNotNull.class, type = EffectType.SHOW)
         @JsonInclude(Include.ALWAYS) // Necessary for comparison against m_columnName
-        @TextInputWidget(validation = ColumnNameValidationV2.class)
+        @TextInputWidget(patternValidation = ColumnNameValidationV2.class)
         String m_columnRename;
 
         @Widget(title = "Column type", description = "", hideControlHeader = true)

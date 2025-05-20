@@ -195,9 +195,9 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/firstColumnSelection",
         "options" : {
-          "choicesProvider" : "org.knime.time.util.DateTimeUtils$DateTimeColumnProvider",
           "format" : "dropDown"
-        }
+        },
+        "providedOptions" : [ "possibleValues" ]
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/secondDateTimeValueType",
@@ -209,9 +209,9 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/secondColumnSelection",
         "options" : {
-          "choicesProvider" : "org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings$SecondColumnProvider",
           "format" : "dropDown"
         },
+        "providedOptions" : [ "possibleValues" ],
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
@@ -278,8 +278,8 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/localDateTimeFixed",
         "options" : {
-          "format" : "dateTime",
-          "showMilliseconds" : true
+          "showMilliseconds" : true,
+          "format" : "dateTime"
         },
         "rule" : {
           "effect" : "SHOW",
@@ -304,8 +304,6 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/zonedDateTimeFixed",
         "options" : {
-          "format" : "zonedDateTime",
-          "showMilliseconds" : true,
           "possibleValues" : [ {
             "id" : "Africa/Abidjan",
             "text" : "Africa/Abidjan"
@@ -2115,7 +2113,9 @@
           }, {
             "id" : "Zulu",
             "text" : "Zulu"
-          } ]
+          } ],
+          "showMilliseconds" : true,
+          "format" : "zonedDateTime"
         },
         "rule" : {
           "effect" : "SHOW",
@@ -2156,9 +2156,9 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/granularity",
         "options" : {
-          "choicesProvider" : "org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings$ApplicableGranularitiesChoicesProvider",
           "format" : "dropDown"
         },
+        "providedOptions" : [ "possibleValues" ],
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
@@ -2211,13 +2211,14 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/outputColumnName",
         "options" : {
-          "validations" : [ {
-            "id" : "pattern",
-            "parameters" : {
-              "pattern" : "\\S(.*\\S)?"
-            },
-            "errorMessage" : "The string must start and end with a non-whitespace character."
-          } ]
+          "validation" : {
+            "pattern" : {
+              "errorMessage" : "The string must start and end with a non-whitespace character.",
+              "parameters" : {
+                "pattern" : "\\S(.*\\S)?"
+              }
+            }
+          }
         }
       } ]
     } ]
@@ -2257,43 +2258,73 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : [ "#/properties/model/properties/firstColumnIsDateTime" ],
-    "id" : null,
+    "scope" : "#/properties/model/properties/firstColumnIsDate",
     "values" : [ {
       "indices" : [ ],
       "value" : false
     } ]
   }, {
-    "scopes" : [ "#/properties/model/properties/firstColumnIsDate" ],
-    "id" : null,
+    "scope" : "#/properties/model/properties/firstColumnIsDateTime",
     "values" : [ {
       "indices" : [ ],
       "value" : false
     } ]
   }, {
-    "scopes" : [ "#/properties/model/properties/firstColumnIsTime" ],
-    "id" : null,
+    "scope" : "#/properties/model/properties/firstColumnIsTime",
     "values" : [ {
       "indices" : [ ],
       "value" : false
     } ]
   }, {
-    "scopes" : [ "#/properties/model/properties/firstColumnIsZonedDateTime" ],
-    "id" : null,
+    "scope" : "#/properties/model/properties/firstColumnIsZonedDateTime",
     "values" : [ {
       "indices" : [ ],
       "value" : false
     } ]
   }, {
-    "scopes" : [ "#/properties/model/properties/granularity" ],
-    "id" : null,
+    "scope" : "#/properties/model/properties/firstColumnSelection",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "localTimeTest",
+        "text" : "localTimeTest",
+        "type" : {
+          "id" : "org.knime.core.data.time.localtime.LocalTimeValue",
+          "text" : "Time"
+        }
+      }, {
+        "id" : "localDateTest",
+        "text" : "localDateTest",
+        "type" : {
+          "id" : "org.knime.core.data.time.localdate.LocalDateValue",
+          "text" : "Date"
+        }
+      }, {
+        "id" : "localDateTimeTest",
+        "text" : "localDateTimeTest",
+        "type" : {
+          "id" : "org.knime.core.data.time.localdatetime.LocalDateTimeValue",
+          "text" : "Date&time (Local)"
+        }
+      }, {
+        "id" : "zonedDateTimeTest",
+        "text" : "zonedDateTimeTest",
+        "type" : {
+          "id" : "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue",
+          "text" : "Date&time (Zoned)"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/granularity",
     "values" : [ {
       "indices" : [ ],
       "value" : "SECOND"
     } ]
   }, {
-    "scopes" : null,
-    "id" : "org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings$ApplicableGranularitiesChoicesProvider",
+    "scope" : "#/properties/model/properties/granularity",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
@@ -2329,59 +2360,17 @@
       } ]
     } ]
   }, {
-    "scopes" : null,
-    "id" : "org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings$SecondColumnProvider",
+    "scope" : "#/properties/model/properties/secondColumnSelection",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ ]
     } ]
-  }, {
-    "scopes" : null,
-    "id" : "org.knime.time.util.DateTimeUtils$DateTimeColumnProvider",
-    "values" : [ {
-      "indices" : [ ],
-      "value" : [ {
-        "id" : "localTimeTest",
-        "text" : "localTimeTest",
-        "type" : {
-          "id" : "org.knime.core.data.time.localtime.LocalTimeValue",
-          "text" : "Time"
-        }
-      }, {
-        "id" : "localDateTest",
-        "text" : "localDateTest",
-        "type" : {
-          "id" : "org.knime.core.data.time.localdate.LocalDateValue",
-          "text" : "Date"
-        }
-      }, {
-        "id" : "localDateTimeTest",
-        "text" : "localDateTimeTest",
-        "type" : {
-          "id" : "org.knime.core.data.time.localdatetime.LocalDateTimeValue",
-          "text" : "Date&time (Local)"
-        }
-      }, {
-        "id" : "zonedDateTimeTest",
-        "text" : "zonedDateTimeTest",
-        "type" : {
-          "id" : "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue",
-          "text" : "Date&time (Zoned)"
-        }
-      } ]
-    } ]
   } ],
   "globalUpdates" : [ {
     "trigger" : {
-      "id" : "org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings$FirstColumnSelectionRef",
-      "scopes" : [ "#/properties/model/properties/firstColumnSelection" ]
+      "scope" : "#/properties/model/properties/firstColumnSelection"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/firstColumnSelection" ],
-      "id" : "org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings$FirstColumnSelectionRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/granularity" ],
-      "id" : "org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings$GranularityRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/firstColumnSelection", "#/properties/model/properties/granularity" ]
   } ]
 }

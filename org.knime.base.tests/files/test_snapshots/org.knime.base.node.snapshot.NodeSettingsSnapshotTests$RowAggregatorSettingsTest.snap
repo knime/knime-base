@@ -229,9 +229,9 @@
         "specialChoices" : [ {
           "id" : "NONE",
           "text" : "None"
-        } ],
-        "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider"
-      }
+        } ]
+      },
+      "providedOptions" : [ "possibleValues" ]
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/aggregationMethod",
@@ -245,9 +245,9 @@
       "options" : {
         "format" : "typedStringFilter",
         "unknownValuesText" : "Any unknown column",
-        "emptyStateLabel" : "No columns in this list.",
-        "choicesProvider" : "org.knime.base.node.preproc.rowagg.RowAggregatorSettings$AggregatableColumns"
+        "emptyStateLabel" : "No columns in this list."
       },
+      "providedOptions" : [ "possibleValues" ],
       "rule" : {
         "effect" : "DISABLE",
         "condition" : {
@@ -267,9 +267,9 @@
         "specialChoices" : [ {
           "id" : "NONE",
           "text" : "None"
-        } ],
-        "choicesProvider" : "org.knime.base.node.preproc.rowagg.RowAggregatorSettings$WeightColumns"
+        } ]
       },
+      "providedOptions" : [ "possibleValues" ],
       "rule" : {
         "effect" : "DISABLE",
         "condition" : {
@@ -386,36 +386,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.base.node.preproc.rowagg.RowAggregatorSettings$AggregatableColumns",
-    "values" : [ {
-      "indices" : [ ],
-      "value" : [ {
-        "id" : "test1",
-        "text" : "test1",
-        "type" : {
-          "id" : "org.knime.core.data.DoubleValue",
-          "text" : "Number (Floating Decimal)"
-        }
-      } ]
-    } ]
-  }, {
-    "scopes" : null,
-    "id" : "org.knime.base.node.preproc.rowagg.RowAggregatorSettings$WeightColumns",
-    "values" : [ {
-      "indices" : [ ],
-      "value" : [ {
-        "id" : "test1",
-        "text" : "test1",
-        "type" : {
-          "id" : "org.knime.core.data.DoubleValue",
-          "text" : "Number (Floating Decimal)"
-        }
-      } ]
-    } ]
-  }, {
-    "scopes" : null,
-    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
+    "scope" : "#/properties/model/properties/categoryColumn",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
@@ -431,6 +403,34 @@
         "type" : {
           "id" : "org.knime.core.data.StringValue",
           "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/frequencyColumns",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test1",
+        "text" : "test1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Floating Decimal)"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/weightColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test1",
+        "text" : "test1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Floating Decimal)"
         }
       } ]
     } ]

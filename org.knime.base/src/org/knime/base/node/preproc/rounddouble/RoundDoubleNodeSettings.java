@@ -57,8 +57,6 @@ import org.knime.base.node.preproc.rounddouble.RoundDoubleMigrations.OutputColum
 import org.knime.base.node.preproc.rounddouble.RoundDoubleMigrations.OutputModeMigration;
 import org.knime.base.node.preproc.rounddouble.RoundDoubleMigrations.RoundingMethodMigration;
 import org.knime.base.node.preproc.rounddouble.RoundDoubleNodeSettings.RoundingMethod.Standard;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
@@ -291,7 +289,7 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
             When rounding to <b>Decimals</b>, this sets the number of decimal places to keep.<br/>
             When rounding to <b>Significant digits</b>, this sets the number of significant digits to keep.
             """)
-    @NumberInputWidget(validation = {IsNonNegativeValidation.class, PrecisionMaxValidation.class})
+    @NumberInputWidget(minValidation = IsNonNegativeValidation.class, maxValidation = PrecisionMaxValidation.class)
     @Effect(predicate = NumberModeIsInteger.class, type = EffectType.HIDE)
     @Persist(configKey = "PrecisionNumer")
     int m_precision = 3;

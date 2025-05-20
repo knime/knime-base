@@ -149,14 +149,14 @@ final class MissingValueColumnFilterNodeSettings implements DefaultNodeSettings 
     // "more-than-or-equal" is legacy behavior
     @Widget(title = "Threshold percentage (equal or more than %)", //
         description = "Selected columns with at least this percentage of missing values are filtered out.")
-    @NumberInputWidget(validation = {IsNonNegativeValidation.class, PercentageMaxValidation.class})
+    @NumberInputWidget(minValidation = IsNonNegativeValidation.class, maxValidation = PercentageMaxValidation.class)
     @Persist(configKey = "missing_value_percentage")
     @Effect(type = EffectType.SHOW, predicate = ByPercentage.class)
     double m_percentage = 100.0;
 
     @Widget(title = "Threshold number (equal or more than)", //
         description = "Selected columns with at least this number of missing values are filtered out.")
-    @NumberInputWidget(validation = IsNonNegativeValidation.class)
+    @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
     @Effect(type = EffectType.SHOW, predicate = ByNumber.class)
     @Migrate(loadDefaultIfAbsent = true)
     long m_number = 1;

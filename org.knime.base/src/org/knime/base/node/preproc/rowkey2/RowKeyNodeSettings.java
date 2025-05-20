@@ -181,7 +181,7 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Column name", description = "The name of the column to append to the table.")
     @Effect(predicate = AppendRowKey.class, type = EffectType.SHOW)
     @Layout(ExtractRowIdsSection.class)
-    @TextInputWidget(validation = ColumnNameValidationV2.class)
+    @TextInputWidget(patternValidation = ColumnNameValidationV2.class)
     String m_appendedColumnName = "Old RowID";
 
     static final class DoNotAllowPaddedColumnNamePersistor extends AlwaysSaveTrueBoolean {

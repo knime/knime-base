@@ -161,7 +161,7 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
             The number of rows to create.
             """)
     @Effect(predicate = FixedSteps.IncludesNumber.class, type = EffectType.SHOW)
-    @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
+    @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
     long m_numberOfRows = 1000;
 
     @Layout(value = RangeSettingsSection.class)
@@ -216,7 +216,7 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
 
     @Layout(value = OutputSettingsSection.class)
     @Widget(title = "Output column name", description = "The name of the output column.")
-    @TextInputWidget(validation = ColumnNameValidationV2.class)
+    @TextInputWidget(patternValidation = ColumnNameValidationV2.class)
     String m_outputColumnName = "Date";
 
     enum FixedSteps {

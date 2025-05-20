@@ -215,9 +215,9 @@
       "options" : {
         "format" : "typedStringFilter",
         "unknownValuesText" : "Any unknown column",
-        "emptyStateLabel" : "No columns in this list.",
-        "choicesProvider" : "org.knime.time.node.convert.timestamptodatetime.TimestampToDateTimeNodeSettings$TimestampColumnsProvider"
-      }
+        "emptyStateLabel" : "No columns in this list."
+      },
+      "providedOptions" : [ "possibleValues" ]
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/granularity"
@@ -2123,8 +2123,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.time.node.convert.timestamptodatetime.TimestampToDateTimeNodeSettings$TimestampColumnsProvider",
+    "scope" : "#/properties/model/properties/timestampColumns",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {

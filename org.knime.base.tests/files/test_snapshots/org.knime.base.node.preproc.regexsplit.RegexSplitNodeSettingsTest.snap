@@ -231,20 +231,21 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/column",
         "options" : {
-          "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider$StringColumnsProvider",
           "format" : "dropDown"
-        }
+        },
+        "providedOptions" : [ "possibleValues" ]
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/pattern",
         "options" : {
-          "validations" : [ {
-            "errorMessage" : "The field cannot be empty (it must contain at least one character).",
-            "id" : "pattern",
-            "parameters" : {
-              "pattern" : ".+"
+          "validation" : {
+            "minLength" : {
+              "errorMessage" : "The field cannot be empty (it must contain at least one character).",
+              "parameters" : {
+                "minLength" : 1
+              }
             }
-          } ]
+          }
         }
       }, {
         "type" : "Control",
@@ -403,13 +404,14 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/output/properties/columnName",
         "options" : {
-          "validations" : [ {
-            "errorMessage" : "The string must start and end with a non-whitespace character.",
-            "id" : "pattern",
-            "parameters" : {
-              "pattern" : "\\S(.*\\S)?"
+          "validation" : {
+            "pattern" : {
+              "errorMessage" : "The string must start and end with a non-whitespace character.",
+              "parameters" : {
+                "pattern" : "\\S(.*\\S)?"
+              }
             }
-          } ]
+          }
         },
         "rule" : {
           "effect" : "HIDE",
@@ -529,8 +531,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider$StringColumnsProvider",
+    "scope" : "#/properties/model/properties/column",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ ]

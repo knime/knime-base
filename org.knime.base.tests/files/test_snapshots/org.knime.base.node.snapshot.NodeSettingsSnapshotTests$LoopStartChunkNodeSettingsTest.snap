@@ -53,21 +53,22 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/nrRowsPerChunk",
       "options" : {
-        "validations" : [ {
-          "id" : "min",
-          "parameters" : {
-            "min" : 1.0,
-            "isExclusive" : false
+        "validation" : {
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "min" : 1.0,
+              "isExclusive" : false
+            }
           },
-          "errorMessage" : "The value must be at least 1."
-        }, {
-          "errorMessage" : "The value must not exceed 2147483647.",
-          "id" : "max",
-          "parameters" : {
-            "max" : 2.147483647E9,
-            "isExclusive" : false
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "max" : 2.147483647E9,
+              "isExclusive" : false
+            }
           }
-        } ]
+        }
       },
       "rule" : {
         "effect" : "SHOW",
@@ -84,21 +85,22 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/nrOfChunks",
       "options" : {
-        "validations" : [ {
-          "errorMessage" : "The value must be at least 1.",
-          "id" : "min",
-          "parameters" : {
-            "min" : 1.0,
-            "isExclusive" : false
+        "validation" : {
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "min" : 1.0,
+              "isExclusive" : false
+            }
+          },
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "max" : 2.147483647E9,
+              "isExclusive" : false
+            }
           }
-        }, {
-          "errorMessage" : "The value must not exceed 2147483647.",
-          "id" : "max",
-          "parameters" : {
-            "max" : 2.147483647E9,
-            "isExclusive" : false
-          }
-        } ]
+        }
       },
       "rule" : {
         "effect" : "HIDE",

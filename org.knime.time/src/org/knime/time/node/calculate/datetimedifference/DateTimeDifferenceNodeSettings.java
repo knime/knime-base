@@ -277,7 +277,7 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Output column name", description = "The name of the output column.")
     @Layout(OutputSettingsSection.class)
-    @TextInputWidget(validation = ColumnNameValidationV2.class)
+    @TextInputWidget(patternValidation = ColumnNameValidationV2.class)
     String m_outputColumnName = "Date&Time Difference";
 
     DateTimeDifferenceNodeSettings() {

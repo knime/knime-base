@@ -114,12 +114,12 @@ public final class CellExtractorSettings implements DefaultNodeSettings {
     String m_columnName;
 
     @Widget(title = "Column number", description = "Provide the number of the column that contains the target cell.")
-    @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
+    @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
     @Effect(predicate = SpecifyByName.class, type = EffectType.HIDE)
     int m_columnNumber = 1;
 
     @Widget(title = "Row number", description = "Provide the number of the row that contains the target cell.")
-    @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
+    @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
     int m_rowNumber = 1;
 
     @Widget(title = "Count rows from the end of the table",

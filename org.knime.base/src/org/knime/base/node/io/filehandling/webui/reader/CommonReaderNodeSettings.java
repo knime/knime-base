@@ -51,6 +51,7 @@ package org.knime.base.node.io.filehandling.webui.reader;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout.DataArea.UseExistingRowId;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.SettingsWithRowId;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -387,7 +388,7 @@ public final class CommonReaderNodeSettings {
         @Layout(CommonReaderLayout.MultipleFileHandling.FilePathColumnName.class)
         @Effect(predicate = AppendPathColumn.class, type = EffectType.SHOW)
         @Persist(configKey = "path_column_name", hidden = true)
-        @TextInputWidget(validation = ColumnNameValidationV2.class)
+        @TextInputWidget(patternValidation = ColumnNameValidationV2.class)
         public String m_filePathColumnName = "File Path";
 
     }

@@ -173,9 +173,9 @@
         "options" : {
           "format" : "typedStringFilter",
           "unknownValuesText" : "Any unknown column",
-          "emptyStateLabel" : "No columns in this list.",
-          "choicesProvider" : "org.knime.base.node.preproc.double2int2.DoubleToIntNodeSettings$NumericalColumns"
-        }
+          "emptyStateLabel" : "No columns in this list."
+        },
+        "providedOptions" : [ "possibleValues" ]
       } ]
     }, {
       "label" : "Rounding Options",
@@ -215,8 +215,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.base.node.preproc.double2int2.DoubleToIntNodeSettings$NumericalColumns",
+    "scope" : "#/properties/model/properties/inclCols",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {

@@ -67,7 +67,7 @@ public final class RowToColumnHeaderSettings implements DefaultNodeSettings {
     @Persistor(HeaderRowIndexPersistor.class)
     @Widget(title = "Number of rows before the header",
         description = "Number of rows in the input table that precede the row that should be used as new column header")
-    @NumberInputWidget(validation = IsNonNegativeValidation.class)
+    @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
     int m_headerRowIndex;
 
     @Persistor(DiscardBeforePersistor.class)

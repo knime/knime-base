@@ -121,9 +121,9 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/startColumnName",
         "options" : {
-          "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
           "format" : "dropDown"
         },
+        "providedOptions" : [ "possibleValues" ],
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
@@ -139,9 +139,9 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/endColumnName",
         "options" : {
-          "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
           "format" : "dropDown"
         },
+        "providedOptions" : [ "possibleValues" ],
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
@@ -157,21 +157,22 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/startColumnNumber",
         "options" : {
-          "validations" : [ {
-            "id" : "min",
-            "parameters" : {
-              "min" : 1.0,
-              "isExclusive" : false
+          "validation" : {
+            "min" : {
+              "errorMessage" : "The value must be at least 1.",
+              "parameters" : {
+                "min" : 1.0,
+                "isExclusive" : false
+              }
             },
-            "errorMessage" : "The value must be at least 1."
-          }, {
-            "errorMessage" : "The value must not exceed 2147483647.",
-            "id" : "max",
-            "parameters" : {
-              "max" : 2.147483647E9,
-              "isExclusive" : false
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "max" : 2.147483647E9,
+                "isExclusive" : false
+              }
             }
-          } ]
+          }
         },
         "rule" : {
           "effect" : "HIDE",
@@ -205,21 +206,22 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/endColumnNumber",
         "options" : {
-          "validations" : [ {
-            "id" : "min",
-            "parameters" : {
-              "min" : 1.0,
-              "isExclusive" : false
+          "validation" : {
+            "min" : {
+              "errorMessage" : "The value must be at least 1.",
+              "parameters" : {
+                "min" : 1.0,
+                "isExclusive" : false
+              }
             },
-            "errorMessage" : "The value must be at least 1."
-          }, {
-            "errorMessage" : "The value must not exceed 2147483647.",
-            "id" : "max",
-            "parameters" : {
-              "max" : 2.147483647E9,
-              "isExclusive" : false
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "max" : 2.147483647E9,
+                "isExclusive" : false
+              }
             }
-          } ]
+          }
         },
         "rule" : {
           "effect" : "HIDE",
@@ -257,21 +259,22 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/startRowNumber",
         "options" : {
-          "validations" : [ {
-            "id" : "min",
-            "parameters" : {
-              "min" : 1.0,
-              "isExclusive" : false
+          "validation" : {
+            "min" : {
+              "errorMessage" : "The value must be at least 1.",
+              "parameters" : {
+                "min" : 1.0,
+                "isExclusive" : false
+              }
             },
-            "errorMessage" : "The value must be at least 1."
-          }, {
-            "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
-            "id" : "max",
-            "parameters" : {
-              "max" : 9.007199254740991E15,
-              "isExclusive" : false
+            "max" : {
+              "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
+              "parameters" : {
+                "max" : 9.007199254740991E15,
+                "isExclusive" : false
+              }
             }
-          } ]
+          }
         }
       }, {
         "type" : "Control",
@@ -283,21 +286,22 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/endRowNumber",
         "options" : {
-          "validations" : [ {
-            "id" : "min",
-            "parameters" : {
-              "min" : 1.0,
-              "isExclusive" : false
+          "validation" : {
+            "min" : {
+              "errorMessage" : "The value must be at least 1.",
+              "parameters" : {
+                "min" : 1.0,
+                "isExclusive" : false
+              }
             },
-            "errorMessage" : "The value must be at least 1."
-          }, {
-            "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
-            "id" : "max",
-            "parameters" : {
-              "max" : 9.007199254740991E15,
-              "isExclusive" : false
+            "max" : {
+              "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
+              "parameters" : {
+                "max" : 9.007199254740991E15,
+                "isExclusive" : false
+              }
             }
-          } ]
+          }
         }
       }, {
         "type" : "Control",
@@ -344,8 +348,29 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
+    "scope" : "#/properties/model/properties/endColumnName",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test1",
+        "text" : "test1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Floating Decimal)"
+        }
+      }, {
+        "id" : "test2",
+        "text" : "test2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/startColumnName",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {

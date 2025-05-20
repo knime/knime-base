@@ -137,14 +137,14 @@ public final class LagColumnNodeSettings implements DefaultNodeSettings {
     }
 
     @Widget(title = "Number of copies", description = " <i>L</i> = defines how many lagged column copies to create.")
-    @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
+    @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
     int m_lag = 1;
 
     @Persist(configKey = "lag_interval")
     @Widget(title = "Lag per copy",
         description = "<i>I</i> = lag interval (sometimes also called periodicity or seasonality), defines "
             + "how many rows to shift per column copy.")
-    @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
+    @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
     int m_lagInterval = 1;
 
     @Widget(title = "Drop incomplete rows at the top of the table",

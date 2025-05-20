@@ -225,24 +225,24 @@
       "options" : {
         "format" : "typedStringFilter",
         "unknownValuesText" : "Any unknown column",
-        "emptyStateLabel" : "No columns in this list.",
-        "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider$StringColumnsProvider"
-      }
+        "emptyStateLabel" : "No columns in this list."
+      },
+      "providedOptions" : [ "possibleValues" ]
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/locale",
       "options" : {
-        "choicesProvider" : "org.knime.time.util.LocaleStateProvider",
         "format" : "dropDown"
-      }
+      },
+      "providedOptions" : [ "possibleValues" ]
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/format",
       "options" : {
         "format" : "dateTimeFormatWithType",
-        "formatProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider",
         "externalValidationHandler" : "org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidationUtil$DateTimeTemporalFormatValidation"
-      }
+      },
+      "providedOptions" : [ "dateTimeFormats" ]
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/autoGuessFormat",
@@ -340,8 +340,22 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider",
+    "scope" : "#/properties/model/properties/columnFilter",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test",
+        "text" : "test",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/format",
+    "providedOptionName" : "dateTimeFormats",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
@@ -1287,22 +1301,8 @@
       } ]
     } ]
   }, {
-    "scopes" : null,
-    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider$StringColumnsProvider",
-    "values" : [ {
-      "indices" : [ ],
-      "value" : [ {
-        "id" : "test",
-        "text" : "test",
-        "type" : {
-          "id" : "org.knime.core.data.StringValue",
-          "text" : "String"
-        }
-      } ]
-    } ]
-  }, {
-    "scopes" : null,
-    "id" : "org.knime.time.util.LocaleStateProvider",
+    "scope" : "#/properties/model/properties/locale",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
@@ -4363,9 +4363,6 @@
     "trigger" : {
       "id" : "org.knime.time.node.convert.stringtodatetime.StringToDateTimeNodeSettings$AutoGuessFormatButtonRef"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/columnFilter" ],
-      "id" : "org.knime.time.node.convert.stringtodatetime.StringToDateTimeNodeSettings$ColumnFilterValueRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/columnFilter" ]
   } ]
 }

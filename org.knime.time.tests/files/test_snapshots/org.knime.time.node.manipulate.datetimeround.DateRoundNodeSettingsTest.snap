@@ -231,9 +231,9 @@
       "options" : {
         "format" : "typedStringFilter",
         "unknownValuesText" : "Any unknown column",
-        "emptyStateLabel" : "No columns in this list.",
-        "choicesProvider" : "org.knime.time.util.DateTimeUtils$DateColumnProvider"
-      }
+        "emptyStateLabel" : "No columns in this list."
+      },
+      "providedOptions" : [ "possibleValues" ]
     }, {
       "type" : "HorizontalLayout",
       "elements" : [ {
@@ -325,8 +325,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.time.util.DateTimeUtils$DateColumnProvider",
+    "scope" : "#/properties/model/properties/columnFilter",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {

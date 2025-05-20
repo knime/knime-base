@@ -78,9 +78,9 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/selectedColumn",
       "options" : {
-        "choicesProvider" : "org.knime.time.node.extract.durationperiod.ExtractDurationPeriodFieldsNodeSettings$SelectedInputColumnHelpers$ColumnChoicesProvider",
         "format" : "dropDown"
-      }
+      },
+      "providedOptions" : [ "possibleValues" ]
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/extractFields",
@@ -91,28 +91,29 @@
             "type" : "Control",
             "scope" : "#/properties/field",
             "options" : {
-              "choicesProvider" : "org.knime.time.node.extract.durationperiod.ExtractFieldSettings$FilteredPossibleFieldsChoices",
               "format" : "dropDown"
-            }
+            },
+            "providedOptions" : [ "possibleValues" ]
           }, {
             "type" : "Control",
             "scope" : "#/properties/outputcolumnName",
             "options" : {
-              "placeholderProvider" : "org.knime.time.node.extract.durationperiod.ExtractFieldSettings$OutputColumnNamePlaceholderProvider",
-              "validations" : [ {
-                "id" : "pattern",
-                "parameters" : {
-                  "pattern" : "(\\S(.*\\S)?)?"
-                },
-                "errorMessage" : "The string must either be empty or start and end with a non-whitespace character."
-              } ]
-            }
+              "validation" : {
+                "pattern" : {
+                  "errorMessage" : "The string must either be empty or start and end with a non-whitespace character.",
+                  "parameters" : {
+                    "pattern" : "(\\S(.*\\S)?)?"
+                  }
+                }
+              }
+            },
+            "providedOptions" : [ "placeholder" ]
           } ]
         } ],
         "addButtonText" : "Add field",
-        "showSortButtons" : true,
-        "elementDefaultValueProvider" : "org.knime.time.node.extract.durationperiod.ExtractFieldSettings$DefaultExtractFieldWidgetProvider"
-      }
+        "showSortButtons" : true
+      },
+      "providedOptions" : [ "elementDefaultValue" ]
     } ]
   },
   "persist" : {
@@ -137,8 +138,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.time.node.extract.durationperiod.ExtractDurationPeriodFieldsNodeSettings$SelectedInputColumnHelpers$ColumnChoicesProvider",
+    "scope" : "#/properties/model/properties/selectedColumn",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
@@ -160,30 +161,19 @@
   } ],
   "globalUpdates" : [ {
     "trigger" : {
-      "id" : "after-open-dialog",
-      "triggerInitially" : true
+      "id" : "after-open-dialog"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/selectedColumn" ],
-      "id" : "org.knime.time.node.extract.durationperiod.ExtractDurationPeriodFieldsNodeSettings$SelectedInputColumnHelpers$ValueRef"
-    } ]
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/selectedColumn" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.time.node.extract.durationperiod.ExtractDurationPeriodFieldsNodeSettings$SelectedInputColumnHelpers$ValueRef",
-      "scopes" : [ "#/properties/model/properties/selectedColumn" ]
+      "scope" : "#/properties/model/properties/extractFields/items/properties/field"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/selectedColumn" ],
-      "id" : "org.knime.time.node.extract.durationperiod.ExtractDurationPeriodFieldsNodeSettings$SelectedInputColumnHelpers$ValueRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/extractFields/items/properties/field" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.time.node.extract.durationperiod.ExtractFieldSettings$OutputColumnNamePlaceholderProvider$ExtractableFieldsReference",
-      "scopes" : [ "#/properties/model/properties/extractFields", "#/properties/field" ]
+      "scope" : "#/properties/model/properties/selectedColumn"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/extractFields", "#/properties/field" ],
-      "id" : "org.knime.time.node.extract.durationperiod.ExtractFieldSettings$OutputColumnNamePlaceholderProvider$ExtractableFieldsReference"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/selectedColumn" ]
   } ]
 }

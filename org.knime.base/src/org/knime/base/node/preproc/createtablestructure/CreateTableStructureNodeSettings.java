@@ -98,7 +98,7 @@ final class CreateTableStructureNodeSettings implements DefaultNodeSettings {
         }
 
         @Widget(title = "Column name ", description = "Name of the created column")
-        @TextInputWidget(validation = ColumnNameValidationV2.class)
+        @TextInputWidget(patternValidation = ColumnNameValidationV2.class)
         String m_columnName = "";
 
         @Widget(title = "Column type", description = "Type of the created column")

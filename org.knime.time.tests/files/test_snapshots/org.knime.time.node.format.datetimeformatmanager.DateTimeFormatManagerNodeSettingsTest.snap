@@ -177,24 +177,24 @@
       "options" : {
         "format" : "typedStringFilter",
         "unknownValuesText" : "Any unknown column",
-        "emptyStateLabel" : "No columns in this list.",
-        "choicesProvider" : "org.knime.time.util.DateTimeUtils$DateTimeColumnProvider"
-      }
+        "emptyStateLabel" : "No columns in this list."
+      },
+      "providedOptions" : [ "possibleValues" ]
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/locale",
       "options" : {
-        "choicesProvider" : "org.knime.time.util.LocaleStateProvider",
         "format" : "dropDown"
-      }
+      },
+      "providedOptions" : [ "possibleValues" ]
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/format",
       "options" : {
         "format" : "dateTimeFormat",
-        "formatProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider",
         "externalValidationHandler" : "org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidationUtil$DateTimeStringFormatValidation"
-      }
+      },
+      "providedOptions" : [ "dateTimeFormats" ]
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/alignmentSuggestion",
@@ -248,8 +248,43 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider",
+    "scope" : "#/properties/model/properties/columnFilter",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "localTimeTest",
+        "text" : "localTimeTest",
+        "type" : {
+          "id" : "org.knime.core.data.time.localtime.LocalTimeValue",
+          "text" : "Time"
+        }
+      }, {
+        "id" : "localDateTest",
+        "text" : "localDateTest",
+        "type" : {
+          "id" : "org.knime.core.data.time.localdate.LocalDateValue",
+          "text" : "Date"
+        }
+      }, {
+        "id" : "localDateTimeTest",
+        "text" : "localDateTimeTest",
+        "type" : {
+          "id" : "org.knime.core.data.time.localdatetime.LocalDateTimeValue",
+          "text" : "Date&time (Local)"
+        }
+      }, {
+        "id" : "zonedDateTimeTest",
+        "text" : "zonedDateTimeTest",
+        "type" : {
+          "id" : "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue",
+          "text" : "Date&time (Zoned)"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/format",
+    "providedOptionName" : "dateTimeFormats",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
@@ -1195,43 +1230,8 @@
       } ]
     } ]
   }, {
-    "scopes" : null,
-    "id" : "org.knime.time.util.DateTimeUtils$DateTimeColumnProvider",
-    "values" : [ {
-      "indices" : [ ],
-      "value" : [ {
-        "id" : "localTimeTest",
-        "text" : "localTimeTest",
-        "type" : {
-          "id" : "org.knime.core.data.time.localtime.LocalTimeValue",
-          "text" : "Time"
-        }
-      }, {
-        "id" : "localDateTest",
-        "text" : "localDateTest",
-        "type" : {
-          "id" : "org.knime.core.data.time.localdate.LocalDateValue",
-          "text" : "Date"
-        }
-      }, {
-        "id" : "localDateTimeTest",
-        "text" : "localDateTimeTest",
-        "type" : {
-          "id" : "org.knime.core.data.time.localdatetime.LocalDateTimeValue",
-          "text" : "Date&time (Local)"
-        }
-      }, {
-        "id" : "zonedDateTimeTest",
-        "text" : "zonedDateTimeTest",
-        "type" : {
-          "id" : "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue",
-          "text" : "Date&time (Zoned)"
-        }
-      } ]
-    } ]
-  }, {
-    "scopes" : null,
-    "id" : "org.knime.time.util.LocaleStateProvider",
+    "scope" : "#/properties/model/properties/locale",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {

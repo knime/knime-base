@@ -243,7 +243,7 @@ final class OutputSettings implements DefaultNodeSettings {
 
     @Layout(DialogSections.Output.class)
     @Widget(title = "Output column name", description = "Choose a name for the output column")
-    @TextInputWidget(validation = ColumnNameValidationV2.class)
+    @TextInputWidget(patternValidation = ColumnNameValidationV2.class)
     @Effect(predicate = OutputModeIsColumnsOrSingleOutpuModeIsReplace.class, type = EffectType.HIDE)
     @Migrate(loadDefaultIfAbsent = true)
     String m_columnName = "Split";

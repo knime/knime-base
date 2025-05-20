@@ -73,9 +73,9 @@
         "specialChoices" : [ {
           "id" : "ROW_ID",
           "text" : "RowID"
-        } ],
-        "choicesProvider" : "org.knime.base.node.preproc.filter.rowref.AbstractRowFilterRefNodeSettings$DataColumnChoices"
-      }
+        } ]
+      },
+      "providedOptions" : [ "possibleValues" ]
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/referenceColumn",
@@ -84,9 +84,9 @@
         "specialChoices" : [ {
           "id" : "ROW_ID",
           "text" : "RowID"
-        } ],
-        "choicesProvider" : "org.knime.base.node.preproc.filter.rowref.AbstractRowFilterRefNodeSettings$ReferenceColumnChoices"
-      }
+        } ]
+      },
+      "providedOptions" : [ "possibleValues" ]
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/updateDomains",
@@ -138,8 +138,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.base.node.preproc.filter.rowref.AbstractRowFilterRefNodeSettings$DataColumnChoices",
+    "scope" : "#/properties/model/properties/dataColumn",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
@@ -159,8 +159,8 @@
       } ]
     } ]
   }, {
-    "scopes" : null,
-    "id" : "org.knime.base.node.preproc.filter.rowref.AbstractRowFilterRefNodeSettings$ReferenceColumnChoices",
+    "scope" : "#/properties/model/properties/referenceColumn",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {

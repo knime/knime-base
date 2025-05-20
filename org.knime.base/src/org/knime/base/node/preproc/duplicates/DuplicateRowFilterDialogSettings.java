@@ -174,7 +174,7 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
             + "('unique', 'chosen', 'duplicate') should be outputted.")
     @Effect(predicate = KeepDuplicatesAndAddUniqueLabel.class, type = EffectType.SHOW)
     @Layout(DuplicateHandlingSection.class)
-    @TextInputWidget(validation = ColumnNameValidationV2.class)
+    @TextInputWidget(patternValidation = ColumnNameValidationV2.class)
     String m_uniqueStatusColumnName = "Duplicate Status";
 
     @Persist(configKey = DuplicateRowFilterSettings.ADD_ROW_ID_FLAG_KEY)
@@ -193,7 +193,7 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
             + "of the chosen row for each duplicate row should be outputted.")
     @Effect(predicate = KeepDuplicatesAndAddChosenRowIdsColumn.class, type = EffectType.SHOW)
     @Layout(DuplicateHandlingSection.class)
-    @TextInputWidget(validation = ColumnNameValidationV2.class)
+    @TextInputWidget(patternValidation = ColumnNameValidationV2.class)
     String m_chosenRowIdsColumnName = "Duplicate Chosen";
 
     static final String DO_NOT_ALLOW_EMPTY_BLANK_PADDED_COLUMN_NAME_CFG_KEY = "doNotAllowEmptyBlankOrPaddedColumnName";

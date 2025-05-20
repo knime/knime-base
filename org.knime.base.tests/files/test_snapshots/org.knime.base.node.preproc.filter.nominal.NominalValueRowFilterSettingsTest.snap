@@ -132,16 +132,16 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/selectedColumn",
       "options" : {
-        "choicesProvider" : "org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings$SettingsUtils$NominalColumnWithDomainChoicesProider",
         "format" : "dropDown"
-      }
+      },
+      "providedOptions" : [ "possibleValues" ]
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/nominalValueSelection",
       "options" : {
-        "format" : "nameFilter",
-        "choicesProvider" : "org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings$SettingsUtils$SelectedColumnDomainChoicesStateProviderOnInitAndDepChange"
-      }
+        "format" : "nameFilter"
+      },
+      "providedOptions" : [ "possibleValues" ]
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/missingValueHandling",
@@ -177,8 +177,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings$SettingsUtils$NominalColumnWithDomainChoicesProider",
+    "scope" : "#/properties/model/properties/selectedColumn",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
@@ -193,24 +193,14 @@
   } ],
   "globalUpdates" : [ {
     "trigger" : {
-      "id" : "after-open-dialog",
-      "triggerInitially" : true
+      "id" : "after-open-dialog"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/selectedColumn" ],
-      "id" : "org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings$SettingsUtils$SelectedColumnDependency"
-    } ]
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/selectedColumn" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings$SettingsUtils$SelectedColumnDependency",
-      "scopes" : [ "#/properties/model/properties/selectedColumn" ]
+      "scope" : "#/properties/model/properties/selectedColumn"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/nominalValueSelection" ],
-      "id" : "org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings$SettingsUtils$NominalValueSelectionDependency"
-    }, {
-      "scopes" : [ "#/properties/model/properties/selectedColumn" ],
-      "id" : "org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings$SettingsUtils$SelectedColumnDependency"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/nominalValueSelection", "#/properties/model/properties/selectedColumn" ]
   } ]
 }

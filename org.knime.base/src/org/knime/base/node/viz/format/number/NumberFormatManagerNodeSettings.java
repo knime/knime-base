@@ -160,7 +160,7 @@ public final class NumberFormatManagerNodeSettings implements DefaultNodeSetting
             The formatted number will show trailing zeros until the requested number of decimals are reached.
             For instance, <tt>1.2</tt> with 2 decimals is shown as <tt>1.20</tt>.
             """)
-    @NumberInputWidget(validation = IsNonNegativeValidation.class)
+    @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
     @Layout(DialogLayout.Digits.MinMax.class)
     int m_minimumDecimals;
 
@@ -168,7 +168,7 @@ public final class NumberFormatManagerNodeSettings implements DefaultNodeSetting
             The formatted number is rounded to the given number of decimals.
             For instance, <tt>1.2599</tt> with 2 decimals is shown as <tt>1.26</tt>.
             """)
-    @NumberInputWidget(validation = IsNonNegativeValidation.class)
+    @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
     @Layout(DialogLayout.Digits.MinMax.class)
     int m_maximumDecimals = 3;
 

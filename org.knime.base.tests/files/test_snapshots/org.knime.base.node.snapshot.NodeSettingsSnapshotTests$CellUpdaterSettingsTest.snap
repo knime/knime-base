@@ -74,9 +74,9 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/columnName",
       "options" : {
-        "choicesProvider" : "org.knime.base.node.preproc.table.cellupdater.CellUpdaterSettings$AllColumns",
         "format" : "dropDown"
       },
+      "providedOptions" : [ "possibleValues" ],
       "rule" : {
         "effect" : "SHOW",
         "condition" : {
@@ -92,21 +92,22 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/columnNumber",
       "options" : {
-        "validations" : [ {
-          "id" : "min",
-          "parameters" : {
-            "min" : 1.0,
-            "isExclusive" : false
+        "validation" : {
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "min" : 1.0,
+              "isExclusive" : false
+            }
           },
-          "errorMessage" : "The value must be at least 1."
-        }, {
-          "errorMessage" : "The value must not exceed 2147483647.",
-          "id" : "max",
-          "parameters" : {
-            "max" : 2.147483647E9,
-            "isExclusive" : false
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "max" : 2.147483647E9,
+              "isExclusive" : false
+            }
           }
-        } ]
+        }
       },
       "rule" : {
         "effect" : "HIDE",
@@ -123,21 +124,22 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/rowNumber",
       "options" : {
-        "validations" : [ {
-          "id" : "min",
-          "parameters" : {
-            "min" : 1.0,
-            "isExclusive" : false
+        "validation" : {
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "min" : 1.0,
+              "isExclusive" : false
+            }
           },
-          "errorMessage" : "The value must be at least 1."
-        }, {
-          "errorMessage" : "The value must not exceed 2147483647.",
-          "id" : "max",
-          "parameters" : {
-            "max" : 2.147483647E9,
-            "isExclusive" : false
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "max" : 2.147483647E9,
+              "isExclusive" : false
+            }
           }
-        } ]
+        }
       }
     }, {
       "type" : "Control",
@@ -149,9 +151,9 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/flowVariableName",
       "options" : {
-        "choicesProvider" : "org.knime.base.node.preproc.table.cellupdater.CellUpdaterSettings$AllVariables",
         "format" : "dropDown"
-      }
+      },
+      "providedOptions" : [ "possibleValues" ]
     } ]
   },
   "persist" : {
@@ -171,8 +173,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.base.node.preproc.table.cellupdater.CellUpdaterSettings$AllColumns",
+    "scope" : "#/properties/model/properties/columnName",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
@@ -192,8 +194,8 @@
       } ]
     } ]
   }, {
-    "scopes" : null,
-    "id" : "org.knime.base.node.preproc.table.cellupdater.CellUpdaterSettings$AllVariables",
+    "scope" : "#/properties/model/properties/flowVariableName",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {

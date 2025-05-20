@@ -56,27 +56,28 @@
           "type" : "Control",
           "scope" : "#/properties/columnName",
           "options" : {
-            "validations" : [ {
-              "errorMessage" : "The string must start and end with a non-whitespace character.",
-              "id" : "pattern",
-              "parameters" : {
-                "pattern" : "\\S(.*\\S)?"
+            "validation" : {
+              "pattern" : {
+                "errorMessage" : "The string must start and end with a non-whitespace character.",
+                "parameters" : {
+                  "pattern" : "\\S(.*\\S)?"
+                }
               }
-            } ]
+            }
           }
         }, {
           "type" : "Control",
           "scope" : "#/properties/colType",
           "options" : {
-            "format" : "dropDown",
-            "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DefaultDataTypeChoicesProvider"
-          }
+            "format" : "dropDown"
+          },
+          "providedOptions" : [ "possibleValues" ]
         } ],
         "addButtonText" : "Add new column",
         "arrayElementTitle" : "Column",
-        "showSortButtons" : true,
-        "elementDefaultValueProvider" : "org.knime.base.node.preproc.createtablestructure.CreateTableStructureNodeSettings$DefaultColumnSettingsProvider"
-      }
+        "showSortButtons" : true
+      },
+      "providedOptions" : [ "elementDefaultValue" ]
     } ]
   },
   "persist" : {
@@ -108,8 +109,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DefaultDataTypeChoicesProvider",
+    "scope" : "#/properties/model/properties/columnSettings/items/properties/colType",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
@@ -129,12 +130,8 @@
   } ],
   "globalUpdates" : [ {
     "trigger" : {
-      "id" : "org.knime.base.node.preproc.createtablestructure.CreateTableStructureNodeSettings$Ref",
-      "scopes" : [ "#/properties/model/properties/columnSettings" ]
+      "scope" : "#/properties/model/properties/columnSettings"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/columnSettings" ],
-      "id" : "org.knime.base.node.preproc.createtablestructure.CreateTableStructureNodeSettings$Ref"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/columnSettings" ]
   } ]
 }

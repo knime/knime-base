@@ -208,16 +208,16 @@
       "options" : {
         "format" : "typedStringFilter",
         "unknownValuesText" : "Any unknown column",
-        "emptyStateLabel" : "No columns in this list.",
-        "choicesProvider" : "org.knime.time.util.DateTimeUtils$DurationColumnProvider"
-      }
+        "emptyStateLabel" : "No columns in this list."
+      },
+      "providedOptions" : [ "possibleValues" ]
     }, {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/firstCell",
+      "id" : "#/properties/model/properties/firstCell",
       "options" : {
-        "format" : "textMessage",
-        "messageProvider" : "org.knime.time.node.convert.durationtonumber.DurationToNumberNodeSettings$InputPreviewMessage"
-      }
+        "format" : "textMessage"
+      },
+      "providedOptions" : [ "message" ]
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/roundingBehaviour",
@@ -296,19 +296,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.time.node.convert.durationtonumber.DurationToNumberNodeSettings$InputPreviewMessage",
-    "values" : [ {
-      "indices" : [ ],
-      "value" : {
-        "title" : "Content of the first cell",
-        "description" : "No input data available. Execute upstream nodes.",
-        "type" : "INFO"
-      }
-    } ]
-  }, {
-    "scopes" : null,
-    "id" : "org.knime.time.util.DateTimeUtils$DurationColumnProvider",
+    "scope" : "#/properties/model/properties/filter",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
@@ -320,15 +309,22 @@
         }
       } ]
     } ]
+  }, {
+    "id" : "#/properties/model/properties/firstCell",
+    "providedOptionName" : "message",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "title" : "Content of the first cell",
+        "description" : "No input data available. Execute upstream nodes.",
+        "type" : "INFO"
+      }
+    } ]
   } ],
   "globalUpdates" : [ {
     "trigger" : {
-      "id" : "org.knime.time.node.convert.durationtonumber.DurationToNumberNodeSettings$ColumnFilterRef",
-      "scopes" : [ "#/properties/model/properties/filter" ]
+      "scope" : "#/properties/model/properties/filter"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/filter" ],
-      "id" : "org.knime.time.node.convert.durationtonumber.DurationToNumberNodeSettings$ColumnFilterRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/filter" ]
   } ]
 }

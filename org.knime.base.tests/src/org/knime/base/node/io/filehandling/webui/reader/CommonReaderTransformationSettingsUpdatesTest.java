@@ -73,10 +73,6 @@ import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.knime.base.node.io.filehandling.webui.LocalWorkflowContextTest;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling.HowToCombineColumnsOption;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.BaseSettings.FileSelectionRef;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdRef;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TransformationElementSettings.SubTitleProvider;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TransformationElementSettings.TitleProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TypeChoicesProvider;
 import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.ExternalDataTypeSerializer;
 import org.knime.core.data.DataType;
@@ -218,7 +214,7 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
     }
 
     @ParameterizedTest
-    @ArgumentsSource(OnFileChooserOrConfigIdChangeOrAfterDialogOpened.class)
+    @ArgumentsSource(OnFileChooserChangeOrAfterDialogOpened.class)
     void testTableSpecSettingsProvider(final Function<UpdateSimulator, UpdateSimulatorResult> simulate)
         throws IOException {
         writeFileWithIntegerAndStringColumn();
@@ -230,6 +226,17 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
 
     }
 
+    @Test
+    void textTableSpecSettingsProviderOnConfigIdChange() throws IOException {
+        writeFileWithIntegerAndStringColumn();
+
+        final var simulatorResult =
+            m_simulator.simulateValueChange(combineWithPathToTransformationSettings("persistorSettings", "configId"));
+        final var specs = getSpecsValueUpdate(simulatorResult);
+
+        assertIntegerAndStringColumn(specs);
+    }
+
     protected void assertIntegerAndStringColumn(final Object specs) {
         final var serializer = getExternalDataTypeSerializer();
         assertTableSpec(specs, m_filePath, new String[]{"intCol", "stringCol"},
@@ -237,12 +244,23 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
     }
 
     @ParameterizedTest
-    @ArgumentsSource(OnFileChooserOrConfigIdChangeOrAfterDialogOpened.class)
+    @ArgumentsSource(OnFileChooserChangeOrAfterDialogOpened.class)
     void testTransformationElementSettingsProvider(final Function<UpdateSimulator, UpdateSimulatorResult> simulate)
         throws IOException {
         writeFileWithIntegerAndStringColumn();
 
         final var transformationElements = getUpdatedTransformationElementSettings(simulate);
+
+        assertStandardTransformationElementSettings(transformationElements);
+    }
+
+    @Test
+    void testTransformationElementSettingsProviderOnConfigIdChange() throws IOException {
+        writeFileWithIntegerAndStringColumn();
+
+        final var simulatorResult =
+            m_simulator.simulateValueChange(combineWithPathToTransformationSettings("persistorSettings", "configId"));
+        final var transformationElements = getTransformationElementsValueUpdate(simulatorResult);
 
         assertStandardTransformationElementSettings(transformationElements);
     }
@@ -435,7 +453,9 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
         writeFileWithIntegerAndStringColumn();
 
         final var simulatorResult = getSimulatorResultForUpdatesInElementSettingsArray();
-        final var typeChoicesProviderResult = simulatorResult.getMultiUiStateUpdateAt(getTypeChoicesProviderClass());
+        final var typeChoicesProviderResult = simulatorResult.getMultiUiStateUpdateAt(
+            List.of(List.of(combineWithPathToTransformationSettings("columnTransformation")), List.of("type")),
+            "possibleValues");
 
         assertSizeAndIndices(typeChoicesProviderResult, 3);
         assertThat(typeChoicesProviderResult.get(0).value()).isEqualTo(typeChoices(getIntType()));
@@ -446,10 +466,12 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
     }
 
     @Test
-    void testTiltesAndSubTitles() throws IOException {
+    void testTitlesAndSubTitles() throws IOException {
         final var simulatorResult = getSimulatorResultForUpdatesInElementSettingsArray();
-        final var titles = simulatorResult.getMultiUiStateUpdateAt(TitleProvider.class);
-        final var subTitles = simulatorResult.getMultiUiStateUpdateAt(SubTitleProvider.class);
+        final var titles = simulatorResult.getMultiUiStateUpdateAt(
+            List.of(List.of(combineWithPathToTransformationSettings("columnTransformation"))), "arrayElementTitle");
+        final var subTitles = simulatorResult.getMultiUiStateUpdateAt(
+            List.of(List.of(combineWithPathToTransformationSettings("columnTransformation"))), "elementSubTitle");
         assertSizeAndIndices(titles, 3);
         assertSizeAndIndices(subTitles, 3);
         assertThat(titles.get(0).value()).isEqualTo("intCol");
@@ -502,7 +524,8 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
         writeFileWithIntegerAndStringColumn();
         final var transformationElements = getUpdatedTransformationElementSettings();
 
-        return setTransformationElementSettings(getTransformationSettings(), transformationElements);
+        return setTransformationElementSettings(getTransformationSettings(), transformationElements,
+            this::combineWithPathToTransformationSettings);
 
     }
 
@@ -559,17 +582,7 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
         @Override
         Stream<Function<UpdateSimulator, UpdateSimulatorResult>> getSimulations() {
             return Stream.of(UpdateSimulator::simulateAfterOpenDialog,
-                simulator -> simulator.simulateValueChange(FileSelectionRef.class));
-        }
-    }
-
-    static final class OnFileChooserOrConfigIdChangeOrAfterDialogOpened
-        extends RunSimulationForCommonSpecChangesProvider {
-        @Override
-        Stream<Function<UpdateSimulator, UpdateSimulatorResult>> getSimulations() {
-            return Stream.of(UpdateSimulator::simulateAfterOpenDialog,
-                simulator -> simulator.simulateValueChange(FileSelectionRef.class),
-                simulator -> simulator.simulateValueChange(ConfigIdRef.class));
+                simulator -> simulator.simulateValueChange(new String[]{"settings", "source"}));
         }
     }
 

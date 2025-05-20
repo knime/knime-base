@@ -285,9 +285,9 @@
               "specialChoices" : [ {
                 "id" : "ROW_ID",
                 "text" : "RowID"
-              } ],
-              "choicesProvider" : "org.knime.base.node.preproc.rank.RankNodeSettings$CriterionColumnChoicesProvider"
-            }
+              } ]
+            },
+            "providedOptions" : [ "possibleValues" ]
           }, {
             "type" : "Control",
             "scope" : "#/properties/sortingOrder",
@@ -313,9 +313,9 @@
           } ],
           "addButtonText" : "Add ordering criterion",
           "arrayElementTitle" : "Criterion",
-          "showSortButtons" : true,
-          "elementDefaultValueProvider" : "org.knime.base.node.preproc.rank.RankNodeSettings$DefaultCriterionProvider"
-        }
+          "showSortButtons" : true
+        },
+        "providedOptions" : [ "elementDefaultValue" ]
       } ]
     }, {
       "label" : "Ranking",
@@ -326,9 +326,9 @@
         "options" : {
           "format" : "typedStringFilter",
           "unknownValuesText" : "Any unknown column",
-          "emptyStateLabel" : "No columns in this list.",
-          "choicesProvider" : "org.knime.base.node.preproc.rank.RankNodeSettings$CategoryColumnChoiceProvider"
-        }
+          "emptyStateLabel" : "No columns in this list."
+        },
+        "providedOptions" : [ "possibleValues" ]
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/rankMode",
@@ -340,13 +340,14 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/rankOutFieldName",
         "options" : {
-          "validations" : [ {
-            "id" : "minLength",
-            "parameters" : {
-              "minLength" : 1
-            },
-            "errorMessage" : "The string must be at least 1 character long."
-          } ]
+          "validation" : {
+            "minLength" : {
+              "errorMessage" : "The string must be at least 1 character long.",
+              "parameters" : {
+                "minLength" : 1
+              }
+            }
+          }
         }
       }, {
         "type" : "Control",
@@ -472,22 +473,15 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : [ "#/properties/model/properties/sortingCriteria", "#/properties/isStringColumn" ],
-    "id" : null,
-    "values" : [ {
-      "indices" : [ 0 ],
-      "value" : true
-    } ]
-  }, {
-    "scopes" : null,
-    "id" : "org.knime.base.node.preproc.rank.RankNodeSettings$CategoryColumnChoiceProvider",
+    "scope" : "#/properties/model/properties/categoryColumns",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ ]
     } ]
   }, {
-    "scopes" : null,
-    "id" : "org.knime.base.node.preproc.rank.RankNodeSettings$CriterionColumnChoicesProvider",
+    "scope" : "#/properties/model/properties/sortingCriteria/items/properties/column",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ 0 ],
       "value" : [ {
@@ -499,45 +493,27 @@
         }
       } ]
     } ]
+  }, {
+    "scope" : "#/properties/model/properties/sortingCriteria/items/properties/isStringColumn",
+    "values" : [ {
+      "indices" : [ 0 ],
+      "value" : true
+    } ]
   } ],
   "globalUpdates" : [ {
     "trigger" : {
-      "id" : "org.knime.base.node.preproc.rank.RankNodeSettings$CategoryColumnsRef",
-      "scopes" : [ "#/properties/model/properties/categoryColumns" ]
+      "scope" : "#/properties/model/properties/categoryColumns"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/categoryColumns" ],
-      "id" : "org.knime.base.node.preproc.rank.RankNodeSettings$CategoryColumnsRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/sortingCriteria" ],
-      "id" : "org.knime.base.node.preproc.rank.RankNodeSettings$SortingCriteriaRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/sortingCriteria", "#/properties/column" ],
-      "id" : "org.knime.base.node.util.preproc.SortingUtils$SortingCriterionSettings$ColumnRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/categoryColumns", "#/properties/model/properties/sortingCriteria", "#/properties/model/properties/sortingCriteria/items/properties/column" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.preproc.rank.RankNodeSettings$SortingCriteriaRef",
-      "scopes" : [ "#/properties/model/properties/sortingCriteria" ]
+      "scope" : "#/properties/model/properties/sortingCriteria"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/categoryColumns" ],
-      "id" : "org.knime.base.node.preproc.rank.RankNodeSettings$CategoryColumnsRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/sortingCriteria" ],
-      "id" : "org.knime.base.node.preproc.rank.RankNodeSettings$SortingCriteriaRef"
-    }, {
-      "scopes" : [ "#/properties/model/properties/sortingCriteria", "#/properties/column" ],
-      "id" : "org.knime.base.node.util.preproc.SortingUtils$SortingCriterionSettings$ColumnRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/categoryColumns", "#/properties/model/properties/sortingCriteria", "#/properties/model/properties/sortingCriteria/items/properties/column" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.util.preproc.SortingUtils$SortingCriterionSettings$ColumnRef",
-      "scopes" : [ "#/properties/model/properties/sortingCriteria", "#/properties/column" ]
+      "scope" : "#/properties/model/properties/sortingCriteria/items/properties/column"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/sortingCriteria", "#/properties/column" ],
-      "id" : "org.knime.base.node.util.preproc.SortingUtils$SortingCriterionSettings$ColumnRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/sortingCriteria/items/properties/column" ]
   } ]
 }

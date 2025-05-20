@@ -2023,9 +2023,9 @@
       "options" : {
         "format" : "typedStringFilter",
         "unknownValuesText" : "Any unknown column",
-        "emptyStateLabel" : "No columns in this list.",
-        "choicesProvider" : "org.knime.time.node.manipulate.modifytimezone.ModifyTimeZoneNodeSettings$ColumnProvider"
-      }
+        "emptyStateLabel" : "No columns in this list."
+      },
+      "providedOptions" : [ "possibleValues" ]
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/appendOrReplace",
@@ -2094,8 +2094,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.time.node.manipulate.modifytimezone.ModifyTimeZoneNodeSettings$ColumnProvider",
+    "scope" : "#/properties/model/properties/columnFilter",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
@@ -2117,12 +2117,8 @@
   } ],
   "globalUpdates" : [ {
     "trigger" : {
-      "id" : "org.knime.time.node.manipulate.modifytimezone.ModifyTimeZoneNodeSettings$BehaviourTypeRef",
-      "scopes" : [ "#/properties/model/properties/behaviourType" ]
+      "scope" : "#/properties/model/properties/behaviourType"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/behaviourType" ],
-      "id" : "org.knime.time.node.manipulate.modifytimezone.ModifyTimeZoneNodeSettings$BehaviourTypeRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/behaviourType" ]
   } ]
 }

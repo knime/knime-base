@@ -223,7 +223,7 @@ final class RankNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Rank column name",
         description = "Defines the name of the appended ranking column. This field cannot be left empty.")
-    @TextInputWidget(validation = MinLenValidation.class)
+    @TextInputWidget(minLengthValidation = MinLenValidation.class)
     @Layout(RankingSection.class)
     @Persist(configKey = "RankOutFieldName")
     String m_rankOutFieldName = "Rank";

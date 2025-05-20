@@ -236,9 +236,9 @@
         "options" : {
           "format" : "typedStringFilter",
           "unknownValuesText" : "Any unknown column",
-          "emptyStateLabel" : "No columns in this list.",
-          "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider$StringColumnsProvider"
-        }
+          "emptyStateLabel" : "No columns in this list."
+        },
+        "providedOptions" : [ "possibleValues" ]
       } ]
     }, {
       "label" : "Find & Replace",
@@ -276,16 +276,16 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/patternColumn",
         "options" : {
-          "choicesProvider" : "org.knime.base.node.preproc.stringreplacer.dict2.StringReplacerDictNodeSettings$PatternAndReplacementColumnChoices",
           "format" : "dropDown"
-        }
+        },
+        "providedOptions" : [ "possibleValues" ]
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/replacementColumn",
         "options" : {
-          "choicesProvider" : "org.knime.base.node.preproc.stringreplacer.dict2.StringReplacerDictNodeSettings$PatternAndReplacementColumnChoices",
           "format" : "dropDown"
-        }
+        },
+        "providedOptions" : [ "possibleValues" ]
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/replacementStrategy",
@@ -376,8 +376,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.base.node.preproc.stringreplacer.dict2.StringReplacerDictNodeSettings$PatternAndReplacementColumnChoices",
+    "scope" : "#/properties/model/properties/patternColumn",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
@@ -390,8 +390,22 @@
       } ]
     } ]
   }, {
-    "scopes" : null,
-    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider$StringColumnsProvider",
+    "scope" : "#/properties/model/properties/replacementColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test2",
+        "text" : "test2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/targetColumns",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {

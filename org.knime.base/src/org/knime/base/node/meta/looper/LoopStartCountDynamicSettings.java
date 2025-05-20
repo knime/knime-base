@@ -60,6 +60,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberIn
 final class LoopStartCountDynamicSettings implements DefaultNodeSettings {
 
     @Widget(title = "Number of loops", description = "The number of times the inner workflow should be executed.")
-    @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
+    @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
     int m_loops = 10;
 }

@@ -239,9 +239,9 @@
         "options" : {
           "format" : "typedStringFilter",
           "unknownValuesText" : "Any unknown column",
-          "emptyStateLabel" : "No columns in this list.",
-          "choicesProvider" : "org.knime.base.node.viz.format.string.StringFormatManagerNodeSettings$StringCellColumns"
-        }
+          "emptyStateLabel" : "No columns in this list."
+        },
+        "providedOptions" : [ "possibleValues" ]
       } ]
     }, {
       "label" : "Format",
@@ -252,41 +252,43 @@
           "type" : "Control",
           "scope" : "#/properties/model/properties/nFirstChars",
           "options" : {
-            "validations" : [ {
-              "id" : "min",
-              "parameters" : {
-                "min" : 0.0,
-                "isExclusive" : false
+            "validation" : {
+              "min" : {
+                "errorMessage" : "The value must be at least 0.",
+                "parameters" : {
+                  "min" : 0.0,
+                  "isExclusive" : false
+                }
               },
-              "errorMessage" : "The value must be at least 0."
-            }, {
-              "errorMessage" : "The value must not exceed 2147483647.",
-              "id" : "max",
-              "parameters" : {
-                "max" : 2.147483647E9,
-                "isExclusive" : false
+              "max" : {
+                "errorMessage" : "The value must not exceed 2147483647.",
+                "parameters" : {
+                  "max" : 2.147483647E9,
+                  "isExclusive" : false
+                }
               }
-            } ]
+            }
           }
         }, {
           "type" : "Control",
           "scope" : "#/properties/model/properties/nLastChars",
           "options" : {
-            "validations" : [ {
-              "id" : "min",
-              "parameters" : {
-                "min" : 0.0,
-                "isExclusive" : false
+            "validation" : {
+              "min" : {
+                "errorMessage" : "The value must be at least 0.",
+                "parameters" : {
+                  "min" : 0.0,
+                  "isExclusive" : false
+                }
               },
-              "errorMessage" : "The value must be at least 0."
-            }, {
-              "errorMessage" : "The value must not exceed 2147483647.",
-              "id" : "max",
-              "parameters" : {
-                "max" : 2.147483647E9,
-                "isExclusive" : false
+              "max" : {
+                "errorMessage" : "The value must not exceed 2147483647.",
+                "parameters" : {
+                  "max" : 2.147483647E9,
+                  "isExclusive" : false
+                }
               }
-            } ]
+            }
           }
         } ]
       }, {
@@ -408,8 +410,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.base.node.viz.format.string.StringFormatManagerNodeSettings$StringCellColumns",
+    "scope" : "#/properties/model/properties/columnsToFormat",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {

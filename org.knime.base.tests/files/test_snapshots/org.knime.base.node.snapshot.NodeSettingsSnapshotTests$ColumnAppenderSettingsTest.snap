@@ -49,23 +49,24 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/rowIdTableSelect",
       "options" : {
-        "validations" : [ {
-          "id" : "min",
-          "parameters" : {
-            "min" : 1.0,
-            "isExclusive" : false
+        "validation" : {
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "min" : 1.0,
+              "isExclusive" : false
+            }
           },
-          "errorMessage" : "The value must be at least 1."
-        }, {
-          "errorMessage" : "The value must not exceed 2147483647.",
-          "id" : "max",
-          "parameters" : {
-            "max" : 2.147483647E9,
-            "isExclusive" : false
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "max" : 2.147483647E9,
+              "isExclusive" : false
+            }
           }
-        } ],
-        "validationProviders" : [ "org.knime.base.node.preproc.columnappend2.ColumnAppenderSettings$NumTablesMaxValidation" ]
+        }
       },
+      "providedOptions" : [ "validation.max" ],
       "rule" : {
         "effect" : "SHOW",
         "condition" : {
@@ -96,17 +97,16 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.base.node.preproc.columnappend2.ColumnAppenderSettings$NumTablesMaxValidation",
+    "scope" : "#/properties/model/properties/rowIdTableSelect",
+    "providedOptionName" : "validation.max",
     "values" : [ {
       "indices" : [ ],
       "value" : {
-        "id" : "max",
+        "errorMessage" : "Only 1 table input ports available.",
         "parameters" : {
           "max" : 1.0,
           "isExclusive" : false
-        },
-        "errorMessage" : "Only 1 table input ports available."
+        }
       }
     } ]
   } ]

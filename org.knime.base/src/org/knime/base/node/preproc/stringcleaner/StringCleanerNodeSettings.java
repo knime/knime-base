@@ -392,7 +392,7 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
             Here, custom characters can be defined after which characters should be capitalized. \
             The characters are all interpreted literally.
             """)
-    @TextInputWidget(validation = IsNotEmptyValidation.class)
+    @TextInputWidget(minLengthValidation = IsNotEmptyValidation.class)
     @Layout(DialogLayout.Manipulation.CapitalizeAndPad.class)
     @Effect(predicate = CapitalizeAfterCustom.class, type = EffectType.SHOW)
     String m_changeCasingCapitalizeAfterCharacters = "";
@@ -443,7 +443,7 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
             Define the minimum string length. \
             If a string is shorter than this value, a pad will be added to make the string length equal to it.
             """)
-    @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
+    @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
     @Layout(DialogLayout.Manipulation.PadOptions.class)
     @Effect(predicate = DoPad.class, type = EffectType.SHOW)
     int m_padMinimumStringLength = 1;
@@ -451,7 +451,7 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Fill character", description = """
             Define the fill character that is used to pad the string.
             """)
-    @TextInputWidget(validation = IsSingleCharacterValidation.class)
+    @TextInputWidget(patternValidation = IsSingleCharacterValidation.class)
     @Layout(DialogLayout.Manipulation.PadOptions.class)
     @Effect(predicate = DoPad.class, type = EffectType.SHOW)
     String m_padFillCharacter = "_";
@@ -487,7 +487,7 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Output column suffix", description = """
             Define a suffix that is appended to the column names of the input table.
             """)
-    @TextInputWidget(validation = IsNotEmptyValidation.class)
+    @TextInputWidget(minLengthValidation = IsNotEmptyValidation.class)
     @Layout(DialogLayout.Output.class)
     @Effect(predicate = AppendColumnsWithSuffix.class, type = EffectType.SHOW)
     String m_outputSuffix = " (Cleaned)";

@@ -262,9 +262,9 @@
       "options" : {
         "format" : "typedStringFilter",
         "unknownValuesText" : "Any unknown column",
-        "emptyStateLabel" : "No columns in this list.",
-        "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider$DoubleColumnsProvider"
-      }
+        "emptyStateLabel" : "No columns in this list."
+      },
+      "providedOptions" : [ "possibleValues" ]
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/numberModeV2",
@@ -275,21 +275,22 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/precision",
       "options" : {
-        "validations" : [ {
-          "id" : "min",
-          "parameters" : {
-            "min" : 0.0,
-            "isExclusive" : false
+        "validation" : {
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "min" : 0.0,
+              "isExclusive" : false
+            }
           },
-          "errorMessage" : "The value must be at least 0."
-        }, {
-          "id" : "max",
-          "parameters" : {
-            "max" : 350.0,
-            "isExclusive" : false
-          },
-          "errorMessage" : "The value must not exceed 350."
-        } ]
+          "max" : {
+            "errorMessage" : "The value must not exceed 350.",
+            "parameters" : {
+              "max" : 350.0,
+              "isExclusive" : false
+            }
+          }
+        }
       },
       "rule" : {
         "effect" : "HIDE",
@@ -434,8 +435,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider$DoubleColumnsProvider",
+    "scope" : "#/properties/model/properties/columnsToFormat",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {

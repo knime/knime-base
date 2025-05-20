@@ -101,9 +101,9 @@
           "scope" : "#/properties/value"
         } ],
         "addButtonText" : "Add variable",
-        "arrayElementTitle" : "Flow variable",
-        "elementDefaultValueProvider" : "org.knime.base.node.io.variablecreator.VariableCreatorNodeSettings$NewFlowVariableSettings$DefaultNewFlowVariableSettingsProvider"
-      }
+        "arrayElementTitle" : "Flow variable"
+      },
+      "providedOptions" : [ "elementDefaultValue" ]
     } ]
   },
   "persist" : {
@@ -132,21 +132,14 @@
   },
   "globalUpdates" : [ {
     "trigger" : {
-      "id" : "after-open-dialog",
-      "triggerInitially" : true
+      "id" : "after-open-dialog"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/newFlowVariables" ],
-      "id" : "org.knime.base.node.io.variablecreator.VariableCreatorNodeSettings$NewFlowVariablesRef"
-    } ]
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/newFlowVariables" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.io.variablecreator.VariableCreatorNodeSettings$NewFlowVariablesRef",
-      "scopes" : [ "#/properties/model/properties/newFlowVariables" ]
+      "scope" : "#/properties/model/properties/newFlowVariables"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/newFlowVariables" ],
-      "id" : "org.knime.base.node.io.variablecreator.VariableCreatorNodeSettings$NewFlowVariablesRef"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/newFlowVariables" ]
   } ]
 }

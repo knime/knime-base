@@ -225,8 +225,8 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/localDateTimeStart",
         "options" : {
-          "format" : "dateTime",
-          "showMilliseconds" : true
+          "showMilliseconds" : true,
+          "format" : "dateTime"
         },
         "rule" : {
           "effect" : "SHOW",
@@ -251,8 +251,6 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/zonedDateTimeStart",
         "options" : {
-          "format" : "zonedDateTime",
-          "showMilliseconds" : true,
           "possibleValues" : [ {
             "id" : "Africa/Abidjan",
             "text" : "Africa/Abidjan"
@@ -2062,7 +2060,9 @@
           }, {
             "id" : "Zulu",
             "text" : "Zulu"
-          } ]
+          } ],
+          "showMilliseconds" : true,
+          "format" : "zonedDateTime"
         },
         "rule" : {
           "effect" : "SHOW",
@@ -2103,21 +2103,22 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/numberOfRows",
         "options" : {
-          "validations" : [ {
-            "id" : "min",
-            "parameters" : {
-              "min" : 1.0,
-              "isExclusive" : false
+          "validation" : {
+            "max" : {
+              "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
+              "parameters" : {
+                "max" : 9.007199254740991E15,
+                "isExclusive" : false
+              }
             },
-            "errorMessage" : "The value must be at least 1."
-          }, {
-            "id" : "max",
-            "parameters" : {
-              "max" : 9.007199254740991E15,
-              "isExclusive" : false
-            },
-            "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991)."
-          } ]
+            "min" : {
+              "errorMessage" : "The value must be at least 1.",
+              "parameters" : {
+                "min" : 1.0,
+                "isExclusive" : false
+              }
+            }
+          }
         },
         "rule" : {
           "effect" : "SHOW",
@@ -2137,9 +2138,9 @@
         "scope" : "#/properties/model/properties/interval",
         "options" : {
           "format" : "interval",
-          "intervalType" : "DATE_OR_TIME",
-          "intervalTypeProvider" : "org.knime.time.node.create.createdatetime.CreateDateTimeNodeSettings$DurationTypeStateProvider"
+          "intervalType" : "DATE_OR_TIME"
         },
+        "providedOptions" : [ "intervalType" ],
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
@@ -2225,8 +2226,8 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/localDateTimeEnd",
         "options" : {
-          "format" : "dateTime",
-          "showMilliseconds" : true
+          "showMilliseconds" : true,
+          "format" : "dateTime"
         },
         "rule" : {
           "effect" : "SHOW",
@@ -2251,8 +2252,6 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/zonedDateTimeEnd",
         "options" : {
-          "format" : "zonedDateTime",
-          "showMilliseconds" : true,
           "possibleValues" : [ {
             "id" : "Africa/Abidjan",
             "text" : "Africa/Abidjan"
@@ -4062,7 +4061,9 @@
           }, {
             "id" : "Zulu",
             "text" : "Zulu"
-          } ]
+          } ],
+          "showMilliseconds" : true,
+          "format" : "zonedDateTime"
         },
         "rule" : {
           "effect" : "SHOW",
@@ -4097,13 +4098,14 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/outputColumnName",
         "options" : {
-          "validations" : [ {
-            "id" : "pattern",
-            "parameters" : {
-              "pattern" : "\\S(.*\\S)?"
-            },
-            "errorMessage" : "The string must start and end with a non-whitespace character."
-          } ]
+          "validation" : {
+            "pattern" : {
+              "errorMessage" : "The string must start and end with a non-whitespace character.",
+              "parameters" : {
+                "pattern" : "\\S(.*\\S)?"
+              }
+            }
+          }
         }
       } ]
     } ]
@@ -4134,8 +4136,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.time.node.create.createdatetime.CreateDateTimeNodeSettings$DurationTypeStateProvider",
+    "scope" : "#/properties/model/properties/interval",
+    "providedOptionName" : "intervalType",
     "values" : [ {
       "indices" : [ ],
       "value" : "DATE"
@@ -4143,12 +4145,8 @@
   } ],
   "globalUpdates" : [ {
     "trigger" : {
-      "id" : "org.knime.time.util.DateTimeType$Ref",
-      "scopes" : [ "#/properties/model/properties/outputType" ]
+      "scope" : "#/properties/model/properties/outputType"
     },
-    "dependencies" : [ {
-      "scopes" : [ "#/properties/model/properties/outputType" ],
-      "id" : "org.knime.time.util.DateTimeType$Ref"
-    } ]
+    "dependencies" : [ "#/properties/model/properties/outputType" ]
   } ]
 }

@@ -488,9 +488,9 @@
               "specialChoices" : [ {
                 "id" : "ROW_ID",
                 "text" : "RowID"
-              } ],
-              "choicesProvider" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$LeftTableChoices"
-            }
+              } ]
+            },
+            "providedOptions" : [ "possibleValues" ]
           }, {
             "type" : "Control",
             "scope" : "#/properties/rightTableColumn",
@@ -499,9 +499,9 @@
               "specialChoices" : [ {
                 "id" : "ROW_ID",
                 "text" : "RowID"
-              } ],
-              "choicesProvider" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$RightTableChoices"
-            }
+              } ]
+            },
+            "providedOptions" : [ "possibleValues" ]
           } ],
           "addButtonText" : "Add matching criterion",
           "arrayElementTitle" : "Criterion"
@@ -544,18 +544,18 @@
         "options" : {
           "format" : "typedStringFilter",
           "unknownValuesText" : "Any unknown column",
-          "emptyStateLabel" : "No columns in this list.",
-          "choicesProvider" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$LeftTableChoices"
-        }
+          "emptyStateLabel" : "No columns in this list."
+        },
+        "providedOptions" : [ "possibleValues" ]
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/rightColumnSelectionConfigV2",
         "options" : {
           "format" : "typedStringFilter",
           "unknownValuesText" : "Any unknown column",
-          "emptyStateLabel" : "No columns in this list.",
-          "choicesProvider" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$RightTableChoices"
-        }
+          "emptyStateLabel" : "No columns in this list."
+        },
+        "providedOptions" : [ "possibleValues" ]
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/mergeJoinColumns",
@@ -628,21 +628,22 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/maxOpenFiles",
         "options" : {
-          "validations" : [ {
-            "id" : "min",
-            "parameters" : {
-              "min" : 3.0,
-              "isExclusive" : false
+          "validation" : {
+            "min" : {
+              "errorMessage" : "The value must be at least 3.",
+              "parameters" : {
+                "min" : 3.0,
+                "isExclusive" : false
+              }
             },
-            "errorMessage" : "The value must be at least 3."
-          }, {
-            "errorMessage" : "The value must not exceed 2147483647.",
-            "id" : "max",
-            "parameters" : {
-              "max" : 2.147483647E9,
-              "isExclusive" : false
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "max" : 2.147483647E9,
+                "isExclusive" : false
+              }
             }
-          } ]
+          }
         }
       }, {
         "type" : "Control",
@@ -783,8 +784,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$LeftTableChoices",
+    "scope" : "#/properties/model/properties/leftColumnSelectionConfigV2",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
@@ -804,8 +805,50 @@
       } ]
     } ]
   }, {
-    "scopes" : null,
-    "id" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$RightTableChoices",
+    "scope" : "#/properties/model/properties/matchingCriteria/items/properties/leftTableColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test1",
+        "text" : "test1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Floating Decimal)"
+        }
+      }, {
+        "id" : "test2",
+        "text" : "test2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/matchingCriteria/items/properties/rightTableColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test1",
+        "text" : "test1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Floating Decimal)"
+        }
+      }, {
+        "id" : "test2",
+        "text" : "test2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/rightColumnSelectionConfigV2",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {

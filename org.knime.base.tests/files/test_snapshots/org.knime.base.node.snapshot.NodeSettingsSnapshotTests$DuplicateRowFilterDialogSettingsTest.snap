@@ -208,9 +208,9 @@
         "options" : {
           "format" : "typedStringFilter",
           "unknownValuesText" : "Any unknown column",
-          "emptyStateLabel" : "No columns in this list.",
-          "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider"
-        }
+          "emptyStateLabel" : "No columns in this list."
+        },
+        "providedOptions" : [ "possibleValues" ]
       } ]
     }, {
       "label" : "Duplicate handling",
@@ -243,13 +243,14 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/uniqueStatusColumnName",
         "options" : {
-          "validations" : [ {
-            "errorMessage" : "The string must start and end with a non-whitespace character.",
-            "id" : "pattern",
-            "parameters" : {
-              "pattern" : "\\S(.*\\S)?"
+          "validation" : {
+            "pattern" : {
+              "errorMessage" : "The string must start and end with a non-whitespace character.",
+              "parameters" : {
+                "pattern" : "\\S(.*\\S)?"
+              }
             }
-          } ]
+          }
         },
         "rule" : {
           "effect" : "SHOW",
@@ -291,13 +292,14 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/chosenRowIdsColumnName",
         "options" : {
-          "validations" : [ {
-            "errorMessage" : "The string must start and end with a non-whitespace character.",
-            "id" : "pattern",
-            "parameters" : {
-              "pattern" : "\\S(.*\\S)?"
+          "validation" : {
+            "pattern" : {
+              "errorMessage" : "The string must start and end with a non-whitespace character.",
+              "parameters" : {
+                "pattern" : "\\S(.*\\S)?"
+              }
             }
-          } ]
+          }
         },
         "rule" : {
           "effect" : "SHOW",
@@ -329,9 +331,9 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/selectedColumn",
         "options" : {
-          "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
           "format" : "dropDown"
         },
+        "providedOptions" : [ "possibleValues" ],
         "rule" : {
           "effect" : "HIDE",
           "condition" : {
@@ -420,8 +422,29 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
+    "scope" : "#/properties/model/properties/consideredColumns",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test1",
+        "text" : "test1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Floating Decimal)"
+        }
+      }, {
+        "id" : "test2",
+        "text" : "test2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/selectedColumn",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {

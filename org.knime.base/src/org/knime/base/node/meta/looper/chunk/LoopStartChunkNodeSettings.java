@@ -100,7 +100,7 @@ public final class LoopStartChunkNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Rows per chunk", description = """
             Set the number of rows per chunk. The number of iterations is the row count of the input table divided by this value. To implement a streaming approach with one row at a time, set this value to 1.
             """)
-    @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
+    @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
     @Effect(type = EffectType.SHOW, predicate = IsRowPerChunk.class)
     int m_nrRowsPerChunk = 1;
 
@@ -109,6 +109,6 @@ public final class LoopStartChunkNodeSettings implements DefaultNodeSettings {
             Set the number of chunks. The number of rows per chunk is the row count of the input table divided by this value.
             """)
     @Effect(type = EffectType.HIDE, predicate = IsRowPerChunk.class)
-    @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
+    @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
     int m_nrOfChunks = 1;
 }

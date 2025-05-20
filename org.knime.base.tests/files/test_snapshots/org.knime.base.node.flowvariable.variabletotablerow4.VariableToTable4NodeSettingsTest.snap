@@ -154,9 +154,9 @@
       "options" : {
         "format" : "typedStringFilter",
         "unknownValuesText" : "Any unknown variable",
-        "emptyStateLabel" : "No variables in this list.",
-        "choicesProvider" : "org.knime.base.node.flowvariable.converter.variabletocell.VariableToCellConverterFactory$ConvertibleFlowVariablesProvider"
-      }
+        "emptyStateLabel" : "No variables in this list."
+      },
+      "providedOptions" : [ "possibleValues" ]
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/rowName",
@@ -213,8 +213,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.base.node.flowvariable.converter.variabletocell.VariableToCellConverterFactory$ConvertibleFlowVariablesProvider",
+    "scope" : "#/properties/model/properties/filter",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {

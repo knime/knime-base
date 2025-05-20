@@ -199,7 +199,7 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
             description = "The name of the column populated with the values of the selected field. "
                 + "The field cannot be empty (it must contain at least one character).")
         @Layout(ExtractFieldLayout.class)
-        @TextInputWidget(placeholderProvider = ColumnNameProvider.class, validation = EmptyOrColumnNameValidation.class)
+        @TextInputWidget(placeholderProvider = ColumnNameProvider.class, patternValidation = EmptyOrColumnNameValidation.class)
         public String m_columnName;
     }
 

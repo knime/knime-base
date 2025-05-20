@@ -40,21 +40,22 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/headerRowIndex",
       "options" : {
-        "validations" : [ {
-          "id" : "min",
-          "parameters" : {
-            "min" : 0.0,
-            "isExclusive" : false
+        "validation" : {
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "min" : 0.0,
+              "isExclusive" : false
+            }
           },
-          "errorMessage" : "The value must be at least 0."
-        }, {
-          "errorMessage" : "The value must not exceed 2147483647.",
-          "id" : "max",
-          "parameters" : {
-            "max" : 2.147483647E9,
-            "isExclusive" : false
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "max" : 2.147483647E9,
+              "isExclusive" : false
+            }
           }
-        } ]
+        }
       }
     }, {
       "type" : "Control",

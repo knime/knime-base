@@ -261,16 +261,16 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/lookupCol",
         "options" : {
-          "choicesProvider" : "org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings$DataTableChoices",
           "format" : "dropDown"
-        }
+        },
+        "providedOptions" : [ "possibleValues" ]
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/dictKeyCol",
         "options" : {
-          "choicesProvider" : "org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings$DictionaryTableChoices",
           "format" : "dropDown"
-        }
+        },
+        "providedOptions" : [ "possibleValues" ]
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/searchDirection",
@@ -338,9 +338,9 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/lookupReplacementCol",
         "options" : {
-          "choicesProvider" : "org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings$DictionaryTableChoices",
           "format" : "dropDown"
         },
+        "providedOptions" : [ "possibleValues" ],
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
@@ -375,9 +375,9 @@
         "options" : {
           "format" : "typedStringFilter",
           "unknownValuesText" : "Any unknown column",
-          "emptyStateLabel" : "No columns in this list.",
-          "choicesProvider" : "org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings$DictionaryTableChoices"
-        }
+          "emptyStateLabel" : "No columns in this list."
+        },
+        "providedOptions" : [ "possibleValues" ]
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/createFoundCol",
@@ -449,8 +449,8 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
-    "id" : "org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings$DataTableChoices",
+    "scope" : "#/properties/model/properties/dictKeyCol",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
@@ -470,8 +470,50 @@
       } ]
     } ]
   }, {
-    "scopes" : null,
-    "id" : "org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings$DictionaryTableChoices",
+    "scope" : "#/properties/model/properties/dictValueCols",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test1",
+        "text" : "test1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Floating Decimal)"
+        }
+      }, {
+        "id" : "test2",
+        "text" : "test2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/lookupCol",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test1",
+        "text" : "test1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Floating Decimal)"
+        }
+      }, {
+        "id" : "test2",
+        "text" : "test2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/lookupReplacementCol",
+    "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
       "value" : [ {

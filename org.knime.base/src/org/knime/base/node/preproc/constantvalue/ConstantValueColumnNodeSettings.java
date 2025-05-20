@@ -118,7 +118,7 @@ final class ConstantValueColumnNodeSettings implements DefaultNodeSettings {
 
         @Widget(title = "New column", description = "The name of the new column.")
         @Effect(predicate = AppendOrReplace.IsReplace.class, type = EffectType.HIDE)
-        @TextInputWidget(placeholder = "New column name", validation = ColumnNameValidationV2.class)
+        @TextInputWidget(placeholder = "New column name", patternValidation = ColumnNameValidationV2.class)
         String m_columnNameToAppend = "New column";
 
         @Widget(title = "Replace column", description = "The name of the column to replace.")

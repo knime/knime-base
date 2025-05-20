@@ -151,7 +151,7 @@ public final class ColumnRenamerSettings implements DefaultNodeSettings {
 
         @Widget(title = "New name",
             description = "The new column name. Must not be empty or consist only of whitespaces.")
-        @TextInputWidget(validation = ColumnNameValidationV2.class)
+        @TextInputWidget(patternValidation = ColumnNameValidationV2.class)
         @Layout(RenamingLayout.class)
         public String m_newName;
 
