@@ -57,7 +57,7 @@
             "type" : "Control",
             "scope" : "#/properties/oldName",
             "options" : {
-              "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
+              "choicesProvider" : "org.knime.base.node.preproc.column.renamer.ColumnRenamerSettings$Renaming$DynamicAllColumnsProvider",
               "format" : "dropDown"
             }
           }, {
@@ -65,16 +65,17 @@
             "scope" : "#/properties/newName",
             "options" : {
               "validations" : [ {
-                "errorMessage" : "The string must start and end with a non-whitespace character.",
                 "id" : "pattern",
                 "parameters" : {
                   "pattern" : "\\S(.*\\S)?"
-                }
+                },
+                "errorMessage" : "The string must start and end with a non-whitespace character."
               } ]
             }
           } ]
         } ],
-        "addButtonText" : "Add column"
+        "addButtonText" : "Add column",
+        "elementDefaultValueProvider" : "org.knime.base.node.preproc.column.renamer.ColumnRenamerSettings$RenamingDefaultValueProvider"
       }
     } ]
   },
@@ -103,9 +104,9 @@
   },
   "initialUpdates" : [ {
     "scopes" : null,
-    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
+    "id" : "org.knime.base.node.preproc.column.renamer.ColumnRenamerSettings$Renaming$DynamicAllColumnsProvider",
     "values" : [ {
-      "indices" : [ ],
+      "indices" : [ 0 ],
       "value" : [ {
         "id" : "test1",
         "text" : "test1",
@@ -121,6 +122,29 @@
           "text" : "String"
         }
       } ]
+    } ]
+  }, {
+    "scopes" : null,
+    "id" : "org.knime.base.node.preproc.column.renamer.ColumnRenamerSettings$RenamingDefaultValueProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "oldName" : "test1",
+        "newName" : "test1"
+      }
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "org.knime.base.node.preproc.column.renamer.ColumnRenamerSettings$RenamingsRef",
+      "scopes" : [ "#/properties/model/properties/renamings" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/renamings", "#/properties/oldName" ],
+      "id" : "org.knime.base.node.preproc.column.renamer.ColumnRenamerSettings$Renaming$OldNameRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/renamings" ],
+      "id" : "org.knime.base.node.preproc.column.renamer.ColumnRenamerSettings$RenamingsRef"
     } ]
   } ]
 }

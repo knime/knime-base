@@ -48,16 +48,28 @@
  */
 package org.knime.base.node.preproc.column.renamer;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.booleanhelpers.AlwaysSaveTrueBoolean;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.ColumnNameValidationV2;
 
 /**
@@ -87,8 +99,43 @@ public final class ColumnRenamerSettings implements DefaultNodeSettings {
     }
 
     @Widget(title = "Renamings", description = "Allows to define new names for columns.")
-    @ArrayWidget(addButtonText = "Add column")
+    @ArrayWidget(addButtonText = "Add column", elementDefaultValueProvider = RenamingDefaultValueProvider.class)
+    @ValueReference(RenamingsRef.class)
     public Renaming[] m_renamings = new Renaming[0];
+
+    interface RenamingsRef extends Reference<Renaming[]> {
+    }
+
+    static final class RenamingDefaultValueProvider implements StateProvider<Renaming> {
+
+        private Supplier<Renaming[]> m_renamings;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            this.m_renamings = initializer.computeFromValueSupplier(RenamingsRef.class);
+            initializer.computeBeforeOpenDialog();
+        }
+
+        @Override
+        public Renaming computeState(final DefaultNodeSettingsContext context) throws StateComputationFailureException {
+            final var spec = context.getDataTableSpec(0);
+            if (spec.isEmpty()) {
+                return new Renaming();
+            }
+            final var alreadySelectedColumns = Arrays.stream(m_renamings.get()).map(r -> r.m_oldName)
+                .filter(StringUtils::isNotBlank).collect(Collectors.toSet());
+            final var firstAvailableCol = spec.get().stream()
+                .filter(colSpec -> !alreadySelectedColumns.contains(colSpec.getName())).reduce((a, b) -> b);
+            if (firstAvailableCol.isEmpty()) {
+                return new Renaming();
+            }
+            final var renaming = new Renaming();
+            renaming.m_oldName = firstAvailableCol.get().getName();
+            renaming.m_newName = renaming.m_oldName;
+            return renaming;
+        }
+
+    }
 
     static final class Renaming implements DefaultNodeSettings {
 
@@ -97,8 +144,9 @@ public final class ColumnRenamerSettings implements DefaultNodeSettings {
         }
 
         @Widget(title = "Column", description = "The column to rename.")
-        @ChoicesProvider(AllColumnsProvider.class)
+        @ChoicesProvider(DynamicAllColumnsProvider.class)
         @Layout(RenamingLayout.class)
+        @ValueReference(OldNameRef.class)
         public String m_oldName;
 
         @Widget(title = "New name",
@@ -106,6 +154,35 @@ public final class ColumnRenamerSettings implements DefaultNodeSettings {
         @TextInputWidget(validation = ColumnNameValidationV2.class)
         @Layout(RenamingLayout.class)
         public String m_newName;
+
+        interface OldNameRef extends Reference<String> {
+        }
+
+        static final class DynamicAllColumnsProvider implements ColumnChoicesProvider {
+
+            private Supplier<Renaming[]> m_renamings;
+
+            private Supplier<String> m_currentSelection;
+
+            @Override
+            public void init(final StateProviderInitializer initializer) {
+                this.m_renamings = initializer.computeFromValueSupplier(RenamingsRef.class);
+                this.m_currentSelection = initializer.getValueSupplier(OldNameRef.class);
+                ColumnChoicesProvider.super.init(initializer);
+            }
+
+            @Override
+            public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
+                final var spec = context.getDataTableSpec(0);
+                if (spec.isEmpty()) {
+                    return Collections.emptyList();
+                }
+                final var columns = Arrays.stream(m_renamings.get()).map(r -> r.m_oldName)
+                    .filter(oldName -> oldName != null && !oldName.equals(this.m_currentSelection.get()))
+                    .collect(Collectors.toSet());
+                return spec.get().stream().filter(colSpec -> !columns.contains(colSpec.getName())).toList();
+            }
+        }
     }
 
     static final class DoNotAllowPaddedColumnNamePersistor extends AlwaysSaveTrueBoolean {
@@ -115,6 +192,6 @@ public final class ColumnRenamerSettings implements DefaultNodeSettings {
     }
 
     @Persistor(DoNotAllowPaddedColumnNamePersistor.class)
-    boolean m_doNotAllowPaddedColumnName= true;
+    boolean m_doNotAllowPaddedColumnName = true;
 
 }
