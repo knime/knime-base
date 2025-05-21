@@ -49,6 +49,7 @@
 package org.knime.base.node.viz.format.string;
 
 import java.util.Optional;
+import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
@@ -198,7 +199,9 @@ public final class StringFormatter implements ValueFormatModel {
     String makeLinksClickable(String s) {
         if (m_settings.linkHrefsAndEmails) {
             s = StringFormatterPatterns.URL.matcher(s).replaceAll(mr -> {
-                var url = mr.group();
+                /* The matching url may contain '$' characters, which need to be escaped since they have a special
+                 * meaning in {@link Matcher#replaceAll(String)}. */
+                var url = Matcher.quoteReplacement(mr.group());
                 if (!StringUtils.startsWithIgnoreCase(url, "http://") // NOSONAR keep string explicit here
                     && !StringUtils.startsWithIgnoreCase(url, "https://")) {
                     // otherwise, e.g. "knime.com" is interpreted as a file path when clicking it
