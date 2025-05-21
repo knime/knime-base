@@ -151,18 +151,6 @@
         </filter>
     </resource>
     <resource path="src/org/knime/base/node/preproc/columnrenameregex/ColumnRenameRegexNodeFactory.java" type="org.knime.base.node.preproc.columnrenameregex.ColumnRenameRegexNodeFactory">
-        <filter id="336658481">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.columnrenameregex.ColumnRenameRegexNodeFactory"/>
-                <message_argument value="FULL_DESCRIPTION"/>
-            </message_arguments>
-        </filter>
-        <filter id="336658481">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.columnrenameregex.ColumnRenameRegexNodeFactory"/>
-                <message_argument value="SHORT_DESCRIPTION"/>
-            </message_arguments>
-        </filter>
         <filter id="338792546">
             <message_arguments>
                 <message_argument value="org.knime.base.node.preproc.columnrenameregex.ColumnRenameRegexNodeFactory"/>
