@@ -77,8 +77,8 @@
 			start node in subsequent iterations (e.g. moving sum calculation). Note that variables defined by the loop
 			start node itself are excluded as these usually represent loop controls (e.g. <i>"currentIteration"</i>).
 		</option>
-        <link href="https://www.knime.com/knime-introductory-course/chapter7/section2">
-            KNIME E-Learning Course: Section 7.2. Re-executing Workflow Parts: Loops
+        <link href="https://docs.knime.com/latest/analytics_platform_flow_control_guide/index.html#loops">
+            KNIME Flow Control Guide: Section Loops
         </link>
     </fullDescription>
 

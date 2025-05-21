@@ -41,11 +41,11 @@
             start node itself are excluded as these usually represent loop controls (e.g.
             <i>&#8220;currentIteration&#8221;</i>).
 		</option>
-        <link href="https://www.knime.com/knime-introductory-course/chapter7/section1/creation-and-usage-of-flow-variables">
-            KNIME E-Learning Course: Creation and usage of Flow Variables in a KNIME workflow
+        <link href="https://docs.knime.com/latest/analytics_platform_flow_control_guide/index.html#flow-variables">
+            KNIME Flow Control Guide: Flow Variables
         </link>
-        <link href="https://www.knime.com/knime-introductory-course/chapter7/section2">
-            KNIME E-Learning Course: Re-executing Workflow Parts: Loops
+        <link href="https://docs.knime.com/latest/analytics_platform_flow_control_guide/index.html#loops">
+            KNIME Flow Control Guide: Section Loops
         </link>
     </fullDescription>
 

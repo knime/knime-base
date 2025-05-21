@@ -23,11 +23,11 @@
 			start node in subsequent iterations (e.g. moving sum calculation). Note that variables defined by the loop 
 			start node itself are excluded as these usually represent loop controls (e.g. <i>"currentIteration"</i>).
 		</option>
-		<link href="https://www.knime.com/self-paced-course/l2-ds-knime-analytics-platform-for-data-scientists-advanced/lesson2">
-			KNIME Analytics Platform for Data Scientists (Advanced): Lesson 2. Flow Variables &amp; Components
+		<link href="https://docs.knime.com/latest/analytics_platform_flow_control_guide/index.html#flow-variables">
+			KNIME Flow Control Guide: Flow Variables
 		</link>
-		<link href="https://www.knime.com/self-paced-course/l2-ds-knime-analytics-platform-for-data-scientists-advanced/lesson3">
-			KNIME Analytics Platform for Data Scientists (Advanced): Lesson 3. Workflow Control
+		<link href="https://docs.knime.com/latest/analytics_platform_flow_control_guide/index.html#loops">
+			KNIME Flow Control Guide: Section Loops
 		</link>
 	</fullDescription>
 		
