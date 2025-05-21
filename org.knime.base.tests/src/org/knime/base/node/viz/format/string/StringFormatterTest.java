@@ -405,4 +405,14 @@ class StringFormatterTest {
         assertThrows(IllegalArgumentException.class, () -> fmt.getHTML(doubleCell), "Non-String cells must throw");
     }
 
+    @Test
+    void testCanHandleDollarsInUrls() throws InvalidSettingsException {
+        final var settings = new Settings(500, 0, false, false, LEFT, false, false, Optional.empty(), true);
+        final var fmt = StringFormatter.fromSettings(settings);
+
+        final var urlWithDollarSign = "http://foo.org/index.html$";
+
+        assertTrue(fmt.format(urlWithDollarSign).contains(String.format("href=\"%s\"", urlWithDollarSign)),
+            "URL with Dollar signs nor properly formatted.");
+    }
 }
