@@ -14,8 +14,8 @@
 
 		<option name="Score variable">The flow variable that contains the score for the model</option>
 		<option name="Minimize">Check this option if you want to minimize the score (if you use error as score, for example, and you want to minimize error).  If the option is left unchecked, the score will be maximized.</option>
-		<link href="https://www.knime.com/knime-introductory-course/chapter7/section2">
-			KNIME E-Learning Course: Section 7.2. Re-executing Workflow Parts: Loops
+		<link href="https://docs.knime.com/latest/analytics_platform_flow_control_guide/index.html#loops">
+			KNIME Flow Control Guide: Section Loops
 		</link>
 	</fullDescription>
 

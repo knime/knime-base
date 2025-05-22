@@ -92,8 +92,8 @@ public final class LoopStartCountDynamicNodeFactory extends
                </p>
                 """)
             .modelSettingsClass(LoopStartCountDynamicSettings.class) //
-            .addExternalResource("https://www.knime.com/knime-introductory-course/chapter7/section2",
-                "KNIME E-Learning Course: Section 7.2. Re-executing Workflow Parts: Loops") //
+            .addExternalResource("https://docs.knime.com/latest/analytics_platform_flow_control_guide/index.html#loops",
+                "KNIME Flow Control Guide: Section Loops") //
             .addInputPort(PORT_GROUP, PortObject.TYPE,
                 "The input data, which can be a data table or any other arbitrary port object.", true) //
             .addOutputPort(PORT_GROUP, PortObject.TYPE, "The unaltered input object", true) //

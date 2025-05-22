@@ -76,8 +76,8 @@ public class GroupLoopStartNodeFactory extends WebUINodeFactory<GroupLoopStartNo
         .modelSettingsClass(GroupLoopStartNodeSettings.class)//
         .addInputTable("Any Table", "Any input table. Each iteration will process one group of this table.")//
         .addOutputTable("Grouped Input", "The current group of the input table.")//
-        .addExternalResource("https://www.knime.com/knime-introductory-course/chapter7/section2",
-            "KNIME E-Learning Course: Section 7.2. Re-executing Workflow Parts: Loops")//
+        .addExternalResource("https://docs.knime.com/latest/analytics_platform_flow_control_guide/index.html#loops",
+            "KNIME Flow Control Guide: Section Loops")//
         .nodeType(NodeType.LoopStart)//
         .sinceVersion(5, 3, 0).build();
 
