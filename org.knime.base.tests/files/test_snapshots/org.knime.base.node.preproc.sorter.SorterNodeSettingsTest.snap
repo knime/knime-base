@@ -117,7 +117,7 @@
                 "id" : "ROW_ID",
                 "text" : "RowID"
               } ],
-              "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider"
+              "choicesProvider" : "org.knime.base.node.preproc.sorter.SorterNodeSettings$SorterCriterionColumnChoicesProvider"
             }
           }, {
             "type" : "Control",
@@ -144,7 +144,8 @@
           } ],
           "addButtonText" : "Add sorting criterion",
           "arrayElementTitle" : "Criterion",
-          "showSortButtons" : true
+          "showSortButtons" : true,
+          "elementDefaultValueProvider" : "org.knime.base.node.preproc.sorter.SorterNodeSettings$SorterDefaultValueProvider"
         }
       } ]
     }, {
@@ -222,9 +223,9 @@
     } ]
   }, {
     "scopes" : null,
-    "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
+    "id" : "org.knime.base.node.preproc.sorter.SorterNodeSettings$SorterCriterionColumnChoicesProvider",
     "values" : [ {
-      "indices" : [ ],
+      "indices" : [ 0 ],
       "value" : [ {
         "id" : "test1",
         "text" : "test1",
@@ -241,8 +242,34 @@
         }
       } ]
     } ]
+  }, {
+    "scopes" : null,
+    "id" : "org.knime.base.node.preproc.sorter.SorterNodeSettings$SorterDefaultValueProvider",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "column" : {
+          "regularChoice" : "test2"
+        },
+        "isStringColumn" : false,
+        "sortingOrder" : "ASCENDING",
+        "stringComparison" : "NATURAL"
+      }
+    } ]
   } ],
   "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "org.knime.base.node.preproc.sorter.SorterNodeSettings$SortingCriteriaRef",
+      "scopes" : [ "#/properties/model/properties/sortingCriteria" ]
+    },
+    "dependencies" : [ {
+      "scopes" : [ "#/properties/model/properties/sortingCriteria" ],
+      "id" : "org.knime.base.node.preproc.sorter.SorterNodeSettings$SortingCriteriaRef"
+    }, {
+      "scopes" : [ "#/properties/model/properties/sortingCriteria", "#/properties/column" ],
+      "id" : "org.knime.base.node.util.preproc.SortingUtils$SortingCriterionSettings$ColumnRef"
+    } ]
+  }, {
     "trigger" : {
       "id" : "org.knime.base.node.util.preproc.SortingUtils$SortingCriterionSettings$ColumnRef",
       "scopes" : [ "#/properties/model/properties/sortingCriteria", "#/properties/column" ]

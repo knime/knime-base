@@ -54,6 +54,7 @@ import java.util.List;
 
 import org.knime.base.node.preproc.sorter.dialog.DynamicSorterPanel;
 import org.knime.base.node.util.SortKeyItem;
+import org.knime.base.node.util.preproc.SortingUtils;
 import org.knime.base.node.util.preproc.SortingUtils.SortingCriterionSettings;
 import org.knime.base.node.util.preproc.SortingUtils.SortingOrder;
 import org.knime.base.node.util.preproc.SortingUtils.StringComparison;
@@ -72,6 +73,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.Ro
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  * @author Paul Bärnreuther
@@ -152,11 +155,41 @@ final class SorterNodeSettings implements DefaultNodeSettings {
     interface Criteria {
     }
 
+    interface SortingCriteriaRef extends Reference<SortingCriterionSettings[]> {
+    }
+
     @Layout(Criteria.class)
     @Widget(title = "Sorting", description = "A list of sorting critera.")
     @Migration(LoadDeprecatedSortingCriterionArraySettings.class)
-    @ArrayWidget(elementTitle = "Criterion", addButtonText = "Add sorting criterion", showSortButtons = true)
+    @ArrayWidget(elementTitle = "Criterion", addButtonText = "Add sorting criterion", showSortButtons = true,
+        elementDefaultValueProvider = SorterDefaultValueProvider.class)
+    @ValueReference(SortingCriteriaRef.class)
+    @Modification(SorterModification.class)
     SortingCriterionSettings[] m_sortingCriteria = new SortingCriterionSettings[]{new SortingCriterionSettings()};
+
+    static final class SorterCriterionColumnChoicesProvider
+        extends SortingCriterionSettings.CriterionColumnChoicesProvider<SortingCriterionSettings> {
+
+        protected SorterCriterionColumnChoicesProvider() {
+            super(SortingCriteriaRef.class);
+        }
+    }
+
+    static final class SorterModification extends SortingCriterionSettings.CriterionColumnChoicesModification {
+
+        protected SorterModification() {
+            super(SorterCriterionColumnChoicesProvider.class);
+        }
+
+    }
+
+    static final class SorterDefaultValueProvider extends SortingUtils.SortingCriterionDefaultValueProvider {
+
+        SorterDefaultValueProvider() {
+            super(SortingCriteriaRef.class);
+        }
+
+    }
 
     @Section(title = "Special Values and Performance", advanced = true)
     @After(Criteria.class)

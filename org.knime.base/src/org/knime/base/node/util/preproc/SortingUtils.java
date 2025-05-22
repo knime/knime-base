@@ -49,10 +49,13 @@
 package org.knime.base.node.util.preproc;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
@@ -61,6 +64,7 @@ import org.knime.core.data.StringValue;
 import org.knime.core.data.sort.RowComparator;
 import org.knime.core.data.sort.RowComparator.ColumnComparatorBuilder;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
@@ -69,12 +73,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.booleanhelpers
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelectionToStringWithRowIDChoiceMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.BooleanReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
@@ -137,6 +143,82 @@ public final class SortingUtils {
                     Sorts strings so that each digit is treated as a separated character. For example, results \
                     in sort order “'Row1', 'Row10', 'Row2'”.""")
             LEXICOGRAPHIC;
+    }
+
+    /**
+     * Can be used to provide a new (not already used) value.
+     *
+     * @author Martin Sillye, TNG Technology Consulting GmbH
+     * @param <T1> Type of the SortingCriterionSettings
+     */
+    public abstract static class DefaultValueProvider<T1 extends SortingCriterionSettings>
+        implements StateProvider<T1> {
+
+        private Class<? extends Reference<T1[]>> m_arrayRef;
+
+        private Supplier<T1[]> m_array;
+
+        /**
+         * @param arrayRef Reference class to the SortingCriterion array.
+         */
+        protected DefaultValueProvider(final Class<? extends Reference<T1[]>> arrayRef) {
+            this.m_arrayRef = arrayRef;
+        }
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            this.m_array = initializer.computeFromValueSupplier(m_arrayRef);
+            initializer.computeBeforeOpenDialog();
+        }
+
+        /**
+         * @param context
+         * @return optional value of the first available column spec.
+         */
+        protected Optional<DataColumnSpec> getFirstAvailableDataColumnSpec(final DefaultNodeSettingsContext context) {
+            final var spec = context.getDataTableSpec(0);
+            if (spec.isEmpty()) {
+                return Optional.empty();
+            }
+            final var columns = getAlreadySelectedColumns();
+            return spec.get().stream().filter(colSpec -> !columns.contains(colSpec.getName())).findFirst();
+        }
+
+        /**
+         * @return a set of already selected columns
+         */
+        protected Set<String> getAlreadySelectedColumns() {
+            return Arrays.stream(m_array.get()).map(T1::getColumn).filter(column -> column.getEnumChoice().isEmpty())
+                .map(StringOrEnum::getStringChoice).collect(Collectors.toSet());
+        }
+
+    }
+
+    /**
+     * Default value provider for the {@link SortingCriterionSettings} class.
+     *
+     * @author Paul Bärnreuther
+     */
+    public abstract static class SortingCriterionDefaultValueProvider
+        extends DefaultValueProvider<SortingCriterionSettings> {
+        /**
+         * @param arrayRef Reference class to the SortingCriterion array.
+         */
+        protected SortingCriterionDefaultValueProvider(
+            final Class<? extends Reference<SortingCriterionSettings[]>> arrayRef) {
+            super(arrayRef);
+        }
+
+        @Override
+        public SortingCriterionSettings computeState(final DefaultNodeSettingsContext context)
+            throws StateComputationFailureException {
+            final var firstAvailableCol = getFirstAvailableDataColumnSpec(context);
+            if (firstAvailableCol.isEmpty()) {
+                return new SortingCriterionSettings();
+            }
+            return new SortingCriterionSettings(firstAvailableCol.get());
+        }
+
     }
 
     /**
@@ -242,6 +324,74 @@ public final class SortingUtils {
                 return group.find(StringComparisonRef.class);
             }
 
+        }
+
+        /**
+         * Use this modification to prevent that the same column is used twice when these settings are used in an array.
+         *
+         */
+        public abstract static class CriterionColumnChoicesModification extends SortingModification {
+
+            private Class<? extends CriterionColumnChoicesProvider> m_provider;
+
+            /**
+             * @param provider the provider class to use for the column choices
+             */
+            protected CriterionColumnChoicesModification(
+                final Class<? extends CriterionColumnChoicesProvider> provider) {
+                m_provider = provider;
+            }
+
+            @Override
+            public void modify(final WidgetGroupModifier group) {
+                this.getColumnModifier(group).modifyAnnotation(ChoicesProvider.class).withValue(m_provider).modify();
+            }
+
+        }
+
+        /**
+         *
+         * Use this provider to prevent that the same column is used twice when these settings are used in an array.
+         *
+         * @param <T> the used subtype of the {@link SortingCriterionSettings}
+         * @see CriterionColumnChoicesProvider
+         *
+         */
+        public abstract static class CriterionColumnChoicesProvider<T extends SortingCriterionSettings>
+            implements ColumnChoicesProvider {
+
+            private Supplier<T[]> m_criterions;
+
+            private Supplier<StringOrEnum<RowIDChoice>> m_columSelection;
+
+            private Class<? extends Reference<T[]>> m_arrayRef;
+
+            /**
+             * @param arrayRef Reference class to the SortingCriterion array.
+             */
+            protected CriterionColumnChoicesProvider(final Class<? extends Reference<T[]>> arrayRef) {
+                this.m_arrayRef = arrayRef;
+            }
+
+            @Override
+            public void init(final StateProviderInitializer initializer) {
+                this.m_criterions = initializer.computeFromValueSupplier(m_arrayRef);
+                this.m_columSelection = initializer.getValueSupplier(SortingCriterionSettings.getColumnRef());
+                initializer.computeBeforeOpenDialog();
+            }
+
+            @Override
+            public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
+                final var spec = context.getDataTableSpec(0);
+                if (spec.isEmpty()) {
+                    return Collections.emptyList();
+                }
+                final var columns = Arrays.stream(m_criterions.get()).map(SortingCriterionSettings::getColumn)
+                    .filter(column -> column.getEnumChoice().isEmpty()).map(StringOrEnum::getStringChoice)
+                    .filter(stringChoice -> !stringChoice.equals(this.m_columSelection.get().getStringChoice()))
+                    .collect(Collectors.toSet());
+                return spec.get().stream().filter(colSpec -> !columns.contains(colSpec.getName())).toList();
+            }
         }
 
         @Widget(title = "Column", description = """

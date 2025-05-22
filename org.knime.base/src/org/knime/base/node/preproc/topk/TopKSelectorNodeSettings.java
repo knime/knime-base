@@ -53,6 +53,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.setting.singleselec
 import java.util.List;
 import java.util.stream.IntStream;
 
+import org.knime.base.node.util.preproc.SortingUtils;
 import org.knime.base.node.util.preproc.SortingUtils.SortingCriterionSettings;
 import org.knime.base.node.util.preproc.SortingUtils.SortingOrder;
 import org.knime.base.node.util.preproc.SortingUtils.StringComparison;
@@ -71,6 +72,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 
 /**
@@ -154,11 +157,41 @@ final class TopKSelectorNodeSettings implements DefaultNodeSettings {
     interface OutputSortingSection {
     }
 
+    interface SortingCriteriaRef extends Reference<SortingCriterionSettings[]> {
+    }
+
     @Layout(SortingSection.class)
     @Widget(title = "Sorting", description = "A list of sorting critera.")
     @Migration(LegacySortingSettingsMigration.class)
-    @ArrayWidget(elementTitle = "Criterion", addButtonText = "Add sorting criterion", showSortButtons = true)
+    @ArrayWidget(elementTitle = "Criterion", addButtonText = "Add sorting criterion", showSortButtons = true,
+        elementDefaultValueProvider = TopKDefaultValueProvider.class)
+    @ValueReference(SortingCriteriaRef.class)
+    @Modification(TopKModification.class)
     SortingCriterionSettings[] m_sortingCriteria = new SortingCriterionSettings[]{new SortingCriterionSettings()};
+
+    static final class TopKDefaultValueProvider extends SortingUtils.SortingCriterionDefaultValueProvider {
+
+        TopKDefaultValueProvider() {
+            super(SortingCriteriaRef.class);
+        }
+
+    }
+
+    static final class TopKCriterionColumnChoicesProvider
+        extends SortingCriterionSettings.CriterionColumnChoicesProvider<SortingCriterionSettings> {
+
+        protected TopKCriterionColumnChoicesProvider() {
+            super(SortingCriteriaRef.class);
+        }
+    }
+
+    static final class TopKModification extends SortingCriterionSettings.CriterionColumnChoicesModification {
+
+        protected TopKModification() {
+            super(TopKCriterionColumnChoicesProvider.class);
+        }
+
+    }
 
     @Layout(FilterSection.class)
     @Widget(title = "Filter mode", description = "Specifies the mode for the top k selection of the output")
