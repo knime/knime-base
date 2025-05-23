@@ -3,6 +3,7 @@
     <entry key="selected_column" type="xstring" isnull="true" value=""/>
     <config key="filter config">
         <entry key="filter-type" type="xstring" value="STANDARD"/>
+        <entry key="handle-both-included-and-excluded-names-correctly_Internals" type="xboolean" value="true"/>
         <config key="included_names">
             <entry key="array-size" type="xint" value="0"/>
         </config>
