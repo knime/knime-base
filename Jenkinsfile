@@ -33,6 +33,7 @@ try {
                         "knime-chemistry",
                         "knime-cloud",
                         "knime-conda",
+                        "knime-conda-channels",
                         "knime-core",
                         "knime-core-ui",
                         "knime-credentials-base",
