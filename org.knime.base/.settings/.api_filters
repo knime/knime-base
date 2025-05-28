@@ -16,6 +16,38 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.base.node.preproc.autobinner.apply.AutoBinnerApply">
+        <filter id="305324134">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.autobinner.apply.AutoBinnerApply"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.base.node.preproc.autobinner3.AutoBinner">
+        <filter id="305324134">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.autobinner3.AutoBinner"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.base.node.preproc.autobinner3.AutoBinnerLearnSettings">
+        <filter id="305324134">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.autobinner3.AutoBinnerLearnSettings"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.base.node.preproc.binner.NumericBin">
+        <filter id="305324134">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.binner.NumericBin"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="META-INF/MANIFEST.MF" type="org.knime.base.node.preproc.createtablestructure.CreateTableStructureNodeDialog">
         <filter id="305324134">
             <message_arguments>
@@ -72,6 +104,14 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.base.node.preproc.pmml.binner.NumericBin">
+        <filter id="305324134">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.pmml.binner.NumericBin"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="META-INF/MANIFEST.MF" type="org.knime.base.node.preproc.stringreplacer.CaseMatching">
         <filter id="305324134">
             <message_arguments>
@@ -96,6 +136,30 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="src-deprecated/org/knime/base/node/preproc/autobinner/AutoBinner.java" type="org.knime.base.node.preproc.autobinner.AutoBinner">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.autobinner.AutoBinner"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src-deprecated/org/knime/base/node/preproc/autobinner/AutoBinnerLearnNodeFactory.java" type="org.knime.base.node.preproc.autobinner.AutoBinnerLearnNodeFactory">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.autobinner.AutoBinnerLearnNodeFactory"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src-deprecated/org/knime/base/node/preproc/autobinner/AutoBinnerLearnSettings.java" type="org.knime.base.node.preproc.autobinner.AutoBinnerLearnSettings">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.autobinner.AutoBinnerLearnSettings"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="src/org/knime/base/node/io/filehandling/webui/reader/CommonReaderNodeSettings.java" type="org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$SkipFirstDataRowsPersistor">
         <filter id="338792546">
             <message_arguments>
@@ -116,6 +180,22 @@
         <filter id="305365105">
             <message_arguments>
                 <message_argument value="org.knime.base.node.io.variablecreator.VariableCreatorNodeFactory"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/autobinner3/AutoBinnerLearnNodeDialogPane.java" type="org.knime.base.node.preproc.autobinner3.AutoBinnerLearnNodeDialogPane">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.autobinner3.AutoBinnerLearnNodeDialogPane"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/autobinner3/AutoBinnerLearnNodeFactory.java" type="org.knime.base.node.preproc.autobinner3.AutoBinnerLearnNodeFactory">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.autobinner3.AutoBinnerLearnNodeFactory"/>
                 <message_argument value="org.knime.base_5.5.0"/>
             </message_arguments>
         </filter>
@@ -269,6 +349,20 @@
         <filter id="305365105">
             <message_arguments>
                 <message_argument value="org.knime.base.node.preproc.filter.rowref.RowSplitRefNodeModel"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/pmml/binner/BinnerColumnFactory.java" type="org.knime.base.node.preproc.pmml.binner.BinnerColumnFactory">
+        <filter id="338722907">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.pmml.binner.BinnerColumnFactory"/>
+                <message_argument value="BinnerColumnFactory(int, BinnerColumnFactory.Bin[], String, boolean)"/>
+            </message_arguments>
+        </filter>
+        <filter id="338886760">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.pmml.binner.BinnerColumnFactory.Bin"/>
                 <message_argument value="org.knime.base_5.5.0"/>
             </message_arguments>
         </filter>
