@@ -167,7 +167,10 @@ final class BinnerColumnFactory implements CellFactory {
 
     /**
      * General bin.
+     *
+     * @deprecated please use {@link org.knime.core.util.binning.numeric.Bin} instead since this is a duplicate.
      */
+    @Deprecated
     public interface Bin {
 
         /**
