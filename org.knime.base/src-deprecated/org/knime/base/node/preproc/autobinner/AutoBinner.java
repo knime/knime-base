@@ -70,6 +70,7 @@ import org.knime.base.node.preproc.autobinner.pmml.PMMLDiscretizePreprocPortObje
 import org.knime.base.node.preproc.autobinner.pmml.PMMLInterval;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLInterval.Closure;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLPreprocDiscretize;
+import org.knime.base.node.util.binning.AutoBinningUtils;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnDomainCreator;
 import org.knime.core.data.DataColumnSpec;
@@ -91,7 +92,11 @@ import org.knime.core.node.port.pmml.preproc.PMMLPreprocPortObjectSpec;
  * Creates Bins. Use this class in other nodes.
  *
  * @author Heiko Hofer
+ *
+ * @deprecated This relies on many deprecated classes and methods, and is a duplicate of several other classes of the
+ * same name. Consider {@link AutoBinningUtils} instead.
  */
+@Deprecated
 public class AutoBinner {
 
     private AutoBinnerLearnSettings m_settings;
