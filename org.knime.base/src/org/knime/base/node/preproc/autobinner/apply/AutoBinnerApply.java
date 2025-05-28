@@ -49,6 +49,7 @@ package org.knime.base.node.preproc.autobinner.apply;
 
 import org.knime.base.node.preproc.autobinner.pmml.DisretizeConfiguration;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLPreprocDiscretize;
+import org.knime.base.node.util.binning.AutoBinningUtils;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.node.BufferedDataTable;
@@ -60,7 +61,10 @@ import org.knime.core.node.InvalidSettingsException;
  * Use this in other nodes for binning data.
  *
  * @author Heiko Hofer
+ *
+ * @deprecated This relies on several deprecated classes and methods. Consider using {@link AutoBinningUtils} instead.
  */
+@Deprecated
 public final class AutoBinnerApply {
     /**
      * @param op {@link PMMLPreprocDiscretize} operation

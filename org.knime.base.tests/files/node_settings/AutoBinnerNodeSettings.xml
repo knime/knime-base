@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="settings.xml">
+    <entry key="node_file" type="xstring" value="settings.xml"/>
+    <config key="flow_stack"/>
+    <config key="internal_node_subsettings">
+        <entry key="memory_policy" type="xstring" value="CacheSmallInMemory"/>
+    </config>
+    <config key="model">
+        <config key="selectedColumns">
+            <entry key="mode" type="xstring" value="MANUAL"/>
+            <config key="patternFilter">
+                <entry key="pattern" type="xstring" value=""/>
+                <entry key="isCaseSensitive" type="xboolean" value="false"/>
+                <entry key="isInverted" type="xboolean" value="false"/>
+            </config>
+            <config key="manualFilter">
+                <config key="manuallySelected">
+                    <entry key="array-size" type="xint" value="5"/>
+                    <entry key="0" type="xstring" value="Universe_0_0"/>
+                    <entry key="1" type="xstring" value="Universe_0_1"/>
+                    <entry key="2" type="xstring" value="Universe_1_0"/>
+                    <entry key="3" type="xstring" value="Universe_1_1"/>
+                    <entry key="4" type="xstring" value="newvalue"/>
+                </config>
+                <config key="manuallyDeselected">
+                    <entry key="array-size" type="xint" value="0"/>
+                </config>
+                <entry key="includeUnknownColumns" type="xboolean" value="false"/>
+            </config>
+            <config key="typeFilter">
+                <config key="selectedTypes">
+                    <entry key="array-size" type="xint" value="0"/>
+                </config>
+            </config>
+        </config>
+        <entry key="binningType" type="xstring" value="EQUAL_WIDTH"/>
+        <entry key="numberOfBins" type="xint" value="20"/>
+        <config key="customCutoffs">
+            <config key="0">
+                <entry key="cutoff" type="xdouble" value="0.0"/>
+                <entry key="matchType" type="xstring" value="TO_LOWER_BIN"/>
+            </config>
+        </config>
+        <config key="customQuantiles">
+            <config key="0">
+                <entry key="quantile" type="xdouble" value="0.0"/>
+                <entry key="matchType" type="xstring" value="TO_LOWER_BIN"/>
+            </config>
+        </config>
+        <entry key="enforceIntegerCutoffs" type="xboolean" value="false"/>
+        <entry key="fixLowerBound" type="xboolean" value="false"/>
+        <entry key="fixedLowerBound" type="xdouble" value="0.0"/>
+        <entry key="fixUpperBound" type="xboolean" value="false"/>
+        <entry key="fixedUpperBound" type="xdouble" value="0.0"/>
+        <entry key="binNames" type="xstring" value="NUMBERED"/>
+        <entry key="prefix" type="xstring" value="Bin "/>
+        <entry key="lowerOutlierValue" type="xstring" value="Lower outlier"/>
+        <entry key="upperOutlierValue" type="xstring" value="Upper outlier"/>
+        <entry key="numberFormat" type="xstring" value="COLUMN_FORMAT"/>
+        <config key="numberFormatSettings">
+            <entry key="numberFormat" type="xstring" value="STANDARD_STRING"/>
+            <entry key="precision" type="xint" value="3"/>
+            <entry key="precisionMode" type="xstring" value="DECIMAL_PLACES"/>
+            <entry key="roundingMode" type="xstring" value="UP"/>
+        </config>
+        <entry key="replaceOrAppend" type="xstring" value="REPLACE"/>
+        <entry key="suffix" type="xstring" value=" (Binned)"/>
+    </config>
+    <entry key="customDescription" type="xstring" isnull="true" value=""/>
+    <entry key="state" type="xstring" value="EXECUTED"/>
+    <entry key="factory" type="xstring" value="org.knime.base.node.preproc.autobinner4.AutoBinnerNodeFactory4"/>
+    <entry key="node-name" type="xstring" value="Binner"/>
+    <entry key="node-bundle-name" type="xstring" value="KNIME Base Nodes"/>
+    <entry key="node-bundle-symbolic-name" type="xstring" value="org.knime.base"/>
+    <entry key="node-bundle-vendor" type="xstring" value="KNIME AG, Zurich, Switzerland"/>
+    <entry key="node-bundle-version" type="xstring" value="5.5.0.qualifier"/>
+    <entry key="node-feature-name" type="xstring" isnull="true" value=""/>
+    <entry key="node-feature-symbolic-name" type="xstring" isnull="true" value=""/>
+    <entry key="node-feature-vendor" type="xstring" isnull="true" value=""/>
+    <entry key="node-feature-version" type="xstring" value="0.0.0"/>
+    <config key="factory_settings"/>
+    <entry key="name" type="xstring" value="Binner"/>
+    <entry key="hasContent" type="xboolean" value="true"/>
+    <entry key="isInactive" type="xboolean" value="false"/>
+    <config key="ports">
+        <config key="port_1">
+            <entry key="index" type="xint" value="1"/>
+            <entry key="port_spec_class" type="xstring" value="org.knime.core.data.DataTableSpec"/>
+            <entry key="port_object_class" type="xstring" value="org.knime.core.node.BufferedDataTable"/>
+            <entry key="port_object_summary" type="xstring" value="Rows: 5400, Cols: 6"/>
+            <entry key="port_dir_location" type="xstring" value="port_1"/>
+        </config>
+        <config key="port_2">
+            <entry key="index" type="xint" value="2"/>
+            <entry key="port_spec_class" type="xstring" value="org.knime.core.node.port.pmml.PMMLPortObjectSpec"/>
+            <entry key="port_object_class" type="xstring" value="org.knime.core.node.port.pmml.PMMLPortObject"/>
+            <entry key="port_object_summary" type="xstring" value="PMML document with version 4.2 and models: "/>
+            <entry key="port_spec_location" type="xstring" value="spec/spec.zip"/>
+            <entry key="port_object_location" type="xstring" value="object/portobject.zip"/>
+            <entry key="port_dir_location" type="xstring" value="port_2"/>
+        </config>
+    </config>
+    <config key="filestores">
+        <entry key="file_store_location" type="xstring" isnull="true" value=""/>
+        <entry key="file_store_id" type="xstring" value="f71346d0-f6d3-46d9-97d8-43ed300d0e0b"/>
+    </config>
+</config>
