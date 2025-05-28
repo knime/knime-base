@@ -45,8 +45,9 @@
  * History
  *   12.07.2010 (hofer): created
  */
-package org.knime.base.node.preproc.autobinner.apply;
+package org.knime.base.node.util.binning;
 
+import org.knime.base.node.preproc.autobinner.apply.BinningCellFactory;
 import org.knime.base.node.preproc.autobinner.pmml.DisretizeConfiguration;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLPreprocDiscretize;
 import org.knime.core.data.DataTableSpec;
@@ -60,16 +61,17 @@ import org.knime.core.node.InvalidSettingsException;
  * Use this in other nodes for binning data.
  *
  * @author Heiko Hofer
+ * @since 5.5
  */
 public final class AutoBinnerApply {
     /**
      * @param op {@link PMMLPreprocDiscretize} operation
      * @param dataSpec table with data to discretize
-     * @return  The spec of the output.
+     * @return The spec of the output.
      * @throws InvalidSettingsException If settings are inconsistent
      */
-    public DataTableSpec getOutputSpec(final PMMLPreprocDiscretize op,
-            final DataTableSpec dataSpec) throws InvalidSettingsException {
+    public static DataTableSpec getOutputSpec(final PMMLPreprocDiscretize op, final DataTableSpec dataSpec)
+        throws InvalidSettingsException {
         ColumnRearranger rearranger = getRearranger(op, dataSpec);
         return rearranger.createSpec();
     }
@@ -84,44 +86,37 @@ public final class AutoBinnerApply {
      * @throws InvalidSettingsException when settings are inconsistent
      * @throws CanceledExecutionException when execution is canceled
      */
-    public BufferedDataTable execute(final PMMLPreprocDiscretize op,
-            final BufferedDataTable inTable, final ExecutionContext exec)
-    throws InvalidSettingsException, CanceledExecutionException {
-        ColumnRearranger rearranger = getRearranger(op,
-                inTable.getDataTableSpec());
+    public static BufferedDataTable execute(final PMMLPreprocDiscretize op, final BufferedDataTable inTable,
+        final ExecutionContext exec) throws InvalidSettingsException, CanceledExecutionException {
+        ColumnRearranger rearranger = getRearranger(op, inTable.getDataTableSpec());
         return exec.createColumnRearrangeTable(inTable, rearranger, exec);
     }
 
-   /** Create {@link ColumnRearranger}.
-    * @param op {@link PMMLPreprocDiscretize} operation
-    * @param inTable the input data table
-    * @throws InvalidSettingsException when settings are inconsistent
-    */
-    ColumnRearranger getRearranger(final PMMLPreprocDiscretize op,
-            final DataTableSpec dataSpec) throws InvalidSettingsException {
+    /**
+     * Create {@link ColumnRearranger}.
+     *
+     * @param op {@link PMMLPreprocDiscretize} operation
+     * @param inTable the input data table
+     * @throws InvalidSettingsException when settings are inconsistent
+     */
+    public static ColumnRearranger getRearranger(final PMMLPreprocDiscretize op, final DataTableSpec dataSpec)
+        throws InvalidSettingsException {
         DisretizeConfiguration config = op.getConfiguration();
         // Check if columns to discretize exist
         for (String name : config.getNames()) {
             String toBin = config.getDiscretize(name).getField();
             if (!dataSpec.containsName(toBin)) {
-                throw new InvalidSettingsException("Column "
-                        + "\"" + toBin + "\""
-                        + "is missing in the input table.");
+                throw new InvalidSettingsException("Column " + "\"" + toBin + "\"" + "is missing in the input table.");
             }
         }
         ColumnRearranger rearranger = new ColumnRearranger(dataSpec);
         for (String name : config.getNames()) {
-            int colIdx = dataSpec.findColumnIndex(
-                    config.getDiscretize(name).getField());
+            int colIdx = dataSpec.findColumnIndex(config.getDiscretize(name).getField());
             assert colIdx >= 0;
             if (dataSpec.containsName(name)) {
-                rearranger.replace(
-                        new BinningCellFactory(name, colIdx,
-                                config.getDiscretize(name)), name);
+                rearranger.replace(new BinningCellFactory(name, colIdx, config.getDiscretize(name)), name);
             } else {
-                rearranger.append(
-                        new BinningCellFactory(name, colIdx,
-                                config.getDiscretize(name)));
+                rearranger.append(new BinningCellFactory(name, colIdx, config.getDiscretize(name)));
             }
         }
 

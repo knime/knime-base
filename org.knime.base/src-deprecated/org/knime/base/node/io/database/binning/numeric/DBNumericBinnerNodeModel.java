@@ -60,8 +60,6 @@ import javax.crypto.IllegalBlockSizeException;
 import org.knime.base.node.io.database.DBNodeModel;
 import org.knime.base.node.io.database.binning.DBAutoBinner;
 import org.knime.base.node.io.database.binning.DBBinnerMaps;
-import org.knime.base.node.preproc.pmml.binner.BinnerColumnFactory.Bin;
-import org.knime.base.node.preproc.pmml.binner.NumericBin;
 import org.knime.base.node.preproc.pmml.binner.PMMLBinningTranslator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.CanceledExecutionException;
@@ -81,6 +79,8 @@ import org.knime.core.node.port.pmml.PMMLPortObject;
 import org.knime.core.node.port.pmml.PMMLPortObjectSpec;
 import org.knime.core.node.port.pmml.PMMLPortObjectSpecCreator;
 import org.knime.core.node.port.pmml.preproc.DerivedFieldMapper;
+import org.knime.core.util.binning.numeric.Bin;
+import org.knime.core.util.binning.numeric.NumericBin;
 
 /**
  * Node Model of Database Numeric-Binner

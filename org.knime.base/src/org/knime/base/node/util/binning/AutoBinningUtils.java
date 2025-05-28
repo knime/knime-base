@@ -45,7 +45,7 @@
  * History
  *   12.07.2010 (hofer): created
  */
-package org.knime.base.node.preproc.autobinner3;
+package org.knime.base.node.util.binning;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -64,7 +64,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.knime.base.data.sort.SortedTable;
-import org.knime.base.node.preproc.autobinner.apply.AutoBinnerApply;
 import org.knime.base.node.preproc.autobinner.pmml.DisretizeConfiguration;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLDiscretize;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLDiscretizeBin;
@@ -72,9 +71,6 @@ import org.knime.base.node.preproc.autobinner.pmml.PMMLDiscretizePreprocPortObje
 import org.knime.base.node.preproc.autobinner.pmml.PMMLInterval;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLInterval.Closure;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLPreprocDiscretize;
-import org.knime.base.node.preproc.autobinner3.AutoBinnerLearnSettings.BinNaming;
-import org.knime.base.node.preproc.autobinner3.AutoBinnerLearnSettings.EqualityMethod;
-import org.knime.base.node.preproc.autobinner3.AutoBinnerLearnSettings.Method;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnDomainCreator;
 import org.knime.core.data.DataColumnSpec;
@@ -82,7 +78,6 @@ import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
-import org.knime.core.data.RowIterator;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.node.BufferedDataTable;
@@ -91,15 +86,22 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.pmml.preproc.PMMLPreprocPortObjectSpec;
+import org.knime.core.util.binning.auto.BinNaming;
+import org.knime.core.util.binning.auto.BinningMethod;
+import org.knime.core.util.binning.auto.EqualityMethod;
 
 /**
- * Creates Bins. Use this class in other nodes.
+ * Given various settings, creates bins in the format of a {@link PMMLPreprocDiscretize}..
+ *
+ * Moved in v5.5 from a single node-specific package to this utils package.
  *
  * @author Heiko Hofer
+ *
+ * @since 5.5
  */
-public class AutoBinner {
+public class AutoBinningUtils {
 
-    private AutoBinnerLearnSettings m_settings;
+    private AutoBinningSettings m_settings;
 
     private PMMLPreprocPortObjectSpec m_pmmlOutSpec;
 
@@ -112,15 +114,16 @@ public class AutoBinner {
      * @param spec the data table spec
      * @throws InvalidSettingsException when settings are not consistent
      */
-    public AutoBinner(final AutoBinnerLearnSettings settings, final DataTableSpec spec) throws InvalidSettingsException {
+    public AutoBinningUtils(final AutoBinningSettings settings, final DataTableSpec spec)
+        throws InvalidSettingsException {
         m_settings = settings;
-        m_included = m_settings.getFilterConfiguration().applyTo(spec).getIncludes();
+        m_included = settings.getFilterConfiguration().applyTo(spec).getIncludes();
     }
 
     /**
      * @return the settings
      */
-    protected AutoBinnerLearnSettings getSettings() {
+    protected AutoBinningSettings getSettings() {
         return m_settings;
     }
 
@@ -135,11 +138,10 @@ public class AutoBinner {
     public PMMLPreprocDiscretize execute(final BufferedDataTable data, final ExecutionContext exec) throws Exception {
         final DataTableSpec spec = data.getDataTableSpec();
         // determine intervals
-        if (m_settings.getMethod().equals(Method.fixedNumber)) {
-            if (m_settings.getEqualityMethod().equals(EqualityMethod.width)) {
+        if (m_settings.getMethod() == BinningMethod.FIXED_NUMBER) {
+            if (m_settings.getEqualityMethod() == EqualityMethod.WIDTH) {
                 BufferedDataTable inData =
-                    calcDomainBoundsIfNeccessary(data, exec.createSubExecutionContext(0.9),
-                        Arrays.asList(m_included));
+                    calcDomainBoundsIfNeccessary(data, exec.createSubExecutionContext(0.9), Arrays.asList(m_included));
                 init(inData.getDataTableSpec());
                 Map<String, double[]> edgesMap = new HashMap<String, double[]>();
                 for (String target : m_included) {
@@ -152,10 +154,7 @@ public class AutoBinner {
                     double max = m_settings.getFixedUpperBound()
                         .orElse(((DoubleValue)targetCol.getDomain().getUpperBound()).getDoubleValue());
 
-                    // the edges of the bins
-                    int binCount = m_settings.getBinCount();
-
-                    double[] edges = calculateBounds(binCount, min, max);
+                    double[] edges = calculateBounds(m_settings.getBinCount(), min, max);
 
                     if (m_settings.getIntegerBounds()) {
                         edges = toIntegerBoundaries(edges);
@@ -178,7 +177,7 @@ public class AutoBinner {
                 }
                 return createDisretizeOp(edgesMap);
             }
-        } else if (m_settings.getMethod().equals(Method.sampleQuantiles)) {
+        } else if (m_settings.getMethod() == BinningMethod.SAMPLE_QUANTILES) {
             init(spec);
             Map<String, double[]> edgesMap = new LinkedHashMap<String, double[]>();
             final int colCount = m_included.length;
@@ -191,13 +190,11 @@ public class AutoBinner {
                 singleRearranger.keepOnly(target);
                 BufferedDataTable singleColSorted =
                     colSortContext.createColumnRearrangeTable(data, singleRearranger, colSortContext);
-                SortedTable sorted =
-                    new SortedTable(singleColSorted, Collections.singletonList(target), new boolean[]{true},
-                        colSortContext);
+                SortedTable sorted = new SortedTable(singleColSorted, Collections.singletonList(target),
+                    new boolean[]{true}, colSortContext);
                 colSortContext.setProgress(1.0);
-                double[] edges =
-                    createEdgesFromQuantiles(sorted.getBufferedDataTable(), colCalcContext,
-                        m_settings.getSampleQuantiles());
+                double[] edges = createEdgesFromQuantiles(sorted.getBufferedDataTable(), colCalcContext,
+                    m_settings.getSampleQuantiles());
                 colCalcContext.setProgress(1.0);
                 exec.clearTable(singleColSorted);
                 if (m_settings.getIntegerBounds()) {
@@ -255,20 +252,20 @@ public class AutoBinner {
         double[] edges = new double[binCount + 1];
         edges[0] = m_settings.getFixedLowerBound()
             .orElse(m_settings.getIntegerBounds() ? Math.floor(values.get(0)) : values.get(0));
-        edges[edges.length - 1] = m_settings.getFixedUpperBound().orElse(roundedValue(values.get(values.size() - 1)));
+        edges[edges.length - 1] = m_settings.getFixedUpperBound().orElse(optionalCeil(values.get(values.size() - 1)));
         int startIndex = 0;
         int index = countPerBin - 1;
         for (int i = 1; i < edges.length - 1; i++) {
             if (index < values.size()) {
-                double edge = roundedValue(values.get(index));
+                double edge = optionalCeil(values.get(index));
                 // get lower index
                 int lowerIndex = index;
-                while (lowerIndex >= startIndex && !(edge > roundedValue(values.get(lowerIndex)))) {
+                while (lowerIndex >= startIndex && !(edge > optionalCeil(values.get(lowerIndex)))) {
                     lowerIndex--;
                 }
                 // get higher index
                 int higherIndex = index;
-                while (higherIndex < values.size() - 1 && !(roundedValue(values.get(higherIndex + 1)) > edge)) {
+                while (higherIndex < values.size() - 1 && !(optionalCeil(values.get(higherIndex + 1)) > edge)) {
                     higherIndex++;
                 }
                 int lowerDiff = -1 * (lowerIndex - startIndex + 1 - countPerBin);
@@ -278,7 +275,7 @@ public class AutoBinner {
                 } else {
                     index = higherIndex;
                 }
-                edges[i] = roundedValue(values.get(index));
+                edges[i] = optionalCeil(values.get(index));
                 startIndex = index + 1;
                 index += countPerBin;
             } else {
@@ -288,7 +285,7 @@ public class AutoBinner {
         return edges;
     }
 
-    private double roundedValue(final double value) {
+    private double optionalCeil(final double value) {
         return m_settings.getIntegerBounds() ? Math.ceil(value) : value;
     }
 
@@ -299,44 +296,45 @@ public class AutoBinner {
         long n = data.size();
         long c = 0;
         int cc = 0;
-        RowIterator iter = data.iterator();
-        DataRow rowQ = null;
-        DataRow rowQ1 = null;
-        if (iter.hasNext()) {
-            rowQ1 = iter.next();
-            rowQ = rowQ1;
-        }
-
-        for (double p : sampleQuantiles) {
-            double h = (n - 1) * p + 1;
-            int q = (int)Math.floor(h);
-            while ((1.0 == p || c < q) && iter.hasNext()) {
-                rowQ = rowQ1;
+        try (var iter = data.iterator()) {
+            DataRow rowQ = null;
+            DataRow rowQ1 = null;
+            if (iter.hasNext()) {
                 rowQ1 = iter.next();
-                c++;
-                exec.setProgress(c / (double)n);
-                exec.checkCanceled();
+                rowQ = rowQ1;
             }
-            rowQ = 1.0 != p ? rowQ : rowQ1;
-            final DataCell xqCell = rowQ.getCell(0);
-            final DataCell xq1Cell = rowQ1.getCell(0);
-            // TODO should be able to handle missing values (need to filter
-            // data first?)
-            if (xqCell.isMissing() || xq1Cell.isMissing()) {
-                throw new RuntimeException("Missing values not support for " + "quantile calculation (error in row \""
-                    + rowQ1.getKey() + "\")");
+
+            for (double p : sampleQuantiles) {
+                double h = (n - 1) * p + 1;
+                int q = (int)Math.floor(h);
+                while ((1.0 == p || c < q) && iter.hasNext()) {
+                    rowQ = rowQ1;
+                    rowQ1 = iter.next();
+                    c++;
+                    exec.setProgress(c / (double)n);
+                    exec.checkCanceled();
+                }
+                rowQ = 1.0 != p ? rowQ : rowQ1;
+                final DataCell xqCell = rowQ.getCell(0);
+                final DataCell xq1Cell = rowQ1.getCell(0);
+                // TODO should be able to handle missing values (need to filter
+                // data first?)
+                if (xqCell.isMissing() || xq1Cell.isMissing()) {
+                    throw new RuntimeException("Missing values not support for "
+                        + "quantile calculation (error in row \"" + rowQ1.getKey() + "\")");
+                }
+                // for quantile calculation see also
+                // http://en.wikipedia.org/wiki/
+                //                Quantile#Estimating_the_quantiles_of_a_population.
+                // this implements R-7
+                double xq = ((DoubleValue)xqCell).getDoubleValue();
+                double xq1 = ((DoubleValue)xq1Cell).getDoubleValue();
+                double quantile = xq + (h - q) * (xq1 - xq);
+                edges[cc] = quantile;
+                cc++;
             }
-            // for quantile calculation see also
-            // http://en.wikipedia.org/wiki/
-            //                Quantile#Estimating_the_quantiles_of_a_population.
-            // this implements R-7
-            double xq = ((DoubleValue)xqCell).getDoubleValue();
-            double xq1 = ((DoubleValue)xq1Cell).getDoubleValue();
-            double quantile = xq + (h - q) * (xq1 - xq);
-            edges[cc] = quantile;
-            cc++;
+            return edges;
         }
-        return edges;
     }
 
     /**
@@ -368,11 +366,11 @@ public class AutoBinner {
                 double[] edges = edgesMap.get(target);
                 // Names of the bins
                 String[] binNames = new String[edges.length - 1];
-                if (m_settings.getBinNaming().equals(BinNaming.numbered)) {
+                if (m_settings.getBinNaming() == BinNaming.NUMBERED) {
                     for (int i = 0; i < binNames.length; i++) {
                         binNames[i] = "Bin " + (i + 1);
                     }
-                } else if (m_settings.getBinNaming().equals(BinNaming.edges)) {
+                } else if (m_settings.getBinNaming() == BinNaming.EDGES) {
                     binNames[0] = "[" + formatter.format(edges[0]) + "," + formatter.format(edges[1]) + "]";
                     for (int i = 1; i < binNames.length; i++) {
                         binNames[i] = "(" + formatter.format(edges[i]) + "," + formatter.format(edges[i + 1]) + "]";
@@ -384,11 +382,11 @@ public class AutoBinner {
                     }
                 }
                 List<PMMLDiscretizeBin> bins = new ArrayList<PMMLDiscretizeBin>();
-                bins.add(new PMMLDiscretizeBin(binNames[0], Arrays.asList(new PMMLInterval(edges[0], edges[1],
-                    Closure.closedClosed))));
+                bins.add(new PMMLDiscretizeBin(binNames[0],
+                    Arrays.asList(new PMMLInterval(edges[0], edges[1], Closure.closedClosed))));
                 for (int i = 1; i < binNames.length; i++) {
-                    bins.add(new PMMLDiscretizeBin(binNames[i], Arrays.asList(new PMMLInterval(edges[i], edges[i + 1],
-                        Closure.openClosed))));
+                    bins.add(new PMMLDiscretizeBin(binNames[i],
+                        Arrays.asList(new PMMLInterval(edges[i], edges[i + 1], Closure.openClosed))));
                 }
                 binMap.put(target, bins);
             } else {
@@ -396,78 +394,6 @@ public class AutoBinner {
             }
         }
         return binMap;
-    }
-
-    /**
-     * Determines the per column min/max values of the given data if not already present in the domain.
-     *
-     * @param data the data
-     * @param exec the execution context
-     * @param recalcValuesFor The columns
-     * @return The data with extended domain information
-     * @throws InvalidSettingsException ...
-     * @throws CanceledExecutionException ...
-     */
-    public BufferedDataTable calcDomainBoundsIfNeccessary(final BufferedDataTable data, final ExecutionContext exec,
-        final List<String> recalcValuesFor) throws InvalidSettingsException, CanceledExecutionException {
-
-        if (null == recalcValuesFor || recalcValuesFor.isEmpty()) {
-            return data;
-        }
-        List<Integer> valuesI = new ArrayList<Integer>();
-        for (String colName : recalcValuesFor) {
-            DataColumnSpec colSpec = data.getDataTableSpec().getColumnSpec(colName);
-            if (!colSpec.getType().isCompatible(DoubleValue.class)) {
-                throw new InvalidSettingsException("Can only process numeric " + "data. The column \""
-                    + colSpec.getName() + "\" is not numeric.");
-            }
-            if (recalcValuesFor.contains(colName) && !colSpec.getDomain().hasBounds()) {
-                valuesI.add(data.getDataTableSpec().findColumnIndex(colName));
-            }
-        }
-        if (valuesI.isEmpty()) {
-            return data;
-        }
-        Map<Integer, Double> min = new HashMap<Integer, Double>();
-        Map<Integer, Double> max = new HashMap<Integer, Double>();
-        for (int col : valuesI) {
-            min.put(col, Double.MAX_VALUE);
-            max.put(col, Double.MIN_VALUE);
-        }
-        int c = 0;
-        for (DataRow row : data) {
-            c++;
-            exec.checkCanceled();
-            exec.setProgress(c / (double)data.size());
-            for (int col : valuesI) {
-                double val = ((DoubleValue)row.getCell(col)).getDoubleValue();
-                if (min.get(col) > val) {
-                    min.put(col, val);
-                }
-                if (max.get(col) < val) {
-                    min.put(col, val);
-                }
-            }
-        }
-
-        List<DataColumnSpec> newColSpecList = new ArrayList<DataColumnSpec>();
-        int cc = 0;
-        for (DataColumnSpec columnSpec : data.getDataTableSpec()) {
-            if (recalcValuesFor.contains(columnSpec.getName())) {
-                DataColumnSpecCreator specCreator = new DataColumnSpecCreator(columnSpec);
-                DataColumnDomainCreator domainCreator =
-                    new DataColumnDomainCreator(new DoubleCell(min.get(cc)), new DoubleCell(max.get(cc)));
-                specCreator.setDomain(domainCreator.createDomain());
-                DataColumnSpec newColSpec = specCreator.createSpec();
-                newColSpecList.add(newColSpec);
-            } else {
-                newColSpecList.add(columnSpec);
-            }
-            cc++;
-        }
-        DataTableSpec spec = new DataTableSpec(newColSpecList.toArray(new DataColumnSpec[0]));
-        BufferedDataTable newDataTable = exec.createSpecReplacerTable(data, spec);
-        return newDataTable;
     }
 
     /**
@@ -484,8 +410,7 @@ public class AutoBinner {
     private void init(final DataTableSpec inSpec) throws InvalidSettingsException {
         PMMLPreprocDiscretize op = createDisretizeOp(null);
 
-        AutoBinnerApply applier = new AutoBinnerApply();
-        m_tableOutSpec = applier.getOutputSpec(op, inSpec);
+        m_tableOutSpec = AutoBinnerApply.getOutputSpec(op, inSpec);
         m_pmmlOutSpec = new PMMLDiscretizePreprocPortObjectSpec(op);
     }
 
@@ -493,7 +418,7 @@ public class AutoBinner {
      * This formatted should not be changed, since it may result in a different output of the binning labels.
      */
     protected class BinnerNumberFormat {
-        /**Constructor.*/
+        /** Constructor. */
         protected BinnerNumberFormat() {
             // no op
         }
@@ -541,19 +466,19 @@ public class AutoBinner {
         public String advancedFormat(final double d) {
             BigDecimal bd = new BigDecimal(d);
             switch (m_settings.getPrecisionMode()) {
-                case Decimal:
+                case DECIMAL:
                     bd = bd.setScale(m_settings.getPrecision(), m_settings.getRoundingMode());
                     break;
-                case Significant:
+                case SIGNIFICANT:
                     bd = bd.round(new MathContext(m_settings.getPrecision(), m_settings.getRoundingMode()));
                     break;
             }
             switch (m_settings.getOutputFormat()) {
-                case Standard:
+                case STANDARD:
                     return bd.toString();
-                case Plain:
+                case PLAIN:
                     return bd.toPlainString();
-                case Engineering:
+                case ENGINEERING:
                     return bd.toEngineeringString();
                 default:
                     return Double.toString(bd.doubleValue());
@@ -575,4 +500,99 @@ public class AutoBinner {
         }
     }
 
+    /**
+     * Calculates the domain bounds for the specified columns in the data table. It will try to extract them directly
+     * from the domain of the table if it has one, otherwise it will calculate the bounds by iterating through the rows
+     * of the table.
+     *
+     * I have lifted this method with very few changes from its original location in {@link AutoBinningUtils}, but I
+     * have fixed one bug: when given a data table with some columns that have a domain and some that do not, the ones
+     * with a domain will end up with a domain of [-infinity, +infinity], which is not correct.
+     *
+     * @param data the data table to calculate the bounds for
+     * @param exec the execution context to report progress and handle cancellation
+     * @param colNamesToRecalcValuesForIfNecessary the list of column names for which the domain bounds should be
+     *            recalculated.
+     * @return a new data table with updated domain bounds for the specified columns. If no recalculation is needed,
+     *         returns the original data table. Otherwise it will be a spec replaced table with the updated domains.
+     * @throws InvalidSettingsException if any of the specified columns is not numeric
+     * @throws CanceledExecutionException if the execution is canceled during the calculation
+     */
+    public static BufferedDataTable calcDomainBoundsIfNeccessary( //
+        final BufferedDataTable data, //
+        final ExecutionContext exec, //
+        final List<String> colNamesToRecalcValuesForIfNecessary //
+    ) throws InvalidSettingsException, CanceledExecutionException {
+
+        // If we have no columns to recalculate, just return the original data.
+        if (null == colNamesToRecalcValuesForIfNecessary || colNamesToRecalcValuesForIfNecessary.isEmpty()) {
+            return data;
+        }
+
+        // Find all numeric columns that are missing a domain, and extract their indices.
+        // We filter out any columns that have a domain already, since we don't need to
+        // recalculate those.
+        var columnIndicesThatMustBeRecalculated = new ArrayList<Integer>();
+        for (String colName : colNamesToRecalcValuesForIfNecessary) {
+            DataColumnSpec colSpec = data.getDataTableSpec().getColumnSpec(colName);
+            if (!colSpec.getType().isCompatible(DoubleValue.class)) {
+                throw new InvalidSettingsException(
+                    "Can only process numeric " + "data. The column \"" + colSpec.getName() + "\" is not numeric.");
+            }
+            if (!colSpec.getDomain().hasBounds()) {
+                columnIndicesThatMustBeRecalculated.add(data.getDataTableSpec().findColumnIndex(colName));
+            }
+        }
+        if (columnIndicesThatMustBeRecalculated.isEmpty()) {
+            return data;
+        }
+
+        // Let's compute the new min/max values for the columns that need recalculation. Note that we are
+        // not including any columns that already have a domain with bounds.
+        var minValuesByColIdx = new HashMap<Integer, Double>();
+        var maxValuesByColIdx = new HashMap<Integer, Double>();
+        for (int colIdx : columnIndicesThatMustBeRecalculated) {
+            minValuesByColIdx.put(colIdx, Double.MAX_VALUE);
+            maxValuesByColIdx.put(colIdx, Double.MIN_VALUE);
+        }
+        int rowIdx = 0;
+        for (DataRow row : data) {
+            rowIdx++;
+            exec.checkCanceled();
+            exec.setProgress(rowIdx / (double)data.size());
+            for (int col : columnIndicesThatMustBeRecalculated) {
+                double val = ((DoubleValue)row.getCell(col)).getDoubleValue();
+                if (minValuesByColIdx.get(col) > val) {
+                    minValuesByColIdx.put(col, val);
+                }
+                if (maxValuesByColIdx.get(col) < val) {
+                    minValuesByColIdx.put(col, val);
+                }
+            }
+        }
+
+        // Having got a new set of min/max values, we can now create a new column spec for
+        // each column that needs recalculation, then create a new data table spec out of those
+        // and return a spec replaced table with the new column specs.
+        var newColSpecList = new ArrayList<DataColumnSpec>();
+        int colIdx = 0;
+        for (var columnSpec : data.getDataTableSpec()) {
+            if (columnIndicesThatMustBeRecalculated.contains(colIdx)) {
+                // if we are here, this means that we have recalculated the min/max values for this column,
+                // so we need to create a new column spec with the new domain bounds.
+                var specCreator = new DataColumnSpecCreator(columnSpec);
+                var newDomain = new DataColumnDomainCreator( //
+                    new DoubleCell(minValuesByColIdx.get(colIdx)), //
+                    new DoubleCell(maxValuesByColIdx.get(colIdx)) //
+                ).createDomain();
+                specCreator.setDomain(newDomain);
+                newColSpecList.add(specCreator.createSpec());
+            } else {
+                newColSpecList.add(columnSpec);
+            }
+            colIdx++;
+        }
+        var spec = new DataTableSpec(newColSpecList.toArray(new DataColumnSpec[0]));
+        return exec.createSpecReplacerTable(data, spec);
+    }
 }
