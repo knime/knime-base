@@ -11,7 +11,6 @@ Export-Package: org.knime.base,
   org.knime.base.data.filter.column,
   org.knime.base.data.filter.row,
   org.knime.base.data.join,
-  org.knime.base.data.sort,
   org.knime.base.node.io.arffreader,
   org.knime.base.node.io.filereader,
   org.knime.base.node.mine.cluster,
@@ -41,3 +40,4 @@ Bundle-ClassPath: .,
  lib/jakarta.mail-1.6.7.jar,
  lib/mockito-core-3.12.0.jar,
  lib/mockito-inline-3.12.0.jar
+Import-Package: org.knime.base.node.preproc.autobinner.pmml

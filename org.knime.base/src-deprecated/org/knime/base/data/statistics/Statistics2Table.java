@@ -57,7 +57,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.knime.base.data.sort.SortedTable;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -75,6 +74,7 @@ import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DefaultTable;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
+import org.knime.core.data.sort.SortedTable;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
