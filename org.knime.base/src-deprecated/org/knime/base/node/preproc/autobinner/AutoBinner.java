@@ -59,7 +59,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import org.knime.base.data.sort.SortedTable;
 import org.knime.base.node.preproc.autobinner.AutoBinnerLearnSettings.BinNaming;
 import org.knime.base.node.preproc.autobinner.AutoBinnerLearnSettings.Method;
 import org.knime.base.node.preproc.autobinner.apply.AutoBinnerApply;
@@ -80,18 +79,24 @@ import org.knime.core.data.DoubleValue;
 import org.knime.core.data.RowIterator;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.sort.SortedTable;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.pmml.preproc.PMMLPreprocPortObjectSpec;
+import org.knime.core.util.binning.numeric.AutoBinningUtils;
 
 /**
  * Creates Bins. Use this class in other nodes.
  *
  * @author Heiko Hofer
+ *
+ * @deprecated This relies on many deprecated classes and methods, and is a duplicate of several other classes of the
+ * same name. Consider {@link AutoBinningUtils} instead.
  */
+@Deprecated
 public class AutoBinner {
 
     private AutoBinnerLearnSettings m_settings;
