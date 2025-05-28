@@ -63,8 +63,10 @@ import org.knime.core.node.port.pmml.preproc.DerivedFieldMapper;
 import org.knime.core.node.port.pmml.preproc.PMMLPreprocTranslator;
 
 /**
- *
+ * @deprecated This is an exact duplicate of {@link org.knime.core.util.binning.numeric.PMMLBinningTranslator}. Please
+ * use that instead.
  */
+@Deprecated
 public class PMMLBinningTranslator implements PMMLPreprocTranslator {
     private static final String SUMMARY = "summary";
 
