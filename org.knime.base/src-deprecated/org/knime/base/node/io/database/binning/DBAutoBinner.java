@@ -71,11 +71,9 @@ import org.knime.base.node.preproc.autobinner.pmml.PMMLDiscretizeBin;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLInterval;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLInterval.Closure;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLPreprocDiscretize;
-import org.knime.base.node.preproc.autobinner3.AutoBinner;
-import org.knime.base.node.preproc.autobinner3.AutoBinnerLearnSettings;
-import org.knime.base.node.preproc.pmml.binner.BinnerColumnFactory.Bin;
-import org.knime.base.node.preproc.pmml.binner.NumericBin;
 import org.knime.base.node.preproc.pmml.binner.PMMLBinningTranslator;
+import org.knime.base.node.util.binning.AutoBinningSettings;
+import org.knime.base.node.util.binning.AutoBinningUtils;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
@@ -89,21 +87,23 @@ import org.knime.core.node.port.pmml.PMMLPortObjectSpecCreator;
 import org.knime.core.node.port.pmml.preproc.DerivedFieldMapper;
 import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.util.Pair;
+import org.knime.core.util.binning.numeric.Bin;
+import org.knime.core.util.binning.numeric.NumericBin;
 
 /**
- * This class is an extension of class {@link AutoBinner}.
+ * This class is an extension of class {@link AutoBinningUtils}.
  *
  * @author Lara Gorini
  */
 @Deprecated
-public class DBAutoBinner extends AutoBinner {
+public class DBAutoBinner extends AutoBinningUtils {
 
     /**
      * @param settings
      * @param spec
      * @throws InvalidSettingsException
      */
-    public DBAutoBinner(final AutoBinnerLearnSettings settings, final DataTableSpec spec)
+    public DBAutoBinner(final AutoBinningSettings settings, final DataTableSpec spec)
         throws InvalidSettingsException {
         super(settings, spec);
     }
@@ -121,7 +121,7 @@ public class DBAutoBinner extends AutoBinner {
         final DatabaseQueryConnectionSettings connectionSettings, final DataTableSpec dataTableSpec) throws SQLException {
         final String query = connectionSettings.getQuery();
         final StatementManipulator statementManipulator = connectionSettings.getUtility().getStatementManipulator();
-        AutoBinnerLearnSettings settings = getSettings();
+        AutoBinningSettings settings = getSettings();
         String[] includeCols = settings.getFilterConfiguration().applyTo(dataTableSpec).getIncludes();
 
         if (includeCols.length == 0) {
@@ -159,9 +159,9 @@ public class DBAutoBinner extends AutoBinner {
         Map<String, double[]> edgesMap = new LinkedHashMap<>();
         for (Entry<String, Pair<Double, Double>> entry : maxAndMin.entrySet()) {
             double[] edges =
-                AutoBinner.calculateBounds(number, entry.getValue().getFirst(), entry.getValue().getSecond());
+                AutoBinningUtils.calculateBounds(number, entry.getValue().getFirst(), entry.getValue().getSecond());
             if (settings.getIntegerBounds()) {
-                edges = AutoBinner.toIntegerBoundaries(edges);
+                edges = AutoBinningUtils.toIntegerBoundaries(edges);
             }
             edgesMap.put(entry.getKey(), edges);
         }

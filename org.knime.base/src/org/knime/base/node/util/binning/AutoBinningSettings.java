@@ -45,168 +45,31 @@
  * History
  *   09.07.2010 (hofer): created
  */
-package org.knime.base.node.preproc.autobinner3;
+package org.knime.base.node.util.binning;
 
 import java.math.RoundingMode;
 import java.util.Optional;
 
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DoubleValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.util.ButtonGroupEnumInterface;
+import org.knime.core.node.util.filter.InputFilter;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
+import org.knime.core.util.binning.auto.BinNaming;
+import org.knime.core.util.binning.auto.BinningMethod;
+import org.knime.core.util.binning.auto.EqualityMethod;
+import org.knime.core.util.binning.auto.OutputFormat;
+import org.knime.core.util.binning.auto.PrecisionMode;
 
 /**
- * This class hold the settings for the Logistic Learner Node.
+ * This class hold the settings required to use {@link AutoBinningUtils}.
  *
- * @author Heiko Hofer
+ * @since 5.5
  */
-public final class AutoBinnerLearnSettings {
-    /**
-     * The name of the autobinning method.
-     *
-     * @author Heiko Hofer
-     */
-    public enum Method {
-        /** Fixed number of bins. */
-        fixedNumber,
-        /** Estimated sample quantiles. */
-        sampleQuantiles
-    }
-
-    /**
-     * The name of the equality method.
-     *
-     * @author Patrick Winter
-     * @since 2.10
-     */
-    public enum EqualityMethod {
-        /** Sizes of the bins are equal. */
-        width,
-        /** Element count of the bins are equal. */
-        frequency
-    }
-
-    /**
-     * The method for naming bins.
-     *
-     * @author Heiko Hofer
-     */
-    public enum BinNaming implements ButtonGroupEnumInterface {
-        /** Numbered starting from one: Bin 1, Bin2, ... */
-        numbered("Numbered", "e.g.: Bin 1, Bin 2, Bin 3"),
-        /** Use edges for defining bins: (-,0] (0,1], ... */
-        edges("Borders", "e.g.: [-10,0], (0,10], (10,20]" ),
-        /**
-         * Use midpoint of bins: 0.25, 0.75, ...
-         *
-         * @since 2.10
-         */
-        midpoints("Midpoints", "e.g.: -5, 5, 15");
-
-
-        private String m_label;
-
-        private String m_desc;
-
-        private BinNaming(final String label, final String desc) {
-            m_label = label;
-            m_desc = desc;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public String getText() {
-            return m_label;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public String getActionCommand() {
-            return name();
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public String getToolTip() {
-            return m_desc;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public boolean isDefault() {
-            return numbered.equals(this);
-        }
-
-
-    }
-
-    /**
-     * The format of output decimals.
-     *
-     * @author "Patrick Winter"
-     */
-    public enum OutputFormat {
-        /** Standard formatting. */
-        Standard("Standard String"),
-        /** Plain number formatting. */
-        Plain("Plain String (no exponent)"),
-        /** Engineering formatting. */
-        Engineering("Engineering String");
-        private String m_label;
-        /**
-         * Constructor.
-         * @param label The label shown in the dialog
-         */
-        OutputFormat(final String label) {
-            m_label = label;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public String toString() {
-            return m_label;
-        }
-    }
-
-    /**
-     * How decimals will be rounded.
-     *
-     * @author "Patrick Winter"
-     */
-    public enum PrecisionMode {
-        /** Round to given number of decimal places. */
-        Decimal("Decimal places"),
-        /** Round to given number of significant figures. */
-        Significant("Significant figures");
-        private String m_label;
-        /**
-         * Constructor.
-         * @param label The label shown in the dialog
-         */
-        PrecisionMode(final String label) {
-            m_label = label;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public String toString() {
-            return m_label;
-        }
-    }
+public final class AutoBinningSettings {
 
     private static final String CFG_METHOD = "method";
 
@@ -232,48 +95,51 @@ public final class AutoBinnerLearnSettings {
 
     private static final String CFG_ROUNDING_MODE = "roundingMode";
 
-    private Method m_method = Method.fixedNumber;
+    private BinningMethod m_method = BinningMethod.FIXED_NUMBER;
 
     private int m_binCount = 5;
 
-    private EqualityMethod m_equalityMethod = EqualityMethod.width;
+    private EqualityMethod m_equalityMethod = EqualityMethod.WIDTH;
 
     private boolean m_integerBounds = false;
 
     private double[] m_sampleQuantiles = new double[]{0, 0.25, 0.5, 0.75, 1};
 
-    private BinNaming m_binNaming = BinNaming.numbered;
+    private BinNaming m_binNaming = BinNaming.NUMBERED;
 
     private boolean m_replaceColumn = false;
 
     private boolean m_advancedFormatting = false;
 
-    private OutputFormat m_outputFormat = OutputFormat.Standard;
+    private OutputFormat m_outputFormat = OutputFormat.STANDARD;
 
     private int m_precision = 3;
 
-    private PrecisionMode m_precisionMode = PrecisionMode.Decimal;
+    private PrecisionMode m_precisionMode = PrecisionMode.DECIMAL;
 
     private RoundingMode m_roundingMode = RoundingMode.HALF_UP;
 
-    private DataColumnSpecFilterConfiguration m_filterConfiguration = AutoBinnerLearnNodeModel.createDCSFilterConfiguration();
+    private DataColumnSpecFilterConfiguration m_filterConfiguration = createDCSFilterConfiguration();
 
     private Double m_fixedLowerBound;
 
     private Double m_fixedUpperBound;
 
-
     /**
-     * @return the method
+     * @return the method used when binning the data
+     *
+     * @since 5.5
      */
-    public Method getMethod() {
+    public BinningMethod getMethod() {
         return m_method;
     }
 
     /**
      * @param method the method to set
+     *
+     * @since 5.5
      */
-    public void setMethod(final Method method) {
+    public void setMethod(final BinningMethod method) {
         m_method = method;
     }
 
@@ -293,7 +159,7 @@ public final class AutoBinnerLearnSettings {
 
     /**
      * @return the equalityMethod
-     * @since 2.10
+     * @since 5.5
      */
     public EqualityMethod getEqualityMethod() {
         return m_equalityMethod;
@@ -301,7 +167,7 @@ public final class AutoBinnerLearnSettings {
 
     /**
      * @param equalityMethod the equalityMethod to set
-     * @since 2.10
+     * @since 5.5
      */
     public void setEqualityMethod(final EqualityMethod equalityMethod) {
         m_equalityMethod = equalityMethod;
@@ -337,6 +203,8 @@ public final class AutoBinnerLearnSettings {
 
     /**
      * @return the binNaming
+     *
+     * @since 5.5
      */
     public BinNaming getBinNaming() {
         return m_binNaming;
@@ -344,6 +212,8 @@ public final class AutoBinnerLearnSettings {
 
     /**
      * @param binNaming the binNaming to set
+     *
+     * @since 5.5
      */
     public void setBinNaming(final BinNaming binNaming) {
         m_binNaming = binNaming;
@@ -379,6 +249,8 @@ public final class AutoBinnerLearnSettings {
 
     /**
      * @return the outputFormat
+     *
+     * @since 5.5
      */
     public OutputFormat getOutputFormat() {
         return m_outputFormat;
@@ -386,6 +258,8 @@ public final class AutoBinnerLearnSettings {
 
     /**
      * @param outputFormat the outputFormat to set
+     *
+     * @since 5.5
      */
     public void setOutputFormat(final OutputFormat outputFormat) {
         m_outputFormat = outputFormat;
@@ -407,6 +281,8 @@ public final class AutoBinnerLearnSettings {
 
     /**
      * @return the precisionMode
+     *
+     * @since 5.5
      */
     public PrecisionMode getPrecisionMode() {
         return m_precisionMode;
@@ -414,6 +290,8 @@ public final class AutoBinnerLearnSettings {
 
     /**
      * @param precisionMode the precisionMode to set
+     *
+     * @since 5.5
      */
     public void setPrecisionMode(final PrecisionMode precisionMode) {
         m_precisionMode = precisionMode;
@@ -442,30 +320,30 @@ public final class AutoBinnerLearnSettings {
     }
 
     /**
-    * Sets a fixed lower bound of the first bin instead of using the domain minimum.
-    *
-    * @since 5.4
-    * @param fixedLowerBound the fixed lower bound of the first bin
-    */
+     * Sets a fixed lower bound of the first bin instead of using the domain minimum.
+     *
+     * @since 5.4
+     * @param fixedLowerBound the fixed lower bound of the first bin
+     */
     public void setFixedLowerBound(final Double fixedLowerBound) {
         m_fixedLowerBound = fixedLowerBound;
     }
 
     /**
-    *
-    * @since 5.4
-    * @return the fixed upper bound
-    */
+     *
+     * @since 5.4
+     * @return the fixed upper bound
+     */
     public Optional<Double> getFixedUpperBound() {
         return Optional.ofNullable(m_fixedUpperBound);
     }
 
     /**
-    * Sets a fixed upper bound of the last bin instead of using the domain maximum.
-    *
-    * @since 5.4
-    * @param fixedUpperBound the fixed upper bound of the last bin
-    */
+     * Sets a fixed upper bound of the last bin instead of using the domain maximum.
+     *
+     * @since 5.4
+     * @param fixedUpperBound the fixed upper bound of the last bin
+     */
     public void setFixedUpperBound(final Double fixedUpperBound) {
         m_fixedUpperBound = fixedUpperBound;
     }
@@ -477,20 +355,20 @@ public final class AutoBinnerLearnSettings {
      * @throws InvalidSettingsException if some settings are missing
      */
     public void loadSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        DataColumnSpecFilterConfiguration config = AutoBinnerLearnNodeModel.createDCSFilterConfiguration();
+        DataColumnSpecFilterConfiguration config = createDCSFilterConfiguration();
         config.loadConfigurationInModel(settings);
         m_filterConfiguration = config;
-        m_method = Method.valueOf(settings.getString(CFG_METHOD));
+        m_method = BinningMethod.valueOf(camelToScreamingSnake(settings.getString(CFG_METHOD)));
         m_binCount = settings.getInt(CFG_BIN_COUNT);
-        m_equalityMethod = EqualityMethod.valueOf(settings.getString(CFG_EQUALITY_METHOD));
+        m_equalityMethod = EqualityMethod.valueOf(camelToScreamingSnake(settings.getString(CFG_EQUALITY_METHOD)));
         m_integerBounds = settings.getBoolean(CFG_INTEGER_BOUNDS);
         m_sampleQuantiles = settings.getDoubleArray(CFG_SAMPLE_QUANTILES);
-        m_binNaming = BinNaming.valueOf(settings.getString(CFG_BIN_NAMING));
+        m_binNaming = BinNaming.valueOf(camelToScreamingSnake(settings.getString(CFG_BIN_NAMING)));
         m_replaceColumn = settings.getBoolean(CFG_REPLACE_COLUMN);
         m_advancedFormatting = settings.getBoolean(CFG_ADVANCED_FORMATTING);
-        m_outputFormat = OutputFormat.valueOf(settings.getString(CFG_OUTPUT_FORMAT));
+        m_outputFormat = OutputFormat.valueOf(camelToScreamingSnake(settings.getString(CFG_OUTPUT_FORMAT)));
         m_precision = settings.getInt(CFG_PRECISION);
-        m_precisionMode = PrecisionMode.valueOf(settings.getString(CFG_PRECISION_MODE));
+        m_precisionMode = PrecisionMode.valueOf(camelToScreamingSnake(settings.getString(CFG_PRECISION_MODE)));
         m_roundingMode = RoundingMode.valueOf(settings.getString(CFG_ROUNDING_MODE));
     }
 
@@ -498,23 +376,79 @@ public final class AutoBinnerLearnSettings {
      * Loads the settings from the node settings object using default values if some settings are missing.
      *
      * @param settings a node settings object
+     * @param spec the data table specification to use for the filter configuration
      */
     public void loadSettingsForDialog(final NodeSettingsRO settings, final DataTableSpec spec) {
-        DataColumnSpecFilterConfiguration config = AutoBinnerLearnNodeModel.createDCSFilterConfiguration();
+        DataColumnSpecFilterConfiguration config = createDCSFilterConfiguration();
         config.loadConfigurationInDialog(settings, spec);
         m_filterConfiguration = config;
-        m_method = Method.valueOf(settings.getString(CFG_METHOD, Method.fixedNumber.toString()));
+
+        m_method = Optional.ofNullable(settings.getString(CFG_METHOD, null)) //
+            .map(AutoBinningSettings::screamingSnakeToCamel) //
+            .map(BinningMethod::valueOf) //
+            .orElse(BinningMethod.FIXED_NUMBER);
         m_binCount = settings.getInt(CFG_BIN_COUNT, 5);
-        m_equalityMethod = EqualityMethod.valueOf(settings.getString(CFG_EQUALITY_METHOD, EqualityMethod.width.name()));
+        m_equalityMethod = Optional.ofNullable(settings.getString(CFG_EQUALITY_METHOD, null)) //
+            .map(AutoBinningSettings::camelToScreamingSnake) //
+            .map(EqualityMethod::valueOf) //
+            .orElse(EqualityMethod.WIDTH);
         m_integerBounds = settings.getBoolean(CFG_INTEGER_BOUNDS, false);
         m_sampleQuantiles = settings.getDoubleArray(CFG_SAMPLE_QUANTILES, new double[]{0, 0.25, 0.5, 0.75, 1});
-        m_binNaming = BinNaming.valueOf(settings.getString(CFG_BIN_NAMING, BinNaming.numbered.toString()));
+        m_binNaming = Optional.ofNullable(settings.getString(CFG_BIN_NAMING, null)) //
+            .map(AutoBinningSettings::camelToScreamingSnake) //
+            .map(BinNaming::valueOf) //
+            .orElse(BinNaming.NUMBERED);
         m_replaceColumn = settings.getBoolean(CFG_REPLACE_COLUMN, false);
         m_advancedFormatting = settings.getBoolean(CFG_ADVANCED_FORMATTING, false);
-        m_outputFormat = OutputFormat.valueOf(settings.getString(CFG_OUTPUT_FORMAT, OutputFormat.Standard.name()));
+        m_outputFormat = Optional.ofNullable(settings.getString(CFG_OUTPUT_FORMAT, null)) //
+            .map(AutoBinningSettings::camelToScreamingSnake) //
+            .map(OutputFormat::valueOf) //
+            .orElse(OutputFormat.STANDARD);
         m_precision = settings.getInt(CFG_PRECISION, 3);
-        m_precisionMode = PrecisionMode.valueOf(settings.getString(CFG_PRECISION_MODE, PrecisionMode.Decimal.name()));
+        m_precisionMode = Optional.ofNullable(settings.getString(CFG_PRECISION_MODE, null)) //
+            .map(AutoBinningSettings::camelToScreamingSnake) //
+            .map(PrecisionMode::valueOf) //
+            .orElse(PrecisionMode.DECIMAL);
         m_roundingMode = RoundingMode.valueOf(settings.getString(CFG_ROUNDING_MODE, RoundingMode.HALF_UP.name()));
+    }
+
+    /**
+     * Needed when saving the settings, since the old settings used camelCase and the new enums use
+     * SCREAMING_SNAKE_CASE.
+     *
+     * @param screamingSnake a string in screaming snake case (e.g. "SOME_CONSTANT")
+     * @return the string in camel case (e.g. "someConstant")
+     */
+    private static String screamingSnakeToCamel(final String screamingSnake) {
+        var camelCase = new StringBuilder();
+        boolean nextUpper = false;
+        for (char c : screamingSnake.toCharArray()) {
+            if (c == '_') {
+                nextUpper = true;
+            } else {
+                camelCase.append(nextUpper ? Character.toUpperCase(c) : Character.toLowerCase(c));
+                nextUpper = false;
+            }
+        }
+        return camelCase.toString();
+    }
+
+    /**
+     * Needed when loading the settings, since the old settings used camelCase and the new enums use
+     * SCREAMING_SNAKE_CASE.
+     *
+     * @param camelCase a string in camel case (e.g. "someConstant")
+     * @return the string in screaming snake case (e.g. "SOME_CONSTANT")
+     */
+    private static String camelToScreamingSnake(final String camelCase) {
+        var screamingSnake = new StringBuilder();
+        for (char c : camelCase.toCharArray()) {
+            if (Character.isUpperCase(c) && screamingSnake.length() > 0) {
+                screamingSnake.append('_');
+            }
+            screamingSnake.append(Character.toUpperCase(c));
+        }
+        return screamingSnake.toString();
     }
 
     /**
@@ -524,17 +458,17 @@ public final class AutoBinnerLearnSettings {
      */
     public void saveSettings(final NodeSettingsWO settings) {
         m_filterConfiguration.saveConfiguration(settings);
-        settings.addString(CFG_METHOD, m_method.name());
+        settings.addString(CFG_METHOD, screamingSnakeToCamel(m_method.name()));
         settings.addInt(CFG_BIN_COUNT, m_binCount);
-        settings.addString(CFG_EQUALITY_METHOD, m_equalityMethod.name());
+        settings.addString(CFG_EQUALITY_METHOD, screamingSnakeToCamel(m_equalityMethod.name()));
         settings.addBoolean(CFG_INTEGER_BOUNDS, m_integerBounds);
         settings.addDoubleArray(CFG_SAMPLE_QUANTILES, m_sampleQuantiles);
-        settings.addString(CFG_BIN_NAMING, m_binNaming.name());
+        settings.addString(CFG_BIN_NAMING, screamingSnakeToCamel(m_binNaming.name()));
         settings.addBoolean(CFG_REPLACE_COLUMN, m_replaceColumn);
         settings.addBoolean(CFG_ADVANCED_FORMATTING, m_advancedFormatting);
-        settings.addString(CFG_OUTPUT_FORMAT, m_outputFormat.name());
+        settings.addString(CFG_OUTPUT_FORMAT, screamingSnakeToCamel(m_outputFormat.name()));
         settings.addInt(CFG_PRECISION, m_precision);
-        settings.addString(CFG_PRECISION_MODE, m_precisionMode.name());
+        settings.addString(CFG_PRECISION_MODE, screamingSnakeToCamel(m_precisionMode.name()));
         settings.addString(CFG_ROUNDING_MODE, m_roundingMode.name());
     }
 
@@ -551,6 +485,21 @@ public final class AutoBinnerLearnSettings {
      */
     public DataColumnSpecFilterConfiguration getFilterConfiguration() {
         return m_filterConfiguration;
+    }
+
+    /**
+     * A new configuration to store the settings. Only Columns of Type String are available.
+     *
+     * @return filter configuration
+     */
+    public static final DataColumnSpecFilterConfiguration createDCSFilterConfiguration() {
+        return new DataColumnSpecFilterConfiguration("column-filter", new InputFilter<DataColumnSpec>() {
+
+            @Override
+            public boolean include(final DataColumnSpec name) {
+                return name.getType().isCompatible(DoubleValue.class);
+            }
+        });
     }
 
 }

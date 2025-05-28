@@ -48,9 +48,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 
-import org.knime.base.node.preproc.autobinner.apply.AutoBinnerApply;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLDiscretizePreprocPortObject;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLPreprocDiscretize;
+import org.knime.base.node.util.binning.AutoBinnerApply;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;

@@ -49,6 +49,7 @@ import java.io.IOException;
 
 import org.knime.base.node.preproc.autobinner.pmml.PMMLDiscretizePreprocPortObjectSpec;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLPreprocDiscretize;
+import org.knime.base.node.util.binning.AutoBinnerApply;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.node.BufferedDataTable;

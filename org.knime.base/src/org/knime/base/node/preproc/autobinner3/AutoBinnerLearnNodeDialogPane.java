@@ -67,11 +67,7 @@ import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 
-import org.knime.base.node.preproc.autobinner3.AutoBinnerLearnSettings.BinNaming;
-import org.knime.base.node.preproc.autobinner3.AutoBinnerLearnSettings.EqualityMethod;
-import org.knime.base.node.preproc.autobinner3.AutoBinnerLearnSettings.Method;
-import org.knime.base.node.preproc.autobinner3.AutoBinnerLearnSettings.OutputFormat;
-import org.knime.base.node.preproc.autobinner3.AutoBinnerLearnSettings.PrecisionMode;
+import org.knime.base.node.util.binning.AutoBinningSettings;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
@@ -81,6 +77,11 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterPanel;
+import org.knime.core.util.binning.auto.BinNaming;
+import org.knime.core.util.binning.auto.BinningMethod;
+import org.knime.core.util.binning.auto.EqualityMethod;
+import org.knime.core.util.binning.auto.OutputFormat;
+import org.knime.core.util.binning.auto.PrecisionMode;
 
 /**
  * Binner dialog used to specify binning rules.
@@ -88,7 +89,7 @@ import org.knime.core.node.util.filter.column.DataColumnSpecFilterPanel;
  * @author Heiko Hofer
  */
 public class AutoBinnerLearnNodeDialogPane extends NodeDialogPane {
-    private final AutoBinnerLearnSettings m_settings;
+    private final AutoBinningSettings m_settings;
 
     private DataColumnSpecFilterPanel m_filterPanel;
 
@@ -137,7 +138,7 @@ public class AutoBinnerLearnNodeDialogPane extends NodeDialogPane {
      * @param supportsQuantile
      */
     public AutoBinnerLearnNodeDialogPane(final boolean supportsQuantile) {
-        m_settings = new AutoBinnerLearnSettings();
+        m_settings = new AutoBinningSettings();
         addTab("Auto Binner Settings", createAutoBinnerSettingsTab(supportsQuantile));
         addTab("Number Format Settings", createNumberFormatSettingsTab());
     }
@@ -443,17 +444,17 @@ public class AutoBinnerLearnNodeDialogPane extends NodeDialogPane {
         DataColumnSpecFilterConfiguration config = m_settings.getFilterConfiguration();
         m_filterPanel.loadConfiguration(config, (DataTableSpec)specs[0]);
 
-        m_methodFixedNumber.setSelected(m_settings.getMethod().equals(Method.fixedNumber));
-        m_methodSampleQuantiles.setSelected(m_settings.getMethod().equals(Method.sampleQuantiles));
+        m_methodFixedNumber.setSelected(m_settings.getMethod() == BinningMethod.FIXED_NUMBER);
+        m_methodSampleQuantiles.setSelected(m_settings.getMethod() == BinningMethod.SAMPLE_QUANTILES);
         m_numBins.setEnabled(!m_methodSampleQuantiles.isSelected());
         m_equalityMethod.setEnabled(!m_methodSampleQuantiles.isSelected());
         m_sampleQuantiles.setEnabled(m_methodSampleQuantiles.isSelected());
         m_numBins.setValue(m_settings.getBinCount());
         m_equalityMethod.setSelectedItem(m_settings.getEqualityMethod());
         m_sampleQuantiles.setText(implode(m_settings.getSampleQuantiles()));
-        m_binNamingNumbered.setSelected(m_settings.getBinNaming().equals(BinNaming.numbered));
-        m_binNamingEdges.setSelected(m_settings.getBinNaming().equals(BinNaming.edges));
-        m_binNamingMidpoints.setSelected(m_settings.getBinNaming().equals(BinNaming.midpoints));
+        m_binNamingNumbered.setSelected(m_settings.getBinNaming() == BinNaming.NUMBERED);
+        m_binNamingEdges.setSelected(m_settings.getBinNaming() == BinNaming.EDGES);
+        m_binNamingMidpoints.setSelected(m_settings.getBinNaming() == BinNaming.MIDPOINTS);
         m_replaceColumn.setSelected(m_settings.getReplaceColumn());
         m_integerBounds.setSelected(m_settings.getIntegerBounds());
         m_defaultFormatting.setSelected(!m_settings.getAdvancedFormatting());
@@ -487,11 +488,11 @@ public class AutoBinnerLearnNodeDialogPane extends NodeDialogPane {
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        DataColumnSpecFilterConfiguration config = AutoBinnerLearnNodeModel.createDCSFilterConfiguration();
+        DataColumnSpecFilterConfiguration config = AutoBinningSettings.createDCSFilterConfiguration();
         m_filterPanel.saveConfiguration(config);
         m_settings.setFilterConfiguration(config);
 
-        Method method = m_methodFixedNumber.isSelected() ? Method.fixedNumber : Method.sampleQuantiles;
+        var method = m_methodFixedNumber.isSelected() ? BinningMethod.FIXED_NUMBER : BinningMethod.SAMPLE_QUANTILES;
         m_settings.setMethod(method);
         m_settings.setBinCount(((Number)m_numBins.getValue()).intValue());
         m_settings.setEqualityMethod((EqualityMethod)m_equalityMethod.getSelectedItem());
@@ -504,13 +505,13 @@ public class AutoBinnerLearnNodeDialogPane extends NodeDialogPane {
         }
         BinNaming binNaming = null;
         if (m_binNamingNumbered.isSelected()) {
-            binNaming = BinNaming.numbered;
+            binNaming = BinNaming.NUMBERED;
         }
         if (m_binNamingEdges.isSelected()) {
-            binNaming = BinNaming.edges;
+            binNaming = BinNaming.EDGES;
         }
         if (m_binNamingMidpoints.isSelected()) {
-            binNaming = BinNaming.midpoints;
+            binNaming = BinNaming.MIDPOINTS;
         }
         m_settings.setBinNaming(binNaming);
         m_settings.setReplaceColumn(m_replaceColumn.isSelected());
