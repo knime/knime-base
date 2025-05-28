@@ -1,5 +1,37 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <component id="org.knime.base" version="2">
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.base.data.sort.SortedTable">
+        <filter id="305324134">
+            <message_arguments>
+                <message_argument value="org.knime.base.data.sort.SortedTable"/>
+                <message_argument value="org.knime.base_5.6.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src-deprecated/org/knime/base/node/preproc/autobinner/AutoBinner.java" type="org.knime.base.node.preproc.autobinner.AutoBinner">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.autobinner.AutoBinner"/>
+                <message_argument value="org.knime.base_5.6.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src-deprecated/org/knime/base/node/preproc/autobinner/AutoBinnerLearnNodeFactory.java" type="org.knime.base.node.preproc.autobinner.AutoBinnerLearnNodeFactory">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.autobinner.AutoBinnerLearnNodeFactory"/>
+                <message_argument value="org.knime.base_5.6.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src-deprecated/org/knime/base/node/preproc/autobinner/AutoBinnerLearnSettings.java" type="org.knime.base.node.preproc.autobinner.AutoBinnerLearnSettings">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.autobinner.AutoBinnerLearnSettings"/>
+                <message_argument value="org.knime.base_5.6.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="src/org/knime/base/node/io/filehandling/webui/FileChooserPathAccessor.java" type="org.knime.base.node.io.filehandling.webui.FileChooserPathAccessor">
         <filter id="338722907">
             <message_arguments>

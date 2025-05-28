@@ -61,13 +61,18 @@ import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
  * This class hold the settings for the Logistic Learner Node.
  *
  * @author Heiko Hofer
+ *
+ * @deprecated This duplicates {@link org.knime.core.util.binning.auto.AutoBinnerLearnSettings}. Use that instead.
  */
+@Deprecated
 public final class AutoBinnerLearnSettings {
     /**
      * The name of the autobinning method.
      *
      * @author Heiko Hofer
+     * @deprecated This duplicates {@link org.knime.core.util.binning.auto.BinningMethod}. Use that instead.
      */
+    @Deprecated
     public enum Method {
         /** Fixed number of bins. */
         fixedNumber,
@@ -80,7 +85,10 @@ public final class AutoBinnerLearnSettings {
      *
      * @author Patrick Winter
      * @since 2.10
+     *
+     * @deprecated This duplicates {@link org.knime.core.util.binning.auto.EqualityMethod}. Use that instead.
      */
+    @Deprecated
     public enum EqualityMethod {
         /** Sizes of the bins are equal. */
         width,
@@ -92,7 +100,10 @@ public final class AutoBinnerLearnSettings {
      * The method for naming bins.
      *
      * @author Heiko Hofer
+     *
+     * @deprecated This duplicates {@link org.knime.core.util.binning.auto.BinNaming}. Use that instead.
      */
+    @Deprecated
     public enum BinNaming implements ButtonGroupEnumInterface {
         /** Numbered starting from one: Bin 1, Bin2, ... */
         numbered("Numbered", "e.g.: Bin 1, Bin 2, Bin 3"),
@@ -154,7 +165,10 @@ public final class AutoBinnerLearnSettings {
      * The format of output decimals.
      *
      * @author "Patrick Winter"
+     *
+     * @deprecated This duplicates {@link org.knime.core.util.binning.auto.OutputFormat}. Use that instead.
      */
+    @Deprecated
     public enum OutputFormat {
         /** Standard formatting. */
         Standard("Standard String"),
@@ -184,7 +198,10 @@ public final class AutoBinnerLearnSettings {
      * How decimals will be rounded.
      *
      * @author "Patrick Winter"
+     *
+     * @deprecated This duplicates {@link org.knime.core.util.binning.auto.PrecisionMode}. Use that instead.
      */
+    @Deprecated
     public enum PrecisionMode {
         /** Round to given number of decimal places. */
         Decimal("Decimal places"),

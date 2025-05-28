@@ -1,0 +1,1049 @@
+{
+  "data" : {
+    "model" : {
+      "selectedColumns" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "test1" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : true
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "binningType" : "EQUAL_WIDTH",
+      "numberOfBins" : 20,
+      "customCutoffs" : [ {
+        "cutoff" : 0.0,
+        "matchType" : "TO_LOWER_BIN"
+      } ],
+      "customQuantiles" : [ {
+        "quantile" : 0.0,
+        "matchType" : "TO_LOWER_BIN"
+      } ],
+      "enforceIntegerCutoffs" : false,
+      "fixLowerBound" : false,
+      "fixedLowerBound" : 0.0,
+      "fixUpperBound" : false,
+      "fixedUpperBound" : 0.0,
+      "binNames" : "NUMBERED",
+      "prefix" : "Bin ",
+      "lowerOutlierValue" : "Lower outlier",
+      "upperOutlierValue" : "Upper outlier",
+      "numberFormat" : "COLUMN_FORMAT",
+      "numberFormatSettings" : {
+        "numberFormat" : "STANDARD_STRING",
+        "precision" : 3,
+        "precisionMode" : "DECIMAL_PLACES",
+        "roundingMode" : "HALF_UP"
+      },
+      "replaceOrAppend" : "REPLACE",
+      "suffix" : " (Binned)"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "binNames" : {
+            "oneOf" : [ {
+              "const" : "NUMBERED",
+              "title" : "Numbered"
+            }, {
+              "const" : "BORDERS",
+              "title" : "Borders"
+            }, {
+              "const" : "MIDPOINTS",
+              "title" : "Midpoints"
+            } ],
+            "title" : "Bin names/values",
+            "description" : "The method that will be used when naming the bins.\n\n<ul>\n<li><b>Numbered</b>: Bins will be named by their number, e.g. Bin 1</li>\n<li><b>Borders</b>: Bins will be named by their borders, e.g. [0.0, 1.0)</li>\n<li><b>Midpoints</b>: Bins will be named by their midpoints, e.g. 0.5</li>\n</ul>",
+            "default" : "NUMBERED"
+          },
+          "binningType" : {
+            "oneOf" : [ {
+              "const" : "EQUAL_WIDTH",
+              "title" : "Equal width"
+            }, {
+              "const" : "EQUAL_FREQUENCY",
+              "title" : "Equal frequency"
+            }, {
+              "const" : "CUSTOM_CUTOFFS",
+              "title" : "Custom cutoffs"
+            }, {
+              "const" : "CUSTOM_QUANTILES",
+              "title" : "Custom quantiles"
+            } ],
+            "title" : "Binning type",
+            "description" : "The algorithm to use when creating the bins, or the bins may be specified manually.\n\n<ul>\n<li><b>Equal width</b>: Each bin will have the same width. The number of bins must be specified.\n</li>\n<li><b>Equal frequency</b>: Each bin will contain the same number of values (or as close as possible). The number of bins must be specified.\n</li>\n<li><b>Custom cutoffs</b>: Bins will be created based on a fixed list of cutoffs. The cutoffs are specified as boundaries, i.e. the values that define the bin edges. At least two cutoffs must be provided.\n</li>\n<li><b>Custom quantiles</b>: Bins will be created based on a fixed list of quantiles. The quantiles are specified as boundaries, i.e. the values that define the bin edges. At least two quantiles must be provided.\n\nThe quantiles will be converted to bin edges using the R-7 algorithm, see <a href=\"\nhttps://en.wikipedia.org/wiki/Quantile\">WP:Quantile</a> for more details.\n</li>\n</ul>",
+            "default" : "EQUAL_WIDTH"
+          },
+          "customCutoffs" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "cutoff" : {
+                  "type" : "number",
+                  "format" : "double",
+                  "title" : "Cutoff",
+                  "description" : "The exact value at which the bin boundary should be placed.\n",
+                  "default" : 0.0
+                },
+                "matchType" : {
+                  "oneOf" : [ {
+                    "const" : "TO_LOWER_BIN",
+                    "title" : "To lower bin"
+                  }, {
+                    "const" : "TO_UPPER_BIN",
+                    "title" : "To upper bin"
+                  } ],
+                  "title" : "Exact match",
+                  "description" : "The behaviour when a value is exactly equal to the cutoff between two bins.\n\n<ul>\n<li><b>To lower bin</b>: Values that fall on the bin border will be assigned to the lower bin.\n</li>\n<li><b>To upper bin</b>: Values that fall on the bin border will be assigned to the upper bin.\n</li>\n</ul>",
+                  "default" : "TO_LOWER_BIN"
+                }
+              }
+            },
+            "title" : "Custom cutoffs",
+            "description" : "The bin boundaries may be defined manually by entering the values. The behaviour when a value is exactly equal to a cutoff can be configured separately for each boundary.\n",
+            "default" : [ {
+              "cutoff" : 0.0,
+              "matchType" : "TO_LOWER_BIN"
+            } ]
+          },
+          "customQuantiles" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "matchType" : {
+                  "oneOf" : [ {
+                    "const" : "TO_LOWER_BIN",
+                    "title" : "To lower bin"
+                  }, {
+                    "const" : "TO_UPPER_BIN",
+                    "title" : "To upper bin"
+                  } ],
+                  "title" : "Exact match",
+                  "description" : "The behaviour when a value is exactly equal to the cutoff between two bins.\n\n<ul>\n<li><b>To lower bin</b>: Values that fall on the bin border will be assigned to the lower bin.\n</li>\n<li><b>To upper bin</b>: Values that fall on the bin border will be assigned to the upper bin.\n</li>\n</ul>",
+                  "default" : "TO_LOWER_BIN"
+                },
+                "quantile" : {
+                  "type" : "number",
+                  "format" : "double",
+                  "title" : "Quantile",
+                  "description" : "The exact value at which the bin boundary should be placed.\n",
+                  "default" : 0.0
+                }
+              }
+            },
+            "title" : "Custom quantiles",
+            "description" : "The bin boundaries may be defined manually by entering the quantiles. The behaviour when a value is exactly equal to a quantile can be configured separately for each quantile.\n",
+            "default" : [ {
+              "quantile" : 0.0,
+              "matchType" : "TO_LOWER_BIN"
+            } ]
+          },
+          "enforceIntegerCutoffs" : {
+            "type" : "boolean",
+            "title" : "Enforce integer cutoffs",
+            "description" : "If enabled, the cutoffs between bins will be rounded to the nearest integer. Not applicable if the cutoffs are defined manually.\n",
+            "default" : false
+          },
+          "fixLowerBound" : {
+            "type" : "boolean",
+            "title" : "Fix lower bound",
+            "description" : "If enabled, values below the lower bound will be sorted into a special bin with a name specified by the 'Lower outlier value' setting. ",
+            "default" : false
+          },
+          "fixUpperBound" : {
+            "type" : "boolean",
+            "title" : "Fix upper bound",
+            "description" : "If enabled, values above the upper bound will be sorted into a special bin with a name specified by the 'Upper outlier value' setting. ",
+            "default" : false
+          },
+          "fixedLowerBound" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Lower bound",
+            "description" : "The lower bound below which values will be sorted into a special bin with a name specified by the 'Lower outlier value' setting.\n",
+            "default" : 0.0
+          },
+          "fixedUpperBound" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Upper bound",
+            "description" : "The upper bound above which values will be sorted into a special bin with a name specified by the 'Upper outlier value' setting.\n",
+            "default" : 0.0
+          },
+          "lowerOutlierValue" : {
+            "type" : "string",
+            "title" : "Lower outlier value",
+            "description" : "Values that are below the lower bound of the lowermost bin will be labeled with this value in place of a bin name.\n",
+            "default" : "Lower outlier"
+          },
+          "numberFormat" : {
+            "oneOf" : [ {
+              "const" : "COLUMN_FORMAT",
+              "title" : "Column format"
+            }, {
+              "const" : "CUSTOM",
+              "title" : "Custom"
+            } ],
+            "title" : "Number format",
+            "description" : "The format that will be used to display numbers in the bin values in the output table.\n",
+            "default" : "COLUMN_FORMAT"
+          },
+          "numberFormatSettings" : {
+            "type" : "object",
+            "properties" : {
+              "numberFormat" : {
+                "oneOf" : [ {
+                  "const" : "STANDARD_STRING",
+                  "title" : "Standard"
+                }, {
+                  "const" : "PLAIN_STRING",
+                  "title" : "Plain"
+                }, {
+                  "const" : "ENGINEERING_STRING",
+                  "title" : "Engineering"
+                } ],
+                "title" : "Number format",
+                "description" : "The format used for numbers in the bins with regard to how fractions and exponents are displayed.\n\n<ul>\n<li><b>Standard</b>: Will use an exponent only if needed</li>\n<li><b>Plain</b>: Will not use an exponent, e.g. 1.234</li>\n<li><b>Engineering</b>: Will use an exponent only if needed. Exponents are always a multiple of 3, e.g. 12.3E3\n</li>\n</ul>",
+                "default" : "STANDARD_STRING"
+              },
+              "precision" : {
+                "type" : "integer",
+                "format" : "int32",
+                "title" : "Precision",
+                "description" : "The number of digits to use for the precision of numbers in the bins.\n",
+                "default" : 3
+              },
+              "precisionMode" : {
+                "oneOf" : [ {
+                  "const" : "DECIMAL_PLACES",
+                  "title" : "Decimal places"
+                }, {
+                  "const" : "SIGNIFICANT_FIGURES",
+                  "title" : "Significant figures"
+                } ],
+                "title" : "Precision mode",
+                "description" : "Whether to use a fixed number of decimal places or a fixed number of significant figures when rounding numbers in the bins.\n\n<ul>\n<li><b>Decimal places</b>: Will round to the given number of decimal places, e.g. 12.34567 will become 12.346 if the precision is set to 3.\n</li>\n<li><b>Significant figures</b>: Will round to the given number of significant figures, e.g. 12.34567 will become 12.3 if the precision is set to 3.\n</li>\n</ul>",
+                "default" : "DECIMAL_PLACES"
+              },
+              "roundingMode" : {
+                "oneOf" : [ {
+                  "const" : "UP",
+                  "title" : "Up"
+                }, {
+                  "const" : "DOWN",
+                  "title" : "Down"
+                }, {
+                  "const" : "CEILING",
+                  "title" : "Ceiling"
+                }, {
+                  "const" : "FLOOR",
+                  "title" : "Floor"
+                }, {
+                  "const" : "HALF_UP",
+                  "title" : "Half up"
+                }, {
+                  "const" : "HALF_DOWN",
+                  "title" : "Half down"
+                }, {
+                  "const" : "HALF_EVEN",
+                  "title" : "Half even"
+                } ],
+                "title" : "Rounding mode",
+                "description" : "The rounding mode to use when rounding numbers in the bins.\n\n<ul>\n<li><b>Up</b>: Will round away from zero, e.g. 1.2 will become 2 and -1.2 will become -2.\n</li>\n<li><b>Down</b>: Will round towards zero, e.g. 1.2 will become 1 and -1.2 will become -1.\n</li>\n<li><b>Ceiling</b>: Will round towards positive infinity, e.g. 1.2 will become 2 and -1.2 will become -1.\n</li>\n<li><b>Floor</b>: Will round towards negative infinity, e.g. 1.2 will become 1 and -1.2 will become -2.\n</li>\n<li><b>Half up</b>: Will round towards the nearest neighbor. When the number is exactly halfway between two neighbors, it will round away from zero, e.g. 1.5 will become 2 and -1.5 will become -2.\n</li>\n<li><b>Half down</b>: Will round towards the nearest neighbor. When the number is exactly halfway between two neighbors, it will round towards zero, e.g. 1.5 will become 1 and -1.5 will become -1.\n</li>\n<li><b>Half even</b>: Will round towards the nearest neighbor. When the number is exactly halfway between two neighbors, it will round towards the nearest even neighbor, e.g. 1.5 will become 2 and 2.5 will become 2.\n</li>\n</ul>",
+                "default" : "HALF_UP"
+              }
+            },
+            "default" : {
+              "numberFormat" : "STANDARD_STRING",
+              "precision" : 3,
+              "precisionMode" : "DECIMAL_PLACES",
+              "roundingMode" : "HALF_UP"
+            }
+          },
+          "numberOfBins" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Number of bins",
+            "description" : "The number of bins to create.",
+            "default" : 20
+          },
+          "prefix" : {
+            "type" : "string",
+            "title" : "Prefix",
+            "description" : "If the bin names are numbered, this prefix will be prepended to the bin names. For example \"Bin 1\", \"Bin 2\", etc. ",
+            "default" : "Bin "
+          },
+          "replaceOrAppend" : {
+            "oneOf" : [ {
+              "const" : "REPLACE",
+              "title" : "Replace"
+            }, {
+              "const" : "APPEND",
+              "title" : "Append"
+            } ],
+            "title" : "Output columns",
+            "description" : "Whether to replace the original columns with the binned columns, or to append the binned columns with new names created by appending the specified suffix to the original column names.\n\n<ul>\n<li><b>Replace</b>: Replace the original columns with the binned columns.</li>\n<li><b>Append</b>: Create new columns with the binned values, whose names are the original column names with a suffix appended.\n</li>\n</ul>",
+            "default" : "REPLACE"
+          },
+          "selectedColumns" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Columns to bin",
+            "description" : "Only the included columns will be binned.",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ "test1" ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : true
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "suffix" : {
+            "type" : "string",
+            "title" : "Suffix",
+            "description" : "If the binned columns are appended, this suffix will be appended to the original column names.\n",
+            "default" : " (Binned)"
+          },
+          "upperOutlierValue" : {
+            "type" : "string",
+            "title" : "Upper outlier value",
+            "description" : "Values that are above the upper bound of the uppermost bin will be labeled with this value in place of a bin name.\n",
+            "default" : "Upper outlier"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Binning",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/selectedColumns",
+        "options" : {
+          "format" : "typedStringFilter",
+          "unknownValuesText" : "Any unknown column",
+          "emptyStateLabel" : "No columns in this list."
+        },
+        "providedOptions" : [ "possibleValues" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/binningType",
+        "options" : {
+          "format" : "radio",
+          "radioLayout" : "vertical"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/numberOfBins",
+        "options" : {
+          "validation" : {
+            "min" : {
+              "errorMessage" : "The value must be at least 1.",
+              "parameters" : {
+                "min" : 1.0,
+                "isExclusive" : false
+              }
+            },
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "max" : 2.147483647E9,
+                "isExclusive" : false
+              }
+            }
+          }
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/binningType",
+            "schema" : {
+              "not" : {
+                "oneOf" : [ {
+                  "const" : "CUSTOM_CUTOFFS"
+                }, {
+                  "const" : "CUSTOM_QUANTILES"
+                } ]
+              }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/customCutoffs",
+        "options" : {
+          "detail" : [ {
+            "type" : "Control",
+            "scope" : "#/properties/cutoff"
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/matchType",
+            "options" : {
+              "format" : "valueSwitch"
+            }
+          } ],
+          "addButtonText" : "New cutoff",
+          "arrayElementTitle" : "Cutoff",
+          "showSortButtons" : true
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/binningType",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "CUSTOM_CUTOFFS"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/customQuantiles",
+        "options" : {
+          "detail" : [ {
+            "type" : "Control",
+            "scope" : "#/properties/quantile",
+            "options" : {
+              "validation" : {
+                "min" : {
+                  "errorMessage" : "The value must be at least 0.",
+                  "parameters" : {
+                    "min" : 0.0,
+                    "isExclusive" : false
+                  }
+                },
+                "max" : {
+                  "errorMessage" : "The value must not exceed 1.",
+                  "parameters" : {
+                    "max" : 1.0,
+                    "isExclusive" : false
+                  }
+                }
+              }
+            }
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/matchType",
+            "options" : {
+              "format" : "valueSwitch"
+            }
+          } ],
+          "addButtonText" : "New quantile",
+          "arrayElementTitle" : "Quantile",
+          "showSortButtons" : true
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/binningType",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "CUSTOM_QUANTILES"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/enforceIntegerCutoffs",
+        "options" : {
+          "format" : "checkbox"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/binningType",
+            "schema" : {
+              "not" : {
+                "oneOf" : [ {
+                  "const" : "CUSTOM_CUTOFFS"
+                } ]
+              }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/fixLowerBound",
+        "options" : {
+          "format" : "checkbox"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/binningType",
+            "schema" : {
+              "not" : {
+                "oneOf" : [ {
+                  "const" : "CUSTOM_CUTOFFS"
+                } ]
+              }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/fixedLowerBound",
+        "options" : {
+          "validation" : {
+            "min" : {
+              "errorMessage" : "The value must be at least 0.",
+              "parameters" : {
+                "min" : 0.0,
+                "isExclusive" : false
+              }
+            }
+          }
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "type" : "AND",
+            "conditions" : [ {
+              "scope" : "#/properties/model/properties/binningType",
+              "schema" : {
+                "not" : {
+                  "oneOf" : [ {
+                    "const" : "CUSTOM_CUTOFFS"
+                  } ]
+                }
+              }
+            }, {
+              "scope" : "#/properties/model/properties/fixLowerBound",
+              "schema" : {
+                "const" : true
+              }
+            } ]
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/fixUpperBound",
+        "options" : {
+          "format" : "checkbox"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/binningType",
+            "schema" : {
+              "not" : {
+                "oneOf" : [ {
+                  "const" : "CUSTOM_CUTOFFS"
+                } ]
+              }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/fixedUpperBound",
+        "options" : {
+          "validation" : {
+            "min" : {
+              "errorMessage" : "The value must be at least 0.",
+              "parameters" : {
+                "min" : 0.0,
+                "isExclusive" : false
+              }
+            }
+          }
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "type" : "AND",
+            "conditions" : [ {
+              "scope" : "#/properties/model/properties/binningType",
+              "schema" : {
+                "not" : {
+                  "oneOf" : [ {
+                    "const" : "CUSTOM_CUTOFFS"
+                  } ]
+                }
+              }
+            }, {
+              "scope" : "#/properties/model/properties/fixUpperBound",
+              "schema" : {
+                "const" : true
+              }
+            } ]
+          }
+        }
+      } ]
+    }, {
+      "label" : "Output",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/binNames",
+        "options" : {
+          "format" : "radio",
+          "radioLayout" : "vertical"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/prefix",
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/binNames",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "NUMBERED"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/lowerOutlierValue",
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "type" : "OR",
+            "conditions" : [ {
+              "scope" : "#/properties/model/properties/fixLowerBound",
+              "schema" : {
+                "const" : true
+              }
+            }, {
+              "scope" : "#/properties/model/properties/binningType",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "CUSTOM_CUTOFFS"
+                }, {
+                  "const" : "CUSTOM_QUANTILES"
+                } ]
+              }
+            } ]
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/upperOutlierValue",
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "type" : "OR",
+            "conditions" : [ {
+              "scope" : "#/properties/model/properties/fixUpperBound",
+              "schema" : {
+                "const" : true
+              }
+            }, {
+              "scope" : "#/properties/model/properties/binningType",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "CUSTOM_CUTOFFS"
+                }, {
+                  "const" : "CUSTOM_QUANTILES"
+                } ]
+              }
+            } ]
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/numberFormat",
+        "options" : {
+          "isAdvanced" : true,
+          "format" : "valueSwitch"
+        },
+        "rule" : {
+          "effect" : "HIDE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/binNames",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "NUMBERED"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/numberFormatSettings/properties/numberFormat",
+        "options" : {
+          "isAdvanced" : true,
+          "format" : "valueSwitch"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "type" : "AND",
+            "conditions" : [ {
+              "scope" : "#/properties/model/properties/binNames",
+              "schema" : {
+                "not" : {
+                  "oneOf" : [ {
+                    "const" : "NUMBERED"
+                  } ]
+                }
+              }
+            }, {
+              "scope" : "#/properties/model/properties/numberFormat",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "CUSTOM"
+                } ]
+              }
+            } ]
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/numberFormatSettings/properties/precision",
+        "options" : {
+          "validation" : {
+            "min" : {
+              "errorMessage" : "The value must be at least 1.",
+              "parameters" : {
+                "min" : 1.0,
+                "isExclusive" : false
+              }
+            },
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "max" : 2.147483647E9,
+                "isExclusive" : false
+              }
+            }
+          },
+          "isAdvanced" : true
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "type" : "AND",
+            "conditions" : [ {
+              "scope" : "#/properties/model/properties/binNames",
+              "schema" : {
+                "not" : {
+                  "oneOf" : [ {
+                    "const" : "NUMBERED"
+                  } ]
+                }
+              }
+            }, {
+              "scope" : "#/properties/model/properties/numberFormat",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "CUSTOM"
+                } ]
+              }
+            } ]
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/numberFormatSettings/properties/precisionMode",
+        "options" : {
+          "isAdvanced" : true,
+          "format" : "valueSwitch"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "type" : "AND",
+            "conditions" : [ {
+              "scope" : "#/properties/model/properties/binNames",
+              "schema" : {
+                "not" : {
+                  "oneOf" : [ {
+                    "const" : "NUMBERED"
+                  } ]
+                }
+              }
+            }, {
+              "scope" : "#/properties/model/properties/numberFormat",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "CUSTOM"
+                } ]
+              }
+            } ]
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/numberFormatSettings/properties/roundingMode",
+        "options" : {
+          "isAdvanced" : true
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "type" : "AND",
+            "conditions" : [ {
+              "scope" : "#/properties/model/properties/binNames",
+              "schema" : {
+                "not" : {
+                  "oneOf" : [ {
+                    "const" : "NUMBERED"
+                  } ]
+                }
+              }
+            }, {
+              "scope" : "#/properties/model/properties/numberFormat",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "CUSTOM"
+                } ]
+              }
+            } ]
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/replaceOrAppend",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/suffix",
+        "options" : {
+          "validation" : {
+            "minLength" : {
+              "errorMessage" : "The field cannot be empty (it must contain at least one character).",
+              "parameters" : {
+                "minLength" : 1
+              }
+            }
+          }
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/replaceOrAppend",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "APPEND"
+              } ]
+            }
+          }
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "selectedColumns" : {
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : { }
+                }
+              }
+            }
+          },
+          "binningType" : { },
+          "numberOfBins" : { },
+          "customCutoffs" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "cutoff" : { },
+                "matchType" : { }
+              }
+            }
+          },
+          "customQuantiles" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "quantile" : { },
+                "matchType" : { }
+              }
+            }
+          },
+          "enforceIntegerCutoffs" : { },
+          "fixLowerBound" : {
+            "configKey" : "fixedLowerBound_is_present"
+          },
+          "fixedLowerBound" : { },
+          "fixUpperBound" : {
+            "configKey" : "fixedUpperBound_is_present"
+          },
+          "fixedUpperBound" : { },
+          "binNames" : { },
+          "prefix" : { },
+          "lowerOutlierValue" : { },
+          "upperOutlierValue" : { },
+          "numberFormat" : { },
+          "numberFormatSettings" : {
+            "type" : "object",
+            "properties" : {
+              "numberFormat" : { },
+              "precision" : { },
+              "precisionMode" : { },
+              "roundingMode" : { }
+            }
+          },
+          "replaceOrAppend" : { },
+          "suffix" : { }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/selectedColumns",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test1",
+        "text" : "test1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      } ]
+    } ]
+  } ]
+}

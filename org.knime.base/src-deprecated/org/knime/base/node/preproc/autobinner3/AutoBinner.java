@@ -91,12 +91,17 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.pmml.preproc.PMMLPreprocPortObjectSpec;
+import org.knime.core.util.binning.auto.AutoBinningPMMLCreator;
 
 /**
  * Creates Bins. Use this class in other nodes.
  *
  * @author Heiko Hofer
+ *
+ * @deprecated This relies on many deprecated classes and methods, and is a duplicate of several other classes of the
+ * same name. Consider {@link AutoBinningPMMLCreator} instead.
  */
+@Deprecated
 public class AutoBinner {
 
     private AutoBinnerLearnSettings m_settings;

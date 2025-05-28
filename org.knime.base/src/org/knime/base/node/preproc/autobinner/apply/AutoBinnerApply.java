@@ -55,12 +55,16 @@ import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.util.binning.auto.AutoBinningPMMLCreator;
 
 /**
  * Use this in other nodes for binning data.
  *
  * @author Heiko Hofer
+ *
+ * @deprecated This relies on several deprecated classes and methods. Consider using {@link AutoBinningPMMLCreator} instead.
  */
+@Deprecated
 public final class AutoBinnerApply {
     /**
      * @param op {@link PMMLPreprocDiscretize} operation

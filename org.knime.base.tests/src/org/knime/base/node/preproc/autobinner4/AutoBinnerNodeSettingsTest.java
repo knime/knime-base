@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,80 +41,62 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * -------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
  * History
- *   24.06.2010 (hofer): created
+ *   Jun 26, 2025 (david): created
  */
-package org.knime.base.node.preproc.autobinner.apply;
+package org.knime.base.node.preproc.autobinner4;
 
-import org.knime.core.data.DataCell;
-import org.knime.core.data.DoubleValue;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.StringCell;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * Encapsulates a bin.
  *
- * @author Heiko Hofer
- *
- * @deprecated please use {@link org.knime.core.util.binning.numeric.NumericBin} instead since this is a duplicate.
+ * @author David Hickey, TNG Technology Consulting GmbH
  */
-@Deprecated
-class NumericBin  {
-    private final DataCell m_binName;
+@SuppressWarnings("restriction")
+final class AutoBinnerNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    static final PortObjectSpec[] TEST_TABLE_SPECS = new PortObjectSpec[]{
+        new DataTableSpec(new String[]{"test1", "test2"}, new DataType[]{DoubleCell.TYPE, StringCell.TYPE}) //
+    };
 
-    private final boolean m_isLeftOpen;
-
-    private final double m_leftMargin;
-
-    private final boolean m_isRightOpen;
-
-    private final double m_rightMargin;
-
-    /**
-     *
-     * @param binName the value of the bin
-     * @param isLeftOpen <code>true</code> if left interval is open
-     * @param leftMargin the left interval margin
-     * @param isRightOpen <code>true</code> if the right interval is open
-     * @param rightMargin the right interval margin
-     */
-    NumericBin(final DataCell binName, final boolean isLeftOpen,
-            final double leftMargin, final boolean isRightOpen,
-            final double rightMargin) {
-        m_binName = binName;
-        m_isLeftOpen = isLeftOpen;
-        m_leftMargin = leftMargin;
-        m_isRightOpen = isRightOpen;
-        m_rightMargin = rightMargin;
+    protected AutoBinnerNodeSettingsTest() {
+        super(getConfig());
     }
 
-    /**
-     * @return the value of a bin
-     */
-    public DataCell getValue() {
-        return m_binName;
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .withInputPortObjectSpecs(TEST_TABLE_SPECS) //
+            .testJsonFormsForModel(AutoBinnerNodeSettings.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
     }
 
-    /**
-     * @param cell the cell to check coverage
-     * @return <code>true</code>, if interval covers the given value
-     * @throws ClassCastException if the cell is not of type {@link DoubleValue}
-     */
-    public boolean covers(final DataCell cell) {
-        if (cell.isMissing()) {
-            return false;
+    private static AutoBinnerNodeSettings readSettings() {
+        try {
+            var path = getSnapshotPath(AutoBinnerNodeSettings.class).getParent().resolve("node_settings")
+                .resolve("AutoBinnerNodeSettings.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return NodeParametersUtil.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    AutoBinnerNodeSettings.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
         }
-        double value = ((DoubleValue)cell).getDoubleValue();
-        assert (m_leftMargin <= m_rightMargin);
-        if (m_leftMargin < value && value < m_rightMargin) {
-            return true;
-        }
-        if (m_leftMargin == value && !m_isLeftOpen) {
-            return true;
-        }
-        if (m_rightMargin == value && !m_isRightOpen) {
-            return true;
-        }
-        return false;
     }
 }
