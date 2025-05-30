@@ -53,14 +53,19 @@ import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.C
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
+import org.knime.core.data.def.StringCell;
+import org.knime.core.data.property.ColorHandler;
+import org.knime.core.data.property.ColorModelNominal;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
@@ -155,8 +160,34 @@ final class ColumnRenamerNodeModel extends WebUINodeModel<ColumnRenamerSettings>
             // initialize with spec to persist table properties
             var specCreator = new DataTableSpecCreator(spec);
             specCreator.dropAllColumns();
+            specCreator.setColumnNamesColorHandler(remapColorModel(spec));
             specCreator.addColumns(renameColumns(spec));
             return specCreator.createSpec();
+        }
+
+        private ColorHandler remapColorModel(final DataTableSpec spec) {
+            final var columnNamesColorHandlerOpt = spec.getColumnNamesColorHandler();
+            if (!columnNamesColorHandlerOpt.isEmpty()) {
+                final var columnNamesColorHandler = columnNamesColorHandlerOpt.get();
+                final var colorModel = columnNamesColorHandler.getColorModel();
+                if (colorModel instanceof ColorModelNominal colorModelNominal) {
+                    Map<DataCell, DataCell> colorModelRemappings = new LinkedHashMap<>();
+                    var columnsToRename = new HashSet<>(m_nameMap.keySet());
+                    for (var column : spec) {
+                        var oldName = column.getName();
+                        columnsToRename.remove(oldName);
+                        colorModelRemappings.put(new StringCell(oldName), new StringCell(rename(oldName)));
+                    }
+                    final var updatedColorModelNominal = colorModelNominal.applyDataCellRemapping(colorModelRemappings);
+                    if (!columnsToRename.isEmpty()) {
+                        setWarningMessage(createMissingColumnsWarning(columnsToRename));
+                    }
+                    return new ColorHandler(updatedColorModelNominal);
+                } else {
+                    return columnNamesColorHandler;
+                }
+            }
+            return null;
         }
 
         private DataColumnSpec[] renameColumns(final DataTableSpec spec) throws InvalidSettingsException {
