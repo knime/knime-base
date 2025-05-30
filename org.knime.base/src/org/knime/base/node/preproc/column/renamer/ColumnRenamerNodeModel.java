@@ -55,12 +55,17 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
+import org.knime.core.data.def.StringCell;
+import org.knime.core.data.property.ColorHandler;
+import org.knime.core.data.property.ColorModelNominal;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
@@ -155,24 +160,63 @@ final class ColumnRenamerNodeModel extends WebUINodeModel<ColumnRenamerSettings>
             // initialize with spec to persist table properties
             var specCreator = new DataTableSpecCreator(spec);
             specCreator.dropAllColumns();
-            specCreator.addColumns(renameColumns(spec));
+            final var renameMap = createRenameMap(spec);
+            specCreator.setColumnNamesColorHandler(remapColorModel(spec, renameMap));
+            specCreator.addColumns(renameColumns(spec, renameMap));
             return specCreator.createSpec();
         }
 
-        private DataColumnSpec[] renameColumns(final DataTableSpec spec) throws InvalidSettingsException {
+        private Map<String, String> createRenameMap(final DataTableSpec spec) throws InvalidSettingsException {
             var columnsToRename = new HashSet<>(m_nameMap.keySet());
-            var columns = new ArrayList<DataColumnSpec>(spec.getNumColumns());
             var newNames = new HashSet<String>();
+            var renameMapping = new HashMap<String, String>();
             for (var column : spec) {
                 var oldName = column.getName();
                 columnsToRename.remove(oldName);
                 var newName = rename(oldName);
                 CheckUtils.checkSetting(newNames.add(newName),
                     "The new column name '%s' occurs mutiple times. Column names must be unique.", newName);
-                columns.add(renameColumn(column, newName));
+                if (!oldName.equals(newName)) {
+                    renameMapping.put(oldName, newName);
+                }
             }
             if (!columnsToRename.isEmpty()) {
                 setWarningMessage(createMissingColumnsWarning(columnsToRename));
+            }
+            return renameMapping;
+        }
+
+        private ColorHandler remapColorModel(final DataTableSpec spec, final Map<String, String> renameMap) {
+            final var columnNamesColorHandlerOpt = spec.getColumnNamesColorHandler();
+            if (columnNamesColorHandlerOpt.isEmpty()) {
+                // There is no column name color handler defined.
+                return null;
+            }
+            final var columnNamesColorHandler = columnNamesColorHandlerOpt.get();
+            if (renameMap.isEmpty()) {
+                // There is no defined column renaming.
+                return columnNamesColorHandler;
+            }
+            final var colorModel = columnNamesColorHandler.getColorModel();
+            if (colorModel instanceof ColorModelNominal colorModelNominal) {
+                final Map<DataCell, DataCell> colorModelRemappings = renameMap.entrySet().stream()
+                        .collect(Collectors.toMap(
+                            entry -> new StringCell(entry.getKey()),
+                            entry -> new StringCell(entry.getValue())));
+                return new ColorHandler(colorModelNominal.withDataCellRemapping(colorModelRemappings));
+            } else {
+                return columnNamesColorHandler;
+            }
+        }
+
+        private DataColumnSpec[] renameColumns(final DataTableSpec spec, final Map<String, String> renameMapping) {
+            var columns = new ArrayList<DataColumnSpec>(spec.getNumColumns());
+            for (var column : spec) {
+                if (renameMapping.containsKey(column.getName())) {
+                    columns.add(renameColumn(column, renameMapping.get(column.getName())));
+                } else {
+                    columns.add(column);
+                }
             }
             return columns.toArray(DataColumnSpec[]::new);
         }
