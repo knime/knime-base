@@ -112,6 +112,14 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.base.node.preproc.pmml.binner.NumericBin">
+        <filter id="305324134">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.pmml.binner.NumericBin"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="META-INF/MANIFEST.MF" type="org.knime.base.node.preproc.sample.AbstractSamplingNodeModel">
         <filter id="305324134">
             <message_arguments>
@@ -389,6 +397,20 @@
         <filter id="305365105">
             <message_arguments>
                 <message_argument value="org.knime.base.node.preproc.partition.PartitionNodeModel"/>
+                <message_argument value="org.knime.base_5.5.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/pmml/binner/BinnerColumnFactory.java" type="org.knime.base.node.preproc.pmml.binner.BinnerColumnFactory">
+        <filter id="338722907">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.pmml.binner.BinnerColumnFactory"/>
+                <message_argument value="BinnerColumnFactory(int, BinnerColumnFactory.Bin[], String, boolean)"/>
+            </message_arguments>
+        </filter>
+        <filter id="338886760">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.pmml.binner.BinnerColumnFactory.Bin"/>
                 <message_argument value="org.knime.base_5.5.0"/>
             </message_arguments>
         </filter>
