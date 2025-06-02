@@ -96,7 +96,7 @@ import org.knime.core.util.binning.numeric.NumericBin;
  * @author Lara Gorini
  */
 @Deprecated
-public class DBAutoBinner extends AutoBinningUtils {
+public class DBAutoBinner extends AutoBinningUtils.AutoBinner {
 
     /**
      * @param settings
@@ -125,7 +125,7 @@ public class DBAutoBinner extends AutoBinningUtils {
         String[] includeCols = settings.getFilterConfiguration().applyTo(dataTableSpec).getIncludes();
 
         if (includeCols.length == 0) {
-            return createDisretizeOp(new LinkedHashMap<>());
+            return createLegacyDisretizeOp(new LinkedHashMap<>());
         }
 
         StringBuilder minMaxQuery = new StringBuilder();
@@ -166,7 +166,7 @@ public class DBAutoBinner extends AutoBinningUtils {
             edgesMap.put(entry.getKey(), edges);
         }
 
-        return createDisretizeOp(edgesMap);
+        return createLegacyDisretizeOp(edgesMap);
     }
 
     /**

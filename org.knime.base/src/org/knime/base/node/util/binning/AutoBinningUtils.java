@@ -71,6 +71,7 @@ import org.knime.base.node.preproc.autobinner.pmml.PMMLDiscretizePreprocPortObje
 import org.knime.base.node.preproc.autobinner.pmml.PMMLInterval;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLInterval.Closure;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLPreprocDiscretize;
+import org.knime.base.node.preproc.autobinner.pmml.PMMLPreprocDiscretizeTranslator;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnDomainCreator;
 import org.knime.core.data.DataColumnSpec;
@@ -79,136 +80,370 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.container.ColumnRearranger;
+import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.StringCell;
+import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.pmml.PMMLPortObject;
+import org.knime.core.node.port.pmml.PMMLPortObjectSpec;
+import org.knime.core.node.port.pmml.PMMLPortObjectSpecCreator;
 import org.knime.core.node.port.pmml.preproc.PMMLPreprocPortObjectSpec;
 import org.knime.core.util.binning.auto.BinNaming;
 import org.knime.core.util.binning.auto.BinningMethod;
 import org.knime.core.util.binning.auto.EqualityMethod;
 
 /**
- * Given various settings, creates bins in the format of a {@link PMMLPreprocDiscretize}..
+ * Given various settings, creates bins. TODO more stuff
  *
- * Moved in v5.5 from a single node-specific package to this utils package.
- *
- * @author Heiko Hofer
+ * @author David Hickey, TNG Technology Consulting GmbH
  *
  * @since 5.5
  */
 public class AutoBinningUtils {
 
-    private AutoBinningSettings m_settings;
-
-    private PMMLPreprocPortObjectSpec m_pmmlOutSpec;
-
-    private DataTableSpec m_tableOutSpec;
-
-    private String[] m_included;
-
     /**
-     * @param settings The settings object.
-     * @param spec the data table spec
-     * @throws InvalidSettingsException when settings are not consistent
+     * This class provides the functionality to automatically bin numerical columns in a data table.
      */
-    public AutoBinningUtils(final AutoBinningSettings settings, final DataTableSpec spec)
-        throws InvalidSettingsException {
-        m_settings = settings;
-        m_included = settings.getFilterConfiguration().applyTo(spec).getIncludes();
-    }
+    public static class AutoBinner {
 
-    /**
-     * @return the settings
-     */
-    protected AutoBinningSettings getSettings() {
-        return m_settings;
-    }
+        private AutoBinningSettings m_settings;
 
-    /**
-     * Determine bins.
-     *
-     * @param data the input data
-     * @param exec the execution context
-     * @return the operation with the discretisation information
-     * @throws Exception ...
-     */
-    public PMMLPreprocDiscretize execute(final BufferedDataTable data, final ExecutionContext exec) throws Exception {
-        final DataTableSpec spec = data.getDataTableSpec();
-        // determine intervals
-        if (m_settings.getMethod() == BinningMethod.FIXED_NUMBER) {
-            if (m_settings.getEqualityMethod() == EqualityMethod.WIDTH) {
-                BufferedDataTable inData =
-                    calcDomainBoundsIfNeccessary(data, exec.createSubExecutionContext(0.9), Arrays.asList(m_included));
-                init(inData.getDataTableSpec());
-                Map<String, double[]> edgesMap = new HashMap<String, double[]>();
+        private String[] m_included;
+
+        /**
+         * @param settings The settings object.
+         * @param spec the data table spec
+         * @throws InvalidSettingsException when settings are not consistent
+         */
+        public AutoBinner(final AutoBinningSettings settings, final DataTableSpec spec)
+            throws InvalidSettingsException {
+            m_settings = settings;
+            m_included = settings.getFilterConfiguration().applyTo(spec).getIncludes();
+        }
+
+        /**
+         * @return the settings
+         */
+        protected AutoBinningSettings getSettings() {
+            return m_settings;
+        }
+
+        public PortObject[] createNodeOutput(final BufferedDataTable data, final ExecutionContext exec)
+            throws Exception {
+            var spec = data.getDataTableSpec();
+
+            var translator = createDiscretizeTranslator(null); // TODO
+            var table = exec.createColumnRearrangeTable(data, createRearranger(translator, spec), exec);
+
+            var outputPmmlSpec = (PMMLPortObjectSpec)createOutputSpec(spec)[1];
+            var outputPmml = new PMMLPortObject(outputPmmlSpec);
+            outputPmml.addGlobalTransformations(translator.exportToTransDict());
+
+            return new PortObject[]{ //
+                table, //
+                outputPmml, //
+            };
+        }
+
+        /**
+         * Determine bins.
+         *
+         * @param data the input data
+         * @param exec the execution context
+         * @return the operation with the discretisation information
+         * @throws Exception ...
+         */
+        public PMMLPreprocDiscretize createDiscretizeOplegacy(final BufferedDataTable data, final ExecutionContext exec)
+            throws Exception {
+            final DataTableSpec spec = data.getDataTableSpec();
+            // determine intervals
+            if (m_settings.getMethod() == BinningMethod.FIXED_NUMBER) {
+                if (m_settings.getEqualityMethod() == EqualityMethod.WIDTH) {
+                    BufferedDataTable inData = calcDomainBoundsIfNeccessary(data, exec.createSubExecutionContext(0.9),
+                        Arrays.asList(m_included));
+                    Map<String, double[]> edgesMap = new HashMap<String, double[]>();
+                    for (String target : m_included) {
+                        DataTableSpec inSpec = inData.getDataTableSpec();
+                        DataColumnSpec targetCol = inSpec.getColumnSpec(target);
+
+                        // bounds of the domain
+                        double min = m_settings.getFixedLowerBound()
+                            .orElse(((DoubleValue)targetCol.getDomain().getLowerBound()).getDoubleValue());
+                        double max = m_settings.getFixedUpperBound()
+                            .orElse(((DoubleValue)targetCol.getDomain().getUpperBound()).getDoubleValue());
+
+                        double[] edges = calculateBounds(m_settings.getBinCount(), min, max);
+
+                        if (m_settings.getIntegerBounds()) {
+                            edges = toIntegerBoundaries(edges);
+                        }
+
+                        edgesMap.put(target, edges);
+                    }
+                    return createLegacyDisretizeOp(edgesMap);
+                } else { // EqualityMethod.equalCount
+                    Map<String, double[]> edgesMap = new HashMap<String, double[]>();
+                    for (String target : m_included) {
+                        int colIndex = data.getDataTableSpec().findColumnIndex(target);
+                        List<Double> values = new ArrayList<Double>();
+                        for (DataRow row : data) {
+                            if (!row.getCell(colIndex).isMissing()) {
+                                values.add(((DoubleValue)row.getCell(colIndex)).getDoubleValue());
+                            }
+                        }
+                        edgesMap.put(target, findEdgesForEqualCount(values, m_settings.getBinCount()));
+                    }
+                    return createLegacyDisretizeOp(edgesMap);
+                }
+            } else if (m_settings.getMethod() == BinningMethod.SAMPLE_QUANTILES) {
+                Map<String, double[]> edgesMap = new LinkedHashMap<String, double[]>();
+                final int colCount = m_included.length;
+                // contains all numeric columns if include all is set!
                 for (String target : m_included) {
-                    DataTableSpec inSpec = inData.getDataTableSpec();
-                    DataColumnSpec targetCol = inSpec.getColumnSpec(target);
-
-                    // bounds of the domain
-                    double min = m_settings.getFixedLowerBound()
-                        .orElse(((DoubleValue)targetCol.getDomain().getLowerBound()).getDoubleValue());
-                    double max = m_settings.getFixedUpperBound()
-                        .orElse(((DoubleValue)targetCol.getDomain().getUpperBound()).getDoubleValue());
-
-                    double[] edges = calculateBounds(m_settings.getBinCount(), min, max);
-
+                    exec.setMessage("Calculating quantiles (column \"" + target + "\")");
+                    ExecutionContext colSortContext = exec.createSubExecutionContext(0.7 / colCount);
+                    ExecutionContext colCalcContext = exec.createSubExecutionContext(0.3 / colCount);
+                    ColumnRearranger singleRearranger = new ColumnRearranger(spec);
+                    singleRearranger.keepOnly(target);
+                    BufferedDataTable singleColSorted =
+                        colSortContext.createColumnRearrangeTable(data, singleRearranger, colSortContext);
+                    SortedTable sorted = new SortedTable(singleColSorted, Collections.singletonList(target),
+                        new boolean[]{true}, colSortContext);
+                    colSortContext.setProgress(1.0);
+                    double[] edges = createEdgesFromQuantiles(sorted.getBufferedDataTable(), colCalcContext,
+                        m_settings.getSampleQuantiles());
+                    colCalcContext.setProgress(1.0);
+                    exec.clearTable(singleColSorted);
                     if (m_settings.getIntegerBounds()) {
                         edges = toIntegerBoundaries(edges);
                     }
-
                     edgesMap.put(target, edges);
                 }
-                return createDisretizeOp(edgesMap);
-            } else { // EqualityMethod.equalCount
-                Map<String, double[]> edgesMap = new HashMap<String, double[]>();
-                for (String target : m_included) {
-                    int colIndex = data.getDataTableSpec().findColumnIndex(target);
-                    List<Double> values = new ArrayList<Double>();
-                    for (DataRow row : data) {
-                        if (!row.getCell(colIndex).isMissing()) {
-                            values.add(((DoubleValue)row.getCell(colIndex)).getDoubleValue());
+                return createLegacyDisretizeOp(edgesMap);
+            } else {
+                throw new IllegalStateException("Unknown binning method.");
+            }
+        }
+
+        private double[] findEdgesForEqualCount(final List<Double> values, final int binCount) {
+            Collections.sort(values);
+            int countPerBin = (int)(Math.round(values.size() / (double)binCount));
+            double[] edges = new double[binCount + 1];
+            edges[0] = m_settings.getFixedLowerBound()
+                .orElse(m_settings.getIntegerBounds() ? Math.floor(values.get(0)) : values.get(0));
+            edges[edges.length - 1] =
+                m_settings.getFixedUpperBound().orElse(optionalCeil(values.get(values.size() - 1)));
+            int startIndex = 0;
+            int index = countPerBin - 1;
+            for (int i = 1; i < edges.length - 1; i++) {
+                if (index < values.size()) {
+                    double edge = optionalCeil(values.get(index));
+                    // get lower index
+                    int lowerIndex = index;
+                    while (lowerIndex >= startIndex && !(edge > optionalCeil(values.get(lowerIndex)))) {
+                        lowerIndex--;
+                    }
+                    // get higher index
+                    int higherIndex = index;
+                    while (higherIndex < values.size() - 1 && !(optionalCeil(values.get(higherIndex + 1)) > edge)) {
+                        higherIndex++;
+                    }
+                    int lowerDiff = -1 * (lowerIndex - startIndex + 1 - countPerBin);
+                    int higherDiff = higherIndex - startIndex + 1 - countPerBin;
+                    if (!(lowerIndex < startIndex) && lowerDiff <= higherDiff) {
+                        index = lowerIndex;
+                    } else {
+                        index = higherIndex;
+                    }
+                    edges[i] = optionalCeil(values.get(index));
+                    startIndex = index + 1;
+                    index += countPerBin;
+                } else {
+                    edges[i] = edges[i - 1];
+                }
+            }
+            return edges;
+        }
+
+        private double optionalCeil(final double value) {
+            return m_settings.getIntegerBounds() ? Math.ceil(value) : value;
+        }
+
+        /**
+         * @param edgesMap the boundary map
+         * @return the {@link PMMLPreprocDiscretize} model
+         */
+        protected PMMLPreprocDiscretize createLegacyDisretizeOp(final Map<String, double[]> edgesMap) {
+            Map<String, List<PMMLDiscretizeBin>> binMap = createBinsLegacy(edgesMap);
+
+            List<String> names = new ArrayList<String>();
+            Map<String, PMMLDiscretize> discretize = new HashMap<String, PMMLDiscretize>();
+            for (String target : m_included) {
+                String binnedCol = m_settings.getReplaceColumn() //
+                    ? target //
+                    : target + m_settings.getNameSuffix().orElse(AutoBinningSettings.DEFAULT_NAME_SUFFIX);
+                names.add(binnedCol);
+                discretize.put(binnedCol, new PMMLDiscretize(target, binMap.get(target)));
+            }
+
+            DisretizeConfiguration config = new DisretizeConfiguration(names, discretize);
+
+            PMMLPreprocDiscretize op = new PMMLPreprocDiscretize(config);
+            return op;
+        }
+
+        protected PMMLPreprocDiscretizeTranslator
+            createDiscretizeTranslator(final Map<String, List<BinBoundary>> edgesMap) {
+            var config = new PMMLPreprocDiscretizeTranslator.Configuration(createBins(edgesMap));
+            return new PMMLPreprocDiscretizeTranslator(config);
+        }
+
+        private Map<String, List<PMMLPreprocDiscretizeTranslator.Configuration.Bin>>
+            createBins(final Map<String, List<BinBoundary>> edgesMap) {
+
+            var discretizationsByColumnName =
+                new HashMap<String, List<PMMLPreprocDiscretizeTranslator.Configuration.Bin>>();
+
+            for (var targetColumn : edgesMap.keySet()) {
+                var edges = edgesMap.get(targetColumn);
+
+                var bins = new ArrayList<PMMLPreprocDiscretizeTranslator.Configuration.Bin>();
+
+                for (int i = 0; i < edges.size() - 1; ++i) {
+                    var leftEdge = edges.get(i);
+                    var rightEdge = edges.get(i + 1);
+
+                    var closure = PMMLPreprocDiscretizeTranslator.Configuration.ClosureStyle.from( //
+                        leftEdge.exactMatchBehaviour() == BinBoundaryExactMatchBehaviour.TO_UPPER, //
+                        rightEdge.exactMatchBehaviour() == BinBoundaryExactMatchBehaviour.TO_LOWER //
+                    );
+                    var binInterval = new PMMLPreprocDiscretizeTranslator.Configuration.Interval( //
+                        leftEdge.value(), rightEdge.value(), closure //
+                    );
+
+                    String binName = null;
+
+                    bins.add(new PMMLPreprocDiscretizeTranslator.Configuration.Bin( //
+                        binName, //
+                        Collections.singletonList(binInterval) //
+                    ));
+
+                    discretizationsByColumnName.put(binName, bins);
+                }
+            }
+
+            return discretizationsByColumnName;
+        }
+
+        private Map<String, List<PMMLDiscretizeBin>> createBinsLegacy(final Map<String, double[]> edgesMap) {
+            var formatter = new BinnerNumberFormat(m_settings);
+            var binMap = new HashMap<String, List<PMMLDiscretizeBin>>();
+            for (String target : m_included) {
+                if (null != edgesMap && null != edgesMap.get(target) && edgesMap.get(target).length > 1) {
+                    double[] edges = edgesMap.get(target);
+                    // Names of the bins
+                    var binNames = new String[edges.length - 1];
+
+                    if (m_settings.getBinNaming() == BinNaming.NUMBERED) {
+                        for (int i = 0; i < binNames.length; i++) {
+                            binNames[i] = "Bin " + (i + 1);
+                        }
+                    } else if (m_settings.getBinNaming() == BinNaming.EDGES) {
+                        binNames[0] = "[" + formatter.format(edges[0]) + "," + formatter.format(edges[1]) + "]";
+                        for (int i = 1; i < binNames.length; i++) {
+                            binNames[i] = "(" + formatter.format(edges[i]) + "," + formatter.format(edges[i + 1]) + "]";
+                        }
+                    } else { // BinNaming.midpoints
+                        binNames[0] = formatter.format((edges[1] - edges[0]) / 2 + edges[0]);
+                        for (int i = 1; i < binNames.length; i++) {
+                            binNames[i] = formatter.format((edges[i + 1] - edges[i]) / 2 + edges[i]);
                         }
                     }
-                    edgesMap.put(target, findEdgesForEqualCount(values, m_settings.getBinCount()));
+                    List<PMMLDiscretizeBin> bins = new ArrayList<PMMLDiscretizeBin>();
+                    bins.add(new PMMLDiscretizeBin(binNames[0],
+                        Arrays.asList(new PMMLInterval(edges[0], edges[1], Closure.closedClosed))));
+                    for (int i = 1; i < binNames.length; i++) {
+                        bins.add(new PMMLDiscretizeBin(binNames[i],
+                            Arrays.asList(new PMMLInterval(edges[i], edges[i + 1], Closure.openClosed))));
+                    }
+                    binMap.put(target, bins);
+                } else {
+                    binMap.put(target, new ArrayList<PMMLDiscretizeBin>());
                 }
-                return createDisretizeOp(edgesMap);
             }
-        } else if (m_settings.getMethod() == BinningMethod.SAMPLE_QUANTILES) {
-            init(spec);
-            Map<String, double[]> edgesMap = new LinkedHashMap<String, double[]>();
-            final int colCount = m_included.length;
-            // contains all numeric columns if include all is set!
-            for (String target : m_included) {
-                exec.setMessage("Calculating quantiles (column \"" + target + "\")");
-                ExecutionContext colSortContext = exec.createSubExecutionContext(0.7 / colCount);
-                ExecutionContext colCalcContext = exec.createSubExecutionContext(0.3 / colCount);
-                ColumnRearranger singleRearranger = new ColumnRearranger(spec);
-                singleRearranger.keepOnly(target);
-                BufferedDataTable singleColSorted =
-                    colSortContext.createColumnRearrangeTable(data, singleRearranger, colSortContext);
-                SortedTable sorted = new SortedTable(singleColSorted, Collections.singletonList(target),
-                    new boolean[]{true}, colSortContext);
-                colSortContext.setProgress(1.0);
-                double[] edges = createEdgesFromQuantiles(sorted.getBufferedDataTable(), colCalcContext,
-                    m_settings.getSampleQuantiles());
-                colCalcContext.setProgress(1.0);
-                exec.clearTable(singleColSorted);
-                if (m_settings.getIntegerBounds()) {
-                    edges = toIntegerBoundaries(edges);
+            return binMap;
+        }
+
+        /**
+         * Most legacy nodes using these binning utils have two output ports: one data table port and one PMML port
+         * object. This method provides a shorthand for the array containing both output port specs, and as such can be
+         * returned directly from the node model's configure method.
+         *
+         * @param inSpec The <code>DataTableSpec</code> of the input table.
+         * @return The spec of the output.
+         * @throws InvalidSettingsException If settings and spec given in the constructor are invalid.
+         *
+         * @deprecated This uses the legacy port type {@link PMMLPreprocPortObjectSpec} which is deprecated. We keep it
+         *             here because a lot of legacy nodes need it, but new nodes should not.
+         */
+        @Deprecated
+        public PortObjectSpec[] createOutputSpecLegacy(final DataTableSpec inSpec) throws InvalidSettingsException {
+            var op = createLegacyDisretizeOp(null);
+            var tableOutSpec = AutoBinningUtils.computeOutSpecLegacy(op, inSpec);
+            var pmmlOutSpec = new PMMLDiscretizePreprocPortObjectSpec(op);
+            return new PortObjectSpec[]{tableOutSpec, pmmlOutSpec};
+        }
+
+        public PortObjectSpec[] createOutputSpec(final DataTableSpec inSpec) throws InvalidSettingsException {
+            var translator = createDiscretizeTranslator(null);
+            var tableOutSpec = createRearranger(translator, inSpec).createSpec();
+
+            var specCreator = new PMMLPortObjectSpecCreator(inSpec);
+            specCreator.setPreprocColNames(new ArrayList<>(translator.getConfig().getTargetColumnNames()));
+            var spec = specCreator.createSpec();
+
+            return new PortObjectSpec[]{tableOutSpec, spec};
+        }
+
+        public ColumnRearranger createRearranger(final PMMLPreprocDiscretizeTranslator translator,
+            final DataTableSpec dataSpec) throws InvalidSettingsException {
+            // Check if columns to discretize exist
+            for (String name : translator.getConfig().getTargetColumnNames()) {
+                if (!dataSpec.containsName(name)) {
+                    throw new InvalidSettingsException(
+                        "Column " + "\"" + name + "\"" + "is missing in the input table.");
                 }
-                edgesMap.put(target, edges);
             }
-            return createDisretizeOp(edgesMap);
-        } else {
-            throw new IllegalStateException("Unknown binning method.");
+            ColumnRearranger rearranger = new ColumnRearranger(dataSpec);
+            for (String inputColumnName : translator.getConfig().getTargetColumnNames()) {
+                int colIdx = dataSpec.findColumnIndex(inputColumnName);
+
+                if (m_settings.getReplaceColumn()) {
+                    rearranger.replace(new BinningCellFactory(inputColumnName, colIdx,
+                        translator.getConfig().getDiscretizations().get(inputColumnName)), inputColumnName);
+                } else {
+                    var suffix = m_settings.getNameSuffix().orElseThrow();
+                    String outputColumnName = inputColumnName + suffix;
+
+                    rearranger.append(new BinningCellFactory(outputColumnName, colIdx,
+                        translator.getConfig().getDiscretizations().get(inputColumnName)));
+                }
+            }
+
+            return rearranger;
         }
     }
 
     /**
+     * Calculates the bin boundaries for a histogram with the given number of equally-spaced bins, minimum and maximum
+     * values.
+     *
      * @param binCount number of bins
      * @param min minimum value
      * @param max maximum value
@@ -225,8 +460,9 @@ public class AutoBinningUtils {
     }
 
     /**
-     * Converts double boundaries to integer boundaries. The resulting array may be shorter if some boundaries map to
-     * the same integer value.
+     * Converts double boundaries to integer boundaries (the data type is still double, but they are now doubles
+     * representing integers). The resulting array may be shorter than the input if some boundaries map to the same
+     * integer value.
      *
      * @param boundaries a sorted array of boundaries
      * @return the new boundaries, all integer values
@@ -244,49 +480,6 @@ public class AutoBinningUtils {
             newEdges[i++] = edge;
         }
         return newEdges;
-    }
-
-    private double[] findEdgesForEqualCount(final List<Double> values, final int binCount) {
-        Collections.sort(values);
-        int countPerBin = (int)(Math.round(values.size() / (double)binCount));
-        double[] edges = new double[binCount + 1];
-        edges[0] = m_settings.getFixedLowerBound()
-            .orElse(m_settings.getIntegerBounds() ? Math.floor(values.get(0)) : values.get(0));
-        edges[edges.length - 1] = m_settings.getFixedUpperBound().orElse(optionalCeil(values.get(values.size() - 1)));
-        int startIndex = 0;
-        int index = countPerBin - 1;
-        for (int i = 1; i < edges.length - 1; i++) {
-            if (index < values.size()) {
-                double edge = optionalCeil(values.get(index));
-                // get lower index
-                int lowerIndex = index;
-                while (lowerIndex >= startIndex && !(edge > optionalCeil(values.get(lowerIndex)))) {
-                    lowerIndex--;
-                }
-                // get higher index
-                int higherIndex = index;
-                while (higherIndex < values.size() - 1 && !(optionalCeil(values.get(higherIndex + 1)) > edge)) {
-                    higherIndex++;
-                }
-                int lowerDiff = -1 * (lowerIndex - startIndex + 1 - countPerBin);
-                int higherDiff = higherIndex - startIndex + 1 - countPerBin;
-                if (!(lowerIndex < startIndex) && lowerDiff <= higherDiff) {
-                    index = lowerIndex;
-                } else {
-                    index = higherIndex;
-                }
-                edges[i] = optionalCeil(values.get(index));
-                startIndex = index + 1;
-                index += countPerBin;
-            } else {
-                edges[i] = edges[i - 1];
-            }
-        }
-        return edges;
-    }
-
-    private double optionalCeil(final double value) {
-        return m_settings.getIntegerBounds() ? Math.ceil(value) : value;
     }
 
     @SuppressWarnings("null")
@@ -338,89 +531,19 @@ public class AutoBinningUtils {
     }
 
     /**
-     * @param edgesMap the boundary map
-     * @return the {@link PMMLPreprocDiscretize} model
+     * This formatter should not be changed, since it may result in a different output of the binning labels.
      */
-    protected PMMLPreprocDiscretize createDisretizeOp(final Map<String, double[]> edgesMap) {
-        Map<String, List<PMMLDiscretizeBin>> binMap = createBins(edgesMap);
+    protected static class BinnerNumberFormat {
 
-        List<String> names = new ArrayList<String>();
-        Map<String, PMMLDiscretize> discretize = new HashMap<String, PMMLDiscretize>();
-        for (String target : m_included) {
-            String binnedCol = m_settings.getReplaceColumn() ? target : target + " [Binned]";
-            names.add(binnedCol);
-            discretize.put(binnedCol, new PMMLDiscretize(target, binMap.get(target)));
-        }
+        private final AutoBinningSettings m_settings;
 
-        DisretizeConfiguration config = new DisretizeConfiguration(names, discretize);
-
-        PMMLPreprocDiscretize op = new PMMLPreprocDiscretize(config);
-        return op;
-    }
-
-    private Map<String, List<PMMLDiscretizeBin>> createBins(final Map<String, double[]> edgesMap) {
-        BinnerNumberFormat formatter = new BinnerNumberFormat();
-        Map<String, List<PMMLDiscretizeBin>> binMap = new HashMap<String, List<PMMLDiscretizeBin>>();
-        for (String target : m_included) {
-            if (null != edgesMap && null != edgesMap.get(target) && edgesMap.get(target).length > 1) {
-                double[] edges = edgesMap.get(target);
-                // Names of the bins
-                String[] binNames = new String[edges.length - 1];
-                if (m_settings.getBinNaming() == BinNaming.NUMBERED) {
-                    for (int i = 0; i < binNames.length; i++) {
-                        binNames[i] = "Bin " + (i + 1);
-                    }
-                } else if (m_settings.getBinNaming() == BinNaming.EDGES) {
-                    binNames[0] = "[" + formatter.format(edges[0]) + "," + formatter.format(edges[1]) + "]";
-                    for (int i = 1; i < binNames.length; i++) {
-                        binNames[i] = "(" + formatter.format(edges[i]) + "," + formatter.format(edges[i + 1]) + "]";
-                    }
-                } else { // BinNaming.midpoints
-                    binNames[0] = formatter.format((edges[1] - edges[0]) / 2 + edges[0]);
-                    for (int i = 1; i < binNames.length; i++) {
-                        binNames[i] = formatter.format((edges[i + 1] - edges[i]) / 2 + edges[i]);
-                    }
-                }
-                List<PMMLDiscretizeBin> bins = new ArrayList<PMMLDiscretizeBin>();
-                bins.add(new PMMLDiscretizeBin(binNames[0],
-                    Arrays.asList(new PMMLInterval(edges[0], edges[1], Closure.closedClosed))));
-                for (int i = 1; i < binNames.length; i++) {
-                    bins.add(new PMMLDiscretizeBin(binNames[i],
-                        Arrays.asList(new PMMLInterval(edges[i], edges[i + 1], Closure.openClosed))));
-                }
-                binMap.put(target, bins);
-            } else {
-                binMap.put(target, new ArrayList<PMMLDiscretizeBin>());
-            }
-        }
-        return binMap;
-    }
-
-    /**
-     * @param spec The <code>DataTableSpec</code> of the input table.
-     * @return The spec of the output.
-     * @throws InvalidSettingsException If settings and spec given in the constructor are invalid.
-     */
-    public PortObjectSpec[] getOutputSpec(final DataTableSpec spec) throws InvalidSettingsException {
-        init(spec);
-        return new PortObjectSpec[]{m_tableOutSpec, m_pmmlOutSpec};
-    }
-
-    /** Initialize instance and check if settings are consistent. */
-    private void init(final DataTableSpec inSpec) throws InvalidSettingsException {
-        PMMLPreprocDiscretize op = createDisretizeOp(null);
-
-        m_tableOutSpec = AutoBinnerApply.getOutputSpec(op, inSpec);
-        m_pmmlOutSpec = new PMMLDiscretizePreprocPortObjectSpec(op);
-    }
-
-    /**
-     * This formatted should not be changed, since it may result in a different output of the binning labels.
-     */
-    protected class BinnerNumberFormat {
-        /** Constructor. */
-        protected BinnerNumberFormat() {
-            // no op
+        /**
+         * Constructor.
+         *
+         * @param settings the settings to use for formatting
+         */
+        protected BinnerNumberFormat(final AutoBinningSettings settings) {
+            m_settings = settings;
         }
 
         /** for numbers less than 0.0001. */
@@ -464,25 +587,18 @@ public class AutoBinningUtils {
          * @return the formated value
          */
         public String advancedFormat(final double d) {
-            BigDecimal bd = new BigDecimal(d);
-            switch (m_settings.getPrecisionMode()) {
-                case DECIMAL:
-                    bd = bd.setScale(m_settings.getPrecision(), m_settings.getRoundingMode());
-                    break;
-                case SIGNIFICANT:
-                    bd = bd.round(new MathContext(m_settings.getPrecision(), m_settings.getRoundingMode()));
-                    break;
-            }
-            switch (m_settings.getOutputFormat()) {
-                case STANDARD:
-                    return bd.toString();
-                case PLAIN:
-                    return bd.toPlainString();
-                case ENGINEERING:
-                    return bd.toEngineeringString();
-                default:
-                    return Double.toString(bd.doubleValue());
-            }
+            var bd = new BigDecimal(d);
+
+            bd = switch (m_settings.getPrecisionMode()) {
+                case DECIMAL -> bd.setScale(m_settings.getPrecision(), m_settings.getRoundingMode());
+                case SIGNIFICANT -> bd.round(new MathContext(m_settings.getPrecision(), m_settings.getRoundingMode()));
+            };
+
+            return switch (m_settings.getOutputFormat()) {
+                case STANDARD -> bd.toString();
+                case PLAIN -> bd.toPlainString();
+                case ENGINEERING -> bd.toEngineeringString();
+            };
         }
 
         /**
@@ -498,6 +614,7 @@ public class AutoBinningUtils {
         public NumberFormat getDefaultFormat() {
             return m_defaultFormat;
         }
+
     }
 
     /**
@@ -594,5 +711,135 @@ public class AutoBinningUtils {
         }
         var spec = new DataTableSpec(newColSpecList.toArray(new DataColumnSpec[0]));
         return exec.createSpecReplacerTable(data, spec);
+    }
+
+    /**
+     * Given a discretisation operation (e.g. one created by calling
+     * {@link AutoBinner#createDiscretizeOplegacy(BufferedDataTable, ExecutionContext)}), and an input data table spec,
+     * produce the output data table spec.
+     *
+     * @param op {@link PMMLPreprocDiscretize} operation
+     * @param dataSpec table with data to discretize
+     * @return The spec of the output.
+     * @throws InvalidSettingsException If settings are inconsistent
+     *
+     * @see #createRearrangerLegacy(PMMLPreprocDiscretize, DataTableSpec)
+     */
+    @Deprecated
+    public static DataTableSpec computeOutSpecLegacy(final PMMLPreprocDiscretize op, final DataTableSpec dataSpec)
+        throws InvalidSettingsException {
+        ColumnRearranger rearranger = AutoBinningUtils.createRearrangerLegacy(op, dataSpec);
+        return rearranger.createSpec();
+    }
+
+    /**
+     * Given an input table and a discretisation operation (e.g. one created by calling
+     * {@link AutoBinner#createDiscretizeOplegacy(BufferedDataTable, ExecutionContext)}), produce an output table.
+     *
+     * @param op {@link PMMLPreprocDiscretize} operation
+     * @param inTable the input data table
+     * @param exec the execution context
+     * @return data table with binned data
+     * @throws InvalidSettingsException when settings are inconsistent
+     * @throws CanceledExecutionException when execution is canceled
+     *
+     * @see #createRearrangerLegacy(PMMLPreprocDiscretize, DataTableSpec)
+     */
+    @Deprecated
+    public static BufferedDataTable createOutTable(final PMMLPreprocDiscretize op, final BufferedDataTable inTable,
+        final ExecutionContext exec) throws InvalidSettingsException, CanceledExecutionException {
+        ColumnRearranger rearranger = AutoBinningUtils.createRearrangerLegacy(op, inTable.getDataTableSpec());
+        return exec.createColumnRearrangeTable(inTable, rearranger, exec);
+    }
+
+    /**
+     * Create a {@link ColumnRearranger} from a discretisation operation (e.g. one created by calling
+     * {@link AutoBinner#createDiscretizeOplegacy(BufferedDataTable, ExecutionContext)}), which can be used to produce
+     * an output table with binned data.
+     *
+     * @param op {@link PMMLPreprocDiscretize} operation
+     * @param dataSpec table with data to discretize
+     * @return a rearranger that can be used to produce an output table with binned data
+     * @throws InvalidSettingsException when settings are inconsistent
+     */
+    @Deprecated
+    public static ColumnRearranger createRearrangerLegacy(final PMMLPreprocDiscretize op, final DataTableSpec dataSpec)
+        throws InvalidSettingsException {
+        DisretizeConfiguration config = op.getConfiguration();
+        // Check if columns to discretize exist
+        for (String name : config.getNames()) {
+            String toBin = config.getDiscretize(name).getField();
+            if (!dataSpec.containsName(toBin)) {
+                throw new InvalidSettingsException("Column " + "\"" + toBin + "\"" + "is missing in the input table.");
+            }
+        }
+        ColumnRearranger rearranger = new ColumnRearranger(dataSpec);
+        for (String name : config.getNames()) {
+            int colIdx = dataSpec.findColumnIndex(config.getDiscretize(name).getField());
+            assert colIdx >= 0;
+            if (dataSpec.containsName(name)) {
+                rearranger.replace(new org.knime.base.node.preproc.autobinner.apply.BinningCellFactory(name, colIdx,
+                    config.getDiscretize(name)), name);
+            } else {
+                rearranger.append(new org.knime.base.node.preproc.autobinner.apply.BinningCellFactory(name, colIdx,
+                    config.getDiscretize(name)));
+            }
+        }
+
+        return rearranger;
+    }
+
+    public enum BinBoundaryExactMatchBehaviour {
+            /**
+             * If the value is exactly on a boundary, it will be rounded to the upper boundary
+             */
+            TO_UPPER, //
+            /**
+             * If the value is exactly on a boundary, it will be rounded to the lower boundary
+             */
+            TO_LOWER, //
+    }
+
+    public record BinBoundary( //
+        double value, //
+        BinBoundaryExactMatchBehaviour exactMatchBehaviour //
+    ) {
+    }
+
+    public static class BinningCellFactory extends SingleCellFactory {
+
+        private final int m_targetColumnIndex;
+
+        private final List<PMMLPreprocDiscretizeTranslator.Configuration.Bin> m_bins;
+
+        public BinningCellFactory( //
+            final String newColName, //
+            final int targetColumnIndex, final List<PMMLPreprocDiscretizeTranslator.Configuration.Bin> bins //
+        ) {
+            super(new DataColumnSpecCreator(newColName, StringCell.TYPE).createSpec());
+
+            m_targetColumnIndex = targetColumnIndex;
+            m_bins = bins;
+        }
+
+        @Override
+        public DataCell getCell(final DataRow row) {
+            var value = ((DoubleValue)row.getCell(m_targetColumnIndex)).getDoubleValue();
+
+            var matchingBins = m_bins.stream() //
+                .filter(bin -> bin.covers(value)) //
+                .toList();
+
+            if (matchingBins.isEmpty()) {
+                throw new IllegalStateException("No bin found for value " + value + " in column " + m_targetColumnIndex
+                    + ". " + "This is an implementation bug.");
+            } else if (matchingBins.size() > 1) {
+                throw new IllegalStateException("Multiple bins found for value " + value + " in column "
+                    + m_targetColumnIndex + ". " + "This is an implementation bug.");
+            } else {
+                var bin = matchingBins.get(0);
+                return StringCellFactory.create(bin.binValue());
+            }
+        }
     }
 }

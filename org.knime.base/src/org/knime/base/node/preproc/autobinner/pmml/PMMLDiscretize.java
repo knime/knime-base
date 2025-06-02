@@ -59,6 +59,7 @@ import org.xml.sax.helpers.AttributesImpl;
  *
  * @author Heiko Hofer
  */
+@Deprecated
 final public class PMMLDiscretize {
     private String m_field;
     private String m_mapMissingTo;

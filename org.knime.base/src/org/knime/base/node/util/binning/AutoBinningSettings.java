@@ -126,6 +126,13 @@ public final class AutoBinningSettings {
     private Double m_fixedUpperBound;
 
     /**
+     * Suffix to be appended to the bin names. If it is null, we use the default value "[Binned]".
+     */
+    private String m_NameSuffix = null;
+
+    public static final String DEFAULT_NAME_SUFFIX = " [Binned]";
+
+    /**
      * @return the method used when binning the data
      *
      * @since 5.5
@@ -159,7 +166,6 @@ public final class AutoBinningSettings {
 
     /**
      * @return the equalityMethod
-     * @since 5.5
      */
     public EqualityMethod getEqualityMethod() {
         return m_equalityMethod;
@@ -167,7 +173,6 @@ public final class AutoBinningSettings {
 
     /**
      * @param equalityMethod the equalityMethod to set
-     * @since 5.5
      */
     public void setEqualityMethod(final EqualityMethod equalityMethod) {
         m_equalityMethod = equalityMethod;
@@ -203,8 +208,6 @@ public final class AutoBinningSettings {
 
     /**
      * @return the binNaming
-     *
-     * @since 5.5
      */
     public BinNaming getBinNaming() {
         return m_binNaming;
@@ -212,8 +215,6 @@ public final class AutoBinningSettings {
 
     /**
      * @param binNaming the binNaming to set
-     *
-     * @since 5.5
      */
     public void setBinNaming(final BinNaming binNaming) {
         m_binNaming = binNaming;
@@ -249,8 +250,6 @@ public final class AutoBinningSettings {
 
     /**
      * @return the outputFormat
-     *
-     * @since 5.5
      */
     public OutputFormat getOutputFormat() {
         return m_outputFormat;
@@ -258,8 +257,6 @@ public final class AutoBinningSettings {
 
     /**
      * @param outputFormat the outputFormat to set
-     *
-     * @since 5.5
      */
     public void setOutputFormat(final OutputFormat outputFormat) {
         m_outputFormat = outputFormat;
@@ -281,8 +278,6 @@ public final class AutoBinningSettings {
 
     /**
      * @return the precisionMode
-     *
-     * @since 5.5
      */
     public PrecisionMode getPrecisionMode() {
         return m_precisionMode;
@@ -290,8 +285,6 @@ public final class AutoBinningSettings {
 
     /**
      * @param precisionMode the precisionMode to set
-     *
-     * @since 5.5
      */
     public void setPrecisionMode(final PrecisionMode precisionMode) {
         m_precisionMode = precisionMode;
@@ -312,7 +305,6 @@ public final class AutoBinningSettings {
     }
 
     /**
-     * @since 5.4
      * @return the fixed lower bound
      */
     public Optional<Double> getFixedLowerBound() {
@@ -322,7 +314,6 @@ public final class AutoBinningSettings {
     /**
      * Sets a fixed lower bound of the first bin instead of using the domain minimum.
      *
-     * @since 5.4
      * @param fixedLowerBound the fixed lower bound of the first bin
      */
     public void setFixedLowerBound(final Double fixedLowerBound) {
@@ -330,12 +321,26 @@ public final class AutoBinningSettings {
     }
 
     /**
-     *
-     * @since 5.4
      * @return the fixed upper bound
      */
     public Optional<Double> getFixedUpperBound() {
         return Optional.ofNullable(m_fixedUpperBound);
+    }
+
+    /**
+     * @return the name suffix to be appended to the bin names
+     */
+    public Optional<String> getNameSuffix() {
+        return Optional.ofNullable(m_NameSuffix);
+    }
+
+    /**
+     * Sets the name suffix to be appended to the bin names.
+     *
+     * @param nameSuffix the name suffix to be appended to the bin names
+     */
+    public void setNameSuffix(final String nameSuffix) {
+        m_NameSuffix = nameSuffix;
     }
 
     /**

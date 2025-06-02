@@ -55,11 +55,14 @@ import java.util.Map;
 /**
  *
  * @author Heiko Hofer
- *
+ * @deprecated See {@link PMMLPreprocDiscretizeTranslator.Configuration}.
  */
+@Deprecated
 public class DisretizeConfiguration {
     private String m_summary;
+
     private List<String> m_names;
+
     private Map<String, PMMLDiscretize> m_discretize;
 
     /**
@@ -70,19 +73,15 @@ public class DisretizeConfiguration {
         m_discretize = new HashMap<String, PMMLDiscretize>();
     }
 
-
-
     /**
      * @param names
      * @param discretize
      */
-    public DisretizeConfiguration(final List<String> names,
-            final Map<String, PMMLDiscretize> discretize) {
+    public DisretizeConfiguration(final List<String> names, final Map<String, PMMLDiscretize> discretize) {
         m_names = names;
         m_discretize = discretize;
         m_summary = "Discretized columns : " + m_names.toString();
     }
-
 
     /**
      * @return the summary
@@ -124,7 +123,7 @@ public class DisretizeConfiguration {
      * @param currName
      * @param pmmlDiscretize
      */
-    void setDiscretize(final String currName, final PMMLDiscretize pmmlDiscretize) {
+    void putDiscretize(final String currName, final PMMLDiscretize pmmlDiscretize) {
         m_discretize.put(currName, pmmlDiscretize);
     }
 

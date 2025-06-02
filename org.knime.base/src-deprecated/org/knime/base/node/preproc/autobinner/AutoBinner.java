@@ -69,6 +69,7 @@ import org.knime.base.node.preproc.autobinner.pmml.PMMLDiscretizePreprocPortObje
 import org.knime.base.node.preproc.autobinner.pmml.PMMLInterval;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLInterval.Closure;
 import org.knime.base.node.util.binning.AutoBinnerApply;
+import org.knime.base.node.util.binning.AutoBinningUtils;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLPreprocDiscretize;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnDomainCreator;
@@ -424,7 +425,7 @@ public class AutoBinner {
         PMMLPreprocDiscretize op = createDisretizeOp(null);
 
         AutoBinnerApply applier = new AutoBinnerApply();
-        m_tableOutSpec = applier.getOutputSpec(op, inSpec);
+        m_tableOutSpec = AutoBinningUtils.computeOutSpec(op, inSpec);
         m_pmmlOutSpec = new PMMLDiscretizePreprocPortObjectSpec(op);
     }
 

@@ -65,10 +65,15 @@ import org.xml.sax.helpers.AttributesImpl;
 /**
  *
  * @author Heiko Hofer
+ *
+ * @deprecated Extends the deprecated class {@link PMMLPreprocOperation}. Instead use
+ *             {@link PMMLPreprocDiscretizeTranslator}.
  */
+@Deprecated
 public final class PMMLPreprocDiscretize extends PMMLPreprocOperation {
     /** Name of the summary Extension element. */
     private static final String SUMMARY = "summary";
+
     private final DisretizeConfiguration m_configuration;
 
     /** Used in load method. */
@@ -80,8 +85,7 @@ public final class PMMLPreprocDiscretize extends PMMLPreprocOperation {
     /**
      * @param config The discretize configuration.
      */
-    public PMMLPreprocDiscretize(
-            final DisretizeConfiguration config) {
+    public PMMLPreprocDiscretize(final DisretizeConfiguration config) {
         super();
         m_configuration = config;
     }
@@ -129,8 +133,7 @@ public final class PMMLPreprocDiscretize extends PMMLPreprocOperation {
      * {@inheritDoc}
      */
     @Override
-    public void save(final TransformerHandler handler,
-            final ExecutionMonitor executionMonitor) throws SAXException {
+    public void save(final TransformerHandler handler, final ExecutionMonitor executionMonitor) throws SAXException {
         List<String> names = m_configuration.getNames();
         for (String name : names) {
             AttributesImpl atts = new AttributesImpl();
@@ -144,108 +147,99 @@ public final class PMMLPreprocDiscretize extends PMMLPreprocOperation {
         }
         AttributesImpl atts = new AttributesImpl();
         atts.addAttribute(null, null, NAME, CDATA, SUMMARY);
-        atts.addAttribute(null, null, VALUE, CDATA,
-                m_configuration.getSummary());
+        atts.addAttribute(null, null, VALUE, CDATA, m_configuration.getSummary());
         handler.startElement(null, null, EXTENSION, atts);
         handler.endElement(null, null, EXTENSION);
     }
 
     /**
-    *
-    * @author Heiko Hofer
-    */
-   final static class PMMLPreprocDiscretizeContentHandler
-           extends PMMLContentHandler {
-       private final DisretizeConfiguration m_configuration;
-       private List<PMMLDiscretize> m_list;
-       private final Stack<PMMLContentHandler> m_contentHandlerStack =
-           new Stack<PMMLContentHandler>();
-       private String m_currName;
+     *
+     * @author Heiko Hofer
+     */
+    final static class PMMLPreprocDiscretizeContentHandler extends PMMLContentHandler {
+        private final DisretizeConfiguration m_configuration;
 
-       /**
-        * @param configuration The configuration to store data
-        */
-       public PMMLPreprocDiscretizeContentHandler(
-               final DisretizeConfiguration configuration) {
-           m_configuration = configuration;
-       }
-       /**
-        * {@inheritDoc}
-        */
-       @Override
-       public void characters(final char[] ch, final int start,
-               final int length)
-               throws SAXException {
-           // Not needed.
-       }
+        private List<PMMLDiscretize> m_list;
 
-       /**
-        * {@inheritDoc}
-        */
-       @Override
-       public void endDocument() throws SAXException {
-           // Not needed.
-       }
+        private final Stack<PMMLContentHandler> m_contentHandlerStack = new Stack<PMMLContentHandler>();
 
-       /**
-        * {@inheritDoc}
-        */
-       @Override
-       public void startElement(final String uri, final String localName,
-               final String name,
-               final Attributes atts) throws SAXException {
-           if (!m_contentHandlerStack.isEmpty()) {
-               m_contentHandlerStack.peek().startElement(
-                       uri, localName, name, atts);
-           } else if ("DerivedField".equals(name)) {
-               assert m_contentHandlerStack.isEmpty();
-               m_currName = atts.getValue(NAME);
-               m_configuration.addName(m_currName);
-           } else if ("Discretize".equals(name)) {
-               m_list = new ArrayList<PMMLDiscretize>();
-               m_contentHandlerStack.push(new PMMLDiscretizeContentHandler(
-                       m_contentHandlerStack, atts, m_list));
-           } else if (name.equals(EXTENSION) && atts.getValue(NAME) != null
-                   && atts.getValue(NAME).equals(SUMMARY)) {
-               m_configuration.setSummary(atts.getValue(VALUE));
-           }
-       }
+        private String m_currName;
 
-       /**
-        * {@inheritDoc}
-        */
-       @Override
-       public void endElement(final String uri, final String localName,
-               final String name)
-               throws SAXException {
-           if (!m_contentHandlerStack.isEmpty()) {
-               m_contentHandlerStack.peek().endElement(uri, localName, name);
-           } else if ("DerivedField".equals(name)) {
-               assert m_contentHandlerStack.isEmpty();
-               assert m_list.size() <= 1 : "More than one \"Discretize\" "
-                   + "is not supported";
-               // end of this element (and its life cycle)
-               m_configuration.setDiscretize(m_currName, m_list.get(0));
-           }
-       }
+        /**
+         * @param configuration The configuration to store data
+         */
+        public PMMLPreprocDiscretizeContentHandler(final DisretizeConfiguration configuration) {
+            m_configuration = configuration;
+        }
 
-   }
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void characters(final char[] ch, final int start, final int length) throws SAXException {
+            // Not needed.
+        }
 
-   /**
-    * {@inheritDoc}
-    */
-   @Override
-   public List<String> getColumnNames() {
-       return Collections.unmodifiableList(m_configuration.getNames());
-   }
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void endDocument() throws SAXException {
+            // Not needed.
+        }
 
-/**
- * {@inheritDoc}
- */
-@Override
-public void parse(final Element transformElement) {
-    // TODO Auto-generated method stub
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void startElement(final String uri, final String localName, final String name, final Attributes atts)
+            throws SAXException {
+            if (!m_contentHandlerStack.isEmpty()) {
+                m_contentHandlerStack.peek().startElement(uri, localName, name, atts);
+            } else if ("DerivedField".equals(name)) {
+                assert m_contentHandlerStack.isEmpty();
+                m_currName = atts.getValue(NAME);
+                m_configuration.addName(m_currName);
+            } else if ("Discretize".equals(name)) {
+                m_list = new ArrayList<PMMLDiscretize>();
+                m_contentHandlerStack.push(new PMMLDiscretizeContentHandler(m_contentHandlerStack, atts, m_list));
+            } else if (name.equals(EXTENSION) && atts.getValue(NAME) != null && atts.getValue(NAME).equals(SUMMARY)) {
+                m_configuration.setSummary(atts.getValue(VALUE));
+            }
+        }
 
-}
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void endElement(final String uri, final String localName, final String name) throws SAXException {
+            if (!m_contentHandlerStack.isEmpty()) {
+                m_contentHandlerStack.peek().endElement(uri, localName, name);
+            } else if ("DerivedField".equals(name)) {
+                assert m_contentHandlerStack.isEmpty();
+                assert m_list.size() <= 1 : "More than one \"Discretize\" " + "is not supported";
+                // end of this element (and its life cycle)
+                m_configuration.putDiscretize(m_currName, m_list.get(0));
+            }
+        }
+
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<String> getColumnNames() {
+        return Collections.unmodifiableList(m_configuration.getNames());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void parse(final Element transformElement) {
+        // TODO Auto-generated method stub
+
+    }
 
 }

@@ -50,6 +50,7 @@ import java.io.IOException;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLDiscretizePreprocPortObjectSpec;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLPreprocDiscretize;
 import org.knime.base.node.util.binning.AutoBinnerApply;
+import org.knime.base.node.util.binning.AutoBinningUtils;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.node.BufferedDataTable;
@@ -103,7 +104,7 @@ final class AutoBinnerApplyNodeModel extends NodeModel {
             pmmlPortSpec.getOperation();
         DataTableSpec dataSpec = (DataTableSpec)inSpecs[1];
         AutoBinnerApply applier = new AutoBinnerApply();
-        return new PortObjectSpec[] {applier.getOutputSpec(op, dataSpec)};
+        return new PortObjectSpec[] {AutoBinningUtils.computeOutSpec(op, dataSpec)};
     }
 
     /**
@@ -118,7 +119,7 @@ final class AutoBinnerApplyNodeModel extends NodeModel {
         PMMLPreprocDiscretize op =
             (PMMLPreprocDiscretize)pmmlPort.getOperations().get(0);
         AutoBinnerApply applier = new AutoBinnerApply();
-        BufferedDataTable binnedData = applier.execute(op, inTable, exec);
+        BufferedDataTable binnedData = AutoBinningUtils.createOutTable(op, inTable, exec);
         return new PortObject[] {binnedData};
     }
 
@@ -150,7 +151,7 @@ final class AutoBinnerApplyNodeModel extends NodeModel {
                 validatePMMLPort(pmmlPort);
                 PMMLPreprocDiscretize op = (PMMLPreprocDiscretize)pmmlPort.getOperations().get(0);
                 AutoBinnerApply applier = new AutoBinnerApply();
-                ColumnRearranger core = applier.getRearranger(op, (DataTableSpec)inSpecs[1]);
+                ColumnRearranger core = AutoBinningUtils.createRearrangerLegacy(op, (DataTableSpec)inSpecs[1]);
                 StreamableFunction func = core.createStreamableFunction(1, 0);
                 func.runFinal(inputs, outputs, exec);
             }

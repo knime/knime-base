@@ -100,10 +100,8 @@ final class AutoBinnerLearnNodeModel extends NodeModel {
                 + ConvenienceMethods.getShortStringFrom(new HashSet<String>(Arrays.asList(rmFromIncl)), 3));
         }
 
-        AutoBinningUtils binner = new AutoBinningUtils(m_settings, dataSpec);
-
-        return binner.getOutputSpec(dataSpec);
-
+        var binner = new AutoBinningUtils.AutoBinner(m_settings, dataSpec);
+        return binner.createOutputSpecLegacy(dataSpec);
     }
 
     /**
@@ -113,14 +111,14 @@ final class AutoBinnerLearnNodeModel extends NodeModel {
     protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
         BufferedDataTable data = (BufferedDataTable)inObjects[0];
 
-        AutoBinningUtils binner = new AutoBinningUtils(m_settings, data.getDataTableSpec());
+        var binner = new AutoBinningUtils.AutoBinner(m_settings, data.getDataTableSpec());
         String[] included = m_settings.getFilterConfiguration().applyTo(data.getDataTableSpec()).getIncludes();
         BufferedDataTable inData = AutoBinningUtils.calcDomainBoundsIfNeccessary(data, exec, Arrays.asList(included));
 
-        PMMLPreprocDiscretize op = binner.execute(inData, exec);
+        PMMLPreprocDiscretize op = binner.createDiscretizeOplegacy(inData, exec);
 
         AutoBinnerApply applier = new AutoBinnerApply();
-        BufferedDataTable outData = AutoBinnerApply.execute(op, inData, exec);
+        BufferedDataTable outData = AutoBinningUtils.createOutTable(op, inData, exec);
         return new PortObject[]{outData, new PMMLDiscretizePreprocPortObject(op)};
     }
 

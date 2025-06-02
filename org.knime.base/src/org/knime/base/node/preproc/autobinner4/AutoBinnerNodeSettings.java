@@ -53,6 +53,10 @@ import java.util.List;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
+import org.knime.core.util.binning.auto.BinNaming;
+import org.knime.core.util.binning.auto.BinningMethod;
+import org.knime.core.util.binning.auto.EqualityMethod;
+import org.knime.core.util.binning.auto.OutputFormat;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
@@ -216,13 +220,22 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
 
     enum BinningType {
             @Label("Equal width")
-            EQUAL_WIDTH, //
+            EQUAL_WIDTH(BinningMethod.FIXED_NUMBER, EqualityMethod.WIDTH), //
             @Label("Equal frequency")
-            EQUAL_FREQUENCY, //
+            EQUAL_FREQUENCY(BinningMethod.FIXED_NUMBER, EqualityMethod.FREQUENCY), //
             @Label("Custom cutoffs")
-            CUSTOM_CUTOFFS, //
+            CUSTOM_CUTOFFS(null, null), // TODO currently we don't support this, but we need to. Do before making a PR
             @Label("Custom quantiles")
-            CUSTOM_QUANTILES;
+            CUSTOM_QUANTILES(BinningMethod.SAMPLE_QUANTILES, null);
+
+        final BinningMethod m_binningMethod;
+
+        final EqualityMethod m_equalityMethod;
+
+        BinningType(final BinningMethod binningMethod, final EqualityMethod equalityMethod) {
+            m_binningMethod = binningMethod;
+            m_equalityMethod = equalityMethod;
+        }
     }
 
     enum MatchType {
@@ -236,11 +249,17 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
 
     enum BinNames {
             @Label(value = "Numbered", description = "Bins will be named by their number, e.g. Bin 1")
-            NUMBERED, //
+            NUMBERED(BinNaming.NUMBERED), //
             @Label(value = "Borders", description = "Bins will be named by their borders, e.g. [0.0, 1.0)")
-            BORDERS, //
+            BORDERS(BinNaming.EDGES), //
             @Label(value = "Midpoints", description = "Bins will be named by their midpoints, e.g. 0.5")
-            MIDPOINTS;
+            MIDPOINTS(BinNaming.MIDPOINTS);
+
+        final BinNaming m_binNaming;
+
+        BinNames(final BinNaming binNaming) {
+            m_binNaming = binNaming;
+        }
 
         String computedName(final int index, final boolean lowerBoundOpen, final double lowerBound,
             final boolean upperBoundOpen, final double upperBound) {
@@ -434,14 +453,26 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
         RoundingMode m_roundingMode = RoundingMode.UP;
 
         enum NumberFormat {
-                STANDARD_STRING, //
-                PLAIN_STRING, //
-                ENGINEERING_STRING;
+                STANDARD_STRING(OutputFormat.STANDARD), //
+                PLAIN_STRING(OutputFormat.PLAIN), //
+                ENGINEERING_STRING(OutputFormat.ENGINEERING);
+
+            final OutputFormat m_outputFormat;
+
+            NumberFormat(final OutputFormat outputFormat) {
+                m_outputFormat = outputFormat;
+            }
         }
 
         enum PrecisionMode {
-                DECIMAL_PLACES, //
-                SIGNIFICANT_FIGURES;
+                DECIMAL_PLACES(org.knime.core.util.binning.auto.PrecisionMode.DECIMAL), //
+                SIGNIFICANT_FIGURES(org.knime.core.util.binning.auto.PrecisionMode.SIGNIFICANT);
+
+            final org.knime.core.util.binning.auto.PrecisionMode m_corePrecision;
+
+            PrecisionMode(final org.knime.core.util.binning.auto.PrecisionMode corePrecision) {
+                m_corePrecision = corePrecision;
+            }
         }
 
         enum RoundingMode {
