@@ -58,14 +58,15 @@ import org.dmg.pmml.IntervalDocument.Interval.Closure;
 import org.dmg.pmml.LocalTransformationsDocument.LocalTransformations;
 import org.dmg.pmml.OPTYPE;
 import org.dmg.pmml.TransformationDictionaryDocument.TransformationDictionary;
+import org.knime.base.node.preproc.pmml.binner.BinnerColumnFactory.Bin;
 import org.knime.core.node.port.pmml.preproc.DerivedFieldMapper;
 import org.knime.core.node.port.pmml.preproc.PMMLPreprocTranslator;
-import org.knime.core.util.binning.numeric.Bin;
-import org.knime.core.util.binning.numeric.NumericBin;
 
 /**
- *
+ * @deprecated This is an exact duplicate of {@link org.knime.core.util.binning.numeric.PMMLBinningTranslator}. Please
+ * use that instead.
  */
+@Deprecated
 public class PMMLBinningTranslator implements PMMLPreprocTranslator {
     private static final String SUMMARY = "summary";
 
@@ -85,7 +86,7 @@ public class PMMLBinningTranslator implements PMMLPreprocTranslator {
      */
     public PMMLBinningTranslator() {
         super();
-        m_columnToBins = new TreeMap<String, Bin[]>();
+        m_columnToBins = new TreeMap<String, BinnerColumnFactory.Bin[]>();
         m_columnToAppend = new TreeMap<String, String>();
     }
 

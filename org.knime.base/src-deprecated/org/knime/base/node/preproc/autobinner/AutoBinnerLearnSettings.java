@@ -55,7 +55,10 @@ import org.knime.core.node.NodeSettingsWO;
  * This class hold the settings for the Logistic Learner Node.
  *
  * @author Heiko Hofer
+ *
+ * @deprecated This duplicates {@link org.knime.core.util.binning.auto.AutoBinnerLearnSettings}. Use that instead.
  */
+@Deprecated
 final public class AutoBinnerLearnSettings {
     /**
      * The name of the autobinning method
