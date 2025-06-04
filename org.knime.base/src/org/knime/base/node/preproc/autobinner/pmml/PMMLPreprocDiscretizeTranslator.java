@@ -86,7 +86,9 @@ public class PMMLPreprocDiscretizeTranslator implements PMMLPreprocTranslator {
         var dict = TransformationDictionary.Factory.newInstance();
 
         for (var columnDiscretization : m_config.getDiscretizations().entrySet()) {
-            var newDiscretize = dict.addNewDefineFunction().addNewDiscretize();
+            var newDerivedField = dict.addNewDerivedField();
+            newDerivedField.setName(columnDiscretization.getKey());
+            var newDiscretize = newDerivedField.addNewDiscretize();
 
             for (var binSpec : columnDiscretization.getValue()) {
                 var newBin = newDiscretize.addNewDiscretizeBin();
@@ -165,6 +167,16 @@ public class PMMLPreprocDiscretizeTranslator implements PMMLPreprocTranslator {
 
         public static record Interval(double leftMargin, double rightMargin, ClosureStyle closure) {
 
+            public Interval(final double leftMargin, final double rightMargin, final ClosureStyle closure) {
+                if (leftMargin > rightMargin) {
+                    throw new IllegalArgumentException("Left margin must be less than or equal to right margin.");
+                }
+
+                this.leftMargin = leftMargin;
+                this.rightMargin = rightMargin;
+                this.closure = closure;
+            }
+
             public boolean covers(final double value) {
                 return switch (closure) {
                     case OPEN_OPEN -> value > leftMargin && value < rightMargin;
@@ -173,12 +185,29 @@ public class PMMLPreprocDiscretizeTranslator implements PMMLPreprocTranslator {
                     case CLOSED_OPEN -> value >= leftMargin && value < rightMargin;
                 };
             }
+
+            @Override
+            public String toString() {
+                var bottomClosed = closure == ClosureStyle.CLOSED_CLOSED || closure == ClosureStyle.CLOSED_OPEN;
+                var topClosed = closure == ClosureStyle.CLOSED_CLOSED || closure == ClosureStyle.OPEN_CLOSED;
+
+                var leftMarginStr = bottomClosed ? "[" : "(";
+                var rightMarginStr = topClosed ? "]" : ")";
+
+                return leftMarginStr + leftMargin + ", " + rightMargin + rightMarginStr;
+            }
         }
 
         public static record Bin(String binValue, List<Interval> intervals) {
 
             public boolean covers(final double value) {
                 return intervals.stream().anyMatch(interval -> interval.covers(value));
+            }
+
+            @Override
+            public final String toString() {
+                var formattedIntervals = intervals.size() == 1 ? intervals.get(0).toString() : intervals.toString();
+                return "Bin{binValue=" + binValue + ", intervals=" + formattedIntervals + "}";
             }
         }
 

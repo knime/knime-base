@@ -50,9 +50,10 @@ package org.knime.base.node.preproc.autobinner4;
 
 import java.util.Arrays;
 
-import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettings.NumberFormat;
-import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettings.ReplaceOrAppend;
 import org.knime.base.node.util.binning.AutoBinningSettings;
+import org.knime.base.node.util.binning.AutoBinningSettings.BinNamingSettings;
+import org.knime.base.node.util.binning.AutoBinningSettings.DataBoundsSettings.BoundSetting.FixedBound;
+import org.knime.base.node.util.binning.AutoBinningSettings.DataBoundsSettings.BoundSetting.NoBound;
 import org.knime.base.node.util.binning.AutoBinningUtils;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
@@ -66,8 +67,6 @@ import org.knime.core.webui.node.impl.WebUINodeModel;
 /**
  *
  * @author David Hickey, TNG Technology Consulting GmbH
- *
- *         For David's future
  */
 @SuppressWarnings("restriction")
 final class AutoBinnerNodeModel4 extends WebUINodeModel<AutoBinnerNodeSettings> {
@@ -81,7 +80,7 @@ final class AutoBinnerNodeModel4 extends WebUINodeModel<AutoBinnerNodeSettings> 
         final AutoBinnerNodeSettings modelSettings) throws Exception {
 
         var inTable = (BufferedDataTable)inData[0];
-        var autobinningSettings = createSettingsForAutobinning(modelSettings);
+        var autobinningSettings = createSettingsForAutobinning(modelSettings, inTable.getSpec());
         var autoBinner = new AutoBinningUtils.AutoBinner(autobinningSettings, inTable.getSpec());
 
         return autoBinner.createNodeOutput(inTable, exec);
@@ -92,30 +91,61 @@ final class AutoBinnerNodeModel4 extends WebUINodeModel<AutoBinnerNodeSettings> 
         throws InvalidSettingsException {
 
         var inSpec = (DataTableSpec)inSpecs[0];
-        var autobinningSettings = createSettingsForAutobinning(modelSettings);
+        var autobinningSettings = createSettingsForAutobinning(modelSettings, inSpec);
         var autoBinner = new AutoBinningUtils.AutoBinner(autobinningSettings, inSpec);
 
         return autoBinner.createOutputSpec(inSpec);
     }
 
-    private static AutoBinningSettings createSettingsForAutobinning(final AutoBinnerNodeSettings modelSettings) {
-        var output = new AutoBinningSettings();
-        output.setAdvancedFormatting(modelSettings.m_numberFormat == NumberFormat.CUSTOM); // maybe?
-        output.setBinCount(modelSettings.m_numberOfBins);
-        output.setBinNaming(modelSettings.m_binNames.m_binNaming);
-        output.setEqualityMethod(modelSettings.m_binningType.m_equalityMethod);
-        output.setMethod(modelSettings.m_binningType.m_binningMethod);
-        output.setFixedLowerBound(modelSettings.m_fixLowerBound ? modelSettings.m_fixedLowerBound : null);
-        output.setFixedUpperBound(modelSettings.m_fixUpperBound ? modelSettings.m_fixedUpperBound : null);
-        output.setIntegerBounds(modelSettings.m_enforceIntegerCutoffs);
-        output.setPrecision(modelSettings.m_numberFormatSettings.m_precision);
-        output.setPrecisionMode(modelSettings.m_numberFormatSettings.m_precisionMode.m_corePrecision);
-        output.setOutputFormat(modelSettings.m_numberFormatSettings.m_numberFormat.m_outputFormat);
-        output.setNameSuffix(modelSettings.m_suffix);
-        output.setReplaceColumn(modelSettings.m_replaceOrAppend == ReplaceOrAppend.REPLACE);
-        output.setSampleQuantiles(
-            Arrays.stream(modelSettings.m_customQuantiles).map(q -> q.m_quantile).mapToDouble(d -> d).toArray()); // TODO this is insufficient since it doesn't handle exact quantile matches
+    private static AutoBinningSettings createSettingsForAutobinning(final AutoBinnerNodeSettings modelSettings,
+        final DataTableSpec inSpec) {
+        var binningSettings = switch (modelSettings.m_binningType) {
+            case CUSTOM_CUTOFFS -> new AutoBinningSettings.BinningSettings.FixedBoundaries( //
+                Arrays.stream(modelSettings.m_customCutoffs) //
+                    .map(c -> new AutoBinningUtils.BinBoundary(c.m_cutoff, c.m_matchType)) //
+                    .toArray(AutoBinningUtils.BinBoundary[]::new) //
+                );
+            case CUSTOM_QUANTILES -> new AutoBinningSettings.BinningSettings.SampleQuantiles( //
+                Arrays.stream(modelSettings.m_customQuantiles) //
+                    .map(q -> new AutoBinningUtils.BinBoundary(q.m_quantile, q.m_matchType)) //
+                    .toArray(AutoBinningUtils.BinBoundary[]::new) //
+                );
+            case EQUAL_WIDTH -> new AutoBinningSettings.BinningSettings.FixedWidth(modelSettings.m_numberOfBins);
+            case EQUAL_FREQUENCY -> new AutoBinningSettings.BinningSettings.FixedFrequency(
+                modelSettings.m_numberOfBins);
+        };
 
-        return output;
+        var columnOutputNaming = switch (modelSettings.m_replaceOrAppend) {
+            case REPLACE -> new AutoBinningSettings.ColumnOutputNamingSettings.ReplaceColumn();
+            case APPEND -> new AutoBinningSettings.ColumnOutputNamingSettings.AppendSuffix(modelSettings.m_suffix);
+        };
+
+        var numberFormatting = switch (modelSettings.m_numberFormat) {
+            case COLUMN_FORMAT -> new AutoBinningSettings.NumberFormattingSettings.ColumnFormat();
+            case CUSTOM -> new AutoBinningSettings.NumberFormattingSettings.CustomFormat( //
+                modelSettings.m_numberFormatSettings //
+                );
+        };
+
+        var selectedColumns = Arrays.asList(modelSettings.m_selectedColumns
+            .filter(inSpec.stream().filter(AutoBinningUtils::columnCanBeBinned).toList()));
+
+        var boundsSettings = new AutoBinningSettings.DataBoundsSettings( //
+            modelSettings.m_fixLowerBound //
+                ? new FixedBound(modelSettings.m_fixedLowerBound, modelSettings.m_lowerOutlierValue) //
+                : new NoBound(), //
+            modelSettings.m_fixUpperBound //
+                ? new FixedBound(modelSettings.m_fixedUpperBound, modelSettings.m_upperOutlierValue) //
+                : new NoBound() //
+        );
+
+        return new AutoBinningSettings( //
+            selectedColumns, //
+            binningSettings, //
+            modelSettings.m_enforceIntegerCutoffs, //
+            new BinNamingSettings(modelSettings.m_binNames, numberFormatting), //
+            boundsSettings, //
+            columnOutputNaming //
+        );
     }
 }

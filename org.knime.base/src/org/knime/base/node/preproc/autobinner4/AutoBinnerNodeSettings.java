@@ -50,13 +50,13 @@ package org.knime.base.node.preproc.autobinner4;
 
 import java.util.List;
 
+import org.knime.base.node.util.binning.AutoBinningSettings.BinBoundaryExactMatchBehaviour;
+import org.knime.base.node.util.binning.AutoBinningSettings.BinNaming;
+import org.knime.base.node.util.binning.AutoBinningSettings.BinningType;
+import org.knime.base.node.util.binning.AutoBinningSettings.NumberFormatSettingsGroup;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
-import org.knime.core.util.binning.auto.BinNaming;
-import org.knime.core.util.binning.auto.BinningMethod;
-import org.knime.core.util.binning.auto.EqualityMethod;
-import org.knime.core.util.binning.auto.OutputFormat;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
@@ -79,6 +79,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation;
 
 /**
+ * Settings for the new webUI binner node.
  *
  * @author David Hickey, TNG Technology Consulting GmbH
  */
@@ -105,25 +106,33 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
     }
 
     @Layout(BinningSection.class)
-    @Widget(title = "Columns to bin", description = "TODO")
+    @Widget(title = "Columns to bin", description = "Only the included columns will be binned.")
     @TwinlistWidget
     @ChoicesProvider(NumericColumnsProvider.class)
     ColumnFilter m_selectedColumns = new ColumnFilter();
 
     @Layout(BinningSection.class)
-    @Widget(title = "Binning type", description = "TODO")
+    @Widget(title = "Binning type", description = """
+            The algorithm to use when creating the \
+            bins, or the bins may be specified manually.
+            """)
     @ValueSwitchWidget
     @ValueReference(BinningTypeRef.class)
     BinningType m_binningType = BinningType.EQUAL_WIDTH;
 
     @Layout(BinningSection.class)
-    @Widget(title = "Number of bins", description = "TODO")
+    @Widget(title = "Number of bins", description = "The number of bins to create.")
     @NumberInputWidget(minValidation = NumberOfBinsValidation.class)
     @Effect(predicate = NumberOfBinsShouldBeShown.class, type = EffectType.SHOW)
     int m_numberOfBins = 20;
 
     @Layout(BinningSection.class)
-    @Widget(title = "", description = "")
+    @Widget(title = "Custom cutoffs", description = """
+            The bin boundaries may be defined manually \
+            by entering the values. The behaviour when a \
+            value is exactly equal to a cutoff can be \
+            configured separately for each boundary.
+            """) // this title and description aren't displayed
     @ArrayWidget(elementTitle = "Cutoff", addButtonText = "New cutoff", showSortButtons = true)
     @Effect(predicate = BinningTypeIsCustomCutoffs.class, type = EffectType.SHOW)
     CustomCutoffsWidgetGroup[] m_customCutoffs = new CustomCutoffsWidgetGroup[]{ //
@@ -131,7 +140,12 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
     };
 
     @Layout(BinningSection.class)
-    @Widget(title = "", description = "")
+    @Widget(title = "Custom quantiles", description = """
+            The bin boundaries may be defined manually \
+            by entering the quantiles. The behaviour when a \
+            value is exactly equal to a quantile can be \
+            configured separately for each quantile.
+            """) // this title and description aren't displayed
     @ArrayWidget(elementTitle = "Quantile", addButtonText = "New quantile", showSortButtons = true)
     @Effect(predicate = BinningTypeIsCustomQuantiles.class, type = EffectType.SHOW)
     CustomQuantilesWidgetGroup[] m_customQuantiles = new CustomQuantilesWidgetGroup[]{ //
@@ -139,30 +153,50 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
     };
 
     @Layout(BinningSection.class)
-    @Widget(title = "Enforce integer cutoffs", description = "TODO")
+    @Widget(title = "Enforce integer cutoffs", description = """
+            If enabled, the cutoffs between bins will be \
+            rounded to the nearest integer. Not applicable \
+            if the cutoffs are defined manually.
+            """)
     @Effect(predicate = BinningTypeIsNotCustomCutoffs.class, type = EffectType.SHOW)
     boolean m_enforceIntegerCutoffs = false;
 
     @Layout(BinningSection.class)
-    @Widget(title = "Fix lower bound", description = "TODO")
-    @Effect(predicate = BinningTypeIsCustomCutoffs.class, type = EffectType.SHOW)
+    @Widget(title = "Fix lower bound", description = """
+            If enabled, values below the lower bound \
+            will be sorted into a special bin with a name \
+            specified by the 'Lower outlier value' setting. \
+            """)
+    @Effect(predicate = BinningTypeIsNotCustom.class, type = EffectType.SHOW)
     @ValueReference(FixLowerBoundRef.class)
     boolean m_fixLowerBound = false;
 
     @Layout(BinningSection.class)
-    @Widget(title = "Lower bound", description = "TODO")
+    @Widget(title = "Lower bound", description = """
+            The lower bound below which values will be \
+            sorted into a special bin with a name \
+            specified by the 'Lower outlier value' setting.
+            """)
     @NumberInputWidget(minValidation = NumberGreaterThanZeroValidation.class)
     @Effect(predicate = IsFixedLowerBound.class, type = EffectType.SHOW)
     double m_fixedLowerBound = 0;
 
     @Layout(BinningSection.class)
-    @Widget(title = "Fix upper bound", description = "TODO")
-    @Effect(predicate = BinningTypeIsCustomCutoffs.class, type = EffectType.SHOW)
+    @Widget(title = "Fix upper bound", description = """
+            If enabled, values above the upper bound \
+            will be sorted into a special bin with a name \
+            specified by the 'Upper outlier value' setting. \
+            """)
+    @Effect(predicate = BinningTypeIsNotCustom.class, type = EffectType.SHOW)
     @ValueReference(FixUpperBoundRef.class)
     boolean m_fixUpperBound = false;
 
     @Layout(BinningSection.class)
-    @Widget(title = "Upper bound", description = "TODO")
+    @Widget(title = "Upper bound", description = """
+            The upper bound above which values will be \
+            sorted into a special bin with a name \
+            specified by the 'Upper outlier value' setting.
+            """)
     @NumberInputWidget(minValidation = NumberGreaterThanZeroValidation.class)
     @Effect(predicate = IsFixedUpperBound.class, type = EffectType.SHOW)
     double m_fixedUpperBound = 0;
@@ -172,25 +206,44 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
     }
 
     @Layout(OutputSection.class)
-    @Widget(title = "Bin names/values", description = "TODO")
+    @Widget(title = "Bin names/values", description = """
+            The method that will be used when naming \
+            the bins.
+            """)
     @RadioButtonsWidget
     @ValueReference(BinNamesRef.class)
-    BinNames m_binNames = BinNames.NUMBERED;
+    BinNaming m_binNames = BinNaming.NUMBERED;
 
     @Layout(OutputSection.class)
-    @Widget(title = "Prefix", description = "TODO")
+    @Widget(title = "Prefix", description = """
+            If the bin names are numbered, this \
+            prefix will be prepended to the bin names. \
+            For example "Bin 1", "Bin 2", etc. \
+            """)
     @Effect(predicate = BinNamesIsNumbered.class, type = EffectType.SHOW)
     String m_prefix = "Bin ";
 
     @Layout(OutputSection.class)
-    @Widget(title = "Lower outlier value", description = "TODO")
+    @Widget(title = "Lower outlier value", description = """
+            Values that are below the lower bound of the \
+            lowermost bin will be labeled with this value in \
+            place of a bin name.
+            """)
     @Effect(predicate = IsFixedLowerBound.class, type = EffectType.SHOW)
     String m_lowerOutlierValue = "Lower outlier";
+    // TODO should also show when using custom cutoffs or quantiles,
+    // since then we can also have lower outliers
 
     @Layout(OutputSection.class)
-    @Widget(title = "Upper outlier value", description = "TODO")
+    @Widget(title = "Upper outlier value", description = """
+            Values that are above the upper bound of the uppermost \
+            bin will be labeled with this value in place of a bin \
+            name.
+            """)
     @Effect(predicate = IsFixedUpperBound.class, type = EffectType.SHOW)
     String m_upperOutlierValue = "Upper outlier";
+    // TODO should also show when using custom cutoffs or quantiles,
+    // since then we can also have upper outliers
 
     @Layout(OutputSection.class)
     @Widget(title = "Number format", description = "TODO", advanced = true)
@@ -204,13 +257,21 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
     NumberFormatSettingsGroup m_numberFormatSettings = new NumberFormatSettingsGroup();
 
     @Layout(OutputSection.class)
-    @Widget(title = "Output columns", description = "TODO")
+    @Widget(title = "Output columns", description = """
+            Whether to replace the original columns with the binned \
+            columns, or to append the binned columns with new \
+            names created by appending the specified suffix to \
+            the original column names.
+            """)
     @ValueSwitchWidget
     @ValueReference(ReplaceOrAppend.Ref.class)
     ReplaceOrAppend m_replaceOrAppend = ReplaceOrAppend.REPLACE;
 
     @Layout(OutputSection.class)
-    @Widget(title = "Suffix", description = "TODO")
+    @Widget(title = "Suffix", description = """
+            If the binned columns are appended, this \
+            suffix will be appended to the original column names.
+            """)
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
     String m_suffix = " (Binned)";
 
@@ -218,70 +279,6 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
         return cs.getType().isCompatible(DoubleValue.class);
     }
 
-    // This actually doesn't duplicate an enum in knime core! What a breath of fresh air
-    enum BinningType {
-            @Label("Equal width")
-            EQUAL_WIDTH(BinningMethod.FIXED_NUMBER, EqualityMethod.WIDTH), //
-            @Label("Equal frequency")
-            EQUAL_FREQUENCY(BinningMethod.FIXED_NUMBER, EqualityMethod.FREQUENCY), //
-            @Label("Custom cutoffs")
-            CUSTOM_CUTOFFS(null, null), // TODO currently we don't support this, but we need to. Do before making a PR
-            @Label("Custom quantiles")
-            CUSTOM_QUANTILES(BinningMethod.SAMPLE_QUANTILES, null);
-
-        final BinningMethod m_binningMethod;
-
-        final EqualityMethod m_equalityMethod;
-
-        BinningType(final BinningMethod binningMethod, final EqualityMethod equalityMethod) {
-            m_binningMethod = binningMethod;
-            m_equalityMethod = equalityMethod;
-        }
-    }
-
-    enum MatchType {
-            @Label(value = "To lower bin",
-                description = "Values that fall on the bin border will be assigned to the lower bin")
-            TO_LOWER_BIN, //
-            @Label(value = "To upper bin",
-                description = "Values that fall on the bin border will be assigned to the upper bin")
-            TO_UPPER_BIN;
-    }
-
-    // TODO: this probably duplicates an enum in knime core, add @label annotations and use that instead
-    enum BinNames {
-            @Label(value = "Numbered", description = "Bins will be named by their number, e.g. Bin 1")
-            NUMBERED(BinNaming.NUMBERED), //
-            @Label(value = "Borders", description = "Bins will be named by their borders, e.g. [0.0, 1.0)")
-            BORDERS(BinNaming.EDGES), //
-            @Label(value = "Midpoints", description = "Bins will be named by their midpoints, e.g. 0.5")
-            MIDPOINTS(BinNaming.MIDPOINTS);
-
-        final BinNaming m_binNaming;
-
-        BinNames(final BinNaming binNaming) {
-            m_binNaming = binNaming;
-        }
-
-        String computedName(final int index, final boolean lowerBoundOpen, final double lowerBound,
-            final boolean upperBoundOpen, final double upperBound) {
-            return switch (this) {
-                case NUMBERED -> "Bin " + (index + 1);
-                case BORDERS -> openChar(lowerBoundOpen) + lowerBound + ", " + upperBound + closeChar(upperBoundOpen);
-                case MIDPOINTS -> String.valueOf((lowerBound + upperBound) / 2);
-            };
-        }
-
-        private static String openChar(final boolean open) {
-            return open ? "(" : "[";
-        }
-
-        private static String closeChar(final boolean open) {
-            return open ? ")" : "]";
-        }
-    }
-
-    // TODO: this probably duplicates an enum in knime core, add @label annotations and use that instead
     enum NumberFormat {
             COLUMN_FORMAT, //
             CUSTOM;
@@ -301,9 +298,13 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
     }
 
     enum ReplaceOrAppend {
-            @Label("Replace")
+            @Label(value = "Replace", description = "Replace the original columns with the binned columns.")
             REPLACE, //
-            @Label("Append")
+            @Label(value = "Append", description = """
+                    Create new columns with the binned values, \
+                    whose names are the original column names \
+                    with a suffix appended.
+                    """)
             APPEND;
 
         final static class Ref implements Reference<ReplaceOrAppend> {
@@ -333,30 +334,6 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
     }
 
     static final class BinningTypeRef implements Reference<BinningType> {
-    }
-
-    static final class NumberOfBinsValidation extends NumberInputWidgetValidation.MinValidation {
-
-        @Override
-        protected double getMin() {
-            return 2;
-        }
-    }
-
-    static final class NumberGreaterThanZeroValidation extends NumberInputWidgetValidation.MinValidation {
-
-        @Override
-        protected double getMin() {
-            return 0;
-        }
-    }
-
-    static final class NumberLessThanOneValidation extends NumberInputWidgetValidation.MaxValidation {
-
-        @Override
-        protected double getMax() {
-            return 1;
-        }
     }
 
     static final class NumberOfBinsShouldBeShown implements PredicateProvider {
@@ -399,6 +376,16 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
         }
     }
 
+    static final class BinningTypeIsNotCustom implements PredicateProvider {
+
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i //
+                .getEnum(BinningTypeRef.class) //
+                .isOneOf(BinningType.EQUAL_WIDTH, BinningType.EQUAL_FREQUENCY);
+        }
+    }
+
     static final class FixLowerBoundRef implements Reference<Boolean> {
     }
 
@@ -425,7 +412,7 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    static final class BinNamesRef implements Reference<BinNames> {
+    static final class BinNamesRef implements Reference<BinNaming> {
     }
 
     static final class BinNamesIsNumbered implements PredicateProvider {
@@ -434,62 +421,7 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
         public Predicate init(final PredicateInitializer i) {
             return i //
                 .getEnum(BinNamesRef.class) //
-                .isOneOf(BinNames.NUMBERED);
-        }
-    }
-
-    static final class NumberFormatSettingsGroup implements DefaultNodeSettings {
-
-        @Widget(title = "Number format", description = "TODO")
-        @ValueSwitchWidget
-        NumberFormat m_numberFormat = NumberFormat.STANDARD_STRING;
-
-        @Widget(title = "Precision", description = "TODO")
-        @NumberInputWidget(minValidation = NumberGreaterThanZeroValidation.class)
-        int m_precision = 3;
-
-        @Widget(title = "Precision mode", description = "TODO")
-        @ValueSwitchWidget
-        PrecisionMode m_precisionMode = PrecisionMode.DECIMAL_PLACES;
-
-        @Widget(title = "Rounding mode", description = "TODO")
-        RoundingMode m_roundingMode = RoundingMode.UP;
-
-        // TODO: we can probably use the core enum here directly if we add some @label annotations to it
-        enum NumberFormat {
-                STANDARD_STRING(OutputFormat.STANDARD), //
-                PLAIN_STRING(OutputFormat.PLAIN), //
-                ENGINEERING_STRING(OutputFormat.ENGINEERING);
-
-            final OutputFormat m_outputFormat;
-
-            NumberFormat(final OutputFormat outputFormat) {
-                m_outputFormat = outputFormat;
-            }
-        }
-
-        // TODO: we can probably use the core enum here directly if we add some @label annotations to it
-        enum PrecisionMode {
-                DECIMAL_PLACES(org.knime.core.util.binning.auto.PrecisionMode.DECIMAL), //
-                SIGNIFICANT_FIGURES(org.knime.core.util.binning.auto.PrecisionMode.SIGNIFICANT);
-
-            final org.knime.core.util.binning.auto.PrecisionMode m_corePrecision;
-
-            PrecisionMode(final org.knime.core.util.binning.auto.PrecisionMode corePrecision) {
-                m_corePrecision = corePrecision;
-            }
-        }
-
-        // TODO: java has a built-in roundingmode. No ability to add @label annotations to it,
-        // but let's make it accessible from this enum.
-        enum RoundingMode {
-                UP, //
-                DOWN, //
-                CEILING, //
-                FLOOR, //
-                HALF_UP, //
-                HALF_DOWN, //
-                HALF_EVEN;
+                .isOneOf(BinNaming.NUMBERED);
         }
     }
 
@@ -500,7 +432,7 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
 
         @Widget(title = "Exact match", description = "TODO")
         @ValueSwitchWidget
-        MatchType m_matchType = MatchType.TO_LOWER_BIN;
+        BinBoundaryExactMatchBehaviour m_matchType = BinBoundaryExactMatchBehaviour.TO_LOWER_BIN;
     }
 
     static class CustomQuantilesWidgetGroup implements DefaultNodeSettings {
@@ -513,6 +445,27 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
 
         @Widget(title = "Exact match", description = "TODO")
         @ValueSwitchWidget
-        MatchType m_matchType = MatchType.TO_LOWER_BIN;
+        BinBoundaryExactMatchBehaviour m_matchType = BinBoundaryExactMatchBehaviour.TO_LOWER_BIN;
+    }
+
+    static final class NumberOfBinsValidation extends NumberInputWidgetValidation.MinValidation {
+        @Override
+        protected double getMin() {
+            return 2;
+        }
+    }
+
+    static final class NumberGreaterThanZeroValidation extends NumberInputWidgetValidation.MinValidation {
+        @Override
+        protected double getMin() {
+            return 0;
+        }
+    }
+
+    static final class NumberLessThanOneValidation extends NumberInputWidgetValidation.MaxValidation {
+        @Override
+        protected double getMax() {
+            return 1;
+        }
     }
 }
