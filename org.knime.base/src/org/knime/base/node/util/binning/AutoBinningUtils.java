@@ -56,18 +56,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.IntStream;
 
-import org.knime.base.data.sort.SortedTable;
 import org.knime.base.node.preproc.autobinner.pmml.DisretizeConfiguration;
-import org.knime.base.node.preproc.autobinner.pmml.PMMLDiscretize;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLDiscretizeBin;
-import org.knime.base.node.preproc.autobinner.pmml.PMMLDiscretizePreprocPortObjectSpec;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLInterval;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLInterval.Closure;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLPreprocDiscretize;
@@ -93,10 +90,9 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.pmml.PMMLPortObject;
 import org.knime.core.node.port.pmml.PMMLPortObjectSpec;
 import org.knime.core.node.port.pmml.PMMLPortObjectSpecCreator;
-import org.knime.core.node.port.pmml.preproc.PMMLPreprocPortObjectSpec;
 import org.knime.core.util.binning.auto.BinNaming;
-import org.knime.core.util.binning.auto.BinningMethod;
-import org.knime.core.util.binning.auto.EqualityMethod;
+
+import com.google.common.math.Quantiles;
 
 /**
  * Given various settings, creates bins. TODO more stuff
@@ -138,6 +134,7 @@ public class AutoBinningUtils {
             throws Exception {
             var spec = data.getDataTableSpec();
 
+            var edgesMap = createE;
             var translator = createDiscretizeTranslator(null); // TODO
             var table = exec.createColumnRearrangeTable(data, createRearranger(translator, spec), exec);
 
@@ -149,86 +146,6 @@ public class AutoBinningUtils {
                 table, //
                 outputPmml, //
             };
-        }
-
-        /**
-         * Determine bins.
-         *
-         * @param data the input data
-         * @param exec the execution context
-         * @return the operation with the discretisation information
-         * @throws Exception ...
-         */
-        public PMMLPreprocDiscretize createDiscretizeOplegacy(final BufferedDataTable data, final ExecutionContext exec)
-            throws Exception {
-            final DataTableSpec spec = data.getDataTableSpec();
-            // determine intervals
-            if (m_settings.getMethod() == BinningMethod.FIXED_NUMBER) {
-                if (m_settings.getEqualityMethod() == EqualityMethod.WIDTH) {
-                    BufferedDataTable inData = calcDomainBoundsIfNeccessary(data, exec.createSubExecutionContext(0.9),
-                        Arrays.asList(m_included));
-                    Map<String, double[]> edgesMap = new HashMap<String, double[]>();
-                    for (String target : m_included) {
-                        DataTableSpec inSpec = inData.getDataTableSpec();
-                        DataColumnSpec targetCol = inSpec.getColumnSpec(target);
-
-                        // bounds of the domain
-                        double min = m_settings.getFixedLowerBound()
-                            .orElse(((DoubleValue)targetCol.getDomain().getLowerBound()).getDoubleValue());
-                        double max = m_settings.getFixedUpperBound()
-                            .orElse(((DoubleValue)targetCol.getDomain().getUpperBound()).getDoubleValue());
-
-                        double[] edges = calculateBounds(m_settings.getBinCount(), min, max);
-
-                        if (m_settings.getIntegerBounds()) {
-                            edges = toIntegerBoundaries(edges);
-                        }
-
-                        edgesMap.put(target, edges);
-                    }
-                    return createLegacyDisretizeOp(edgesMap);
-                } else { // EqualityMethod.equalCount
-                    Map<String, double[]> edgesMap = new HashMap<String, double[]>();
-                    for (String target : m_included) {
-                        int colIndex = data.getDataTableSpec().findColumnIndex(target);
-                        List<Double> values = new ArrayList<Double>();
-                        for (DataRow row : data) {
-                            if (!row.getCell(colIndex).isMissing()) {
-                                values.add(((DoubleValue)row.getCell(colIndex)).getDoubleValue());
-                            }
-                        }
-                        edgesMap.put(target, findEdgesForEqualCount(values, m_settings.getBinCount()));
-                    }
-                    return createLegacyDisretizeOp(edgesMap);
-                }
-            } else if (m_settings.getMethod() == BinningMethod.SAMPLE_QUANTILES) {
-                Map<String, double[]> edgesMap = new LinkedHashMap<String, double[]>();
-                final int colCount = m_included.length;
-                // contains all numeric columns if include all is set!
-                for (String target : m_included) {
-                    exec.setMessage("Calculating quantiles (column \"" + target + "\")");
-                    ExecutionContext colSortContext = exec.createSubExecutionContext(0.7 / colCount);
-                    ExecutionContext colCalcContext = exec.createSubExecutionContext(0.3 / colCount);
-                    ColumnRearranger singleRearranger = new ColumnRearranger(spec);
-                    singleRearranger.keepOnly(target);
-                    BufferedDataTable singleColSorted =
-                        colSortContext.createColumnRearrangeTable(data, singleRearranger, colSortContext);
-                    SortedTable sorted = new SortedTable(singleColSorted, Collections.singletonList(target),
-                        new boolean[]{true}, colSortContext);
-                    colSortContext.setProgress(1.0);
-                    double[] edges = createEdgesFromQuantiles(sorted.getBufferedDataTable(), colCalcContext,
-                        m_settings.getSampleQuantiles());
-                    colCalcContext.setProgress(1.0);
-                    exec.clearTable(singleColSorted);
-                    if (m_settings.getIntegerBounds()) {
-                        edges = toIntegerBoundaries(edges);
-                    }
-                    edgesMap.put(target, edges);
-                }
-                return createLegacyDisretizeOp(edgesMap);
-            } else {
-                throw new IllegalStateException("Unknown binning method.");
-            }
         }
 
         private double[] findEdgesForEqualCount(final List<Double> values, final int binCount) {
@@ -273,29 +190,6 @@ public class AutoBinningUtils {
 
         private double optionalCeil(final double value) {
             return m_settings.getIntegerBounds() ? Math.ceil(value) : value;
-        }
-
-        /**
-         * @param edgesMap the boundary map
-         * @return the {@link PMMLPreprocDiscretize} model
-         */
-        protected PMMLPreprocDiscretize createLegacyDisretizeOp(final Map<String, double[]> edgesMap) {
-            Map<String, List<PMMLDiscretizeBin>> binMap = createBinsLegacy(edgesMap);
-
-            List<String> names = new ArrayList<String>();
-            Map<String, PMMLDiscretize> discretize = new HashMap<String, PMMLDiscretize>();
-            for (String target : m_included) {
-                String binnedCol = m_settings.getReplaceColumn() //
-                    ? target //
-                    : target + m_settings.getNameSuffix().orElse(AutoBinningSettings.DEFAULT_NAME_SUFFIX);
-                names.add(binnedCol);
-                discretize.put(binnedCol, new PMMLDiscretize(target, binMap.get(target)));
-            }
-
-            DisretizeConfiguration config = new DisretizeConfiguration(names, discretize);
-
-            PMMLPreprocDiscretize op = new PMMLPreprocDiscretize(config);
-            return op;
         }
 
         protected PMMLPreprocDiscretizeTranslator
@@ -380,28 +274,8 @@ public class AutoBinningUtils {
             return binMap;
         }
 
-        /**
-         * Most legacy nodes using these binning utils have two output ports: one data table port and one PMML port
-         * object. This method provides a shorthand for the array containing both output port specs, and as such can be
-         * returned directly from the node model's configure method.
-         *
-         * @param inSpec The <code>DataTableSpec</code> of the input table.
-         * @return The spec of the output.
-         * @throws InvalidSettingsException If settings and spec given in the constructor are invalid.
-         *
-         * @deprecated This uses the legacy port type {@link PMMLPreprocPortObjectSpec} which is deprecated. We keep it
-         *             here because a lot of legacy nodes need it, but new nodes should not.
-         */
-        @Deprecated
-        public PortObjectSpec[] createOutputSpecLegacy(final DataTableSpec inSpec) throws InvalidSettingsException {
-            var op = createLegacyDisretizeOp(null);
-            var tableOutSpec = AutoBinningUtils.computeOutSpecLegacy(op, inSpec);
-            var pmmlOutSpec = new PMMLDiscretizePreprocPortObjectSpec(op);
-            return new PortObjectSpec[]{tableOutSpec, pmmlOutSpec};
-        }
-
         public PortObjectSpec[] createOutputSpec(final DataTableSpec inSpec) throws InvalidSettingsException {
-            var translator = createDiscretizeTranslator(null);
+            var translator = createDiscretizeTranslator(Map.of());
             var tableOutSpec = createRearranger(translator, inSpec).createSpec();
 
             var specCreator = new PMMLPortObjectSpecCreator(inSpec);
@@ -482,52 +356,87 @@ public class AutoBinningUtils {
         return newEdges;
     }
 
-    @SuppressWarnings("null")
-    private static double[] createEdgesFromQuantiles(final BufferedDataTable data, final ExecutionContext exec,
-        final double[] sampleQuantiles) throws CanceledExecutionException {
-        double[] edges = new double[sampleQuantiles.length];
-        long n = data.size();
-        long c = 0;
-        int cc = 0;
-        try (var iter = data.iterator()) {
-            DataRow rowQ = null;
-            DataRow rowQ1 = null;
-            if (iter.hasNext()) {
-                rowQ1 = iter.next();
-                rowQ = rowQ1;
-            }
+    /**
+     * This method is based on the 7th quantile algorithm in R, equivalent to the scipy version with (a,b)=(1,1). See <a
+     * href="https://en.wikipedia.org/wiki/Quantile#Estimating_quantiles_from_a_sample"}>WP:Quantile</a>, which also
+     * defines all the symbols used in this function. We use the same nomenclature here.
+     *
+     * <p>
+     * Note: it is assumed that the input data has only a single column which is sorted ascending.
+     * </p>
+     *
+     * @param dataColumn
+     * @param exec
+     * @param sampleBoundaries
+     * @return
+     * @throws CanceledExecutionException
+     */
+    private static List<BinBoundary> createEdgesFromQuantiles(final BufferedDataTable dataColumn,
+        final ExecutionContext exec, final List<BinBoundary> sampleBoundaries) throws CanceledExecutionException {
 
-            for (double p : sampleQuantiles) {
-                double h = (n - 1) * p + 1;
-                int q = (int)Math.floor(h);
-                while ((1.0 == p || c < q) && iter.hasNext()) {
-                    rowQ = rowQ1;
-                    rowQ1 = iter.next();
-                    c++;
-                    exec.setProgress(c / (double)n);
-                    exec.checkCanceled();
+        double[] dataValues = new double[Math.toIntExact(dataColumn.size())];
+        try (var iter = dataColumn.iterator()) {
+            for (int i = 0; iter.hasNext(); i++) {
+                var cell = iter.next().getCell(0);
+                if (cell.isMissing()) {
+                    throw new RuntimeException(
+                        "Missing values not supported for quantile calculation (error in row \"" + i + "\")");
                 }
-                rowQ = 1.0 != p ? rowQ : rowQ1;
-                final DataCell xqCell = rowQ.getCell(0);
-                final DataCell xq1Cell = rowQ1.getCell(0);
-                // TODO should be able to handle missing values (need to filter
-                // data first?)
-                if (xqCell.isMissing() || xq1Cell.isMissing()) {
-                    throw new RuntimeException("Missing values not support for "
-                        + "quantile calculation (error in row \"" + rowQ1.getKey() + "\")");
-                }
-                // for quantile calculation see also
-                // http://en.wikipedia.org/wiki/
-                //                Quantile#Estimating_the_quantiles_of_a_population.
-                // this implements R-7
-                double xq = ((DoubleValue)xqCell).getDoubleValue();
-                double xq1 = ((DoubleValue)xq1Cell).getDoubleValue();
-                double quantile = xq + (h - q) * (xq1 - xq);
-                edges[cc] = quantile;
-                cc++;
+                dataValues[i] = ((DoubleValue)cell).getDoubleValue();
             }
-            return edges;
         }
+
+        var quantiles = Quantiles.scale(sampleBoundaries.size()) //
+            .indexes(IntStream.range(0, sampleBoundaries.size()).toArray()) //
+            .compute(dataValues);
+
+        return IntStream.range(0, quantiles.size()) //
+            .mapToObj(i -> new BinBoundary(quantiles.get(i), sampleBoundaries.get(i).exactMatchBehaviour())) //
+            .toList();
+
+        //        long N = dataColumn.size();
+        //        long c = 0;
+        //        int cc = 0;
+        //        try (var iter = dataColumn.iterator()) {
+        //            DataRow rowQ = null;
+        //            DataRow rowQ1 = null;
+        //            if (iter.hasNext()) {
+        //                rowQ1 = iter.next();
+        //                rowQ = rowQ1;
+        //            }
+        //
+        //            for (var p : sampleBoundaries) {
+        //                double h = (N - 1) * p.value() + 1;
+        //                int h_floor = (int)Math.floor(h);
+        //
+        //                while ((1.0 == p.value() || c < h_floor) && iter.hasNext()) {
+        //                    rowQ = rowQ1;
+        //                    rowQ1 = iter.next();
+        //                    c++;
+        //                    exec.setProgress(c / (double)N);
+        //                    exec.checkCanceled();
+        //                }
+        //                rowQ = 1.0 != p.value() ? rowQ : rowQ1;
+        //                final DataCell xqCell = rowQ.getCell(0);
+        //                final DataCell xq1Cell = rowQ1.getCell(0);
+        //                // TODO should be able to handle missing values (need to filter
+        //                // data first?)
+        //                if (xqCell.isMissing() || xq1Cell.isMissing()) {
+        //                    throw new RuntimeException("Missing values not support for "
+        //                        + "quantile calculation (error in row \"" + rowQ1.getKey() + "\")");
+        //                }
+        //                // for quantile calculation see also
+        //                // http://en.wikipedia.org/wiki/
+        //                //                Quantile#Estimating_the_quantiles_of_a_population.
+        //                // this implements R-7
+        //                double xq = ((DoubleValue)xqCell).getDoubleValue();
+        //                double xq1 = ((DoubleValue)xq1Cell).getDoubleValue();
+        //                double quantile = xq + (h - h_floor) * (xq1 - xq);
+        //                edges[cc] = quantile;
+        //                cc++;
+        //            }
+        //            return edges;
+        //        }
     }
 
     /**
