@@ -99,7 +99,6 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.DataColumnSpecListCellRenderer;
-import org.knime.core.util.binning.numeric.NumericBin;
 
 
 /**

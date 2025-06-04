@@ -49,12 +49,12 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 
+import org.knime.base.node.preproc.autobinner.apply.AutoBinnerApply;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLDiscretizePreprocPortObject;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLPreprocDiscretize;
-import org.knime.base.node.util.binning.AutoBinnerApply;
-import org.knime.base.node.util.binning.AutoBinningSettings;
-import org.knime.base.node.util.binning.AutoBinningUtils;
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DoubleValue;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -68,7 +68,9 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.pmml.preproc.PMMLPreprocPortObject;
 import org.knime.core.node.util.ConvenienceMethods;
+import org.knime.core.node.util.filter.InputFilter;
 import org.knime.core.node.util.filter.NameFilterConfiguration.FilterResult;
+import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 
 /**
  * Performs a mapping from continuous to discrete values.
@@ -76,14 +78,14 @@ import org.knime.core.node.util.filter.NameFilterConfiguration.FilterResult;
  * @author Heiko Hofer
  */
 final class AutoBinnerLearnNodeModel extends NodeModel {
-    private final AutoBinningSettings m_settings;
+    private final AutoBinnerLearnSettings m_settings;
 
     /** Creates a new binner. */
     @SuppressWarnings("deprecation")
     AutoBinnerLearnNodeModel() {
         super(new PortType[]{BufferedDataTable.TYPE},
             new PortType[]{BufferedDataTable.TYPE, PMMLPreprocPortObject.TYPE});
-        m_settings = new AutoBinningSettings();
+        m_settings = new AutoBinnerLearnSettings();
     }
 
     /**
@@ -97,11 +99,13 @@ final class AutoBinnerLearnNodeModel extends NodeModel {
         String[] rmFromIncl = filter.getRemovedFromIncludes();
         if (m_settings.getFilterConfiguration().isEnforceInclusion() && rmFromIncl.length != 0) {
             throw new InvalidSettingsException("Input table does not contain the following selected column(s): "
-                + ConvenienceMethods.getShortStringFrom(new HashSet<String>(Arrays.asList(rmFromIncl)), 3));
+                    + ConvenienceMethods.getShortStringFrom(new HashSet<String>(Arrays.asList(rmFromIncl)), 3));
         }
 
-        var binner = new AutoBinningUtils.AutoBinner(m_settings, dataSpec);
-        return binner.createOutputSpecLegacy(dataSpec);
+        AutoBinner binner = new AutoBinner(m_settings, dataSpec);
+
+        return binner.getOutputSpec(dataSpec);
+
     }
 
     /**
@@ -111,14 +115,15 @@ final class AutoBinnerLearnNodeModel extends NodeModel {
     protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
         BufferedDataTable data = (BufferedDataTable)inObjects[0];
 
-        var binner = new AutoBinningUtils.AutoBinner(m_settings, data.getDataTableSpec());
+        AutoBinner binner = new AutoBinner(m_settings, data.getDataTableSpec());
         String[] included = m_settings.getFilterConfiguration().applyTo(data.getDataTableSpec()).getIncludes();
-        BufferedDataTable inData = AutoBinningUtils.calcDomainBoundsIfNeccessary(data, exec, Arrays.asList(included));
+        BufferedDataTable inData =
+            binner.calcDomainBoundsIfNeccessary(data, exec, Arrays.asList(included));
 
-        PMMLPreprocDiscretize op = binner.createDiscretizeOplegacy(inData, exec);
+        PMMLPreprocDiscretize op = binner.execute(inData, exec);
 
         AutoBinnerApply applier = new AutoBinnerApply();
-        BufferedDataTable outData = AutoBinningUtils.createOutTable(op, inData, exec);
+        BufferedDataTable outData = applier.execute(op, inData, exec);
         return new PortObject[]{outData, new PMMLDiscretizePreprocPortObject(op)};
     }
 
@@ -151,7 +156,7 @@ final class AutoBinnerLearnNodeModel extends NodeModel {
      */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        AutoBinningSettings s = new AutoBinningSettings();
+        AutoBinnerLearnSettings s = new AutoBinnerLearnSettings();
         s.loadSettings(settings);
     }
 
@@ -159,8 +164,8 @@ final class AutoBinnerLearnNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec) throws IOException,
+        CanceledExecutionException {
         // Node has no internal data.
     }
 
@@ -168,8 +173,23 @@ final class AutoBinnerLearnNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec) throws IOException,
+        CanceledExecutionException {
         // Node has no internal data.
+    }
+
+    /**
+     * A new configuration to store the settings. Only Columns of Type String are available.
+     *
+     * @return filter configuration
+     */
+    static final DataColumnSpecFilterConfiguration createDCSFilterConfiguration() {
+        return new DataColumnSpecFilterConfiguration("column-filter", new InputFilter<DataColumnSpec>() {
+
+            @Override
+            public boolean include(final DataColumnSpec name) {
+                return name.getType().isCompatible(DoubleValue.class);
+            }
+        });
     }
 }

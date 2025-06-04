@@ -52,25 +52,19 @@ import javax.xml.transform.sax.TransformerHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
 
+
 /**
  * Encapsulates a Interval in PMML.
  *
  * @author Heiko Hofer
- *
- *
  */
-@Deprecated
 final public class PMMLInterval {
-
-    @Deprecated
     public enum Closure {
-            openClosed, openOpen, closedOpen, closedClosed;
+        openClosed, openOpen, closedOpen, closedClosed
     }
 
     private double m_leftMargin;
-
     private double m_rightMargin;
-
     private Closure m_closure;
 
     /**
@@ -78,7 +72,8 @@ final public class PMMLInterval {
      * @param rightMargin the right margin
      * @param closure whether a margin is part of the interval
      */
-    public PMMLInterval(final double leftMargin, final double rightMargin, final Closure closure) {
+    public PMMLInterval(final double leftMargin, final double rightMargin,
+            final Closure closure) {
         m_leftMargin = leftMargin;
         m_rightMargin = rightMargin;
         m_closure = closure;
@@ -111,14 +106,18 @@ final public class PMMLInterval {
      * @param handler the transformation handler
      * @throws SAXException if anything goes wrong while serializing the model
      */
-    void writePMML(final TransformerHandler handler) throws SAXException {
+    void writePMML(final TransformerHandler handler)
+    throws SAXException {
         AttributesImpl a = new AttributesImpl();
         a.addAttribute("", "", "closure", "CDATA", m_closure.name());
-        a.addAttribute("", "", "leftMargin", "CDATA", Double.toString(m_leftMargin));
-        a.addAttribute("", "", "rightMargin", "CDATA", Double.toString(m_rightMargin));
+        a.addAttribute("",  "", "leftMargin", "CDATA",
+                Double.toString(m_leftMargin));
+        a.addAttribute("",  "", "rightMargin", "CDATA",
+                Double.toString(m_rightMargin));
 
         handler.startElement("", "", "Interval", a);
         handler.endElement("", "", "Interval");
     }
+
 
 }

@@ -68,7 +68,6 @@ import org.knime.core.node.ExecutionMonitor;
  *
  * @author Heiko Hofer
  */
-@Deprecated
 public class BinningCellFactory implements CellFactory {
     private String m_name;
     private final int m_colIdx;
@@ -113,7 +112,6 @@ public class BinningCellFactory implements CellFactory {
     /**
      * {@inheritDoc}
      */
-    @Override
     public DataCell[] getCells(final DataRow row) {
         DataCell cell = row.getCell(m_colIdx);
         return new DataCell[]{apply(cell)};
@@ -141,7 +139,6 @@ public class BinningCellFactory implements CellFactory {
     /**
      * {@inheritDoc}
      */
-    @Override
     public DataColumnSpec[] getColumnSpecs() {
         DataColumnSpecCreator creator = new DataColumnSpecCreator(m_name,
                 StringCell.TYPE);
@@ -158,7 +155,6 @@ public class BinningCellFactory implements CellFactory {
     /**
      * {@inheritDoc}
      */
-    @Override
     public void setProgress(final int curRowNr, final int rowCount,
             final RowKey lastKey,
             final ExecutionMonitor exec) {

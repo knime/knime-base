@@ -58,15 +58,10 @@ import org.xml.sax.helpers.AttributesImpl;
  * Encapsulates a DiscretizeBin in PMML.
  *
  * @author Heiko Hofer
- *
- * @deprecated See {@link PMMLPreprocDiscretizeTranslator.Configuration.Bin}
  */
-@Deprecated
 final public class PMMLDiscretizeBin {
     private String m_binValue;
-
     private List<PMMLInterval> m_intervals;
-
     /**
      * @param binValue The value (name) of the bin
      * @param intervals The intervals for this bin
@@ -96,7 +91,8 @@ final public class PMMLDiscretizeBin {
      * @param handler the transformation handler
      * @throws SAXException if anything goes wrong while serializing the model
      */
-    void writePMML(final TransformerHandler handler) throws SAXException {
+    void writePMML(final TransformerHandler handler)
+    throws SAXException {
         AttributesImpl a = new AttributesImpl();
         a.addAttribute("", "", "binValue", "CDATA", m_binValue);
         handler.startElement("", "", "DiscretizeBin", a);
@@ -105,4 +101,6 @@ final public class PMMLDiscretizeBin {
         }
         handler.endElement("", "", "DiscretizeBin");
     }
+
+
 }
