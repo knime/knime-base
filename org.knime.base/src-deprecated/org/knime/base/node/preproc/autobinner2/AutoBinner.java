@@ -64,6 +64,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.knime.base.data.sort.SortedTable;
+import org.knime.base.node.preproc.autobinner.apply.AutoBinnerApply;
 import org.knime.base.node.preproc.autobinner.pmml.DisretizeConfiguration;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLDiscretize;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLDiscretizeBin;
@@ -74,8 +75,6 @@ import org.knime.base.node.preproc.autobinner.pmml.PMMLPreprocDiscretize;
 import org.knime.base.node.preproc.autobinner2.AutoBinnerLearnSettings.BinNaming;
 import org.knime.base.node.preproc.autobinner2.AutoBinnerLearnSettings.EqualityMethod;
 import org.knime.base.node.preproc.autobinner2.AutoBinnerLearnSettings.Method;
-import org.knime.base.node.util.binning.AutoBinnerApply;
-import org.knime.base.node.util.binning.AutoBinningUtils;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnDomainCreator;
 import org.knime.core.data.DataColumnSpec;
@@ -467,7 +466,7 @@ public class AutoBinner {
         PMMLPreprocDiscretize op = createDisretizeOp(null);
 
         AutoBinnerApply applier = new AutoBinnerApply();
-        m_tableOutSpec = AutoBinningUtils.computeOutSpec(op, inSpec);
+        m_tableOutSpec = applier.getOutputSpec(op, inSpec);
         m_pmmlOutSpec = new PMMLDiscretizePreprocPortObjectSpec(op);
     }
 

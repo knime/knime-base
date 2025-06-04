@@ -50,7 +50,9 @@ import org.knime.base.node.io.database.DBNodeModel;
 import org.knime.base.node.io.database.binning.DBAutoBinner;
 import org.knime.base.node.io.database.binning.DBBinnerMaps;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLPreprocDiscretize;
-import org.knime.base.node.util.binning.AutoBinningSettings;
+import org.knime.base.node.preproc.autobinner3.AutoBinnerLearnSettings;
+import org.knime.base.node.preproc.autobinner3.AutoBinnerLearnSettings.EqualityMethod;
+import org.knime.base.node.preproc.autobinner3.AutoBinnerLearnSettings.Method;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -67,8 +69,6 @@ import org.knime.core.node.port.database.DatabaseQueryConnectionSettings;
 import org.knime.core.node.port.database.DatabaseReaderConnection;
 import org.knime.core.node.port.database.StatementManipulator;
 import org.knime.core.node.port.pmml.PMMLPortObject;
-import org.knime.core.util.binning.auto.BinningMethod;
-import org.knime.core.util.binning.auto.EqualityMethod;
 
 /**
  *
@@ -79,15 +79,15 @@ import org.knime.core.util.binning.auto.EqualityMethod;
 @Deprecated
 public final class DBAutoBinnerNodeModel extends DBNodeModel {
 
-    private final AutoBinningSettings m_settings;
+    private final AutoBinnerLearnSettings m_settings;
 
     /** Creates a new binner. */
     DBAutoBinnerNodeModel() {
         super(new PortType[]{DatabasePortObject.TYPE}, new PortType[]{DatabasePortObject.TYPE, PMMLPortObject.TYPE});
-        m_settings = new AutoBinningSettings();
+        m_settings = new AutoBinnerLearnSettings();
         //ensure that the fixed number method is selected since this is the only supported method
-        m_settings.setMethod(BinningMethod.FIXED_NUMBER);
-        m_settings.setEqualityMethod(EqualityMethod.WIDTH);
+        m_settings.setMethod(Method.fixedNumber);
+        m_settings.setEqualityMethod(EqualityMethod.width);
     }
 
     /**
@@ -104,7 +104,7 @@ public final class DBAutoBinnerNodeModel extends DBNodeModel {
      */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        AutoBinningSettings s = new AutoBinningSettings();
+        AutoBinnerLearnSettings s = new AutoBinnerLearnSettings();
         s.loadSettings(settings);
     }
 
@@ -156,10 +156,9 @@ public final class DBAutoBinnerNodeModel extends DBNodeModel {
                     "Database does not support \"CASE\". Please choose only one column.");
             }
         }
-        if (connectionSettings.getRetrieveMetadataInConfigure()) {
+        if (connectionSettings.getRetrieveMetadataInConfigure()){
             PMMLPortObject pmmlPortObject = createPMMLPortObject(dbSpec, connectionSettings, new ExecutionMonitor());
-            DatabasePortObject databasePortObject =
-                createDatabasePortObject(dbSpec, connectionSettings, pmmlPortObject);
+            DatabasePortObject databasePortObject = createDatabasePortObject(dbSpec, connectionSettings, pmmlPortObject);
             return new PortObjectSpec[]{databasePortObject.getSpec(), pmmlPortObject.getSpec()};
         }
         return new PortObjectSpec[]{null, null};
@@ -167,7 +166,7 @@ public final class DBAutoBinnerNodeModel extends DBNodeModel {
 
     private DatabasePortObject createDatabasePortObject(final DatabasePortObjectSpec inSpec,
         DatabaseQueryConnectionSettings connectionSettings, final PMMLPortObject pmmlPortObject)
-        throws InvalidSettingsException {
+            throws InvalidSettingsException {
 
         final StatementManipulator statementManipulator = connectionSettings.getUtility().getStatementManipulator();
 
@@ -191,18 +190,17 @@ public final class DBAutoBinnerNodeModel extends DBNodeModel {
 
     private PMMLPortObject createPMMLPortObject(final DatabasePortObjectSpec inSpec,
         final DatabaseQueryConnectionSettings connectionSettings, final ExecutionMonitor exec)
-        throws InvalidSettingsException {
+            throws InvalidSettingsException {
         DataTableSpec dataTableSpec = inSpec.getDataTableSpec();
         DBAutoBinner autoBinner = new DBAutoBinner(m_settings, dataTableSpec);
         PMMLPreprocDiscretize pMMLPrepocDiscretize;
         try {
-            pMMLPrepocDiscretize =
-                autoBinner.createPMMLPrepocDiscretize(getCredentialsProvider(), connectionSettings, dataTableSpec);
-            PMMLPortObject pmmlPortObject = DBAutoBinner.translate(pMMLPrepocDiscretize, dataTableSpec);
-            return pmmlPortObject;
+            pMMLPrepocDiscretize = autoBinner.createPMMLPrepocDiscretize(getCredentialsProvider(),
+                connectionSettings, dataTableSpec);
+        PMMLPortObject pmmlPortObject = DBAutoBinner.translate(pMMLPrepocDiscretize, dataTableSpec);
+        return pmmlPortObject;
         } catch (SQLException e) {
-            throw new InvalidSettingsException(
-                "Could not retrieve boundaries from database. Exception: " + e.getMessage(), e);
+            throw new InvalidSettingsException("Could not retrieve boundaries from database. Exception: " + e.getMessage(), e);
         }
     }
 
@@ -212,8 +210,8 @@ public final class DBAutoBinnerNodeModel extends DBNodeModel {
         String[] binningCols = m_settings.getFilterConfiguration().applyTo(dataTableSpec).getIncludes();
         String[] allColumns = dataTableSpec.getColumnNames();
         String[] additionalCols = DBAutoBinner.filter(binningCols, allColumns);
-        String result = statementManipulator.getBinnerStatement(query, binningCols, additionalCols,
-            maps.getBoundariesMap(), maps.getBoundariesOpenMap(), maps.getNamingMap(), maps.getAppendMap());
+        String result = statementManipulator.getBinnerStatement(query, binningCols, additionalCols, maps.getBoundariesMap(),
+            maps.getBoundariesOpenMap(), maps.getNamingMap(), maps.getAppendMap());
         return result;
     }
 
