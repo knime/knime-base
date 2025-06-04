@@ -218,6 +218,7 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
         return cs.getType().isCompatible(DoubleValue.class);
     }
 
+    // This actually doesn't duplicate an enum in knime core! What a breath of fresh air
     enum BinningType {
             @Label("Equal width")
             EQUAL_WIDTH(BinningMethod.FIXED_NUMBER, EqualityMethod.WIDTH), //
@@ -247,6 +248,7 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
             TO_UPPER_BIN;
     }
 
+    // TODO: this probably duplicates an enum in knime core, add @label annotations and use that instead
     enum BinNames {
             @Label(value = "Numbered", description = "Bins will be named by their number, e.g. Bin 1")
             NUMBERED(BinNaming.NUMBERED), //
@@ -279,6 +281,7 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
         }
     }
 
+    // TODO: this probably duplicates an enum in knime core, add @label annotations and use that instead
     enum NumberFormat {
             COLUMN_FORMAT, //
             CUSTOM;
@@ -452,6 +455,7 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
         @Widget(title = "Rounding mode", description = "TODO")
         RoundingMode m_roundingMode = RoundingMode.UP;
 
+        // TODO: we can probably use the core enum here directly if we add some @label annotations to it
         enum NumberFormat {
                 STANDARD_STRING(OutputFormat.STANDARD), //
                 PLAIN_STRING(OutputFormat.PLAIN), //
@@ -464,6 +468,7 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
             }
         }
 
+        // TODO: we can probably use the core enum here directly if we add some @label annotations to it
         enum PrecisionMode {
                 DECIMAL_PLACES(org.knime.core.util.binning.auto.PrecisionMode.DECIMAL), //
                 SIGNIFICANT_FIGURES(org.knime.core.util.binning.auto.PrecisionMode.SIGNIFICANT);
@@ -475,6 +480,8 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
             }
         }
 
+        // TODO: java has a built-in roundingmode. No ability to add @label annotations to it,
+        // but let's make it accessible from this enum.
         enum RoundingMode {
                 UP, //
                 DOWN, //

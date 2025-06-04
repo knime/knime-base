@@ -63,7 +63,10 @@ final public class AutoBinnerLearnSettings {
     /**
      * The name of the autobinning method
      * @author Heiko Hofer
+     *
+     * @deprecated This duplicates {@link org.knime.core.util.binning.auto.BinningMethod}. Use that instead.
      */
+    @Deprecated
     public enum Method {
         /** Fixed number of bins. */
         fixedNumber,
@@ -74,7 +77,10 @@ final public class AutoBinnerLearnSettings {
     /**
      * The method for naming bins
      * @author Heiko Hofer
+     *
+     * @deprecated This duplicates {@link org.knime.core.util.binning.auto.BinNaming}. Use that instead.
      */
+    @Deprecated
     public enum BinNaming {
         /** Numbered starting from one: Bin 1, Bin2, ... */
         numbered,
