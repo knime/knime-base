@@ -44,6 +44,7 @@
  */
 package org.knime.base.node.viz.enrichment2;
 
+import java.awt.GraphicsEnvironment;
 import java.awt.HeadlessException;
 import java.awt.Toolkit;
 import java.io.File;
@@ -57,6 +58,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.OptionalInt;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -94,22 +96,30 @@ import org.knime.core.util.MutableInteger;
 class EnrichmentPlotterModel extends NodeModel {
     private List<EnrichmentPlot> m_curves = new ArrayList<EnrichmentPlot>();
 
-    private static final DataTableSpec AREA_OUT_SPEC;
+    private static final DataTableSpec AREA_OUT_SPEC =
+        new DataTableSpec(new DataColumnSpecCreator("Area", DoubleCell.TYPE).createSpec());
 
     // maximum x-resolution for the graphs
-    private static final int MAX_RESOLUTION;
+    private static final int MAX_RESOLUTION = getMaxResolution().orElse(4000);
 
-    static {
-        DataColumnSpec dcs = new DataColumnSpecCreator("Area", DoubleCell.TYPE).createSpec();
-        AREA_OUT_SPEC = new DataTableSpec(dcs);
-
-        int res;
-        try {
-            res = (int)(Toolkit.getDefaultToolkit().getScreenSize().getWidth() * 3);
-        } catch (HeadlessException ex) {
-            res = 4000;
+    /**
+     * -
+     *
+     * @return an {@code OptionalInt} containing the calculated maximum resolution if available, or an empty optional if
+     *         it cannot be determined
+     */
+    private static OptionalInt getMaxResolution() {
+        if (GraphicsEnvironment.isHeadless()) {
+            return OptionalInt.empty();
+        } else {
+            try {
+                // This call needs to be prevented completely in headless mode, we cannot rely on the exception.
+                // For example, this call would block in macOS and headless mode.
+                return OptionalInt.of((int)(Toolkit.getDefaultToolkit().getScreenSize().getWidth() * 3));
+            } catch (HeadlessException ex) {
+                return OptionalInt.empty();
+            }
         }
-        MAX_RESOLUTION = res;
     }
 
     private DataTableSpec getDiscrateOutSpec() {
