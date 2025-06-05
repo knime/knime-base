@@ -313,12 +313,12 @@ final class FilterCriterionTest {
             criterion.m_operator = FilterOperator.IS_TRUE;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("RowID cannot be compared with IS_TRUE") //
-                .hasMessage("Unsupported operator \"Is true\" for RowID comparison");
+                .hasMessage("Unsupported operator \"IS_TRUE\" for RowID comparison");
 
             criterion.m_operator = FilterOperator.IS_FALSE;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("RowID cannot be compared with IS_FALSE") //
-                .hasMessage("Unsupported operator \"Is false\" for RowID comparison");
+                .hasMessage("Unsupported operator \"IS_FALSE\" for RowID comparison");
         }
     }
 
@@ -338,14 +338,14 @@ final class FilterCriterionTest {
             criterion.m_predicateValues = DynamicValuesInput.forRowNumber(LongCell.TYPE);
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Row number via LT") //
-                .hasMessage("Unsupported operator \"Less than\" for row number comparison");
+                .hasMessage("Unsupported operator \"LT\" for row number comparison");
 
             // RowIDs cannot be ordered (only column values)
             criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_ID);
             criterion.m_predicateValues = DynamicValuesInput.forRowID();
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("RowID cannot be compared via ordering") //
-                .hasMessage("Unsupported operator \"Less than\" for RowID comparison");
+                .hasMessage("Unsupported operator \"LT\" for RowID comparison");
 
             // Other DataCells can be ordered (for backwards-compatibility) but operators are hidden
             criterion.m_column = new StringOrEnum<>("String1");

@@ -278,7 +278,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
             return PredicateFactories //
                 .getRowKeyPredicateFactory(m_operator) //
                 .orElseThrow(() -> new InvalidSettingsException( //
-                    "Unsupported operator \"%s\" for RowID comparison".formatted(m_operator.label()))) //
+                    "Unsupported operator \"%s\" for RowID comparison".formatted(m_operator.name()))) //
                 .createPredicate(OptionalInt.empty(), predicateValues);
         }
 
@@ -287,7 +287,7 @@ abstract class AbstractRowFilterNodeSettings implements DefaultNodeSettings {
             return PredicateFactories //
                 .getRowNumberPredicateFactory(m_operator) //
                 .orElseThrow(() -> new InvalidSettingsException( //
-                    "Unsupported operator \"%s\" for row number comparison".formatted(m_operator.label()))) //
+                    "Unsupported operator \"%s\" for row number comparison".formatted(m_operator.name()))) //
                 .createPredicate(OptionalInt.empty(), predicateValues);
         }
 

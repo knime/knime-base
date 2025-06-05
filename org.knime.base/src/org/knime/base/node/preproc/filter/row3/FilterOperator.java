@@ -79,7 +79,7 @@ public enum FilterOperator {
                 Equality is define by the particular data type(s) involved and may be on the value's string
                 representation.
                 """)
-        EQ("Equals"),
+        EQ,
 
         /**
          * Operator checking inequality between values. In particular, two missing cells are considered neither equal
@@ -90,7 +90,7 @@ public enum FilterOperator {
                 """
                 Value in column must be <b>not equal</b> to specified reference and also not missing.
                 """)
-        NEQ("Is not equal (nor missing)"),
+        NEQ,
 
         /**
          * Operator checking inequality between values, but allowing for missing values. See also {@link #NEQ}.
@@ -99,7 +99,7 @@ public enum FilterOperator {
                 """
                 Value in column must be <b>not equal</b> to specified reference value but can be missing.
                 """)
-        NEQ_MISS("Is not equal", true),
+        NEQ_MISS(true),
 
         /** Operator checking that the left-hand-side value is strictly less than the right-hand-side value. */
         @Label(value = "Less than", description =
@@ -113,36 +113,36 @@ public enum FilterOperator {
         The same requirements apply to the other ordering-based operators: "Less than", "Less than or equal",
         "Greather than", and "Greater than or equal".
         """) //
-        LT("Less than"), //
+        LT, //
 
         /** Operator checking that the lhs value is less than or equal to the rhs value. */
         @Label(value = "Less than or equal", //
             description = "Value in column must be <b>smaller than or equal</b> to specified value") //
-        LTE("Less than or equal"), //
+        LTE, //
 
         /** Operator checking that the lhs value is strictly greater than the rhs value. */
         @Label(value = "Greater than", //
             description = "Value in column must be <b>strictly larger</b> than specified value") //
-        GT("Greater than"), //
+        GT, //
 
         /** Operator checking that the lhs value is strictly greater than or equal to the rhs value. */
         @Label(value = "Greater than or equal", //
             description = "Value in column must be <b>larger than or equal</b> than specified value") //
-        GTE("Greater than or equal"), //
+        GTE, //
 
         /** Operator matching the first {@code n} rows. */
-        @Label(value = "First <i>n</i> rows", description =
+        @Label(value = "First n rows", description =
                 """
                 Matches the specified number of rows counted from the start of the input.
                 """)
-        FIRST_N_ROWS("First n rows"), //
+        FIRST_N_ROWS, //
 
         /** Operator matching the last {@code n} rows. */
-        @Label(value = "Last <i>n</i> rows", description =
+        @Label(value = "Last n rows", description =
                 """
                 Matches the specified number of rows counted from the end of the input.
                 """)
-        LAST_N_ROWS("Last n rows"), //
+        LAST_N_ROWS, //
 
         /** Operator matching the lhs value with the given regular expression. */
         @Label(value = "Matches regex", description =
@@ -162,48 +162,36 @@ public enum FilterOperator {
                 <i>enabled</i>. To disable the <tt>DOTALL</tt> flag, prefix the pattern with <tt>(?-s)</tt>, to disable
                 <tt>MULTILINE</tt> use prefix <tt>(?-m)</tt>. To disable both, use <tt>(?-sm)</tt>.
                 """)
-        REGEX("Matches regex"),
+        REGEX,
         /** Operator matching the lhs value with the given wildcard pattern. */
         @Label(value = "Matches wildcard", description = "Value in column must match the specified pattern, "
                 + "which may contain wildcards <tt>*</tt> and <tt>?</tt>.")
-        WILDCARD("Matches wildcard"),
+        WILDCARD,
 
         /** Operator checking that the lhs boolean cell value is true. */
         @Label(value = "Is true", description = "Boolean value in column must be <tt>true</tt>")
-        IS_TRUE("Is true"),
+        IS_TRUE,
 
         /** Operator checking that the lhs boolean cell value is false. */
         @Label(value = "Is false", description = "Boolean value in column must be <tt>false</tt>")
-        IS_FALSE("Is false"),
+        IS_FALSE,
 
         /** Operator checking that the lhs cell is missing. */
         @Label(value = "Is missing", description = "Value in column must be <i>missing</i>")
-        IS_MISSING("Is missing"),
+        IS_MISSING,
 
         /** Operator checking that the lhs cell is not missing. */
         @Label(value = "Is not missing", description = "Value in column must <em>not</em> be <i>missing</i>")
-        IS_NOT_MISSING("Is not missing");
-
-    final String m_label;
+        IS_NOT_MISSING;
 
     final boolean m_allowMissing;
 
-    FilterOperator(final String label) {
-        this(label, false);
+    FilterOperator() {
+        this(false);
     }
 
-    FilterOperator(final String label, final boolean allowMissing) {
-        m_label = label;
+    FilterOperator(final boolean allowMissing) {
         m_allowMissing = allowMissing;
-    }
-
-    /**
-     * Gets the user-visible label of the operator.
-     *
-     * @return label of the operator
-     */
-    public String label() {
-        return m_label;
     }
 
     Optional<DataType> getRequiredInputType() {
