@@ -368,6 +368,12 @@
                 <message_argument value="org.knime.base_5.5.0"/>
             </message_arguments>
         </filter>
+        <filter id="338792546">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.sample.SamplingNodeFactory"/>
+                <message_argument value="createNodeView(int, SamplingNodeModel)"/>
+            </message_arguments>
+        </filter>
     </resource>
     <resource path="src/org/knime/base/node/preproc/sample/SamplingNodeModel.java" type="org.knime.base.node.preproc.sample.SamplingNodeModel">
         <filter id="305365105">
