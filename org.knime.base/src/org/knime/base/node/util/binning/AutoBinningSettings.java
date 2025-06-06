@@ -366,11 +366,15 @@ public record AutoBinningSettings( //
      */
     @SuppressWarnings("javadoc")
     public enum BinBoundaryExactMatchBehaviour {
-            @Label(value = "To lower bin",
-                description = "Values that fall on the bin border will be assigned to the lower bin")
+            @Label(value = "To lower bin", description = """
+                    Values that fall on the bin border will be assigned \
+                    to the lower bin.
+                    """)
             TO_LOWER_BIN, //
-            @Label(value = "To upper bin",
-                description = "Values that fall on the bin border will be assigned to the upper bin")
+            @Label(value = "To upper bin", description = """
+                    Values that fall on the bin border will be assigned \
+                    to the upper bin.
+                    """)
             TO_UPPER_BIN;
     }
 
@@ -434,27 +438,40 @@ public record AutoBinningSettings( //
      * This class holds the settings for number formatting in the bins. This class implements
      * {@link DefaultNodeSettings} which means it can be used as a widget group in a node dialog.
      */
+    @SuppressWarnings("javadoc")
     public static final class NumberFormatSettingsGroup implements DefaultNodeSettings {
 
-        @Widget(title = "Number format", description = "TODO")
+        @Widget(title = "Number format", description = """
+                The format used for numbers in the bins with regard to \
+                how fractions and exponents are displayed.
+                """)
         @ValueSwitchWidget
         public NumberFormat m_numberFormat = NumberFormat.STANDARD_STRING;
 
-        @Widget(title = "Precision", description = "TODO")
+        @Widget(title = "Precision", description = """
+                The number of digits to use for the precision of \
+                numbers in the bins.
+                """)
         @NumberInputWidget(minValidation = NumberGreaterThanZeroValidation.class)
         public int m_precision = 3;
 
-        @Widget(title = "Precision mode", description = "TODO")
+        @Widget(title = "Precision mode", description = """
+                Whether to use a fixed number of decimal places \
+                or a fixed number of significant figures when \
+                rounding numbers in the bins.
+                """)
         @ValueSwitchWidget
         public PrecisionMode m_precisionMode = PrecisionMode.DECIMAL_PLACES;
 
-        @Widget(title = "Rounding mode", description = "TODO")
+        @Widget(title = "Rounding mode", description = """
+                The rounding mode to use when rounding numbers \
+                in the bins.
+                """)
         public RoundingDirection m_roundingMode = RoundingDirection.UP;
 
         /**
          * The formatting of numbers in the bins.
          */
-        @SuppressWarnings("javadoc")
         public enum NumberFormat {
                 @Label(value = "Standard", description = "Will use an exponent only if needed")
                 STANDARD_STRING(OutputFormat.STANDARD), //
@@ -473,26 +490,62 @@ public record AutoBinningSettings( //
         /**
          * This enum defines the precision modes for number formatting.
          */
-        @SuppressWarnings("javadoc")
         public enum PrecisionMode {
-                @Label(value = "Decimal places", description = "Will round to the given number of decimal places")
+                @Label(value = "Decimal places", description = """
+                        Will round to the given number of decimal \
+                        places, e.g. 12.34567 will become \
+                        12.346 if the precision is set to 3.
+                        """)
                 DECIMAL_PLACES, //
-                @Label(value = "Significant figures",
-                    description = "Will round to the given number of significant figures")
+                @Label(value = "Significant figures", description = """
+                        Will round to the given number of significant \
+                        figures, e.g. 12.34567 will become \
+                        12.3 if the precision is set to 3.
+                        """)
                 SIGNIFICANT_FIGURES;
         }
 
         /**
          * If numbers are to be rounded, this enum defines the direction of rounding.
          */
-        @SuppressWarnings("javadoc")
         public enum RoundingDirection {
+                @Label(value = "Up", description = """
+                        Will round away from zero, e.g. 1.2 will become \
+                        2 and -1.2 will become -2.
+                        """)
                 UP, //
+                @Label(value = "Down", description = """
+                        Will round towards zero, e.g. 1.2 will become \
+                        1 and -1.2 will become -1.
+                        """)
                 DOWN, //
+                @Label(value = "Ceiling", description = """
+                        Will round towards positive infinity, e.g. 1.2 will become \
+                        2 and -1.2 will become -1.
+                        """)
                 CEILING, //
+                @Label(value = "Floor", description = """
+                        Will round towards negative infinity, e.g. 1.2 will become \
+                        1 and -1.2 will become -2.
+                        """)
                 FLOOR, //
+                @Label(value = "Half up", description = """
+                        Will round towards the nearest neighbor. When the number is exactly \
+                        halfway between two neighbors, it will round away from zero, e.g. \
+                        1.5 will become 2 and -1.5 will become -2.
+                        """)
                 HALF_UP, //
+                @Label(value = "Half down", description = """
+                        Will round towards the nearest neighbor. When the number is exactly \
+                        halfway between two neighbors, it will round towards zero, e.g. \
+                        1.5 will become 1 and -1.5 will become -1.
+                        """)
                 HALF_DOWN, //
+                @Label(value = "Half even", description = """
+                        Will round towards the nearest neighbor. When the number is exactly \
+                        halfway between two neighbors, it will round towards the nearest even \
+                        neighbor, e.g. 1.5 will become 2 and 2.5 will become 2.
+                        """)
                 HALF_EVEN;
 
             final RoundingMode m_roundingMode;
@@ -514,7 +567,6 @@ public record AutoBinningSettings( //
     }
 
     static final class NumberGreaterThanZeroValidation extends NumberInputWidgetValidation.MinValidation {
-
         @Override
         protected double getMin() {
             return 0;

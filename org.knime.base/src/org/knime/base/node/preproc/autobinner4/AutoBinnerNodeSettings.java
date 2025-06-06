@@ -242,14 +242,20 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
     String m_upperOutlierValue = "Upper outlier";
 
     @Layout(OutputSection.class)
-    @Widget(title = "Number format", description = "TODO", advanced = true)
+    @Widget(title = "Number format", advanced = true, description = """
+            The format that will be used to display numbers \
+            in the bin values in the output table.
+            """)
     @ValueSwitchWidget
     @ValueReference(NumberFormat.Ref.class)
     NumberFormat m_numberFormat = NumberFormat.COLUMN_FORMAT;
 
     @Layout(OutputSection.class)
     @Effect(predicate = NumberFormat.IsCustom.class, type = EffectType.SHOW)
-    @Widget(title = "Custom format", description = "TODO", advanced = true)
+    @Widget(title = "Custom format", advanced = true, description = """
+            The exact format for numbers in the bin values, \
+            when a custom format is selected.
+            """)
     NumberFormatSettingsGroup m_numberFormatSettings = new NumberFormatSettingsGroup();
 
     @Layout(OutputSection.class)
