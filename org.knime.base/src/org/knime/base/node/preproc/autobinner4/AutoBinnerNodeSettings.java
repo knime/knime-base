@@ -229,10 +229,8 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
             lowermost bin will be labeled with this value in \
             place of a bin name.
             """)
-    @Effect(predicate = IsFixedLowerBound.class, type = EffectType.SHOW)
+    @Effect(predicate = ShouldShowLowerOutlierName.class, type = EffectType.SHOW)
     String m_lowerOutlierValue = "Lower outlier";
-    // TODO should also show when using custom cutoffs or quantiles,
-    // since then we can also have lower outliers
 
     @Layout(OutputSection.class)
     @Widget(title = "Upper outlier value", description = """
@@ -240,10 +238,8 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
             bin will be labeled with this value in place of a bin \
             name.
             """)
-    @Effect(predicate = IsFixedUpperBound.class, type = EffectType.SHOW)
+    @Effect(predicate = ShouldShowUpperOutlierName.class, type = EffectType.SHOW)
     String m_upperOutlierValue = "Upper outlier";
-    // TODO should also show when using custom cutoffs or quantiles,
-    // since then we can also have upper outliers
 
     @Layout(OutputSection.class)
     @Widget(title = "Number format", description = "TODO", advanced = true)
@@ -333,8 +329,9 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    static final class BinningTypeRef implements Reference<BinningType> {
-    }
+    /* * * * * * * *
+     * Predicates  *
+     * * * * * * * */
 
     static final class NumberOfBinsShouldBeShown implements PredicateProvider {
 
@@ -342,7 +339,8 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
         public Predicate init(final PredicateInitializer i) {
             return i //
                 .getEnum(BinningTypeRef.class) //
-                .isOneOf(BinningType.CUSTOM_CUTOFFS, BinningType.CUSTOM_QUANTILES);
+                .isOneOf(BinningType.CUSTOM_CUTOFFS, BinningType.CUSTOM_QUANTILES) //
+                .negate();
         }
     }
 
@@ -386,12 +384,6 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    static final class FixLowerBoundRef implements Reference<Boolean> {
-    }
-
-    static final class FixUpperBoundRef implements Reference<Boolean> {
-    }
-
     static final class IsFixedLowerBound implements PredicateProvider {
 
         @Override
@@ -412,7 +404,22 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    static final class BinNamesRef implements Reference<BinNaming> {
+    static final class ShouldShowUpperOutlierName implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i //
+                .getBoolean(FixUpperBoundRef.class).isTrue() //
+                .or(i.getEnum(BinningTypeRef.class).isOneOf(BinningType.CUSTOM_CUTOFFS, BinningType.CUSTOM_QUANTILES));
+        }
+    }
+
+    static final class ShouldShowLowerOutlierName implements PredicateProvider {
+        @Override
+        public Predicate init(final PredicateInitializer i) {
+            return i //
+                .getBoolean(FixLowerBoundRef.class).isTrue() //
+                .or(i.getEnum(BinningTypeRef.class).isOneOf(BinningType.CUSTOM_CUTOFFS, BinningType.CUSTOM_QUANTILES));
+        }
     }
 
     static final class BinNamesIsNumbered implements PredicateProvider {
@@ -425,28 +432,58 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
         }
     }
 
+    /* * * * * * * * *
+     * References  * *
+     * * * * * * * * */
+
+    static final class BinningTypeRef implements Reference<BinningType> {
+    }
+
+    static final class FixLowerBoundRef implements Reference<Boolean> {
+    }
+
+    static final class FixUpperBoundRef implements Reference<Boolean> {
+    }
+
+    static final class BinNamesRef implements Reference<BinNaming> {
+    }
+
+    private static final String CUTOFF_DESC = """
+            The exact value at which the bin boundary \
+            should be placed.
+            """;
+
+    private static final String EXACT_MATCH_DESC = """
+            The behaviour when a value is exactly equal \
+            to the cutoff between two bins.
+            """;
+
     static class CustomCutoffsWidgetGroup implements DefaultNodeSettings {
-        @Widget(title = "Cutoff", description = "TODO")
+        @Widget(title = "Cutoff", description = CUTOFF_DESC)
         @NumberInputWidget
         double m_cutoff = 0;
 
-        @Widget(title = "Exact match", description = "TODO")
+        @Widget(title = "Exact match", description = EXACT_MATCH_DESC)
         @ValueSwitchWidget
         BinBoundaryExactMatchBehaviour m_matchType = BinBoundaryExactMatchBehaviour.TO_LOWER_BIN;
     }
 
     static class CustomQuantilesWidgetGroup implements DefaultNodeSettings {
-        @Widget(title = "Quantile", description = "TODO")
+        @Widget(title = "Quantile", description = CUTOFF_DESC)
         @NumberInputWidget( //
             minValidation = NumberGreaterThanZeroValidation.class, //
             maxValidation = NumberLessThanOneValidation.class //
         )
         double m_quantile = 0;
 
-        @Widget(title = "Exact match", description = "TODO")
+        @Widget(title = "Exact match", description = EXACT_MATCH_DESC)
         @ValueSwitchWidget
         BinBoundaryExactMatchBehaviour m_matchType = BinBoundaryExactMatchBehaviour.TO_LOWER_BIN;
     }
+
+    /* * * * * * * * * *
+     * Validations * * *
+     * * * * * * * * * */
 
     static final class NumberOfBinsValidation extends NumberInputWidgetValidation.MinValidation {
         @Override
