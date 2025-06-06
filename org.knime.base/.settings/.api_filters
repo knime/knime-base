@@ -329,43 +329,11 @@
             </message_arguments>
         </filter>
     </resource>
-    <resource path="src/org/knime/base/node/preproc/sample/LinearSamplingRowFilter.java" type="org.knime.base.node.preproc.sample.LinearSamplingRowFilter">
-        <filter id="305365105">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.sample.LinearSamplingRowFilter"/>
-                <message_argument value="org.knime.base_5.5.0"/>
-            </message_arguments>
-        </filter>
-    </resource>
-    <resource path="src/org/knime/base/node/preproc/sample/RandomFractionRowFilter.java" type="org.knime.base.node.preproc.sample.RandomFractionRowFilter">
-        <filter id="305365105">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.sample.RandomFractionRowFilter"/>
-                <message_argument value="org.knime.base_5.5.0"/>
-            </message_arguments>
-        </filter>
-    </resource>
-    <resource path="src/org/knime/base/node/preproc/sample/RandomNumberRowFilter.java" type="org.knime.base.node.preproc.sample.RandomNumberRowFilter">
-        <filter id="305365105">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.sample.RandomNumberRowFilter"/>
-                <message_argument value="org.knime.base_5.5.0"/>
-            </message_arguments>
-        </filter>
-    </resource>
-    <resource path="src/org/knime/base/node/preproc/sample/Sampler.java" type="org.knime.base.node.preproc.sample.Sampler">
-        <filter id="305365105">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.sample.Sampler"/>
-                <message_argument value="org.knime.base_5.5.0"/>
-            </message_arguments>
-        </filter>
-    </resource>
     <resource path="src/org/knime/base/node/preproc/sample/SamplingNodeFactory.java" type="org.knime.base.node.preproc.sample.SamplingNodeFactory">
-        <filter id="305365105">
+        <filter id="338792546">
             <message_arguments>
                 <message_argument value="org.knime.base.node.preproc.sample.SamplingNodeFactory"/>
-                <message_argument value="org.knime.base_5.5.0"/>
+                <message_argument value="createNodeView(int, SamplingNodeModel)"/>
             </message_arguments>
         </filter>
     </resource>
@@ -373,22 +341,6 @@
         <filter id="305365105">
             <message_arguments>
                 <message_argument value="org.knime.base.node.preproc.sample.SamplingNodeModel"/>
-                <message_argument value="org.knime.base_5.5.0"/>
-            </message_arguments>
-        </filter>
-    </resource>
-    <resource path="src/org/knime/base/node/preproc/sample/SamplingNodeSettings.java" type="org.knime.base.node.preproc.sample.SamplingNodeSettings">
-        <filter id="305365105">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.sample.SamplingNodeSettings"/>
-                <message_argument value="org.knime.base_5.5.0"/>
-            </message_arguments>
-        </filter>
-    </resource>
-    <resource path="src/org/knime/base/node/preproc/sample/StratifiedSamplingRowFilter.java" type="org.knime.base.node.preproc.sample.StratifiedSamplingRowFilter">
-        <filter id="305365105">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.sample.StratifiedSamplingRowFilter"/>
                 <message_argument value="org.knime.base_5.5.0"/>
             </message_arguments>
         </filter>
