@@ -426,7 +426,7 @@ public record AutoBinningSettings( //
                     The quantiles will be converted to bin edges \
                     using the R-7 algorithm, see <a href="
                     """ + QUANTILE_URL + """
-                    >WP:Quantile</a> for more details.
+                    ">WP:Quantile</a> for more details.
                     """)
             CUSTOM_QUANTILES;
 

@@ -132,7 +132,7 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
             by entering the values. The behaviour when a \
             value is exactly equal to a cutoff can be \
             configured separately for each boundary.
-            """) // this title and description aren't displayed
+            """) // this title and description aren't displayed in dialogue, only node desc
     @ArrayWidget(elementTitle = "Cutoff", addButtonText = "New cutoff", showSortButtons = true)
     @Effect(predicate = BinningTypeIsCustomCutoffs.class, type = EffectType.SHOW)
     CustomCutoffsWidgetGroup[] m_customCutoffs = new CustomCutoffsWidgetGroup[]{ //
@@ -145,7 +145,7 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
             by entering the quantiles. The behaviour when a \
             value is exactly equal to a quantile can be \
             configured separately for each quantile.
-            """) // this title and description aren't displayed
+            """) // this title and description aren't displayed in dialogue, only node desc
     @ArrayWidget(elementTitle = "Quantile", addButtonText = "New quantile", showSortButtons = true)
     @Effect(predicate = BinningTypeIsCustomQuantiles.class, type = EffectType.SHOW)
     CustomQuantilesWidgetGroup[] m_customQuantiles = new CustomQuantilesWidgetGroup[]{ //
