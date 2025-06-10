@@ -2,6 +2,7 @@
 <config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
     <config key="col_select">
         <entry key="filter-type" type="xstring" value="STANDARD"/>
+        <entry key="handle-both-included-and-excluded-names-correctly_Internals" type="xboolean" value="true"/>
         <config key="included_names">
             <entry key="array-size" type="xint" value="0"/>
         </config>
