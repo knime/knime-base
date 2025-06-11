@@ -5,7 +5,6 @@
     <entry key="time_zone" type="xstring" value="Europe/Copenhagen"/>
     <config key="col_select">
         <entry key="filter-type" type="xstring" value="STANDARD"/>
-        <entry key="handle-both-included-and-excluded-names-correctly_Internals" type="xboolean" value="true"/>
         <config key="included_names">
             <entry key="array-size" type="xint" value="2"/>
             <entry key="0" type="xstring" value="Local Date Time"/>
