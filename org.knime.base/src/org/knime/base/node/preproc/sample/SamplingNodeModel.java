@@ -50,12 +50,15 @@ package org.knime.base.node.preproc.sample;
 
 import org.knime.base.node.preproc.filter.row.RowFilterIterator;
 import org.knime.base.node.preproc.filter.row.rowfilter.IRowFilter;
+import org.knime.base.node.preproc.sample.AbstractSamplingNodeSettings.ActionOnEmptyInput;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.KNIMEException;
+import org.knime.core.node.message.Message;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 
 /**
@@ -87,6 +90,11 @@ final class SamplingNodeModel extends AbstractSamplingWebUINodeModel<RowSampling
         // only used when the table is traversed in order to count the rows.
         // This is done only if "in" does not support getRowCount().
         // But the argument in the execute method surely does!
+
+        if (in.size() == 0 && modelSettings.m_actionEmpty == ActionOnEmptyInput.FAIL) {
+            throw KNIMEException.of(Message.fromSummary("Input table is empty."));
+        }
+
         IRowFilter filter = getSamplingRowFilter(in, exec, modelSettings);
         BufferedDataContainer container = exec.createDataContainer(in.getDataTableSpec());
         try {

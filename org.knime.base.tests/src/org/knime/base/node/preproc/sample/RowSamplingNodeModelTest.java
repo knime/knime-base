@@ -57,7 +57,6 @@ import java.io.IOException;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
-import org.knime.base.node.preproc.partition.PartitionNodeFactory;
 import org.knime.base.node.preproc.sample.AbstractSamplingNodeSettings.ActionOnEmptyInput;
 import org.knime.base.node.preproc.sample.AbstractSamplingNodeSettings.CountMode;
 import org.knime.base.node.preproc.sample.AbstractSamplingNodeSettings.SamplingMode;
@@ -79,7 +78,7 @@ import org.knime.testing.util.WorkflowManagerUtil;
  */
 final class RowSamplingNodeModelTest {
 
-    private static final String NODE_NAME = "PartitionNode";
+    private static final String NODE_NAME = "SamplerNode";
 
     private static final String[] INPUT_COLUMNS = new String[]{"column1"};
 
@@ -184,7 +183,7 @@ final class RowSamplingNodeModelTest {
 
         var workflowManager = WorkflowManagerUtil.createEmptyWorkflow();
 
-        var node = WorkflowManagerUtil.createAndAddNode(workflowManager, new PartitionNodeFactory());
+        var node = WorkflowManagerUtil.createAndAddNode(workflowManager, new SamplingNodeFactory());
 
         // set the settings
         final var nodeSettings = new NodeSettings(NODE_NAME);
