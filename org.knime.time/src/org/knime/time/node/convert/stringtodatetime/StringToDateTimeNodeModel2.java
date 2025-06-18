@@ -52,6 +52,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.D
 
 import java.time.chrono.Chronology;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalAccessor;
 import java.util.Locale;
@@ -156,8 +157,8 @@ final class StringToDateTimeNodeModel2 extends WebUISimpleStreamableFunctionNode
             super(newColSpec);
 
             var locale = Locale.forLanguageTag(settings.m_locale);
-            m_parser = DateTimeFormatter.ofPattern(settings.m_format.format(), locale) //
-                .withChronology((Chronology.ofLocale(locale)));
+            m_parser = new DateTimeFormatterBuilder().parseCaseInsensitive().appendPattern(settings.m_format.format())
+                .toFormatter(locale).withChronology(Chronology.ofLocale(locale));
             m_patternAbbr = StringUtils.abbreviate(settings.m_format.format(), 32);
             m_targetType = settings.m_format.temporalType();
             m_targetIndex = targetIndex;

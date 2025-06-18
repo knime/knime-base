@@ -52,7 +52,6 @@ import java.util.Locale;
 import java.util.function.Supplier;
 import java.util.stream.StreamSupport;
 
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.StringValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
@@ -61,6 +60,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.Tem
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat.FormatTemporalType;
 import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider.LocaleValueRef;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -109,6 +109,7 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
             and geographic region for terms such as months or weekdays.
             """)
     @ChoicesProvider(LocaleStateProvider.class)
+    @ValueReference(LocaleValueRef.class)
     String m_locale = Locale.getDefault().toLanguageTag();
 
     @Widget(title = "Input format", description = """
@@ -178,16 +179,19 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
 
         private Supplier<ColumnFilter> m_selectedColumns;
 
+        private Supplier<String> m_localeLanguageTag;
+
         @Override
         public void init(final StateProviderInitializer initializer) {
             initializer.computeOnButtonClick(AutoGuessFormatButtonRef.class);
 
             m_selectedColumns = initializer.getValueSupplier(ColumnFilterValueRef.class);
+            m_localeLanguageTag = initializer.getValueSupplier(LocaleValueRef.class);
         }
 
         @Override
         public TemporalFormat computeState(final DefaultNodeSettingsContext context) {
-            var guessedFormat = autoGuessFormat(context, m_selectedColumns);
+            var guessedFormat = autoGuessFormat(context, m_selectedColumns, m_localeLanguageTag);
 
             return new TemporalFormat(guessedFormat.format(), guessedFormat.temporalType());
         }
@@ -205,7 +209,7 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
     private static final int NUMBER_OF_ROWS_TO_CHECK = 1000;
 
     static TemporalFormat autoGuessFormat(final DefaultNodeSettingsContext context,
-        final Supplier<ColumnFilter> selectedColumns) {
+        final Supplier<ColumnFilter> selectedColumns, final Supplier<String> localeLanguageTag) {
         var inputTable = context.getDataTable(0);
         var inputTableSpec = context.getDataTableSpec(0);
 
@@ -238,18 +242,14 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
         }
 
         var bestGuessFormat = ComprehensiveDateTimeFormatProvider.bestFormatGuess(rowData, null,
-            DateTimeFormatStringHistoryManager.getRecentFormats());
+            DateTimeFormatStringHistoryManager.getRecentFormats(), Locale.forLanguageTag(localeLanguageTag.get()));
 
         var guess = bestGuessFormat.orElseThrow(() -> new WidgetHandlerException("""
                 Could not guess a format because no common format matched the first \
                 %s non-missing rows of the first selected column. Try selecting a different \
-                type or column, or input a format manually.
+                type, column or locale, or input a format manually.
                 """.formatted(NUMBER_OF_ROWS_TO_CHECK)));
 
         return new TemporalFormat(guess.format(), guess.temporalType());
-    }
-
-    private static boolean isStringCompatible(final DataColumnSpec cspec) {
-        return cspec.getType().isCompatible(StringValue.class);
     }
 }
