@@ -290,7 +290,7 @@ public class StringReplacerSettings {
 
     private static PatternType loadPatternType(final NodeSettingsRO settings) throws InvalidSettingsException {
         if (settings.containsKey(CFG_PATTERN_TYPE)) {
-            return new EnumFieldPersistor<>(CFG_PATTERN_TYPE, PatternType.class).load(settings);
+            return new EnumFieldPersistor<>(CFG_PATTERN_TYPE, PatternType.class, false).load(settings);
         } else if (settings.getBoolean(StringReplacerSettings.CFG_FIND_PATTERN, true)) {
             final var isRegex = settings.getBoolean(StringReplacerSettings.CFG_PATTERN_IS_REGEX);
             return isRegex ? PatternType.REGEX : PatternType.WILDCARD;
