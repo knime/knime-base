@@ -365,12 +365,12 @@
         "format" : "yyyy-MMMM-dd",
         "temporalType" : "DATE",
         "category" : "STANDARD",
-        "example" : "0001-January-01"
+        "example" : "0001-Januar-01"
       }, {
         "format" : "yyyy-MMM-dd",
         "temporalType" : "DATE",
         "category" : "STANDARD",
-        "example" : "0001-Jan-01"
+        "example" : "0001-Jan.-01"
       }, {
         "format" : "yyyy-ww",
         "temporalType" : "DATE",
@@ -385,7 +385,7 @@
         "format" : "YYYYwwee",
         "temporalType" : "DATE",
         "category" : "STANDARD",
-        "example" : "00010102"
+        "example" : "00010101"
       }, {
         "format" : "yyyy-QQ",
         "temporalType" : "DATE",
@@ -425,17 +425,17 @@
         "format" : "d. MMMM yyyy",
         "temporalType" : "DATE",
         "category" : "EUROPEAN",
-        "example" : "1. January 0001"
+        "example" : "1. Januar 0001"
       }, {
         "format" : "dd MMM yyyy",
         "temporalType" : "DATE",
         "category" : "EUROPEAN",
-        "example" : "01 Jan 0001"
+        "example" : "01 Jan. 0001"
       }, {
         "format" : "d. MMMM YYYY",
         "temporalType" : "DATE",
         "category" : "EUROPEAN",
-        "example" : "1. January 0001"
+        "example" : "1. Januar 0001"
       }, {
         "format" : "d/M/yyyy",
         "temporalType" : "DATE",
@@ -445,7 +445,7 @@
         "format" : "dd MMMM yyyy",
         "temporalType" : "DATE",
         "category" : "EUROPEAN",
-        "example" : "01 January 0001"
+        "example" : "01 Januar 0001"
       }, {
         "format" : "yyyy/MM/dd",
         "temporalType" : "DATE",
@@ -465,12 +465,12 @@
         "format" : "MMM yyyy",
         "temporalType" : "DATE",
         "category" : "EUROPEAN",
-        "example" : "Jan 0001"
+        "example" : "Jan. 0001"
       }, {
         "format" : "MMMM yyyy",
         "temporalType" : "DATE",
         "category" : "EUROPEAN",
-        "example" : "January 0001"
+        "example" : "Januar 0001"
       }, {
         "format" : "dd/M/yyyy",
         "temporalType" : "DATE",
@@ -490,12 +490,12 @@
         "format" : "MMM. yyyy",
         "temporalType" : "DATE",
         "category" : "EUROPEAN",
-        "example" : "Jan. 0001"
+        "example" : "Jan.. 0001"
       }, {
         "format" : "d-MMM-yy",
         "temporalType" : "DATE",
         "category" : "EUROPEAN",
-        "example" : "1-Jan-01"
+        "example" : "1-Jan.-01"
       }, {
         "format" : "d.M.yyyy",
         "temporalType" : "DATE",
@@ -510,12 +510,12 @@
         "format" : "d. MMM. yyyy",
         "temporalType" : "DATE",
         "category" : "EUROPEAN",
-        "example" : "1. Jan. 0001"
+        "example" : "1. Jan.. 0001"
       }, {
         "format" : "yyyy MMM dd",
         "temporalType" : "DATE",
         "category" : "EUROPEAN",
-        "example" : "0001 Jan 01"
+        "example" : "0001 Jan. 01"
       }, {
         "format" : "QQQ/yyyy",
         "temporalType" : "DATE",
@@ -540,12 +540,12 @@
         "format" : "MMM d, yyyy",
         "temporalType" : "DATE",
         "category" : "AMERICAN",
-        "example" : "Jan 1, 0001"
+        "example" : "Jan. 1, 0001"
       }, {
         "format" : "MMMM yyyy",
         "temporalType" : "DATE",
         "category" : "AMERICAN",
-        "example" : "January 0001"
+        "example" : "Januar 0001"
       }, {
         "format" : "MM/yy",
         "temporalType" : "DATE",
@@ -590,12 +590,12 @@
         "format" : "MMM. yyyy",
         "temporalType" : "DATE",
         "category" : "AMERICAN",
-        "example" : "Jan. 0001"
+        "example" : "Jan.. 0001"
       }, {
         "format" : "MMM yyyy",
         "temporalType" : "DATE",
         "category" : "AMERICAN",
-        "example" : "Jan 0001"
+        "example" : "Jan. 0001"
       }, {
         "format" : "MM/yyyy",
         "temporalType" : "DATE",
@@ -605,7 +605,7 @@
         "format" : "MMM dd, yyyy",
         "temporalType" : "DATE",
         "category" : "AMERICAN",
-        "example" : "Jan 01, 0001"
+        "example" : "Jan. 01, 0001"
       }, {
         "format" : "Q/yyyy",
         "temporalType" : "DATE",
@@ -870,32 +870,32 @@
         "format" : "yyyy-MMM-dd HH:mm",
         "temporalType" : "DATE_TIME",
         "category" : "STANDARD",
-        "example" : "0001-Jan-01 14:00"
+        "example" : "0001-Jan.-01 14:00"
       }, {
         "format" : "yyyy-MMM-dd HH:mm:ss",
         "temporalType" : "DATE_TIME",
         "category" : "STANDARD",
-        "example" : "0001-Jan-01 14:00:00"
+        "example" : "0001-Jan.-01 14:00:00"
       }, {
         "format" : "yyyy-MMM-dd'T'HH:mm",
         "temporalType" : "DATE_TIME",
         "category" : "STANDARD",
-        "example" : "0001-Jan-01T14:00"
+        "example" : "0001-Jan.-01T14:00"
       }, {
         "format" : "yyyy-MMM-dd'T'HH:mm:ss",
         "temporalType" : "DATE_TIME",
         "category" : "STANDARD",
-        "example" : "0001-Jan-01T14:00:00"
+        "example" : "0001-Jan.-01T14:00:00"
       }, {
         "format" : "yyyy-MMM-dd;HH:mm",
         "temporalType" : "DATE_TIME",
         "category" : "STANDARD",
-        "example" : "0001-Jan-01;14:00"
+        "example" : "0001-Jan.-01;14:00"
       }, {
         "format" : "yyyy-MMM-dd;HH:mm:ss",
         "temporalType" : "DATE_TIME",
         "category" : "STANDARD",
-        "example" : "0001-Jan-01;14:00:00"
+        "example" : "0001-Jan.-01;14:00:00"
       }, {
         "format" : "yyyy-MM-dd HH:mm",
         "temporalType" : "DATE_TIME",
@@ -915,32 +915,32 @@
         "format" : "yyyy-MMM-dd HH:mm",
         "temporalType" : "DATE_TIME",
         "category" : "EUROPEAN",
-        "example" : "0001-Jan-01 14:00"
+        "example" : "0001-Jan.-01 14:00"
       }, {
         "format" : "yyyy-MMM-dd HH:mm:ss",
         "temporalType" : "DATE_TIME",
         "category" : "EUROPEAN",
-        "example" : "0001-Jan-01 14:00:00"
+        "example" : "0001-Jan.-01 14:00:00"
       }, {
         "format" : "yyyy-MMM-dd'T'HH:mm",
         "temporalType" : "DATE_TIME",
         "category" : "EUROPEAN",
-        "example" : "0001-Jan-01T14:00"
+        "example" : "0001-Jan.-01T14:00"
       }, {
         "format" : "yyyy-MMM-dd'T'HH:mm:ss",
         "temporalType" : "DATE_TIME",
         "category" : "EUROPEAN",
-        "example" : "0001-Jan-01T14:00:00"
+        "example" : "0001-Jan.-01T14:00:00"
       }, {
         "format" : "yyyy-MMM-dd;HH:mm",
         "temporalType" : "DATE_TIME",
         "category" : "EUROPEAN",
-        "example" : "0001-Jan-01;14:00"
+        "example" : "0001-Jan.-01;14:00"
       }, {
         "format" : "yyyy-MMM-dd;HH:mm:ss",
         "temporalType" : "DATE_TIME",
         "category" : "EUROPEAN",
-        "example" : "0001-Jan-01;14:00:00"
+        "example" : "0001-Jan.-01;14:00:00"
       }, {
         "format" : "dd/MM/yyyy HH:mm",
         "temporalType" : "DATE_TIME",
@@ -975,12 +975,12 @@
         "format" : "dd MMM yyyy HH:mm ",
         "temporalType" : "DATE_TIME",
         "category" : "EUROPEAN",
-        "example" : "01 Jan 0001 14:00 "
+        "example" : "01 Jan. 0001 14:00 "
       }, {
         "format" : "dd MMM yyyy HH:mm:ss",
         "temporalType" : "DATE_TIME",
         "category" : "EUROPEAN",
-        "example" : "01 Jan 0001 14:00:00"
+        "example" : "01 Jan. 0001 14:00:00"
       }, {
         "format" : "yyyy-MM-dd'T'HH:mm:ss",
         "temporalType" : "DATE_TIME",
@@ -1022,6 +1022,11 @@
         "category" : "AMERICAN",
         "example" : "01/01/0001 2:00 PM"
       }, {
+        "format" : "M/d/yyyy h:mm:ss a",
+        "temporalType" : "DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "1/1/0001 2:00:00 PM"
+      }, {
         "format" : "MM/dd/yyyy h:mm:ss a",
         "temporalType" : "DATE_TIME",
         "category" : "AMERICAN",
@@ -1040,17 +1045,17 @@
         "format" : "MMM dd, yyyy h:mm a",
         "temporalType" : "DATE_TIME",
         "category" : "AMERICAN",
-        "example" : "Jan 01, 0001 2:00 PM"
+        "example" : "Jan. 01, 0001 2:00 PM"
       }, {
         "format" : "MMM dd, yyyy HH:mm:ss",
         "temporalType" : "DATE_TIME",
         "category" : "AMERICAN",
-        "example" : "Jan 01, 0001 14:00:00"
+        "example" : "Jan. 01, 0001 14:00:00"
       }, {
         "format" : "MMM dd, yyyy HH:mm",
         "temporalType" : "DATE_TIME",
         "category" : "AMERICAN",
-        "example" : "Jan 01, 0001 14:00"
+        "example" : "Jan. 01, 0001 14:00"
       }, {
         "format" : "yyyy-MM-dd'T'HH:mm:ss",
         "temporalType" : "DATE_TIME",
@@ -1110,7 +1115,7 @@
         "format" : "yyyy-MM-dd'T'HH:mm:ss.SSSVV'['zzzz']'",
         "temporalType" : "ZONED_DATE_TIME",
         "category" : "STANDARD",
-        "example" : "0001-01-01T14:00:00.000Europe/Berlin[Central European Standard Time]"
+        "example" : "0001-01-01T14:00:00.000Europe/Berlin[Mitteleuropäische Normalzeit]"
       }, {
         "format" : "yyyy-MM-dd'T'HH:mm:ssVV",
         "temporalType" : "ZONED_DATE_TIME",
@@ -1170,7 +1175,7 @@
         "format" : "yyyy-MM-dd'T'HH:mm:ss.SSSVV'['zzzz']'",
         "temporalType" : "ZONED_DATE_TIME",
         "category" : "EUROPEAN",
-        "example" : "0001-01-01T14:00:00.000Europe/Berlin[Central European Standard Time]"
+        "example" : "0001-01-01T14:00:00.000Europe/Berlin[Mitteleuropäische Normalzeit]"
       }, {
         "format" : "yyyy-MM-dd'T'HH:mm:ssVV",
         "temporalType" : "ZONED_DATE_TIME",
@@ -1225,7 +1230,7 @@
         "format" : "yyyy-MM-dd'T'HH:mm:ss.SSSVV'['zzzz']'",
         "temporalType" : "ZONED_DATE_TIME",
         "category" : "AMERICAN",
-        "example" : "0001-01-01T14:00:00.000Europe/Berlin[Central European Standard Time]"
+        "example" : "0001-01-01T14:00:00.000Europe/Berlin[Mitteleuropäische Normalzeit]"
       }, {
         "format" : "yyyy-MM-dd'T'HH:mm:ssVV",
         "temporalType" : "ZONED_DATE_TIME",
@@ -4306,5 +4311,11 @@
         "text" : "Zulu (South Africa)"
       } ]
     } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/locale"
+    },
+    "dependencies" : [ "#/properties/model/properties/locale" ]
   } ]
 }

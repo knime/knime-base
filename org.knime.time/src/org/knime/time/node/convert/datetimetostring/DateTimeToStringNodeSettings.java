@@ -55,6 +55,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider.LocaleValueRef;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -84,6 +85,7 @@ final class DateTimeToStringNodeSettings implements DefaultNodeSettings {
             according to the selected locale.
             """)
     @ChoicesProvider(LocaleStateProvider.class)
+    @ValueReference(LocaleValueRef.class)
     String m_locale = Locale.getDefault().toLanguageTag();
 
     @Widget(title = "Output format", description = """

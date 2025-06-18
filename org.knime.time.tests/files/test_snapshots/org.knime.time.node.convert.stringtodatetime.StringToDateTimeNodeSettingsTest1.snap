@@ -1074,6 +1074,11 @@
         "category" : "AMERICAN",
         "example" : "01/01/0001 2:00 PM"
       }, {
+        "format" : "M/d/yyyy h:mm:ss a",
+        "temporalType" : "DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "1/1/0001 2:00:00 PM"
+      }, {
         "format" : "MM/dd/yyyy h:mm:ss a",
         "temporalType" : "DATE_TIME",
         "category" : "AMERICAN",
@@ -4363,6 +4368,11 @@
     "trigger" : {
       "id" : "org.knime.time.node.convert.stringtodatetime.StringToDateTimeNodeSettings$AutoGuessFormatButtonRef"
     },
-    "dependencies" : [ "#/properties/model/properties/columnFilter" ]
+    "dependencies" : [ "#/properties/model/properties/columnFilter", "#/properties/model/properties/locale" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/locale"
+    },
+    "dependencies" : [ "#/properties/model/properties/locale" ]
   } ]
 }
