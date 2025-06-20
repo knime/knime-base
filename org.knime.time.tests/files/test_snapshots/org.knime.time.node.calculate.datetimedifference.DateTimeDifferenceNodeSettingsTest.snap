@@ -134,7 +134,7 @@
               "title" : "Decimals"
             } ],
             "title" : "Output number type",
-            "description" : "The type of the numeric output column.\n<ul>\n<li><b>No decimals</b>: The output column will be an integer. Applicable for all granularities.\n</li>\n<li><b>Decimals</b>: The output column will be a floating decimal number. Not applicable for date-based granularities.\n</li>\n</ul>",
+            "description" : "The type of the numeric output column.\n<ul>\n<li><b>No decimals</b>: The output column will be an integer. Applicable for all granularities.\n</li>\n<li><b>Decimals</b>: The output column will be a floating-point number. Not applicable for date-based granularities.\n</li>\n</ul>",
             "default" : "NO_DECIMALS"
           },
           "outputType" : {
