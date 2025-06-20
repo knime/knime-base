@@ -175,7 +175,7 @@
         "text" : "test1",
         "type" : {
           "id" : "org.knime.core.data.DoubleValue",
-          "text" : "Number (Floating Decimal)"
+          "text" : "Number (Float)"
         }
       } ]
     } ]

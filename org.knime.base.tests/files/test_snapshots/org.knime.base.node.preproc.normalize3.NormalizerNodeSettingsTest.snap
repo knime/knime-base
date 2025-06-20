@@ -288,7 +288,7 @@
         "text" : "test2",
         "type" : {
           "id" : "org.knime.core.data.DoubleValue",
-          "text" : "Number (Floating Decimal)"
+          "text" : "Number (Float)"
         }
       } ]
     } ]
