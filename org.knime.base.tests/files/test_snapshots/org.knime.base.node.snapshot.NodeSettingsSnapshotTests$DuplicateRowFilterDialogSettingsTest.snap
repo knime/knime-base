@@ -431,7 +431,7 @@
         "text" : "test1",
         "type" : {
           "id" : "org.knime.core.data.DoubleValue",
-          "text" : "Number (Floating Decimal)"
+          "text" : "Number (Float)"
         }
       }, {
         "id" : "test2",
@@ -452,7 +452,7 @@
         "text" : "test1",
         "type" : {
           "id" : "org.knime.core.data.DoubleValue",
-          "text" : "Number (Floating Decimal)"
+          "text" : "Number (Float)"
         }
       }, {
         "id" : "test2",

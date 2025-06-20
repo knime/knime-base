@@ -471,7 +471,7 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
                     """)
             NO_DECIMALS, //
             @Label(value = "Decimals", description = """
-                    The output column will be a floating decimal number. Not applicable \
+                    The output column will be a floating-point number. Not applicable \
                     for date-based granularities.
                     """)
             DECIMALS; //
