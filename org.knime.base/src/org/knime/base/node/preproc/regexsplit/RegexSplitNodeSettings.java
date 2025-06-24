@@ -65,6 +65,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.booleanhelpers.AlwaysSaveTrueBoolean;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelStringPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Advanced;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
@@ -105,7 +106,8 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
         interface Splitting {
         }
 
-        @Section(title = "Splitting (Advanced)", advanced = true)
+        @Section(title = "Splitting (Advanced)")
+        @Advanced
         @After(DialogSections.Splitting.class)
         interface SplittingAdvanced {
         }

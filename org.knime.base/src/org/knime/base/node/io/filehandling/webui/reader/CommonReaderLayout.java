@@ -51,6 +51,7 @@ package org.knime.base.node.io.filehandling.webui.reader;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.BaseAdvancedSettings.UseNewSchema;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Advanced;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 
@@ -119,7 +120,8 @@ public interface CommonReaderLayout {
     }
 
     @SuppressWarnings("javadoc")
-    @Section(title = "Column and Data Type Detection", advanced = true)
+    @Section(title = "Column and Data Type Detection")
+    @Advanced
     @After(DataArea.class)
     interface ColumnAndDataTypeDetection {
         interface IfSchemaChanges {
@@ -154,7 +156,8 @@ public interface CommonReaderLayout {
     /**
      * For configuring multiple files
      */
-    @Section(title = "Multiple File Handling", advanced = true)
+    @Section(title = "Multiple File Handling")
+    @Advanced
     @After(ColumnAndDataTypeDetection.class)
     interface MultipleFileHandling {
         interface HowToCombineColumns {
@@ -192,7 +195,8 @@ public interface CommonReaderLayout {
     /**
      * For adjusting inclusion, naming and types of the read columns and any unknown columns.
      */
-    @Section(title = "Table Transformation", description = Transformation.DESCRIPTION, advanced = true)
+    @Section(title = "Table Transformation", description = Transformation.DESCRIPTION)
+    @Advanced
     @Effect(predicate = UseNewSchema.class, type = EffectType.HIDE)
     @After(MultipleFileHandling.class)
     interface Transformation {

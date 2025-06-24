@@ -55,6 +55,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Advanced;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
@@ -85,7 +86,8 @@ public final class Unpivot2NodeSettings implements DefaultNodeSettings {
     @ChoicesProvider(AllColumnsProvider.class)
     ColumnFilter m_retainedColumns = new ColumnFilter();
 
-    @Section(title = "Performance", advanced = true)
+    @Section(title = "Performance")
+    @Advanced
     interface PerformanceSection {
     }
 

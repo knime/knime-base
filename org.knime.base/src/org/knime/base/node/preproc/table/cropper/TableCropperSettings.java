@@ -54,6 +54,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Advanced;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
@@ -187,7 +188,8 @@ public final class TableCropperSettings implements DefaultNodeSettings {
     @Layout(RowsSection.class)
     boolean m_endRowCountFromEnd;
 
-    @Section(title = "Output", advanced = true)
+    @Section(title = "Output")
+    @Advanced
     @After(RowsSection.class)
     interface OutputSection {
     }

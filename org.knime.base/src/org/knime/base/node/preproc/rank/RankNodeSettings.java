@@ -77,6 +77,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Advanced;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
@@ -179,7 +180,8 @@ final class RankNodeSettings implements DefaultNodeSettings {
     interface RankingSection {
     }
 
-    @Section(title = "Special Values and Performance", advanced = true)
+    @Section(title = "Special Values and Performance")
+    @Advanced
     @After(RankingSection.class)
     interface AdvancedSection {
     }

@@ -63,6 +63,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.booleanhelpers.AlwaysSaveTrueBoolean;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Advanced;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
@@ -242,7 +243,8 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
     @Layout(DuplicateHandlingSection.class)
     String m_selectedColumn;
 
-    @Section(title = "Performance", advanced = true)
+    @Section(title = "Performance")
+    @Advanced
     @After(DuplicateHandlingSection.class)
     interface PerformanceSection {
     }

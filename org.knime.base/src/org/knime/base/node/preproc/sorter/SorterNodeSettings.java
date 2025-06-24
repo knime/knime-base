@@ -71,6 +71,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettin
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Advanced;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
@@ -191,7 +192,8 @@ final class SorterNodeSettings implements DefaultNodeSettings {
 
     }
 
-    @Section(title = "Special Values and Performance", advanced = true)
+    @Section(title = "Special Values and Performance")
+    @Advanced
     @After(Criteria.class)
     interface Options {
     }
