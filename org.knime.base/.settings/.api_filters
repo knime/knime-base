@@ -393,4 +393,11 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="src/org/knime/base/node/util/LegacyColumnFilterMigration.java" type="org.knime.base.node.util.LegacyColumnFilterMigration">
+        <filter id="1110441988">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.util.LegacyColumnFilterMigration"/>
+            </message_arguments>
+        </filter>
+    </resource>
 </component>
