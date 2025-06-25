@@ -50,15 +50,11 @@
 			</ul>
 		</option>
 
-		<link href="https://www.knime.com/knime-introductory-course/chapter3/section1/column-filter">
-			KNIME E-Learning Course: Column Filter
-		</link>
-
-        <link href="http://download.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html">
+		<link href="https://docs.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html">
             Java API documentation about regex patterns
         </link>
 
-        <link href="http://download.oracle.com/javase/6/docs/api/java/util/regex/Matcher.html">
+        <link href="https://docs.oracle.com/javase/6/docs/api/java/util/regex/Matcher.html">
             Java API documentation about regex matching
         </link>
 	</fullDescription>
