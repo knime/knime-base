@@ -63,6 +63,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
@@ -381,14 +382,16 @@ public abstract class CommonReaderTransformationSettings<I extends ConfigIdSetti
             }
         }
 
-        @Widget(title = "Column name", description = "", hideControlHeader = true)
+        @Widget(title = "Column name", description = "")
+        @WidgetInternal(hideControlHeader = true)
         @ValueProvider(ColumnNameResetter.class)
         @Effect(predicate = ElementIsEditedAndColumnNameIsNotNull.class, type = EffectType.SHOW)
         @JsonInclude(Include.ALWAYS) // Necessary for comparison against m_columnName
         @TextInputWidget(patternValidation = ColumnNameValidationV2.class)
         String m_columnRename;
 
-        @Widget(title = "Column type", description = "", hideControlHeader = true)
+        @Widget(title = "Column type", description = "")
+        @WidgetInternal(hideControlHeader = true)
         // for adding dynamic choices
         @Modification.WidgetReference(TransformationSettingsWidgetModification.TypeChoicesWidgetRef.class)
         @ValueProvider(TypeResetter.class)

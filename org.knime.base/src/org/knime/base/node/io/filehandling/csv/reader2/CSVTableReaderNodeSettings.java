@@ -95,6 +95,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
@@ -451,7 +452,8 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         static class MaxDataRowsScannedRef extends ReferenceStateProvider<Long> {
         }
 
-        @Widget(title = "", description = "", hideControlHeader = true)
+        @Widget(title = "", description = "")
+        @WidgetInternal(hideControlHeader = true)
         @ValueReference(MaxDataRowsScannedRef.class)
         @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
         @Layout(LimitScannedRows.class)
