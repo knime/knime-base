@@ -77,7 +77,7 @@ import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;

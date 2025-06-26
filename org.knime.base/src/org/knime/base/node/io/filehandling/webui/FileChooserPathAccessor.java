@@ -50,7 +50,7 @@ package org.knime.base.node.io.filehandling.webui;
 
 import java.util.Optional;
 
-import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractFileChooserPathAccessor;
