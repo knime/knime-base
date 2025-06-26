@@ -81,10 +81,10 @@ import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.xml.XMLCell;
 import org.knime.core.util.Pair;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoice;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalArrayWidget;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
@@ -485,7 +485,7 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
     @Test
     void testElementReset() throws IOException {
         simulateSetTransformationElementSettings();
-        final var simulatorResult = m_simulator.simulateButtonClick(InternalArrayWidget.ElementResetButton.class);
+        final var simulatorResult = m_simulator.simulateButtonClick(ArrayWidgetInternal.ElementResetButton.class);
         final var typeReset = getMultiResultInTransformationElementSettings(simulatorResult, "type");
         final var columnNameReset = getMultiResultInTransformationElementSettings(simulatorResult, "columnRename");
 

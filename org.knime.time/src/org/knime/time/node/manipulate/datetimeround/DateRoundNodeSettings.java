@@ -52,6 +52,7 @@ import java.time.Period;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
@@ -59,7 +60,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.OverwriteDialogTitle;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
@@ -89,7 +89,7 @@ public class DateRoundNodeSettings implements DefaultNodeSettings {
             Option to exclude weekends from the rounding. A weekend is defined as \
             Saturday and Sunday.
             """)
-    @OverwriteDialogTitle("")
+    @OverwriteDialogTitleInternal("")
     @Layout(DateTimeRoundNodeLayout.FirstHorizontal.class)
     DayOrWeekday m_dayOrWeekDay = DayOrWeekday.DAY;
 
@@ -97,7 +97,7 @@ public class DateRoundNodeSettings implements DefaultNodeSettings {
             Option to shift the date to the previous or next date in the chosen \
             resolution.
             """)
-    @OverwriteDialogTitle("of")
+    @OverwriteDialogTitleInternal("of")
     @Layout(DateTimeRoundNodeLayout.SecondHorizontal.class)
     ShiftMode m_shiftMode = ShiftMode.THIS;
 
@@ -106,7 +106,7 @@ public class DateRoundNodeSettings implements DefaultNodeSettings {
             value of the chosen precision.
             """)
     @Layout(DateTimeRoundNodeLayout.SecondHorizontal.class)
-    @OverwriteDialogTitle("")
+    @OverwriteDialogTitleInternal("")
     RoundDatePrecision m_dateRoundingPrecision = RoundDatePrecision.MONTH;
 
     @Widget(title = "Output columns", description = """

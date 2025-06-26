@@ -62,6 +62,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
@@ -70,7 +71,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
@@ -305,7 +305,7 @@ public abstract class CommonReaderTransformationSettings<I extends ConfigIdSetti
         String m_originalTypeLabel;
 
         @Widget(title = "Include in output", description = "") // TODO NOSONAR UIEXT-1901 add description
-        @InternalArrayWidget.ElementCheckboxWidget
+        @ArrayWidgetInternal.ElementCheckboxWidget
         boolean m_includeInOutput;
 
         static final class ColumnNameResetter implements StateProvider<String> {
@@ -314,7 +314,7 @@ public abstract class CommonReaderTransformationSettings<I extends ConfigIdSetti
 
             @Override
             public void init(final StateProviderInitializer initializer) {
-                initializer.computeOnButtonClick(InternalArrayWidget.ElementResetButton.class);
+                initializer.computeOnButtonClick(ArrayWidgetInternal.ElementResetButton.class);
                 m_originalColumnNameSupplier = initializer.getValueSupplier(ColumnNameRef.class);
             }
 
@@ -330,7 +330,7 @@ public abstract class CommonReaderTransformationSettings<I extends ConfigIdSetti
 
             @Override
             public void init(final StateProviderInitializer initializer) {
-                initializer.computeOnButtonClick(InternalArrayWidget.ElementResetButton.class);
+                initializer.computeOnButtonClick(ArrayWidgetInternal.ElementResetButton.class);
                 m_originalTypeSupplier = initializer.getValueSupplier(OriginalTypeRef.class);
             }
 
@@ -376,7 +376,7 @@ public abstract class CommonReaderTransformationSettings<I extends ConfigIdSetti
         static final class ElementIsEditedAndColumnNameIsNotNull implements PredicateProvider {
             @Override
             public Predicate init(final PredicateInitializer i) {
-                return i.getPredicate(InternalArrayWidget.ElementIsEdited.class)
+                return i.getPredicate(ArrayWidgetInternal.ElementIsEdited.class)
                     .and(i.getPredicate(ColumnNameIsNull.class).negate());
             }
         }
@@ -392,7 +392,7 @@ public abstract class CommonReaderTransformationSettings<I extends ConfigIdSetti
         // for adding dynamic choices
         @Modification.WidgetReference(TransformationSettingsWidgetModification.TypeChoicesWidgetRef.class)
         @ValueProvider(TypeResetter.class)
-        @Effect(predicate = InternalArrayWidget.ElementIsEdited.class, type = EffectType.SHOW)
+        @Effect(predicate = ArrayWidgetInternal.ElementIsEdited.class, type = EffectType.SHOW)
         String m_type;
 
         TransformationElementSettings() {
@@ -420,7 +420,7 @@ public abstract class CommonReaderTransformationSettings<I extends ConfigIdSetti
     @Widget(title = "Transformations", description = CommonReaderLayout.Transformation.DESCRIPTION)
     // TODO NOSONAR UIEXT-1901 this description is currently not shown
     @ArrayWidget(elementTitle = "Column", showSortButtons = true, hasFixedSize = true)
-    @InternalArrayWidget(withEditAndReset = true, withElementCheckboxes = true,
+    @ArrayWidgetInternal(withEditAndReset = true, withElementCheckboxes = true,
         titleProvider = TransformationElementSettings.TitleProvider.class,
         subTitleProvider = TransformationElementSettings.SubTitleProvider.class)
     @ValueReference(TransformationElementSettingsRef.class)
