@@ -60,7 +60,7 @@ import org.knime.core.data.DoubleValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.func.NodeFuncApi.Builder;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
 
 /**
  * Filters by applying a range filter to a numerical column.

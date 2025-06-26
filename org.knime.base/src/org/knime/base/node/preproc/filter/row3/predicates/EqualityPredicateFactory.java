@@ -70,7 +70,7 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.data.v2.RowRead;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
 
 /**
  * Factory for equality predicates ({@code EQ}, {@code NEQ}). The actual implementation is chosen based on the passsed

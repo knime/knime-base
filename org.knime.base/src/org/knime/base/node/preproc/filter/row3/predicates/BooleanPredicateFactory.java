@@ -55,7 +55,7 @@ import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
 import org.knime.core.data.BooleanValue;
 import org.knime.core.data.DataType;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
 
 /**
  * Predicate factory for {@link BooleanValue} columns, i.e. column data types that have
