@@ -75,6 +75,7 @@
             }
           } ]
         } ],
+        "elementLayout": "HORIZONTAL_SINGLE_LINE",
         "addButtonText" : "Add column"
       },
       "providedOptions" : [ "elementDefaultValue" ]
