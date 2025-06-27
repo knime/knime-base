@@ -99,7 +99,8 @@ public final class ColumnRenamerSettings implements DefaultNodeSettings {
     }
 
     @Widget(title = "Renamings", description = "Allows to define new names for columns.")
-    @ArrayWidget(addButtonText = "Add column", elementDefaultValueProvider = RenamingDefaultValueProvider.class)
+    @ArrayWidget(elementLayout = ArrayWidget.ElementLayout.HORIZONTAL_SINGLE_LINE, addButtonText = "Add column",
+        elementDefaultValueProvider = RenamingDefaultValueProvider.class)
     @ValueReference(RenamingsRef.class)
     public Renaming[] m_renamings = new Renaming[0];
 

@@ -69,6 +69,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget.ElementLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -164,8 +165,8 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
 
     @Widget(title = "Extracted fields", description = "Define date or time fields to extract and their column names.")
     @Migration(DateTimeFieldsMigration.class)
-    @ArrayWidget(addButtonText = "Add field", showSortButtons = true,
-        elementDefaultValueProvider = DefaultExtractFieldProvider.class)
+    @ArrayWidget(elementLayout = ElementLayout.HORIZONTAL_SINGLE_LINE, addButtonText = "Add field",
+        showSortButtons = true, elementDefaultValueProvider = DefaultExtractFieldProvider.class)
     public ExtractField[] m_extractFields = new ExtractField[0];
 
     @Widget(title = "Locale",
@@ -199,7 +200,8 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
             description = "The name of the column populated with the values of the selected field. "
                 + "The field cannot be empty (it must contain at least one character).")
         @Layout(ExtractFieldLayout.class)
-        @TextInputWidget(placeholderProvider = ColumnNameProvider.class, patternValidation = EmptyOrColumnNameValidation.class)
+        @TextInputWidget(placeholderProvider = ColumnNameProvider.class,
+            patternValidation = EmptyOrColumnNameValidation.class)
         public String m_columnName;
     }
 

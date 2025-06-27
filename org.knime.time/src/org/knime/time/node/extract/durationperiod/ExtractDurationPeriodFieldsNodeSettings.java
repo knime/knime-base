@@ -59,8 +59,9 @@ import org.knime.core.data.time.duration.DurationValue;
 import org.knime.core.data.time.period.PeriodValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget.ElementLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
@@ -84,6 +85,7 @@ class ExtractDurationPeriodFieldsNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Extracted fields", description = "Define the fields to extract and their column names.")
     @ArrayWidget( //
+        elementLayout = ElementLayout.HORIZONTAL_SINGLE_LINE, //
         addButtonText = "Add field", //
         showSortButtons = true, //
         elementDefaultValueProvider = ExtractFieldSettings.DefaultExtractFieldWidgetProvider.class //

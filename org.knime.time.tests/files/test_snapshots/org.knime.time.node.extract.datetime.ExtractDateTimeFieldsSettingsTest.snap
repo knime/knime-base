@@ -140,6 +140,7 @@
             "providedOptions" : [ "placeholder" ]
           } ]
         } ],
+        "elementLayout": "HORIZONTAL_SINGLE_LINE",
         "addButtonText" : "Add field",
         "showSortButtons" : true
       },
