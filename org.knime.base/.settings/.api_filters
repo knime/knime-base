@@ -128,6 +128,29 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="src/org/knime/base/node/io/filehandling/webui/FileChooserPathAccessor.java" type="org.knime.base.node.io.filehandling.webui.FileChooserPathAccessor">
+        <filter id="338722907">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.io.filehandling.webui.FileChooserPathAccessor"/>
+                <message_argument value="FileChooserPathAccessor(FileSelection, Optional&lt;FSConnection&gt;)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/io/filehandling/webui/FileChooserPathAccessor.java" type="org.knime.base.node.io.filehandling.webui.FileChooserPathAccessor">
+        <filter id="1143996420">
+            <message_arguments>
+                <message_argument value="FileChooserPathAccessor(FileSelection, Optional&lt;FSConnection&gt;)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/io/filehandling/webui/reader/CommonReaderNodeSettings.java" type="org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$BaseSettings">
+        <filter id="388161617">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.BaseSettings"/>
+                <message_argument value="m_source"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="src/org/knime/base/node/io/filehandling/webui/reader/CommonReaderNodeSettings.java" type="org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings$SkipFirstDataRowsPersistor">
         <filter id="338792546">
             <message_arguments>
