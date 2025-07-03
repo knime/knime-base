@@ -124,7 +124,8 @@ public final class ColumnHeaderInsertSettings implements DefaultNodeSettings {
 
     }
 
-    void validate() throws InvalidSettingsException {
+    @Override
+    public void validate() throws InvalidSettingsException {
         if (m_lookupColumn.getEnumChoice().isEmpty() && m_lookupColumn.getStringChoice().isEmpty()) {
             throw new InvalidSettingsException("Invalid (empty) key for lookup column");
         }
