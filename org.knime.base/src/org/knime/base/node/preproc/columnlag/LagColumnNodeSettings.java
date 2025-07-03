@@ -158,7 +158,8 @@ public final class LagColumnNodeSettings implements DefaultNodeSettings {
             + "which contain missing values in all columns but the new lag output.")
     boolean m_skipLastIncompleteRows = true;
 
-    void validate() throws InvalidSettingsException {
+    @Override
+    public void validate() throws InvalidSettingsException {
         if (m_lag <= 0) {
             throw new InvalidSettingsException("Lag must be greater than 0: " + m_lag);
         }
