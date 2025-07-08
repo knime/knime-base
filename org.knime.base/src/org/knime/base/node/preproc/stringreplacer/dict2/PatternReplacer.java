@@ -87,7 +87,10 @@ final class PatternReplacer extends DictReplacer<Pattern> {
      */
     @Override
     protected String prepareReplacementString(final String replacement) {
-        return RegexReplaceUtils.processReplacementString(replacement, m_settings.m_patternType);
+        return m_settings.m_useNewFixedWildcardBehavior
+            ? RegexReplaceUtils.processReplacementString(replacement, m_settings.m_patternType) //
+            : RegexReplaceUtils.processReplacementStringWithWildcardBackwardCompatibility(replacement,
+                m_settings.m_patternType);
     }
 
     @Override

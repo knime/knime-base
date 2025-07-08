@@ -88,8 +88,11 @@ final class ColumnNameReplacerNodeModel extends WebUISimpleStreamableFunctionNod
             return new ColumnRearranger(inSpec);
         }
 
-        final var renameMapping = ColumnNameReplacerUtils.createColumnRenameMappings(inSpec.getColumnNames(), settings,
-            this::setWarningMessage);
+        final var renameMapping = ColumnNameReplacerUtils.createColumnRenameMappings( //
+            inSpec.getColumnNames(), //
+            settings, //
+            this::setWarningMessage //
+        );
 
         final var rearranger = new ColumnRearranger(inSpec);
 

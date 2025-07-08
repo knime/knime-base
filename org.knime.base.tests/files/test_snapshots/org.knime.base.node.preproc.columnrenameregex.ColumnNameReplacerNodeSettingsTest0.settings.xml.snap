@@ -6,5 +6,6 @@
     <entry key="searchString" type="xstring" value="(\s)"/>
     <entry key="replaceString" type="xstring" value="something$1"/>
     <entry key="replacementStrategy" type="xstring" value="ALL_OCCURRENCES"/>
-    <entry key="properlySupportUnicodeCharacters_Internals" type="xboolean" value="true"/>
+    <entry key="properlySupportUnicodeCharacters" type="xboolean" value="false"/>
+    <entry key="useNewFixedWildcardBehavior" type="xboolean" value="false"/>
 </config>

@@ -97,6 +97,7 @@ public final class StringReplacer extends DictReplacer<String> {
 
         try {
             return m_replacer.doReplacement( //
+                m_settings.m_useNewFixedWildcardBehavior, //
                 pattern, //
                 PatternType.LITERAL, //
                 m_settings.m_caseMatching, //
@@ -142,6 +143,7 @@ public final class StringReplacer extends DictReplacer<String> {
          */
         @SuppressWarnings("javadoc")
         public ReplacementResult doReplacement( //
+            final boolean useNewFixedWildcardBehavior, //
             final String patternString, //
             final PatternType patternType, //
             final CaseMatching caseMatching, //
@@ -150,13 +152,18 @@ public final class StringReplacer extends DictReplacer<String> {
             final String replacement //
         ) throws IllegalReplacementException, IllegalSearchPatternException {
             var pattern = getFromCacheOrCompile(patternString, patternType, caseMatching);
+            var quotedReplacement = useNewFixedWildcardBehavior
+                ? RegexReplaceUtils.processReplacementString(replacement, patternType)
+                : RegexReplaceUtils.processReplacementStringWithWildcardBackwardCompatibility(replacement, patternType);
+
             return RegexReplaceUtils.doReplacement( //
                 pattern, //
                 replacementStrategy, //
                 patternType, //
                 input, //
-                RegexReplaceUtils.processReplacementString(replacement, patternType) //
+                quotedReplacement //
             );
+
         }
 
         private Pattern getFromCacheOrCompile( //
