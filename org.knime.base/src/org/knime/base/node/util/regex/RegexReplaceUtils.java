@@ -174,6 +174,44 @@ public final class RegexReplaceUtils {
     }
 
     /**
+     * From the old String Replacer node, was used to escape back-references in the replacement string. However it
+     * introduced some bugs, and we have now replaced it with a call {@link Matcher#quoteReplacement(String)}, but we
+     * need to keep this around for backwards compatibility.
+     *
+     * @deprecated Don't use this for new nodes. Use {@link #processReplacementString(String, PatternType)} instead.
+     */
+    @Deprecated
+    private static final Pattern LEGACY_BACKREF_PATTERN = Pattern.compile("(\\$\\d+|\\$\\{[A-Za-z][A-Za-z0-9]*\\})");
+
+    /**
+     * Old versions of the string replacer node (and friends) had a bug where wildcard replacements would replace double
+     * backslashes with a single backslash. So e.g. if you had input "abc", target pattern "abc", and replacement string
+     * "\\cde", the result would be "\cde" instead of "\\cde". This method is here to preserve that bug, because
+     * backwards compatibility is important.
+     *
+     * However, this method should ONLY be used if you need that backward compatibility. Please don't touch it
+     * otherwise.
+     *
+     * @param replacement the replacement string. It is assumed to have already been processed
+     * @param patternType the pattern type. The behaviour will be different depending on which type is used.
+     *
+     * @return the result of the replacement
+     *
+     * @deprecated Don't use this for new nodes. Use <i>only</i> if you absolutely need to maintain backwards
+     *             compatibility with the old bug in the wildcard replacement.
+     *
+     * @since 5.6
+     */
+    @Deprecated
+    public static String processReplacementStringWithWildcardBackwardCompatibility(final String replacement,
+        final PatternType patternType) {
+        return switch (patternType) {
+            case WILDCARD -> LEGACY_BACKREF_PATTERN.matcher(replacement).replaceAll("\\\\$1");
+            default -> processReplacementString(replacement, patternType);
+        };
+    }
+
+    /**
      * See {@link #compilePattern(String, PatternType, CaseMatching, boolean)} which should be used in case unicode is
      * to be properly supported.
      *

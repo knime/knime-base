@@ -24,7 +24,8 @@
       "replacementStrategy" : "WHOLE_STRING",
       "multipleMatchHandling" : "REPLACEFIRST",
       "appendColumns" : false,
-      "columnSuffix" : "_replaced"
+      "columnSuffix" : "_replaced",
+      "useNewFixedWildcardBehavior" : true
     }
   },
   "schema" : {
@@ -221,6 +222,10 @@
                 "typeDisplays" : [ ]
               }
             }
+          },
+          "useNewFixedWildcardBehavior" : {
+            "type" : "boolean",
+            "default" : true
           }
         }
       }
@@ -370,7 +375,12 @@
           "replacementStrategy" : { },
           "multipleMatchHandling" : { },
           "appendColumns" : { },
-          "columnSuffix" : { }
+          "columnSuffix" : { },
+          "useNewFixedWildcardBehavior" : {
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ ]
+            } ]
+          }
         }
       }
     }

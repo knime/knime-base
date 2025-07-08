@@ -61,6 +61,7 @@ import static org.knime.base.node.util.regex.ReplacementStrategy.WHOLE_STRING;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -73,6 +74,7 @@ import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalSearchPatternExce
  *
  * @author David Hickey, TNG Technology Consulting GmbH
  */
+@SuppressWarnings({"static-method", "deprecation"})
 final class RegexReplaceUtilsTest {
 
     static final Stream<TestCase> TEST_CASES = Stream.of( //
@@ -102,16 +104,46 @@ final class RegexReplaceUtilsTest {
         return TEST_CASES.map(Arguments::of);
     }
 
-    @SuppressWarnings("static-method")
     @ParameterizedTest
     @MethodSource("provideTestCases")
     void testReplacement(final TestCase testCase) throws IllegalSearchPatternException, IllegalReplacementException {
         var pattern = RegexReplaceUtils.compilePattern(testCase.searchPattern(), testCase.patternType(),
             testCase.caseMatching(), testCase.enableEscapingWildcard());
-        var replacement = RegexReplaceUtils.processReplacementString(testCase.replacement(), testCase.patternType());
+        var replacement = RegexReplaceUtils
+            .processReplacementStringWithWildcardBackwardCompatibility(testCase.replacement(), testCase.patternType());
         var processedString = RegexReplaceUtils.doReplacement(pattern, testCase.replacementStrategy(),
             testCase.patternType(), testCase.input(), replacement).asOptional().orElse(null);
 
         assertEquals(testCase.expected(), processedString, "Replacement did not match expected result");
+
+        processedString = RegexReplaceUtils.doReplacement(pattern, testCase.replacementStrategy(),
+            testCase.patternType(), testCase.input(), replacement).asOptional().orElse(null);
+
+        assertEquals(testCase.expected(), processedString,
+            "Replacement with wildcard bug did not match expected result");
+    }
+
+    @Test
+    void testWildcardBug() throws IllegalSearchPatternException, IllegalReplacementException {
+        // happens when we have a replacement string with a double backslash in it, it becomes
+        // a single backslash. We expect the doReplacementWithWildcardBug to have this behaviour
+        // and the doReplacement to not have this behaviour.
+        var input = "abc";
+        var pattern = RegexReplaceUtils.compilePattern("abc", WILDCARD, CASESENSITIVE, false);
+
+        var replacement = RegexReplaceUtils.processReplacementString("\\\\twobackslashes", WILDCARD);
+        var processedString = RegexReplaceUtils.doReplacement(pattern, ALL_OCCURRENCES, WILDCARD, input, replacement)
+            .asOptional().orElse(null);
+
+        assertEquals("\\\\twobackslashes", processedString,
+            "Replacement did not match expected result without wildcard bug");
+
+        replacement =
+            RegexReplaceUtils.processReplacementStringWithWildcardBackwardCompatibility("\\\\twobackslashes", WILDCARD);
+        processedString = RegexReplaceUtils.doReplacement(pattern, ALL_OCCURRENCES, WILDCARD, input, replacement)
+            .asOptional().orElse(null);
+
+        assertEquals("\\twobackslashes", processedString,
+            "Replacement did not match expected result with wildcard bug");
     }
 }

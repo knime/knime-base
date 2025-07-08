@@ -61,8 +61,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.booleanhelpers.AlwaysSaveTrueBoolean;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
@@ -201,17 +199,27 @@ public final class ColumnNameReplacerNodeSettings implements DefaultNodeSettings
      *        To preserve backwards compatibility for existing workflows, the {@code m_properlySupportUnicodeCharacters}
      *        setting is introduced and loads {@code false} whenever the node settings have not been saved since.
      */
-    @Persistor(ProperlySupportUnicodeCharactersPersistor.class)
-    boolean m_properlySupportUnicodeCharacters;
+    @Migration(LoadFalseForOldNodes.class)
+    boolean m_properlySupportUnicodeCharacters = true;
+
+    /**
+     * @since 5.6
+     *
+     *        In old versions of this node, the wildcard replacement had a bug when the replacement string included
+     *        backslashes. We want to fix the bug without introducing a regression for existing workflows, hence this
+     *        setting.
+     */
+    @Migration(LoadFalseForOldNodes.class)
+    boolean m_useNewFixedWildcardBehavior = true;
 
     /**
      * I.e. the only way the field can be set to {@code false} is when the node settings are loaded from a workflow that
      * was saved before version 5.5.
      */
-    static final class ProperlySupportUnicodeCharactersPersistor extends AlwaysSaveTrueBoolean {
-
-        protected ProperlySupportUnicodeCharactersPersistor() {
-            super("properlySupportUnicodeCharacters");
+    static final class LoadFalseForOldNodes implements DefaultProvider<Boolean> {
+        @Override
+        public Boolean getDefault() {
+            return false;
         }
     }
 }

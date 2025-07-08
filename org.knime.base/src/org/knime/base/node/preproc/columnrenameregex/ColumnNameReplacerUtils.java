@@ -79,6 +79,71 @@ public final class ColumnNameReplacerUtils {
     }
 
     /**
+     * NOTE: you probably want {@link #columnRenameMappings} instead of this method, unless you need to maintain
+     * backwards compatibility with an old node that had this bug.
+     *
+     * Compute a map of old column names to new column names using a regular expression pattern. Note that:
+     * <ul>
+     * <li>the output might have multiple identical values, which will seriously break execution. See
+     * {@link #fixCollisions} to adjust that.</li>
+     * <li>this function won't escape the replacement. If you need that, e.g. because you're doing a wildcard
+     * replacement, you should use {@link Matcher#quoteReplacement(String)} before calling this function.</li>
+     * <li>The output is a {@link LinkedHashMap} which means that it will always iterate in the same order as the
+     * provided names.</li>
+     * <li>for column names where no replacement took place, there will be no entry in the map. A replacement with the
+     * same string is not considered the same as no replacement!</li>
+     * </ul>
+     *
+     * @param oldNames the list of column names that we want to rename.
+     * @param patternString a string that will be compiled to a regex and used to match the old column names.
+     * @param patternType the type of pattern to use (literal, wildcard, regex).
+     * @param caseMatching the case matching to use for the pattern (case sensitive or insensitive).
+     * @param replacementStrategy the strategy to use for replacement (e.g. replace all, replace whole string).
+     * @param escapeWildcards whether to escape wildcards. If true, this means that wildcard parameters may use their
+     *            special meaning when escaped, that is, the wildcard string "\*" would match a literal asterisk if this
+     *            parameter is true. If it is false, it would match a literal backslash followed by any number of
+     *            characters. This is only relevant for WILDCARD patterns.
+     * @param supportUnicodeCase whether to support unicode case matching. This should be true unless this would
+     *            introduce breaking changes regarding backwards-compatibility
+     * @param replacement a replacement string that will be used to replace the matched parts of the old column names.
+     *            It will be escaped if necessary (i.e. if the pattern type is anything other than regex).
+     * @return a map of old names to new names.
+     * @throws IllegalSearchPatternException if the pattern string is not a valid regex.
+     * @throws IllegalReplacementException if the replacement string is not valid, e.g. if it contains backreferences
+     *             that aren't specified in the pattern string.
+     *
+     * @deprecated Use {@link #columnRenameMappings} instead, unless you need this for backwards compatibility.
+     *
+     * @since 5.6
+     */
+    @Deprecated
+    public static Map<String, String> columnRenameMappingsWithWildcardBug(final String[] oldNames,
+        final String patternString, final PatternType patternType, final CaseMatching caseMatching,
+        final ReplacementStrategy replacementStrategy, final boolean escapeWildcards, final boolean supportUnicodeCase,
+        String replacement) throws IllegalSearchPatternException, IllegalReplacementException {
+
+        var pattern = RegexReplaceUtils.compilePattern(patternString, patternType, caseMatching, escapeWildcards,
+            supportUnicodeCase);
+
+        replacement =
+            RegexReplaceUtils.processReplacementStringWithWildcardBackwardCompatibility(replacement, patternType);
+
+        LinkedHashMap<String, String> nameMapping = new LinkedHashMap<>(oldNames.length);
+        for (int i = 0; i < oldNames.length; i++) {
+            final var oldName = oldNames[i];
+            var replacementWithIndex = getReplaceStringWithIndex(replacement, i);
+            var replacementResult = RegexReplaceUtils.doReplacement(pattern, replacementStrategy, patternType, oldName,
+                replacementWithIndex);
+            if (replacementResult.wasReplaced()) {
+                // if the replacement was successful, add the new name to the map
+                nameMapping.put(oldName, replacementResult.result());
+            }
+        }
+
+        return nameMapping;
+    }
+
+    /**
      * Compute a map of old column names to new column names using a regular expression pattern. Note that:
      * <ul>
      * <li>the output might have multiple identical values, which will seriously break execution. See
@@ -212,9 +277,19 @@ public final class ColumnNameReplacerUtils {
         final ColumnNameReplacerNodeSettings settings, final Consumer<String> warningMessageConsumer)
         throws InvalidSettingsException {
 
-        Map<String, String> renameMapping;
-        try {
-            renameMapping = ColumnNameReplacerUtils.columnRenameMappings( //
+        return createColumnRenameMappingsInternal( //
+            originalNames, //
+            settings, //
+            warningMessageConsumer //
+        );
+    }
+
+    private static Map<String, String> callColumnRenameMappingMethod( //
+        final String[] originalNames, //
+        final ColumnNameReplacerNodeSettings settings //
+    ) throws InvalidSettingsException, IllegalSearchPatternException, IllegalReplacementException {
+        if (settings.m_useNewFixedWildcardBehavior) {
+            return ColumnNameReplacerUtils.columnRenameMappings( //
                 originalNames, //
                 settings.m_pattern, //
                 settings.m_patternType, //
@@ -223,6 +298,31 @@ public final class ColumnNameReplacerUtils {
                 settings.m_enableEscapingWildcard, //
                 settings.m_properlySupportUnicodeCharacters, //
                 settings.m_replacement //
+            );
+        } else {
+            return ColumnNameReplacerUtils.columnRenameMappingsWithWildcardBug( //
+                originalNames, //
+                settings.m_pattern, //
+                settings.m_patternType, //
+                settings.m_caseSensitivity, //
+                settings.m_replacementStrategy, //
+                settings.m_enableEscapingWildcard, //
+                settings.m_properlySupportUnicodeCharacters, //
+                settings.m_replacement //
+            );
+        }
+    }
+
+    private static Map<String, String> createColumnRenameMappingsInternal( //
+        final String[] originalNames, //
+        final ColumnNameReplacerNodeSettings settings, //
+        final Consumer<String> warningMessageConsumer) throws InvalidSettingsException {
+
+        Map<String, String> renameMapping;
+        try {
+            renameMapping = callColumnRenameMappingMethod( //
+                originalNames, //
+                settings //
             );
         } catch (IllegalSearchPatternException e) {
             // we should be covered by validateSettings, so this is an implementation error

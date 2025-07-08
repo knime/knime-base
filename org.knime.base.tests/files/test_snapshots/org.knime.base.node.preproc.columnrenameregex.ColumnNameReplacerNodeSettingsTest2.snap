@@ -7,7 +7,8 @@
       "pattern" : "(.+)",
       "replacement" : "prefix_$1",
       "replacementStrategy" : "ALL_OCCURRENCES",
-      "properlySupportUnicodeCharacters" : false
+      "properlySupportUnicodeCharacters" : false,
+      "useNewFixedWildcardBehavior" : false
     }
   },
   "schema" : {
@@ -57,7 +58,7 @@
           },
           "properlySupportUnicodeCharacters" : {
             "type" : "boolean",
-            "default" : false
+            "default" : true
           },
           "replacement" : {
             "type" : "string",
@@ -76,6 +77,10 @@
             "title" : "Replacement strategy",
             "description" : "Select what to replace in case a string matches a pattern.\n<ul>\n    <li>\n        <i>Whole string</i> replaces the entire string with the replacement string, requiring an\n        exact  match of the whole string.\n    </li>\n    <li>\n        <i>All occurrences</i> replaces all occurrences of the pattern with the replacement string.\n        Note that when e.g. matching on the RegEx-pattern <tt>.*</tt>, an empty string at the end\n        of the input is also matched and replaced. To avoid that, use e.g. the pattern <tt>^.*</tt>\n        to indicate that the match has to start at the beginning of the string.\n    </li>\n</ul>\n",
             "default" : "WHOLE_STRING"
+          },
+          "useNewFixedWildcardBehavior" : {
+            "type" : "boolean",
+            "default" : true
           }
         }
       }
@@ -154,7 +159,14 @@
             } ]
           },
           "properlySupportUnicodeCharacters" : {
-            "configPaths" : [ ]
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ ]
+            } ]
+          },
+          "useNewFixedWildcardBehavior" : {
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ ]
+            } ]
           }
         }
       }

@@ -56,6 +56,8 @@ import org.knime.base.node.util.regex.ReplacementStrategy;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DefaultProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
@@ -220,6 +222,27 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
         description = "The suffix that is appended to the newly created columns with strings")
     @Effect(predicate = AppendColumns.class, type = EffectType.SHOW)
     String m_columnSuffix = "_replaced";
+
+    /**
+     * @since 5.5
+     *
+     *        In old versions of this node, the wildcard replacement had a bug when the replacement string included
+     *        backslashes. We want to fix the bug without introducing a regression for existing workflows, hence this
+     *        setting.
+     */
+    @Migration(LoadFalseForOldNodes.class)
+    boolean m_useNewFixedWildcardBehavior = true;
+
+    /**
+     * I.e. the only way the field can be set to {@code false} is when the node settings are loaded from a workflow that
+     * was saved before version 5.5.
+     */
+    static final class LoadFalseForOldNodes implements DefaultProvider<Boolean> {
+        @Override
+        public Boolean getDefault() {
+            return false;
+        }
+    }
 
     /**
      * Constructor for de/serialisation.

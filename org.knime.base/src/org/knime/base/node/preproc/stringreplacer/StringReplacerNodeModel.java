@@ -121,7 +121,8 @@ public class StringReplacerNodeModel extends WebUISimpleStreamableFunctionNodeMo
 
                 String newStringValue;
                 try {
-                    newStringValue = RegexReplaceUtils.doReplacement(compiledPattern, //
+                    newStringValue = RegexReplaceUtils.doReplacement( //
+                        compiledPattern, //
                         modelSettings.m_replacementStrategy, //
                         modelSettings.m_patternType, //
                         originalStringValue, //
@@ -152,7 +153,12 @@ public class StringReplacerNodeModel extends WebUISimpleStreamableFunctionNodeMo
     }
 
     private static String createReplacement(final StringReplacerNodeSettings modelSettings) {
-        return RegexReplaceUtils.processReplacementString(modelSettings.m_replacement, modelSettings.m_patternType);
+        return modelSettings.m_useNewFixedWildcardBehavior //
+            ? RegexReplaceUtils.processReplacementString(modelSettings.m_replacement, modelSettings.m_patternType) //
+            : RegexReplaceUtils.processReplacementStringWithWildcardBackwardCompatibility( //
+                modelSettings.m_replacement, //
+                modelSettings.m_patternType //
+            );
     }
 
     /**
