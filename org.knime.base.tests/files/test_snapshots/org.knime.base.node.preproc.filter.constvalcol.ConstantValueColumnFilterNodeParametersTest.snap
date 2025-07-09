@@ -1,0 +1,414 @@
+{
+  "data" : {
+    "model" : {
+      "filterMode" : "ALL",
+      "filterNumeric" : null,
+      "filterString" : null,
+      "filterMissing" : false,
+      "consideredColumns" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "test1", "test2" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : false
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "minRows" : 1
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "consideredColumns" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Considered columns",
+            "description" : "This list contains the column names of the input table that are to be considered for filtering.",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ "test1", "test2" ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "filterMissing" : {
+            "type" : "boolean",
+            "title" : "missing values",
+            "description" : "Remove only those constant value columns that only contain empty cells / missing values.",
+            "default" : false
+          },
+          "filterMode" : {
+            "oneOf" : [ {
+              "const" : "ALL",
+              "title" : "all constant value columns"
+            }, {
+              "const" : "BY_VALUE",
+              "title" : "constant value columns that only contain"
+            } ],
+            "title" : "Remove from the selected columns",
+            "description" : "Choose whether to remove all constant value columns or only those containing a specific value.\n<ul>\n<li><b>all constant value columns</b>: Remove all constant value columns from the columns considered for filtering,\nindependent of the specific value they contain in duplicates.\n</li>\n<li><b>constant value columns that only contain</b>: Remove only those constant value columns from the columns considered for filtering\nthat only contain a certain specific value.\n</li>\n</ul>",
+            "default" : "ALL"
+          },
+          "filterNumeric" : {
+            "type" : [ "number", "null" ],
+            "format" : "double",
+            "title" : "numeric values of",
+            "description" : "Remove only those constant value columns that only contain a certain specific numeric value.",
+            "default" : null
+          },
+          "filterString" : {
+            "type" : [ "string", "null" ],
+            "title" : "string values of",
+            "description" : "Remove only those constant value columns that only contain a certain specific textual value.",
+            "default" : null
+          },
+          "minRows" : {
+            "type" : "integer",
+            "format" : "int64",
+            "title" : "Minimum number of rows",
+            "description" : "The minimum number of rows a table must have to be considered for filtering. If the table size is below the\nspecified value, the table will not be filtered / altered.\n",
+            "default" : 1
+          },
+          "warningMessage" : {
+            "type" : "object"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/filterMode"
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/filterNumeric",
+      "options" : {
+        "hideOnNull" : true,
+        "default" : 0
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/filterMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "BY_VALUE"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/filterString",
+      "options" : {
+        "hideOnNull" : true,
+        "default" : ""
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/filterMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "BY_VALUE"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/filterMissing",
+      "options" : {
+        "format" : "checkbox"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/filterMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "BY_VALUE"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "id" : "#/properties/model/properties/warningMessage",
+      "options" : {
+        "format" : "textMessage"
+      },
+      "providedOptions" : [ "message" ],
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/filterMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "BY_VALUE"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/consideredColumns",
+      "options" : {
+        "format" : "typedStringFilter",
+        "unknownValuesText" : "Any unknown column",
+        "emptyStateLabel" : "No columns in this list."
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/minRows",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 9.007199254740991E15
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 1.0
+            }
+          }
+        },
+        "isAdvanced" : true
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "filterMode" : {
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "filter-all" ] ]
+            } ]
+          },
+          "filterNumeric" : {
+            "configPaths" : [ [ "filterNumeric_is_present" ], [ "filterNumeric" ] ],
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "filter-numeric" ], [ "filter-numeric-value" ] ]
+            } ]
+          },
+          "filterString" : {
+            "configPaths" : [ [ "filterString_is_present" ], [ "filterString" ] ],
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "filter-string" ], [ "filter-string-value" ] ]
+            } ]
+          },
+          "filterMissing" : {
+            "configKey" : "filter-missing"
+          },
+          "warningMessage" : { },
+          "consideredColumns" : {
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : { }
+                }
+              }
+            },
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "filter-list", "filter-type" ], [ "filter-list", "included_names" ], [ "filter-list", "excluded_names" ], [ "filter-list", "enforce_option" ], [ "filter-list", "name_pattern", "pattern" ], [ "filter-list", "name_pattern", "type" ], [ "filter-list", "name_pattern", "caseSensitive" ], [ "filter-list", "name_pattern", "excludeMatching" ] ]
+            } ]
+          },
+          "minRows" : {
+            "configKey" : "row-threshold"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/consideredColumns",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test1",
+        "text" : "test1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "test2",
+        "text" : "test2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "id" : "#/properties/model/properties/warningMessage",
+    "providedOptionName" : "message",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "title" : "At least one partial filtering option should be selected.",
+        "description" : "Filter configured to only remove columns with specific constant values but no such values are specified. Constant value column filtering disabled.\n",
+        "type" : "WARNING"
+      }
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/filterMissing"
+    },
+    "dependencies" : [ "#/properties/model/properties/filterMissing", "#/properties/model/properties/filterNumeric", "#/properties/model/properties/filterString" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/filterNumeric"
+    },
+    "dependencies" : [ "#/properties/model/properties/filterMissing", "#/properties/model/properties/filterNumeric", "#/properties/model/properties/filterString" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/filterString"
+    },
+    "dependencies" : [ "#/properties/model/properties/filterMissing", "#/properties/model/properties/filterNumeric", "#/properties/model/properties/filterString" ]
+  } ]
+}
