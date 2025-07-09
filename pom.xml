@@ -100,6 +100,11 @@
 			<url>${knime.core.ui.p2}</url>
 		</repository>
 		<repository>
+			<id>p2-knime-node</id>
+			<layout>p2</layout>
+			<url>${knime.node.p2}</url>
+		</repository>
+		<repository>
 			<id>p2-knime-filehandling-core</id>
 			<layout>p2</layout>
 			<url>${knime.filehandling.core.p2}</url>
