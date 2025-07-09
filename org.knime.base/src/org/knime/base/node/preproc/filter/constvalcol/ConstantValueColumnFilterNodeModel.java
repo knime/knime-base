@@ -82,20 +82,20 @@ final class ConstantValueColumnFilterNodeModel extends NodeModel {
     /*
      * The warning message that is shown when this node is applied to a one-row table.
      */
-    private static final String WARNING_ONEROW =
+    static final String WARNING_ONEROW =
         "Input table contains only one row. All of its columns are considered constant value columns.";
 
     /*
      * The warning message that is shown when this node is applied to an empty table.
      */
-    private static final String WARNING_SMALL_TABLE =
+    static final String WARNING_SMALL_TABLE =
         "Input table has fewer rows than the minimum specified in the filter settings. Constant value column filtering disabled.";
 
     /*
      * The warning message to be displayed (in the workflow explorer) when partial filtering is selected, yet no type of
      * column (numeric, String, missing) is specified.
      */
-    private static final String WARNING_NO_FILTER_SELECTED =
+    static final String WARNING_NO_FILTER_SELECTED =
         "Filter configured to only remove columns with specific constant values but no such values are specified. Constant value column filtering disabled.";
 
     /*
