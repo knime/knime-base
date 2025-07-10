@@ -133,7 +133,7 @@ public final class StringFormatManagerNodeSettings implements DefaultNodeSetting
             """)
     @ChoicesProvider(StringCellColumns.class)
     @Layout(DialogLayout.Columns.class)
-    ColumnFilter m_columnsToFormat;
+    ColumnFilter m_columnsToFormat = new ColumnFilter();
 
     @Widget(title = "Show first characters", description = """
             Select the number of characters that should be retained at the <b>start</b> of the string. \
