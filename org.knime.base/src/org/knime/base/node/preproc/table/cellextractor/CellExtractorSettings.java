@@ -87,6 +87,11 @@ public final class CellExtractorSettings implements DefaultNodeSettings {
         }
     }
 
+    public CellExtractorSettings(final String columnName, final int rowNumber) {
+        m_columnName = columnName;
+        m_rowNumber = rowNumber;
+    }
+
     /**
      * Constructor for deserialization.
      */
