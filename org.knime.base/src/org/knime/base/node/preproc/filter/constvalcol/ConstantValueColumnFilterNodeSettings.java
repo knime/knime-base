@@ -48,9 +48,16 @@
  */
 package org.knime.base.node.preproc.filter.constvalcol;
 
+import java.util.List;
 import java.util.Optional;
 
+import org.knime.base.node.util.LegacyColumnFilterMigration;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
@@ -91,29 +98,111 @@ class ConstantValueColumnFilterNodeSettings implements DefaultNodeSettings {
         }
     }
 
+    static final class FilterModeMigration implements NodeSettingsMigration<FilterMode> {
+
+        private static final String LEGACY_CFG_KEY_FILTER_ALL = "filter-all";
+
+        private static final String LEGACY_LABEL_FILTER_ALL = "all constant value columns";
+
+        @Override
+        public List<ConfigMigration<FilterMode>> getConfigMigrations() {
+            return List.of(ConfigMigration.builder(FilterModeMigration::load)
+                .withDeprecatedConfigPath(LEGACY_CFG_KEY_FILTER_ALL).build());
+        }
+
+        private static FilterMode load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return settings.getString(LEGACY_CFG_KEY_FILTER_ALL).equals(LEGACY_LABEL_FILTER_ALL) ? FilterMode.ALL
+                : FilterMode.BY_VALUE;
+        }
+    }
+
     @Widget(title = "Remove from the selected columns",
         description = "Choose whether to remove all constant value columns or only those containing a specific value.")
     @ValueReference(FilterNumericRef.class)
+    @Migration(FilterModeMigration.class)
     FilterMode m_filterMode = FilterMode.ALL;
+
+    static final class FilterNumericMigration implements NodeSettingsMigration<Optional<Double>> {
+
+        private static final String LEGACY_CFG_KEY_FILTER_NUMERIC = "filter-numeric";
+
+        private static final String LEGACY_CFG_KEY_FILTER_NUMERIC_VALUE = "filter-numeric-value";
+
+        @Override
+        public List<ConfigMigration<Optional<Double>>> getConfigMigrations() {
+            return List.of(ConfigMigration.builder(FilterNumericMigration::load)
+                .withDeprecatedConfigPath(LEGACY_CFG_KEY_FILTER_NUMERIC)
+                .withDeprecatedConfigPath(LEGACY_CFG_KEY_FILTER_NUMERIC_VALUE).build());
+        }
+
+        private static Optional<Double> load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return settings.getBoolean(LEGACY_CFG_KEY_FILTER_NUMERIC)
+                ? Optional.of(settings.getDouble(LEGACY_CFG_KEY_FILTER_NUMERIC_VALUE)) : Optional.empty();
+        }
+    }
 
     @Widget(title = "numeric values of",
         description = "Remove only those constant value columns that only contain a certain specific numeric value.")
     @Effect(type = EffectType.SHOW, predicate = IsFilterByValueProvider.class)
+    @Migration(FilterNumericMigration.class)
     Optional<Double> m_filterNumeric = Optional.empty();
+
+    static final class FilterStringMigration implements NodeSettingsMigration<Optional<String>> {
+
+        private static final String LEGACY_CFG_KEY_FILTER_STRING = "filter-string";
+
+        private static final String LEGACY_CFG_KEY_FILTER_STRING_VALUE = "filter-string-value";
+
+        @Override
+        public List<ConfigMigration<Optional<String>>> getConfigMigrations() {
+            return List.of(ConfigMigration.builder(FilterStringMigration::load)
+                .withDeprecatedConfigPath(LEGACY_CFG_KEY_FILTER_STRING)
+                .withDeprecatedConfigPath(LEGACY_CFG_KEY_FILTER_STRING_VALUE).build());
+        }
+
+        private static Optional<String> load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return settings.getBoolean(LEGACY_CFG_KEY_FILTER_STRING)
+                ? Optional.of(settings.getString(LEGACY_CFG_KEY_FILTER_STRING_VALUE)) : Optional.empty();
+        }
+    }
 
     @Widget(title = "String values of",
         description = "Remove only those constant value columns that only contain a certain specific textual value.")
     @Effect(type = EffectType.SHOW, predicate = IsFilterByValueProvider.class)
+    @Migration(FilterStringMigration.class)
     Optional<String> m_filterString = Optional.empty();
+
+    static final class FilterMissingMigration implements NodeSettingsMigration<Boolean> {
+
+        private static final String LEGACY_CFG_KEY_FILTER_MISSING = "filter-missing";
+
+        @Override
+        public List<ConfigMigration<Boolean>> getConfigMigrations() {
+            return List.of(ConfigMigration.builder(FilterMissingMigration::load)
+                .withDeprecatedConfigPath(LEGACY_CFG_KEY_FILTER_MISSING).build());
+        }
+
+        private static Boolean load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return settings.getBoolean(LEGACY_CFG_KEY_FILTER_MISSING);
+        }
+    }
 
     @Widget(title = "missing values",
         description = "Remove only those constant value columns that only contain empty cells / missing values.")
     @Effect(type = EffectType.SHOW, predicate = IsFilterByValueProvider.class)
+    @Migration(FilterMissingMigration.class)
     boolean m_filterMissing;
+
+    static final class ConsideredColumnsMigration extends LegacyColumnFilterMigration {
+        ConsideredColumnsMigration() {
+            super("filter-list");
+        }
+    }
 
     @Widget(title = "Considered columns",
         description = "This list contains the column names of the input table that are to be considered for filtering.")
     @ColumnFilterWidget(choicesProvider = AllColumnsProvider.class)
+    @Migration(ConsideredColumnsMigration.class)
     ColumnFilter m_consideredColumns;
 
     static final class IsPositiveValidation extends MinValidation {
@@ -123,11 +212,27 @@ class ConstantValueColumnFilterNodeSettings implements DefaultNodeSettings {
         }
     }
 
+    static final class MinRowsMigration implements NodeSettingsMigration<Long> {
+
+        private static final String LEGACY_CFG_KEY_ROW_THRESHOLD = "row-threshold";
+
+        @Override
+        public List<ConfigMigration<Long>> getConfigMigrations() {
+            return List.of(ConfigMigration.builder(MinRowsMigration::load)
+                .withDeprecatedConfigPath(LEGACY_CFG_KEY_ROW_THRESHOLD).build());
+        }
+
+        private static Long load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return settings.getLong(LEGACY_CFG_KEY_ROW_THRESHOLD);
+        }
+    }
+
     @Widget(title = "Minimum number of rows", description = """
             The minimum number of rows a table must have to be considered for filtering. If the table size is below the
             specified value, the table will not be filtered / altered.
             """, advanced = true)
     @NumberInputWidget(minValidation = IsPositiveValidation.class)
+    @Migration(MinRowsMigration.class)
     long m_minRows = 1;
 
     ConstantValueColumnFilterNodeSettings() {
