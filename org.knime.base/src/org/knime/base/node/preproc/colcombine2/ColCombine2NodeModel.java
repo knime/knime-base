@@ -209,6 +209,9 @@ public class ColCombine2NodeModel extends WebUISimpleStreamableFunctionNodeModel
             if (Character.isWhitespace(modelSettings.m_quoteCharacter)) {
                 throw new InvalidSettingsException("Can't use white space as quote char");
             }
+            if (modelSettings.m_quoteCharacter == '\0') {
+                throw new InvalidSettingsException("Can't use NUL character as quote char");
+            }
             if (modelSettings.m_delimiter.contains(Character.toString(modelSettings.m_quoteCharacter))) {
                 throw new InvalidSettingsException("Delimiter String \"" + modelSettings.m_delimiter
                     + "\" must not contain quote character ('" + modelSettings.m_quoteCharacter + "')");

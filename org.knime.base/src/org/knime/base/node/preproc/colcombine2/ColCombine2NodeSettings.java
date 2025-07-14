@@ -78,6 +78,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.ColumnNameValidationV2;
 
 /**
@@ -89,7 +90,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInpu
 public final class ColCombine2NodeSettings implements DefaultNodeSettings {
 
     ColCombine2NodeSettings(final DefaultNodeSettingsContext context) {
-        m_columnFilter = new ColumnFilter(ColumnSelectionUtil.getAllColumnsOfFirstPort(context)).withIncludeUnknownColumns();
+        m_columnFilter =
+            new ColumnFilter(ColumnSelectionUtil.getAllColumnsOfFirstPort(context)).withIncludeUnknownColumns();
     }
 
     /**
@@ -178,7 +180,20 @@ public final class ColCombine2NodeSettings implements DefaultNodeSettings {
     @Migrate(loadDefaultIfAbsent = true)
     @Layout(Concatenation.class)
     @Effect(predicate = IsQuote.class, type = EffectType.SHOW)
+    @TextInputWidget(patternValidation = IsNonEmptyCharacter.class)
     char m_quoteCharacter = '"';
+
+    static final class IsNonEmptyCharacter extends PatternValidation {
+        @Override
+        protected String getPattern() {
+            return "[^\\s\\x00]";
+        }
+
+        @Override
+        public String getErrorMessage() {
+            return "Enter a single character (no spaces).";
+        }
+    }
 
     @Widget(title = "Quote inputs", advanced = true, description = "")
     @Migration(QuoteInputMigration.class)
@@ -219,7 +234,6 @@ public final class ColCombine2NodeSettings implements DefaultNodeSettings {
     @Migrate(loadDefaultIfAbsent = true)
     @Layout(Output.class)
     boolean m_removeInputColumns;
-
 
     static final class DelimiterInputMigration implements NodeSettingsMigration<DelimiterInputs> {
 

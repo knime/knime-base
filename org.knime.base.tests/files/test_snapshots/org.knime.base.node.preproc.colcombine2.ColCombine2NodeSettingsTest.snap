@@ -245,6 +245,14 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/quoteCharacter",
         "options" : {
+          "validation" : {
+            "pattern" : {
+              "errorMessage" : "Enter a single character (no spaces).",
+              "parameters" : {
+                "pattern" : "[^\\s\\x00]"
+              }
+            }
+          },
           "isAdvanced" : true
         },
         "rule" : {
