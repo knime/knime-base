@@ -48,6 +48,12 @@
  */
 package org.knime.base.node.preproc.filter.constvalcol;
 
+import java.util.function.Consumer;
+
+import org.knime.base.node.preproc.filter.constvalcol.ConstantValueColumnFilterNodeSettings.FilterMode;
+import org.knime.core.data.container.ColumnRearranger;
+import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.CanceledExecutionException;
 import org.knime.node.DefaultModel.ConfigureInput;
 import org.knime.node.DefaultModel.ConfigureOutput;
 import org.knime.node.DefaultModel.ExecuteInput;
@@ -97,8 +103,53 @@ public final class ConstantValueColumnFilterNodeFactory2 extends DefaultNodeFact
     }
 
     private static void configure(final ConfigureInput i, final ConfigureOutput o) {
+
+        setWarningIfNoFilterSelected(i.getSettings(), o::setWarningMessage);
+
+        /*
+         * The columns containing only constant values cannot be determined without looking at the data contained within
+         * the table. Hence, the DataTableSpec cannot be determined before execution onset.
+         */
     }
 
-    private static void execute(final ExecuteInput i, final ExecuteOutput o) {
+    private static void setWarningIfNoFilterSelected(final ConstantValueColumnFilterNodeSettings params,
+        final Consumer<String> warningMessageConsumer) {
+
+        if (params.m_filterMode == FilterMode.BY_VALUE && params.m_filterNumeric.isEmpty()
+            && params.m_filterString.isEmpty() && !params.m_filterMissing) {
+            warningMessageConsumer.accept(ConstantValueColumnFilterNodeModel.WARNING_NO_FILTER_SELECTED);
+        }
+    }
+
+    private static void execute(final ExecuteInput i, final ExecuteOutput o) throws CanceledExecutionException {
+
+        final BufferedDataTable inputTable = i.getInData(0);
+        final ConstantValueColumnFilterNodeSettings settings = i.getSettings();
+        if (inputTable.size() < settings.m_minRows) {
+            o.setWarningMessage(ConstantValueColumnFilterNodeModel.WARNING_SMALL_TABLE);
+        } else if (inputTable.size() == 1) {
+            o.setWarningMessage(ConstantValueColumnFilterNodeModel.WARNING_ONEROW);
+        } else {
+            setWarningIfNoFilterSelected(settings, o::setWarningMessage);
+        }
+
+        final var filter = new ConstantValueColumnFilter.ConstantValueColumnFilterBuilder()
+            .filterAll(settings.m_filterMode == FilterMode.ALL) //
+            .filterNumeric(settings.m_filterNumeric.isPresent()) //
+            .filterNumericValue(settings.m_filterNumeric.orElse(0.0)) //
+            .filterString(settings.m_filterString.isPresent()) //
+            .filterStringValue(settings.m_filterString.orElse("")) //
+            .filterMissing(settings.m_filterMissing) //
+            .rowThreshold(settings.m_minRows) //
+            .createConstantValueColumnFilter();
+
+        final var spec = inputTable.getDataTableSpec();
+        final var toFilter = settings.m_consideredColumns.filterFromFullSpec(spec);
+        final var exec = i.getExecutionContext();
+        final String[] toRemove = filter.determineConstantValueColumns(inputTable, toFilter, exec);
+
+        final var columnRearranger = new ColumnRearranger(spec);
+        columnRearranger.remove(toRemove);
+        o.setOutData(exec.createColumnRearrangeTable(inputTable, columnRearranger, exec));
     }
 }
