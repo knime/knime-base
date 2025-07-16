@@ -66,7 +66,7 @@ import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.v2.DataRowRowRead;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
 
 /**
  * Class testing evaluation of ordering-based predicates.
