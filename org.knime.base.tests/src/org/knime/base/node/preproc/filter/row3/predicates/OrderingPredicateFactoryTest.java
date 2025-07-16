@@ -77,6 +77,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValu
  */
 final class OrderingPredicateFactoryTest {
 
+    /**
+     * Expected message template for type mismatches between input column and reference value.
+     */
+    static final String TYPE_MISMATCH_EXCEPTION_MESSAGE =
+        "Cannot apply ordering comparison to %s of type \"%s\" and reference value of type \"%s\"";
+
     private static final EnumSet<FilterOperator> getSupported() {
         return EnumSet.of(FilterOperator.LT, FilterOperator.LTE, FilterOperator.GT, FilterOperator.GTE);
     }
@@ -162,12 +168,10 @@ final class OrderingPredicateFactoryTest {
             .as("Comparing Long column with Long reference via " + operator) //
             .doesNotThrowAnyException();
 
-        // Long column with Double reference should throw exception
+        // Long column with Double reference must be allowed (backwards-compatibility)
         assertThatCode(() -> createPredicate("Long1", new DoubleCell(1.0), operator)) //
             .as("Comparing Long column with Double reference via " + operator) //
-            .isInstanceOf(InvalidSettingsException.class) //
-            .hasMessageContaining("Cannot apply ordering comparison to input column of type \""
-                + LongCell.TYPE.getName() + "\" and reference value of type \"" + DoubleCell.TYPE.getName() + "\"");
+            .doesNotThrowAnyException();
 
         // Long column with String reference should throw exception
         assertThatCode(() -> createPredicate("Long1", new StringCell("foo"), operator)) //
