@@ -65,6 +65,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.Lega
  * @deprecated
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @since 5.6
  */
 @SuppressWarnings("restriction")
 @Deprecated
