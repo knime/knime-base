@@ -311,14 +311,12 @@ abstract class OrderingPredicateFactory extends AbstractPredicateFactory {
      */
     private static final class OrderingDataValuePredicateFactory extends OrderingPredicateFactory {
 
-        private final Comparator<DataValue> m_comparator;
 
         private final DataType m_columnType;
 
         OrderingDataValuePredicateFactory(final Ordering ordering, final DataType columnDataType) {
             super(ordering);
             m_columnType = columnDataType;
-            m_comparator = new DataValueComparatorDelegator<>(columnDataType.getComparator());
         }
 
         @Override
@@ -326,6 +324,7 @@ abstract class OrderingPredicateFactory extends AbstractPredicateFactory {
             throws InvalidSettingsException {
             final var refCell = getCellAtOrThrow(inputValues, 0);
             final var refType = refCell.getType();
+            // same validation flow as in the previous version, but here we don't know the column name
             if (!m_columnType.isASuperTypeOf(refType)) {
                 throw createInvalidSettingsException(builder -> builder //
                     .withSummary("Column type \"%s\" is not a super type of reference type \"%s\""
@@ -334,11 +333,15 @@ abstract class OrderingPredicateFactory extends AbstractPredicateFactory {
                         "Reconfigure the node to provide a reference value of type \"%s\".".formatted(m_columnType))
                     );
             }
+
+            // previous version used the reference type to obtain the comparator
+            final var cmp = refType.getComparator();
+            final var compOfRefType = new DataValueComparatorDelegator<>(cmp);
             final BiPredicate<DataValue, DataValue> comparator = switch (m_ordering) {
-                case LT -> (a, b) -> m_comparator.compare(a, b) < 0;
-                case LTE -> (a, b) -> m_comparator.compare(a, b) <= 0;
-                case GT -> (a, b) -> m_comparator.compare(a, b) > 0;
-                case GTE -> (a, b) -> m_comparator.compare(a, b) >= 0;
+                case LT -> (a, b) -> compOfRefType.compare(a, b) < 0;
+                case LTE -> (a, b) -> compOfRefType.compare(a, b) <= 0;
+                case GT -> (a, b) -> compOfRefType.compare(a, b) > 0;
+                case GTE -> (a, b) -> compOfRefType.compare(a, b) >= 0;
             };
             return (idx, rowRead) -> comparator.test(rowRead.getValue(columnIndex), refCell);
         }
