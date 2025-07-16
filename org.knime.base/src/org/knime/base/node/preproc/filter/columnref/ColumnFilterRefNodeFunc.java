@@ -75,7 +75,7 @@ public final class ColumnFilterRefNodeFunc implements NodeFunc {
         var refColFilterSettings = new ColumnFilterRefNodeSettings();
         refColFilterSettings.m_columnReferenceMode =
             arguments.getBoolean(INCLUDE) ? ColumnReferenceMode.INCLUDE : ColumnReferenceMode.EXCLUDE;
-        DefaultNodeSettings.saveSettings(ColumnFilterRefNodeSettings.class, refColFilterSettings, settings);
+        NodeParameters.saveSettings(ColumnFilterRefNodeSettings.class, refColFilterSettings, settings);
     }
 
     @Override

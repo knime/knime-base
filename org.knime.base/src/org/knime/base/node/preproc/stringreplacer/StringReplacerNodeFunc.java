@@ -109,7 +109,7 @@ public final class StringReplacerNodeFunc implements SimpleNodeFunc {
         var newColName = arguments.getString(NEW_COLUMN_NAME, null);
         replacerSettings.m_createNewCol = arguments.getBoolean(APPEND_NEW_COLUMN);
         replacerSettings.m_newColName = newColName;
-        DefaultNodeSettings.saveSettings(StringReplacerNodeSettings.class, replacerSettings, settings);
+        NodeParameters.saveSettings(StringReplacerNodeSettings.class, replacerSettings, settings);
     }
 
     @SuppressWarnings("null")

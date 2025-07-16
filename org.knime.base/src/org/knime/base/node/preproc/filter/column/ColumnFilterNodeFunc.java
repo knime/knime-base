@@ -73,7 +73,7 @@ public final class ColumnFilterNodeFunc implements NodeFunc {
         var columns = arguments.getStringArray("columns");
         var columnFilterSettings = new ColumnFilterNodeSettings();
         columnFilterSettings.m_columnFilter = new ColumnFilter(columns);
-        DefaultNodeSettings.saveSettings(ColumnFilterNodeSettings.class, columnFilterSettings, settings);
+        NodeParameters.saveSettings(ColumnFilterNodeSettings.class, columnFilterSettings, settings);
     }
 
     @Override

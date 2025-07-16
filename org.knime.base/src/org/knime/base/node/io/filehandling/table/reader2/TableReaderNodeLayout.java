@@ -49,8 +49,8 @@
 package org.knime.base.node.io.filehandling.table.reader2;
 
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.Before;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany

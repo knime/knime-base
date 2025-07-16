@@ -61,7 +61,7 @@ import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.SkipFirstDataRowsPersistor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.node.parameters.persistence.NodeSettingsPersistor;
 
 /**
  * @author Paul Bärnreuther

@@ -111,11 +111,11 @@ import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.NoneChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
+import org.knime.node.parameters.updates.PredicateProvider;
+import org.knime.node.parameters.updates.Reference;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * A simplified {@link GroupByNodeModel} to aggregate numeric columns of an input table, optionally grouped by a single
@@ -285,7 +285,7 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
 
         static class IsCount implements PredicateProvider {
             @Override
-            public org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate
+            public org.knime.node.parameters.updates.Predicate
                 init(final PredicateInitializer i) {
                 return i.getEnum(Ref.class).isOneOf(COUNT);
             }
@@ -293,7 +293,7 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
 
         static class IsCountOrMinOrMax implements PredicateProvider {
             @Override
-            public org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate
+            public org.knime.node.parameters.updates.Predicate
                 init(final PredicateInitializer i) {
                 return i.getEnum(Ref.class).isOneOf(COUNT, MIN, MAX);
             }

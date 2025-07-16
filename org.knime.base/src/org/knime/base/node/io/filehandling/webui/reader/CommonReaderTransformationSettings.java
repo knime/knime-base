@@ -64,29 +64,29 @@ import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.ColumnNameValidationV2;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.array.ArrayWidget;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.persistence.NodeSettingsPersistor;
+import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Predicate;
+import org.knime.node.parameters.updates.PredicateProvider;
+import org.knime.node.parameters.updates.Reference;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.ValueProvider;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.widget.text.TextInputWidget;
+import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternValidation.ColumnNameValidationV2;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -104,7 +104,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @SuppressWarnings("restriction")
 @Layout(CommonReaderLayout.Transformation.class)
 public abstract class CommonReaderTransformationSettings<I extends ConfigIdSettings<?>, S>
-    implements PersistableSettings, WidgetGroup {
+    implements Persistable, WidgetGroup {
 
     /**
      * @param configId the initial value of the config id. It can be independent from the respective values in the
@@ -125,7 +125,7 @@ public abstract class CommonReaderTransformationSettings<I extends ConfigIdSetti
      * @param <C> the reader specific config.
      */
     public static class ConfigIdSettings<C extends ReaderSpecificConfig<C>>
-        implements WidgetGroup, PersistableSettings {
+        implements WidgetGroup, Persistable {
         /**
          * @param tableReadConfig to apply settings to
          */
@@ -139,7 +139,7 @@ public abstract class CommonReaderTransformationSettings<I extends ConfigIdSetti
      *
      * @param <S> the serializable type for external data
      */
-    static final class ColumnSpecSettings<S> implements WidgetGroup, PersistableSettings {
+    static final class ColumnSpecSettings<S> implements WidgetGroup, Persistable {
 
         String m_name;
 
@@ -159,7 +159,7 @@ public abstract class CommonReaderTransformationSettings<I extends ConfigIdSetti
      *
      * @param <S> the serializable type for external data
      */
-    public static final class TableSpecSettings<S> implements WidgetGroup, PersistableSettings {
+    public static final class TableSpecSettings<S> implements WidgetGroup, Persistable {
 
         String m_sourceId;
 
@@ -187,7 +187,7 @@ public abstract class CommonReaderTransformationSettings<I extends ConfigIdSetti
      * these settings to the persistor. This would then also allow us to use non-serializable types like the
      * TypedReaderTableSpec instead of the TableSpecSettings, saving us the back-and-forth conversion.
      */
-    static class PersistorSettings<I extends ConfigIdSettings<?>, S> implements WidgetGroup, PersistableSettings {
+    static class PersistorSettings<I extends ConfigIdSettings<?>, S> implements WidgetGroup, Persistable {
 
         private PersistorSettings(final I configId) {
             CheckUtils.checkArgumentNotNull(configId);
@@ -257,7 +257,7 @@ public abstract class CommonReaderTransformationSettings<I extends ConfigIdSetti
     @Widget(title = "Enforce types", description = CommonReaderLayout.Transformation.EnforceTypes.DESCRIPTION)
     boolean m_enforceTypes = true;
 
-    static class TransformationElementSettings implements WidgetGroup, PersistableSettings {
+    static class TransformationElementSettings implements WidgetGroup, Persistable {
 
         static class ColumnNameRef implements Reference<String> {
         }

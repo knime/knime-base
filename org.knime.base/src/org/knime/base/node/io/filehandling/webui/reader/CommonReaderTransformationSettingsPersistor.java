@@ -71,7 +71,6 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.util.Pair;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
 import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCellFactory;
 import org.knime.filehandling.core.node.table.reader.DefaultTableTransformation;
@@ -86,6 +85,7 @@ import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformati
 import org.knime.filehandling.core.node.table.reader.selector.ImmutableUnknownColumnsTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.selector.UnknownColumnsTransformation;
+import org.knime.node.parameters.persistence.NodeSettingsPersistor;
 
 /**
  * An implementation of this class should be used to persist the reader specific implementation of

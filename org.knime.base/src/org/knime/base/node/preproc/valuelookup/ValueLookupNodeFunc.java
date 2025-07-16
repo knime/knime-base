@@ -130,7 +130,7 @@ public class ValueLookupNodeFunc implements SimpleNodeFunc {
             checkContained(col, APPENDED_COLUMNS, dictSpec, DICTIONARY_TABLE);
         }
         valueLookupSettings.m_dictValueCols = new ColumnFilter(appendedColumns);
-        DefaultNodeSettings.saveSettings(ValueLookupNodeSettings.class, valueLookupSettings, settings);
+        NodeParameters.saveSettings(ValueLookupNodeSettings.class, valueLookupSettings, settings);
     }
 
     private static void checkContained(final String columnName, final String columnPurpose,

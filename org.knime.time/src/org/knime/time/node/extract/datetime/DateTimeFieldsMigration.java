@@ -54,8 +54,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.NodeSettingsMigration;
 import org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings.DateTimeField;
 import org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings.ExtractField;
 

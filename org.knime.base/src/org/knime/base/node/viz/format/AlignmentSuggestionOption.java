@@ -48,7 +48,7 @@
  */
 package org.knime.base.node.viz.format;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * Used by Format manager nodes to determine a preferred alignment.

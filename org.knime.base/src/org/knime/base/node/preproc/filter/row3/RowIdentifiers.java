@@ -50,7 +50,7 @@ package org.knime.base.node.preproc.filter.row3;
 
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * Use as static choices in a {@link StringOrEnum} field to allow selecting row keys or row numbers.

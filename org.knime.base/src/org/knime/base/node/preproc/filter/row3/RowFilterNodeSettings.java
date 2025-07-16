@@ -48,9 +48,9 @@
  */
 package org.knime.base.node.preproc.filter.row3;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
  * Settings for the Row Filter node.

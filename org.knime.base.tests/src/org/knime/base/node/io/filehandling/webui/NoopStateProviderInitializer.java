@@ -50,10 +50,10 @@ package org.knime.base.node.io.filehandling.webui;
 
 import java.util.function.Supplier;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.StateProviderInitializer;
+import org.knime.node.parameters.updates.ButtonReference;
+import org.knime.node.parameters.updates.Reference;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.StateProvider.StateProviderInitializer;
 
 /**
  * A StateProviderInitializer that throws {@link IllegalAccessError IllegalAccessErrors} whenever any of its methods is

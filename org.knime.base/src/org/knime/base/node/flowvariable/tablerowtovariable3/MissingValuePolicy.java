@@ -48,7 +48,7 @@
 package org.knime.base.node.flowvariable.tablerowtovariable3;
 
 import org.knime.core.node.util.ButtonGroupEnumInterface;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * Enums for this policies.

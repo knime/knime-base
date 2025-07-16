@@ -80,7 +80,7 @@ public final class UnpivotNodeFunc implements SimpleNodeFunc {
         unpivotSettings.m_valueColumns = new ColumnFilter(arguments.getStringArray(VALUE_COLUMNS));
         unpivotSettings.m_retainedColumns = new ColumnFilter(arguments.getStringArray(RETAINED_COLUMNS));
         unpivotSettings.m_missingValues = arguments.getBoolean(SKIP_MISSING_VALUES);
-        DefaultNodeSettings.saveSettings(Unpivot2NodeSettings.class, unpivotSettings, settings);
+        NodeParameters.saveSettings(Unpivot2NodeSettings.class, unpivotSettings, settings);
     }
 
     @Override

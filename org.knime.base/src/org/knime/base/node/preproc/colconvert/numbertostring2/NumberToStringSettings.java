@@ -52,12 +52,12 @@ import static org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnS
 
 import org.knime.base.node.preproc.pmml.numbertostring3.AbstractNumberToStringNodeModel;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider.DoubleColumnsProvider;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider.DoubleColumnsProvider;
 
 /**
  * Settings for the Number to String Web UI dialog.
@@ -66,7 +66,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.Comp
  * @since 5.1
  */
 @SuppressWarnings("restriction")
-public final class NumberToStringSettings implements DefaultNodeSettings {
+public final class NumberToStringSettings implements NodeParameters {
 
     /**
      * Constructor for initialization.

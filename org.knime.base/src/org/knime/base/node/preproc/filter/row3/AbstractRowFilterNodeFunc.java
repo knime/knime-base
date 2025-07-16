@@ -84,7 +84,7 @@ abstract class AbstractRowFilterNodeFunc implements NodeFunc {
         rowFilterSettings.m_predicates = criteria;
         rowFilterSettings.m_outputMode = include ? FilterMode.MATCHING : FilterMode.NON_MATCHING;
 
-        DefaultNodeSettings.saveSettings(RowFilterNodeSettings.class, rowFilterSettings, settings);
+        NodeParameters.saveSettings(RowFilterNodeSettings.class, rowFilterSettings, settings);
     }
 
     @Override

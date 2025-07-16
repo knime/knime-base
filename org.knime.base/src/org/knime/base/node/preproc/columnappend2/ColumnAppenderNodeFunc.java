@@ -70,7 +70,7 @@ public final class ColumnAppenderNodeFunc implements NodeFunc {
         final NodeSettingsWO settings) throws InvalidSettingsException {
         var appenderSettings = new ColumnAppenderSettings();
         appenderSettings.m_rowIdMode = RowKeyMode.GENERATE;
-        DefaultNodeSettings.saveSettings(ColumnAppenderSettings.class, appenderSettings, settings);
+        NodeParameters.saveSettings(ColumnAppenderSettings.class, appenderSettings, settings);
     }
 
     @Override

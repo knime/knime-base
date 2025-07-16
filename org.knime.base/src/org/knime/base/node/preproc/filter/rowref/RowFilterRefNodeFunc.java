@@ -106,7 +106,7 @@ public final class RowFilterRefNodeFunc implements NodeFunc {
         );
         refRowFilterSettings.m_inexclude =
             arguments.getBoolean(INCLUDE) ? IncludeOrExcludeRows.INCLUDE : IncludeOrExcludeRows.EXCLUDE;
-        DefaultNodeSettings.saveSettings(RowFilterRefNodeSettings.class, refRowFilterSettings, settings);
+        NodeParameters.saveSettings(RowFilterRefNodeSettings.class, refRowFilterSettings, settings);
     }
 
     private static StringOrEnum<RowIDChoice> checkContained(final boolean useRowId, final String column,

@@ -77,8 +77,8 @@ import org.knime.core.node.workflow.VariableType.LongType;
 import org.knime.core.node.workflow.VariableType.StringArrayType;
 import org.knime.core.node.workflow.VariableType.StringType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableChoicesProvider;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
+import org.knime.node.parameters.widget.choices.util.FlowVariableChoicesProvider;
 
 /**
  * Factory class to create the {@link VariableToCellConverter} associated with the provided {@link FlowVariable}.

@@ -54,10 +54,10 @@ import java.util.stream.IntStream;
 
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
+import org.knime.node.parameters.updates.Predicate;
+import org.knime.node.parameters.updates.PredicateProvider;
 
 /**
  * Utility around accessing the file system port of a reader node

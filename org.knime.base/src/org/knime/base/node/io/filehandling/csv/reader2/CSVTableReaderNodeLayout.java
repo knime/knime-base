@@ -49,10 +49,10 @@
 package org.knime.base.node.io.filehandling.csv.reader2;
 
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.Before;
+import org.knime.node.parameters.layout.HorizontalLayout;
+import org.knime.node.parameters.layout.Section;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany

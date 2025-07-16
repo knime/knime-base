@@ -50,7 +50,7 @@ package org.knime.base.node.preproc.partition;
 
 import org.knime.base.node.preproc.partition.PartitionNodeSettings.PartitionModification;
 import org.knime.base.node.preproc.sample.AbstractSamplingNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
+import org.knime.node.parameters.WidgetGroup.Modification;
 
 /**
  *

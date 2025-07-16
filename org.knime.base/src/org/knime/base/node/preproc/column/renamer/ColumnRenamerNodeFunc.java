@@ -108,7 +108,7 @@ public final class ColumnRenamerNodeFunc extends AbstractNodeFunc {
         }
         renamerSettings.m_renamings = renamings;
 
-        DefaultNodeSettings.saveSettings(ColumnRenamerSettings.class, renamerSettings, settings);
+        NodeParameters.saveSettings(ColumnRenamerSettings.class, renamerSettings, settings);
     }
 
 }

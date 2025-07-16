@@ -115,17 +115,17 @@ final class VariableFilterNodeModel extends NodeModel {
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
-        DefaultNodeSettings.saveSettings(VariableFilterSettings.class, m_settings, settings);
+        NodeParameters.saveSettings(VariableFilterSettings.class, m_settings, settings);
     }
 
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        DefaultNodeSettings.loadSettings(settings, VariableFilterSettings.class);
+        NodeParameters.loadSettings(settings, VariableFilterSettings.class);
     }
 
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_settings = DefaultNodeSettings.loadSettings(settings, VariableFilterSettings.class);
+        m_settings = NodeParameters.loadSettings(settings, VariableFilterSettings.class);
     }
 
     @Override

@@ -93,7 +93,7 @@ public final class DuplicateRowFilterNodeFunc implements SimpleNodeFunc {
             validateDecisionColumn(tableSpec, rowSelection, decisionColumn);
             dupRowFilterSettings.m_selectedColumn = decisionColumn;
         }
-        DefaultNodeSettings.saveSettings(DuplicateRowFilterDialogSettings.class, dupRowFilterSettings, settings);
+        NodeParameters.saveSettings(DuplicateRowFilterDialogSettings.class, dupRowFilterSettings, settings);
     }
 
     private static void validateDecisionColumn(final DataTableSpec tableSpec, final RowSelection rowSelection,

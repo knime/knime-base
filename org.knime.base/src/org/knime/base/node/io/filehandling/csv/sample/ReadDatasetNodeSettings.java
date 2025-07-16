@@ -49,14 +49,14 @@
 package org.knime.base.node.io.filehandling.csv.sample;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
-final class ReadDatasetNodeSettings implements DefaultNodeSettings {
+final class ReadDatasetNodeSettings implements NodeParameters {
 
     enum Dataset {
             @Label(value = "Worldbank countries and regions", description = """

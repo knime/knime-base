@@ -64,7 +64,7 @@ import org.knime.core.data.time.duration.DurationCell;
 import org.knime.core.data.time.duration.DurationValue;
 import org.knime.core.data.time.period.PeriodCell;
 import org.knime.core.data.time.period.PeriodValue;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * Extractable field from a {@link DataCell} of type {@link DurationValue} or {@link PeriodValue}.

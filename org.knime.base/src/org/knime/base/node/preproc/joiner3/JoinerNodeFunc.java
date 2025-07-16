@@ -88,7 +88,7 @@ public final class JoinerNodeFunc implements SimpleNodeFunc {
 
         joinerNodeSettings.m_matchingCriteria = matchingCriteria;
         joinerNodeSettings.m_mergeJoinColumns = true;
-        DefaultNodeSettings.saveSettings(Joiner3NodeSettings.class, null, settings);
+        NodeParameters.saveSettings(Joiner3NodeSettings.class, null, settings);
     }
 
     @Override
