@@ -48,7 +48,6 @@
  */
 package org.knime.base.node.preproc.filter.row3.predicates;
 
-import java.util.Comparator;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.function.BiPredicate;
@@ -57,7 +56,6 @@ import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
 import org.knime.base.data.filter.row.v2.OffsetFilter;
 import org.knime.base.node.preproc.filter.row3.FilterOperator;
 import org.knime.core.data.BooleanValue;
-import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.DataValueComparatorDelegator;
@@ -235,27 +233,45 @@ abstract class OrderingPredicateFactory extends AbstractPredicateFactory {
         public IndexedRowReadPredicate createPredicate(final int columnIndex, final DynamicValuesInput inputValues)
             throws InvalidSettingsException {
             final var refCell = getCellAtOrThrow(inputValues, 0);
-            final var ref = getReferenceValue(refCell, "input column");
+            if (refCell instanceof IntCell intRef) {
+                final var ref = intRef.getIntValue();
+                return comparingWithIntValue(columnIndex, ref);
+            }
 
+            if (refCell instanceof LongCell longRef) {
+                final var ref = longRef.getLongValue();
+                return comparingWithLongValue(columnIndex, ref);
+            }
+
+            // backwards-compatibility: allow this comparison, even though it is possibly lossy
+            if (refCell instanceof DoubleCell doubleRef) {
+                // we should log a warning at the node here, but we currently don't have access to the node model
+                final var ref = doubleRef.getDoubleValue();
+                return comparingWithDoubleValue(columnIndex, ref);
+            }
+
+            final var refCellType = refCell.getType();
+            throw createInvalidSettingsException("input column", LongCell.TYPE, refCellType,
+                new DataType[]{IntCell.TYPE, LongCell.TYPE, DoubleCell.TYPE});
+        }
+
+        private IndexedRowReadPredicate comparingWithIntValue(final int columnIndex, final int ref) {
+            // [performance optimization]: take domain into account
+            // need upcast int to long
             final var predicate = LongOrderingPredicate.create(ref, m_ordering);
             return (idx, rowRead) -> predicate.test(rowRead.<LongValue> getValue(columnIndex).getLongValue());
         }
 
-        private static long getReferenceValue(final DataCell refCell,
-            final String rowNumberOrColumn) throws InvalidSettingsException {
-            long ref;
-            if (refCell instanceof IntCell intCell) {
-                ref = intCell.getIntValue();
-            } else if (refCell instanceof LongCell longCell) {
-                ref = longCell.getLongValue();
-            } else {
-                final var refCellType = refCell.getType();
-                throw createInvalidSettingsException(rowNumberOrColumn, LongCell.TYPE, refCellType,
-                    new DataType[]{IntCell.TYPE, LongCell.TYPE});
-            }
-            return ref;
+        private IndexedRowReadPredicate comparingWithLongValue(final int columnIndex, final long ref) {
+            final var predicate = LongOrderingPredicate.create(ref, m_ordering);
+            return (idx, rowRead) -> predicate.test(rowRead.<LongValue> getValue(columnIndex).getLongValue());
         }
 
+        private IndexedRowReadPredicate comparingWithDoubleValue(final int columnIndex, final double ref) {
+            // backwards-compatibility: previous versions allowed to compare Long columns with double reference values
+            final var predicate = DoubleOrderingPredicate.create(ref, m_ordering);
+            return (idx, rowRead) -> predicate.test(rowRead.<DoubleValue> getValue(columnIndex).getDoubleValue());
+        }
     }
 
     /**
@@ -277,6 +293,8 @@ abstract class OrderingPredicateFactory extends AbstractPredicateFactory {
             } else if (refCell instanceof DoubleCell doubleCell) {
                 ref = doubleCell.getDoubleValue();
             } else {
+                // Note: disallowing "double column x long ref" is inconsistent with allowing "long column x double ref"
+                // but we allow the latter only because of backwards compatibility with previous versions.
                 final var refCellType = refCell.getType();
                 throw createInvalidSettingsException("input column", DoubleCell.TYPE, refCellType,
                     new DataType[]{IntCell.TYPE, DoubleCell.TYPE});
