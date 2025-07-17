@@ -105,6 +105,16 @@ class ExtractTableSpecNodeModel extends NodeModel {
      */
     public ExtractTableSpecNodeModel() {
         super(1, 1);
+        /*
+         * AP-24683:
+         * This settings model is used in the dialog to store display strings, e.g. "Identifier",
+         * instead of "IDENTIFIER". Here, in the node model, we store enum names.
+         * The node settings are oblivious to display strings and always expect enum names
+         * (whose translation the dialog handles correctly). However, because of the different
+         * usages of this settings model under the same key, we have to translate the default
+         * value of the settings model from display string to enum name *once*.
+         */
+        m_typeNameFormat.setStringValue(TypeNameFormat.fromString(m_typeNameFormat.getStringValue()).name());
     }
 
     /**
@@ -143,6 +153,7 @@ class ExtractTableSpecNodeModel extends NodeModel {
             ? PossibleValueOutputFormat.Collection : PossibleValueOutputFormat.Hide);
         extractor.setPropertyHandlerOutputFormat(m_extractPropertyHandlersModel.getBooleanValue()
             ? PropertyHandlerOutputFormat.Boolean : PropertyHandlerOutputFormat.Hide);
+        // parsing the enum name (all caps) requires #valueOf
         extractor.setTypeNameFormat(TypeNameFormat.valueOf(m_typeNameFormat.getStringValue()));
         return extractor.extract(spec);
     }
