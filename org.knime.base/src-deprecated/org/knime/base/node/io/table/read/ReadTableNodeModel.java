@@ -266,7 +266,7 @@ public class ReadTableNodeModel extends NodeModel {
             if (sizeFinal > 0) {
                 CountingInputStream bcs = new CountingInputStream(in) {
                     @Override
-                    protected synchronized void afterRead(final int n) {
+                    protected synchronized void afterRead(final int n) throws IOException {
                         super.afterRead(n);
                         final long byteCount = getByteCount();
                         exec.setProgress((double)byteCount / sizeFinal,
