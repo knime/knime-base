@@ -94,10 +94,11 @@ import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.Icon;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.layout.Layout;
@@ -107,12 +108,12 @@ import org.knime.node.parameters.persistence.Persistable;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.updates.ButtonReference;
 import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.Predicate;
 import org.knime.node.parameters.updates.PredicateProvider;
 import org.knime.node.parameters.updates.Reference;
 import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.EnumChoice;
 import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
@@ -123,8 +124,8 @@ import org.knime.node.parameters.widget.number.NumberInputWidget;
 import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 import org.knime.node.parameters.widget.text.TextInputWidget;
-import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternValidation;
 import org.knime.node.parameters.widget.text.TextInputWidgetValidation.MaxLengthValidation.HasAtMaxOneCharValidation;
+import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternValidation;
 import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternValidation.IsNotEmptyValidation;
 import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternValidation.IsSingleCharacterValidation;
 
@@ -240,7 +241,7 @@ public final class CSVTableReaderNodeSettings implements NodeParameters {
         static final class ColumnDelimiterProvider extends ProviderFromCSVFormat<String> {
 
             @Override
-            public String computeState(final DefaultNodeSettingsContext context) {
+            public String computeState(final NodeParametersInput context) {
                 return EscapeUtils.escape(getCsvFormat().getDelimiterString());
             }
 
@@ -266,7 +267,7 @@ public final class CSVTableReaderNodeSettings implements NodeParameters {
 
         static final class QuoteCharacterProvider extends ProviderFromCSVFormat<String> {
             @Override
-            public String computeState(final DefaultNodeSettingsContext context) {
+            public String computeState(final NodeParametersInput context) {
                 return Character.toString(getCsvFormat().getQuote());
             }
         }
@@ -284,7 +285,7 @@ public final class CSVTableReaderNodeSettings implements NodeParameters {
 
         static final class QuoteEscapeCharacterProvider extends ProviderFromCSVFormat<String> {
             @Override
-            public String computeState(final DefaultNodeSettingsContext context) {
+            public String computeState(final NodeParametersInput context) {
                 return Character.toString(getCsvFormat().getQuoteEscape());
             }
         }
@@ -330,7 +331,7 @@ public final class CSVTableReaderNodeSettings implements NodeParameters {
         static final class RowDelimiterOptionProvider extends ProviderFromCSVFormat<RowDelimiterOption> {
 
             @Override
-            public RowDelimiterOption computeState(final DefaultNodeSettingsContext context) {
+            public RowDelimiterOption computeState(final NodeParametersInput context) {
                 if (OSIndependentNewLineReader.isLineBreak(getCsvFormat().getLineSeparatorString())) {
                     return RowDelimiterOption.LINE_BREAK;
                 }
@@ -361,7 +362,7 @@ public final class CSVTableReaderNodeSettings implements NodeParameters {
 
         static final class CustomRowDelimiterProvider extends ProviderFromCSVFormat<String> {
             @Override
-            public String computeState(final DefaultNodeSettingsContext context) {
+            public String computeState(final NodeParametersInput context) {
                 return EscapeUtils.escape(getCsvFormat().getLineSeparatorString());
             }
 
@@ -657,7 +658,7 @@ public final class CSVTableReaderNodeSettings implements NodeParameters {
             static final class EncodingChoicesProvider implements EnumChoicesProvider<FileEncodingOption> {
 
                 @Override
-                public List<EnumChoice<FileEncodingOption>> computeState(final DefaultNodeSettingsContext context) {
+                public List<EnumChoice<FileEncodingOption>> computeState(final NodeParametersInput context) {
                     return Arrays.stream(FileEncodingOption.values()).map(FileEncodingOption::toEnumChoice).toList();
                 }
             }

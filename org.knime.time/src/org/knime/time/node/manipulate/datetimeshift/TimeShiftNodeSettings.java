@@ -53,19 +53,20 @@ import java.util.Collection;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.CompatibleColumnChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.CompatibleDataValueClassesSupplier;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.Predicate;
 import org.knime.node.parameters.updates.PredicateProvider;
 import org.knime.node.parameters.updates.Reference;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
@@ -81,7 +82,7 @@ import org.knime.time.util.TimeBasedGranularityUnit;
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-class TimeShiftNodeSettings implements DefaultNodeSettings {
+class TimeShiftNodeSettings implements NodeParameters {
     @Widget(title = "Date&time columns", description = "The date&amp;time columns whose values are shifted.")
     @ChoicesProvider(ColumnProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
@@ -157,7 +158,7 @@ class TimeShiftNodeSettings implements DefaultNodeSettings {
     /**
      * @param context
      */
-    protected TimeShiftNodeSettings(final DefaultNodeSettingsContext context) {
+    protected TimeShiftNodeSettings(final NodeParametersInput context) {
         this(context.getDataTableSpecs()[0]);
     }
 

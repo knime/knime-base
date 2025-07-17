@@ -50,19 +50,20 @@ package org.knime.base.node.preproc.filter.missingvaluecolfilter;
 
 import org.knime.base.node.util.LegacyColumnFilterMigration;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.DefaultProvider;
 import org.knime.node.parameters.migration.Migrate;
 import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.Predicate;
 import org.knime.node.parameters.updates.PredicateProvider;
 import org.knime.node.parameters.updates.Reference;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
@@ -165,7 +166,7 @@ final class MissingValueColumnFilterNodeSettings implements NodeParameters {
         this((DataTableSpec)null);
     }
 
-    MissingValueColumnFilterNodeSettings(final DefaultNodeSettingsContext context) {
+    MissingValueColumnFilterNodeSettings(final NodeParametersInput context) {
         this(context.getDataTableSpec(0).orElse(null));
     }
 

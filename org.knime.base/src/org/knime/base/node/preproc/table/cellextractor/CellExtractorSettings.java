@@ -48,14 +48,15 @@
  */
 package org.knime.base.node.preproc.table.cellextractor;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.Predicate;
 import org.knime.node.parameters.updates.PredicateProvider;
 import org.knime.node.parameters.updates.Reference;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
@@ -76,7 +77,7 @@ public final class CellExtractorSettings implements NodeParameters {
      *
      * @param context the creation context
      */
-    CellExtractorSettings(final DefaultNodeSettingsContext context) {
+    CellExtractorSettings(final NodeParametersInput context) {
         var spec = context.getDataTableSpecs()[0];
         if (spec != null && spec.getNumColumns() > 0) {
             m_columnName = spec.getColumnSpec(0).getName();

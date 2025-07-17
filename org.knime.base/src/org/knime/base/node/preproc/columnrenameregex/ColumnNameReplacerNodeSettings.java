@@ -54,7 +54,7 @@ import org.knime.base.node.util.regex.CaseMatching;
 import org.knime.base.node.util.regex.PatternType;
 import org.knime.base.node.util.regex.ReplacementStrategy;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.booleanhelpers.AlwaysSaveTrueBoolean;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.ConfigMigration;

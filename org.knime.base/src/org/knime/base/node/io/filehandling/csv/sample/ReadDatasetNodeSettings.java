@@ -48,7 +48,7 @@
  */
 package org.knime.base.node.io.filehandling.csv.sample;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.widget.choices.Label;
 

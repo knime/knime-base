@@ -50,8 +50,9 @@ package org.knime.base.node.flowvariable.credentialspropertiesextractor;
 import java.util.List;
 
 import org.knime.core.node.workflow.VariableType.CredentialsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.StringChoicesProvider;
@@ -66,7 +67,7 @@ public final class CredentialsPropertyExtractorSettings implements NodeParameter
         // empty constructor for persistence
     }
 
-    CredentialsPropertyExtractorSettings(final DefaultNodeSettingsContext context) {
+    CredentialsPropertyExtractorSettings(final NodeParametersInput context) {
         m_selectedCredentials = new StringFilter(CredentialsFlowVariables.getAllCredentialsVariables(context));
     }
 
@@ -97,11 +98,11 @@ public final class CredentialsPropertyExtractorSettings implements NodeParameter
     /** Select all credentials variables by default. */
     private static final class CredentialsFlowVariables implements StringChoicesProvider {
         @Override
-        public List<String> choices(final DefaultNodeSettingsContext context) {
+        public List<String> choices(final NodeParametersInput context) {
             return getAllCredentialsVariables(context);
         }
 
-        static List<String> getAllCredentialsVariables(final DefaultNodeSettingsContext context) {
+        static List<String> getAllCredentialsVariables(final NodeParametersInput context) {
             final var credentialVariables = context.getAvailableInputFlowVariables(CredentialsType.INSTANCE);
             return credentialVariables.keySet().stream().toList();
 

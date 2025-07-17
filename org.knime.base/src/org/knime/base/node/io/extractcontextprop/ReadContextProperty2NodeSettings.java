@@ -52,16 +52,17 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.util.ContextProperties;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.persistence.NodeSettingsPersistor;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.Predicate;
 import org.knime.node.parameters.updates.PredicateProvider;
 import org.knime.node.parameters.updates.Reference;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.StringChoicesProvider;
 
@@ -101,7 +102,7 @@ final class ReadContextProperty2NodeSettings implements NodeParameters {
     /** Provider for the extractable properties' names. */
     private static final class ContextPropsChoicesProvider implements StringChoicesProvider {
         @Override
-        public List<String> choices(final DefaultNodeSettingsContext context) {
+        public List<String> choices(final NodeParametersInput context) {
             return Arrays.asList(ALL_PROP_KEYS);
         }
     }

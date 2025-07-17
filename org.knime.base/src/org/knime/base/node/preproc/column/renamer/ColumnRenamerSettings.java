@@ -56,9 +56,10 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.booleanhelpers.AlwaysSaveTrueBoolean;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.array.ArrayWidget;
 import org.knime.node.parameters.layout.HorizontalLayout;
@@ -80,7 +81,7 @@ import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternVa
 @SuppressWarnings("restriction")
 public final class ColumnRenamerSettings implements NodeParameters {
 
-    ColumnRenamerSettings(final DefaultNodeSettingsContext context) {
+    ColumnRenamerSettings(final NodeParametersInput context) {
         // pick the last column because a typical scenario is to rename columns appended by the previous node
         var initialColumn = context.getDataTableSpec(0)//
             .filter(s -> s.getNumColumns() > 0)//
@@ -118,7 +119,7 @@ public final class ColumnRenamerSettings implements NodeParameters {
         }
 
         @Override
-        public Renaming computeState(final DefaultNodeSettingsContext context) throws StateComputationFailureException {
+        public Renaming computeState(final NodeParametersInput context) throws StateComputationFailureException {
             final var spec = context.getDataTableSpec(0);
             if (spec.isEmpty()) {
                 return new Renaming();
@@ -173,7 +174,7 @@ public final class ColumnRenamerSettings implements NodeParameters {
             }
 
             @Override
-            public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
+            public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
                 final var spec = context.getDataTableSpec(0);
                 if (spec.isEmpty()) {
                     return Collections.emptyList();

@@ -56,12 +56,13 @@ import java.util.stream.IntStream;
 import org.knime.base.node.util.LegacyColumnFilterMigration;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.layout.CheckboxesWithVennDiagram;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.StringToStringWithRowIDChoiceMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.array.ArrayWidget;
@@ -75,11 +76,11 @@ import org.knime.node.parameters.migration.NodeSettingsMigration;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistable;
 import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.Predicate;
 import org.knime.node.parameters.updates.PredicateProvider;
 import org.knime.node.parameters.updates.Reference;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
@@ -137,7 +138,7 @@ final class Joiner3NodeSettings implements NodeParameters {
     Joiner3NodeSettings() {
     }
 
-    Joiner3NodeSettings(final DefaultNodeSettingsContext context) {
+    Joiner3NodeSettings(final NodeParametersInput context) {
         context.getDataTableSpec(0).ifPresent(spec -> m_leftColumnSelectionConfigV2 =
             new ColumnFilter(spec.getColumnNames()).withIncludeUnknownColumns());
         context.getDataTableSpec(1).ifPresent(spec -> m_rightColumnSelectionConfigV2 =

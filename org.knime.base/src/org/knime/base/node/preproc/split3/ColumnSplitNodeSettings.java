@@ -50,8 +50,9 @@ package org.knime.base.node.preproc.split3;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.filter.TwinlistWidget;
@@ -76,7 +77,7 @@ final class ColumnSplitNodeSettings implements NodeParameters {
     ColumnSplitNodeSettings() {
     }
 
-    ColumnSplitNodeSettings(final DefaultNodeSettingsContext context) {
+    ColumnSplitNodeSettings(final NodeParametersInput context) {
         m_columnsToInclude = new ColumnFilter(context.getDataTableSpec(0) //
             .stream() //
             .flatMap(DataTableSpec::stream) //

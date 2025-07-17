@@ -56,10 +56,11 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.date.DateAndTimeValue;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.StringToStringWithRowIDChoiceMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.persistence.Persist;
@@ -80,7 +81,7 @@ public final class LagColumnNodeSettings implements NodeParameters {
      *
      * @param context of the settings creation
      */
-    LagColumnNodeSettings(final DefaultNodeSettingsContext context) {
+    LagColumnNodeSettings(final NodeParametersInput context) {
         context.getDataTableSpec(0)//
             .flatMap(LagColumnNodeSettings::findDefaultColumn).ifPresent(column -> {
                 m_column = new StringOrEnum<>(column.getName());

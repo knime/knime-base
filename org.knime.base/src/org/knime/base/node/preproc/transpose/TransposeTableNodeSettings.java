@@ -51,7 +51,7 @@ package org.knime.base.node.preproc.transpose;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.persistence.NodeSettingsPersistor;
 import org.knime.node.parameters.persistence.Persist;

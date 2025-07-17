@@ -62,7 +62,8 @@ import java.util.stream.IntStream;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.workflow.VariableType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.array.ArrayWidget;
 import org.knime.node.parameters.layout.After;
@@ -144,7 +145,7 @@ final class VariableCreatorNodeSettings implements NodeParameters {
             }
 
             @Override
-            public NewFlowVariableSettings computeState(final DefaultNodeSettingsContext context) {
+            public NewFlowVariableSettings computeState(final NodeParametersInput context) {
                 return new NewFlowVariableSettings("variable_" + (m_valueSupplier.get().length + 1),
                     FlowVariableType.STRING, "");
             }

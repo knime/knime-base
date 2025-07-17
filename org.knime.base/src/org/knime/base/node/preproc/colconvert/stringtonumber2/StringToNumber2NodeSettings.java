@@ -56,12 +56,13 @@ import org.knime.core.data.def.LongCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelStringPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
@@ -92,7 +93,7 @@ public final class StringToNumber2NodeSettings implements NodeParameters {
     public StringToNumber2NodeSettings() {
     }
 
-    StringToNumber2NodeSettings(final DefaultNodeSettingsContext context) {
+    StringToNumber2NodeSettings(final NodeParametersInput context) {
         this();
         m_inclCols =
             new ColumnFilter(ColumnSelectionUtil.getStringColumnsOfFirstPort(context)).withIncludeUnknownColumns();

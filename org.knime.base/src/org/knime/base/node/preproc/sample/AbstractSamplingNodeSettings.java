@@ -56,8 +56,9 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.NominalValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.migration.ConfigMigration;
@@ -66,11 +67,11 @@ import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.migration.NodeSettingsMigration;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.Predicate;
 import org.knime.node.parameters.updates.PredicateProvider;
 import org.knime.node.parameters.updates.Reference;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.widget.DefaultValueProvider;
 import org.knime.node.parameters.widget.OptionalWidget;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
@@ -102,7 +103,7 @@ public abstract class AbstractSamplingNodeSettings implements NodeParameters {
      *
      * @param context to retrieve the data table spec from
      */
-    protected AbstractSamplingNodeSettings(final DefaultNodeSettingsContext context) {
+    protected AbstractSamplingNodeSettings(final NodeParametersInput context) {
         final var firstCol = context.getDataTableSpec(0) //
             .stream() //
             .flatMap(DataTableSpec::stream).filter(spec -> spec.getType().isCompatible(NominalValue.class)).findFirst();
@@ -309,7 +310,7 @@ public abstract class AbstractSamplingNodeSettings implements NodeParameters {
     static final class SeedDefaultProvider implements DefaultValueProvider<Long> {
 
         @Override
-        public Long computeState(final DefaultNodeSettingsContext context) throws StateComputationFailureException {
+        public Long computeState(final NodeParametersInput context) throws StateComputationFailureException {
             return 1678807467440L;
         }
 

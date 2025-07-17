@@ -53,11 +53,12 @@ import org.knime.core.data.StringValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.booleanhelpers.AlwaysSaveTrueBoolean;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelStringPersistor;
 import org.knime.node.parameters.Advanced;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
@@ -88,7 +89,7 @@ final class RegexSplitNodeSettings implements NodeParameters {
         //
     }
 
-    RegexSplitNodeSettings(final DefaultNodeSettingsContext context) {
+    RegexSplitNodeSettings(final NodeParametersInput context) {
         var tableSpec = context.getDataTableSpec(0).orElse(null);
         if (tableSpec != null) {
             for (var spec : tableSpec) {

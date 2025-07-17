@@ -78,8 +78,8 @@ import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
@@ -150,7 +150,7 @@ final class StringToDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshot
     void testThatGuessButtonWorks() {
         var inputSpec = new TableTestUtil.SpecBuilder().addColumn("datetimes", StringCellFactory.TYPE).build();
         var inputTable = new TableTestUtil.TableBuilder(inputSpec).addRow("2024-01-25 14:00").build().get();
-        var fakeContext = DefaultNodeSettingsContext.createDefaultNodeSettingsContext( //
+        var fakeContext = NodeParametersInput.createDefaultNodeSettingsContext( //
             new PortType[]{BufferedDataTable.TYPE}, //
             new PortObjectSpec[]{inputSpec}, //
             null, //
@@ -174,7 +174,7 @@ final class StringToDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshot
     void testThatGuessButtonFailsWhenNoColSelected() {
         var inputSpec = new TableTestUtil.SpecBuilder().addColumn("datetimes", StringCellFactory.TYPE).build();
         var inputTable = new TableTestUtil.TableBuilder(inputSpec).addRow("2024-01-25 14:00").build().get();
-        var fakeContext = DefaultNodeSettingsContext.createDefaultNodeSettingsContext( //
+        var fakeContext = NodeParametersInput.createDefaultNodeSettingsContext( //
             new PortType[]{BufferedDataTable.TYPE}, //
             new PortObjectSpec[]{inputSpec}, //
             null, //
@@ -201,7 +201,7 @@ final class StringToDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshot
             .addRow("2024-01-25") //
             .addRow("14:00") //
             .build().get();
-        var fakeContext = DefaultNodeSettingsContext.createDefaultNodeSettingsContext( //
+        var fakeContext = NodeParametersInput.createDefaultNodeSettingsContext( //
             new PortType[]{BufferedDataTable.TYPE}, //
             new PortObjectSpec[]{inputSpec}, //
             null, //
@@ -225,7 +225,7 @@ final class StringToDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshot
     void testThatGuessButtonFailsOnEmptyColumn() {
         var inputSpec = new TableTestUtil.SpecBuilder().addColumn("datetimes", StringCellFactory.TYPE).build();
         var inputTable = new TableTestUtil.TableBuilder(inputSpec).build().get();
-        var fakeContext = DefaultNodeSettingsContext.createDefaultNodeSettingsContext( //
+        var fakeContext = NodeParametersInput.createDefaultNodeSettingsContext( //
             new PortType[]{BufferedDataTable.TYPE}, //
             new PortObjectSpec[]{inputSpec}, //
             null, //
@@ -249,7 +249,7 @@ final class StringToDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshot
     void testThatGuessButtonFailsOnMissingValueColumn() {
         var inputSpec = new TableTestUtil.SpecBuilder().addColumn("datetimes", StringCellFactory.TYPE).build();
         var inputTable = new TableTestUtil.TableBuilder(inputSpec).addRow(DataType.getMissingCell()).build().get();
-        var fakeContext = DefaultNodeSettingsContext.createDefaultNodeSettingsContext( //
+        var fakeContext = NodeParametersInput.createDefaultNodeSettingsContext( //
             new PortType[]{BufferedDataTable.TYPE}, //
             new PortObjectSpec[]{inputSpec}, //
             null, //
@@ -284,7 +284,7 @@ final class StringToDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshot
                 .resolve("StringToDateTimeNodeSettings.xml");
             try (var fis = new FileInputStream(path.toFile())) {
                 var nodeSettings = NodeSettings.loadFromXML(fis);
-                return DefaultNodeSettings.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                return NodeParameters.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
                     StringToDateTimeNodeSettings.class);
             }
         } catch (IOException | InvalidSettingsException e) {

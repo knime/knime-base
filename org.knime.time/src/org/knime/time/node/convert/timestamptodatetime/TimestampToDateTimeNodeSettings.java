@@ -56,12 +56,13 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.IntValue;
 import org.knime.core.data.LongValue;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.updates.Effect;
-import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
@@ -70,12 +71,12 @@ import org.knime.time.util.DateTimeType;
 import org.knime.time.util.ReplaceOrAppend;
 
 @SuppressWarnings("restriction")
-final class TimestampToDateTimeNodeSettings implements DefaultNodeSettings {
+final class TimestampToDateTimeNodeSettings implements NodeParameters {
 
     TimestampToDateTimeNodeSettings() {
     }
 
-    TimestampToDateTimeNodeSettings(final DefaultNodeSettingsContext context) {
+    TimestampToDateTimeNodeSettings(final NodeParametersInput context) {
         var spec = context.getDataTableSpec(0);
 
         if (spec.isPresent()) {
@@ -96,7 +97,7 @@ final class TimestampToDateTimeNodeSettings implements DefaultNodeSettings {
     static final class TimestampColumnsProvider implements ColumnChoicesProvider {
 
         @Override
-        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
+        public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
             return context.getDataTableSpec(0).stream().flatMap(DataTableSpec::stream)
                 .filter(TimestampToDateTimeNodeSettings::isTimestampColumn).toList();
         }

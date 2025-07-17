@@ -67,7 +67,7 @@ import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.node.parameters.updates.Reference;
@@ -129,7 +129,7 @@ final class AbstractRowFilterNodeSettingsTest {
 
     private static DynamicValuesInput inputFor(final StringOrEnum<RowIdentifiers> columnSelection,
         final FilterOperator operator) {
-        final var ctx = DefaultNodeSettings.createDefaultNodeSettingsContext(new DataTableSpec[]{SPEC});
+        final var ctx = NodeParameters.createDefaultNodeSettingsContext(new DataTableSpec[]{SPEC});
         final var provider = new AbstractRowFilterNodeSettings.FilterCriterion.TypeAndOperatorBasedInput();
         provider.init(new TestInitializer() {
             // - selected column value supplier

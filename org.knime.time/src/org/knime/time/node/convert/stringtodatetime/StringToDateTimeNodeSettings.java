@@ -53,7 +53,6 @@ import java.util.function.Supplier;
 import java.util.stream.StreamSupport;
 
 import org.knime.core.data.StringValue;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
@@ -64,16 +63,18 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTi
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider.LocaleValueRef;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.updates.ButtonReference;
 import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.Predicate;
 import org.knime.node.parameters.updates.PredicateProvider;
 import org.knime.node.parameters.updates.Reference;
 import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider.StringColumnsProvider;
@@ -85,12 +86,12 @@ import org.knime.time.util.ReplaceOrAppend;
  * @author Tobias Kampmann, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
+final class StringToDateTimeNodeSettings implements NodeParameters {
 
     StringToDateTimeNodeSettings() {
     }
 
-    StringToDateTimeNodeSettings(final DefaultNodeSettingsContext context) {
+    StringToDateTimeNodeSettings(final NodeParametersInput context) {
         var spec = context.getDataTableSpec(0);
 
         if (spec.isPresent()) {
@@ -190,7 +191,7 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public TemporalFormat computeState(final DefaultNodeSettingsContext context) {
+        public TemporalFormat computeState(final NodeParametersInput context) {
             var guessedFormat = autoGuessFormat(context, m_selectedColumns, m_localeLanguageTag);
 
             return new TemporalFormat(guessedFormat.format(), guessedFormat.temporalType());
@@ -208,7 +209,7 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
 
     private static final int NUMBER_OF_ROWS_TO_CHECK = 1000;
 
-    static TemporalFormat autoGuessFormat(final DefaultNodeSettingsContext context,
+    static TemporalFormat autoGuessFormat(final NodeParametersInput context,
         final Supplier<ColumnFilter> selectedColumns, final Supplier<String> localeLanguageTag) {
         var inputTable = context.getDataTable(0);
         var inputTableSpec = context.getDataTableSpec(0);

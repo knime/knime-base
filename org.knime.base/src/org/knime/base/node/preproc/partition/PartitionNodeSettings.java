@@ -50,6 +50,7 @@ package org.knime.base.node.preproc.partition;
 
 import org.knime.base.node.preproc.partition.PartitionNodeSettings.PartitionModification;
 import org.knime.base.node.preproc.sample.AbstractSamplingNodeSettings;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.WidgetGroup.Modification;
 
 /**
@@ -65,7 +66,7 @@ final class PartitionNodeSettings extends AbstractSamplingNodeSettings {
         super();
     }
 
-    PartitionNodeSettings(final DefaultNodeSettingsContext context) {
+    PartitionNodeSettings(final NodeParametersInput context) {
         super(context);
     }
 

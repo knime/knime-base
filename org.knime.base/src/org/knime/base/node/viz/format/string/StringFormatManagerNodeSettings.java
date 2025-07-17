@@ -52,9 +52,10 @@ import static org.knime.base.node.viz.format.string.StringFormatManagerNodeModel
 
 import org.knime.base.node.viz.format.AlignmentSuggestionOption;
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.HorizontalLayout;
@@ -62,11 +63,11 @@ import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.migration.Migrate;
 import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.Predicate;
 import org.knime.node.parameters.updates.PredicateProvider;
 import org.knime.node.parameters.updates.Reference;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
@@ -248,7 +249,7 @@ public final class StringFormatManagerNodeSettings implements NodeParameters {
         // required by framework for serialization/deserialization
     }
 
-    StringFormatManagerNodeSettings(final DefaultNodeSettingsContext ctx) {
+    StringFormatManagerNodeSettings(final NodeParametersInput ctx) {
         m_columnsToFormat =
             new ColumnFilter(ColumnSelectionUtil.getFilteredColumns(ctx, 0, StringFormatManagerNodeModel::isStringCell))
                 .withIncludeUnknownColumns();

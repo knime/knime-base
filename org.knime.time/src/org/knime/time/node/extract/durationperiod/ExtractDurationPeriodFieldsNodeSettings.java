@@ -57,7 +57,8 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.time.duration.DurationValue;
 import org.knime.core.data.time.period.PeriodValue;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.array.ArrayWidget;
 import org.knime.node.parameters.array.ArrayWidget.ElementLayout;
@@ -73,7 +74,7 @@ import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider;
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-class ExtractDurationPeriodFieldsNodeSettings implements DefaultNodeSettings {
+class ExtractDurationPeriodFieldsNodeSettings implements NodeParameters {
 
     @Widget(title = "Duration column", description = """
             A duration column from which to extract the fields.
@@ -130,7 +131,7 @@ class ExtractDurationPeriodFieldsNodeSettings implements DefaultNodeSettings {
             }
 
             @Override
-            public String computeState(final DefaultNodeSettingsContext context) {
+            public String computeState(final NodeParametersInput context) {
                 if (m_valueSupplier.get() == null || m_valueSupplier.get().isEmpty()) {
                     return context.getDataTableSpec(0) //
                         .map(ValueProvider::getFirstCompatibleColumnNameInInputTable) //

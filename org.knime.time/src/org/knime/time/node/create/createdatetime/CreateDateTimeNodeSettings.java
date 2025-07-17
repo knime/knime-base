@@ -55,21 +55,22 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.function.Supplier;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.Predicate;
 import org.knime.node.parameters.updates.PredicateProvider;
 import org.knime.node.parameters.updates.Reference;
 import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
@@ -85,7 +86,7 @@ import org.knime.time.util.DateTimeType.IsDateTimeTypeAndNotDisabled;
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
+public class CreateDateTimeNodeSettings implements NodeParameters {
 
     @Section(title = "Starting Point")
     interface StartingPointSettingsSection {
@@ -286,7 +287,7 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public IntervalWidget.IntervalType computeState(final DefaultNodeSettingsContext context) {
+        public IntervalWidget.IntervalType computeState(final NodeParametersInput context) {
             return switch (m_fixedStepsValueSupplier.get()) {
                 case LOCAL_DATE -> IntervalWidget.IntervalType.DATE;
                 case LOCAL_TIME -> IntervalWidget.IntervalType.TIME;

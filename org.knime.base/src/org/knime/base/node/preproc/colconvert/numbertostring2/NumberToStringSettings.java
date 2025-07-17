@@ -51,9 +51,10 @@ package org.knime.base.node.preproc.colconvert.numbertostring2;
 import static org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil.getDoubleColumnsOfFirstPort;
 
 import org.knime.base.node.preproc.pmml.numbertostring3.AbstractNumberToStringNodeModel;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
@@ -73,7 +74,7 @@ public final class NumberToStringSettings implements NodeParameters {
      *
      * @param context of the settings creation
      */
-    NumberToStringSettings(final DefaultNodeSettingsContext context) {
+    NumberToStringSettings(final NodeParametersInput context) {
         m_columns = new ColumnFilter(getDoubleColumnsOfFirstPort(context)).withIncludeUnknownColumns();
     }
 

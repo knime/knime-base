@@ -58,19 +58,20 @@ import org.knime.base.node.preproc.rounddouble.RoundDoubleMigrations.OutputModeM
 import org.knime.base.node.preproc.rounddouble.RoundDoubleMigrations.RoundingMethodMigration;
 import org.knime.base.node.preproc.rounddouble.RoundDoubleNodeSettings.RoundingMethod.Standard;
 import org.knime.base.node.util.LegacyColumnFilterMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistable;
 import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.Predicate;
 import org.knime.node.parameters.updates.PredicateProvider;
 import org.knime.node.parameters.updates.Reference;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
@@ -341,7 +342,7 @@ public final class RoundDoubleNodeSettings implements NodeParameters {
     }
 
     // Constructors
-    RoundDoubleNodeSettings(final DefaultNodeSettingsContext ctx) {
+    RoundDoubleNodeSettings(final NodeParametersInput ctx) {
         m_columnsToFormat = new ColumnFilter(getDoubleColumnsOfFirstPort(ctx)).withIncludeUnknownColumns();
     }
 

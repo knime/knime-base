@@ -72,8 +72,8 @@ import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.node.parameters.updates.ButtonReference;
@@ -185,7 +185,7 @@ final class FilterOperatorTest {
     }
 
     static FilterOperator[] operatorChoicesFor(final StringOrEnum<RowIdentifiers> columnSelection) {
-        final var ctx = DefaultNodeSettings.createDefaultNodeSettingsContext(new DataTableSpec[]{SPEC});
+        final var ctx = NodeParameters.createDefaultNodeSettingsContext(new DataTableSpec[]{SPEC});
 
         final var provider = new TypeBasedOperatorsProvider();
         provider.init(new TestInitializer() {
@@ -247,7 +247,7 @@ final class FilterOperatorTest {
         }
 
         @Override
-        public DefaultNodeSettingsContext getContext() {
+        public NodeParametersInput getContext() {
             throw new IllegalStateException("Not expected to be called during test.");
         }
     }

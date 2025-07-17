@@ -63,8 +63,8 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.sort.RowComparator;
 import org.knime.core.data.sort.RowComparator.ColumnComparatorBuilder;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.booleanhelpers.DoNotPersistBoolean;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelectionToStringWithRowIDChoiceMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
@@ -175,7 +175,7 @@ public final class SortingUtils {
          * @param context
          * @return optional value of the first available column spec.
          */
-        protected Optional<DataColumnSpec> getFirstAvailableDataColumnSpec(final DefaultNodeSettingsContext context) {
+        protected Optional<DataColumnSpec> getFirstAvailableDataColumnSpec(final NodeParametersInput context) {
             final var spec = context.getDataTableSpec(0);
             if (spec.isEmpty()) {
                 return Optional.empty();
@@ -210,7 +210,7 @@ public final class SortingUtils {
         }
 
         @Override
-        public SortingCriterionSettings computeState(final DefaultNodeSettingsContext context)
+        public SortingCriterionSettings computeState(final NodeParametersInput context)
             throws StateComputationFailureException {
             final var firstAvailableCol = getFirstAvailableDataColumnSpec(context);
             if (firstAvailableCol.isEmpty()) {
@@ -256,7 +256,7 @@ public final class SortingUtils {
          *
          * @param context
          */
-        public SortingCriterionSettings(final DefaultNodeSettingsContext context) {
+        public SortingCriterionSettings(final NodeParametersInput context) {
             this(context.getDataTableSpec(0).flatMap(Optional::ofNullable)
                 .map(spec -> spec.getNumColumns() == 0 ? null : spec.getColumnSpec(0)).flatMap(Optional::ofNullable)
                 .orElse(null));
@@ -381,7 +381,7 @@ public final class SortingUtils {
             }
 
             @Override
-            public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
+            public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
                 final var spec = context.getDataTableSpec(0);
                 if (spec.isEmpty()) {
                     return Collections.emptyList();
@@ -422,7 +422,7 @@ public final class SortingUtils {
             }
 
             @Override
-            public Boolean computeState(final DefaultNodeSettingsContext context) {
+            public Boolean computeState(final NodeParametersInput context) {
                 final var tableSpecOptional = context.getDataTableSpec(0);
                 if (tableSpecOptional.isEmpty()) {
                     return false;

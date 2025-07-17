@@ -59,8 +59,9 @@ import org.knime.base.node.util.preproc.SortingUtils.SortingOrder;
 import org.knime.base.node.util.preproc.SortingUtils.StringComparison;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.array.ArrayWidget;
 import org.knime.node.parameters.layout.After;
@@ -87,7 +88,7 @@ final class TopKSelectorNodeSettings implements NodeParameters {
 
     }
 
-    TopKSelectorNodeSettings(final DefaultNodeSettingsContext context) {
+    TopKSelectorNodeSettings(final NodeParametersInput context) {
         this.m_sortingCriteria = new SortingCriterionSettings[]{new SortingCriterionSettings(context)};
     }
 

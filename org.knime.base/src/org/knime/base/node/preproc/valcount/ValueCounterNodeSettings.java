@@ -44,7 +44,8 @@
  */
 package org.knime.base.node.preproc.valcount;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
@@ -70,7 +71,7 @@ final class ValueCounterNodeSettings implements NodeParameters {
     ValueCounterNodeSettings() {
     }
 
-    ValueCounterNodeSettings(final DefaultNodeSettingsContext context) {
+    ValueCounterNodeSettings(final NodeParametersInput context) {
         if (context.getDataTableSpecs().length > 0 && context.getDataTableSpec(0).isPresent()) {
             final var spec = context.getDataTableSpec(0).get(); // NOSONAR it will be present
             if (spec.getNumColumns() > 0) {

@@ -49,7 +49,7 @@
 package org.knime.base.node.preproc.normalize3;
 
 import org.knime.base.node.util.LegacyColumnFilterMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.Migration;

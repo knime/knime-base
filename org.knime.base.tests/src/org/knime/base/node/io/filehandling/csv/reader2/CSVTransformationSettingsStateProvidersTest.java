@@ -79,8 +79,8 @@ import org.knime.core.data.def.LongCell;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.util.Pair;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.testing.node.dialog.updates.DialogUpdateSimulator;
 import org.knime.testing.node.dialog.updates.UpdateSimulator;
 import org.knime.testing.node.dialog.updates.UpdateSimulator.UpdateSimulatorResult;
@@ -234,7 +234,7 @@ final class CSVTransformationSettingsStateProvidersTest {
             return settings;
         }
 
-        static final UpdateSimulator simulator = new DialogUpdateSimulator(m_settings, DefaultNodeSettingsContext
+        static final UpdateSimulator simulator = new DialogUpdateSimulator(m_settings, NodeParametersInput
             .createDefaultNodeSettingsContext(new PortType[0], new PortObjectSpec[0], null, null));
 
         static final UpdateSimulatorResult beforeOpenDialogResults = simulator.simulateBeforeOpenDialog();

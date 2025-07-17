@@ -51,8 +51,9 @@ package org.knime.base.node.viz.format.number;
 import static org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil.getDoubleColumnsOfFirstPort;
 
 import org.knime.base.node.viz.format.AlignmentSuggestionOption;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.HorizontalLayout;
@@ -201,7 +202,7 @@ public final class NumberFormatManagerNodeSettings implements NodeParameters {
 
     // Utility
 
-    NumberFormatManagerNodeSettings(final DefaultNodeSettingsContext ctx) {
+    NumberFormatManagerNodeSettings(final NodeParametersInput ctx) {
         final var numberColumns = getDoubleColumnsOfFirstPort(ctx);
         m_columnsToFormat = new ColumnFilter(numberColumns).withIncludeUnknownColumns();
     }

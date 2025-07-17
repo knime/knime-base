@@ -47,7 +47,7 @@
  */
 package org.knime.base.node.flowvariable.filter;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.StringFilterToFlowVariableFilterMigration;
 import org.knime.node.parameters.Widget;

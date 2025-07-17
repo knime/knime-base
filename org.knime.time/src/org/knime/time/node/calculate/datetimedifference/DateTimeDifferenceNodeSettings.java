@@ -68,22 +68,23 @@ import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
 import org.knime.core.data.time.localtime.LocalTimeCellFactory;
 import org.knime.core.data.time.localtime.LocalTimeValue;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.booleanhelpers.DoNotPersistBoolean;
 import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.Predicate;
 import org.knime.node.parameters.updates.PredicateProvider;
 import org.knime.node.parameters.updates.Reference;
 import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.util.BooleanReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
@@ -104,7 +105,7 @@ import org.knime.time.util.Granularity;
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
+final class DateTimeDifferenceNodeSettings implements NodeParameters {
 
     @Section(title = "Differencing")
     interface DifferencingSettingsSection {
@@ -141,7 +142,7 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public Boolean computeState(final DefaultNodeSettingsContext context) {
+        public Boolean computeState(final NodeParametersInput context) {
             final var tableSpecOptional = context.getDataTableSpec(0);
             if (tableSpecOptional.isEmpty()) {
                 return false;
@@ -284,7 +285,7 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
         this((DataTableSpec)null);
     }
 
-    DateTimeDifferenceNodeSettings(final DefaultNodeSettingsContext context) {
+    DateTimeDifferenceNodeSettings(final NodeParametersInput context) {
         this(context.getDataTableSpec(0).orElse(null));
     }
 
@@ -385,7 +386,7 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
+        public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
             var spec = context.getDataTableSpec(0);
             if (spec.isEmpty()) {
                 return List.of();
@@ -488,7 +489,7 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public Granularity[] computeState(final DefaultNodeSettingsContext context) {
+        public Granularity[] computeState(final NodeParametersInput context) {
             var firstSelectedColumn = m_firstColumn.get();
 
             // if the first selected column exists in the table and is a local date,
@@ -529,7 +530,7 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public List<EnumChoice<Granularity>> computeState(final DefaultNodeSettingsContext context) {
+        public List<EnumChoice<Granularity>> computeState(final NodeParametersInput context) {
             return Arrays.stream(m_applicableGranularities.get()) //
                 .map(ApplicableGranularitiesChoicesProvider::fromGranularity).toList();
         }
@@ -548,7 +549,7 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public Granularity computeState(final DefaultNodeSettingsContext context) {
+        public Granularity computeState(final NodeParametersInput context) {
             final var currentGranularity = m_currentGranularity.get();
             final var granularities = m_applicableGranularities.get();
             return ArrayUtils.contains(granularities, currentGranularity) ? currentGranularity : granularities[0];

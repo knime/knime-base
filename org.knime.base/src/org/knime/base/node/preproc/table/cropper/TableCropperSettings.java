@@ -48,8 +48,9 @@
  */
 package org.knime.base.node.preproc.table.cropper;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.node.parameters.Advanced;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Before;
@@ -57,11 +58,11 @@ import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.migration.Migrate;
 import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.Predicate;
 import org.knime.node.parameters.updates.PredicateProvider;
 import org.knime.node.parameters.updates.Reference;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
@@ -82,7 +83,7 @@ public final class TableCropperSettings implements NodeParameters {
      *
      * @param context of the creation
      */
-    TableCropperSettings(final DefaultNodeSettingsContext context) {
+    TableCropperSettings(final NodeParametersInput context) {
         var spec = context.getDataTableSpecs()[0];
         if (spec != null && spec.getNumColumns() > 0) {
             m_startColumnName = spec.getColumnSpec(0).getName();

@@ -65,8 +65,8 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSConnectionRegistry;
 import org.knime.filehandling.core.connections.FSFileSystem;
@@ -106,29 +106,29 @@ class FileSystemPortConnectionUtilTest extends LocalWorkflowContextTest {
         m_csvReader = (NativeNodeContainer)m_wfm.getNodeContainer(m_csvReader.getID());
     }
 
-    DefaultNodeSettingsContext getDefaultNodeSettingsContextWithoutConnection() {
+    NodeParametersInput getDefaultNodeSettingsContextWithoutConnection() {
 
         NodeContext.pushContext(m_csvReader);
-        return DefaultNodeSettings.createDefaultNodeSettingsContext(new PortObjectSpec[]{});
+        return NodeParameters.createDefaultNodeSettingsContext(new PortObjectSpec[]{});
     }
 
-    DefaultNodeSettingsContext getContextForEmptySpec() {
+    NodeParametersInput getContextForEmptySpec() {
         return getContextForConnection(null);
     }
 
-    DefaultNodeSettingsContext getContextForEmptyConnection() {
+    NodeParametersInput getContextForEmptyConnection() {
         return getContextForConnection(new FileSystemPortObjectSpec());
     }
 
-    DefaultNodeSettingsContext getContextForDummyConnection() {
+    NodeParametersInput getContextForDummyConnection() {
 
         return getContextForConnection(new FileSystemPortObjectSpec(null, dummyFileSystemId, null));
     }
 
-    private DefaultNodeSettingsContext getContextForConnection(final FileSystemPortObjectSpec spec) {
+    private NodeParametersInput getContextForConnection(final FileSystemPortObjectSpec spec) {
 
         NodeContext.pushContext(m_csvReader);
-        return DefaultNodeSettings.createDefaultNodeSettingsContext(new PortObjectSpec[]{spec});
+        return NodeParameters.createDefaultNodeSettingsContext(new PortObjectSpec[]{spec});
     }
 
     static final class DummyFSConnection implements FSConnection {

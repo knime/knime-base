@@ -54,7 +54,7 @@ import java.util.stream.Collectors;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.persistence.NodeSettingsPersistor;
 import org.knime.node.parameters.updates.Reference;
 import org.knime.node.parameters.updates.ValueReference;
@@ -107,7 +107,7 @@ public enum DurationPeriodStringFormat {
     }
 
     /**
-     * A persistor for {@link DurationPeriodStringFormat} objects that can be used in the {@link DefaultNodeSettings}
+     * A persistor for {@link DurationPeriodStringFormat} objects that can be used in the {@link NodeParameters}
      * and can load legacy settings in a backwards-compatible way. Not recommended unless you actually need the
      * backwards compatibility.
      */

@@ -68,11 +68,12 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelectionToStringOrEnumMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.array.ArrayWidget;
 import org.knime.node.parameters.layout.After;
@@ -82,13 +83,13 @@ import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.Predicate;
 import org.knime.node.parameters.updates.PredicateProvider;
 import org.knime.node.parameters.updates.Reference;
 import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
@@ -221,7 +222,7 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
             this((DataColumnSpec)null);
         }
 
-        FilterCriterion(final DefaultNodeSettingsContext ctx) {
+        FilterCriterion(final NodeParametersInput ctx) {
             // set last supported column as default column, like old Row Filter did
             this(ctx.getDataTableSpec(0).stream().flatMap(DataTableSpec::stream).reduce((f, s) -> s).orElse(null));
         }
@@ -341,7 +342,7 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
             }
 
             @Override
-            public DynamicValuesInput computeState(final DefaultNodeSettingsContext context) {
+            public DynamicValuesInput computeState(final NodeParametersInput context) {
                 final var inputSpec = context.getDataTableSpec(0);
                 // spec empty, e.g. when
                 // - nothing connected
@@ -496,7 +497,7 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
     }
 
     // auto-configuration
-    AbstractRowFilterNodeSettings(@SuppressWarnings("unused") final DefaultNodeSettingsContext ctx) { // NOSONAR
+    AbstractRowFilterNodeSettings(@SuppressWarnings("unused") final NodeParametersInput ctx) { // NOSONAR
         // we don't add a filter criterion automatically in order to avoid setting a default value without
         // the user noticing (and we need to set some default value in the filter criterion, s.t. flow variables work
         // correctly)
@@ -527,11 +528,11 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
         }
 
         @Override
-        public List<FilterOperator> choices(final DefaultNodeSettingsContext context) throws WidgetHandlerException {
+        public List<FilterOperator> choices(final NodeParametersInput context) throws WidgetHandlerException {
             return getFilterOperators(context, m_columnSelection.get());
         }
 
-        private static List<FilterOperator> getFilterOperators(final DefaultNodeSettingsContext context,
+        private static List<FilterOperator> getFilterOperators(final NodeParametersInput context,
             final StringOrEnum<RowIdentifiers> column) {
 
             final var rowIdentifierChoice = column.getEnumChoice();
@@ -567,7 +568,7 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
         }
 
         @Override
-        public FilterCriterion computeState(final DefaultNodeSettingsContext context) {
+        public FilterCriterion computeState(final NodeParametersInput context) {
             final var filterCriterion = new FilterCriterion(context);
             final var validOperators = TypeBasedOperatorsProvider.getFilterOperators(context, filterCriterion.m_column);
             if (!validOperators.contains(FilterOperator.EQ)) {

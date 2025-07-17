@@ -51,12 +51,13 @@ package org.knime.time.node.format.datetimeformatmanager;
 import java.util.Locale;
 
 import org.knime.base.node.viz.format.AlignmentSuggestionOption;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider.LocaleValueRef;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
@@ -68,12 +69,12 @@ import org.knime.time.util.LocaleStateProvider;
  * @author Tobias Kampmann
  */
 @SuppressWarnings("restriction")
-final class DateTimeFormatManagerNodeSettings implements DefaultNodeSettings {
+final class DateTimeFormatManagerNodeSettings implements NodeParameters {
 
     DateTimeFormatManagerNodeSettings() {
     }
 
-    DateTimeFormatManagerNodeSettings(final DefaultNodeSettingsContext context) {
+    DateTimeFormatManagerNodeSettings(final NodeParametersInput context) {
         var spec = context.getDataTableSpec(0);
 
         if (spec.isPresent()) {

@@ -62,16 +62,17 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.DataTypeRegistry;
 import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.node.ExecutionContext;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.array.ArrayWidget;
 import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.Predicate;
 import org.knime.node.parameters.updates.PredicateProvider;
 import org.knime.node.parameters.updates.Reference;
 import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.DataTypeChoicesStateProvider;
 import org.knime.node.parameters.widget.choices.Label;
@@ -102,7 +103,7 @@ final class ConstantValueColumnNodeSettings implements NodeParameters {
         NewColumnSettings() {
         }
 
-        NewColumnSettings(final DefaultNodeSettingsContext context) {
+        NewColumnSettings(final NodeParametersInput context) {
             m_columnNameToReplace = context.getDataTableSpec(0) //
                 .stream() //
                 .map(DataTableSpec::stream).flatMap(Function.identity()) //
@@ -183,7 +184,7 @@ final class ConstantValueColumnNodeSettings implements NodeParameters {
             private Supplier<NewColumnSettings[]> m_currentNewColumnSettings;
 
             @Override
-            public NewColumnSettings computeState(final DefaultNodeSettingsContext context) {
+            public NewColumnSettings computeState(final NodeParametersInput context) {
                 var newSettings = new NewColumnSettings(context);
 
                 var existingNewColumns = m_currentNewColumnSettings.get();
@@ -214,7 +215,7 @@ final class ConstantValueColumnNodeSettings implements NodeParameters {
         }
 
         @Override
-        public List<DataType> choices(final DefaultNodeSettingsContext context) {
+        public List<DataType> choices(final NodeParametersInput context) {
             return DataTypeRegistry.getInstance().availableDataTypes().stream() //
                 .filter(d -> {
                     var factory = d.getCellFactory(null);

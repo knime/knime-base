@@ -55,8 +55,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings.NominalValueRowFilterNodeSettings;
-import org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings.NominalValueRowSplitterNodeSettings;
 import org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings.SettingsUtils.LegacyNameFilterPersistorForNominalValueRowFilter;
 import org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings.SettingsUtils.MigrationFromSelectedAttributes;
 import org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings.SettingsUtils.NominalColumnWithDomainChoicesProider;
@@ -69,10 +67,11 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.NominalValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.LegacyNameFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DomainValuesProvider;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.migration.ConfigMigration;
@@ -104,7 +103,7 @@ abstract sealed class NominalValueRowCommonSettings implements NodeParameters {
     NominalValueRowCommonSettings() {
     }
 
-    NominalValueRowCommonSettings(final DefaultNodeSettingsContext context) {
+    NominalValueRowCommonSettings(final NodeParametersInput context) {
         var spec = context.getDataTableSpec(0);
         if (spec.isPresent()) {
             m_selectedColumn = spec.flatMap(SettingsUtils::getFirstCompatibleColumn).orElse(null);
@@ -150,7 +149,7 @@ abstract sealed class NominalValueRowCommonSettings implements NodeParameters {
         NominalValueRowFilterNodeSettings() {
         }
 
-        NominalValueRowFilterNodeSettings(final DefaultNodeSettingsContext context) {
+        NominalValueRowFilterNodeSettings(final NodeParametersInput context) {
             super(context);
         }
 
@@ -225,7 +224,7 @@ abstract sealed class NominalValueRowCommonSettings implements NodeParameters {
         NominalValueRowSplitterNodeSettings() {
         }
 
-        NominalValueRowSplitterNodeSettings(final DefaultNodeSettingsContext context) {
+        NominalValueRowSplitterNodeSettings(final NodeParametersInput context) {
             super(context);
         }
 
@@ -354,7 +353,7 @@ abstract sealed class NominalValueRowCommonSettings implements NodeParameters {
             private Supplier<List<String>> m_domainValues;
 
             @Override
-            public List<String> choices(final DefaultNodeSettingsContext context) {
+            public List<String> choices(final NodeParametersInput context) {
                 return m_domainValues.get();
             }
 
@@ -386,7 +385,7 @@ abstract sealed class NominalValueRowCommonSettings implements NodeParameters {
             }
 
             @Override
-            public StringFilter computeState(final DefaultNodeSettingsContext context) {
+            public StringFilter computeState(final NodeParametersInput context) {
                 final var newChoices = m_newDomainValuesSupplier.get().stream().collect(Collectors.toSet());
                 final var currentSelection = m_currentNameFilterSupplier.get().filter(new String[0]);
                 final var filteredSelection =
@@ -398,7 +397,7 @@ abstract sealed class NominalValueRowCommonSettings implements NodeParameters {
         static final class NominalColumnWithDomainChoicesProider implements ColumnChoicesProvider {
 
             @Override
-            public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
+            public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
                 final var spec = context.getDataTableSpec(0);
                 return getNominalColumnsWithDomain(spec.orElse(null)).toList();
             }

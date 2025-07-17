@@ -62,8 +62,9 @@ import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
 import org.knime.core.data.time.localtime.LocalTimeValue;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
 import org.knime.core.node.NodeLogger;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.array.ArrayWidget;
 import org.knime.node.parameters.array.ArrayWidget.ElementLayout;
@@ -92,14 +93,14 @@ import org.knime.time.util.DateTimeUtils.DateTimeColumnProvider;
  * @author Christian Albrecht, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
+class ExtractDateTimeFieldsSettings implements NodeParameters {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(ExtractDateTimeFieldsSettings.class);
 
     ExtractDateTimeFieldsSettings() {
     }
 
-    ExtractDateTimeFieldsSettings(final DefaultNodeSettingsContext context) {
+    ExtractDateTimeFieldsSettings(final NodeParametersInput context) {
         m_selectedColumn = context.getDataTableSpec(0).map(ExtractDateTimeFieldsSettings::autoGuessColumn).orElse(null);
     }
 
@@ -125,7 +126,7 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public String computeState(final DefaultNodeSettingsContext context) {
+        public String computeState(final NodeParametersInput context) {
             if (m_valueSupplier.get() == null || m_valueSupplier.get().isEmpty()) {
                 return context.getDataTableSpec(0).map(ExtractDateTimeFieldsSettings::autoGuessColumn).orElse(null);
             }
@@ -154,7 +155,7 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public ExtractField computeState(final DefaultNodeSettingsContext context) {
+        public ExtractField computeState(final NodeParametersInput context) {
             final var choices = m_choicesSupplier.get();
             if (choices == null || choices.size() == 0) {
                 return new ExtractField();
@@ -176,7 +177,7 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
     @ChoicesProvider(LocaleChoices.class)
     public String m_locale = getDefaultLocale().toLanguageTag();
 
-    static final class ExtractField implements DefaultNodeSettings {
+    static final class ExtractField implements NodeParameters {
 
         public ExtractField() {
             /* default constructor for serialization */ }
@@ -323,7 +324,7 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public List<DateTimeField> choices(final DefaultNodeSettingsContext context) throws WidgetHandlerException {
+        public List<DateTimeField> choices(final NodeParametersInput context) throws WidgetHandlerException {
             List<DateTimeField> filteredChoices = new ArrayList<>();
             var spec = context.getDataTableSpec(0);
             var selectedColumn = m_selectedColumnSupplier.get();
@@ -363,7 +364,7 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
          * {@inheritDoc}
          */
         @Override
-        public String computeState(final DefaultNodeSettingsContext context) {
+        public String computeState(final NodeParametersInput context) {
             final var dateTimeField = m_valueSupplier.get();
             return dateTimeField == null ? "" : dateTimeField.getLabelValue();
         }
@@ -416,7 +417,7 @@ class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
     static final class LocaleChoices implements StringChoicesProvider {
 
         @Override
-        public List<StringChoice> computeState(final DefaultNodeSettingsContext context) {
+        public List<StringChoice> computeState(final NodeParametersInput context) {
             return Arrays.stream(LocaleProvider.JAVA_11.getLocales())
                 .map(locale -> new StringChoice(locale.toLanguageTag(), locale.getDisplayName())).toList();
         }

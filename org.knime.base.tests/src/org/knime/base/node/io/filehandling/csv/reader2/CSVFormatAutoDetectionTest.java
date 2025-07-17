@@ -68,7 +68,7 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSetting
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption;
 import org.knime.base.node.io.filehandling.webui.LocalWorkflowContextTest;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.BaseSettings.FileSelectionRef;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 import org.knime.filehandling.core.connections.FSCategory;
@@ -271,7 +271,7 @@ class CSVFormatAutoDetectionTest extends LocalWorkflowContextTest {
             }
 
             @Override
-            public DefaultNodeSettingsContext getContext() {
+            public NodeParametersInput getContext() {
                 throw new IllegalAccessError("Should not be called within this test");
             }
         };

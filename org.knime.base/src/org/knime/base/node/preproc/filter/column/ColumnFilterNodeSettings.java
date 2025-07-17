@@ -50,9 +50,10 @@ package org.knime.base.node.preproc.filter.column;
 
 import static org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil.getAllColumnsOfFirstPort;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.Migrate;
 import org.knime.node.parameters.persistence.Persistor;
@@ -68,7 +69,7 @@ import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 @SuppressWarnings("restriction")
 public final class ColumnFilterNodeSettings implements NodeParameters {
 
-    ColumnFilterNodeSettings(final DefaultNodeSettingsContext context) {
+    ColumnFilterNodeSettings(final NodeParametersInput context) {
         m_columnFilter =
             new ColumnFilter(getAllColumnsOfFirstPort(context)).withIncludeUnknownColumns();
     }

@@ -50,8 +50,8 @@ package org.knime.base.node.io.filehandling.webui;
 
 import java.util.function.Supplier;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.updates.Reference;
 import org.knime.node.parameters.updates.StateProvider;
 
@@ -77,7 +77,7 @@ public abstract class ReferenceStateProvider<V> implements Reference<V>, StatePr
     }
 
     @Override
-    public V computeState(final DefaultNodeSettingsContext context) {
+    public V computeState(final NodeParametersInput context) {
         return m_v.get();
     }
 }

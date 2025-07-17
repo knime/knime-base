@@ -54,7 +54,8 @@ import org.knime.base.node.flowvariable.converter.celltovariable.CellToVariableC
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.ConfigMigration;
 import org.knime.node.parameters.migration.Migration;
@@ -76,7 +77,7 @@ final class TableColumnToVariable4NodeSettings implements NodeParameters {
 
     }
 
-    TableColumnToVariable4NodeSettings(final DefaultNodeSettingsContext context) {
+    TableColumnToVariable4NodeSettings(final NodeParametersInput context) {
         final var spec = context.getDataTableSpec(0);
         if (spec.isPresent()) {
             this.m_column = spec.get().stream()//

@@ -65,11 +65,12 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.node.parameters.Advanced;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.array.ArrayWidget;
 import org.knime.node.parameters.layout.After;
@@ -103,7 +104,7 @@ final class RankNodeSettings implements NodeParameters {
 
     }
 
-    RankNodeSettings(final DefaultNodeSettingsContext context) {
+    RankNodeSettings(final NodeParametersInput context) {
         this.m_sortingCriteria = new RankingCriterionSettings[]{new RankingCriterionSettings(context)};
     }
 
@@ -288,7 +289,7 @@ final class RankNodeSettings implements NodeParameters {
             super(colSpec);
         }
 
-        RankingCriterionSettings(final DefaultNodeSettingsContext context) {
+        RankingCriterionSettings(final NodeParametersInput context) {
             super(context);
         }
 
@@ -305,7 +306,7 @@ final class RankNodeSettings implements NodeParameters {
         }
 
         @Override
-        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
+        public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
             final var criterion = Arrays.stream(m_criterion.get()).map(RankingCriterionSettings::getColumn)
                 .filter(column -> column.getEnumChoice().isEmpty()).map(StringOrEnum::getStringChoice)
                 .collect(Collectors.toSet());
@@ -426,7 +427,7 @@ final class RankNodeSettings implements NodeParameters {
         }
 
         @Override
-        public RankingCriterionSettings computeState(final DefaultNodeSettingsContext context) {
+        public RankingCriterionSettings computeState(final NodeParametersInput context) {
             final var spec = context.getDataTableSpec(0);
             if (spec.isEmpty()) {
                 return new RankingCriterionSettings();
@@ -459,7 +460,7 @@ final class RankNodeSettings implements NodeParameters {
         }
 
         @Override
-        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
+        public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
             final var spec = context.getDataTableSpec(0);
             if (spec.isEmpty()) {
                 return Collections.emptyList();

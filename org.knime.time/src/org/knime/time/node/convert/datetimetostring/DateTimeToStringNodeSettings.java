@@ -51,16 +51,17 @@ package org.knime.time.node.convert.datetimetostring;
 import java.util.Locale;
 
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider.LocaleValueRef;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.updates.Effect;
-import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.time.util.DateTimeUtils;
@@ -73,7 +74,7 @@ import org.knime.time.util.ReplaceOrAppend;
  * @author Tobias Kampmann, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-final class DateTimeToStringNodeSettings implements DefaultNodeSettings {
+final class DateTimeToStringNodeSettings implements NodeParameters {
 
     @Widget(title = "Date&time columns", description = "The date&amp;time columns to convert to string columns.")
     @ChoicesProvider(DateTimeUtils.DateTimeColumnProvider.class)
@@ -125,7 +126,7 @@ final class DateTimeToStringNodeSettings implements DefaultNodeSettings {
         this((DataTableSpec)null);
     }
 
-    DateTimeToStringNodeSettings(final DefaultNodeSettingsContext context) {
+    DateTimeToStringNodeSettings(final NodeParametersInput context) {
         this(context.getDataTableSpec(0).orElse(null));
     }
 

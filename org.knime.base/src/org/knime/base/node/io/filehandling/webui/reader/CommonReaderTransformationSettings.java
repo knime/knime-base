@@ -61,7 +61,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
 import org.knime.filehandling.core.connections.FSLocation;
@@ -70,6 +69,7 @@ import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.array.ArrayWidget;
@@ -78,13 +78,13 @@ import org.knime.node.parameters.persistence.NodeSettingsPersistor;
 import org.knime.node.parameters.persistence.Persistable;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.Predicate;
 import org.knime.node.parameters.updates.PredicateProvider;
 import org.knime.node.parameters.updates.Reference;
 import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternValidation.ColumnNameValidationV2;
 
@@ -249,7 +249,7 @@ public abstract class CommonReaderTransformationSettings<I extends ConfigIdSetti
         }
 
         @Override
-        public ColumnFilterMode computeState(final DefaultNodeSettingsContext context) {
+        public ColumnFilterMode computeState(final NodeParametersInput context) {
             return m_howToCombineColumnsSup.get().toColumnFilterMode();
         }
     }
@@ -320,7 +320,7 @@ public abstract class CommonReaderTransformationSettings<I extends ConfigIdSetti
             }
 
             @Override
-            public String computeState(final DefaultNodeSettingsContext context) {
+            public String computeState(final NodeParametersInput context) {
                 return m_originalColumnNameSupplier.get();
             }
         }
@@ -336,7 +336,7 @@ public abstract class CommonReaderTransformationSettings<I extends ConfigIdSetti
             }
 
             @Override
-            public String computeState(final DefaultNodeSettingsContext context) {
+            public String computeState(final NodeParametersInput context) {
                 return m_originalTypeSupplier.get();
             }
         }
@@ -352,7 +352,7 @@ public abstract class CommonReaderTransformationSettings<I extends ConfigIdSetti
             }
 
             @Override
-            public String computeState(final DefaultNodeSettingsContext context) {
+            public String computeState(final NodeParametersInput context) {
                 final var originalName = m_originalColumnNameSupplier.get();
                 return originalName == null ? "Any unknown column" : originalName;
             }
@@ -369,7 +369,7 @@ public abstract class CommonReaderTransformationSettings<I extends ConfigIdSetti
             }
 
             @Override
-            public String computeState(final DefaultNodeSettingsContext context) {
+            public String computeState(final NodeParametersInput context) {
                 return m_originalTypeLabelSupplier.get();
             }
         }

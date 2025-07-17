@@ -56,7 +56,7 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.node.parameters.NodeParametersInput;
 
 /**
  *
@@ -75,7 +75,7 @@ public final class SettingsDataUtil {
      * @param context of the node settings
      * @return the DataTable, or an empty Optional if input ports are null
      */
-    public static Optional<DataTable> getDataTable(final DefaultNodeSettingsContext context) {
+    public static Optional<DataTable> getDataTable(final NodeParametersInput context) {
         var inputPorts = context.getInputPortObjects();
 
         if (inputPorts != null && inputPorts.length > 0) {

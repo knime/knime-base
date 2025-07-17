@@ -56,14 +56,15 @@ import java.util.Optional;
 import org.knime.base.node.flowvariable.converter.variabletocell.VariableToCellConverterFactory;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.workflow.FlowVariable;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.Predicate;
 import org.knime.node.parameters.updates.PredicateProvider;
 import org.knime.node.parameters.updates.Reference;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.StringChoicesProvider;
@@ -85,7 +86,7 @@ public final class CellUpdaterSettings implements NodeParameters {
      *
      * @param context the creation context
      */
-    CellUpdaterSettings(final DefaultNodeSettingsContext context) {
+    CellUpdaterSettings(final NodeParametersInput context) {
         var portObjects = context.getPortObjectSpecs();
 
         // only perform autoconfigure when both ports are connected
@@ -151,7 +152,7 @@ public final class CellUpdaterSettings implements NodeParameters {
 
     private static final class AllVariables implements StringChoicesProvider {
         @Override
-        public List<String> choices(final DefaultNodeSettingsContext context) {
+        public List<String> choices(final NodeParametersInput context) {
             return Arrays.asList(context.getAvailableFlowVariableNames());
         }
     }

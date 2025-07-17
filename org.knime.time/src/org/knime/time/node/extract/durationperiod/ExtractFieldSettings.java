@@ -58,8 +58,9 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.time.duration.DurationValue;
 import org.knime.core.data.time.period.PeriodValue;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.array.ArrayWidget;
 import org.knime.node.parameters.layout.HorizontalLayout;
@@ -82,7 +83,7 @@ import org.knime.time.node.extract.durationperiod.ExtractFieldSettings.OutputCol
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-final class ExtractFieldSettings implements DefaultNodeSettings {
+final class ExtractFieldSettings implements NodeParameters {
 
     public ExtractFieldSettings() {
     }
@@ -127,7 +128,7 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public String computeState(final DefaultNodeSettingsContext context) {
+        public String computeState(final NodeParametersInput context) {
             return Optional.ofNullable(m_valueSupplier.get()) //
                 .map(OutputColumnNamePlaceholderProvider::getPlaceholder) //
                 .orElse("");
@@ -155,7 +156,7 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public List<ExtractableField> choices(final DefaultNodeSettingsContext context) throws WidgetHandlerException {
+        public List<ExtractableField> choices(final NodeParametersInput context) throws WidgetHandlerException {
             var inputTableSpec = context.getDataTableSpec(0);
             var selectedColumn = m_selectedInputColumnNameSupplier.get();
 
@@ -189,7 +190,7 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public ExtractableField computeState(final DefaultNodeSettingsContext context) {
+        public ExtractableField computeState(final NodeParametersInput context) {
             return m_possibleDropDownChoicesSupplier.get().stream() //
                 .map(EnumChoice::id) //
                 .findFirst() //
@@ -211,7 +212,7 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public ExtractFieldSettings computeState(final DefaultNodeSettingsContext context) {
+        public ExtractFieldSettings computeState(final NodeParametersInput context) {
             final var choices = m_defaultExtractableFieldSupplier.get();
 
             return (choices == null) //

@@ -53,8 +53,9 @@ import static org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnS
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
@@ -63,11 +64,11 @@ import org.knime.node.parameters.migration.Migrate;
 import org.knime.node.parameters.persistence.NodeSettingsPersistor;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.Predicate;
 import org.knime.node.parameters.updates.PredicateProvider;
 import org.knime.node.parameters.updates.Reference;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
@@ -358,7 +359,7 @@ public final class ValueLookupNodeSettings implements NodeParameters {
         // required by interface
     }
 
-    ValueLookupNodeSettings(final DefaultNodeSettingsContext ctx) {
+    ValueLookupNodeSettings(final NodeParametersInput ctx) {
         m_dictValueCols = new ColumnFilter(getAllColumns(ctx, 1)).withIncludeUnknownColumns();
     }
 }
