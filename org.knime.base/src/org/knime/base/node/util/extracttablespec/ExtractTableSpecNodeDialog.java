@@ -115,6 +115,7 @@ class ExtractTableSpecNodeDialog extends DefaultNodeSettingsPane {
     @Override
     public void saveAdditionalSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         final var fmtPrettyString = m_typeNameModel.getStringValue();
+        // parsing the display string (capitalized) requires #fromString
         final var fmt = TypeNameFormat.fromString(fmtPrettyString);
         settings.addString(m_typeNameModel.getKey(), fmt.name());
     }
@@ -124,6 +125,7 @@ class ExtractTableSpecNodeDialog extends DefaultNodeSettingsPane {
         throws NotConfigurableException {
         final var fmtEnumString =
             settings.getString(m_typeNameModel.getKey(), ExtractTableSpecNodeModel.DEF_TYPE_NAME_FORMAT.name());
+        // parsing the enum name (all caps) requires #valueOf
         final var fmt = TypeNameFormat.valueOf(fmtEnumString);
         m_typeNameModel.setStringValue(fmt.toString());
     }
