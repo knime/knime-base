@@ -58,9 +58,9 @@ import org.knime.core.data.property.ValueFormatHandler;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
+import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
 import org.knime.time.util.DateTimeUtils;
 
 /**

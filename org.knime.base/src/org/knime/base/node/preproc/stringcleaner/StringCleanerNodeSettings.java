@@ -48,7 +48,7 @@
  */
 package org.knime.base.node.preproc.stringcleaner;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil.getStringColumnsOfFirstPort;
+import static org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil.getStringColumnsOfFirstPort;
 
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.node.parameters.NodeParameters;

@@ -48,7 +48,7 @@
  */
 package org.knime.base.node.preproc.rounddouble;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil.getDoubleColumnsOfFirstPort;
+import static org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil.getDoubleColumnsOfFirstPort;
 
 import java.math.RoundingMode;
 

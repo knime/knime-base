@@ -48,7 +48,7 @@
  */
 package org.knime.base.node.preproc.valuelookup;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil.getAllColumns;
+import static org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil.getAllColumns;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;

@@ -77,9 +77,9 @@ import org.knime.core.node.KNIMEException;
 import org.knime.core.node.message.MessageBuilder;
 import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat.FormatTemporalType;
-import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
+import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
 import org.knime.time.util.ActionIfExtractionFails;
 import org.knime.time.util.TemporalCellUtils;
 

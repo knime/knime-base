@@ -48,7 +48,7 @@
  */
 package org.knime.base.node.preproc.stringreplacer.dict2;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil.getStringColumnsOfFirstPort;
+import static org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil.getStringColumnsOfFirstPort;
 
 import org.knime.base.node.util.regex.CaseMatching;
 import org.knime.base.node.util.regex.PatternType;

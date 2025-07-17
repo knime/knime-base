@@ -48,7 +48,7 @@
  */
 package org.knime.base.node.meta.looper.group;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil.getAllColumnsOfFirstPort;
+import static org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil.getAllColumnsOfFirstPort;
 
 import java.util.List;
 

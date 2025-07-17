@@ -52,7 +52,6 @@ import java.util.Locale;
 
 import org.knime.base.node.viz.format.AlignmentSuggestionOption;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider.LocaleValueRef;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
@@ -62,6 +61,7 @@ import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
 import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.LocaleStateProvider;
 
