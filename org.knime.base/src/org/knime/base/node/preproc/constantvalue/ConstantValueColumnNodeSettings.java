@@ -74,7 +74,7 @@ import org.knime.node.parameters.updates.Reference;
 import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
-import org.knime.node.parameters.widget.choices.DataTypeChoicesStateProvider;
+import org.knime.node.parameters.widget.choices.DataTypeChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
@@ -207,7 +207,7 @@ final class ConstantValueColumnNodeSettings implements NodeParameters {
     static final class NewColumnSettingsArrayRef implements Reference<NewColumnSettings[]> {
     }
 
-    static final class SupportedDataTypeChoicesProvider implements DataTypeChoicesStateProvider {
+    static final class SupportedDataTypeChoicesProvider implements DataTypeChoicesProvider {
 
         @Override
         public void init(final StateProviderInitializer initializer) {
