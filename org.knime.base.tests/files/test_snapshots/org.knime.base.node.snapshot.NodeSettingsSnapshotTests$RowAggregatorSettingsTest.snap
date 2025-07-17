@@ -302,7 +302,8 @@
                   "const" : "NONE"
                 } ]
               }
-            }
+            },
+            "required" : [ "specialChoice" ]
           }
         }
       }
