@@ -203,13 +203,13 @@ public final class ColumnNameReplacerNodeSettings implements DefaultNodeSettings
     boolean m_properlySupportUnicodeCharacters = true;
 
     /**
-     * @since 5.6
-     *
-     *        In old versions of this node, the wildcard replacement had a bug when the replacement string included
-     *        backslashes. We want to fix the bug without introducing a regression for existing workflows, hence this
-     *        setting.
+     * @since 5.6 We accidentally introduced this flag with 5.5.0.frankenstein (the urgent bugfix release between 5.5.0
+     *        and 5.5.1) similar to how it was necessary in the String Replacer and the String Replacer (Dict) although
+     *        this node never existed before 5.5.0 with wildcard-support. So, in other words, this flag can only be
+     *        false for a node that was created before 5.5.0.frankenstein but loaded and saved in 5.5.0.frankenstein
+     *        (were the default for this flag was false).
      */
-    @Migration(LoadFalseForOldNodes.class)
+    @Migrate(loadDefaultIfAbsent = true)
     boolean m_useNewFixedWildcardBehavior = true;
 
     /**

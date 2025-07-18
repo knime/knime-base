@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.preproc.stringreplacer;
 
+import static org.knime.base.node.util.NodeVersionUtil.getNodeVersion;
+
 import java.util.List;
 
 import org.knime.base.node.util.regex.CaseMatching;
@@ -58,6 +60,8 @@ import org.knime.core.data.StringValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.workflow.NodeContext;
+import org.knime.core.util.Version;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
@@ -199,8 +203,10 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
     String m_newColName = "ReplacedColumn";
 
     static final class DoNotAllowPaddedColumnNamePersistor extends AlwaysSaveTrueBoolean {
+        private static final String CFG_DO_NOT_ALLOW_PADDED_COLUMN_NAME = "doNotAllowPaddedColumnName";
+
         protected DoNotAllowPaddedColumnNamePersistor() {
-            super("doNotAllowPaddedColumnName");
+            super(CFG_DO_NOT_ALLOW_PADDED_COLUMN_NAME);
         }
     }
 
@@ -224,10 +230,13 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
     static final class LoadFalseForOldNodes implements DefaultProvider<Boolean> {
         @Override
         public Boolean getDefault() {
-            return false;
+            return isLastSavedAfter550();
+        }
+
+        private static boolean isLastSavedAfter550() {
+            return new Version(5, 5, 0).isSameOrNewer(getNodeVersion(NodeContext.getContext()));
         }
     }
-
     // Persistors
 
     @SuppressWarnings("deprecation") // we're dealing with deprecated settings here

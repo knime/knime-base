@@ -48,11 +48,14 @@
  */
 package org.knime.base.node.preproc.stringreplacer.dict2;
 
+import static org.knime.base.node.util.NodeVersionUtil.getNodeVersion;
 import static org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil.getStringColumnsOfFirstPort;
 
 import org.knime.base.node.util.regex.CaseMatching;
 import org.knime.base.node.util.regex.PatternType;
 import org.knime.base.node.util.regex.ReplacementStrategy;
+import org.knime.core.node.workflow.NodeContext;
+import org.knime.core.util.Version;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
@@ -240,7 +243,11 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
     static final class LoadFalseForOldNodes implements DefaultProvider<Boolean> {
         @Override
         public Boolean getDefault() {
-            return false;
+            return isLastSavedAfter550();
+        }
+
+        private static boolean isLastSavedAfter550() {
+            return new Version(5, 5, 0).isSameOrNewer(getNodeVersion(NodeContext.getContext()));
         }
     }
 
@@ -254,4 +261,5 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
     StringReplacerDictNodeSettings(final DefaultNodeSettingsContext ctx) {
         m_targetColumns = new ColumnFilter(getStringColumnsOfFirstPort(ctx)).withIncludeUnknownColumns();
     }
+
 }
