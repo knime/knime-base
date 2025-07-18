@@ -61,6 +61,7 @@ import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.workflow.NodeContainerState;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.testing.util.InputTableNode;
 import org.knime.testing.util.TableTestUtil;
@@ -153,7 +154,7 @@ final public class NodeModelTestRunnerUtil {
         final var nodeSettings = new NodeSettings(m_nodeName);
         workflowManager.saveNodeSettings(node.getID(), nodeSettings);
         var modelSettings = nodeSettings.addNodeSettings("model");
-        NodeParameters.saveSettings(m_settingsClass, settings, modelSettings);
+        NodeParametersUtil.saveSettings(m_settingsClass, settings, modelSettings);
         workflowManager.loadNodeSettings(node.getID(), nodeSettings);
 
         // populate the input table

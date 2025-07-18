@@ -68,8 +68,9 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.VariableType.BooleanType;
 import org.knime.core.node.workflow.VariableType.LongType;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.node.parameters.NodeParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
+import org.knime.node.parameters.widget.choices.filter.FlowVariableFilter;
 import org.knime.testing.util.WorkflowManagerUtil;
 
 /**
@@ -148,7 +149,7 @@ public class VariableToTable4NodeModelTest {
         workflowManager.saveNodeSettings(node.getID(), nodeSettings);
 
         var modelSettings = nodeSettings.addNodeSettings("model");
-        NodeParameters.saveSettings(SETTINGS_CLASS, settings, modelSettings);
+        NodeParametersUtil.saveSettings(SETTINGS_CLASS, settings, modelSettings);
         workflowManager.loadNodeSettings(node.getID(), nodeSettings);
         // execute and wait...
         workflowManager.executeAllAndWaitUntilDone();

@@ -50,11 +50,11 @@ package org.knime.base.node.flowvariable.variabletotablerow4;
 
 import org.knime.base.node.flowvariable.converter.variabletocell.VariableToCellConverterFactory.ConvertibleFlowVariablesProvider;
 import org.knime.node.parameters.NodeParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.LegacyNameFilterToFlowVariableFilterMigration;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.widget.choices.filter.FlowVariableFilter;
 import org.knime.node.parameters.widget.choices.filter.FlowVariableFilterWidget;
 
 /**

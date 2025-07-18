@@ -48,12 +48,12 @@
 package org.knime.base.node.flowvariable.filter;
 
 import org.knime.node.parameters.NodeParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.StringFilterToFlowVariableFilterMigration;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.filter.FlowVariableFilter;
 import org.knime.node.parameters.widget.choices.util.AllFlowScopedFlowVariablesProvider;
 
 /**

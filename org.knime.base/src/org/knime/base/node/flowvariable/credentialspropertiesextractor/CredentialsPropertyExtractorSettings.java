@@ -50,12 +50,12 @@ package org.knime.base.node.flowvariable.credentialspropertiesextractor;
 import java.util.List;
 
 import org.knime.core.node.workflow.VariableType.CredentialsType;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.StringChoicesProvider;
+import org.knime.node.parameters.widget.choices.filter.StringFilter;
 
 /**
  * @author Carl Witt, KNIME AG, Zurich, Switzerland

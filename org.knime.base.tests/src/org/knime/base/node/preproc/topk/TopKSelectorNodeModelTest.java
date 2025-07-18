@@ -74,6 +74,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.workflow.NodeContainerState;
 import org.knime.node.parameters.NodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
@@ -123,7 +124,7 @@ public class TopKSelectorNodeModelTest {
         settings.addBoolean("missingsToEnd", false);
         settings.addString("selectionMode", TopKMode.TOP_K_ROWS.getText());
 
-        final var nodeSettings = NodeParameters.loadSettings(settings, TopKSelectorNodeSettings.class);
+        final var nodeSettings = NodeParametersUtil.loadSettings(settings, TopKSelectorNodeSettings.class);
 
         var output = setupAndExecuteWorkflow(nodeSettings,
             new String[]{RowKey.createRowKey(1L).getString(), RowKey.createRowKey(2L).getString(),
@@ -174,7 +175,7 @@ public class TopKSelectorNodeModelTest {
         final var nodeSettings = new NodeSettings(NODE_NAME);
         workflowManager.saveNodeSettings(node.getID(), nodeSettings);
         var modelSettings = nodeSettings.addNodeSettings("model");
-        NodeParameters.saveSettings(SETTINGS_CLASS, settings, modelSettings);
+        NodeParametersUtil.saveSettings(SETTINGS_CLASS, settings, modelSettings);
         workflowManager.loadNodeSettings(node.getID(), nodeSettings);
 
         // populate the input table
