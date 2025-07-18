@@ -203,16 +203,6 @@ public final class ColumnNameReplacerNodeSettings implements DefaultNodeSettings
     boolean m_properlySupportUnicodeCharacters = true;
 
     /**
-     * @since 5.6
-     *
-     *        In old versions of this node, the wildcard replacement had a bug when the replacement string included
-     *        backslashes. We want to fix the bug without introducing a regression for existing workflows, hence this
-     *        setting.
-     */
-    @Migration(LoadFalseForOldNodes.class)
-    boolean m_useNewFixedWildcardBehavior = true;
-
-    /**
      * I.e. the only way the field can be set to {@code false} is when the node settings are loaded from a workflow that
      * was saved before version 5.5.
      */

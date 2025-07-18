@@ -235,7 +235,12 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
 
     /**
      * I.e. the only way the field can be set to {@code false} is when the node settings are loaded from a workflow that
-     * was saved before version 5.5.
+     * was saved with 5.5.0 or earlier.
+     *
+     * Note that ideally we would set the flag to true also for nodes created in 5.5.0 (since the behavior there is the
+     * same as with flag true) but it is not easily possible to distinguish between nodes created before 5.5.0 and
+     * loaded and saved again with 5.5.0 from those. See UIEXT-2873 for how we want to improve such situations in the
+     * future.
      */
     static final class LoadFalseForOldNodes implements DefaultProvider<Boolean> {
         @Override

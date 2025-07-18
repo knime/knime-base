@@ -62,7 +62,6 @@ import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DefaultProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
@@ -206,27 +205,6 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
 
     @Persistor(DoNotAllowPaddedColumnNamePersistor.class)
     boolean m_doNotAllowPaddedColumnName = true;
-
-    /**
-     * @since 5.5
-     *
-     *        In old versions of this node, the wildcard replacement had a bug when the replacement string included
-     *        backslashes. We want to fix the bug without introducing a regression for existing workflows, hence this
-     *        setting.
-     */
-    @Migration(LoadFalseForOldNodes.class)
-    boolean m_useNewFixedWildcardBehavior = true;
-
-    /**
-     * I.e. the only way the field can be set to {@code false} is when the node settings are loaded from a workflow that
-     * was saved before version 5.5.
-     */
-    static final class LoadFalseForOldNodes implements DefaultProvider<Boolean> {
-        @Override
-        public Boolean getDefault() {
-            return false;
-        }
-    }
 
     // Persistors
 

@@ -153,12 +153,27 @@ public class StringReplacerNodeModel extends WebUISimpleStreamableFunctionNodeMo
     }
 
     private static String createReplacement(final StringReplacerNodeSettings modelSettings) {
-        return modelSettings.m_useNewFixedWildcardBehavior //
+        return isSettingsFromVersion550OrNewer(modelSettings)//
             ? RegexReplaceUtils.processReplacementString(modelSettings.m_replacement, modelSettings.m_patternType) //
             : RegexReplaceUtils.processReplacementStringWithWildcardBackwardCompatibility( //
                 modelSettings.m_replacement, //
                 modelSettings.m_patternType //
             );
+    }
+
+    /**
+     * Checks if the settings are from version 5.5.0 or newer.
+     *
+     * @param modelSettings the node settings instance of the current node
+     * @return true if the settings are from version 5.5.0 or newer, false otherwise
+     */
+    private static boolean isSettingsFromVersion550OrNewer(final StringReplacerNodeSettings modelSettings) {
+        /**
+         * This flag was introduced in version 5.5.0. We use it here also for other cases than
+         * "doNotAllowPaddedColumnName" since we accidentally also changed other behavior (wildcard replacement double
+         * backslash behavior) without adding a dedicated feature flag.
+         */
+        return modelSettings.m_doNotAllowPaddedColumnName;
     }
 
     /**
