@@ -50,6 +50,10 @@ package org.knime.base.node.preproc.autobinner4;
 
 import java.util.List;
 
+import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsEnums.BinBoundaryExactMatchBehaviourProxy;
+import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsEnums.BinNamingProxy;
+import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsEnums.BinningTypeProxy;
+import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsEnums.NumberFormatSettingsGroupProxy;
 import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsPredicates.BinNamesIsNumbered;
 import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsPredicates.BinningTypeIsCustomCutoffs;
 import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsPredicates.BinningTypeIsCustomQuantiles;
@@ -61,10 +65,6 @@ import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsPredicates.
 import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsPredicates.ShouldShowFixedUpperBoundField;
 import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsPredicates.ShouldShowLowerOutlierName;
 import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsPredicates.ShouldShowUpperOutlierName;
-import org.knime.base.node.util.binning.AutoBinningSettings.BinBoundaryExactMatchBehaviour;
-import org.knime.base.node.util.binning.AutoBinningSettings.BinNaming;
-import org.knime.base.node.util.binning.AutoBinningSettings.BinningType;
-import org.knime.base.node.util.binning.AutoBinningSettings.NumberFormatSettingsGroup;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
@@ -134,11 +134,11 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
             """)
     @RadioButtonsWidget
     @ValueReference(BinningTypeRef.class)
-    BinningType m_binningType = BinningType.EQUAL_WIDTH;
+    BinningTypeProxy m_binningType = BinningTypeProxy.EQUAL_WIDTH;
 
     @Layout(BinningSection.class)
     @Widget(title = "Number of bins", description = "The number of bins to create.")
-    @NumberInputWidget(minValidation = NumberIsAtLeastTwoValidation.class)
+    @NumberInputWidget(minValidation = NumberIsAtLeastOneValidation.class)
     @Effect(predicate = NumberOfBinsShouldBeShown.class, type = EffectType.SHOW)
     int m_numberOfBins = 20;
 
@@ -230,7 +230,7 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
             """)
     @RadioButtonsWidget
     @ValueReference(BinNamesRef.class)
-    BinNaming m_binNames = BinNaming.NUMBERED;
+    BinNamingProxy m_binNames = BinNamingProxy.NUMBERED;
 
     @Layout(OutputSection.class)
     @Widget(title = "Prefix", description = """
@@ -276,7 +276,7 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
             when a custom format is selected.
             """)
     @Advanced
-    NumberFormatSettingsGroup m_numberFormatSettings = new NumberFormatSettingsGroup();
+    NumberFormatSettingsGroupProxy m_numberFormatSettings = new NumberFormatSettingsGroupProxy();
 
     @Layout(OutputSection.class)
     @Widget(title = "Output columns", description = """
@@ -360,7 +360,7 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
      * References  * *
      * * * * * * * * */
 
-    static final class BinningTypeRef implements Reference<BinningType> {
+    static final class BinningTypeRef implements Reference<BinningTypeProxy> {
     }
 
     static final class FixLowerBoundRef implements Reference<Boolean> {
@@ -369,7 +369,7 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
     static final class FixUpperBoundRef implements Reference<Boolean> {
     }
 
-    static final class BinNamesRef implements Reference<BinNaming> {
+    static final class BinNamesRef implements Reference<BinNamingProxy> {
     }
 
     private static final String CUTOFF_DESC = """
@@ -389,7 +389,7 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
 
         @Widget(title = "Exact match", description = EXACT_MATCH_DESC)
         @ValueSwitchWidget
-        BinBoundaryExactMatchBehaviour m_matchType = BinBoundaryExactMatchBehaviour.TO_LOWER_BIN;
+        BinBoundaryExactMatchBehaviourProxy m_matchType = BinBoundaryExactMatchBehaviourProxy.TO_LOWER_BIN;
 
         CustomCutoffsWidgetGroup() {
             // Default constructor
@@ -401,7 +401,7 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
          * @param cutoff the cutoff value
          * @param matchType the exact match behaviour
          */
-        CustomCutoffsWidgetGroup(final double cutoff, final BinBoundaryExactMatchBehaviour matchType) {
+        CustomCutoffsWidgetGroup(final double cutoff, final BinBoundaryExactMatchBehaviourProxy matchType) {
             m_cutoff = cutoff;
             m_matchType = matchType;
         }
@@ -417,7 +417,7 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
 
         @Widget(title = "Exact match", description = EXACT_MATCH_DESC)
         @ValueSwitchWidget
-        BinBoundaryExactMatchBehaviour m_matchType = BinBoundaryExactMatchBehaviour.TO_LOWER_BIN;
+        BinBoundaryExactMatchBehaviourProxy m_matchType = BinBoundaryExactMatchBehaviourProxy.TO_LOWER_BIN;
 
         CustomQuantilesWidgetGroup() {
             // Default constructor
@@ -429,7 +429,7 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
          * @param quantile the quantile value
          * @param matchType the exact match behaviour
          */
-        CustomQuantilesWidgetGroup(final double quantile, final BinBoundaryExactMatchBehaviour matchType) {
+        CustomQuantilesWidgetGroup(final double quantile, final BinBoundaryExactMatchBehaviourProxy matchType) {
             m_quantile = quantile;
             m_matchType = matchType;
         }
@@ -438,11 +438,10 @@ final class AutoBinnerNodeSettings implements DefaultNodeSettings {
     /* * * * * * * * * *
      * Validations * * *
      * * * * * * * * * */
-
-    static final class NumberIsAtLeastTwoValidation extends NumberInputWidgetValidation.MinValidation {
+    static final class NumberIsAtLeastOneValidation extends NumberInputWidgetValidation.MinValidation {
         @Override
         protected double getMin() {
-            return 2;
+            return 1;
         }
     }
 

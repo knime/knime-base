@@ -49,13 +49,13 @@ package org.knime.base.node.preproc.autobinner.apply;
 
 import org.knime.base.node.preproc.autobinner.pmml.DisretizeConfiguration;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLPreprocDiscretize;
-import org.knime.base.node.util.binning.AutoBinningUtils;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.util.binning.numeric.AutoBinningUtils;
 
 /**
  * Use this in other nodes for binning data.

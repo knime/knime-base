@@ -53,8 +53,8 @@ import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettings.BinningTyp
 import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettings.FixLowerBoundRef;
 import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettings.FixUpperBoundRef;
 import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettings.NumberFormat;
-import org.knime.base.node.util.binning.AutoBinningSettings.BinNaming;
-import org.knime.base.node.util.binning.AutoBinningSettings.BinningType;
+import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsEnums.BinNamingProxy;
+import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsEnums.BinningTypeProxy;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 
@@ -76,7 +76,7 @@ final class AutoBinnerNodeSettingsPredicates {
         public Predicate init(final PredicateInitializer i) {
             return i //
                 .getEnum(BinningTypeRef.class) //
-                .isOneOf(BinningType.CUSTOM_CUTOFFS, BinningType.CUSTOM_QUANTILES) //
+                .isOneOf(BinningTypeProxy.CUSTOM_CUTOFFS, BinningTypeProxy.CUSTOM_QUANTILES) //
                 .negate();
         }
     }
@@ -87,7 +87,7 @@ final class AutoBinnerNodeSettingsPredicates {
         public Predicate init(final PredicateInitializer i) {
             return i //
                 .getEnum(BinningTypeRef.class) //
-                .isOneOf(BinningType.CUSTOM_CUTOFFS);
+                .isOneOf(BinningTypeProxy.CUSTOM_CUTOFFS);
         }
     }
 
@@ -97,7 +97,7 @@ final class AutoBinnerNodeSettingsPredicates {
         public Predicate init(final PredicateInitializer i) {
             return i //
                 .getEnum(BinningTypeRef.class) //
-                .isOneOf(BinningType.CUSTOM_QUANTILES);
+                .isOneOf(BinningTypeProxy.CUSTOM_QUANTILES);
         }
     }
 
@@ -117,7 +117,7 @@ final class AutoBinnerNodeSettingsPredicates {
         public Predicate init(final PredicateInitializer i) {
             return i //
                 .getEnum(BinningTypeRef.class) //
-                .isOneOf(BinningType.EQUAL_WIDTH, BinningType.EQUAL_FREQUENCY);
+                .isOneOf(BinningTypeProxy.EQUAL_WIDTH, BinningTypeProxy.EQUAL_FREQUENCY);
         }
     }
 
@@ -146,7 +146,8 @@ final class AutoBinnerNodeSettingsPredicates {
         public Predicate init(final PredicateInitializer i) {
             return i //
                 .getEnum(BinningTypeRef.class) //
-                .isOneOf(BinningType.CUSTOM_QUANTILES, BinningType.EQUAL_WIDTH, BinningType.EQUAL_FREQUENCY);
+                .isOneOf(BinningTypeProxy.CUSTOM_QUANTILES, BinningTypeProxy.EQUAL_WIDTH,
+                    BinningTypeProxy.EQUAL_FREQUENCY);
         }
     }
 
@@ -173,7 +174,8 @@ final class AutoBinnerNodeSettingsPredicates {
         public Predicate init(final PredicateInitializer i) {
             return i //
                 .getBoolean(FixUpperBoundRef.class).isTrue() //
-                .or(i.getEnum(BinningTypeRef.class).isOneOf(BinningType.CUSTOM_CUTOFFS, BinningType.CUSTOM_QUANTILES));
+                .or(i.getEnum(BinningTypeRef.class).isOneOf(BinningTypeProxy.CUSTOM_CUTOFFS,
+                    BinningTypeProxy.CUSTOM_QUANTILES));
         }
     }
 
@@ -182,7 +184,8 @@ final class AutoBinnerNodeSettingsPredicates {
         public Predicate init(final PredicateInitializer i) {
             return i //
                 .getBoolean(FixLowerBoundRef.class).isTrue() //
-                .or(i.getEnum(BinningTypeRef.class).isOneOf(BinningType.CUSTOM_CUTOFFS, BinningType.CUSTOM_QUANTILES));
+                .or(i.getEnum(BinningTypeRef.class).isOneOf(BinningTypeProxy.CUSTOM_CUTOFFS,
+                    BinningTypeProxy.CUSTOM_QUANTILES));
         }
     }
 
@@ -191,7 +194,7 @@ final class AutoBinnerNodeSettingsPredicates {
         public Predicate init(final PredicateInitializer i) {
             return i //
                 .getEnum(BinNamesRef.class) //
-                .isOneOf(BinNaming.NUMBERED);
+                .isOneOf(BinNamingProxy.NUMBERED);
         }
     }
 

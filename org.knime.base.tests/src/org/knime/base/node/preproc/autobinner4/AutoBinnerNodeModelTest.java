@@ -55,8 +55,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettings.CustomCutoffsWidgetGroup;
 import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettings.CustomQuantilesWidgetGroup;
-import org.knime.base.node.util.binning.AutoBinningSettings.BinBoundaryExactMatchBehaviour;
-import org.knime.base.node.util.binning.AutoBinningSettings.BinningType;
+import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsEnums.BinBoundaryExactMatchBehaviourProxy;
+import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsEnums.BinningTypeProxy;
 import org.knime.core.node.InvalidSettingsException;
 
 /**
@@ -79,7 +79,7 @@ final class AutoBinnerNodeModelTest {
         void testTooFewCustomCutoffs() throws InvalidSettingsException {
             var settings = new AutoBinnerNodeSettings();
 
-            settings.m_binningType = BinningType.CUSTOM_CUTOFFS;
+            settings.m_binningType = BinningTypeProxy.CUSTOM_CUTOFFS;
             settings.m_customCutoffs = new CustomCutoffsWidgetGroup[]{new CustomCutoffsWidgetGroup()};
 
             assertThrows(InvalidSettingsException.class, () -> {
@@ -88,8 +88,8 @@ final class AutoBinnerNodeModelTest {
 
             // should be fine if we add another cutoff
             settings.m_customCutoffs = new CustomCutoffsWidgetGroup[]{ //
-                new CustomCutoffsWidgetGroup(0.5, BinBoundaryExactMatchBehaviour.TO_LOWER_BIN), //
-                new CustomCutoffsWidgetGroup(0.75, BinBoundaryExactMatchBehaviour.TO_LOWER_BIN) //
+                new CustomCutoffsWidgetGroup(0.5, BinBoundaryExactMatchBehaviourProxy.TO_LOWER_BIN), //
+                new CustomCutoffsWidgetGroup(0.75, BinBoundaryExactMatchBehaviourProxy.TO_LOWER_BIN) //
             };
             m_model.validateSettings(settings); // should not throw
         }
@@ -98,7 +98,7 @@ final class AutoBinnerNodeModelTest {
         void testTooFewCustomQuantiles() throws InvalidSettingsException {
             var settings = new AutoBinnerNodeSettings();
 
-            settings.m_binningType = BinningType.CUSTOM_QUANTILES;
+            settings.m_binningType = BinningTypeProxy.CUSTOM_QUANTILES;
             settings.m_customQuantiles = new CustomQuantilesWidgetGroup[]{new CustomQuantilesWidgetGroup()};
 
             assertThrows(InvalidSettingsException.class, () -> {
@@ -107,8 +107,8 @@ final class AutoBinnerNodeModelTest {
 
             // should be fine if we add another quantile
             settings.m_customQuantiles = new CustomQuantilesWidgetGroup[]{ //
-                new CustomQuantilesWidgetGroup(0.5, BinBoundaryExactMatchBehaviour.TO_LOWER_BIN), //
-                new CustomQuantilesWidgetGroup(0.75, BinBoundaryExactMatchBehaviour.TO_LOWER_BIN) //
+                new CustomQuantilesWidgetGroup(0.5, BinBoundaryExactMatchBehaviourProxy.TO_LOWER_BIN), //
+                new CustomQuantilesWidgetGroup(0.75, BinBoundaryExactMatchBehaviourProxy.TO_LOWER_BIN) //
             };
             m_model.validateSettings(settings); // should not throw
         }
@@ -117,7 +117,7 @@ final class AutoBinnerNodeModelTest {
         void testEqualWidthAndTooFewBins() throws InvalidSettingsException {
             var settings = new AutoBinnerNodeSettings();
 
-            settings.m_binningType = BinningType.EQUAL_WIDTH;
+            settings.m_binningType = BinningTypeProxy.EQUAL_WIDTH;
             settings.m_numberOfBins = 0;
 
             assertThrows(InvalidSettingsException.class, () -> {
@@ -133,7 +133,7 @@ final class AutoBinnerNodeModelTest {
         void testEqualCountAndTooFewBins() throws InvalidSettingsException {
             var settings = new AutoBinnerNodeSettings();
 
-            settings.m_binningType = BinningType.EQUAL_FREQUENCY;
+            settings.m_binningType = BinningTypeProxy.EQUAL_FREQUENCY;
             settings.m_numberOfBins = 0;
 
             assertThrows(InvalidSettingsException.class, () -> {
@@ -149,10 +149,10 @@ final class AutoBinnerNodeModelTest {
         void testCustomCutoffsAreOrdered() throws InvalidSettingsException {
             var settings = new AutoBinnerNodeSettings();
 
-            settings.m_binningType = BinningType.CUSTOM_CUTOFFS;
+            settings.m_binningType = BinningTypeProxy.CUSTOM_CUTOFFS;
             settings.m_customCutoffs = new CustomCutoffsWidgetGroup[]{ //
-                new CustomCutoffsWidgetGroup(0.5, BinBoundaryExactMatchBehaviour.TO_LOWER_BIN), //
-                new CustomCutoffsWidgetGroup(0.3, BinBoundaryExactMatchBehaviour.TO_LOWER_BIN) //
+                new CustomCutoffsWidgetGroup(0.5, BinBoundaryExactMatchBehaviourProxy.TO_LOWER_BIN), //
+                new CustomCutoffsWidgetGroup(0.3, BinBoundaryExactMatchBehaviourProxy.TO_LOWER_BIN) //
             };
 
             assertThrows(InvalidSettingsException.class, () -> {
@@ -161,8 +161,8 @@ final class AutoBinnerNodeModelTest {
 
             // should be fine if we switch the cutoffs
             settings.m_customCutoffs = new CustomCutoffsWidgetGroup[]{ //
-                new CustomCutoffsWidgetGroup(0.3, BinBoundaryExactMatchBehaviour.TO_LOWER_BIN), //
-                new CustomCutoffsWidgetGroup(0.5, BinBoundaryExactMatchBehaviour.TO_LOWER_BIN) //
+                new CustomCutoffsWidgetGroup(0.3, BinBoundaryExactMatchBehaviourProxy.TO_LOWER_BIN), //
+                new CustomCutoffsWidgetGroup(0.5, BinBoundaryExactMatchBehaviourProxy.TO_LOWER_BIN) //
             };
             m_model.validateSettings(settings); // should not throw
         }
@@ -171,10 +171,10 @@ final class AutoBinnerNodeModelTest {
         void testCustomQuantilesAreOrdered() throws InvalidSettingsException {
             var settings = new AutoBinnerNodeSettings();
 
-            settings.m_binningType = BinningType.CUSTOM_QUANTILES;
+            settings.m_binningType = BinningTypeProxy.CUSTOM_QUANTILES;
             settings.m_customQuantiles = new CustomQuantilesWidgetGroup[]{ //
-                new CustomQuantilesWidgetGroup(0.5, BinBoundaryExactMatchBehaviour.TO_LOWER_BIN), //
-                new CustomQuantilesWidgetGroup(0.3, BinBoundaryExactMatchBehaviour.TO_LOWER_BIN) //
+                new CustomQuantilesWidgetGroup(0.5, BinBoundaryExactMatchBehaviourProxy.TO_LOWER_BIN), //
+                new CustomQuantilesWidgetGroup(0.3, BinBoundaryExactMatchBehaviourProxy.TO_LOWER_BIN) //
             };
 
             assertThrows(InvalidSettingsException.class, () -> {
@@ -183,8 +183,8 @@ final class AutoBinnerNodeModelTest {
 
             // should be fine if we switch the quantiles
             settings.m_customQuantiles = new CustomQuantilesWidgetGroup[]{ //
-                new CustomQuantilesWidgetGroup(0.3, BinBoundaryExactMatchBehaviour.TO_LOWER_BIN), //
-                new CustomQuantilesWidgetGroup(0.5, BinBoundaryExactMatchBehaviour.TO_LOWER_BIN) //
+                new CustomQuantilesWidgetGroup(0.3, BinBoundaryExactMatchBehaviourProxy.TO_LOWER_BIN), //
+                new CustomQuantilesWidgetGroup(0.5, BinBoundaryExactMatchBehaviourProxy.TO_LOWER_BIN) //
             };
 
             m_model.validateSettings(settings); // should not throw
@@ -222,7 +222,7 @@ final class AutoBinnerNodeModelTest {
         void testValidatePassesWithSensibleSettings() throws InvalidSettingsException {
             var settings = new AutoBinnerNodeSettings();
 
-            settings.m_binningType = BinningType.EQUAL_WIDTH;
+            settings.m_binningType = BinningTypeProxy.EQUAL_WIDTH;
             settings.m_numberOfBins = 5;
 
             settings.m_fixLowerBound = true;

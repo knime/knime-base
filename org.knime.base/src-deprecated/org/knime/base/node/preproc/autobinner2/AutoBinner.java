@@ -63,7 +63,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.knime.base.data.sort.SortedTable;
 import org.knime.base.node.preproc.autobinner.apply.AutoBinnerApply;
 import org.knime.base.node.preproc.autobinner.pmml.DisretizeConfiguration;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLDiscretize;
@@ -75,7 +74,6 @@ import org.knime.base.node.preproc.autobinner.pmml.PMMLPreprocDiscretize;
 import org.knime.base.node.preproc.autobinner2.AutoBinnerLearnSettings.BinNaming;
 import org.knime.base.node.preproc.autobinner2.AutoBinnerLearnSettings.EqualityMethod;
 import org.knime.base.node.preproc.autobinner2.AutoBinnerLearnSettings.Method;
-import org.knime.base.node.util.binning.AutoBinningUtils;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnDomainCreator;
 import org.knime.core.data.DataColumnSpec;
@@ -86,12 +84,14 @@ import org.knime.core.data.DoubleValue;
 import org.knime.core.data.RowIterator;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.sort.SortedTable;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.pmml.preproc.PMMLPreprocPortObjectSpec;
+import org.knime.core.util.binning.numeric.AutoBinningUtils;
 
 /**
  * Creates Bins. Use this class in other nodes.

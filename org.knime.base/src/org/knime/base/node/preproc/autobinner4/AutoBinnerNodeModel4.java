@@ -51,22 +51,22 @@ package org.knime.base.node.preproc.autobinner4;
 import java.util.Arrays;
 import java.util.Comparator;
 
-import org.knime.base.node.util.binning.AutoBinningSettings;
-import org.knime.base.node.util.binning.AutoBinningSettings.BinBoundary;
-import org.knime.base.node.util.binning.AutoBinningSettings.BinNamingSettings;
-import org.knime.base.node.util.binning.AutoBinningSettings.BinningSettings;
-import org.knime.base.node.util.binning.AutoBinningSettings.BinningType;
-import org.knime.base.node.util.binning.AutoBinningSettings.ColumnOutputNamingSettings;
-import org.knime.base.node.util.binning.AutoBinningSettings.DataBoundsSettings.BoundSetting.FixedBound;
-import org.knime.base.node.util.binning.AutoBinningSettings.DataBoundsSettings.BoundSetting.NoBound;
-import org.knime.base.node.util.binning.AutoBinningSettings.NumberFormattingSettings;
-import org.knime.base.node.util.binning.AutoBinningUtils;
+import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsEnums.BinningTypeProxy;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.util.binning.numeric.AutoBinningSettings;
+import org.knime.core.util.binning.numeric.AutoBinningSettings.BinBoundary;
+import org.knime.core.util.binning.numeric.AutoBinningSettings.BinNamingSettings;
+import org.knime.core.util.binning.numeric.AutoBinningSettings.BinningSettings;
+import org.knime.core.util.binning.numeric.AutoBinningSettings.ColumnOutputNamingSettings;
+import org.knime.core.util.binning.numeric.AutoBinningSettings.DataBoundsSettings.BoundSetting.FixedBound;
+import org.knime.core.util.binning.numeric.AutoBinningSettings.DataBoundsSettings.BoundSetting.NoBound;
+import org.knime.core.util.binning.numeric.AutoBinningSettings.NumberFormattingSettings;
+import org.knime.core.util.binning.numeric.AutoBinningUtils;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 
@@ -107,25 +107,25 @@ final class AutoBinnerNodeModel4 extends WebUINodeModel<AutoBinnerNodeSettings> 
 
     @Override
     protected void validateSettings(final AutoBinnerNodeSettings settings) throws InvalidSettingsException { // NOSONAR complexity is fine
-        if (settings.m_binningType == BinningType.CUSTOM_CUTOFFS && settings.m_customCutoffs.length < 2) {
+        if (settings.m_binningType == BinningTypeProxy.CUSTOM_CUTOFFS && settings.m_customCutoffs.length < 2) {
             throw new InvalidSettingsException("At least two custom cutoffs are required.");
-        } else if (settings.m_binningType == BinningType.CUSTOM_QUANTILES && settings.m_customQuantiles.length < 2) {
+        } else if (settings.m_binningType == BinningTypeProxy.CUSTOM_QUANTILES && settings.m_customQuantiles.length < 2) {
             throw new InvalidSettingsException("At least two custom quantiles are required.");
-        } else if (settings.m_binningType == BinningType.EQUAL_WIDTH && settings.m_numberOfBins < 1) {
+        } else if (settings.m_binningType == BinningTypeProxy.EQUAL_WIDTH && settings.m_numberOfBins < 1) {
             throw new InvalidSettingsException("Number of bins must be at least 1 for equal width binning.");
-        } else if (settings.m_binningType == BinningType.EQUAL_FREQUENCY && settings.m_numberOfBins < 1) {
+        } else if (settings.m_binningType == BinningTypeProxy.EQUAL_FREQUENCY && settings.m_numberOfBins < 1) {
             throw new InvalidSettingsException("Number of bins must be at least 1 for equal frequency binning.");
         }
 
         // check that quantiles or cutoffs are sorted (if applicable)
-        if (settings.m_binningType == BinningType.CUSTOM_CUTOFFS) {
+        if (settings.m_binningType == BinningTypeProxy.CUSTOM_CUTOFFS) {
             var isSorted = Comparators.isInStrictOrder(Arrays.asList(settings.m_customCutoffs),
                 Comparator.comparingDouble(c -> c.m_cutoff));
 
             if (!isSorted) {
                 throw new InvalidSettingsException("Custom cutoffs must be sorted in ascending order.");
             }
-        } else if (settings.m_binningType == BinningType.CUSTOM_QUANTILES) {
+        } else if (settings.m_binningType == BinningTypeProxy.CUSTOM_QUANTILES) {
             var isSorted = Comparators.isInStrictOrder(Arrays.asList(settings.m_customQuantiles),
                 Comparator.comparingDouble(q -> q.m_quantile));
 
@@ -148,12 +148,12 @@ final class AutoBinnerNodeModel4 extends WebUINodeModel<AutoBinnerNodeSettings> 
         var binningSettings = switch (settings.m_binningType) {
             case CUSTOM_CUTOFFS -> new BinningSettings.FixedBoundaries( //
                 Arrays.stream(settings.m_customCutoffs) //
-                    .map(c -> new BinBoundary(c.m_cutoff, c.m_matchType)) //
+                    .map(c -> new BinBoundary(c.m_cutoff, c.m_matchType.m_baseValue)) //
                     .toArray(BinBoundary[]::new) //
                 );
             case CUSTOM_QUANTILES -> new BinningSettings.FixedQuantiles( //
                 Arrays.stream(settings.m_customQuantiles) //
-                    .map(q -> new BinBoundary(q.m_quantile, q.m_matchType)) //
+                    .map(q -> new BinBoundary(q.m_quantile, q.m_matchType.m_baseValue)) //
                     .toArray(BinBoundary[]::new) //
                 );
             case EQUAL_WIDTH -> new BinningSettings.EqualWidth(settings.m_numberOfBins);
@@ -167,7 +167,7 @@ final class AutoBinnerNodeModel4 extends WebUINodeModel<AutoBinnerNodeSettings> 
 
         var numberFormatting = switch (settings.m_numberFormat) {
             case COLUMN_FORMAT -> new NumberFormattingSettings.ColumnFormat();
-            case CUSTOM -> new NumberFormattingSettings.CustomFormat(settings.m_numberFormatSettings);
+            case CUSTOM -> new NumberFormattingSettings.CustomFormat(settings.m_numberFormatSettings.toBaseValue());
         };
 
         var selectedColumns = Arrays.asList( //
@@ -187,7 +187,7 @@ final class AutoBinnerNodeModel4 extends WebUINodeModel<AutoBinnerNodeSettings> 
             selectedColumns, //
             binningSettings, //
             settings.m_enforceIntegerCutoffs, //
-            new BinNamingSettings(settings.m_binNames, numberFormatting), //
+            new BinNamingSettings(settings.m_binNames.m_binName, numberFormatting), //
             boundsSettings, //
             columnOutputNaming //
         );
