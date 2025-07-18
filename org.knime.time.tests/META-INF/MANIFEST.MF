@@ -11,7 +11,7 @@ Require-Bundle: org.junit;bundle-version="[4.13.2,5.0.0)",
  junit-jupiter-params;bundle-version="[5.10.2,6.0.0)",
  org.knime.core.ui.testing;bundle-version="[5.6.0,6.0.0)",
  org.hamcrest.library;bundle-version="[2.2.0,3.0.0)",
- org.hamcrest.core;bundle-version="[2.2.0,3.0.0)",
+ org.hamcrest;bundle-version="[2.2.0,3.0.0)",
  junit-jupiter-api;bundle-version="[5.10.2,6.0.0)"
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Automatic-Module-Name: org.knime.time.tests
