@@ -288,29 +288,16 @@ public final class ColumnNameReplacerUtils {
         final String[] originalNames, //
         final ColumnNameReplacerNodeSettings settings //
     ) throws InvalidSettingsException, IllegalSearchPatternException, IllegalReplacementException {
-        if (settings.m_useNewFixedWildcardBehavior) {
-            return ColumnNameReplacerUtils.columnRenameMappings( //
-                originalNames, //
-                settings.m_pattern, //
-                settings.m_patternType, //
-                settings.m_caseSensitivity, //
-                settings.m_replacementStrategy, //
-                settings.m_enableEscapingWildcard, //
-                settings.m_properlySupportUnicodeCharacters, //
-                settings.m_replacement //
-            );
-        } else {
-            return ColumnNameReplacerUtils.columnRenameMappingsWithWildcardBug( //
-                originalNames, //
-                settings.m_pattern, //
-                settings.m_patternType, //
-                settings.m_caseSensitivity, //
-                settings.m_replacementStrategy, //
-                settings.m_enableEscapingWildcard, //
-                settings.m_properlySupportUnicodeCharacters, //
-                settings.m_replacement //
-            );
-        }
+        return ColumnNameReplacerUtils.columnRenameMappings( //
+            originalNames, //
+            settings.m_pattern, //
+            settings.m_patternType, //
+            settings.m_caseSensitivity, //
+            settings.m_replacementStrategy, //
+            settings.m_enableEscapingWildcard, //
+            settings.m_properlySupportUnicodeCharacters, //
+            settings.m_replacement //
+        );
     }
 
     private static Map<String, String> createColumnRenameMappingsInternal( //

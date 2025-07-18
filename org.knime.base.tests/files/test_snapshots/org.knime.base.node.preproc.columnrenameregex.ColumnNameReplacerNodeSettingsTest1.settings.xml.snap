@@ -7,5 +7,4 @@
     <entry key="replaceString" type="xstring" value="prefix_$1"/>
     <entry key="replacementStrategy" type="xstring" value="ALL_OCCURRENCES"/>
     <entry key="properlySupportUnicodeCharacters" type="xboolean" value="false"/>
-    <entry key="useNewFixedWildcardBehavior" type="xboolean" value="false"/>
 </config>
