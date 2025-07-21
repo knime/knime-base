@@ -1362,6 +1362,7 @@
       </node>
       <node
             category-path="/io/filehandling"
+            deprecated="true"
             factory-class="org.knime.base.node.flowvariable.createfilename.CreateFilenameNodeFactory"
             >
       </node>
@@ -1728,6 +1729,7 @@
             />
       <node
             category-path="/io/filehandling/remote"
+            deprecated="true"
             factory-class="org.knime.base.node.util.createtempdir.CreateTempDirectoryNodeFactory"
             />
       <node
