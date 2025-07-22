@@ -157,7 +157,7 @@ final class StringToPathVariableNodeModel extends NodeModel {
         m_fileSystemModel = createSettingsModelFileSystem(portsConfig);
         m_statusConsumer = new NodeModelStatusConsumer(EnumSet.of(MessageType.ERROR, MessageType.INFO));
         m_filter = new FlowVariableFilterConfiguration(CFG_VARIABLE_FILTER);
-        m_filter.loadDefaults(getAvailableFlowVariables(StringType.INSTANCE), true);
+        m_filter.loadDefaults(getAvailableFlowVariables(StringType.INSTANCE), false);
     }
 
     @Override
