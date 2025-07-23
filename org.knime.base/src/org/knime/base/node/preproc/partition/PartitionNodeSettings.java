@@ -50,7 +50,8 @@ package org.knime.base.node.preproc.partition;
 
 import org.knime.base.node.preproc.partition.PartitionNodeSettings.PartitionModification;
 import org.knime.base.node.preproc.sample.AbstractSamplingNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.node.parameters.NodeParametersInput;
 
 /**
  *
@@ -65,7 +66,7 @@ final class PartitionNodeSettings extends AbstractSamplingNodeSettings {
         super();
     }
 
-    PartitionNodeSettings(final DefaultNodeSettingsContext context) {
+    PartitionNodeSettings(final NodeParametersInput context) {
         super(context);
     }
 
@@ -74,7 +75,7 @@ final class PartitionNodeSettings extends AbstractSamplingNodeSettings {
         private static final String DESCRIPTION = "description";
 
         @Override
-        public void modify(final WidgetGroupModifier group) {
+        public void modify(final Modification.WidgetGroupModifier group) {
             getCountModeWidgetModifier(group).withProperty("title", "First partition type")
                 .withProperty(DESCRIPTION, """
                         Defines how the size of the first partition is specified: as a percentage of total rows \

@@ -70,7 +70,7 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 import org.knime.testing.core.ExecutionContextExtension;
 
 /**

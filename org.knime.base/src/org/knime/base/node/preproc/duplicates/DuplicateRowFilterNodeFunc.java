@@ -61,8 +61,8 @@ import org.knime.core.node.func.NodeFuncApi;
 import org.knime.core.node.func.SimpleNodeFunc;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 
 /**
  * NodeFunc that makes the Duplicate Row Filter available to K-AI's build mode.
@@ -93,7 +93,7 @@ public final class DuplicateRowFilterNodeFunc implements SimpleNodeFunc {
             validateDecisionColumn(tableSpec, rowSelection, decisionColumn);
             dupRowFilterSettings.m_selectedColumn = decisionColumn;
         }
-        DefaultNodeSettings.saveSettings(DuplicateRowFilterDialogSettings.class, dupRowFilterSettings, settings);
+        NodeParametersUtil.saveSettings(DuplicateRowFilterDialogSettings.class, dupRowFilterSettings, settings);
     }
 
     private static void validateDecisionColumn(final DataTableSpec tableSpec, final RowSelection rowSelection,

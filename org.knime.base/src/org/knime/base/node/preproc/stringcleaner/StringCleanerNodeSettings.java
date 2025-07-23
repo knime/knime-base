@@ -48,32 +48,33 @@
  */
 package org.knime.base.node.preproc.stringcleaner;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil.getStringColumnsOfFirstPort;
+import static org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil.getStringColumnsOfFirstPort;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider.StringColumnsProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.BooleanReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.IsNotEmptyValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.IsSingleCharacterValidation;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.HorizontalLayout;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.migration.Migrate;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.util.BooleanReference;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider.StringColumnsProvider;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
+import org.knime.node.parameters.widget.text.TextInputWidget;
+import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternValidation.IsNotEmptyValidation;
+import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternValidation.IsSingleCharacterValidation;
 
 /**
  * Node Settings for the Value Lookup Node
@@ -82,7 +83,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInpu
  * @since 5.2
  */
 @SuppressWarnings({"restriction", "squid:S3052"}) // New Node UI is not yet API / initialise defaults verbosely
-public final class StringCleanerNodeSettings implements DefaultNodeSettings {
+public final class StringCleanerNodeSettings implements NodeParameters {
 
     // Layout
     interface DialogLayout {
@@ -322,14 +323,14 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
             LOWERCASE;
     }
 
-    class ChangeCasingOptionRef implements Reference<ChangeCasingOption> {
+    class ChangeCasingOptionRef implements ParameterReference<ChangeCasingOption> {
 
     }
 
-    static final class ChangeCasingIsCapitalize implements PredicateProvider {
+    static final class ChangeCasingIsCapitalize implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(ChangeCasingOptionRef.class).isOneOf(ChangeCasingOption.CAPITALIZE);
         }
 
@@ -359,7 +360,7 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
             CUSTOM
     }
 
-    class CapitalizeAfterOptionRef implements Reference<CapitalizeAfterOption> {
+    class CapitalizeAfterOptionRef implements ParameterReference<CapitalizeAfterOption> {
 
     }
 
@@ -378,10 +379,10 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
     @ValueReference(CapitalizeAfterOptionRef.class)
     CapitalizeAfterOption m_changeCasingCapitalizeAfter = CapitalizeAfterOption.WHITESPACE;
 
-    static class CapitalizeAfterCustom implements PredicateProvider {
+    static class CapitalizeAfterCustom implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getPredicate(ChangeCasingIsCapitalize.class)
                 .and(i.getEnum(CapitalizeAfterOptionRef.class).isOneOf(CapitalizeAfterOption.CUSTOM));
         }
@@ -413,14 +414,14 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
             END,
     }
 
-    class PadOptionRef implements Reference<PadOption> {
+    class PadOptionRef implements ParameterReference<PadOption> {
 
     }
 
-    static final class DoPad implements PredicateProvider {
+    static final class DoPad implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(PadOptionRef.class).isOneOf(PadOption.START, PadOption.END);
         }
 
@@ -463,14 +464,14 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
             APPEND
     }
 
-    class OutputOptionRef implements Reference<OutputOption> {
+    class OutputOptionRef implements ParameterReference<OutputOption> {
 
     }
 
-    static final class AppendColumnsWithSuffix implements PredicateProvider {
+    static final class AppendColumnsWithSuffix implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(OutputOptionRef.class).isOneOf(OutputOption.APPEND);
         }
 
@@ -501,7 +502,7 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
         // required by interface
     }
 
-    StringCleanerNodeSettings(final DefaultNodeSettingsContext ctx) {
+    StringCleanerNodeSettings(final NodeParametersInput ctx) {
         m_columnsToClean = new ColumnFilter(getStringColumnsOfFirstPort(ctx)).withIncludeUnknownColumns();
     }
 }

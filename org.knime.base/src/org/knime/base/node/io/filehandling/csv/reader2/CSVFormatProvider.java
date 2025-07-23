@@ -62,10 +62,10 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSetting
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.StateProvider;
 
 import com.univocity.parsers.csv.CsvFormat;
 
@@ -160,7 +160,7 @@ public final class CSVFormatProvider extends CSVFormatAutoDetector implements St
     }
 
     @Override
-    public CsvFormat computeState(final DefaultNodeSettingsContext context) {
+    public CsvFormat computeState(final NodeParametersInput context) {
         try {
             return detectFormat(FileSystemPortConnectionUtil.getFileSystemConnection(context));
         } catch (IOException | InvalidSettingsException e) { // NOSONAR

@@ -54,22 +54,23 @@ import org.knime.core.data.IntValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.FilteredInputTableColumnsProvider;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.Before;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
+import org.knime.node.parameters.widget.choices.util.FilteredInputTableColumnsProvider;
 
 /**
  * Settings for the Web UI dialog of the Double to Int node. Double check backwards compatible loading if this class is
@@ -78,7 +79,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.Filt
  * @author Jonas Klotz, KNIME GmbH, Berlin
  */
 @SuppressWarnings("restriction")
-public final class DoubleToIntNodeSettings implements DefaultNodeSettings {
+public final class DoubleToIntNodeSettings implements NodeParameters {
 
     /**
      * Constructor for persistence and conversion from JSON.
@@ -92,7 +93,7 @@ public final class DoubleToIntNodeSettings implements DefaultNodeSettings {
      *
      * @param context of settings creation
      */
-    DoubleToIntNodeSettings(final DefaultNodeSettingsContext context) {
+    DoubleToIntNodeSettings(final NodeParametersInput context) {
         this();
         final var numericColumns =
             ColumnSelectionUtil.getFilteredColumns(context, 0, NumericalColumns::isNumericColumn);
@@ -172,7 +173,7 @@ public final class DoubleToIntNodeSettings implements DefaultNodeSettings {
 
     }
 
-    private static final class RoundingOptionsPersistor implements NodeSettingsPersistor<RoundingOptions> {
+    private static final class RoundingOptionsPersistor implements NodeParametersPersistor<RoundingOptions> {
 
         @Override
         public RoundingOptions load(final NodeSettingsRO settings) throws InvalidSettingsException {

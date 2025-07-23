@@ -48,7 +48,7 @@
  */
 package org.knime.base.node.preproc.filter.rowref;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 
 /**
  * @author David Hickey, TNG Technology Consulting GmbH

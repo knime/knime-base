@@ -75,9 +75,9 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSetting
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOptionRef;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
+import org.knime.node.parameters.updates.ValueProvider;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany

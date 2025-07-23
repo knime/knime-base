@@ -60,10 +60,10 @@ import org.knime.core.data.time.localdate.LocalDateCellFactory;
 import org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory;
 import org.knime.core.data.time.localtime.LocalTimeCellFactory;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFactory;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * An enumeration that contains all different Date&Time types and holds its {@link DataType} and a representing name.
@@ -136,7 +136,7 @@ public enum DateTimeType {
      *
      * @author Martin Sillye, TNG Technology Consulting GmbH
      */
-    public interface Ref extends Reference<DateTimeType> {
+    public interface Ref extends ParameterReference<DateTimeType> {
     }
 
     /**
@@ -144,7 +144,7 @@ public enum DateTimeType {
      *
      * @author Martin Sillye, TNG Technology Consulting GmbH
      */
-    public abstract static class IsDateTimeType implements PredicateProvider {
+    public abstract static class IsDateTimeType implements EffectPredicateProvider {
         private DateTimeType m_type;
 
         /**
@@ -155,7 +155,7 @@ public enum DateTimeType {
         }
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(Ref.class).isOneOf(this.m_type);
         }
     }
@@ -166,7 +166,7 @@ public enum DateTimeType {
      * @author Martin Sillye, TNG Technology Consulting GmbH
      * @param <T> Reference class
      */
-    public abstract static class IsDateTimeTypeAndNotDisabled<T extends Reference<Boolean>> extends IsDateTimeType {
+    public abstract static class IsDateTimeTypeAndNotDisabled<T extends ParameterReference<Boolean>> extends IsDateTimeType {
         private Class<T> m_checkbox;
 
         /**
@@ -179,7 +179,7 @@ public enum DateTimeType {
         }
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return super.init(i).and(i.getBoolean(m_checkbox).isFalse());
         }
     }

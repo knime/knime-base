@@ -52,27 +52,28 @@ import static org.knime.base.node.viz.format.string.StringFormatManagerNodeModel
 
 import org.knime.base.node.viz.format.AlignmentSuggestionOption;
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.FilteredInputTableColumnsProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.HorizontalLayout;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.migration.Migrate;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
+import org.knime.node.parameters.widget.choices.util.FilteredInputTableColumnsProvider;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 
 /**
  * Settings for the {@link StringFormatManagerNodeModel}
@@ -80,7 +81,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberIn
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings({"restriction", "squid:S3052"}) // WebUI is not API yet / init settings with "= false" for verbosity.
-public final class StringFormatManagerNodeSettings implements DefaultNodeSettings {
+public final class StringFormatManagerNodeSettings implements NodeParameters {
 
     // Layout
 
@@ -195,14 +196,14 @@ public final class StringFormatManagerNodeSettings implements DefaultNodeSetting
             CUSTOM
     }
 
-    class CustomStringReplacementOptionRef implements Reference<CustomStringReplacementOption> {
+    class CustomStringReplacementOptionRef implements ParameterReference<CustomStringReplacementOption> {
 
     }
 
-    static final class ReplaceEmptyStrings implements PredicateProvider {
+    static final class ReplaceEmptyStrings implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(CustomStringReplacementOptionRef.class).isOneOf(CustomStringReplacementOption.CUSTOM);
         }
 
@@ -248,7 +249,7 @@ public final class StringFormatManagerNodeSettings implements DefaultNodeSetting
         // required by framework for serialization/deserialization
     }
 
-    StringFormatManagerNodeSettings(final DefaultNodeSettingsContext ctx) {
+    StringFormatManagerNodeSettings(final NodeParametersInput ctx) {
         m_columnsToFormat =
             new ColumnFilter(ColumnSelectionUtil.getFilteredColumns(ctx, 0, StringFormatManagerNodeModel::isStringCell))
                 .withIncludeUnknownColumns();

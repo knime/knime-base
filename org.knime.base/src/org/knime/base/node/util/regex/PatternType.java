@@ -48,7 +48,7 @@
  */
 package org.knime.base.node.util.regex;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * Defines how to interpret a search pattern during string replacement.

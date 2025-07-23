@@ -65,7 +65,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.testing.node.dialog.DefaultNodeSettingsCompatibilityTest;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 import org.knime.testing.node.dialog.SnapshotTestConfiguration;
@@ -155,7 +155,7 @@ class RegexSplitNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         // given a legacy settings object
         final var legacy = legacySettings(defaultValue);
         // when we load it
-        final var loaded = DefaultNodeSettings.loadSettings(legacy, RegexSplitNodeSettings.class);
+        final var loaded = NodeParametersUtil.loadSettings(legacy, RegexSplitNodeSettings.class);
         // then we get the expected values
         assertThat(loaded.m_column).as("read name of column to split").isEqualTo("col");
         assertThat(loaded.m_pattern).as("read pattern").isEqualTo("pattern");

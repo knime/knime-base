@@ -51,17 +51,18 @@ package org.knime.time.node.convert.stringtodurationperiod;
 import org.knime.core.data.DataType;
 import org.knime.core.data.time.duration.DurationCellFactory;
 import org.knime.core.data.time.period.PeriodCellFactory;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider.StringColumnsProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
+import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider.StringColumnsProvider;
 import org.knime.time.util.ActionIfExtractionFails;
 import org.knime.time.util.ReplaceOrAppend;
 
@@ -71,10 +72,10 @@ import org.knime.time.util.ReplaceOrAppend;
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-final class StringToDurationPeriodNodeSettings implements DefaultNodeSettings {
+final class StringToDurationPeriodNodeSettings implements NodeParameters {
 
-    StringToDurationPeriodNodeSettings(final DefaultNodeSettingsContext context) {
-        var spec = context.getDataTableSpec(0);
+    StringToDurationPeriodNodeSettings(final NodeParametersInput context) {
+        var spec = context.getInTableSpec(0);
 
         if (spec.isPresent()) {
             m_columnFilter = new ColumnFilter(ColumnSelectionUtil.getStringColumns(spec.get()));

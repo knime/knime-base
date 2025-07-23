@@ -65,8 +65,9 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.VariableType.BooleanType;
 import org.knime.core.node.workflow.VariableType.LongType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.widget.choices.filter.FlowVariableFilter;
 import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
 
@@ -81,7 +82,7 @@ public class AppendVariableToTable4NodeModelTest {
 
     private static final String INPUT_COLUMN = "column1";
 
-    private static final Class<? extends DefaultNodeSettings> SETTINGS_CLASS = AppendVariableToTable4NodeSettings.class;
+    private static final Class<? extends NodeParameters> SETTINGS_CLASS = AppendVariableToTable4NodeSettings.class;
 
     @Test
     void testExecute() throws InvalidSettingsException, IOException {
@@ -123,7 +124,7 @@ public class AppendVariableToTable4NodeModelTest {
         final var nodeSettings = new NodeSettings(NODE_NAME);
         workflowManager.saveNodeSettings(node.getID(), nodeSettings);
         var modelSettings = nodeSettings.addNodeSettings("model");
-        DefaultNodeSettings.saveSettings(SETTINGS_CLASS, settings, modelSettings);
+        NodeParametersUtil.saveSettings(SETTINGS_CLASS, settings, modelSettings);
         workflowManager.loadNodeSettings(node.getID(), nodeSettings);
         // populate the input table
         var inputTableSpecBuilder = new TableTestUtil.SpecBuilder();

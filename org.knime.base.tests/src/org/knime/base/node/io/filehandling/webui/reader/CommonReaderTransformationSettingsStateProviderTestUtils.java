@@ -65,7 +65,7 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.node.parameters.WidgetGroup;
 import org.knime.testing.node.dialog.updates.UpdateSimulator;
 import org.knime.testing.node.dialog.updates.UpdateSimulator.UpdateSimulatorResult;
 

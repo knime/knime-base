@@ -76,7 +76,8 @@ import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.VariableType;
 import org.knime.core.node.workflow.WorkflowManager;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.testing.util.WorkflowManagerUtil;
 
 /**
@@ -96,7 +97,7 @@ final class VariableCreatorNodeModelTest {
 
     private final static String NODE_NAME = "VariableCreator";
 
-    private final static Class<? extends DefaultNodeSettings> SETTINGS_CLASS = VariableCreatorNodeSettings.class;
+    private final static Class<? extends NodeParameters> SETTINGS_CLASS = VariableCreatorNodeSettings.class;
 
     @BeforeEach
     void setup() throws IOException {
@@ -114,7 +115,7 @@ final class VariableCreatorNodeModelTest {
         final var nodeSettings = new NodeSettings(NODE_NAME);
         m_wfm.saveNodeSettings(m_nodeContainer.getID(), nodeSettings);
         var modelSettings = nodeSettings.addNodeSettings("model");
-        DefaultNodeSettings.saveSettings(SETTINGS_CLASS, m_settings, modelSettings);
+        NodeParametersUtil.saveSettings(SETTINGS_CLASS, m_settings, modelSettings);
         m_wfm.loadNodeSettings(m_nodeContainer.getID(), nodeSettings);
     }
 

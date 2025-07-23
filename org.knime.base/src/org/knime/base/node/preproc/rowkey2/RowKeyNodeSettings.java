@@ -52,31 +52,32 @@ import java.util.List;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.booleanhelpers.AlwaysSaveTrueBoolean;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.BooleanReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.ColumnNameValidationV2;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.Migrate;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.util.BooleanReference;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
+import org.knime.node.parameters.widget.text.TextInputWidget;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.ColumnNameValidation;
 
 /**
  * Settings for {@link RowKeyNodeModel2}.
@@ -85,7 +86,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInpu
  * @since 5.3
  */
 @SuppressWarnings("restriction")
-public final class RowKeyNodeSettings implements DefaultNodeSettings {
+public final class RowKeyNodeSettings implements NodeParameters {
 
     private static final String LEGACY_NEW_ROW_KEY_COLUMN_CONFIG_KEY = "newRowKeyColumnName";
 
@@ -98,7 +99,7 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
     @ValueReference(ReplaceRowKey.class)
     boolean m_replaceRowKey = true;
 
-    private static final class ReplacementModeRef implements Reference<ReplacementMode> {
+    private static final class ReplacementModeRef implements ParameterReference<ReplacementMode> {
 
     }
 
@@ -111,10 +112,10 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
     @Layout(ReplaceRowIdsSection.class)
     ReplacementMode m_replaceRowKeyMode = ReplacementMode.GENERATE_NEW;
 
-    private static final class ReplaceByColumn implements PredicateProvider {
+    private static final class ReplaceByColumn implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getPredicate(ReplaceRowKey.class)
                 .and(i.getEnum(ReplacementModeRef.class).isOneOf(ReplacementMode.USE_COLUMN));
         }
@@ -181,7 +182,7 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Column name", description = "The name of the column to append to the table.")
     @Effect(predicate = AppendRowKey.class, type = EffectType.SHOW)
     @Layout(ExtractRowIdsSection.class)
-    @TextInputWidget(patternValidation = ColumnNameValidationV2.class)
+    @TextInputWidget(patternValidation = ColumnNameValidationUtils.ColumnNameValidation.class)
     String m_appendedColumnName = "Old RowID";
 
     static final class DoNotAllowPaddedColumnNamePersistor extends AlwaysSaveTrueBoolean {
@@ -246,7 +247,7 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
             APPEND_COUNTER
     }
 
-    private static final class NewRowKeyColumnMigration implements NodeSettingsMigration<String> {
+    private static final class NewRowKeyColumnMigration implements NodeParametersMigration<String> {
 
         @Override
         public List<ConfigMigration<String>> getConfigMigrations() {
@@ -259,7 +260,7 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    private static final class ReplacementModeMigration implements NodeSettingsMigration<ReplacementMode> {
+    private static final class ReplacementModeMigration implements NodeParametersMigration<ReplacementMode> {
 
         @Override
         public List<ConfigMigration<ReplacementMode>> getConfigMigrations() {
@@ -278,7 +279,7 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
     }
 
     private static final class HandleMissingValuesModeMigration
-        implements NodeSettingsMigration<HandleMissingValuesMode> {
+        implements NodeParametersMigration<HandleMissingValuesMode> {
 
         private static final String CONFIG_KEY_BOOLEAN = "replaceMissingValues";
 
@@ -300,7 +301,7 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
     }
 
     private static final class HandleDuplicateValuesModeMigration
-        implements NodeSettingsMigration<HandleDuplicateValuesMode> {
+        implements NodeParametersMigration<HandleDuplicateValuesMode> {
 
         private static final String CONFIG_KEY_BOOLEAN = "ensureUniqueness";
 

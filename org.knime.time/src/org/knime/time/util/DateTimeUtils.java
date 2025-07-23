@@ -68,7 +68,7 @@ import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
 import org.knime.core.data.time.localtime.LocalTimeValue;
 import org.knime.core.data.time.period.PeriodValue;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider;
+import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider;
 
 /**
  * This class contains several useful functions for the the new date&time types.

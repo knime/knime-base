@@ -67,10 +67,10 @@ import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.node.parameters.updates.ParameterReference;
 
 /**
  * Tests that the settings initialize expected dynamic values input elements.
@@ -129,14 +129,14 @@ final class AbstractRowFilterNodeSettingsTest {
 
     private static DynamicValuesInput inputFor(final StringOrEnum<RowIdentifiers> columnSelection,
         final FilterOperator operator) {
-        final var ctx = DefaultNodeSettings.createDefaultNodeSettingsContext(new DataTableSpec[]{SPEC});
+        final var ctx = NodeParametersUtil.createDefaultNodeSettingsContext(new DataTableSpec[]{SPEC});
         final var provider = new AbstractRowFilterNodeSettings.FilterCriterion.TypeAndOperatorBasedInput();
         provider.init(new TestInitializer() {
             // - selected column value supplier
             // - current value supplier
             @SuppressWarnings("unchecked")
             @Override
-            public <T> Supplier<T> getValueSupplier(final Class<? extends Reference<T>> ref) {
+            public <T> Supplier<T> getValueSupplier(final Class<? extends ParameterReference<T>> ref) {
                 if (ref.equals(AbstractRowFilterNodeSettings.FilterCriterion.SelectedColumnRef.class)) {
                     return () -> (T)columnSelection;
                 }
@@ -149,7 +149,7 @@ final class AbstractRowFilterNodeSettingsTest {
             // current operator state
             @SuppressWarnings("unchecked")
             @Override
-            public <T> Supplier<T> computeFromValueSupplier(final Class<? extends Reference<T>> ref) {
+            public <T> Supplier<T> computeFromValueSupplier(final Class<? extends ParameterReference<T>> ref) {
                 if (ref.equals(OperatorRef.class)) {
                     return () -> (T)operator;
                 }
@@ -162,7 +162,7 @@ final class AbstractRowFilterNodeSettingsTest {
             // expected to be called, since the TypeBasedOperatorChoice does not have OperatorRef as trigger,
             // only as dependency
             @Override
-            public <T> void computeOnValueChange(final Class<? extends Reference<T>> id) {
+            public <T> void computeOnValueChange(final Class<? extends ParameterReference<T>> id) {
                 // expected to be called
             }
         });

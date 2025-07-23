@@ -71,9 +71,9 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.WorkflowManager;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.testing.util.WorkflowManagerUtil;
 import org.mockito.Mockito;
 
@@ -211,7 +211,7 @@ final class DateTimeFormatManagerNodeModelTest {
         final var nodeSettings = new NodeSettings("DateTimeRoundNode");
         m_wfm.saveNodeSettings(m_dateTimeFormatManagerNode.getID(), nodeSettings);
         var modelSettings = nodeSettings.addNodeSettings("model");
-        DefaultNodeSettings.saveSettings(DateTimeFormatManagerNodeSettings.class, settings, modelSettings);
+        NodeParametersUtil.saveSettings(DateTimeFormatManagerNodeSettings.class, settings, modelSettings);
         m_wfm.loadNodeSettings(m_dateTimeFormatManagerNode.getID(), nodeSettings);
     }
 }

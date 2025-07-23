@@ -48,13 +48,13 @@
  */
 package org.knime.base.node.util.cache;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DefaultProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.migration.DefaultProvider;
+import org.knime.node.parameters.migration.Migrate;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
  * Settings for Cache node.
@@ -63,7 +63,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * @since 5.4
  */
 @SuppressWarnings("restriction")
-final class CacheNodeSettings implements DefaultNodeSettings {
+final class CacheNodeSettings implements NodeParameters {
 
     enum CopyImplementation {
             @Label(value = "Automatic",

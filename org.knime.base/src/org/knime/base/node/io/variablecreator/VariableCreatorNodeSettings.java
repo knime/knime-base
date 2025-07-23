@@ -62,19 +62,20 @@ import java.util.stream.IntStream;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.workflow.VariableType;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.array.ArrayWidget;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.HorizontalLayout;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * The settings for the Variable Creator Node.
@@ -82,7 +83,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-final class VariableCreatorNodeSettings implements DefaultNodeSettings {
+final class VariableCreatorNodeSettings implements NodeParameters {
 
     @Widget(title = "New flow variables", description = "The new flow variables to create.")
     @ArrayWidget( //
@@ -97,7 +98,7 @@ final class VariableCreatorNodeSettings implements DefaultNodeSettings {
         new NewFlowVariableSettings() //
     };
 
-    static final class NewFlowVariableSettings implements DefaultNodeSettings {
+    static final class NewFlowVariableSettings implements NodeParameters {
 
         @HorizontalLayout
         interface NewFlowVariableSettingsLayout {
@@ -144,13 +145,13 @@ final class VariableCreatorNodeSettings implements DefaultNodeSettings {
             }
 
             @Override
-            public NewFlowVariableSettings computeState(final DefaultNodeSettingsContext context) {
+            public NewFlowVariableSettings computeState(final NodeParametersInput context) {
                 return new NewFlowVariableSettings("variable_" + (m_valueSupplier.get().length + 1),
                     FlowVariableType.STRING, "");
             }
         }
 
-        static final class NewFlowVariablesTypeRef implements Reference<FlowVariableType> {
+        static final class NewFlowVariablesTypeRef implements ParameterReference<FlowVariableType> {
         }
     }
 
@@ -324,10 +325,10 @@ final class VariableCreatorNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    static final class NewFlowVariablesRef implements Reference<NewFlowVariableSettings[]> {
+    static final class NewFlowVariablesRef implements ParameterReference<NewFlowVariableSettings[]> {
     }
 
-    static final class NewFlowVariablesMigrator implements NodeSettingsMigration<NewFlowVariableSettings[]> {
+    static final class NewFlowVariablesMigrator implements NodeParametersMigration<NewFlowVariableSettings[]> {
 
         private static final String CFG_KEY_VARIABLES = "variables";
 

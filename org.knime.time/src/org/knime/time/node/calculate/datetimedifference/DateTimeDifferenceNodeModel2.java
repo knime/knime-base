@@ -48,7 +48,7 @@
  */
 package org.knime.time.node.calculate.datetimedifference;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.validateColumnName;
+import static org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.validateColumnName;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -80,9 +80,9 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.streamable.BufferedDataTableRowOutput;
 import org.knime.core.util.UniqueNameGenerator;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationMessageBuilder;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.InvalidColumnNameState;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.InvalidColumnNameState;
 import org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings.Mode;
 import org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings.OutputNumberType;
 import org.knime.time.node.calculate.datetimedifference.DateTimeDifferenceNodeSettings.SecondDateTimeValueType;

@@ -58,20 +58,22 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.time.duration.DurationValue;
 import org.knime.core.data.time.period.PeriodValue;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.EnumChoice;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.EnumChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.EmptyOrColumnNameValidation;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.array.ArrayWidget;
+import org.knime.node.parameters.layout.HorizontalLayout;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.EnumChoice;
+import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
+import org.knime.node.parameters.widget.text.TextInputWidget;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.EmptyOrColumnNameValidation;
 import org.knime.time.node.extract.durationperiod.ExtractDurationPeriodFieldsNodeSettings.SelectedInputColumnHelpers;
 import org.knime.time.node.extract.durationperiod.ExtractFieldSettings.OutputColumnNamePlaceholderProvider.ExtractableFieldsReference;
 
@@ -82,7 +84,7 @@ import org.knime.time.node.extract.durationperiod.ExtractFieldSettings.OutputCol
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-final class ExtractFieldSettings implements DefaultNodeSettings {
+final class ExtractFieldSettings implements NodeParameters {
 
     public ExtractFieldSettings() {
     }
@@ -106,7 +108,7 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
         description = "The name of the column populated with the values of the selected field.")
     @Layout(ExtractFieldWidgetLayout.class)
     @TextInputWidget(placeholderProvider = OutputColumnNamePlaceholderProvider.class,
-        patternValidation = EmptyOrColumnNameValidation.class)
+        patternValidation = ColumnNameValidationUtils.EmptyOrColumnNameValidation.class)
     String m_outputcolumnName;
 
     /**
@@ -115,7 +117,7 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
      */
     static final class OutputColumnNamePlaceholderProvider implements StateProvider<String> {
 
-        static final class ExtractableFieldsReference implements Reference<ExtractableField> {
+        static final class ExtractableFieldsReference implements ParameterReference<ExtractableField> {
         }
 
         private Supplier<ExtractableField> m_valueSupplier;
@@ -127,7 +129,7 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public String computeState(final DefaultNodeSettingsContext context) {
+        public String computeState(final NodeParametersInput context) {
             return Optional.ofNullable(m_valueSupplier.get()) //
                 .map(OutputColumnNamePlaceholderProvider::getPlaceholder) //
                 .orElse("");
@@ -155,8 +157,8 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public List<ExtractableField> choices(final DefaultNodeSettingsContext context) throws WidgetHandlerException {
-            var inputTableSpec = context.getDataTableSpec(0);
+        public List<ExtractableField> choices(final NodeParametersInput context) throws WidgetHandlerException {
+            var inputTableSpec = context.getInTableSpec(0);
             var selectedColumn = m_selectedInputColumnNameSupplier.get();
 
             var selectedColumnType = inputTableSpec //
@@ -189,7 +191,7 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public ExtractableField computeState(final DefaultNodeSettingsContext context) {
+        public ExtractableField computeState(final NodeParametersInput context) {
             return m_possibleDropDownChoicesSupplier.get().stream() //
                 .map(EnumChoice::id) //
                 .findFirst() //
@@ -211,7 +213,7 @@ final class ExtractFieldSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public ExtractFieldSettings computeState(final DefaultNodeSettingsContext context) {
+        public ExtractFieldSettings computeState(final NodeParametersInput context) {
             final var choices = m_defaultExtractableFieldSupplier.get();
 
             return (choices == null) //

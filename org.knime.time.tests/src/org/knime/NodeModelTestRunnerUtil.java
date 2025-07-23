@@ -61,7 +61,8 @@ import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.workflow.NodeContainerState;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.testing.util.InputTableNode;
 import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
@@ -79,7 +80,7 @@ final public class NodeModelTestRunnerUtil {
 
     private final Class<? extends NodeFactory<? extends NodeModel>> m_factory;
 
-    private final Class<? extends DefaultNodeSettings> m_settingsClass;
+    private final Class<? extends NodeParameters> m_settingsClass;
 
     /**
      * Create a Util class to run tests on Node Model
@@ -89,7 +90,7 @@ final public class NodeModelTestRunnerUtil {
      * @param settingsClass type of the settings class
      */
     public NodeModelTestRunnerUtil(final String inputColumn, final String nodeName,
-        final Class<? extends DefaultNodeSettings> settingsClass,
+        final Class<? extends NodeParameters> settingsClass,
         final Class<? extends NodeFactory<? extends NodeModel>> factory) {
         this.m_inputColumn = inputColumn;
         this.m_nodeName = nodeName;
@@ -120,7 +121,7 @@ final public class NodeModelTestRunnerUtil {
      * @throws InvalidSettingsException
      * @throws IOException
      */
-    public <T extends DefaultNodeSettings> TestOutput setupAndExecuteWorkflow(final T settings,
+    public <T extends NodeParameters> TestOutput setupAndExecuteWorkflow(final T settings,
         final DataCell cellToAdd) throws InvalidSettingsException, IOException {
         return setupAndExecuteWorkflow(settings, cellToAdd, StringCellFactory.TYPE);
     }
@@ -136,7 +137,7 @@ final public class NodeModelTestRunnerUtil {
      * @throws InvalidSettingsException
      * @throws IOException
      */
-    public <T extends DefaultNodeSettings> TestOutput setupAndExecuteWorkflow(final T settings,
+    public <T extends NodeParameters> TestOutput setupAndExecuteWorkflow(final T settings,
         final DataCell cellToAdd, final DataType inputColumnType) throws InvalidSettingsException, IOException {
         var workflowManager = WorkflowManagerUtil.createEmptyWorkflow();
 
@@ -153,7 +154,7 @@ final public class NodeModelTestRunnerUtil {
         final var nodeSettings = new NodeSettings(m_nodeName);
         workflowManager.saveNodeSettings(node.getID(), nodeSettings);
         var modelSettings = nodeSettings.addNodeSettings("model");
-        DefaultNodeSettings.saveSettings(m_settingsClass, settings, modelSettings);
+        NodeParametersUtil.saveSettings(m_settingsClass, settings, modelSettings);
         workflowManager.loadNodeSettings(node.getID(), nodeSettings);
 
         // populate the input table

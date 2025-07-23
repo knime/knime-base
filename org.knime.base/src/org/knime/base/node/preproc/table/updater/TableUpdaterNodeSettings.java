@@ -48,10 +48,10 @@
  */
 package org.knime.base.node.preproc.table.updater;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
  * The settings of the Table Updater
@@ -59,7 +59,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public final class TableUpdaterNodeSettings implements DefaultNodeSettings {
+public final class TableUpdaterNodeSettings implements NodeParameters {
 
     @Widget(title = "Columns missing in input table",
         description = "Controls how to deal with columns in the update table that are not part of the input table.")

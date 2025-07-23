@@ -53,30 +53,31 @@ import java.util.function.Supplier;
 import java.util.stream.StreamSupport;
 
 import org.knime.core.data.StringValue;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat.FormatTemporalType;
-import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider.LocaleValueRef;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider.StringColumnsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.updates.ButtonReference;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.ValueProvider;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
+import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider.StringColumnsProvider;
 import org.knime.time.util.ActionIfExtractionFails;
 import org.knime.time.util.LocaleStateProvider;
 import org.knime.time.util.ReplaceOrAppend;
@@ -85,13 +86,13 @@ import org.knime.time.util.ReplaceOrAppend;
  * @author Tobias Kampmann, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
+final class StringToDateTimeNodeSettings implements NodeParameters {
 
     StringToDateTimeNodeSettings() {
     }
 
-    StringToDateTimeNodeSettings(final DefaultNodeSettingsContext context) {
-        var spec = context.getDataTableSpec(0);
+    StringToDateTimeNodeSettings(final NodeParametersInput context) {
+        var spec = context.getInTableSpec(0);
 
         if (spec.isPresent()) {
             final var stringColumns = ColumnSelectionUtil.getStringColumns(spec.get());
@@ -169,7 +170,7 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
     String m_outputColumnSuffix = " (Date&time)";
 
-    static final class ColumnFilterValueRef implements Reference<ColumnFilter> {
+    static final class ColumnFilterValueRef implements ParameterReference<ColumnFilter> {
     }
 
     static final class AutoGuessFormatButtonRef implements ButtonReference {
@@ -190,28 +191,28 @@ final class StringToDateTimeNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public TemporalFormat computeState(final DefaultNodeSettingsContext context) {
+        public TemporalFormat computeState(final NodeParametersInput context) {
             var guessedFormat = autoGuessFormat(context, m_selectedColumns, m_localeLanguageTag);
 
             return new TemporalFormat(guessedFormat.format(), guessedFormat.temporalType());
         }
     }
 
-    static final class InputTableIsAvailable implements PredicateProvider {
+    static final class InputTableIsAvailable implements EffectPredicateProvider {
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             // need this length check due to quirks of the settings test framework
             return i.getConstant(
-                context -> context.getInputPortObjects().length > 0 && context.getDataTable(0).isPresent());
+                context -> context.getInPortObjects().length > 0 && context.getInTable(0).isPresent());
         }
     }
 
     private static final int NUMBER_OF_ROWS_TO_CHECK = 1000;
 
-    static TemporalFormat autoGuessFormat(final DefaultNodeSettingsContext context,
+    static TemporalFormat autoGuessFormat(final NodeParametersInput context,
         final Supplier<ColumnFilter> selectedColumns, final Supplier<String> localeLanguageTag) {
-        var inputTable = context.getDataTable(0);
-        var inputTableSpec = context.getDataTableSpec(0);
+        var inputTable = context.getInTable(0);
+        var inputTableSpec = context.getInTableSpec(0);
 
         if (inputTable.isEmpty() || inputTableSpec.isEmpty()) {
             // This shouldn't happen because we disable the button in this case.

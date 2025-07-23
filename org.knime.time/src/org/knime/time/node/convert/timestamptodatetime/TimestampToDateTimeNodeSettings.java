@@ -56,27 +56,28 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.IntValue;
 import org.knime.core.data.LongValue;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 import org.knime.time.util.DateTimeType;
 import org.knime.time.util.ReplaceOrAppend;
 
 @SuppressWarnings("restriction")
-final class TimestampToDateTimeNodeSettings implements DefaultNodeSettings {
+final class TimestampToDateTimeNodeSettings implements NodeParameters {
 
     TimestampToDateTimeNodeSettings() {
     }
 
-    TimestampToDateTimeNodeSettings(final DefaultNodeSettingsContext context) {
-        var spec = context.getDataTableSpec(0);
+    TimestampToDateTimeNodeSettings(final NodeParametersInput context) {
+        var spec = context.getInTableSpec(0);
 
         if (spec.isPresent()) {
             final var timestampColumns = spec.get().stream().filter(TimestampToDateTimeNodeSettings::isTimestampColumn)
@@ -96,8 +97,8 @@ final class TimestampToDateTimeNodeSettings implements DefaultNodeSettings {
     static final class TimestampColumnsProvider implements ColumnChoicesProvider {
 
         @Override
-        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0).stream().flatMap(DataTableSpec::stream)
+        public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
+            return context.getInTableSpec(0).stream().flatMap(DataTableSpec::stream)
                 .filter(TimestampToDateTimeNodeSettings::isTimestampColumn).toList();
         }
     }

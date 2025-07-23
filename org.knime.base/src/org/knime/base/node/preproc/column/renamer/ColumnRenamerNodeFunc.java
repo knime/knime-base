@@ -58,7 +58,7 @@ import org.knime.core.node.func.ListArgumentType;
 import org.knime.core.node.func.NodeFuncApi;
 import org.knime.core.node.func.StructArgumentType;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 
 /**
  *
@@ -108,7 +108,7 @@ public final class ColumnRenamerNodeFunc extends AbstractNodeFunc {
         }
         renamerSettings.m_renamings = renamings;
 
-        DefaultNodeSettings.saveSettings(ColumnRenamerSettings.class, renamerSettings, settings);
+        NodeParametersUtil.saveSettings(ColumnRenamerSettings.class, renamerSettings, settings);
     }
 
 }

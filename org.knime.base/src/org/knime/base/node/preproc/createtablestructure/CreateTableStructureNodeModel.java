@@ -48,7 +48,7 @@
  */
 package org.knime.base.node.preproc.createtablestructure;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.validateColumnName;
+import static org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.validateColumnName;
 
 import java.util.Arrays;
 

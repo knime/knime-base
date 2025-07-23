@@ -76,9 +76,10 @@ import org.knime.core.node.workflow.VariableType.LongArrayType;
 import org.knime.core.node.workflow.VariableType.LongType;
 import org.knime.core.node.workflow.VariableType.StringArrayType;
 import org.knime.core.node.workflow.VariableType.StringType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersInputImpl;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.widget.choices.FlowVariableChoicesProvider;
 
 /**
  * Factory class to create the {@link VariableToCellConverter} associated with the provided {@link FlowVariable}.
@@ -154,8 +155,9 @@ public final class VariableToCellConverterFactory {
     public static final class ConvertibleFlowVariablesProvider implements FlowVariableChoicesProvider {
 
         @Override
-        public List<FlowVariable> flowVariableChoices(final DefaultNodeSettingsContext context) {
-            return context.getAvailableInputFlowVariables(VariableToCellConverterFactory.getSupportedTypes()) //
+        public List<FlowVariable> flowVariableChoices(final NodeParametersInput context) {
+            return ((NodeParametersInputImpl)context)
+                .getAvailableInputFlowVariables(VariableToCellConverterFactory.getSupportedTypes()) //
                 .values().stream().toList();
         }
     }

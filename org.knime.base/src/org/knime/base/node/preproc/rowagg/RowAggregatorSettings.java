@@ -56,26 +56,27 @@ import java.util.Optional;
 
 import org.knime.base.node.preproc.rowagg.RowAggregatorNodeModel.AggregationFunction;
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.StringToStringWithNoneChoiceMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.NoneChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
-import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.FilteredInputTableColumnsProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.migration.Migrate;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
+import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
+import org.knime.node.parameters.widget.choices.util.FilteredInputTableColumnsProvider;
 
 /**
  * Settings for the Row Aggregator node model.
@@ -83,14 +84,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public final class RowAggregatorSettings implements DefaultNodeSettings {
+public final class RowAggregatorSettings implements NodeParameters {
 
-    interface CategoryColumnRef extends Reference<StringOrEnum<NoneChoice>> {
+    interface CategoryColumnRef extends ParameterReference<StringOrEnum<NoneChoice>> {
     }
 
-    static final class IsNoneCategoryColumnSelected implements PredicateProvider {
+    static final class IsNoneCategoryColumnSelected implements EffectPredicateProvider {
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getStringOrEnum(CategoryColumnRef.class).isEnumChoice(NONE);
         }
     }
@@ -119,19 +120,19 @@ public final class RowAggregatorSettings implements DefaultNodeSettings {
 
     }
 
-    interface AggregationFunctionRef extends Reference<AggregationFunction> {
+    interface AggregationFunctionRef extends ParameterReference<AggregationFunction> {
     }
 
-    static final class AggregationFunctionIsCount implements PredicateProvider {
+    static final class AggregationFunctionIsCount implements EffectPredicateProvider {
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(AggregationFunctionRef.class).isOneOf(AggregationFunction.COUNT);
         }
     }
 
-    static final class AggregationFunctionIsCountOrMinOrMax implements PredicateProvider {
+    static final class AggregationFunctionIsCountOrMinOrMax implements EffectPredicateProvider {
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(AggregationFunctionRef.class).isOneOf(AggregationFunction.COUNT, AggregationFunction.MIN,
                 AggregationFunction.MAX);
         }
@@ -204,7 +205,7 @@ public final class RowAggregatorSettings implements DefaultNodeSettings {
         m_frequencyColumns = new ColumnFilter().withIncludeUnknownColumns();
     }
 
-    RowAggregatorSettings(final DefaultNodeSettingsContext ctx) {
+    RowAggregatorSettings(final NodeParametersInput ctx) {
         m_frequencyColumns = new ColumnFilter(
             ColumnSelectionUtil.getFilteredColumns(ctx, 0, RowAggregatorNodeModel::isAggregatableColumn))
                 .withIncludeUnknownColumns();

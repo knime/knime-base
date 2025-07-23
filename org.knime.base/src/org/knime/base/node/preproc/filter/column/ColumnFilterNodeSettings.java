@@ -48,16 +48,17 @@
  */
 package org.knime.base.node.preproc.filter.column;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil.getAllColumnsOfFirstPort;
+import static org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil.getAllColumnsOfFirstPort;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.migration.Migrate;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 
 /**
  * Settings for the Column Filter node.
@@ -66,9 +67,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllC
  * @since 5.1
  */
 @SuppressWarnings("restriction")
-public final class ColumnFilterNodeSettings implements DefaultNodeSettings {
+public final class ColumnFilterNodeSettings implements NodeParameters {
 
-    ColumnFilterNodeSettings(final DefaultNodeSettingsContext context) {
+    ColumnFilterNodeSettings(final NodeParametersInput context) {
         m_columnFilter =
             new ColumnFilter(getAllColumnsOfFirstPort(context)).withIncludeUnknownColumns();
     }

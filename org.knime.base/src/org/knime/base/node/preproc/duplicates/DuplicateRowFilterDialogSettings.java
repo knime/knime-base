@@ -51,42 +51,44 @@ package org.knime.base.node.preproc.duplicates;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.booleanhelpers.AlwaysSaveTrueBoolean;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Advanced;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.BooleanReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.ColumnNameValidationV2;
+import org.knime.node.parameters.Advanced;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.Before;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.migration.Migrate;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.util.BooleanReference;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
+import org.knime.node.parameters.widget.text.TextInputWidget;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.ColumnNameValidation;
 
 /**
- * {@link DefaultNodeSettings} implementation for the Duplicate Row Filter to auto-generate a Web-UI based dialog. Note
+ * {@link NodeParameters} implementation for the Duplicate Row Filter to auto-generate a Web-UI based dialog. Note
  * that this class is only used for the dialog generation and not by the node model.
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
-public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettings {
+public final class DuplicateRowFilterDialogSettings implements NodeParameters {
 
     @Section(title = "Duplicate detection")
     @Before(DuplicateHandlingSection.class)
@@ -113,7 +115,7 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
     interface DuplicateHandlingSection {
     }
 
-    interface DuplicateRowHandlingRef extends Reference<DuplicateRowHandling> {
+    interface DuplicateRowHandlingRef extends ParameterReference<DuplicateRowHandling> {
     }
 
     @Persistor(DuplicateRowHandlingPersistor.class)
@@ -127,9 +129,9 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
     @Layout(DuplicateHandlingSection.class)
     DuplicateRowHandling m_duplicateHandling = DuplicateRowHandling.REMOVE;
 
-    static final class IsKeep implements PredicateProvider {
+    static final class IsKeep implements EffectPredicateProvider {
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getPredicate(DuplicateRowHandling.isKeep(DuplicateRowHandlingRef.class));
         }
     }
@@ -140,17 +142,17 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
     static final class AddChosenRowIdsColumn implements BooleanReference {
     }
 
-    static final class KeepDuplicatesAndAddUniqueLabel implements PredicateProvider {
+    static final class KeepDuplicatesAndAddUniqueLabel implements EffectPredicateProvider {
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getPredicate(IsKeep.class).and(i.getPredicate(AddUniqueLabel.class));
 
         }
     }
 
-    static final class KeepDuplicatesAndAddChosenRowIdsColumn implements PredicateProvider {
+    static final class KeepDuplicatesAndAddChosenRowIdsColumn implements EffectPredicateProvider {
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getPredicate(IsKeep.class).and(i.getPredicate(AddChosenRowIdsColumn.class));
         }
     }
@@ -175,7 +177,7 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
             + "('unique', 'chosen', 'duplicate') should be outputted.")
     @Effect(predicate = KeepDuplicatesAndAddUniqueLabel.class, type = EffectType.SHOW)
     @Layout(DuplicateHandlingSection.class)
-    @TextInputWidget(patternValidation = ColumnNameValidationV2.class)
+    @TextInputWidget(patternValidation = ColumnNameValidationUtils.ColumnNameValidation.class)
     String m_uniqueStatusColumnName = "Duplicate Status";
 
     @Persist(configKey = DuplicateRowFilterSettings.ADD_ROW_ID_FLAG_KEY)
@@ -194,7 +196,7 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
             + "of the chosen row for each duplicate row should be outputted.")
     @Effect(predicate = KeepDuplicatesAndAddChosenRowIdsColumn.class, type = EffectType.SHOW)
     @Layout(DuplicateHandlingSection.class)
-    @TextInputWidget(patternValidation = ColumnNameValidationV2.class)
+    @TextInputWidget(patternValidation = ColumnNameValidationUtils.ColumnNameValidation.class)
     String m_chosenRowIdsColumnName = "Duplicate Chosen";
 
     static final String DO_NOT_ALLOW_EMPTY_BLANK_PADDED_COLUMN_NAME_CFG_KEY = "doNotAllowEmptyBlankOrPaddedColumnName";
@@ -208,12 +210,12 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
     @Persistor(DoNotAllowEmptyBlankOrPaddedColumnNamePersistor.class)
     boolean m_doNotAllowEmptyBlankOrPaddedColumnName = true;
 
-    interface RowSelectionRef extends Reference<RowSelection> {
+    interface RowSelectionRef extends ParameterReference<RowSelection> {
     }
 
-    static final class IsFirstOrLast implements PredicateProvider {
+    static final class IsFirstOrLast implements EffectPredicateProvider {
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getPredicate(RowSelection.isFirstOrLast(RowSelectionRef.class));
         }
     }
@@ -279,8 +281,8 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
     }
 
     /** Constructor for auto-configure */
-    DuplicateRowFilterDialogSettings(final DefaultNodeSettingsContext context) {
-        var spec = context.getDataTableSpecs()[0];
+    DuplicateRowFilterDialogSettings(final NodeParametersInput context) {
+        var spec = context.getInTableSpecs()[0];
         if (spec != null) {
             // Choose the first column as the selected column for the row selection
             m_selectedColumn = spec.getColumnNames()[0];
@@ -294,7 +296,7 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
             @Label("Keep duplicate rows")
             KEEP;
 
-        static PredicateProvider isKeep(final Class<? extends Reference<DuplicateRowHandling>> reference) {
+        static EffectPredicateProvider isKeep(final Class<? extends ParameterReference<DuplicateRowHandling>> reference) {
             return i -> i.getEnum(reference).isOneOf(KEEP);
         }
     }
@@ -321,14 +323,14 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
             @Label("Maximum of")
             MAXIMUM;
 
-        static PredicateProvider isFirstOrLast(final Class<? extends Reference<RowSelection>> reference) {
+        static EffectPredicateProvider isFirstOrLast(final Class<? extends ParameterReference<RowSelection>> reference) {
             return i -> i.getEnum(reference).isOneOf(FIRST, LAST);
         }
 
     }
 
     /** Custom persistor for the duplicate row handling: true for REMOVE, false for KEEP */
-    private static final class DuplicateRowHandlingPersistor implements NodeSettingsPersistor<DuplicateRowHandling> {
+    private static final class DuplicateRowHandlingPersistor implements NodeParametersPersistor<DuplicateRowHandling> {
 
         @Override
         public DuplicateRowHandling load(final NodeSettingsRO settings) throws InvalidSettingsException {

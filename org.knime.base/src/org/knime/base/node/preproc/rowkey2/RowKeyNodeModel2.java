@@ -46,7 +46,7 @@
  */
 package org.knime.base.node.preproc.rowkey2;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.validateColumnName;
+import static org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.validateColumnName;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -88,9 +88,9 @@ import org.knime.core.node.streamable.RowOutput;
 import org.knime.core.node.streamable.StreamableFunction;
 import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationMessageBuilder;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.InvalidColumnNameState;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.InvalidColumnNameState;
 
 /**
  * The node model of the row key manipulation node. The node allows the user to replace the row key with another column

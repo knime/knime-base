@@ -54,16 +54,17 @@ import java.util.Optional;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.StringToStringWithRowIDChoiceMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
-import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider.StringColumnsProvider;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
+import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider.StringColumnsProvider;
 
 /**
  * Settings of the Insert Column Header (Dictionary) Node. Only used for the Web UI dialog, please double-check
@@ -73,7 +74,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.Comp
  * @since 5.1
  */
 @SuppressWarnings("restriction")
-public final class ColumnHeaderInsertSettings implements DefaultNodeSettings {
+public final class ColumnHeaderInsertSettings implements NodeParameters {
 
     @Widget(title = "Lookup column",
         description = "The column in the 2nd input table containing the \"old\" names of the columns.")
@@ -141,8 +142,8 @@ public final class ColumnHeaderInsertSettings implements DefaultNodeSettings {
     public ColumnHeaderInsertSettings() {
     }
 
-    ColumnHeaderInsertSettings(final DefaultNodeSettingsContext context) {
-        this(context.getDataTableSpec(1).orElse(null));
+    ColumnHeaderInsertSettings(final NodeParametersInput context) {
+        this(context.getInTableSpec(1).orElse(null));
     }
 
     ColumnHeaderInsertSettings(final DataTableSpec dictSpec) {

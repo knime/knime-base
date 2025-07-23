@@ -58,13 +58,13 @@ import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformati
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TransformationElementSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
 
 /**
  * Test utils for implementations of {@link CommonReaderTransformationSettingsPersistor}.
@@ -77,7 +77,7 @@ public abstract class CommonReaderTransformationSettingsPersistorTest<R extends 
 
     private final CommonReaderTransformationSettingsPersistor m_persistor;
 
-    private final Class<? extends NodeSettingsPersistor<R>> m_persistorClass;
+    private final Class<? extends NodeParametersPersistor<R>> m_persistorClass;
 
     private final Class<R> m_settingsClass;
 
@@ -88,7 +88,7 @@ public abstract class CommonReaderTransformationSettingsPersistorTest<R extends 
     protected CommonReaderTransformationSettingsPersistorTest(
         final CommonReaderTransformationSettingsPersistor persistor, final Class<R> settingsClass) {
         m_persistor = persistor;
-        m_persistorClass = (Class<? extends NodeSettingsPersistor<R>>)persistor.getClass();
+        m_persistorClass = (Class<? extends NodeParametersPersistor<R>>)persistor.getClass();
         m_settingsClass = settingsClass;
     }
 

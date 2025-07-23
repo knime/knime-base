@@ -69,7 +69,8 @@ import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.testing.util.WorkflowManagerUtil;
 
 /**
@@ -81,7 +82,7 @@ final class CreateTableStructureNodeModelTest {
 
     private static final String NODE_NAME = "CreateTableStructureNode";
 
-    private static final Class<? extends DefaultNodeSettings> SETTINGS_CLASS = CreateTableStructureNodeSettings.class;
+    private static final Class<? extends NodeParameters> SETTINGS_CLASS = CreateTableStructureNodeSettings.class;
 
     @Nested
     final class MigrationTest {
@@ -170,7 +171,7 @@ final class CreateTableStructureNodeModelTest {
         final var nodeSettings = new NodeSettings(NODE_NAME);
         workflowManager.saveNodeSettings(node.getID(), nodeSettings);
         var modelSettings = nodeSettings.addNodeSettings("model");
-        DefaultNodeSettings.saveSettings(SETTINGS_CLASS, settings, modelSettings);
+        NodeParametersUtil.saveSettings(SETTINGS_CLASS, settings, modelSettings);
 
         workflowManager.loadNodeSettings(node.getID(), nodeSettings);
 

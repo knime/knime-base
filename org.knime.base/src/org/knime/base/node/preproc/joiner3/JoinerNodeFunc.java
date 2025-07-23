@@ -56,7 +56,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.func.NodeFuncApi;
 import org.knime.core.node.func.SimpleNodeFunc;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 
@@ -88,7 +88,7 @@ public final class JoinerNodeFunc implements SimpleNodeFunc {
 
         joinerNodeSettings.m_matchingCriteria = matchingCriteria;
         joinerNodeSettings.m_mergeJoinColumns = true;
-        DefaultNodeSettings.saveSettings(Joiner3NodeSettings.class, null, settings);
+        NodeParametersUtil.saveSettings(Joiner3NodeSettings.class, null, settings);
     }
 
     @Override

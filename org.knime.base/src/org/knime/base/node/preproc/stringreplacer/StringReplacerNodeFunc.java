@@ -63,7 +63,7 @@ import org.knime.core.node.func.NodeFuncApi;
 import org.knime.core.node.func.SimpleNodeFunc;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 
 /**
  *
@@ -109,7 +109,7 @@ public final class StringReplacerNodeFunc implements SimpleNodeFunc {
         var newColName = arguments.getString(NEW_COLUMN_NAME, null);
         replacerSettings.m_createNewCol = arguments.getBoolean(APPEND_NEW_COLUMN);
         replacerSettings.m_newColName = newColName;
-        DefaultNodeSettings.saveSettings(StringReplacerNodeSettings.class, replacerSettings, settings);
+        NodeParametersUtil.saveSettings(StringReplacerNodeSettings.class, replacerSettings, settings);
     }
 
     @SuppressWarnings("null")

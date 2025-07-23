@@ -52,27 +52,27 @@ import java.util.Locale;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.EnumSettingsModelStringPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 
 /**
  * Settings class to generate the node dialog.
@@ -89,7 +89,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
  * @author Carl Witt, KNIME AG, Zurich, Switzerland
  */
 @SuppressWarnings("restriction")
-public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
+public final class TableToVariable3NodeSettings implements NodeParameters {
 
     /** The columns selected for conversion to a flow variable. */
     static final String CFG_KEY_COLUMNS = "column_selection";
@@ -134,14 +134,14 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
     @Layout(OutputAsVariablesSection.class)
     ColumnFilter m_valueColumns = new ColumnFilter();
 
-    static class MissingValuePolicyRef implements Reference<MissingValuePolicy> {
+    static class MissingValuePolicyRef implements ParameterReference<MissingValuePolicy> {
 
     }
 
-    static class UsesDefaultMissingValuesPolicy implements PredicateProvider {
+    static class UsesDefaultMissingValuesPolicy implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(MissingValuePolicyRef.class).isOneOf(MissingValuePolicy.DEFAULT);
         }
 
@@ -235,7 +235,7 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
 
     }
 
-    private static final class DefaultValueBooleanPersistor implements NodeSettingsPersistor<BooleanStringBridge> {
+    private static final class DefaultValueBooleanPersistor implements NodeParametersPersistor<BooleanStringBridge> {
         @Override
         public String[][] getConfigPaths() {
             return new String[][]{{CFG_KEY_DEFAULT_VALUE_BOOLEAN}};

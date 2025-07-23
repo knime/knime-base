@@ -48,18 +48,18 @@
  */
 package org.knime.base.node.preproc.columnresorter;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.SortListWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 
 /**
  *
  * @author Paul Bärnreuther
  */
-final class ColumnResorterNodeSettings implements DefaultNodeSettings {
+final class ColumnResorterNodeSettings implements NodeParameters {
 
     @Persist(configKey = "ColumnOrder")
     @Widget(title = "Columns",

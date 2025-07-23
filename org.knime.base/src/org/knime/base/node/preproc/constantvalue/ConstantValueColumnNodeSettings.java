@@ -62,23 +62,25 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.DataTypeRegistry;
 import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.node.ExecutionContext;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.DataTypeChoicesStateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.ColumnNameValidationV2;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.array.ArrayWidget;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.DataTypeChoicesProvider;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
+import org.knime.node.parameters.widget.text.TextInputWidget;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.ColumnNameValidation;
 
 /**
  * Settings for the Constant Value Column WebUI node.
@@ -86,7 +88,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInpu
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-final class ConstantValueColumnNodeSettings implements DefaultNodeSettings {
+final class ConstantValueColumnNodeSettings implements NodeParameters {
 
     @Widget(title = "", description = "")
     @ArrayWidget( //
@@ -97,13 +99,13 @@ final class ConstantValueColumnNodeSettings implements DefaultNodeSettings {
     @ValueReference(NewColumnSettingsArrayRef.class)
     NewColumnSettings[] m_newColumnSettings = new NewColumnSettings[]{new NewColumnSettings()};
 
-    static final class NewColumnSettings implements DefaultNodeSettings {
+    static final class NewColumnSettings implements NodeParameters {
 
         NewColumnSettings() {
         }
 
-        NewColumnSettings(final DefaultNodeSettingsContext context) {
-            m_columnNameToReplace = context.getDataTableSpec(0) //
+        NewColumnSettings(final NodeParametersInput context) {
+            m_columnNameToReplace = context.getInTableSpec(0) //
                 .stream() //
                 .map(DataTableSpec::stream).flatMap(Function.identity()) //
                 .map(DataColumnSpec::getName) //
@@ -118,7 +120,7 @@ final class ConstantValueColumnNodeSettings implements DefaultNodeSettings {
 
         @Widget(title = "New column", description = "The name of the new column.")
         @Effect(predicate = AppendOrReplace.IsReplace.class, type = EffectType.HIDE)
-        @TextInputWidget(placeholder = "New column name", patternValidation = ColumnNameValidationV2.class)
+        @TextInputWidget(placeholder = "New column name", patternValidation = ColumnNameValidationUtils.ColumnNameValidation.class)
         String m_columnNameToAppend = "New column";
 
         @Widget(title = "Replace column", description = "The name of the column to replace.")
@@ -149,12 +151,12 @@ final class ConstantValueColumnNodeSettings implements DefaultNodeSettings {
                 @Label(value = "Replace", description = "Replace an existing column")
                 REPLACE;
 
-            static final class Ref implements Reference<AppendOrReplace> {
+            static final class Ref implements ParameterReference<AppendOrReplace> {
             }
 
-            static final class IsReplace implements PredicateProvider {
+            static final class IsReplace implements EffectPredicateProvider {
                 @Override
-                public Predicate init(final PredicateInitializer i) {
+                public EffectPredicate init(final PredicateInitializer i) {
                     return i.getEnum(AppendOrReplace.Ref.class).isOneOf(REPLACE);
                 }
             }
@@ -167,12 +169,12 @@ final class ConstantValueColumnNodeSettings implements DefaultNodeSettings {
                 @Label(value = "Custom value", description = "Use a custom value to fill the new constant column")
                 CUSTOM; //
 
-            static final class Ref implements Reference<CustomOrMissingValue> {
+            static final class Ref implements ParameterReference<CustomOrMissingValue> {
             }
 
-            static final class IsMissing implements PredicateProvider {
+            static final class IsMissing implements EffectPredicateProvider {
                 @Override
-                public Predicate init(final PredicateInitializer i) {
+                public EffectPredicate init(final PredicateInitializer i) {
                     return i.getEnum(CustomOrMissingValue.Ref.class).isOneOf(MISSING);
                 }
             }
@@ -183,7 +185,7 @@ final class ConstantValueColumnNodeSettings implements DefaultNodeSettings {
             private Supplier<NewColumnSettings[]> m_currentNewColumnSettings;
 
             @Override
-            public NewColumnSettings computeState(final DefaultNodeSettingsContext context) {
+            public NewColumnSettings computeState(final NodeParametersInput context) {
                 var newSettings = new NewColumnSettings(context);
 
                 var existingNewColumns = m_currentNewColumnSettings.get();
@@ -203,10 +205,10 @@ final class ConstantValueColumnNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    static final class NewColumnSettingsArrayRef implements Reference<NewColumnSettings[]> {
+    static final class NewColumnSettingsArrayRef implements ParameterReference<NewColumnSettings[]> {
     }
 
-    static final class SupportedDataTypeChoicesProvider implements DataTypeChoicesStateProvider {
+    static final class SupportedDataTypeChoicesProvider implements DataTypeChoicesProvider {
 
         @Override
         public void init(final StateProviderInitializer initializer) {
@@ -214,7 +216,7 @@ final class ConstantValueColumnNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public List<DataType> choices(final DefaultNodeSettingsContext context) {
+        public List<DataType> choices(final NodeParametersInput context) {
             return DataTypeRegistry.getInstance().availableDataTypes().stream() //
                 .filter(d -> {
                     var factory = d.getCellFactory(null);

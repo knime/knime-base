@@ -65,8 +65,8 @@ import org.knime.core.node.func.NodeFuncApi;
 import org.knime.core.node.func.SimpleNodeFunc;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 
 /**
  *
@@ -130,7 +130,7 @@ public class ValueLookupNodeFunc implements SimpleNodeFunc {
             checkContained(col, APPENDED_COLUMNS, dictSpec, DICTIONARY_TABLE);
         }
         valueLookupSettings.m_dictValueCols = new ColumnFilter(appendedColumns);
-        DefaultNodeSettings.saveSettings(ValueLookupNodeSettings.class, valueLookupSettings, settings);
+        NodeParametersUtil.saveSettings(ValueLookupNodeSettings.class, valueLookupSettings, settings);
     }
 
     private static void checkContained(final String columnName, final String columnPurpose,

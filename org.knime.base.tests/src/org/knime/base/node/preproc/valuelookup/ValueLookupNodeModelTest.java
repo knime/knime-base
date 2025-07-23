@@ -70,8 +70,8 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 import org.knime.testing.core.ExecutionContextExtension;
 
 /**
@@ -133,7 +133,7 @@ class ValueLookupNodeModelTest {
         dictContainer.close();
 
         m_settings =
-            DefaultNodeSettings.createSettings(ValueLookupNodeSettings.class, new PortObjectSpec[]{dts, dictDts});
+            NodeParametersUtil.createSettings(ValueLookupNodeSettings.class, new PortObjectSpec[]{dts, dictDts});
         m_settings.m_createFoundCol = true;
         m_settings.m_dictKeyCol = "LongCol";
         m_settings.m_lookupCol = "LongCol";
@@ -178,7 +178,7 @@ class ValueLookupNodeModelTest {
             new DataColumnSpecCreator("Y", StringCell.TYPE).createSpec());
 
         m_settings =
-            DefaultNodeSettings.createSettings(ValueLookupNodeSettings.class, new PortObjectSpec[]{dts, dictDts});
+            NodeParametersUtil.createSettings(ValueLookupNodeSettings.class, new PortObjectSpec[]{dts, dictDts});
         m_settings.m_createFoundCol = true;
         m_settings.m_lookupCol = "L";
         m_settings.m_lookupColumnOutput = LookupColumnOutput.REPLACE;
@@ -221,7 +221,7 @@ class ValueLookupNodeModelTest {
         final var dictDts = new DataTableSpec(new DataColumnSpecCreator("A", LongCell.TYPE).createSpec());
 
         m_settings =
-            DefaultNodeSettings.createSettings(ValueLookupNodeSettings.class, new PortObjectSpec[]{dts, dictDts});
+            NodeParametersUtil.createSettings(ValueLookupNodeSettings.class, new PortObjectSpec[]{dts, dictDts});
         m_settings.m_createFoundCol = false;
         m_settings.m_lookupCol = "A";
         m_settings.m_dictKeyCol = "A";
@@ -262,7 +262,7 @@ class ValueLookupNodeModelTest {
         final var dictDts = new DataTableSpec(new DataColumnSpecCreator("B", StringCell.TYPE).createSpec());
 
         m_settings =
-            DefaultNodeSettings.createSettings(ValueLookupNodeSettings.class, new PortObjectSpec[]{dts, dictDts});
+            NodeParametersUtil.createSettings(ValueLookupNodeSettings.class, new PortObjectSpec[]{dts, dictDts});
         m_settings.m_createFoundCol = true;
         m_settings.m_lookupCol = "A";
         m_settings.m_dictKeyCol = "B";

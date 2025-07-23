@@ -49,7 +49,7 @@
 package org.knime.base.node.preproc.duplicates;
 
 import static org.knime.base.node.preproc.duplicates.DuplicateRowFilterDialogSettings.DO_NOT_ALLOW_EMPTY_BLANK_PADDED_COLUMN_NAME_CFG_KEY;
-import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.validateColumnName;
+import static org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.validateColumnName;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;

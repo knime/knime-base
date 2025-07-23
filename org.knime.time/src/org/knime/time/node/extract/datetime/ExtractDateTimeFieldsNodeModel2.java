@@ -48,7 +48,7 @@
  */
 package org.knime.time.node.extract.datetime;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.validatePossiblyEmptyColumnName;
+import static org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.validatePossiblyEmptyColumnName;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

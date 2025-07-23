@@ -52,7 +52,7 @@ import org.knime.base.node.io.filehandling.table.reader2.TableReaderTransformati
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdSettings;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany

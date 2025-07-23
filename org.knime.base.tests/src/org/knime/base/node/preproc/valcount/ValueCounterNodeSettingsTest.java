@@ -62,7 +62,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 
 /**
@@ -94,7 +94,7 @@ class ValueCounterNodeSettingsTest {
 
     @Test
     void test() throws InvalidSettingsException {
-        final var settings = DefaultNodeSettings.loadSettings(legacySettings(true), ValueCounterNodeSettings.class);
+        final var settings = NodeParametersUtil.loadSettings(legacySettings(true), ValueCounterNodeSettings.class);
         assertThat(settings.m_columnName).as("Loading column name from legacy settings.").isEqualTo("testColumn");
         assertThat(settings.m_hiliting).as("Loading hilite setting from legacy settings.").isTrue();
     }

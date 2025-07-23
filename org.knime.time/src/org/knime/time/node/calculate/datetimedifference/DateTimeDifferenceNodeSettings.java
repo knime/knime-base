@@ -68,32 +68,34 @@ import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
 import org.knime.core.data.time.localtime.LocalTimeCellFactory;
 import org.knime.core.data.time.localtime.LocalTimeValue;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.booleanhelpers.DoNotPersistBoolean;
-import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.EnumChoice;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.EnumChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.BooleanReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.ColumnNameValidationV2;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.ValueProvider;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.util.BooleanReference;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
+import org.knime.node.parameters.widget.choices.EnumChoice;
+import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
+import org.knime.node.parameters.widget.text.TextInputWidget;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.ColumnNameValidation;
 import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.Granularity;
 
@@ -104,7 +106,7 @@ import org.knime.time.util.Granularity;
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
+final class DateTimeDifferenceNodeSettings implements NodeParameters {
 
     @Section(title = "Differencing")
     interface DifferencingSettingsSection {
@@ -141,8 +143,8 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public Boolean computeState(final DefaultNodeSettingsContext context) {
-            final var tableSpecOptional = context.getDataTableSpec(0);
+        public Boolean computeState(final NodeParametersInput context) {
+            final var tableSpecOptional = context.getInTableSpec(0);
             if (tableSpecOptional.isEmpty()) {
                 return false;
             }
@@ -277,15 +279,15 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Output column name", description = "The name of the output column.")
     @Layout(OutputSettingsSection.class)
-    @TextInputWidget(patternValidation = ColumnNameValidationV2.class)
+    @TextInputWidget(patternValidation = ColumnNameValidationUtils.ColumnNameValidation.class)
     String m_outputColumnName = "Date&Time Difference";
 
     DateTimeDifferenceNodeSettings() {
         this((DataTableSpec)null);
     }
 
-    DateTimeDifferenceNodeSettings(final DefaultNodeSettingsContext context) {
-        this(context.getDataTableSpec(0).orElse(null));
+    DateTimeDifferenceNodeSettings(final NodeParametersInput context) {
+        this(context.getInTableSpec(0).orElse(null));
     }
 
     DateTimeDifferenceNodeSettings(final DataTableSpec spec) {
@@ -313,59 +315,59 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
 
     }
 
-    interface SecondDateTimeValueRef extends Reference<SecondDateTimeValueType> {
+    interface SecondDateTimeValueRef extends ParameterReference<SecondDateTimeValueType> {
     }
 
-    static final class SecondDateTimeValueTypeIsColumn implements PredicateProvider {
+    static final class SecondDateTimeValueTypeIsColumn implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(SecondDateTimeValueRef.class).isOneOf(SecondDateTimeValueType.COLUMN);
         }
     }
 
-    static final class SecondDateTimeValueTypeIsFixedDateTime implements PredicateProvider {
+    static final class SecondDateTimeValueTypeIsFixedDateTime implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(SecondDateTimeValueRef.class).isOneOf(SecondDateTimeValueType.FIXED_DATE_TIME);
         }
     }
 
-    interface FirstColumnSelectionRef extends Reference<String> {
+    interface FirstColumnSelectionRef extends ParameterReference<String> {
     }
 
-    static final class FirstColumnIsDateAndFixedDateTime implements PredicateProvider {
+    static final class FirstColumnIsDateAndFixedDateTime implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             var isFixedDateTime = i.getPredicate(SecondDateTimeValueTypeIsFixedDateTime.class);
             return i.getPredicate(FirstColumnIsDate.class).and(isFixedDateTime);
         }
     }
 
-    static final class FirstColumnIsTimeAndFixedDateTime implements PredicateProvider {
+    static final class FirstColumnIsTimeAndFixedDateTime implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             var isFixedDateTime = i.getPredicate(SecondDateTimeValueTypeIsFixedDateTime.class);
             return i.getPredicate(FirstColumnIsTime.class).and(isFixedDateTime);
         }
     }
 
-    static final class FirstColumnIsDateTimeAndFixedDateTime implements PredicateProvider {
+    static final class FirstColumnIsDateTimeAndFixedDateTime implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             var isFixedDateTime = i.getPredicate(SecondDateTimeValueTypeIsFixedDateTime.class);
             return i.getPredicate(FirstColumnIsDateTime.class).and(isFixedDateTime);
         }
     }
 
-    static final class FirstColumnIsZonedDateTimeAndFixedDateTime implements PredicateProvider {
+    static final class FirstColumnIsZonedDateTimeAndFixedDateTime implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             var isFixedDateTime = i.getPredicate(SecondDateTimeValueTypeIsFixedDateTime.class);
             return i.getPredicate(FirstColumnIsZonedDateTime.class).and(isFixedDateTime);
         }
@@ -385,8 +387,8 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
-            var spec = context.getDataTableSpec(0);
+        public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
+            var spec = context.getInTableSpec(0);
             if (spec.isEmpty()) {
                 return List.of();
             }
@@ -452,13 +454,13 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
             @Label("Number")
             NUMBER;
 
-        static final class Ref implements Reference<OutputType> {
+        static final class Ref implements ParameterReference<OutputType> {
         }
 
-        static final class IsNumber implements PredicateProvider {
+        static final class IsNumber implements EffectPredicateProvider {
 
             @Override
-            public Predicate init(final PredicateInitializer i) {
+            public EffectPredicate init(final PredicateInitializer i) {
                 return i.getEnum(Ref.class).isOneOf(NUMBER);
             }
         }
@@ -488,13 +490,13 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public Granularity[] computeState(final DefaultNodeSettingsContext context) {
+        public Granularity[] computeState(final NodeParametersInput context) {
             var firstSelectedColumn = m_firstColumn.get();
 
             // if the first selected column exists in the table and is a local date,
             // filter to only date-based granularities that. If it's a local time,
             // filter to only time-based granularities. Otherwise, anything goes.
-            var spec = context.getDataTableSpec(0);
+            var spec = context.getInTableSpec(0);
             var firstColumnSpec = spec.map(s -> s.getColumnSpec(firstSelectedColumn));
 
             if (firstColumnSpec.isPresent()) {
@@ -529,7 +531,7 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public List<EnumChoice<Granularity>> computeState(final DefaultNodeSettingsContext context) {
+        public List<EnumChoice<Granularity>> computeState(final NodeParametersInput context) {
             return Arrays.stream(m_applicableGranularities.get()) //
                 .map(ApplicableGranularitiesChoicesProvider::fromGranularity).toList();
         }
@@ -548,20 +550,20 @@ final class DateTimeDifferenceNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public Granularity computeState(final DefaultNodeSettingsContext context) {
+        public Granularity computeState(final NodeParametersInput context) {
             final var currentGranularity = m_currentGranularity.get();
             final var granularities = m_applicableGranularities.get();
             return ArrayUtils.contains(granularities, currentGranularity) ? currentGranularity : granularities[0];
         }
     }
 
-    static final class GranularityRef implements Reference<Granularity> {
+    static final class GranularityRef implements ParameterReference<Granularity> {
     }
 
-    static final class OutputTypeIsNumberAndSelectedGranularitySupportsDecimals implements PredicateProvider {
+    static final class OutputTypeIsNumberAndSelectedGranularitySupportsDecimals implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             var isNumber = i.getPredicate(OutputType.IsNumber.class);
             var granularitySupportsDecimals = i.getEnum(GranularityRef.class).isOneOf(//
                 Arrays.stream(Granularity.values()) //

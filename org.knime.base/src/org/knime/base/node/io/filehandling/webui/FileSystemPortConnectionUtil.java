@@ -53,11 +53,11 @@ import java.util.Optional;
 import java.util.stream.IntStream;
 
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
 
 /**
  * Utility around accessing the file system port of a reader node
@@ -73,38 +73,38 @@ public final class FileSystemPortConnectionUtil {
 
     /**
      * Utility method for retrieving the {@link FSConnection File System Connection} from the first file system port of
-     * the specs of a given {@link DefaultNodeSettingsContext}.
+     * the specs of a given {@link NodeParametersInput}.
      *
      * @param context the context from which to obtain the file system connection
      * @return the file system connection of the first file system port
      */
-    public static Optional<FSConnection> getFileSystemConnection(final DefaultNodeSettingsContext context) {
+    public static Optional<FSConnection> getFileSystemConnection(final NodeParametersInput context) {
         if (context == null) {
             return Optional.empty();
         }
-        return getFirstFileSystemPort(context.getPortObjectSpecs())
+        return getFirstFileSystemPort(context.getInPortSpecs())
             .flatMap(FileSystemPortObjectSpec::getFileSystemConnection);
     }
 
     /**
      * Utility method for checking whether the first file system port of the specs of a given
-     * {@link DefaultNodeSettingsContext} provides a file system but there exists no connection yet.
+     * {@link NodeParametersInput} provides a file system but there exists no connection yet.
      *
      * @param context the context from which to obtain the file system connection
      * @return whether the file system input port provides a file system but no connection
      */
-    public static boolean hasEmptyFileSystemPort(final DefaultNodeSettingsContext context) {
+    public static boolean hasEmptyFileSystemPort(final NodeParametersInput context) {
         return hasFileSystemPort(context) && getFileSystemConnection(context).isEmpty();
     }
 
     /**
      * Utility method for checking whether the first file system port of the specs of a given
-     * {@link DefaultNodeSettingsContext} provides a file system and a {@link FSConnection}.
+     * {@link NodeParametersInput} provides a file system and a {@link FSConnection}.
      *
      * @param context the context from which to obtain the file system connection
      * @return whether the file system input port provides a file system and a connection
      */
-    public static boolean hasFileSystemPortWithConnection(final DefaultNodeSettingsContext context) {
+    public static boolean hasFileSystemPortWithConnection(final NodeParametersInput context) {
         return hasFileSystemPort(context) && getFileSystemConnection(context).isPresent();
     }
 
@@ -115,13 +115,13 @@ public final class FileSystemPortConnectionUtil {
 
     /**
      * Utility method for checking whether the first file system port of the specs of a given
-     * {@link DefaultNodeSettingsContext} provides a file system regardless of the state of the
+     * {@link NodeParametersInput} provides a file system regardless of the state of the
      * connection.
      *
      * @param context the context from which to obtain the file system connection
      * @return whether the file system input port provides a file system
      */
-    public static boolean hasFileSystemPort(final DefaultNodeSettingsContext context) {
+    public static boolean hasFileSystemPort(final NodeParametersInput context) {
         final var inPortTypes = context.getInPortTypes();
         return IntStream.range(0, inPortTypes.length)
             .anyMatch(i -> FileSystemPortObjectSpec.class.equals(inPortTypes[i].getPortObjectSpecClass()));
@@ -137,14 +137,14 @@ public final class FileSystemPortConnectionUtil {
      *
      * @author Paul Bärnreuther
      */
-    public static final class ConnectedWithoutFileSystemSpec implements PredicateProvider {
+    public static final class ConnectedWithoutFileSystemSpec implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getConstant(ConnectedWithoutFileSystemSpec::applies);
         }
 
-        static boolean applies(final DefaultNodeSettingsContext context) {
+        static boolean applies(final NodeParametersInput context) {
             return hasEmptyFileSystemPort(context);
         }
     }

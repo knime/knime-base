@@ -86,7 +86,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.WorkflowManager;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
 
@@ -124,7 +124,7 @@ final class ConstantValueColumnNodeModel2Test {
         final var nodeSettings = new NodeSettings("ConstantValueColumnNode");
         m_workflowManager.saveNodeSettings(m_node.getID(), nodeSettings);
         var modelSettings = nodeSettings.addNodeSettings("model");
-        DefaultNodeSettings.saveSettings(ConstantValueColumnNodeSettings.class, m_settings, modelSettings);
+        NodeParametersUtil.saveSettings(ConstantValueColumnNodeSettings.class, m_settings, modelSettings);
         m_workflowManager.loadNodeSettings(m_node.getID(), nodeSettings);
     }
 

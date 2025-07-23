@@ -55,18 +55,18 @@ import org.knime.base.node.preproc.columnheaderextract.ColumnHeaderExtractorNode
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelStringPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.BooleanReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.util.BooleanReference;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
  * Settings of the Column Header Extractor dialog. Not used by the NodeModel, yet. If it ever is please double check
@@ -76,7 +76,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
  * @since 5.1
  */
 @SuppressWarnings("restriction")
-public final class ColumnHeaderExtractorNodeSettings implements DefaultNodeSettings {
+public final class ColumnHeaderExtractorNodeSettings implements NodeParameters {
 
     interface DontReplaceColHeader {
     }
@@ -143,7 +143,7 @@ public final class ColumnHeaderExtractorNodeSettings implements DefaultNodeSetti
             COLUMN;
     }
 
-    private static final class OutputFormatPersistor implements NodeSettingsPersistor<OutputFormat> {
+    private static final class OutputFormatPersistor implements NodeParametersPersistor<OutputFormat> {
 
         @Override
         public OutputFormat load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -161,7 +161,7 @@ public final class ColumnHeaderExtractorNodeSettings implements DefaultNodeSetti
         }
     }
 
-    private static final class ColTypePersistor implements NodeSettingsPersistor<ColType> {
+    private static final class ColTypePersistor implements NodeParametersPersistor<ColType> {
 
         @Override
         public ColType load(final NodeSettingsRO settings) throws InvalidSettingsException {

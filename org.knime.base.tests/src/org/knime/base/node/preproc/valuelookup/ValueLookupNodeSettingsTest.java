@@ -59,7 +59,7 @@ import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 
 /**
  *
@@ -84,7 +84,7 @@ class ValueLookupNodeSettingsTest {
                 new DataColumnSpecCreator("DictString1", StringCell.TYPE).createSpec(),
                 new DataColumnSpecCreator("DictInt2", IntCell.TYPE).createSpec()).createSpec();
 
-        final var ctx = DefaultNodeSettings
+        final var ctx = NodeParametersUtil
             .createDefaultNodeSettingsContext(new DataTableSpec[]{dataTableSpec, dictionaryTableSpec});
 
         // should pick all from data table (port 0)

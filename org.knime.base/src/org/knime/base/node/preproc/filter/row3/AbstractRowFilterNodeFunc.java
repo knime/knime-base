@@ -57,7 +57,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.func.NodeFunc;
 import org.knime.core.node.func.NodeFuncApi;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 
 /**
  *
@@ -84,7 +84,7 @@ abstract class AbstractRowFilterNodeFunc implements NodeFunc {
         rowFilterSettings.m_predicates = criteria;
         rowFilterSettings.m_outputMode = include ? FilterMode.MATCHING : FilterMode.NON_MATCHING;
 
-        DefaultNodeSettings.saveSettings(RowFilterNodeSettings.class, rowFilterSettings, settings);
+        NodeParametersUtil.saveSettings(RowFilterNodeSettings.class, rowFilterSettings, settings);
     }
 
     @Override

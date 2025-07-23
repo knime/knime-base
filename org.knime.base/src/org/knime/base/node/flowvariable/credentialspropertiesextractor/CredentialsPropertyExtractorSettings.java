@@ -50,23 +50,25 @@ package org.knime.base.node.flowvariable.credentialspropertiesextractor;
 import java.util.List;
 
 import org.knime.core.node.workflow.VariableType.CredentialsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersInputImpl;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.StringChoicesProvider;
+import org.knime.node.parameters.widget.choices.filter.StringFilter;
 
 /**
  * @author Carl Witt, KNIME AG, Zurich, Switzerland
  */
 @SuppressWarnings("restriction")
-public final class CredentialsPropertyExtractorSettings implements DefaultNodeSettings {
+public final class CredentialsPropertyExtractorSettings implements NodeParameters {
 
     CredentialsPropertyExtractorSettings() {
         // empty constructor for persistence
     }
 
-    CredentialsPropertyExtractorSettings(final DefaultNodeSettingsContext context) {
+    CredentialsPropertyExtractorSettings(final NodeParametersInput context) {
         m_selectedCredentials = new StringFilter(CredentialsFlowVariables.getAllCredentialsVariables(context));
     }
 
@@ -97,12 +99,13 @@ public final class CredentialsPropertyExtractorSettings implements DefaultNodeSe
     /** Select all credentials variables by default. */
     private static final class CredentialsFlowVariables implements StringChoicesProvider {
         @Override
-        public List<String> choices(final DefaultNodeSettingsContext context) {
+        public List<String> choices(final NodeParametersInput context) {
             return getAllCredentialsVariables(context);
         }
 
-        static List<String> getAllCredentialsVariables(final DefaultNodeSettingsContext context) {
-            final var credentialVariables = context.getAvailableInputFlowVariables(CredentialsType.INSTANCE);
+        static List<String> getAllCredentialsVariables(final NodeParametersInput context) {
+            final var credentialVariables =
+                ((NodeParametersInputImpl)context).getAvailableInputFlowVariables(CredentialsType.INSTANCE);
             return credentialVariables.keySet().stream().toList();
 
         }

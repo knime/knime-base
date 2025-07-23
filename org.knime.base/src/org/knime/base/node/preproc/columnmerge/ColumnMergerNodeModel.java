@@ -45,7 +45,7 @@
  */
 package org.knime.base.node.preproc.columnmerge;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.validateColumnName;
+import static org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.validateColumnName;
 
 import java.io.File;
 import java.io.IOException;
@@ -64,9 +64,9 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationMessageBuilder;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.InvalidColumnNameState;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.InvalidColumnNameState;
 
 /**
  * Model to column merger.

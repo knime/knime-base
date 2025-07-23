@@ -49,7 +49,7 @@
 
 package org.knime.time.util;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * Type for an option to choose between failing with an error or setting the cell to missing

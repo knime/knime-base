@@ -60,20 +60,21 @@ import org.knime.core.data.DataValue;
 import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
 import org.knime.core.data.time.localtime.LocalTimeValue;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.CompatibleColumnChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.CompatibleDataValueClassesSupplier;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 import org.knime.time.util.ReplaceOrAppend;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -86,13 +87,13 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  * @author Tobias Kampmann, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-final class ModifyDateNodeSettings implements DefaultNodeSettings {
+final class ModifyDateNodeSettings implements NodeParameters {
 
     ModifyDateNodeSettings() {
     }
 
-    ModifyDateNodeSettings(final DefaultNodeSettingsContext context) {
-        var spec = context.getDataTableSpec(0);
+    ModifyDateNodeSettings(final NodeParametersInput context) {
+        var spec = context.getInTableSpec(0);
 
         if (spec.isPresent()) {
             m_columnFilter = new ColumnFilter(spec.get().stream() //
@@ -190,21 +191,21 @@ final class ModifyDateNodeSettings implements DefaultNodeSettings {
      * PREDICATE PROVIDERS AMD REFERENCES
      * ------------------------------------------------------------------------
      */
-    interface BehaviourTypeRef extends Reference<BehaviourType> {
+    interface BehaviourTypeRef extends ParameterReference<BehaviourType> {
     }
 
-    static final class BehaviourTypeIsRemove implements PredicateProvider {
+    static final class BehaviourTypeIsRemove implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(BehaviourTypeRef.class).isOneOf(BehaviourType.REMOVE);
         }
     }
 
-    static final class BehaviourTypeIsAppend implements PredicateProvider {
+    static final class BehaviourTypeIsAppend implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(BehaviourTypeRef.class).isOneOf(BehaviourType.APPEND);
         }
     }
@@ -217,7 +218,7 @@ final class ModifyDateNodeSettings implements DefaultNodeSettings {
     static final class ColumnProvider extends CompatibleColumnChoicesStateProvider<BehaviourType> {
 
         @Override
-        protected Class<? extends Reference<BehaviourType>> getReferenceClass() {
+        protected Class<? extends ParameterReference<BehaviourType>> getReferenceClass() {
             return BehaviourTypeRef.class;
         }
     }

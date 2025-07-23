@@ -53,19 +53,20 @@ import java.util.function.Supplier;
 
 import org.knime.core.data.DataTable;
 import org.knime.core.data.time.duration.DurationValue;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage.InputPreviewMessageProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
+import org.knime.node.parameters.widget.message.TextMessage;
+import org.knime.time.node.convert.InputPreviewMessageProvider;
 import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.DurationPeriodFormatUtils;
 import org.knime.time.util.ReplaceOrAppend;
@@ -78,13 +79,13 @@ import org.knime.time.util.TimeBasedGranularityUnit;
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-final class DurationToNumberNodeSettings implements DefaultNodeSettings {
+final class DurationToNumberNodeSettings implements NodeParameters {
 
     DurationToNumberNodeSettings() {
     }
 
-    DurationToNumberNodeSettings(final DefaultNodeSettingsContext context) {
-        var spec = context.getDataTableSpec(0);
+    DurationToNumberNodeSettings(final NodeParametersInput context) {
+        var spec = context.getInTableSpec(0);
 
         if (spec.isPresent()) {
             final var durationColumns = ColumnSelectionUtil.getCompatibleColumns(spec.get(), DurationValue.class);
@@ -137,7 +138,7 @@ final class DurationToNumberNodeSettings implements DefaultNodeSettings {
             DOUBLE;
     }
 
-    interface ColumnFilterRef extends Reference<ColumnFilter> {
+    interface ColumnFilterRef extends ParameterReference<ColumnFilter> {
     }
 
     static final class InputPreviewMessage implements InputPreviewMessageProvider {

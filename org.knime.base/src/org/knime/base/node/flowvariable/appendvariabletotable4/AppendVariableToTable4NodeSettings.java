@@ -49,12 +49,12 @@
 package org.knime.base.node.flowvariable.appendvariabletotable4;
 
 import org.knime.base.node.flowvariable.converter.variabletocell.VariableToCellConverterFactory.ConvertibleFlowVariablesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.LegacyNameFilterToFlowVariableFilterMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableFilterWidget;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.widget.choices.filter.FlowVariableFilter;
+import org.knime.node.parameters.widget.choices.filter.FlowVariableFilterWidget;
 
 /**
  * The settings for the "Variable to Table Column" node.
@@ -62,7 +62,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.Fl
  * @author Martin Sillye, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public class AppendVariableToTable4NodeSettings implements DefaultNodeSettings {
+public class AppendVariableToTable4NodeSettings implements NodeParameters {
 
     @Widget(title = "Output as rows", description = """
             Include list contains all variables that are converted into new columns in the resulting table, \

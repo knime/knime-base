@@ -56,29 +56,30 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.NominalValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.DefaultValueProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.OptionalWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.Migrate;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.OptionalWidget;
+import org.knime.node.parameters.widget.OptionalWidget.DefaultValueProvider;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation;
 
 /**
  * This class is a base to define common settings of sampling nodes. They can be implemented by nodes, while slight
@@ -88,7 +89,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberIn
  * @since 5.5
  */
 @SuppressWarnings({"restriction", "javadoc"})
-public abstract class AbstractSamplingNodeSettings implements DefaultNodeSettings {
+public abstract class AbstractSamplingNodeSettings implements NodeParameters {
 
     /**
      * Default constructor.
@@ -102,8 +103,8 @@ public abstract class AbstractSamplingNodeSettings implements DefaultNodeSetting
      *
      * @param context to retrieve the data table spec from
      */
-    protected AbstractSamplingNodeSettings(final DefaultNodeSettingsContext context) {
-        final var firstCol = context.getDataTableSpec(0) //
+    protected AbstractSamplingNodeSettings(final NodeParametersInput context) {
+        final var firstCol = context.getInTableSpec(0) //
             .stream() //
             .flatMap(DataTableSpec::stream).filter(spec -> spec.getType().isCompatible(NominalValue.class)).findFirst();
         if (firstCol.isPresent()) {
@@ -123,9 +124,9 @@ public abstract class AbstractSamplingNodeSettings implements DefaultNodeSetting
          *
          * @author Martin Sillye, TNG Technology Consulting GmbH
          */
-        public static final class IsRelative implements PredicateProvider {
+        public static final class IsRelative implements EffectPredicateProvider {
             @Override
-            public Predicate init(final PredicateInitializer init) {
+            public EffectPredicate init(final PredicateInitializer init) {
                 return init.getEnum(CountModeRef.class).isOneOf(CountMode.RELATIVE);
             }
         }
@@ -135,9 +136,9 @@ public abstract class AbstractSamplingNodeSettings implements DefaultNodeSetting
          *
          * @author Martin Sillye, TNG Technology Consulting GmbH
          */
-        public static final class IsAbsolute implements PredicateProvider {
+        public static final class IsAbsolute implements EffectPredicateProvider {
             @Override
-            public Predicate init(final PredicateInitializer init) {
+            public EffectPredicate init(final PredicateInitializer init) {
                 return init.getEnum(CountModeRef.class).isOneOf(CountMode.ABSOLUTE);
             }
         }
@@ -147,7 +148,7 @@ public abstract class AbstractSamplingNodeSettings implements DefaultNodeSetting
          *
          * @author Martin Sillye, TNG Technology Consulting GmbH
          */
-        public interface CountModeRef extends Reference<CountMode> {
+        public interface CountModeRef extends ParameterReference<CountMode> {
         }
     }
 
@@ -253,22 +254,22 @@ public abstract class AbstractSamplingNodeSettings implements DefaultNodeSetting
     @Modification.WidgetReference(SamplingStrategyRef.class)
     public SamplingMode m_mode = SamplingMode.RANDOM;
 
-    interface SamplingStrategyRef extends Reference<SamplingMode>, Modification.Reference {
+    interface SamplingStrategyRef extends ParameterReference<SamplingMode>, Modification.Reference {
     }
 
-    static final class UseGroupColumn implements PredicateProvider {
+    static final class UseGroupColumn implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(SamplingStrategyRef.class).isOneOf(SamplingMode.STRATIFIED);
         }
 
     }
 
-    static final class UseSeed implements PredicateProvider {
+    static final class UseSeed implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(SamplingStrategyRef.class).isOneOf(SamplingMode.STRATIFIED, SamplingMode.RANDOM);
         }
 
@@ -293,7 +294,7 @@ public abstract class AbstractSamplingNodeSettings implements DefaultNodeSetting
     @Modification.WidgetReference(ClassColumnRef.class)
     public String m_classColumn = "";
 
-    interface UseRandomSeedRef extends Reference<Boolean> {
+    interface UseRandomSeedRef extends ParameterReference<Boolean> {
 
     }
 
@@ -309,7 +310,7 @@ public abstract class AbstractSamplingNodeSettings implements DefaultNodeSetting
     static final class SeedDefaultProvider implements DefaultValueProvider<Long> {
 
         @Override
-        public Long computeState(final DefaultNodeSettingsContext context) throws StateComputationFailureException {
+        public Long computeState(final NodeParametersInput context) throws StateComputationFailureException {
             return 1678807467440L;
         }
 
@@ -331,13 +332,13 @@ public abstract class AbstractSamplingNodeSettings implements DefaultNodeSetting
      *
      * @author Martin Sillye, TNG Technology Consulting GmbH
      */
-    public abstract static class SamplingModification implements WidgetGroup.Modifier {
+    public abstract static class SamplingModification implements Modification.Modifier {
 
         /**
          * @param group to find reference in.
          * @return a modifier for the {@link Widget} annotation of the field.
          */
-        protected AnnotationModifier getCountModeWidgetModifier(final WidgetGroupModifier group) {
+        protected Modification.AnnotationModifier getCountModeWidgetModifier(final Modification.WidgetGroupModifier group) {
             return group.find(ModeWidgetRef.class).modifyAnnotation(Widget.class);
         }
 
@@ -345,7 +346,7 @@ public abstract class AbstractSamplingNodeSettings implements DefaultNodeSetting
          * @param group to find reference in.
          * @return a modifier for the {@link Widget} annotation of the field.
          */
-        protected AnnotationModifier getPercentageWidgetModifier(final WidgetGroupModifier group) {
+        protected Modification.AnnotationModifier getPercentageWidgetModifier(final Modification.WidgetGroupModifier group) {
             return group.find(PercentageWidgetRef.class).modifyAnnotation(Widget.class);
         }
 
@@ -353,7 +354,7 @@ public abstract class AbstractSamplingNodeSettings implements DefaultNodeSetting
          * @param group to find reference in.
          * @return a modifier for the {@link Widget} annotation of the field.
          */
-        protected AnnotationModifier getRowCountWidgetModifier(final WidgetGroupModifier group) {
+        protected Modification.AnnotationModifier getRowCountWidgetModifier(final Modification.WidgetGroupModifier group) {
             return group.find(CountWidgetRef.class).modifyAnnotation(Widget.class);
         }
 
@@ -361,7 +362,7 @@ public abstract class AbstractSamplingNodeSettings implements DefaultNodeSetting
          * @param group to find reference in.
          * @return a modifier for the {@link Widget} annotation of the field.
          */
-        protected AnnotationModifier getSamplingModeWidgetModifier(final WidgetGroupModifier group) {
+        protected Modification.AnnotationModifier getSamplingModeWidgetModifier(final Modification.WidgetGroupModifier group) {
             return group.find(SamplingStrategyRef.class).modifyAnnotation(Widget.class);
         }
 
@@ -369,12 +370,12 @@ public abstract class AbstractSamplingNodeSettings implements DefaultNodeSetting
          * @param group to find reference in.
          * @return a modifier for the {@link Widget} annotation of the field.
          */
-        protected AnnotationModifier getClassColumnWidgetModifier(final WidgetGroupModifier group) {
+        protected Modification.AnnotationModifier getClassColumnWidgetModifier(final Modification.WidgetGroupModifier group) {
             return group.find(ClassColumnRef.class).modifyAnnotation(Widget.class);
         }
     }
 
-    static final class PartitioningModeMigration implements NodeSettingsMigration<CountMode> {
+    static final class PartitioningModeMigration implements NodeParametersMigration<CountMode> {
 
         private static final String KEY = "method";
 
@@ -401,7 +402,7 @@ public abstract class AbstractSamplingNodeSettings implements DefaultNodeSetting
 
     }
 
-    static final class PercentageMigration implements NodeSettingsMigration<Double> {
+    static final class PercentageMigration implements NodeParametersMigration<Double> {
 
         private static final String KEY = "fraction";
 
@@ -420,7 +421,7 @@ public abstract class AbstractSamplingNodeSettings implements DefaultNodeSetting
 
     }
 
-    static final class CountMigration implements NodeSettingsMigration<Long> {
+    static final class CountMigration implements NodeParametersMigration<Long> {
 
         private static final String KEY = "count";
 
@@ -438,7 +439,7 @@ public abstract class AbstractSamplingNodeSettings implements DefaultNodeSetting
 
     }
 
-    static final class SamplingModeMigration implements NodeSettingsMigration<SamplingMode> {
+    static final class SamplingModeMigration implements NodeParametersMigration<SamplingMode> {
 
         private static final String METHOD_KEY = "samplingMethod";
 
@@ -496,7 +497,7 @@ public abstract class AbstractSamplingNodeSettings implements DefaultNodeSetting
 
     }
 
-    static final class SeedMigration implements NodeSettingsMigration<Optional<Long>> {
+    static final class SeedMigration implements NodeParametersMigration<Optional<Long>> {
         private static final String KEY = "random_seed";
 
         private static Optional<Long> load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -516,7 +517,7 @@ public abstract class AbstractSamplingNodeSettings implements DefaultNodeSetting
         }
     }
 
-    static final class EmptyActionMigration implements NodeSettingsMigration<ActionOnEmptyInput> {
+    static final class EmptyActionMigration implements NodeParametersMigration<ActionOnEmptyInput> {
         private static final String KEY = "actionEmpty";
 
         /**

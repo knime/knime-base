@@ -51,20 +51,20 @@ package org.knime.base.node.preproc.append.row;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
  * Currently only used for the node dialogue, backwards compatible loading is ensured by the node model. If this is ever
@@ -76,7 +76,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
  * @since 5.1
  */
 @SuppressWarnings("restriction")
-public final class AppendedRowsNodeSettings implements DefaultNodeSettings {
+public final class AppendedRowsNodeSettings implements NodeParameters {
 
     enum ColumnSetOperation {
             @Label("Union")
@@ -115,7 +115,7 @@ public final class AppendedRowsNodeSettings implements DefaultNodeSettings {
                 REUSE_EXISTING;
         }
 
-        interface RowIdStrategyRef extends Reference<RowIdStrategy> {
+        interface RowIdStrategyRef extends ParameterReference<RowIdStrategy> {
 
         }
 
@@ -142,19 +142,19 @@ public final class AppendedRowsNodeSettings implements DefaultNodeSettings {
                 FAIL;
         }
 
-        interface DuplicateRowIdResolutionRef extends Reference<DuplicateRowIdResolution> {
+        interface DuplicateRowIdResolutionRef extends ParameterReference<DuplicateRowIdResolution> {
         }
 
-        static final class ReuseExisting implements PredicateProvider {
+        static final class ReuseExisting implements EffectPredicateProvider {
             @Override
-            public Predicate init(final PredicateInitializer i) {
+            public EffectPredicate init(final PredicateInitializer i) {
                 return i.getEnum(RowIdStrategyRef.class).isOneOf(RowIdStrategy.REUSE_EXISTING);
             }
         }
 
-        static final class ReusedExistingAndAppend implements PredicateProvider {
+        static final class ReusedExistingAndAppend implements EffectPredicateProvider {
             @Override
-            public Predicate init(final PredicateInitializer i) {
+            public EffectPredicate init(final PredicateInitializer i) {
                 final var isAppend =
                     i.getEnum(DuplicateRowIdResolutionRef.class).isOneOf(DuplicateRowIdResolution.APPEND);
                 return isAppend.and(i.getPredicate(ReuseExisting.class));
@@ -185,7 +185,7 @@ public final class AppendedRowsNodeSettings implements DefaultNodeSettings {
 
     }
 
-    private static final class RowIdResolutionPersistor implements NodeSettingsPersistor<RowIdStrategySelection> {
+    private static final class RowIdResolutionPersistor implements NodeParametersPersistor<RowIdStrategySelection> {
 
         @Override
         public RowIdStrategySelection load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -234,7 +234,7 @@ public final class AppendedRowsNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    private static final class ColumnSetOperationPersistor implements NodeSettingsPersistor<ColumnSetOperation> {
+    private static final class ColumnSetOperationPersistor implements NodeParametersPersistor<ColumnSetOperation> {
 
         @Override
         public ColumnSetOperation load(final NodeSettingsRO settings) throws InvalidSettingsException {

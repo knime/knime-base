@@ -48,26 +48,27 @@
  */
 package org.knime.base.node.preproc.table.cropper;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Advanced;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
+import org.knime.node.parameters.Advanced;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.Before;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.migration.Migrate;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 
 /**
  * Settings of the Range Filter node.
@@ -75,15 +76,15 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberIn
  * @author Adrian Nembach, KNIME GmbH, Konstany, Germany
  */
 @SuppressWarnings("restriction")
-public final class TableCropperSettings implements DefaultNodeSettings {
+public final class TableCropperSettings implements NodeParameters {
 
     /**
      * Constructor for auto-configure.
      *
      * @param context of the creation
      */
-    TableCropperSettings(final DefaultNodeSettingsContext context) {
-        var spec = context.getDataTableSpecs()[0];
+    TableCropperSettings(final NodeParametersInput context) {
+        var spec = context.getInTableSpecs()[0];
         if (spec != null && spec.getNumColumns() > 0) {
             m_startColumnName = spec.getColumnSpec(0).getName();
             m_endColumnName = spec.getColumnSpec(spec.getNumColumns() - 1).getName();
@@ -101,12 +102,12 @@ public final class TableCropperSettings implements DefaultNodeSettings {
     interface ColumnsSection {
     }
 
-    interface ColumnRangeModeRef extends Reference<ColumnRangeMode> {
+    interface ColumnRangeModeRef extends ParameterReference<ColumnRangeMode> {
     }
 
-    static final class ColumnRangeModeIsByName implements PredicateProvider {
+    static final class ColumnRangeModeIsByName implements EffectPredicateProvider {
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(ColumnRangeModeRef.class).isOneOf(ColumnRangeMode.BY_NAME);
         }
     }

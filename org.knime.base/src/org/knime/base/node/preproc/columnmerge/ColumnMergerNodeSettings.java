@@ -52,24 +52,26 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.booleanhelpers.AlwaysSaveTrueBoolean;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelStringPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.ColumnNameValidationV2;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
+import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
+import org.knime.node.parameters.widget.text.TextInputWidget;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.ColumnNameValidation;
 
 /**
  *
@@ -77,7 +79,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInpu
  * @since 5.0
  */
 @SuppressWarnings("restriction")
-public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
+public final class ColumnMergerNodeSettings implements NodeParameters {
 
     @Persistor(PrimaryColumnPersistor.class)
     @Widget(title = "Primary column",
@@ -127,7 +129,7 @@ public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
     @Persistor(OutputNamePersisor.class)
     @Widget(title = "New column name", description = "The name for the new column.")
     @Effect(predicate = OutputPlacement.IsAppendAsNewColumn.class, type = EffectType.SHOW)
-    @TextInputWidget(patternValidation = ColumnNameValidationV2.class)
+    @TextInputWidget(patternValidation = ColumnNameValidationUtils.ColumnNameValidation.class)
     String m_outputName = "NewColumn";
 
     static final class DoNotAllowBlankOrPaddedColumnNamePersistor extends AlwaysSaveTrueBoolean {
@@ -154,18 +156,18 @@ public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
             @Label("Append as new column")
             AppendAsNewColumn;
 
-        interface Ref extends Reference<OutputPlacement> {
+        interface Ref extends ParameterReference<OutputPlacement> {
         }
 
-        static final class IsAppendAsNewColumn implements PredicateProvider {
+        static final class IsAppendAsNewColumn implements EffectPredicateProvider {
             @Override
-            public Predicate init(final PredicateInitializer i) {
+            public EffectPredicate init(final PredicateInitializer i) {
                 return i.getEnum(Ref.class).isOneOf(OutputPlacement.AppendAsNewColumn);
             }
         }
     }
 
-    private static final class OutputPlacementOptionsPersistor implements NodeSettingsPersistor<OutputPlacement> {
+    private static final class OutputPlacementOptionsPersistor implements NodeParametersPersistor<OutputPlacement> {
 
         private static final String OUTPUT_PLACEMENT_CFGKEY = "outputPlacement";
 
@@ -202,8 +204,8 @@ public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
         this((DataTableSpec)null);
     }
 
-    ColumnMergerNodeSettings(final DefaultNodeSettingsContext context) {
-        this(context.getDataTableSpec(0).orElse(null));
+    ColumnMergerNodeSettings(final NodeParametersInput context) {
+        this(context.getInTableSpec(0).orElse(null));
     }
 
     ColumnMergerNodeSettings(final DataTableSpec spec) {

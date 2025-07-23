@@ -48,7 +48,7 @@
  */
 package org.knime.time.node.create.createdatetime;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.validateColumnName;
+import static org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.validateColumnName;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -72,9 +72,9 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationMessageBuilder;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.InvalidColumnNameState;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.InvalidColumnNameState;
 import org.knime.time.node.create.createdatetime.CreateDateTimeNodeSettings.FixedSteps;
 import org.knime.time.util.DateTimeType;
 

@@ -73,7 +73,8 @@ import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.workflow.NodeContainerState;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
@@ -89,7 +90,7 @@ public class TopKSelectorNodeModelTest {
 
     private static final String[] INPUT_COLUMNS = new String[]{"column1", "column2"};
 
-    private static final Class<? extends DefaultNodeSettings> SETTINGS_CLASS = TopKSelectorNodeSettings.class;
+    private static final Class<? extends NodeParameters> SETTINGS_CLASS = TopKSelectorNodeSettings.class;
 
     @Test
     void testExecute() throws InvalidSettingsException, IOException {
@@ -123,7 +124,7 @@ public class TopKSelectorNodeModelTest {
         settings.addBoolean("missingsToEnd", false);
         settings.addString("selectionMode", TopKMode.TOP_K_ROWS.getText());
 
-        final var nodeSettings = DefaultNodeSettings.loadSettings(settings, TopKSelectorNodeSettings.class);
+        final var nodeSettings = NodeParametersUtil.loadSettings(settings, TopKSelectorNodeSettings.class);
 
         var output = setupAndExecuteWorkflow(nodeSettings,
             new String[]{RowKey.createRowKey(1L).getString(), RowKey.createRowKey(2L).getString(),
@@ -174,7 +175,7 @@ public class TopKSelectorNodeModelTest {
         final var nodeSettings = new NodeSettings(NODE_NAME);
         workflowManager.saveNodeSettings(node.getID(), nodeSettings);
         var modelSettings = nodeSettings.addNodeSettings("model");
-        DefaultNodeSettings.saveSettings(SETTINGS_CLASS, settings, modelSettings);
+        NodeParametersUtil.saveSettings(SETTINGS_CLASS, settings, modelSettings);
         workflowManager.loadNodeSettings(node.getID(), nodeSettings);
 
         // populate the input table

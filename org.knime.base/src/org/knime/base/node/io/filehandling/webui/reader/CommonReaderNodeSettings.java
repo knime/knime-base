@@ -51,37 +51,39 @@ package org.knime.base.node.io.filehandling.webui.reader;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout.DataArea.UseExistingRowId;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.SettingsWithRowId;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LegacyReaderFileSelectionPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage.MessageType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage.SimpleTextMessageProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.ColumnNameValidationV2;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.message.TextMessage;
+import org.knime.node.parameters.widget.message.TextMessage.MessageType;
+import org.knime.node.parameters.widget.message.TextMessage.SimpleTextMessageProvider;
+import org.knime.node.parameters.widget.text.TextInputWidget;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.ColumnNameValidation;
 
 /**
  * This class contains nested classes that define common settings of reader nodes. They should be implemented by all
@@ -97,7 +99,7 @@ public final class CommonReaderNodeSettings {
      * Main settings for reader nodes: The file source(s). Use {@link SettingsWithRowId.SetFileReaderWidgetExtensions}
      * to set file extensions.
      */
-    public static class BaseSettings implements WidgetGroup, PersistableSettings {
+    public static class BaseSettings implements WidgetGroup, Persistable {
 
         /**
          * Access the chosen file(s) by this reference.
@@ -110,9 +112,9 @@ public final class CommonReaderNodeSettings {
          * Set the file extensions for the file reader widget using {@link Modification} on the implementation of this
          * class or the field where it is used.
          */
-        public abstract static class SetFileReaderWidgetExtensions implements WidgetGroup.Modifier {
+        public abstract static class SetFileReaderWidgetExtensions implements Modification.Modifier {
             @Override
-            public void modify(final WidgetGroupModifier group) {
+            public void modify(final Modification.WidgetGroupModifier group) {
                 group.find(FileSelectionRef.class).modifyAnnotation(FileReaderWidget.class)
                     .withProperty("fileExtensions", getExtensions()).modify();
             }
@@ -126,7 +128,7 @@ public final class CommonReaderNodeSettings {
         static final class FileSystemManagedByPortMessage implements SimpleTextMessageProvider {
 
             @Override
-            public boolean showMessage(final DefaultNodeSettingsContext context) {
+            public boolean showMessage(final NodeParametersInput context) {
                 return FileSystemPortConnectionUtil.hasEmptyFileSystemPort(context);
             }
 
@@ -172,7 +174,7 @@ public final class CommonReaderNodeSettings {
         @Persist(configKey = "file_selection", hidden = true)
         protected FileSelectionInternal m_fileSelectionInternal = new FileSelectionInternal();
 
-        protected static class FileSelectionInternal implements WidgetGroup, PersistableSettings {
+        protected static class FileSelectionInternal implements WidgetGroup, Persistable {
             @Persist(configKey = "SettingsModelID")
             public String m_settingsModelID = "SMID_ReaderFileChooser";
 
@@ -213,7 +215,7 @@ public final class CommonReaderNodeSettings {
     /**
      * Advanced settings for reader nodes. They should be implemented by all reader nodes.
      */
-    public static class BaseAdvancedSettings implements WidgetGroup, PersistableSettings {
+    public static class BaseAdvancedSettings implements WidgetGroup, Persistable {
 
         public enum IfSchemaChangesOption {
                 @Label(value = "Fail",
@@ -229,7 +231,7 @@ public final class CommonReaderNodeSettings {
                 IGNORE; //
         }
 
-        static final class IfSchemaChangesPersistor implements NodeSettingsPersistor<IfSchemaChangesOption> {
+        static final class IfSchemaChangesPersistor implements NodeParametersPersistor<IfSchemaChangesOption> {
 
             private static final String CFG_SAVE_TABLE_SPEC_CONFIG =
                 "save_table_spec_config" + SettingsModel.CFGKEY_INTERNAL;
@@ -262,12 +264,12 @@ public final class CommonReaderNodeSettings {
             }
         }
 
-        static final class IfSchemaChangesOptionRef implements Reference<IfSchemaChangesOption> {
+        static final class IfSchemaChangesOptionRef implements ParameterReference<IfSchemaChangesOption> {
         }
 
-        static final class UseNewSchema implements PredicateProvider {
+        static final class UseNewSchema implements EffectPredicateProvider {
             @Override
-            public Predicate init(final PredicateInitializer i) {
+            public EffectPredicate init(final PredicateInitializer i) {
                 return i.getEnum(IfSchemaChangesOptionRef.class).isOneOf(IfSchemaChangesOption.USE_NEW_SCHEMA);
             }
         }
@@ -318,7 +320,7 @@ public final class CommonReaderNodeSettings {
         }
 
         static final class HowToCombineColumnsOptionPersistor
-            implements NodeSettingsPersistor<HowToCombineColumnsOption> {
+            implements NodeParametersPersistor<HowToCombineColumnsOption> {
 
             private static final String CFG_FAIL_ON_DIFFERING_SPECS = "fail_on_differing_specs";
 
@@ -348,7 +350,7 @@ public final class CommonReaderNodeSettings {
             }
         }
 
-        static class HowToCombineColumnsOptionRef implements Reference<HowToCombineColumnsOption> {
+        static class HowToCombineColumnsOptionRef implements ParameterReference<HowToCombineColumnsOption> {
         }
 
         @Widget(title = "How to combine columns",
@@ -363,10 +365,10 @@ public final class CommonReaderNodeSettings {
         static class AppendPathColumnRef extends ReferenceStateProvider<Boolean> {
         }
 
-        static final class AppendPathColumn implements PredicateProvider {
+        static final class AppendPathColumn implements EffectPredicateProvider {
 
             @Override
-            public Predicate init(final PredicateInitializer i) {
+            public EffectPredicate init(final PredicateInitializer i) {
                 return i.getBoolean(AppendPathColumnRef.class).isTrue();
             }
 
@@ -388,7 +390,7 @@ public final class CommonReaderNodeSettings {
         @Layout(CommonReaderLayout.MultipleFileHandling.FilePathColumnName.class)
         @Effect(predicate = AppendPathColumn.class, type = EffectType.SHOW)
         @Persist(configKey = "path_column_name", hidden = true)
-        @TextInputWidget(patternValidation = ColumnNameValidationV2.class)
+        @TextInputWidget(patternValidation = ColumnNameValidationUtils.ColumnNameValidation.class)
         public String m_filePathColumnName = "File Path";
 
     }
@@ -397,7 +399,7 @@ public final class CommonReaderNodeSettings {
      * To be used on the respective field. The field itself is not abstracted, since it is persisted in a different
      * location for different readers.
      */
-    public static final class SkipFirstDataRowsPersistor implements NodeSettingsPersistor<Long> {
+    public static final class SkipFirstDataRowsPersistor implements NodeParametersPersistor<Long> {
 
         private static final String CFG_SKIP_DATA_ROWS = "skip_data_rows";
 
@@ -427,16 +429,16 @@ public final class CommonReaderNodeSettings {
      * To be used on the respective field. The field itself is not abstracted, since it is persisted in a different
      * location for different readers.
      */
-    public interface LimitNumberOfRowsRef extends Reference<Boolean> {
+    public interface LimitNumberOfRowsRef extends ParameterReference<Boolean> {
     }
 
     /**
      * To be used on the respective field. The field itself is not abstracted, since it is persisted in a different
      * location for different readers.
      */
-    public static final class LimitNumberOfRowsPredicate implements PredicateProvider {
+    public static final class LimitNumberOfRowsPredicate implements EffectPredicateProvider {
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getBoolean(LimitNumberOfRowsRef.class).isTrue();
         }
     }

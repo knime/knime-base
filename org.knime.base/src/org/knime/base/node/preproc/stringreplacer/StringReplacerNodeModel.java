@@ -47,7 +47,7 @@
  */
 package org.knime.base.node.preproc.stringreplacer;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.validateColumnName;
+import static org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.validateColumnName;
 
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -67,9 +67,9 @@ import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.KNIMEException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationMessageBuilder;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.InvalidColumnNameState;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.InvalidColumnNameState;
 
 /**
  * This is the model for the string replacer node that does the work.

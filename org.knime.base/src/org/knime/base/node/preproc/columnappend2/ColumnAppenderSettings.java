@@ -54,22 +54,23 @@ import org.knime.base.node.preproc.columnappend2.ColumnAppender2NodeModel.RowKey
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.EnumSettingsModelStringPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MaxValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MaxValidation;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 
 /**
  * Settings for the Column Appender node.
@@ -77,7 +78,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberIn
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public final class ColumnAppenderSettings implements DefaultNodeSettings {
+public final class ColumnAppenderSettings implements NodeParameters {
 
     static final class RowKeyModeSettingsModelStringPersistor extends EnumSettingsModelStringPersistor<RowKeyMode> {
 
@@ -118,8 +119,8 @@ public final class ColumnAppenderSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public MaxValidation computeState(final DefaultNodeSettingsContext context) {
-            final var max = context.getDataTableSpecs().length;
+        public MaxValidation computeState(final NodeParametersInput context) {
+            final var max = context.getInTableSpecs().length;
             return new MaxValidation() {
                 @Override
                 protected double getMax() {
@@ -143,17 +144,17 @@ public final class ColumnAppenderSettings implements DefaultNodeSettings {
     @Effect(type = EffectType.SHOW, predicate = IsKeyTable.class)
     int m_rowIdTableSelect = 1;
 
-    interface RowKeyModeRef extends Reference<RowKeyMode> {
+    interface RowKeyModeRef extends ParameterReference<RowKeyMode> {
     }
 
-    static class IsKeyTable implements PredicateProvider {
+    static class IsKeyTable implements EffectPredicateProvider {
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(RowKeyModeRef.class).isOneOf(RowKeyMode.KEY_TABLE);
         }
     }
 
-    private static final class RowIdTableSelectPersistor implements NodeSettingsPersistor<Integer> {
+    private static final class RowIdTableSelectPersistor implements NodeParametersPersistor<Integer> {
 
         @Override
         public Integer load(final NodeSettingsRO settings) throws InvalidSettingsException {

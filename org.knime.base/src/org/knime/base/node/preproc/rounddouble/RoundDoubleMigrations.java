@@ -61,8 +61,8 @@ import org.knime.base.node.preproc.rounddouble.RoundDoubleNodeSettings.RoundingM
 import org.knime.base.node.preproc.rounddouble.RoundDoubleNodeSettings.RoundingMethod.Advanced;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
 
 /**
  * Persistors for backwards compatibility
@@ -76,7 +76,7 @@ final class RoundDoubleMigrations {
         // Utility class
     }
 
-    static final class OutputColumnMigration implements NodeSettingsMigration<OutputColumn> {
+    static final class OutputColumnMigration implements NodeParametersMigration<OutputColumn> {
 
         private static final String LEGACY_CFG_KEY_BOOLEAN = "AppendColumns";
 
@@ -93,7 +93,7 @@ final class RoundDoubleMigrations {
 
     }
 
-    static final class RoundingMethodMigration implements NodeSettingsMigration<RoundingMethod> {
+    static final class RoundingMethodMigration implements NodeParametersMigration<RoundingMethod> {
 
         private static final String LEGACY_CFG_KEY = "RoundingMode";
 
@@ -124,7 +124,7 @@ final class RoundDoubleMigrations {
         }
     }
 
-    static final class OutputModeMigration implements NodeSettingsMigration<OutputMode> {
+    static final class OutputModeMigration implements NodeParametersMigration<OutputMode> {
 
         private static final String CFG_KEY_OUTPUT_TYPE = "OutputType";
 
@@ -154,7 +154,7 @@ final class RoundDoubleMigrations {
 
     }
 
-    static final class NumberModeMigration implements NodeSettingsMigration<NumberMode> {
+    static final class NumberModeMigration implements NodeParametersMigration<NumberMode> {
 
         private static final String LEGACY_CONFIG_KEY = "NumberMode";
 

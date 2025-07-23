@@ -63,8 +63,8 @@ import org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 import org.knime.testing.util.WorkflowManagerUtil;
 import org.knime.time.util.DurationPeriodStringFormat;
 
@@ -102,7 +102,7 @@ final class DurationPeriodFormatManagerNodeModelTest {
         final var nodeSettings = new NodeSettings("DurationPeriodFormatManagerNode");
         wfm.saveNodeSettings(formatManagerNode.getID(), nodeSettings);
         var modelSettings = nodeSettings.addNodeSettings("model");
-        DefaultNodeSettings.saveSettings(DurationPeriodFormatManagerNodeSettings.class, settings, modelSettings);
+        NodeParametersUtil.saveSettings(DurationPeriodFormatManagerNodeSettings.class, settings, modelSettings);
         wfm.loadNodeSettings(formatManagerNode.getID(), nodeSettings);
 
         var inTable = DateTimeTestingUtil.createDefaultTestTable();

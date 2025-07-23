@@ -51,19 +51,19 @@ package org.knime.base.node.preproc.transpose;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
  * Currently only used for the node dialogue, backwards compatible loading is ensured by the node model. If this is ever
@@ -73,16 +73,16 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
  * @since 5.1
  */
 @SuppressWarnings("restriction")
-public final class TransposeTableNodeSettings implements DefaultNodeSettings {
+public final class TransposeTableNodeSettings implements NodeParameters {
 
     private static final String CHUNKING_MODE_KEY = "guess_or_fixed";
 
-    interface ChunkingModeRef extends Reference<ChunkingMode> {
+    interface ChunkingModeRef extends ParameterReference<ChunkingMode> {
     }
 
-    static final class IsSpecifySize implements PredicateProvider {
+    static final class IsSpecifySize implements EffectPredicateProvider {
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(ChunkingModeRef.class).isOneOf(ChunkingMode.SPECIFY_SIZE);
         }
     }
@@ -114,7 +114,7 @@ public final class TransposeTableNodeSettings implements DefaultNodeSettings {
             SPECIFY_SIZE;
     }
 
-    private static final class ChunkingModePersistor implements NodeSettingsPersistor<ChunkingMode> {
+    private static final class ChunkingModePersistor implements NodeParametersPersistor<ChunkingMode> {
 
         @Override
         public ChunkingMode load(final NodeSettingsRO settings) throws InvalidSettingsException {

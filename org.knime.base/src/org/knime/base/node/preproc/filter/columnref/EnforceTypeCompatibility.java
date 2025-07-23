@@ -51,8 +51,8 @@ package org.knime.base.node.preproc.filter.columnref;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  *
@@ -77,7 +77,7 @@ enum EnforceTypeCompatibility {
 
     public static final String TITLE = "If column names match, but types are incompatible";
 
-    static final class Persistor implements NodeSettingsPersistor<EnforceTypeCompatibility> {
+    static final class Persistor implements NodeParametersPersistor<EnforceTypeCompatibility> {
 
         private static final String CFG_KEY = "type_compatibility";
 

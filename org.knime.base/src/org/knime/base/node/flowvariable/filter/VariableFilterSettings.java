@@ -47,14 +47,14 @@
  */
 package org.knime.base.node.flowvariable.filter;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.StringFilterToFlowVariableFilterMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.AllFlowScopedFlowVariablesProvider;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.filter.FlowVariableFilter;
+import org.knime.node.parameters.widget.choices.util.AllFlowScopedFlowVariablesProvider;
 
 /**
  * Settings for Variable Filter node.
@@ -63,7 +63,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.Al
  * @since 5.3
  */
 @SuppressWarnings("restriction")
-final class VariableFilterSettings implements DefaultNodeSettings {
+final class VariableFilterSettings implements NodeParameters {
 
     @Widget(title = "Flow Variable Filter",
         description = "The names of the flow variables that pass this filter node. See the general node description "

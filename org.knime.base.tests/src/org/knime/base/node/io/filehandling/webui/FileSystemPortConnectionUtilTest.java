@@ -65,13 +65,13 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSConnectionRegistry;
 import org.knime.filehandling.core.connections.FSFileSystem;
 import org.knime.filehandling.core.port.FileSystemPortObject;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.testing.util.WorkflowManagerUtil;
 
 @SuppressWarnings("restriction")
@@ -106,29 +106,29 @@ class FileSystemPortConnectionUtilTest extends LocalWorkflowContextTest {
         m_csvReader = (NativeNodeContainer)m_wfm.getNodeContainer(m_csvReader.getID());
     }
 
-    DefaultNodeSettingsContext getDefaultNodeSettingsContextWithoutConnection() {
+    NodeParametersInput getDefaultNodeSettingsContextWithoutConnection() {
 
         NodeContext.pushContext(m_csvReader);
-        return DefaultNodeSettings.createDefaultNodeSettingsContext(new PortObjectSpec[]{});
+        return NodeParametersUtil.createDefaultNodeSettingsContext(new PortObjectSpec[]{});
     }
 
-    DefaultNodeSettingsContext getContextForEmptySpec() {
+    NodeParametersInput getContextForEmptySpec() {
         return getContextForConnection(null);
     }
 
-    DefaultNodeSettingsContext getContextForEmptyConnection() {
+    NodeParametersInput getContextForEmptyConnection() {
         return getContextForConnection(new FileSystemPortObjectSpec());
     }
 
-    DefaultNodeSettingsContext getContextForDummyConnection() {
+    NodeParametersInput getContextForDummyConnection() {
 
         return getContextForConnection(new FileSystemPortObjectSpec(null, dummyFileSystemId, null));
     }
 
-    private DefaultNodeSettingsContext getContextForConnection(final FileSystemPortObjectSpec spec) {
+    private NodeParametersInput getContextForConnection(final FileSystemPortObjectSpec spec) {
 
         NodeContext.pushContext(m_csvReader);
-        return DefaultNodeSettings.createDefaultNodeSettingsContext(new PortObjectSpec[]{spec});
+        return NodeParametersUtil.createDefaultNodeSettingsContext(new PortObjectSpec[]{spec});
     }
 
     static final class DummyFSConnection implements FSConnection {
@@ -152,26 +152,30 @@ class FileSystemPortConnectionUtilTest extends LocalWorkflowContextTest {
 
     @Test
     void testDoesNotApplyWithoutPort() {
-        assertFalse(new ConnectedWithoutFileSystemSpec().applies(getDefaultNodeSettingsContextWithoutConnection()));
+        new ConnectedWithoutFileSystemSpec();
+        assertFalse(ConnectedWithoutFileSystemSpec.applies(getDefaultNodeSettingsContextWithoutConnection()));
     }
 
     @Test
     void testAppliesWithoutSpec() {
         addPort();
-        assertTrue(new ConnectedWithoutFileSystemSpec().applies(getContextForEmptySpec()));
+        new ConnectedWithoutFileSystemSpec();
+        assertTrue(ConnectedWithoutFileSystemSpec.applies(getContextForEmptySpec()));
     }
 
     @Test
     void testAppliesWithoutConnection() {
         addPort();
-        assertTrue(new ConnectedWithoutFileSystemSpec().applies(getContextForEmptyConnection()));
+        new ConnectedWithoutFileSystemSpec();
+        assertTrue(ConnectedWithoutFileSystemSpec.applies(getContextForEmptyConnection()));
     }
 
     @SuppressWarnings("resource")
     @Test
     void testDoesNotApplyWithConnection() {
         addPort();
-        assertFalse(new ConnectedWithoutFileSystemSpec().applies(getContextForDummyConnection()));
+        new ConnectedWithoutFileSystemSpec();
+        assertFalse(ConnectedWithoutFileSystemSpec.applies(getContextForDummyConnection()));
     }
 
 }

@@ -51,12 +51,12 @@ package org.knime.base.node.preproc.filter.columnref;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
  *
@@ -64,7 +64,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * @since 5.1
  */
 @SuppressWarnings("restriction")
-public final class ColumnFilterRefNodeSettings implements DefaultNodeSettings {
+public final class ColumnFilterRefNodeSettings implements NodeParameters {
 
     private static final String REFERENCE_MODE_KEY = "inexclude";
 
@@ -87,7 +87,7 @@ public final class ColumnFilterRefNodeSettings implements DefaultNodeSettings {
             EXCLUDE;
     }
 
-    private static final class ColumnReferenceModePersistor implements NodeSettingsPersistor<ColumnReferenceMode> {
+    private static final class ColumnReferenceModePersistor implements NodeParametersPersistor<ColumnReferenceMode> {
 
         @Override
         public ColumnReferenceMode load(final NodeSettingsRO settings) throws InvalidSettingsException {

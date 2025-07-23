@@ -55,7 +55,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.func.NodeFunc;
 import org.knime.core.node.func.NodeFuncApi;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 
 /**
  * The append_columns NodeFunc.
@@ -70,7 +70,7 @@ public final class ColumnAppenderNodeFunc implements NodeFunc {
         final NodeSettingsWO settings) throws InvalidSettingsException {
         var appenderSettings = new ColumnAppenderSettings();
         appenderSettings.m_rowIdMode = RowKeyMode.GENERATE;
-        DefaultNodeSettings.saveSettings(ColumnAppenderSettings.class, appenderSettings, settings);
+        NodeParametersUtil.saveSettings(ColumnAppenderSettings.class, appenderSettings, settings);
     }
 
     @Override

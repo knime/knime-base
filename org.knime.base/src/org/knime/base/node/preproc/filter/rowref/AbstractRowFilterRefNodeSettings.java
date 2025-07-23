@@ -54,28 +54,29 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelColumnNameMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.Before;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.Migrate;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 
 /**
- * {@link DefaultNodeSettings} implementation for the Reference Row Filter to auto-generate a Web-UI based dialog. Note
+ * {@link NodeParameters} implementation for the Reference Row Filter to auto-generate a Web-UI based dialog. Note
  * that this class is only used for the dialog generation and not by the node model.
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-class AbstractRowFilterRefNodeSettings implements DefaultNodeSettings {
+class AbstractRowFilterRefNodeSettings implements NodeParameters {
 
     @Before(UpdateDomainsLayout.class)
     interface ColumnsLayout {
@@ -87,10 +88,10 @@ class AbstractRowFilterRefNodeSettings implements DefaultNodeSettings {
     private interface DataColumn extends Modification.Reference {
     }
 
-    static class AdjustDataColumnDescriptionsForSplitter implements Modifier {
+    static class AdjustDataColumnDescriptionsForSplitter implements Modification.Modifier {
 
         @Override
-        public void modify(final WidgetGroupModifier group) {
+        public void modify(final Modification.WidgetGroupModifier group) {
             group.find(DataColumn.class).modifyAnnotation(Widget.class).withProperty("description",
                 "The column from the table to be split that should be used for comparison.").modify();
         }

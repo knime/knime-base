@@ -87,7 +87,7 @@ import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFactory;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.testing.util.InputTableNode.InputDataNodeFactory;
 import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
@@ -711,7 +711,7 @@ final class DateTimeDifferenceNodeModel2Test {
         final var nodeSettings = new NodeSettings(NODE_NAME);
         workflowManager.saveNodeSettings(node.getID(), nodeSettings);
         var modelSettings = nodeSettings.addNodeSettings("model");
-        DefaultNodeSettings.saveSettings(DateTimeDifferenceNodeSettings.class, settings, modelSettings);
+        NodeParametersUtil.saveSettings(DateTimeDifferenceNodeSettings.class, settings, modelSettings);
         workflowManager.loadNodeSettings(node.getID(), nodeSettings);
 
         // populate the input table

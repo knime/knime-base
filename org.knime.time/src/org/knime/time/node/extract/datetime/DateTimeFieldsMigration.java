@@ -54,8 +54,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
 import org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings.DateTimeField;
 import org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings.ExtractField;
 
@@ -64,7 +64,7 @@ import org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings.Extrac
  * @author Christian Albrecht, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public class DateTimeFieldsMigration implements NodeSettingsMigration<ExtractField[]> {
+public class DateTimeFieldsMigration implements NodeParametersMigration<ExtractField[]> {
 
     // used legacy keys (and subsecond values)
     static final String YEAR = "Year";

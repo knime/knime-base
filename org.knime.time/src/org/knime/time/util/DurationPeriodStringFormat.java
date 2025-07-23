@@ -54,11 +54,11 @@ import java.util.stream.Collectors;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * Enumeration to represent the different ways to format a duration/period to a string.
@@ -103,15 +103,15 @@ public enum DurationPeriodStringFormat {
      *
      * @see ValueReference
      */
-    public interface Ref extends Reference<DurationPeriodStringFormat> {
+    public interface Ref extends ParameterReference<DurationPeriodStringFormat> {
     }
 
     /**
-     * A persistor for {@link DurationPeriodStringFormat} objects that can be used in the {@link DefaultNodeSettings}
+     * A persistor for {@link DurationPeriodStringFormat} objects that can be used in the {@link NodeParameters}
      * and can load legacy settings in a backwards-compatible way. Not recommended unless you actually need the
      * backwards compatibility.
      */
-    public static final class LegacyPersistor implements NodeSettingsPersistor<DurationPeriodStringFormat> {
+    public static final class LegacyPersistor implements NodeParametersPersistor<DurationPeriodStringFormat> {
 
         private static final String CONFIG_KEY = "format";
 

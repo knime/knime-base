@@ -57,7 +57,7 @@ import org.knime.core.data.LongValue;
 import org.knime.core.data.time.duration.DurationValue;
 import org.knime.core.data.time.period.PeriodValue;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.FilteredInputTableColumnsProvider;
+import org.knime.node.parameters.widget.choices.util.FilteredInputTableColumnsProvider;
 
 /**
  *

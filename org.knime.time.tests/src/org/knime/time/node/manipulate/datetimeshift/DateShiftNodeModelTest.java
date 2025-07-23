@@ -84,8 +84,8 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.WorkflowManager;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.testing.util.WorkflowManagerUtil;
@@ -540,7 +540,7 @@ final class DateShiftNodeModelTest {
         final var nodeSettings = new NodeSettings("DateShiftNode");
         m_wfm.saveNodeSettings(m_dateShiftNode.getID(), nodeSettings);
         var modelSettings = nodeSettings.addNodeSettings("model");
-        DefaultNodeSettings.saveSettings(DateShiftNodeSettings.class, settings, modelSettings);
+        NodeParametersUtil.saveSettings(DateShiftNodeSettings.class, settings, modelSettings);
         m_wfm.loadNodeSettings(m_dateShiftNode.getID(), nodeSettings);
     }
 }

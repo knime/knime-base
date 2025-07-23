@@ -52,6 +52,7 @@ import java.util.stream.Stream;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.NominalValue;
+import org.knime.node.parameters.NodeParametersInput;
 
 /**
  *
@@ -64,8 +65,8 @@ final class RowSamplingNodeSettings extends AbstractSamplingNodeSettings {
 
     }
 
-    RowSamplingNodeSettings(final DefaultNodeSettingsContext context) {
-        final var firstCol = context.getDataTableSpec(0) //
+    RowSamplingNodeSettings(final NodeParametersInput context) {
+        final var firstCol = context.getInTableSpec(0) //
             .map(DataTableSpec::stream) //
             .orElseGet(Stream::empty) //
             .filter(spec -> spec.getType().isCompatible(NominalValue.class)).findFirst();

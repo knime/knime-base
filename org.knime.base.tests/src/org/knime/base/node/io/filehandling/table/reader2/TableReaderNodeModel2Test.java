@@ -76,7 +76,7 @@ import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
@@ -158,7 +158,7 @@ class TableReaderNodeModel2Test extends LocalWorkflowContextTest {
         final var nodeSettings = new NodeSettings("TableReader");
         m_wfm.saveNodeSettings(m_tableReader.getID(), nodeSettings);
         var modelSettings = nodeSettings.addNodeSettings("model");
-        DefaultNodeSettings.saveSettings(TableReaderNodeSettings.class, settings, modelSettings);
+        NodeParametersUtil.saveSettings(TableReaderNodeSettings.class, settings, modelSettings);
         m_wfm.loadNodeSettings(m_tableReader.getID(), nodeSettings);
     }
 

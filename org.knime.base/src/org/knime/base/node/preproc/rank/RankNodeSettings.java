@@ -65,31 +65,33 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Advanced;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.MinLengthValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.node.parameters.Advanced;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.array.ArrayWidget;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.Migrate;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.node.parameters.widget.text.TextInputWidget;
+import org.knime.node.parameters.widget.text.TextInputWidgetValidation.MinLengthValidation;
 
 /**
  * The settings for the "Rank" node.
@@ -97,13 +99,13 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInpu
  * @author Martin Sillye, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-final class RankNodeSettings implements DefaultNodeSettings {
+final class RankNodeSettings implements NodeParameters {
 
     RankNodeSettings() {
 
     }
 
-    RankNodeSettings(final DefaultNodeSettingsContext context) {
+    RankNodeSettings(final NodeParametersInput context) {
         this.m_sortingCriteria = new RankingCriterionSettings[]{new RankingCriterionSettings(context)};
     }
 
@@ -186,10 +188,10 @@ final class RankNodeSettings implements DefaultNodeSettings {
     interface AdvancedSection {
     }
 
-    interface SortingCriteriaRef extends Reference<RankingCriterionSettings[]> {
+    interface SortingCriteriaRef extends ParameterReference<RankingCriterionSettings[]> {
     }
 
-    interface CategoryColumnsRef extends Reference<ColumnFilter> {
+    interface CategoryColumnsRef extends ParameterReference<ColumnFilter> {
     }
 
     @Layout(SortingSection.class)
@@ -257,7 +259,7 @@ final class RankNodeSettings implements DefaultNodeSettings {
     static final class RankingModification extends SortingModification {
 
         @Override
-        public void modify(final WidgetGroupModifier group) {
+        public void modify(final Modification.WidgetGroupModifier group) {
             this.getColumnModifier(group).modifyAnnotation(Widget.class).withProperty("description", """
                     Specifies the column by which rows should be ranked. If multiple criteria are defined, ranking is \
                     first applied to the primary column. Additional criteria are only considered in the event of a tie \
@@ -288,7 +290,7 @@ final class RankNodeSettings implements DefaultNodeSettings {
             super(colSpec);
         }
 
-        RankingCriterionSettings(final DefaultNodeSettingsContext context) {
+        RankingCriterionSettings(final NodeParametersInput context) {
             super(context);
         }
 
@@ -305,17 +307,17 @@ final class RankNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
+        public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
             final var criterion = Arrays.stream(m_criterion.get()).map(RankingCriterionSettings::getColumn)
                 .filter(column -> column.getEnumChoice().isEmpty()).map(StringOrEnum::getStringChoice)
                 .collect(Collectors.toSet());
-            return context.getDataTableSpec(0).map(DataTableSpec::stream) //
+            return context.getInTableSpec(0).map(DataTableSpec::stream) //
                 .orElseGet(Stream::empty) //
                 .filter(spec -> !criterion.contains(spec.getName())).toList();
         }
     }
 
-    static final class CategoryColumnSettingsMigration implements NodeSettingsMigration<ColumnFilter> {
+    static final class CategoryColumnSettingsMigration implements NodeParametersMigration<ColumnFilter> {
 
         private static final String KEY = "GroupColumns";
 
@@ -333,7 +335,7 @@ final class RankNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    static final class RankModeSettingsMigration implements NodeSettingsMigration<RankMode> {
+    static final class RankModeSettingsMigration implements NodeParametersMigration<RankMode> {
 
         private static final String KEY = "RankMode";
 
@@ -351,7 +353,7 @@ final class RankNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    static final class RankDataTypeSettingsMigration implements NodeSettingsMigration<RankDataType> {
+    static final class RankDataTypeSettingsMigration implements NodeParametersMigration<RankDataType> {
 
         private static final String KEY = "RankAsLong";
 
@@ -369,7 +371,7 @@ final class RankNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    static final class RowOrderSettingsMigration implements NodeSettingsMigration<RowOrder> {
+    static final class RowOrderSettingsMigration implements NodeParametersMigration<RowOrder> {
 
         private static final String KEY = "RetainRowOrder";
 
@@ -387,7 +389,7 @@ final class RankNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    static final class LegacySortingSettingsMigration implements NodeSettingsMigration<RankingCriterionSettings[]> {
+    static final class LegacySortingSettingsMigration implements NodeParametersMigration<RankingCriterionSettings[]> {
 
         private static final String COL_KEY = "RankingColumns";
 
@@ -426,8 +428,8 @@ final class RankNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public RankingCriterionSettings computeState(final DefaultNodeSettingsContext context) {
-            final var spec = context.getDataTableSpec(0);
+        public RankingCriterionSettings computeState(final NodeParametersInput context) {
+            final var spec = context.getInTableSpec(0);
             if (spec.isEmpty()) {
                 return new RankingCriterionSettings();
             }
@@ -459,8 +461,8 @@ final class RankNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
-            final var spec = context.getDataTableSpec(0);
+        public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
+            final var spec = context.getInTableSpec(0);
             if (spec.isEmpty()) {
                 return Collections.emptyList();
             }

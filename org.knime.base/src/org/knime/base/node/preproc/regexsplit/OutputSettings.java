@@ -49,22 +49,23 @@
 package org.knime.base.node.preproc.regexsplit;
 
 import org.knime.base.node.preproc.regexsplit.RegexSplitNodeSettings.DialogSections;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DefaultProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.ColumnNameValidationV2;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.migration.DefaultProvider;
+import org.knime.node.parameters.migration.Migrate;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.text.TextInputWidget;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.ColumnNameValidation;
 
 /**
  * The output settings, output as columns, rows, collection, what to do if the pattern does not match, etc.
@@ -74,7 +75,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInpu
  * @since 5.3
  */
 @SuppressWarnings({"restriction", "squid:S3052"}) // Pending API, initialise with defaults
-final class OutputSettings implements DefaultNodeSettings {
+final class OutputSettings implements NodeParameters {
 
     static final class LegacyProvider implements DefaultProvider<OutputSettings> {
         @Override
@@ -104,23 +105,23 @@ final class OutputSettings implements DefaultNodeSettings {
 
     }
 
-    static final class OutputModeRef implements Reference<OutputMode> {
+    static final class OutputModeRef implements ParameterReference<OutputMode> {
 
     }
 
-    static final class OutputModeIsColumns implements PredicateProvider {
+    static final class OutputModeIsColumns implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(OutputModeRef.class).isOneOf(OutputMode.COLUMNS);
         }
 
     }
 
-    static final class OutputModeIsRows implements PredicateProvider {
+    static final class OutputModeIsRows implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(OutputModeRef.class).isOneOf(OutputMode.ROWS);
         }
 
@@ -155,14 +156,14 @@ final class OutputSettings implements DefaultNodeSettings {
             NONE;
     }
 
-    static final class ColumnPrefixModeRef implements Reference<ColumnPrefixMode> {
+    static final class ColumnPrefixModeRef implements ParameterReference<ColumnPrefixMode> {
 
     }
 
-    static final class UseCustomColumnPrefix implements PredicateProvider {
+    static final class UseCustomColumnPrefix implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(ColumnPrefixModeRef.class).isOneOf(ColumnPrefixMode.CUSTOM);
         }
 
@@ -185,10 +186,10 @@ final class OutputSettings implements DefaultNodeSettings {
 
     //  -------------------  Custom column prefix: only for output as columns with custom prefix -------------------
 
-    static final class CustomColumnPrefix implements PredicateProvider {
+    static final class CustomColumnPrefix implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getPredicate(OutputModeIsColumns.class).and(i.getPredicate(UseCustomColumnPrefix.class));
         }
 
@@ -208,14 +209,14 @@ final class OutputSettings implements DefaultNodeSettings {
             REPLACE;
     }
 
-    static final class SingleOutputColumnModeRef implements Reference<SingleOutputColumnMode> {
+    static final class SingleOutputColumnModeRef implements ParameterReference<SingleOutputColumnMode> {
 
     }
 
-    static final class ReplaceSingleOutputColumn implements PredicateProvider {
+    static final class ReplaceSingleOutputColumn implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(SingleOutputColumnModeRef.class).isOneOf(SingleOutputColumnMode.REPLACE);
         }
 
@@ -232,10 +233,10 @@ final class OutputSettings implements DefaultNodeSettings {
 
     //  -------------------  Output column name: only for append column  -------------------
 
-    static final class OutputModeIsColumnsOrSingleOutpuModeIsReplace implements PredicateProvider {
+    static final class OutputModeIsColumnsOrSingleOutpuModeIsReplace implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getPredicate(ReplaceSingleOutputColumn.class).or(i.getPredicate(OutputModeIsColumns.class));
         }
 
@@ -243,7 +244,7 @@ final class OutputSettings implements DefaultNodeSettings {
 
     @Layout(DialogSections.Output.class)
     @Widget(title = "Output column name", description = "Choose a name for the output column")
-    @TextInputWidget(patternValidation = ColumnNameValidationV2.class)
+    @TextInputWidget(patternValidation = ColumnNameValidationUtils.ColumnNameValidation.class)
     @Effect(predicate = OutputModeIsColumnsOrSingleOutpuModeIsReplace.class, type = EffectType.HIDE)
     @Migrate(loadDefaultIfAbsent = true)
     String m_columnName = "Split";
@@ -256,12 +257,12 @@ final class OutputSettings implements DefaultNodeSettings {
             @Label("Split input column name")
             SPLIT_INPUT_COL_NAME;
 
-        interface Ref extends Reference<OutputGroupLabelMode> {
+        interface Ref extends ParameterReference<OutputGroupLabelMode> {
         }
 
-        static final class IsCaptureGroupNames implements PredicateProvider {
+        static final class IsCaptureGroupNames implements EffectPredicateProvider {
             @Override
-            public Predicate init(final PredicateInitializer i) {
+            public EffectPredicate init(final PredicateInitializer i) {
                 return i.getEnum(Ref.class).isOneOf(OutputGroupLabelMode.CAPTURE_GROUP_NAMES);
             }
         }

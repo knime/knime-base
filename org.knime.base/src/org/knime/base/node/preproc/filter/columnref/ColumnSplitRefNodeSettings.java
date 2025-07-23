@@ -48,10 +48,10 @@
  */
 package org.knime.base.node.preproc.filter.columnref;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
  * The web UI settings for the "Reference Column Splitter" node.
@@ -59,7 +59,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-final class ColumnSplitRefNodeSettings implements DefaultNodeSettings {
+final class ColumnSplitRefNodeSettings implements NodeParameters {
 
     @Persistor(EnforceTypeCompatibility.Persistor.class)
     @Widget(title = EnforceTypeCompatibility.TITLE, description = EnforceTypeCompatibility.DESCRIPTION)

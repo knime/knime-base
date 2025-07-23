@@ -44,7 +44,7 @@
  */
 package org.knime.base.node.preproc.colcombine2;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.validateColumnName;
+import static org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.validateColumnName;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -65,9 +65,9 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.ConvenienceMethods;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationMessageBuilder;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.InvalidColumnNameState;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.InvalidColumnNameState;
 
 /**
  * This is the model implementation of ColCombine. Takes the contents of a set of columns and combines them into one

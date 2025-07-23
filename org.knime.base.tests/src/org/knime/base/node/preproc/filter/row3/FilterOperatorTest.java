@@ -72,13 +72,13 @@ import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.ButtonReference;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
 
 /**
  * Tests for FilterOperator choices.
@@ -185,14 +185,14 @@ final class FilterOperatorTest {
     }
 
     static FilterOperator[] operatorChoicesFor(final StringOrEnum<RowIdentifiers> columnSelection) {
-        final var ctx = DefaultNodeSettings.createDefaultNodeSettingsContext(new DataTableSpec[]{SPEC});
+        final var ctx = NodeParametersUtil.createDefaultNodeSettingsContext(new DataTableSpec[]{SPEC});
 
         final var provider = new TypeBasedOperatorsProvider();
         provider.init(new TestInitializer() {
 
             @SuppressWarnings("unchecked")
             @Override
-            public <T> Supplier<T> computeFromValueSupplier(final Class<? extends Reference<T>> ref) {
+            public <T> Supplier<T> computeFromValueSupplier(final Class<? extends ParameterReference<T>> ref) {
                 if (ref.equals(AbstractRowFilterNodeSettings.FilterCriterion.SelectedColumnRef.class)) {
                     return () -> (T)columnSelection;
                 }
@@ -212,17 +212,17 @@ final class FilterOperatorTest {
     static class TestInitializer implements StateProvider.StateProviderInitializer {
 
         @Override
-        public <T> Supplier<T> computeFromValueSupplier(final Class<? extends Reference<T>> ref) {
+        public <T> Supplier<T> computeFromValueSupplier(final Class<? extends ParameterReference<T>> ref) {
             throw new IllegalStateException("Not expected to be called during test.");
         }
 
         @Override
-        public <T> Supplier<T> getValueSupplier(final Class<? extends Reference<T>> ref) {
+        public <T> Supplier<T> getValueSupplier(final Class<? extends ParameterReference<T>> ref) {
             throw new IllegalStateException("Not expected to be called during test.");
         }
 
         @Override
-        public <T> void computeOnValueChange(final Class<? extends Reference<T>> id) {
+        public <T> void computeOnValueChange(final Class<? extends ParameterReference<T>> id) {
             fail("Not expected to be called during test.");
         }
 
@@ -247,7 +247,7 @@ final class FilterOperatorTest {
         }
 
         @Override
-        public DefaultNodeSettingsContext getContext() {
+        public NodeParametersInput getNodeParametersInput() {
             throw new IllegalStateException("Not expected to be called during test.");
         }
     }

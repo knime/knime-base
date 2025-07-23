@@ -45,10 +45,10 @@
  */
 package org.knime.base.node.meta.looper;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 
 /**
  * Settings for the looper node.
@@ -57,7 +57,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberIn
  * @since 5.3
  */
 @SuppressWarnings("restriction")
-final class LoopStartCountDynamicSettings implements DefaultNodeSettings {
+final class LoopStartCountDynamicSettings implements NodeParameters {
 
     @Widget(title = "Number of loops", description = "The number of times the inner workflow should be executed.")
     @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)

@@ -65,8 +65,8 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.FlowVariable.Scope;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.node.workflow.VariableTypeRegistry;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 
 /**
  * This model is the model for the Variable Filter node.
@@ -115,17 +115,17 @@ final class VariableFilterNodeModel extends NodeModel {
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
-        DefaultNodeSettings.saveSettings(VariableFilterSettings.class, m_settings, settings);
+        NodeParametersUtil.saveSettings(VariableFilterSettings.class, m_settings, settings);
     }
 
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        DefaultNodeSettings.loadSettings(settings, VariableFilterSettings.class);
+        NodeParametersUtil.loadSettings(settings, VariableFilterSettings.class);
     }
 
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_settings = DefaultNodeSettings.loadSettings(settings, VariableFilterSettings.class);
+        m_settings = NodeParametersUtil.loadSettings(settings, VariableFilterSettings.class);
     }
 
     @Override

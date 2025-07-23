@@ -48,7 +48,7 @@
  */
 package org.knime.base.node.preproc.stringcleaner;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil.getStringColumns;
+import static org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil.getStringColumns;
 
 import java.util.LinkedList;
 

@@ -55,27 +55,29 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.function.Supplier;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.ColumnNameValidationV2;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
+import org.knime.node.parameters.widget.text.TextInputWidget;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.ColumnNameValidation;
 import org.knime.time.util.DateTimeType;
 import org.knime.time.util.DateTimeType.IsDateTimeTypeAndNotDisabled;
 
@@ -85,7 +87,7 @@ import org.knime.time.util.DateTimeType.IsDateTimeTypeAndNotDisabled;
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
+public class CreateDateTimeNodeSettings implements NodeParameters {
 
     @Section(title = "Starting Point")
     interface StartingPointSettingsSection {
@@ -216,7 +218,7 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
 
     @Layout(value = OutputSettingsSection.class)
     @Widget(title = "Output column name", description = "The name of the output column.")
-    @TextInputWidget(patternValidation = ColumnNameValidationV2.class)
+    @TextInputWidget(patternValidation = ColumnNameValidationUtils.ColumnNameValidation.class)
     String m_outputColumnName = "Date";
 
     enum FixedSteps {
@@ -241,38 +243,38 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
                     """)
             INTERVAL_AND_END;
 
-        interface FixedStepsValueReference extends Reference<FixedSteps> {
+        interface FixedStepsValueReference extends ParameterReference<FixedSteps> {
         }
 
-        static final class IncludesDuration implements PredicateProvider {
+        static final class IncludesDuration implements EffectPredicateProvider {
             @Override
-            public Predicate init(final PredicateInitializer i) {
+            public EffectPredicate init(final PredicateInitializer i) {
                 return i.getEnum(FixedSteps.FixedStepsValueReference.class) //
                     .isOneOf(FixedSteps.INTERVAL_AND_END, FixedSteps.NUMBER_AND_INTERVAL);
             }
         }
 
-        static final class IncludesNumber implements PredicateProvider {
+        static final class IncludesNumber implements EffectPredicateProvider {
             @Override
-            public Predicate init(final PredicateInitializer i) {
+            public EffectPredicate init(final PredicateInitializer i) {
                 return i.getEnum(FixedSteps.FixedStepsValueReference.class) //
                     .isOneOf(FixedSteps.NUMBER_AND_END, FixedSteps.NUMBER_AND_INTERVAL);
             }
         }
 
-        static final class RequiresEnd implements PredicateProvider {
+        static final class RequiresEnd implements EffectPredicateProvider {
             @Override
-            public Predicate init(final PredicateInitializer i) {
+            public EffectPredicate init(final PredicateInitializer i) {
                 return i.getEnum(FixedSteps.FixedStepsValueReference.class) //
                     .isOneOf(FixedSteps.NUMBER_AND_END, FixedSteps.INTERVAL_AND_END);
             }
         }
     }
 
-    static final class UseExecutionTimeStartRef implements Reference<Boolean> {
+    static final class UseExecutionTimeStartRef implements ParameterReference<Boolean> {
     }
 
-    static final class UseExecutionTimeEndRef implements Reference<Boolean> {
+    static final class UseExecutionTimeEndRef implements ParameterReference<Boolean> {
     }
 
     static final class DurationTypeStateProvider implements StateProvider<IntervalWidget.IntervalType> {
@@ -286,7 +288,7 @@ public class CreateDateTimeNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public IntervalWidget.IntervalType computeState(final DefaultNodeSettingsContext context) {
+        public IntervalWidget.IntervalType computeState(final NodeParametersInput context) {
             return switch (m_fixedStepsValueSupplier.get()) {
                 case LOCAL_DATE -> IntervalWidget.IntervalType.DATE;
                 case LOCAL_TIME -> IntervalWidget.IntervalType.TIME;

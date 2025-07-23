@@ -56,8 +56,8 @@ import org.knime.core.node.func.ListArgumentType;
 import org.knime.core.node.func.NodeFunc;
 import org.knime.core.node.func.NodeFuncApi;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 
 /**
  *
@@ -73,7 +73,7 @@ public final class ColumnFilterNodeFunc implements NodeFunc {
         var columns = arguments.getStringArray("columns");
         var columnFilterSettings = new ColumnFilterNodeSettings();
         columnFilterSettings.m_columnFilter = new ColumnFilter(columns);
-        DefaultNodeSettings.saveSettings(ColumnFilterNodeSettings.class, columnFilterSettings, settings);
+        NodeParametersUtil.saveSettings(ColumnFilterNodeSettings.class, columnFilterSettings, settings);
     }
 
     @Override

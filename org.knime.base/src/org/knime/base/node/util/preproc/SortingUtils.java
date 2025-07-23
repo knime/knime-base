@@ -63,31 +63,31 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.sort.RowComparator;
 import org.knime.core.data.sort.RowComparator.ColumnComparatorBuilder;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.booleanhelpers.DoNotPersistBoolean;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelectionToStringWithRowIDChoiceMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.BooleanReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.array.ArrayWidget;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.ValueProvider;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.util.BooleanReference;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 
 /**
  * Utility class related to sorting and ranking
@@ -154,14 +154,14 @@ public final class SortingUtils {
     public abstract static class DefaultValueProvider<T1 extends SortingCriterionSettings>
         implements StateProvider<T1> {
 
-        private Class<? extends Reference<T1[]>> m_arrayRef;
+        private Class<? extends ParameterReference<T1[]>> m_arrayRef;
 
         private Supplier<T1[]> m_array;
 
         /**
          * @param arrayRef Reference class to the SortingCriterion array.
          */
-        protected DefaultValueProvider(final Class<? extends Reference<T1[]>> arrayRef) {
+        protected DefaultValueProvider(final Class<? extends ParameterReference<T1[]>> arrayRef) {
             this.m_arrayRef = arrayRef;
         }
 
@@ -175,8 +175,8 @@ public final class SortingUtils {
          * @param context
          * @return optional value of the first available column spec.
          */
-        protected Optional<DataColumnSpec> getFirstAvailableDataColumnSpec(final DefaultNodeSettingsContext context) {
-            final var spec = context.getDataTableSpec(0);
+        protected Optional<DataColumnSpec> getFirstAvailableDataColumnSpec(final NodeParametersInput context) {
+            final var spec = context.getInTableSpec(0);
             if (spec.isEmpty()) {
                 return Optional.empty();
             }
@@ -205,12 +205,12 @@ public final class SortingUtils {
          * @param arrayRef Reference class to the SortingCriterion array.
          */
         protected SortingCriterionDefaultValueProvider(
-            final Class<? extends Reference<SortingCriterionSettings[]>> arrayRef) {
+            final Class<? extends ParameterReference<SortingCriterionSettings[]>> arrayRef) {
             super(arrayRef);
         }
 
         @Override
-        public SortingCriterionSettings computeState(final DefaultNodeSettingsContext context)
+        public SortingCriterionSettings computeState(final NodeParametersInput context)
             throws StateComputationFailureException {
             final var firstAvailableCol = getFirstAvailableDataColumnSpec(context);
             if (firstAvailableCol.isEmpty()) {
@@ -227,7 +227,7 @@ public final class SortingUtils {
      *
      * @author Martin Sillye, TNG Technology Consulting GmbH
      */
-    public static class SortingCriterionSettings implements DefaultNodeSettings {
+    public static class SortingCriterionSettings implements NodeParameters {
 
         /**
          * Constructor to set each field.
@@ -256,8 +256,8 @@ public final class SortingUtils {
          *
          * @param context
          */
-        public SortingCriterionSettings(final DefaultNodeSettingsContext context) {
-            this(context.getDataTableSpec(0).flatMap(Optional::ofNullable)
+        public SortingCriterionSettings(final NodeParametersInput context) {
+            this(context.getInTableSpec(0).flatMap(Optional::ofNullable)
                 .map(spec -> spec.getNumColumns() == 0 ? null : spec.getColumnSpec(0)).flatMap(Optional::ofNullable)
                 .orElse(null));
         }
@@ -271,19 +271,19 @@ public final class SortingUtils {
             m_column = colSpec == null ? new StringOrEnum<>(RowIDChoice.ROW_ID) : new StringOrEnum<>(colSpec.getName());
         }
 
-        interface ColumnRef extends Reference<StringOrEnum<RowIDChoice>>, Modification.Reference {
+        interface ColumnRef extends ParameterReference<StringOrEnum<RowIDChoice>>, Modification.Reference {
         }
 
-        interface SortingOrderRef extends Reference<SortingOrder>, Modification.Reference {
+        interface SortingOrderRef extends ParameterReference<SortingOrder>, Modification.Reference {
         }
 
-        interface StringComparisonRef extends Reference<StringComparison>, Modification.Reference {
+        interface StringComparisonRef extends ParameterReference<StringComparison>, Modification.Reference {
         }
 
         /**
          * @return the column selection reference.
          */
-        public static Class<? extends Reference<StringOrEnum<RowIDChoice>>> getColumnRef() {
+        public static Class<? extends ParameterReference<StringOrEnum<RowIDChoice>>> getColumnRef() {
             return ColumnRef.class;
         }
 
@@ -292,15 +292,15 @@ public final class SortingUtils {
          *
          * @author Martin Sillye, TNG Technology Consulting GmbH
          */
-        public abstract static class SortingModification implements WidgetGroup.Modifier {
+        public abstract static class SortingModification implements Modification.Modifier {
 
             /**
              * Get a modifier for the column field.
              *
              * @param group of widget
-             * @return the {@link WidgetModifier} of the column field
+             * @return the {@link Modification.WidgetModifier} of the column field
              */
-            protected WidgetModifier getColumnModifier(final WidgetGroupModifier group) {
+            protected Modification.WidgetModifier getColumnModifier(final Modification.WidgetGroupModifier group) {
                 return group.find(ColumnRef.class);
             }
 
@@ -308,9 +308,9 @@ public final class SortingUtils {
              * Get a modifier for the sorting order field.
              *
              * @param group of widget
-             * @return the {@link WidgetModifier} of the sorting order field
+             * @return the {@link Modification.WidgetModifier} of the sorting order field
              */
-            protected WidgetModifier getSortingOrderModifier(final WidgetGroupModifier group) {
+            protected Modification.WidgetModifier getSortingOrderModifier(final Modification.WidgetGroupModifier group) {
                 return group.find(SortingOrderRef.class);
             }
 
@@ -318,9 +318,9 @@ public final class SortingUtils {
              * Get a modifier for the string comparison field.
              *
              * @param group of widget
-             * @return the {@link WidgetModifier} of the string comparison field
+             * @return the {@link Modification.WidgetModifier} of the string comparison field
              */
-            protected WidgetModifier getStringComparisonModifier(final WidgetGroupModifier group) {
+            protected Modification.WidgetModifier getStringComparisonModifier(final Modification.WidgetGroupModifier group) {
                 return group.find(StringComparisonRef.class);
             }
 
@@ -343,7 +343,7 @@ public final class SortingUtils {
             }
 
             @Override
-            public void modify(final WidgetGroupModifier group) {
+            public void modify(final Modification.WidgetGroupModifier group) {
                 this.getColumnModifier(group).modifyAnnotation(ChoicesProvider.class).withValue(m_provider).modify();
             }
 
@@ -364,12 +364,12 @@ public final class SortingUtils {
 
             private Supplier<StringOrEnum<RowIDChoice>> m_columSelection;
 
-            private Class<? extends Reference<T[]>> m_arrayRef;
+            private Class<? extends ParameterReference<T[]>> m_arrayRef;
 
             /**
              * @param arrayRef Reference class to the SortingCriterion array.
              */
-            protected CriterionColumnChoicesProvider(final Class<? extends Reference<T[]>> arrayRef) {
+            protected CriterionColumnChoicesProvider(final Class<? extends ParameterReference<T[]>> arrayRef) {
                 this.m_arrayRef = arrayRef;
             }
 
@@ -381,8 +381,8 @@ public final class SortingUtils {
             }
 
             @Override
-            public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
-                final var spec = context.getDataTableSpec(0);
+            public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
+                final var spec = context.getInTableSpec(0);
                 if (spec.isEmpty()) {
                     return Collections.emptyList();
                 }
@@ -422,8 +422,8 @@ public final class SortingUtils {
             }
 
             @Override
-            public Boolean computeState(final DefaultNodeSettingsContext context) {
-                final var tableSpecOptional = context.getDataTableSpec(0);
+            public Boolean computeState(final NodeParametersInput context) {
+                final var tableSpecOptional = context.getInTableSpec(0);
                 if (tableSpecOptional.isEmpty()) {
                     return false;
                 }

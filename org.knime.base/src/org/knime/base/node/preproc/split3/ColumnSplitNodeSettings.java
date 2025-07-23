@@ -50,12 +50,13 @@ package org.knime.base.node.preproc.split3;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TwinlistWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.node.parameters.widget.choices.filter.TwinlistWidget;
+import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 
 /**
  * Settings for the new WebUI version of the column splitter node.
@@ -63,7 +64,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllC
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-final class ColumnSplitNodeSettings implements DefaultNodeSettings {
+final class ColumnSplitNodeSettings implements NodeParameters {
 
     @Widget(title = "Assign columns to output tables", description = """
             Columns on the right side of the splitter will be included in the first output table. \
@@ -76,8 +77,8 @@ final class ColumnSplitNodeSettings implements DefaultNodeSettings {
     ColumnSplitNodeSettings() {
     }
 
-    ColumnSplitNodeSettings(final DefaultNodeSettingsContext context) {
-        m_columnsToInclude = new ColumnFilter(context.getDataTableSpec(0) //
+    ColumnSplitNodeSettings(final NodeParametersInput context) {
+        m_columnsToInclude = new ColumnFilter(context.getInTableSpec(0) //
             .stream() //
             .flatMap(DataTableSpec::stream) //
             .map(DataColumnSpec::getName) //

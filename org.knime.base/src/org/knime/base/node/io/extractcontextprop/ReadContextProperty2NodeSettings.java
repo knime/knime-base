@@ -52,18 +52,19 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.util.ContextProperties;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.StringChoicesProvider;
 
 /**
  * Settings for the {@link ReadContextProperty2NodeFactory Extract Context Properties} node.
@@ -72,7 +73,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
  */
 @SuppressWarnings("restriction")
 @Persistor(ReadContextProperty2NodeSettings.SettingsPersistor.class)
-final class ReadContextProperty2NodeSettings implements DefaultNodeSettings {
+final class ReadContextProperty2NodeSettings implements NodeParameters {
 
     private static final String[] ALL_PROP_KEYS = ContextProperties.getContextProperties().toArray(String[]::new);
 
@@ -82,12 +83,12 @@ final class ReadContextProperty2NodeSettings implements DefaultNodeSettings {
     @Effect(predicate = IsExtractAllProps.class, type = EffectType.DISABLE)
     String[] m_selectedProps;
 
-    interface IsExtractAllPropsRef extends Reference<Boolean> {
+    interface IsExtractAllPropsRef extends ParameterReference<Boolean> {
     }
 
-    static final class IsExtractAllProps implements PredicateProvider {
+    static final class IsExtractAllProps implements EffectPredicateProvider {
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getBoolean(IsExtractAllPropsRef.class).isTrue();
         }
     }
@@ -101,13 +102,13 @@ final class ReadContextProperty2NodeSettings implements DefaultNodeSettings {
     /** Provider for the extractable properties' names. */
     private static final class ContextPropsChoicesProvider implements StringChoicesProvider {
         @Override
-        public List<String> choices(final DefaultNodeSettingsContext context) {
+        public List<String> choices(final NodeParametersInput context) {
             return Arrays.asList(ALL_PROP_KEYS);
         }
     }
 
     /** Custom persistor for backwards compatibility. */
-    private static final class SettingsPersistor implements NodeSettingsPersistor<ReadContextProperty2NodeSettings> {
+    private static final class SettingsPersistor implements NodeParametersPersistor<ReadContextProperty2NodeSettings> {
 
         static final String IS_EXTRACT_ALL_PROPS = "isExtractAllProps";
 

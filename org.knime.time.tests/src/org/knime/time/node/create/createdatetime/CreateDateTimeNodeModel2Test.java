@@ -72,7 +72,8 @@ import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.testing.util.WorkflowManagerUtil;
 import org.knime.time.node.create.createdatetime.CreateDateTimeNodeSettings.FixedSteps;
@@ -87,7 +88,7 @@ final class CreateDateTimeNodeModel2Test {
 
     private static final String NODE_NAME = "CreateDateTimeNode";
 
-    private static final Class<? extends DefaultNodeSettings> SETTINGS_CLASS = CreateDateTimeNodeSettings.class;
+    private static final Class<? extends NodeParameters> SETTINGS_CLASS = CreateDateTimeNodeSettings.class;
 
     private static final ZoneId BERLIN_TZ = ZoneId.of("Europe/Berlin");
 
@@ -561,7 +562,7 @@ final class CreateDateTimeNodeModel2Test {
         final var nodeSettings = new NodeSettings(NODE_NAME);
         workflowManager.saveNodeSettings(node.getID(), nodeSettings);
         var modelSettings = nodeSettings.addNodeSettings("model");
-        DefaultNodeSettings.saveSettings(SETTINGS_CLASS, settings, modelSettings);
+        NodeParametersUtil.saveSettings(SETTINGS_CLASS, settings, modelSettings);
 
         workflowManager.loadNodeSettings(node.getID(), nodeSettings);
 

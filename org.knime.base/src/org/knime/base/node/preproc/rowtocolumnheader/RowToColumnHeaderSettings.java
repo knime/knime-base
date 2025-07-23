@@ -48,13 +48,13 @@
  */
 package org.knime.base.node.preproc.rowtocolumnheader;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelIntegerPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 
 /**
  * Settings class for the Row to Column Header node.
@@ -62,7 +62,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberIn
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public final class RowToColumnHeaderSettings implements DefaultNodeSettings {
+public final class RowToColumnHeaderSettings implements NodeParameters {
 
     @Persistor(HeaderRowIndexPersistor.class)
     @Widget(title = "Number of rows before the header",

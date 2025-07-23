@@ -66,7 +66,7 @@ import org.knime.core.node.Node;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.workflow.SingleNodeContainer;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 import org.knime.testing.util.TableTestUtil;
 
 /**

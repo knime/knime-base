@@ -48,17 +48,17 @@
  */
 package org.knime.base.node.preproc.unpivot2;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Advanced;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
+import org.knime.node.parameters.Advanced;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 
 /**
  * Settings of the Unpivoting node.
@@ -66,7 +66,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllC
  * @author Jonas Klotz, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
-public final class Unpivot2NodeSettings implements DefaultNodeSettings {
+public final class Unpivot2NodeSettings implements NodeParameters {
 
     @Persistor(ValueColumnsPersistor.class)
     @Widget(title = "Value columns",

@@ -54,32 +54,34 @@ import org.knime.base.node.util.LegacyColumnFilterMigration;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.util.filter.NameFilterConfiguration.EnforceOption;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.booleanhelpers.AlwaysSaveTrueBoolean;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.ColumnNameValidationV2;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.Migrate;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
+import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
+import org.knime.node.parameters.widget.text.TextInputWidget;
+import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternValidation;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.ColumnNameValidation;
 
 /**
  *
@@ -87,9 +89,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInpu
  * @since 5.3
  */
 @SuppressWarnings("restriction")
-public final class ColCombine2NodeSettings implements DefaultNodeSettings {
+public final class ColCombine2NodeSettings implements NodeParameters {
 
-    ColCombine2NodeSettings(final DefaultNodeSettingsContext context) {
+    ColCombine2NodeSettings(final NodeParametersInput context) {
         m_columnFilter =
             new ColumnFilter(ColumnSelectionUtil.getAllColumnsOfFirstPort(context)).withIncludeUnknownColumns();
     }
@@ -134,12 +136,12 @@ public final class ColCombine2NodeSettings implements DefaultNodeSettings {
     interface Output {
     }
 
-    interface DelimiterInputsRef extends Reference<DelimiterInputs> {
+    interface DelimiterInputsRef extends ParameterReference<DelimiterInputs> {
     }
 
-    private static final class IsQuote implements PredicateProvider {
+    private static final class IsQuote implements EffectPredicateProvider {
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(DelimiterInputsRef.class).isOneOf(DelimiterInputs.QUOTE);
         }
     }
@@ -216,7 +218,7 @@ public final class ColCombine2NodeSettings implements DefaultNodeSettings {
     @Persist(configKey = "new_column_name")
     @Migrate(loadDefaultIfAbsent = true)
     @Layout(Output.class)
-    @TextInputWidget(patternValidation = ColumnNameValidationV2.class)
+    @TextInputWidget(patternValidation = ColumnNameValidationUtils.ColumnNameValidation.class)
     String m_outputColumnName = "Combined String";
 
     static final class DoNotAllowPaddedColumnNamePersistor extends AlwaysSaveTrueBoolean {
@@ -235,7 +237,7 @@ public final class ColCombine2NodeSettings implements DefaultNodeSettings {
     @Layout(Output.class)
     boolean m_removeInputColumns;
 
-    static final class DelimiterInputMigration implements NodeSettingsMigration<DelimiterInputs> {
+    static final class DelimiterInputMigration implements NodeParametersMigration<DelimiterInputs> {
 
         static final String CFG_KEY_BOOLEAN = "is_quoting";
 
@@ -254,7 +256,7 @@ public final class ColCombine2NodeSettings implements DefaultNodeSettings {
         }
     }
 
-    static final class QuoteInputMigration implements NodeSettingsMigration<QuoteInputs> {
+    static final class QuoteInputMigration implements NodeParametersMigration<QuoteInputs> {
 
         static final String CFG_KEY_BOOLEAN = "is_quoting_always";
 
@@ -282,7 +284,7 @@ public final class ColCombine2NodeSettings implements DefaultNodeSettings {
         }
     }
 
-    static final class FailIfMissingMigration implements NodeSettingsMigration<Boolean> {
+    static final class FailIfMissingMigration implements NodeParametersMigration<Boolean> {
 
         private static Boolean loadFromColumnFilter(final NodeSettingsRO settings) throws InvalidSettingsException {
             var columnFilter = settings.getNodeSettings(ColumnFilterMigration.CFG_KEY_COLUMN_FILTER);

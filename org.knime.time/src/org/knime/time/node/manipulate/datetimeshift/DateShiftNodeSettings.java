@@ -53,22 +53,23 @@ import java.util.Collection;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
-import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.CompatibleColumnChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.CompatibleDataValueClassesSupplier;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
 import org.knime.time.node.manipulate.datetimeshift.DateTimeShiftSettingsUtils.NumberColumnProvider;
 import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.Granularity;
@@ -80,7 +81,7 @@ import org.knime.time.util.ReplaceOrAppend;
  * @author Tobias Kampmann, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-class DateShiftNodeSettings implements DefaultNodeSettings {
+class DateShiftNodeSettings implements NodeParameters {
 
     @Widget(title = "Date&time columns", description = "The date&amp;time columns whose values are shifted.")
     @ChoicesProvider(ColumnProvider.class)
@@ -153,10 +154,10 @@ class DateShiftNodeSettings implements DefaultNodeSettings {
     }
 
     /**
-     * @param context the {@link DefaultNodeSettingsContext} to get the {@link DataTableSpec} from the input table
+     * @param context the {@link NodeParametersInput} to get the {@link DataTableSpec} from the input table
      */
-    protected DateShiftNodeSettings(final DefaultNodeSettingsContext context) {
-        this(context.getDataTableSpecs()[0]);
+    protected DateShiftNodeSettings(final NodeParametersInput context) {
+        this(context.getInTableSpecs()[0]);
     }
 
     /**
@@ -200,29 +201,29 @@ class DateShiftNodeSettings implements DefaultNodeSettings {
      * ------------------------------------------------------------------------
      */
 
-    interface ShiftModeRef extends Reference<ShiftMode> {
+    interface ShiftModeRef extends ParameterReference<ShiftMode> {
     }
 
-    static final class ShiftModeIsShiftValue implements PredicateProvider {
+    static final class ShiftModeIsShiftValue implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(ShiftModeRef.class).isOneOf(ShiftMode.SHIFT_VALUE);
         }
     }
 
-    static final class ShiftModeIsDurationColumn implements PredicateProvider {
+    static final class ShiftModeIsDurationColumn implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(ShiftModeRef.class).isOneOf(ShiftMode.PERIOD_COLUMN);
         }
     }
 
-    static final class ShiftModeIsNumericalColumn implements PredicateProvider {
+    static final class ShiftModeIsNumericalColumn implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(ShiftModeRef.class).isOneOf(ShiftMode.NUMERICAL_COLUMN);
         }
     }
@@ -236,7 +237,7 @@ class DateShiftNodeSettings implements DefaultNodeSettings {
     static final class ColumnProvider extends CompatibleColumnChoicesStateProvider<ShiftMode> {
 
         @Override
-        protected Class<? extends Reference<ShiftMode>> getReferenceClass() {
+        protected Class<? extends ParameterReference<ShiftMode>> getReferenceClass() {
             return ShiftModeRef.class;
         }
     }

@@ -49,11 +49,11 @@
 package org.knime.base.node.io.filehandling.webui.reader;
 
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.BaseAdvancedSettings.UseNewSchema;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Advanced;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.node.parameters.Advanced;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany

@@ -58,19 +58,21 @@ import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.booleanhelpers.AlwaysSaveTrueBoolean;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.ColumnNameValidationV2;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.array.ArrayWidget;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.text.TextInputWidget;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.ColumnNameValidation;
 
 /**
  * The settings for the "Table Structure Creator" node.
@@ -78,7 +80,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInpu
  * @author Martin Sillye, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-final class CreateTableStructureNodeSettings implements DefaultNodeSettings {
+final class CreateTableStructureNodeSettings implements NodeParameters {
 
     @Widget(title = "Columns", description = "")
     @ArrayWidget(addButtonText = "Add new column", elementTitle = "Column", showSortButtons = true,
@@ -87,7 +89,7 @@ final class CreateTableStructureNodeSettings implements DefaultNodeSettings {
     @ValueReference(Ref.class)
     ColumnSettings[] m_columnSettings = new ColumnSettings[]{new ColumnSettings("Column 1", StringCellFactory.TYPE)};
 
-    static final class ColumnSettings implements DefaultNodeSettings {
+    static final class ColumnSettings implements NodeParameters {
 
         ColumnSettings() {
         }
@@ -98,7 +100,7 @@ final class CreateTableStructureNodeSettings implements DefaultNodeSettings {
         }
 
         @Widget(title = "Column name ", description = "Name of the created column")
-        @TextInputWidget(patternValidation = ColumnNameValidationV2.class)
+        @TextInputWidget(patternValidation = ColumnNameValidationUtils.ColumnNameValidation.class)
         String m_columnName = "";
 
         @Widget(title = "Column type", description = "Type of the created column")
@@ -124,18 +126,18 @@ final class CreateTableStructureNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public ColumnSettings computeState(final DefaultNodeSettingsContext context) {
+        public ColumnSettings computeState(final NodeParametersInput context) {
             final String name = "Column " + (this.m_settings.get().length + 1);
             return new ColumnSettings(name, StringCellFactory.TYPE);
         }
 
     }
 
-    interface Ref extends Reference<ColumnSettings[]> {
+    interface Ref extends ParameterReference<ColumnSettings[]> {
 
     }
 
-    static final class ColumnSettingsMigration implements NodeSettingsMigration<ColumnSettings[]> {
+    static final class ColumnSettingsMigration implements NodeParametersMigration<ColumnSettings[]> {
 
         private static final String COUNT_KEY = "colCount";
 

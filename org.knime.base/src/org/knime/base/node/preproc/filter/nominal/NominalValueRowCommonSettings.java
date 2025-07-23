@@ -55,8 +55,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings.NominalValueRowFilterNodeSettings;
-import org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings.NominalValueRowSplitterNodeSettings;
 import org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings.SettingsUtils.LegacyNameFilterPersistorForNominalValueRowFilter;
 import org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings.SettingsUtils.MigrationFromSelectedAttributes;
 import org.knime.base.node.preproc.filter.nominal.NominalValueRowCommonSettings.SettingsUtils.NominalColumnWithDomainChoicesProider;
@@ -69,28 +67,29 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.NominalValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.LegacyNameFilterPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DomainValuesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TwinlistWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.DomainChoicesUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.ValueProvider;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.StringChoicesProvider;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.choices.filter.StringFilter;
+import org.knime.node.parameters.widget.choices.filter.TwinlistWidget;
 
 /**
  * Common settings superclass for the Nominal Value Row Filter and Nominal Value Row Splitter nodes. Since the settings
@@ -99,13 +98,13 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-abstract sealed class NominalValueRowCommonSettings implements DefaultNodeSettings {
+abstract sealed class NominalValueRowCommonSettings implements NodeParameters {
 
     NominalValueRowCommonSettings() {
     }
 
-    NominalValueRowCommonSettings(final DefaultNodeSettingsContext context) {
-        var spec = context.getDataTableSpec(0);
+    NominalValueRowCommonSettings(final NodeParametersInput context) {
+        var spec = context.getInTableSpec(0);
         if (spec.isPresent()) {
             m_selectedColumn = spec.flatMap(SettingsUtils::getFirstCompatibleColumn).orElse(null);
         }
@@ -127,7 +126,7 @@ abstract sealed class NominalValueRowCommonSettings implements DefaultNodeSettin
     @ValueProvider(SelectedDomainValuesStateProvider.class)
     @Persistor(LegacyNameFilterPersistorForNominalValueRowFilter.class)
     @Migration(MigrationFromSelectedAttributes.class)
-    @WidgetGroup.Modification.WidgetReference(NominalValueSelectionWidgetReference.class)
+    @Modification.WidgetReference(NominalValueSelectionWidgetReference.class)
     StringFilter m_nominalValueSelection = new StringFilter();
 
     static final class NominalValueSelectionWidgetReference implements Modification.Reference {
@@ -139,7 +138,7 @@ abstract sealed class NominalValueRowCommonSettings implements DefaultNodeSettin
      * @author Jakob Sanowski, KNIME GmbH, Konstanz
      * @since 5.3
      */
-    @WidgetGroup.Modification(NominalValueRowFilterNodeSettings.NominalValueSelectionWidgetModifier.class)
+    @Modification(NominalValueRowFilterNodeSettings.NominalValueSelectionWidgetModifier.class)
     static final class NominalValueRowFilterNodeSettings extends NominalValueRowCommonSettings {
 
         @Widget(title = SettingsUtils.TITLE_MISSING_VALUES, description = SettingsUtils.DESC_MISSING_VALUES)
@@ -150,14 +149,14 @@ abstract sealed class NominalValueRowCommonSettings implements DefaultNodeSettin
         NominalValueRowFilterNodeSettings() {
         }
 
-        NominalValueRowFilterNodeSettings(final DefaultNodeSettingsContext context) {
+        NominalValueRowFilterNodeSettings(final NodeParametersInput context) {
             super(context);
         }
 
-        static final class NominalValueSelectionWidgetModifier implements WidgetGroup.Modifier {
+        static final class NominalValueSelectionWidgetModifier implements Modification.Modifier {
 
             @Override
-            public void modify(final WidgetGroupModifier group) {
+            public void modify(final Modification.WidgetGroupModifier group) {
                 group.find(NominalValueSelectionWidgetReference.class) //
                     .modifyAnnotation(Widget.class) //
                     .withProperty("description", SettingsUtils.DESC_VALUES_FILTER) //
@@ -176,7 +175,7 @@ abstract sealed class NominalValueRowCommonSettings implements DefaultNodeSettin
                 @Label(value = "Include", description = "Missing values are included in the output table.")
                 INCLUDE; //
 
-            static class Migration implements NodeSettingsMigration<MissingValueHandling> {
+            static class Migration implements NodeParametersMigration<MissingValueHandling> {
 
                 private static final String KEY_INCLUDE_MISSING = "include_missing";
 
@@ -214,7 +213,7 @@ abstract sealed class NominalValueRowCommonSettings implements DefaultNodeSettin
      *
      * @author David Hickey, TNG Technology Consulting GmbH
      */
-    @WidgetGroup.Modification(NominalValueRowSplitterNodeSettings.NominalValueSelectionWidgetModifier.class)
+    @Modification(NominalValueRowSplitterNodeSettings.NominalValueSelectionWidgetModifier.class)
     static final class NominalValueRowSplitterNodeSettings extends NominalValueRowCommonSettings {
 
         @Widget(title = SettingsUtils.TITLE_MISSING_VALUES, description = SettingsUtils.DESC_MISSING_VALUES)
@@ -225,14 +224,14 @@ abstract sealed class NominalValueRowCommonSettings implements DefaultNodeSettin
         NominalValueRowSplitterNodeSettings() {
         }
 
-        NominalValueRowSplitterNodeSettings(final DefaultNodeSettingsContext context) {
+        NominalValueRowSplitterNodeSettings(final NodeParametersInput context) {
             super(context);
         }
 
-        static final class NominalValueSelectionWidgetModifier implements WidgetGroup.Modifier {
+        static final class NominalValueSelectionWidgetModifier implements Modification.Modifier {
 
             @Override
-            public void modify(final WidgetGroupModifier group) {
+            public void modify(final Modification.WidgetGroupModifier group) {
                 group.find(NominalValueSelectionWidgetReference.class) //
                     .modifyAnnotation(Widget.class) //
                     .withProperty("description", SettingsUtils.DESC_VALUES_SPLITTER) //
@@ -263,7 +262,7 @@ abstract sealed class NominalValueRowCommonSettings implements DefaultNodeSettin
                         """)
                 UPPER; // equivalent to "INCLUDE" in NominalValueRowFilterNodeSettings
 
-            static class Migration implements NodeSettingsMigration<MissingValueHandling> {
+            static class Migration implements NodeParametersMigration<MissingValueHandling> {
 
                 private static final String KEY_INCLUDE_MISSING = "include_missing";
 
@@ -319,7 +318,7 @@ abstract sealed class NominalValueRowCommonSettings implements DefaultNodeSettin
         /**
          * AP-6231: For backwards compatibility before AP version 3.4
          */
-        static final class MigrationFromSelectedAttributes implements NodeSettingsMigration<StringFilter> {
+        static final class MigrationFromSelectedAttributes implements NodeParametersMigration<StringFilter> {
 
             /** Config key for the possible values to be included. */
             private static final String CFG_SELECTED_ATTR = "selected attributes";
@@ -354,7 +353,7 @@ abstract sealed class NominalValueRowCommonSettings implements DefaultNodeSettin
             private Supplier<List<String>> m_domainValues;
 
             @Override
-            public List<String> choices(final DefaultNodeSettingsContext context) {
+            public List<String> choices(final NodeParametersInput context) {
                 return m_domainValues.get();
             }
 
@@ -365,7 +364,7 @@ abstract sealed class NominalValueRowCommonSettings implements DefaultNodeSettin
             }
         }
 
-        static final class NominalValueSelectionDependency implements Reference<StringFilter> {
+        static final class NominalValueSelectionDependency implements ParameterReference<StringFilter> {
         }
 
         /**
@@ -386,7 +385,7 @@ abstract sealed class NominalValueRowCommonSettings implements DefaultNodeSettin
             }
 
             @Override
-            public StringFilter computeState(final DefaultNodeSettingsContext context) {
+            public StringFilter computeState(final NodeParametersInput context) {
                 final var newChoices = m_newDomainValuesSupplier.get().stream().collect(Collectors.toSet());
                 final var currentSelection = m_currentNameFilterSupplier.get().filter(new String[0]);
                 final var filteredSelection =
@@ -398,14 +397,14 @@ abstract sealed class NominalValueRowCommonSettings implements DefaultNodeSettin
         static final class NominalColumnWithDomainChoicesProider implements ColumnChoicesProvider {
 
             @Override
-            public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
-                final var spec = context.getDataTableSpec(0);
+            public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
+                final var spec = context.getInTableSpec(0);
                 return getNominalColumnsWithDomain(spec.orElse(null)).toList();
             }
 
         }
 
-        static final class SelectedColumnDependency implements Reference<String> {
+        static final class SelectedColumnDependency implements ParameterReference<String> {
         }
 
         /**

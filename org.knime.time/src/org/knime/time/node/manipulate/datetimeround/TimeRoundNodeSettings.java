@@ -54,18 +54,19 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
 import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.ReplaceOrAppend;
 
@@ -74,7 +75,7 @@ import org.knime.time.util.ReplaceOrAppend;
  * @author Tobias Kampmann
  */
 @SuppressWarnings("restriction")
-public class TimeRoundNodeSettings implements DefaultNodeSettings {
+public class TimeRoundNodeSettings implements NodeParameters {
 
     @Widget(title = "Date&time columns", description = "The date&amp;time columns whose values are shifted.")
     @ChoicesProvider(DateTimeUtils.TimeColumnProvider.class)
@@ -116,8 +117,8 @@ public class TimeRoundNodeSettings implements DefaultNodeSettings {
         this((DataTableSpec)null);
     }
 
-    TimeRoundNodeSettings(final DefaultNodeSettingsContext ctx) {
-        this(ctx.getDataTableSpec(0).orElse(null));
+    TimeRoundNodeSettings(final NodeParametersInput ctx) {
+        this(ctx.getInTableSpec(0).orElse(null));
     }
 
     TimeRoundNodeSettings(final DataTableSpec spec) {

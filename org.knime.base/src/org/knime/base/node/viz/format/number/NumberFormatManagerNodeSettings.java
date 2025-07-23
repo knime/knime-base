@@ -48,29 +48,30 @@
  */
 package org.knime.base.node.viz.format.number;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil.getDoubleColumnsOfFirstPort;
+import static org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil.getDoubleColumnsOfFirstPort;
 
 import org.knime.base.node.viz.format.AlignmentSuggestionOption;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider.DoubleColumnsProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.HorizontalLayout;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.migration.Migrate;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider.DoubleColumnsProvider;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 
 /**
  * @author Carl Witt, KNIME AG, Zurich, Switzerland
  */
 @SuppressWarnings("restriction")
-public final class NumberFormatManagerNodeSettings implements DefaultNodeSettings {
+public final class NumberFormatManagerNodeSettings implements NodeParameters {
 
     // Types
 
@@ -201,7 +202,7 @@ public final class NumberFormatManagerNodeSettings implements DefaultNodeSetting
 
     // Utility
 
-    NumberFormatManagerNodeSettings(final DefaultNodeSettingsContext ctx) {
+    NumberFormatManagerNodeSettings(final NodeParametersInput ctx) {
         final var numberColumns = getDoubleColumnsOfFirstPort(ctx);
         m_columnsToFormat = new ColumnFilter(numberColumns).withIncludeUnknownColumns();
     }

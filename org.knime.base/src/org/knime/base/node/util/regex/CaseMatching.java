@@ -51,8 +51,8 @@ package org.knime.base.node.util.regex;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * Whether to distinguish between upper-case and lower-case letters during string replacement.
@@ -85,7 +85,7 @@ public enum CaseMatching {
      * This is for compatibility with legacy node settings. However, newer nodes, e.g., String Replacer (Dictionary) use
      * this too for consistency.
      */
-    public static final class Persistor implements NodeSettingsPersistor<CaseMatching> {
+    public static final class Persistor implements NodeParametersPersistor<CaseMatching> {
 
         static final String CFG_CASE_SENSITIVE = "caseSensitive";
 

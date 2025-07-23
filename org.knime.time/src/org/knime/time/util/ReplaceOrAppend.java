@@ -65,12 +65,12 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.util.UniqueNameGenerator;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * Convenience enum to handle frequently occurring ValueSwitch to choose between replacing an existing column or
@@ -238,17 +238,17 @@ public enum ReplaceOrAppend {
      *
      * @see ValueReference
      */
-    public interface ValueRef extends Reference<ReplaceOrAppend> {
+    public interface ValueRef extends ParameterReference<ReplaceOrAppend> {
     }
 
     /**
      * Predicate to check if the selected value is {@link #APPEND}. Will only work for the last usage of
      * {@link ReplaceOrAppend} in a node settings.
      */
-    public static final class IsAppend implements PredicateProvider {
+    public static final class IsAppend implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(ValueRef.class).isOneOf(ReplaceOrAppend.APPEND);
         }
     }
@@ -257,10 +257,10 @@ public enum ReplaceOrAppend {
      * Predicate to check if the selected value is {@link #REPLACE}. Will only work for the last usage of
      * {@link ReplaceOrAppend} in a node settings.
      */
-    public static final class IsReplace implements PredicateProvider {
+    public static final class IsReplace implements EffectPredicateProvider {
 
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(ValueRef.class).isOneOf(ReplaceOrAppend.REPLACE);
         }
     }
@@ -269,7 +269,7 @@ public enum ReplaceOrAppend {
      * Backwards-compatible persistor to store the value of the enum in the node settings. Since the key is hardcoded,
      * it will only work for the last usage of {@link ReplaceOrAppend} in a node settings.
      */
-    public static final class Persistor implements NodeSettingsPersistor<ReplaceOrAppend> {
+    public static final class Persistor implements NodeParametersPersistor<ReplaceOrAppend> {
 
         private static final String CONFIG_KEY = "replace_or_append";
 

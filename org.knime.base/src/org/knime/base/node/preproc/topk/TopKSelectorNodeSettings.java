@@ -59,22 +59,24 @@ import org.knime.base.node.util.preproc.SortingUtils.SortingOrder;
 import org.knime.base.node.util.preproc.SortingUtils.StringComparison;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.array.ArrayWidget;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 
 /**
  * The settings for the "Top k Row Filter" node.
@@ -82,12 +84,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberIn
  * @author Martin Sillye, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-final class TopKSelectorNodeSettings implements DefaultNodeSettings {
+final class TopKSelectorNodeSettings implements NodeParameters {
     TopKSelectorNodeSettings() {
 
     }
 
-    TopKSelectorNodeSettings(final DefaultNodeSettingsContext context) {
+    TopKSelectorNodeSettings(final NodeParametersInput context) {
         this.m_sortingCriteria = new SortingCriterionSettings[]{new SortingCriterionSettings(context)};
     }
 
@@ -157,7 +159,7 @@ final class TopKSelectorNodeSettings implements DefaultNodeSettings {
     interface OutputSortingSection {
     }
 
-    interface SortingCriteriaRef extends Reference<SortingCriterionSettings[]> {
+    interface SortingCriteriaRef extends ParameterReference<SortingCriterionSettings[]> {
     }
 
     @Layout(SortingSection.class)
@@ -220,7 +222,7 @@ final class TopKSelectorNodeSettings implements DefaultNodeSettings {
     @Migration(RowOrderSettingsMigration.class)
     RowOrder m_rowOrder = RowOrder.SORTED;
 
-    static final class LegacySortingSettingsMigration implements NodeSettingsMigration<SortingCriterionSettings[]> {
+    static final class LegacySortingSettingsMigration implements NodeParametersMigration<SortingCriterionSettings[]> {
 
         /**
          * The key for the IncludeList in the NodeSettings.
@@ -276,7 +278,7 @@ final class TopKSelectorNodeSettings implements DefaultNodeSettings {
 
     }
 
-    static final class FilterModeSettingsMigration implements NodeSettingsMigration<FilterMode> {
+    static final class FilterModeSettingsMigration implements NodeParametersMigration<FilterMode> {
 
         private static final String KEY = "selectionMode";
 
@@ -301,7 +303,7 @@ final class TopKSelectorNodeSettings implements DefaultNodeSettings {
 
     }
 
-    static final class RowOrderSettingsMigration implements NodeSettingsMigration<RowOrder> {
+    static final class RowOrderSettingsMigration implements NodeParametersMigration<RowOrder> {
 
         private static final String KEY = "outputOrder";
 
@@ -319,7 +321,7 @@ final class TopKSelectorNodeSettings implements DefaultNodeSettings {
 
     }
 
-    static final class KSettingsMigration implements NodeSettingsMigration<Long> {
+    static final class KSettingsMigration implements NodeParametersMigration<Long> {
         private static final String KEY = "k";
 
         private static Long load(final NodeSettingsRO settings) throws InvalidSettingsException {

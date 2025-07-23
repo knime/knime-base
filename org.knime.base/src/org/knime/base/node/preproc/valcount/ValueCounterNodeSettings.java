@@ -44,10 +44,11 @@
  */
 package org.knime.base.node.preproc.valcount;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 
 /**
  * This class holds the settings for the value counter node.
@@ -55,7 +56,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllC
  * @author Thorsten Meinl, University of Konstanz
  */
 @SuppressWarnings("restriction")
-final class ValueCounterNodeSettings implements DefaultNodeSettings {
+final class ValueCounterNodeSettings implements NodeParameters {
 
     @Widget(title = "Column", description = "The column whose values should be counted.")
     @ChoicesProvider(AllColumnsProvider.class)
@@ -70,9 +71,9 @@ final class ValueCounterNodeSettings implements DefaultNodeSettings {
     ValueCounterNodeSettings() {
     }
 
-    ValueCounterNodeSettings(final DefaultNodeSettingsContext context) {
-        if (context.getDataTableSpecs().length > 0 && context.getDataTableSpec(0).isPresent()) {
-            final var spec = context.getDataTableSpec(0).get(); // NOSONAR it will be present
+    ValueCounterNodeSettings(final NodeParametersInput context) {
+        if (context.getInTableSpecs().length > 0 && context.getInTableSpec(0).isPresent()) {
+            final var spec = context.getInTableSpec(0).get(); // NOSONAR it will be present
             if (spec.getNumColumns() > 0) {
                 m_columnName = spec.getColumnNames()[0];
             }

@@ -57,8 +57,8 @@ import org.knime.core.node.func.ListArgumentType;
 import org.knime.core.node.func.NodeFuncApi;
 import org.knime.core.node.func.SimpleNodeFunc;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 
 /**
  *
@@ -80,7 +80,7 @@ public final class UnpivotNodeFunc implements SimpleNodeFunc {
         unpivotSettings.m_valueColumns = new ColumnFilter(arguments.getStringArray(VALUE_COLUMNS));
         unpivotSettings.m_retainedColumns = new ColumnFilter(arguments.getStringArray(RETAINED_COLUMNS));
         unpivotSettings.m_missingValues = arguments.getBoolean(SKIP_MISSING_VALUES);
-        DefaultNodeSettings.saveSettings(Unpivot2NodeSettings.class, unpivotSettings, settings);
+        NodeParametersUtil.saveSettings(Unpivot2NodeSettings.class, unpivotSettings, settings);
     }
 
     @Override

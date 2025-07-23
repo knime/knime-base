@@ -48,7 +48,7 @@
  */
 package org.knime.base.node.preproc.rounddouble;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.util.column.ColumnSelectionUtil.getDoubleColumnsOfFirstPort;
+import static org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil.getDoubleColumnsOfFirstPort;
 
 import java.math.RoundingMode;
 
@@ -58,27 +58,28 @@ import org.knime.base.node.preproc.rounddouble.RoundDoubleMigrations.OutputModeM
 import org.knime.base.node.preproc.rounddouble.RoundDoubleMigrations.RoundingMethodMigration;
 import org.knime.base.node.preproc.rounddouble.RoundDoubleNodeSettings.RoundingMethod.Standard;
 import org.knime.base.node.util.LegacyColumnFilterMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnsProvider.DoubleColumnsProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MaxValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider.DoubleColumnsProvider;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MaxValidation;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 
 /**
  * Node settings for the 'Number Rounder' node
@@ -87,7 +88,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberIn
  * @since 5.3
  */
 @SuppressWarnings("restriction")
-public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
+public final class RoundDoubleNodeSettings implements NodeParameters {
 
     // Types
     enum NumberMode {
@@ -121,7 +122,7 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
 
     }
 
-    static final class RoundingMethod implements WidgetGroup, PersistableSettings {
+    static final class RoundingMethod implements WidgetGroup, Persistable {
 
         enum Standard {
                 @Label(value = "Standard (.5 away from zero)", description = """
@@ -179,12 +180,12 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
             m_advanced = advanced;
         }
 
-        interface StandardRef extends Reference<Standard> {
+        interface StandardRef extends ParameterReference<Standard> {
         }
 
-        static final class IsOtherRoundingMethod implements PredicateProvider {
+        static final class IsOtherRoundingMethod implements EffectPredicateProvider {
             @Override
-            public Predicate init(final PredicateInitializer i) {
+            public EffectPredicate init(final PredicateInitializer i) {
                 return i.getEnum(StandardRef.class).isOneOf(Standard.OTHER);
             }
         }
@@ -262,12 +263,12 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    interface NumberModeRef extends Reference<NumberMode> {
+    interface NumberModeRef extends ParameterReference<NumberMode> {
     }
 
-    static final class NumberModeIsInteger implements PredicateProvider {
+    static final class NumberModeIsInteger implements EffectPredicateProvider {
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(NumberModeRef.class).isOneOf(NumberMode.INTEGER);
         }
     }
@@ -297,12 +298,12 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
     @Migration(RoundingMethodMigration.class)
     RoundingMethod m_roundingMethod = new RoundingMethod();
 
-    interface OutputColumnRef extends Reference<OutputColumn> {
+    interface OutputColumnRef extends ParameterReference<OutputColumn> {
     }
 
-    static final class OutputColumnIsReplace implements PredicateProvider {
+    static final class OutputColumnIsReplace implements EffectPredicateProvider {
         @Override
-        public Predicate init(final PredicateInitializer i) {
+        public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(OutputColumnRef.class).isOneOf(OutputColumn.REPLACE);
         }
     }
@@ -341,7 +342,7 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
     }
 
     // Constructors
-    RoundDoubleNodeSettings(final DefaultNodeSettingsContext ctx) {
+    RoundDoubleNodeSettings(final NodeParametersInput ctx) {
         m_columnsToFormat = new ColumnFilter(getDoubleColumnsOfFirstPort(ctx)).withIncludeUnknownColumns();
     }
 

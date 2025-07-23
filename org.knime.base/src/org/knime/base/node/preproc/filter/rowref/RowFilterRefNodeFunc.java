@@ -59,7 +59,7 @@ import org.knime.core.node.func.ArgumentDefinition.PrimitiveArgumentType;
 import org.knime.core.node.func.NodeFunc;
 import org.knime.core.node.func.NodeFuncApi;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 
@@ -106,7 +106,7 @@ public final class RowFilterRefNodeFunc implements NodeFunc {
         );
         refRowFilterSettings.m_inexclude =
             arguments.getBoolean(INCLUDE) ? IncludeOrExcludeRows.INCLUDE : IncludeOrExcludeRows.EXCLUDE;
-        DefaultNodeSettings.saveSettings(RowFilterRefNodeSettings.class, refRowFilterSettings, settings);
+        NodeParametersUtil.saveSettings(RowFilterRefNodeSettings.class, refRowFilterSettings, settings);
     }
 
     private static StringOrEnum<RowIDChoice> checkContained(final boolean useRowId, final String column,

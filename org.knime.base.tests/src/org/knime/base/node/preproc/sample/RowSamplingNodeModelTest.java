@@ -68,7 +68,8 @@ import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.workflow.NodeContainerState;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
 
@@ -82,7 +83,7 @@ final class RowSamplingNodeModelTest {
 
     private static final String[] INPUT_COLUMNS = new String[]{"column1"};
 
-    private static final Class<? extends DefaultNodeSettings> SETTINGS_CLASS = RowSamplingNodeSettings.class;
+    private static final Class<? extends NodeParameters> SETTINGS_CLASS = RowSamplingNodeSettings.class;
 
     @Test
     void testDefaultExecute() throws InvalidSettingsException, IOException {
@@ -106,7 +107,7 @@ final class RowSamplingNodeModelTest {
         settings.addString("class_column", null);
         settings.addInt("count", 1);
 
-        final var nodeSettings = DefaultNodeSettings.loadSettings(settings, RowSamplingNodeSettings.class);
+        final var nodeSettings = NodeParametersUtil.loadSettings(settings, RowSamplingNodeSettings.class);
 
         var output = setupAndExecuteWorkflow(nodeSettings, new StringCell("Test1"), new StringCell("Test2"),
             new StringCell("Test1"), new StringCell("Test10"));
@@ -189,7 +190,7 @@ final class RowSamplingNodeModelTest {
         final var nodeSettings = new NodeSettings(NODE_NAME);
         workflowManager.saveNodeSettings(node.getID(), nodeSettings);
         var modelSettings = nodeSettings.addNodeSettings("model");
-        DefaultNodeSettings.saveSettings(SETTINGS_CLASS, settings, modelSettings);
+        NodeParametersUtil.saveSettings(SETTINGS_CLASS, settings, modelSettings);
         workflowManager.loadNodeSettings(node.getID(), nodeSettings);
 
         // populate the input table

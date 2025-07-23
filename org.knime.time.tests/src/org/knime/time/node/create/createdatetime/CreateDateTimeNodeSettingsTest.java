@@ -62,7 +62,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 import org.mockito.MockedStatic;
@@ -149,7 +149,7 @@ final class CreateDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshotTe
                 .resolve("CreateDateTimeNodeSettings.xml");
             try (var fis = new FileInputStream(path.toFile())) {
                 var nodeSettings = NodeSettings.loadFromXML(fis);
-                return DefaultNodeSettings.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                return NodeParametersUtil.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
                     CreateDateTimeNodeSettings.class);
             }
         } catch (IOException | InvalidSettingsException e) {

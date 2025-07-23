@@ -60,39 +60,41 @@ import org.knime.base.node.util.preproc.SortingUtils.SortingOrder;
 import org.knime.base.node.util.preproc.SortingUtils.StringComparison;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Advanced;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.node.parameters.Advanced;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.array.ArrayWidget;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.Migrate;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
 
 /**
  * @author Paul Bärnreuther
  * @since 5.3
  */
 @SuppressWarnings("restriction")
-final class SorterNodeSettings implements DefaultNodeSettings {
+final class SorterNodeSettings implements NodeParameters {
 
     SorterNodeSettings() {
     }
 
-    SorterNodeSettings(final DefaultNodeSettingsContext context) {
+    SorterNodeSettings(final NodeParametersInput context) {
         m_sortingCriteria = new SortingCriterionSettings[]{new SortingCriterionSettings(context)};
     }
 
     static final class LoadDeprecatedSortingCriterionArraySettings
-        implements NodeSettingsMigration<SortingCriterionSettings[]> {
+        implements NodeParametersMigration<SortingCriterionSettings[]> {
 
         /**
          * The key for the IncludeList in the NodeSettings.
@@ -156,7 +158,7 @@ final class SorterNodeSettings implements DefaultNodeSettings {
     interface Criteria {
     }
 
-    interface SortingCriteriaRef extends Reference<SortingCriterionSettings[]> {
+    interface SortingCriteriaRef extends ParameterReference<SortingCriterionSettings[]> {
     }
 
     @Layout(Criteria.class)

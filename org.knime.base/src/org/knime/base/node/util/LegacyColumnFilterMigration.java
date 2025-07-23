@@ -52,10 +52,10 @@ import java.util.List;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 
 /**
  * Loads from legacy column filter settings. If the settings have to be saved to this legacy format as well, use a
@@ -69,7 +69,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.Lega
  */
 @SuppressWarnings("restriction")
 @Deprecated
-public abstract class LegacyColumnFilterMigration implements NodeSettingsMigration<ColumnFilter> {
+public abstract class LegacyColumnFilterMigration implements NodeParametersMigration<ColumnFilter> {
 
     private final String m_configKey;
 

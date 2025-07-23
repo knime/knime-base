@@ -56,7 +56,7 @@ import org.knime.core.node.func.ArgumentDefinition.PrimitiveArgumentType;
 import org.knime.core.node.func.NodeFunc;
 import org.knime.core.node.func.NodeFuncApi;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 
 /**
  * NodeFunc that makes the Reference Column Filter available to K-AI's build mode.
@@ -75,7 +75,7 @@ public final class ColumnFilterRefNodeFunc implements NodeFunc {
         var refColFilterSettings = new ColumnFilterRefNodeSettings();
         refColFilterSettings.m_columnReferenceMode =
             arguments.getBoolean(INCLUDE) ? ColumnReferenceMode.INCLUDE : ColumnReferenceMode.EXCLUDE;
-        DefaultNodeSettings.saveSettings(ColumnFilterRefNodeSettings.class, refColFilterSettings, settings);
+        NodeParametersUtil.saveSettings(ColumnFilterRefNodeSettings.class, refColFilterSettings, settings);
     }
 
     @Override

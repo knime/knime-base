@@ -86,18 +86,10 @@ import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.WidgetGroupModifier;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoice;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.TypeReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetGroupModifier;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
@@ -107,6 +99,13 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.StateProvider.TypeReference;
+import org.knime.node.parameters.updates.ValueProvider;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.StringChoice;
+import org.knime.node.parameters.widget.choices.StringChoicesProvider;
 
 /**
  *
@@ -132,7 +131,7 @@ public final class CommonReaderTransformationSettingsStateProviders {
         }
 
         @Override
-        public String computeState(final DefaultNodeSettingsContext context) {
+        public String computeState(final NodeParametersInput context) {
             return m_fileSelectionSupplier.get().getFSLocation().getPath();
         }
     }
@@ -154,7 +153,7 @@ public final class CommonReaderTransformationSettingsStateProviders {
         }
 
         @Override
-        public S computeState(final DefaultNodeSettingsContext context) throws StateComputationFailureException {
+        public S computeState(final NodeParametersInput context) throws StateComputationFailureException {
             final var fileSelection = m_fileSelectionSupplier.get();
             if (!WorkflowContextUtil.hasWorkflowContext() // no workflow context available
                 // no file selected (yet)
@@ -301,7 +300,7 @@ public final class CommonReaderTransformationSettingsStateProviders {
         extends DependsOnTypedReaderTableSpecProvider<List<TableSpecSettings<S>>, S, T> {
 
         @Override
-        public List<TableSpecSettings<S>> computeState(final DefaultNodeSettingsContext context) {
+        public List<TableSpecSettings<S>> computeState(final NodeParametersInput context) {
 
             return m_specSupplier.get().entrySet().stream()
                 .map(e -> new TableSpecSettings<>(e.getKey(),
@@ -359,7 +358,7 @@ public final class CommonReaderTransformationSettingsStateProviders {
         protected abstract boolean hasMultipleFileHandling();
 
         @Override
-        public TransformationElementSettings[] computeState(final DefaultNodeSettingsContext context) {
+        public TransformationElementSettings[] computeState(final NodeParametersInput context) {
             return toTransformationElements(m_specSupplier.get(), m_howToCombineColumnsSup.get(),
                 m_existingSettings.get(), getExistingSpecsUnion());
         }
@@ -517,7 +516,7 @@ public final class CommonReaderTransformationSettingsStateProviders {
         }
 
         @Override
-        public List<StringChoice> computeState(final DefaultNodeSettingsContext context) {
+        public List<StringChoice> computeState(final NodeParametersInput context) {
             final var columnName = m_columnNameSupplier.get();
 
             if (columnName == null) { // i.e., any unknown column
@@ -566,7 +565,7 @@ public final class CommonReaderTransformationSettingsStateProviders {
      * @param <S> the type used to [S]erialize external data types
      * @param <T> the type used to represent external data [T]ypes
      */
-    public abstract static class TransformationSettingsWidgetModification<S, T> implements WidgetGroup.Modifier {
+    public abstract static class TransformationSettingsWidgetModification<S, T> implements Modification.Modifier {
 
         static class ConfigIdSettingsRef implements Modification.Reference {
         }
@@ -600,7 +599,7 @@ public final class CommonReaderTransformationSettingsStateProviders {
         }
 
         @Override
-        public void modify(final WidgetGroupModifier group) {
+        public void modify(final Modification.WidgetGroupModifier group) {
             group.find(SpecsRef.class).addAnnotation(ValueProvider.class).withValue(getSpecsValueProvider()).modify();
             group.find(TypeChoicesWidgetRef.class).addAnnotation(ChoicesProvider.class)
                 .withValue(getTypeChoicesProvider()).modify();

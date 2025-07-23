@@ -83,7 +83,7 @@ import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.node.util.ButtonGroupEnumInterface;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.UniqueNameGenerator;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * This is the model implementation of ColumnAppender.

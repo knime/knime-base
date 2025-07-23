@@ -68,14 +68,14 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSetting
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption;
 import org.knime.base.node.io.filehandling.webui.LocalWorkflowContextTest;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.BaseSettings.FileSelectionRef;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.ButtonReference;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
 
 import com.univocity.parsers.csv.CsvFormat;
 
@@ -219,7 +219,7 @@ class CSVFormatAutoDetectionTest extends LocalWorkflowContextTest {
 
             @Override
             @SuppressWarnings("unchecked")
-            public <T> Supplier<T> getValueSupplier(final Class<? extends Reference<T>> ref) {
+            public <T> Supplier<T> getValueSupplier(final Class<? extends ParameterReference<T>> ref) {
                 if (ref.equals(SkipFirstLinesRef.class)) {
                     return () -> (T)(Object)settings.m_limitRows.m_skipFirstLines;
                 }
@@ -239,7 +239,7 @@ class CSVFormatAutoDetectionTest extends LocalWorkflowContextTest {
             }
 
             @Override
-            public <T> void computeOnValueChange(final Class<? extends Reference<T>> id) {
+            public <T> void computeOnValueChange(final Class<? extends ParameterReference<T>> id) {
                 throw new IllegalAccessError("Should not be called within this test");
             }
 
@@ -249,7 +249,7 @@ class CSVFormatAutoDetectionTest extends LocalWorkflowContextTest {
             }
 
             @Override
-            public <T> Supplier<T> computeFromValueSupplier(final Class<? extends Reference<T>> ref) {
+            public <T> Supplier<T> computeFromValueSupplier(final Class<? extends ParameterReference<T>> ref) {
                 throw new IllegalAccessError("Should not be called within this test");
             }
 
@@ -271,7 +271,7 @@ class CSVFormatAutoDetectionTest extends LocalWorkflowContextTest {
             }
 
             @Override
-            public DefaultNodeSettingsContext getContext() {
+            public NodeParametersInput getNodeParametersInput() {
                 throw new IllegalAccessError("Should not be called within this test");
             }
         };

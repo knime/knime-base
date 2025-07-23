@@ -66,8 +66,8 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.WorkflowManager;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 import org.knime.testing.util.WorkflowManagerUtil;
 import org.knime.time.util.ReplaceOrAppend;
 
@@ -175,7 +175,7 @@ final class DateRoundNodeModelTest {
         final var nodeSettings = new NodeSettings("DateTimeRoundNode");
         m_wfm.saveNodeSettings(m_dateTimeRoundNode.getID(), nodeSettings);
         var modelSettings = nodeSettings.addNodeSettings("model");
-        DefaultNodeSettings.saveSettings(DateRoundNodeSettings.class, settings, modelSettings);
+        NodeParametersUtil.saveSettings(DateRoundNodeSettings.class, settings, modelSettings);
         m_wfm.loadNodeSettings(m_dateTimeRoundNode.getID(), nodeSettings);
     }
 

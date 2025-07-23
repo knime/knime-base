@@ -11,9 +11,9 @@
         <entry key="enforce_option" type="xstring" value="EnforceExclusion"/>
         <config key="name_pattern">
             <entry key="pattern" type="xstring" value=""/>
-            <entry key="type" type="xstring" value="Wildcard"/>
             <entry key="caseSensitive" type="xboolean" value="true"/>
             <entry key="excludeMatching" type="xboolean" value="false"/>
+            <entry key="type" type="xstring" value="Wildcard"/>
         </config>
         <config key="datatype">
             <config key="typelist"/>
