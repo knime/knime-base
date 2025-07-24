@@ -58,6 +58,7 @@ import org.knime.core.data.StringValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
@@ -198,15 +199,38 @@ public final class StringReplacerNodeSettings implements DefaultNodeSettings {
     String m_newColName = "ReplacedColumn";
 
     static final class DoNotAllowPaddedColumnNamePersistor extends AlwaysSaveTrueBoolean {
+        private static final String DO_NOT_ALLOW_PADDED_COLUMN_NAME = "doNotAllowPaddedColumnName";
+
         protected DoNotAllowPaddedColumnNamePersistor() {
-            super("doNotAllowPaddedColumnName");
+            super(DO_NOT_ALLOW_PADDED_COLUMN_NAME);
         }
     }
 
     @Persistor(DoNotAllowPaddedColumnNamePersistor.class)
     boolean m_doNotAllowPaddedColumnName = true;
 
-    // Persistors
+    @Migration(LoadFalseForOldNodes.class)
+    boolean m_useNewFixedWildcardBehavior = true;
+
+    // Migrations + Persistors
+
+    /**
+     * Migration that sets the {@link #m_useNewFixedWildcardBehavior} to false for old nodes that were created before
+     * 5.5.0
+     */
+    static final class LoadFalseForOldNodes implements NodeSettingsMigration<Boolean> {
+
+        @Override
+        public List<ConfigMigration<Boolean>> getConfigMigrations() {
+            return List.of(ConfigMigration.builder(LoadFalseForOldNodes::hasFlagAddedWith550)//
+                .build());
+        }
+
+        private static boolean hasFlagAddedWith550(final NodeSettingsRO settings) {
+            return settings.containsKey(
+                DoNotAllowPaddedColumnNamePersistor.DO_NOT_ALLOW_PADDED_COLUMN_NAME + SettingsModel.CFGKEY_INTERNAL);
+        }
+    }
 
     @SuppressWarnings("deprecation") // we're dealing with deprecated settings here
     static final class PatternTypeMigration implements NodeSettingsMigration<PatternType> {
