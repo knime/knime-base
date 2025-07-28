@@ -60,6 +60,7 @@ import java.util.function.BiFunction;
 
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.ColumnAggregator;
+import org.knime.base.data.sort.SortedTable;
 import org.knime.base.node.preproc.groupby.GroupByNodeModel;
 import org.knime.base.node.preproc.groupby.GroupByTable;
 import org.knime.core.data.DataCell;
@@ -76,7 +77,6 @@ import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.sort.BufferedDataTableSorter;
-import org.knime.core.data.sort.SortedTable;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;

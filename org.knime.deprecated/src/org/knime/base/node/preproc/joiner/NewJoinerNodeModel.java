@@ -58,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.knime.base.data.sort.SortedTable;
 import org.knime.base.node.preproc.joiner.NewJoinerSettings.DuplicateHandling;
 import org.knime.base.node.preproc.joiner.NewJoinerSettings.JoinMode;
 import org.knime.core.data.DataCell;
@@ -68,7 +69,6 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.def.DefaultRow;
-import org.knime.core.data.sort.SortedTable;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;

@@ -63,6 +63,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.knime.base.data.sort.SortedTable;
 import org.knime.base.node.preproc.autobinner.apply.AutoBinnerApply;
 import org.knime.base.node.preproc.autobinner.pmml.DisretizeConfiguration;
 import org.knime.base.node.preproc.autobinner.pmml.PMMLDiscretize;
@@ -84,7 +85,6 @@ import org.knime.core.data.DoubleValue;
 import org.knime.core.data.RowIterator;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.def.DoubleCell;
-import org.knime.core.data.sort.SortedTable;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;

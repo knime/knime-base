@@ -51,6 +51,7 @@ package org.knime.base.node.viz.liftchart;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.knime.base.data.sort.SortedTable;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
@@ -60,7 +61,6 @@ import org.knime.core.data.StringValue;
 import org.knime.core.data.container.DataContainer;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell;
-import org.knime.core.data.sort.SortedTable;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;

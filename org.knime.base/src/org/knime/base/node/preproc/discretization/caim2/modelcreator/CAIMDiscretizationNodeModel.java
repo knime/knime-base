@@ -59,6 +59,7 @@ import java.util.Vector;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import org.knime.base.data.sort.SortedTable;
 import org.knime.base.node.preproc.discretization.caim2.DiscretizationModel;
 import org.knime.base.node.preproc.discretization.caim2.DiscretizationScheme;
 import org.knime.base.node.preproc.discretization.caim2.Interval;
@@ -73,7 +74,6 @@ import org.knime.core.data.RowIterator;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.data.sort.SortedTable;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
