@@ -80,11 +80,14 @@ public final class ZonedDateTimeValueFactory2
         @Override
         public ZonedDateTime getZonedDateTime() {
             var localDate = LocalDate.ofEpochDay(m_dayOfEpoch.getLongValue());
-            var localTime = LocalTime.ofNanoOfDay(m_nanoOfDay.getLongValue());
-            var localDateTime = LocalDateTime.of(localDate, localTime);
+            var epochDayNanos = localDate.toEpochDay() * (24L * 60 * 60 * 1_000_000_000);
+            var totalNanos = epochDayNanos + m_nanoOfDay.getLongValue();
+            var epochSeconds = totalNanos / 1_000_000_000;
+            var nanoAdjustment = (int)(totalNanos % 1_000_000_000);
+            var instant = Instant.ofEpochSecond(epochSeconds, nanoAdjustment);
             var zoneOffset = ZoneOffset.ofTotalSeconds(m_zoneOffset.getIntValue());
             var zoneId = ZoneId.of(m_zoneId.getStringValue());
-            return ZonedDateTime.ofInstant(localDateTime, zoneOffset, zoneId);
+            return ZonedDateTime.ofInstant(instant, zoneOffset, zoneId);
         }
 
         @Override
