@@ -131,13 +131,13 @@ final class NaiveBayesLearnerNodeModel3 extends NodeModel {
     public static final String CFG_MAX_NO_OF_NOMINAL_VALS_KEY = "maxNoOfNomVals";
 
     /** Key to store the pmml compatibility flag. */
-    private static final String CFG_PMML_COMPATIBLE = "compatiblePMML";
+    static final String CFG_PMML_COMPATIBLE = "compatiblePMML";
 
     /** Key to store the minimum standard deviation value. */
-    private static final String CFG_MIN_SD_VALUE_KEY = "minSdValue";
+    static final String CFG_MIN_SD_VALUE_KEY = "minSdValue";
 
     /** Key to store the minimum standard deviation threshold. */
-    private static final String CFG_MIN_SD_THRESHOLD_KEY = "minSdThreshold";
+    static final String CFG_MIN_SD_THRESHOLD_KEY = "minSdThreshold";
     /**
      * The number of the training data in port.
      */
