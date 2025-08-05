@@ -51,6 +51,11 @@ package org.knime.base.node.mine.bayes.naivebayes.predictor4;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 
 /**
  * <code>NodeFactory</code> for the "Naive Bayes Predictor" node.
@@ -58,7 +63,8 @@ import org.knime.core.node.NodeView;
  * @author Tobias Koetter, KNIME AG, Zurich, Switzerland
  * @noreference This class is not intended to be referenced by clients.
  */
-public final class NaiveBayesPredictorNodeFactory3 extends NodeFactory<NaiveBayesPredictorNodeModel3> {
+@SuppressWarnings("restriction")
+public final class NaiveBayesPredictorNodeFactory3 extends NodeFactory<NaiveBayesPredictorNodeModel3> implements NodeDialogFactory {
     /**
      * {@inheritDoc}
      */
@@ -94,10 +100,20 @@ public final class NaiveBayesPredictorNodeFactory3 extends NodeFactory<NaiveBaye
 
     /**
      * {@inheritDoc}
+     *
+     * @since 5.6
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, NaiveBayesPredictorNodeSettings.class);
+    }
+
+    /**
+     * {@inheritDoc}
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new NaiveBayesPredictorNodeDialog3();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
 
 }
