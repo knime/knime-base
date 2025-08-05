@@ -55,6 +55,11 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.port.PortType;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 
 /**
  * This factory create all necessary classes for the for-loop head node.
@@ -62,7 +67,8 @@ import org.knime.core.node.port.PortType;
  * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
  * @since 4.5
  */
-public final class LoopEndDynamicNodeFactory extends ConfigurableNodeFactory<LoopEndDynamicNodeModel> {
+public final class LoopEndDynamicNodeFactory extends ConfigurableNodeFactory<LoopEndDynamicNodeModel>
+        implements NodeDialogFactory {
 
     @Override
     protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
@@ -79,8 +85,15 @@ public final class LoopEndDynamicNodeFactory extends ConfigurableNodeFactory<Loo
 
     @Override
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        final var config = creationConfig.getPortConfig().orElseThrow();
-        return new LoopEndDynamicNodeDialog(config.getInputPorts().length);
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * @since 5.7
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, LoopEndDynamicNodeWebUISettings.class);
     }
 
     @Override
