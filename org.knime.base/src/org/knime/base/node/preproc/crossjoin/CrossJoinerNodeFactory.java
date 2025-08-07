@@ -48,6 +48,11 @@ package org.knime.base.node.preproc.crossjoin;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.node.DefaultNodeDialog;
+import org.knime.node.NodeDialog;
+import org.knime.node.NodeDialogFactory;
+import org.knime.node.NodeDialogManager;
+import org.knime.node.SettingsType;
 
 /**
  * <code>NodeFactory</code> for the "CrossJoiner" Node.
@@ -57,7 +62,7 @@ import org.knime.core.node.NodeView;
  * @author  Iris Adae, Universität Konstanz
  */
 public final  class CrossJoinerNodeFactory
-        extends NodeFactory<CrossJoinerNodeModel> {
+        extends NodeFactory<CrossJoinerNodeModel> implements NodeDialogFactory {
 
     /**
      * {@inheritDoc}
@@ -97,7 +102,15 @@ public final  class CrossJoinerNodeFactory
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new CrossJoinerNodeDialog();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, CrossJoinerNodeSettings.class);
     }
 
 }
