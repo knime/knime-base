@@ -48,70 +48,71 @@
  */
 package org.knime.filehandling.utility.nodes.metainfo;
 
-import java.util.Optional;
-
-import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.ConfigurableNodeFactory;
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
-import org.knime.core.node.context.NodeCreationConfiguration;
-import org.knime.filehandling.core.port.FileSystemPortObject;
-import org.knime.node.DefaultNodeDialog;
-import org.knime.node.NodeDialog;
-import org.knime.node.NodeDialogFactory;
-import org.knime.node.NodeDialogManager;
-import org.knime.node.SettingsType;
+import org.knime.filehandling.core.data.location.FSLocationValue;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.widget.choices.ColumnFilter;
+import org.knime.node.parameters.widget.choices.ColumnSelectionWidget;
+import org.knime.node.parameters.widget.choices.filter.TypeColumnFilter;
 
 /**
- * The {@link NodeFactory} to create the node model allowing to extract meta information about files and folders.
+ * Settings for the Files/Folders Meta Info node.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public final class FileFolderMetaInfoNodeFactory extends ConfigurableNodeFactory<FileFolderMetaInfoNodeModel> implements NodeDialogFactory {
+@SuppressWarnings("restriction")
+public final class FileFolderMetaInfoNodeSettings implements NodeParameters {
 
-    static final String CONNECTION_INPUT_PORT_GRP_NAME = "File System Connection";
-
-    static final String DATA_TABLE_INPUT_PORT_GRP_NAME = "Input Table";
-
-    @Override
-    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
-        final PortsConfigurationBuilder builder = new PortsConfigurationBuilder();
-        builder.addOptionalInputPortGroup(CONNECTION_INPUT_PORT_GRP_NAME, FileSystemPortObject.TYPE);
-        builder.addFixedInputPortGroup(DATA_TABLE_INPUT_PORT_GRP_NAME, BufferedDataTable.TYPE);
-        builder.addFixedOutputPortGroup("Output table", BufferedDataTable.TYPE);
-        return Optional.of(builder);
+    @Section(title = "Settings")
+    interface SettingsSection {
+    }
+    
+    @Section(title = "File Attributes")
+    interface AttributesSection {
     }
 
-    @Override
-    protected FileFolderMetaInfoNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
-        return new FileFolderMetaInfoNodeModel(creationConfig.getPortConfig().orElseThrow(IllegalStateException::new));
-    }
+    @Layout(SettingsSection.class)
+    @Widget(title = "Path column", 
+            description = "Select the column containing file or folder paths")
+    @ColumnSelectionWidget
+    @ColumnFilter(TypeColumnFilter.class)
+    @Persist(configKey = "column")
+    public String selectedColumn;
 
-    @Override
-    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
-    }
+    @Layout(SettingsSection.class)
+    @Widget(title = "Fail if file/folder does not exist", 
+            description = "If checked, the execution fails when a file or folder does not exist")
+    @Persist(configKey = "file_if_path_not_exists")
+    public boolean failIfPathNotExists = true;
 
-    @Override
-    public NodeDialog createNodeDialog() {
-        return new DefaultNodeDialog(SettingsType.MODEL, FileFolderMetaInfoNodeSettings.class);
-    }
+    @Layout(SettingsSection.class)
+    @Widget(title = "Calculate overall folder size", 
+            description = "If checked, the total size of folders including all subfiles will be calculated")
+    @Persist(configKey = "calculate_overall_folder_size")
+    public boolean calculateOverallFolderSize = false;
 
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
+    @Layout(AttributesSection.class)
+    @Widget(title = "Append file permissions", 
+            description = "If checked, file permission information will be appended as additional columns")
+    @Persist(configKey = "append_permissions")
+    public boolean appendPermissions = false;
 
-    @Override
-    public NodeView<FileFolderMetaInfoNodeModel> createNodeView(final int viewIndex,
-        final FileFolderMetaInfoNodeModel nodeModel) {
-        return null;
-    }
+    @Layout(AttributesSection.class)
+    @Widget(title = "Append POSIX attributes", 
+            description = "If checked, POSIX file attributes will be appended as additional columns")
+    @Persist(configKey = "append_posix_attrs")
+    public boolean appendPosixAttrs = false;
 
-    @Override
-    protected boolean hasDialog() {
-        return true;
+    /**
+     * Type filter for FSLocation columns.
+     */
+    public static final class FSLocationTypeFilter implements TypeColumnFilter {
+        @Override
+        public boolean isCompatible(final Class<?> type) {
+            return FSLocationValue.class.isAssignableFrom(type);
+        }
     }
-
 }
