@@ -49,16 +49,27 @@ package org.knime.base.node.util.sendmail;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.node.DefaultNodeDialog;
+import org.knime.node.NodeDialog;
+import org.knime.node.NodeDialogFactory;
+import org.knime.node.NodeDialogManager;
+import org.knime.node.SettingsType;
 
 /** Factory of node.
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  */
-public final class SendMailNodeFactory extends NodeFactory<SendMailNodeModel> {
+public final class SendMailNodeFactory extends NodeFactory<SendMailNodeModel> implements NodeDialogFactory {
 
     /** {@inheritDoc} */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new SendMailNodeDialog();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, SendMailNodeSettings.class);
     }
 
     /** {@inheritDoc} */
