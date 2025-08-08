@@ -50,6 +50,11 @@ package org.knime.base.node.preproc.cellsplit2;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 
 /**
  * The cell splitter node factory.
@@ -59,14 +64,23 @@ import org.knime.core.node.NodeView;
  *
  * @author ohl, University of Konstanz
  */
-public final class CellSplitter2NodeFactory extends NodeFactory<CellSplitter2NodeModel> {
+@SuppressWarnings("restriction")
+public final class CellSplitter2NodeFactory extends NodeFactory<CellSplitter2NodeModel> implements NodeDialogFactory {
 
     /**
      * {@inheritDoc}
      */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new CellSplitter2NodeDialogPane();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, CellSplitter2NodeSettings.class);
     }
 
     /**
