@@ -52,6 +52,12 @@ import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.util.BooleanReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
@@ -95,6 +101,17 @@ public final class TargetShufflingNodeSettings2 implements NodeParameters {
     interface RandomizationSection {
     }
 
+    static final class UseSeed implements BooleanReference {
+    }
+
+
+    private static final class UseSeedPredicate implements EffectPredicateProvider {
+
+        @Override
+        public EffectPredicate init(final PredicateInitializer i) {
+            return i.getPredicate(UseSeed.class);
+        }
+    }
     /**
      * The column to shuffle.
      */
@@ -111,12 +128,13 @@ public final class TargetShufflingNodeSettings2 implements NodeParameters {
      * Whether to use a fixed seed for reproducible shuffling.
      */
     @Persist(configKey = "useSeed")
-    @Widget(title = "Use fixed seed for reproducible results",
+    @Widget(title = "Use seed",
             description = "When enabled, the shuffling will use a fixed seed value, making the randomization "
                 + "reproducible across multiple executions. When disabled, each execution will produce different "
                 + "random shuffling results.")
     @Layout(RandomizationSection.class)
-    boolean useSeed = false;
+    @ValueReference(UseSeed.class)
+    boolean useSeed = true;
 
     /**
      * The seed value for reproducible shuffling.
@@ -128,19 +146,9 @@ public final class TargetShufflingNodeSettings2 implements NodeParameters {
                 + "seed generation button in the legacy dialog.")
     @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
     @Layout(RandomizationSection.class)
+    @Effect(predicate = UseSeedPredicate.class, type = EffectType.SHOW)
     long seed = 0L;
 
-    /**
-     * Provider for all columns that can be shuffled.
-     */
-//    private static final class AllColumnsProvider extends CompatibleColumnsProvider {
-//
-//        @Override
-//        protected Class<? extends DataValue>[] getCompatibleDataValueClasses() {
-//            // Accept all data types since any column can be shuffled
-//            return new Class[]{DataValue.class};
-//        }
-//    }
 
     /**
      * Validates the settings.
