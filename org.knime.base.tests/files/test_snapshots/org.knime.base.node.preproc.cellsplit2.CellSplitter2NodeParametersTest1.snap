@@ -1,0 +1,398 @@
+{
+  "data" : {
+    "model" : {
+      "columnName" : "Country City",
+      "removeInputColumn" : false,
+      "delimiter" : " ",
+      "useEscapeCharacter" : false,
+      "quotePattern" : "\"",
+      "removeQuotes" : false,
+      "trim" : true,
+      "outputMode" : "AS_COLUMNS",
+      "splitColumnNames" : true,
+      "sizeMode" : "GUESS_SIZE",
+      "numberOfColumns" : 6,
+      "hasScanLimit" : false,
+      "scanLimit" : 50,
+      "useEmptyString" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnName" : {
+            "type" : "string",
+            "title" : "Select a column",
+            "description" : "Select the column whose values are split.",
+            "default" : "Country City"
+          },
+          "delimiter" : {
+            "type" : "string",
+            "title" : "Enter a delimiter",
+            "description" : "Specify the delimiter in the value, that splits each part.",
+            "default" : ","
+          },
+          "hasScanLimit" : {
+            "type" : "boolean",
+            "title" : "Scan limit (number of lines to guess on)",
+            "description" : "Maximum number of rows to scan for guessing the number of output columns.",
+            "default" : false
+          },
+          "numberOfColumns" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Number of columns",
+            "description" : "Specify the number of columns to append. All created columns will be of type String.",
+            "default" : 6
+          },
+          "outputMode" : {
+            "oneOf" : [ {
+              "const" : "AS_LIST",
+              "title" : "As list"
+            }, {
+              "const" : "AS_SET",
+              "title" : "As set (remove duplicates)"
+            }, {
+              "const" : "AS_COLUMNS",
+              "title" : "As new columns"
+            } ],
+            "title" : "Output format",
+            "description" : "Select how the split results should be output: as a list collection, as a set collection (duplicates removed), or as separate columns.\n<ul>\n<li><b>As list</b>: If selected, the output will consist of one column containing list collection cells in which the split parts are stored. Duplicates can occur in list cells.</li>\n<li><b>As set (remove duplicates)</b>: If selected, the output will consist of one column containing set collection cells in which the split parts are stored. Duplicates are removed and can not occur in set cells.</li>\n<li><b>As new columns</b>: If selected, the output will consist of one or more columns, each containing a split part.</li>\n</ul>",
+            "default" : "AS_COLUMNS"
+          },
+          "quotePattern" : {
+            "type" : "string",
+            "title" : "Enter a quotation character",
+            "description" : "Specify the quotation character if the different parts in the value are quoted. (The character to escape quotes is always the backslash.) If no quotation character is needed leave it empty.",
+            "default" : "\""
+          },
+          "removeInputColumn" : {
+            "type" : "boolean",
+            "title" : "Remove input column",
+            "description" : "When checked, the selected input column will not be part of the output table.",
+            "default" : false
+          },
+          "removeQuotes" : {
+            "type" : "boolean",
+            "default" : true
+          },
+          "scanLimit" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Maximum rows to scan",
+            "description" : "Maximum number of rows to scan for guessing the number of output columns and their types.",
+            "default" : 50
+          },
+          "sizeMode" : {
+            "oneOf" : [ {
+              "const" : "FIXED_SIZE",
+              "title" : "Set array size"
+            }, {
+              "const" : "GUESS_SIZE",
+              "title" : "Guess size and column types (requires additional data table scan)"
+            } ],
+            "title" : "Size determination",
+            "description" : "Choose whether to specify a fixed number of output columns or to automatically determine the size.\n\n<ul>\n<li><b>Set array size</b>: Check this and specify the number of columns to append. All created columns will be of type String. (See node description for what happens if the split produces a different number of parts.)</li>\n<li><b>Guess size and column types (requires additional data table scan)</b>: If this is checked, the node performs an additional scan through the entire data table and computes the number of columns needed to hold all parts of the split. In addition it determines the column type of the new columns.</li>\n</ul>",
+            "default" : "GUESS_SIZE"
+          },
+          "splitColumnNames" : {
+            "type" : "boolean",
+            "title" : "Split input column name for output column names",
+            "description" : "When outputting as new columns, check this option when the input column name can be split in the same manner as the column's content to obtain the names for the output columns.",
+            "default" : false
+          },
+          "trim" : {
+            "type" : "boolean",
+            "title" : "Remove leading and trailing white space chars (trim)",
+            "description" : "If checked, leading and trailing white spaces of each part (token) will be deleted.",
+            "default" : true
+          },
+          "useEmptyString" : {
+            "type" : "boolean",
+            "title" : "Create empty string cells",
+            "description" : "If checked, empty string cells are created for missing or short input cells instead of missing value cells.\n",
+            "default" : true
+          },
+          "useEscapeCharacter" : {
+            "type" : "boolean",
+            "title" : "Use \\ as escape character",
+            "description" : "If enabled, the backslash (\\) can be used to escape characters, such as \\t for tabs. You can use the full escape capabilities of Java.",
+            "default" : false
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Column to Split",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/columnName",
+        "options" : {
+          "format" : "dropDown"
+        },
+        "providedOptions" : [ "possibleValues" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/removeInputColumn",
+        "options" : {
+          "format" : "checkbox"
+        }
+      } ]
+    }, {
+      "label" : "Settings",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/delimiter"
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/useEscapeCharacter",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/quotePattern",
+        "options" : {
+          "placeholder" : "(leave empty for none)"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/trim",
+        "options" : {
+          "format" : "checkbox"
+        }
+      } ]
+    }, {
+      "label" : "Output",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/outputMode",
+        "options" : {
+          "format" : "radio",
+          "radioLayout" : "vertical"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/splitColumnNames",
+        "options" : {
+          "format" : "checkbox"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/outputMode",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "AS_COLUMNS"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/sizeMode",
+        "options" : {
+          "format" : "radio",
+          "radioLayout" : "vertical"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/outputMode",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "AS_COLUMNS"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/numberOfColumns",
+        "options" : {
+          "validation" : {
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 2.147483647E9
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 1.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : 1.0
+              }
+            }
+          }
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "type" : "AND",
+            "conditions" : [ {
+              "scope" : "#/properties/model/properties/outputMode",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "AS_COLUMNS"
+                } ]
+              }
+            }, {
+              "scope" : "#/properties/model/properties/sizeMode",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "FIXED_SIZE"
+                } ]
+              }
+            } ]
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/hasScanLimit",
+        "options" : {
+          "format" : "checkbox"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "type" : "AND",
+            "conditions" : [ {
+              "scope" : "#/properties/model/properties/outputMode",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "AS_COLUMNS"
+                } ]
+              }
+            }, {
+              "scope" : "#/properties/model/properties/sizeMode",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "GUESS_SIZE"
+                } ]
+              }
+            } ]
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/scanLimit",
+        "options" : {
+          "validation" : {
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 2.147483647E9
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 1.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : 1.0
+              }
+            }
+          }
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "type" : "AND",
+            "conditions" : [ {
+              "type" : "AND",
+              "conditions" : [ {
+                "scope" : "#/properties/model/properties/outputMode",
+                "schema" : {
+                  "oneOf" : [ {
+                    "const" : "AS_COLUMNS"
+                  } ]
+                }
+              }, {
+                "scope" : "#/properties/model/properties/sizeMode",
+                "schema" : {
+                  "oneOf" : [ {
+                    "const" : "GUESS_SIZE"
+                  } ]
+                }
+              } ]
+            }, {
+              "scope" : "#/properties/model/properties/hasScanLimit",
+              "schema" : {
+                "const" : true
+              }
+            } ]
+          }
+        }
+      } ]
+    }, {
+      "label" : "Missing Value Handling",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/useEmptyString",
+        "options" : {
+          "format" : "checkbox"
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnName" : {
+            "configKey" : "colName"
+          },
+          "removeInputColumn" : { },
+          "delimiter" : { },
+          "useEscapeCharacter" : { },
+          "quotePattern" : { },
+          "removeQuotes" : { },
+          "trim" : {
+            "configKey" : "removeWhitespaces"
+          },
+          "outputMode" : {
+            "configPaths" : [ [ "outputAsList" ], [ "outputAsSet" ], [ "outputAsColumns" ] ]
+          },
+          "splitColumnNames" : { },
+          "sizeMode" : {
+            "configPaths" : [ [ "guessNumOfCols" ] ]
+          },
+          "numberOfColumns" : {
+            "configKey" : "numberOfCols"
+          },
+          "hasScanLimit" : { },
+          "scanLimit" : { },
+          "useEmptyString" : { }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/columnName",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Country City",
+        "text" : "Country City",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ]
+}

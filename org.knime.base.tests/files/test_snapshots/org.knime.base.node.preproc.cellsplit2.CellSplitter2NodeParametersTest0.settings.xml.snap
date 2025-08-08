@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <entry key="colName" type="xstring" value="Country City"/>
+    <entry key="removeInputColumn" type="xboolean" value="false"/>
+    <entry key="delimiter" type="xstring" value=" "/>
+    <entry key="useEscapeCharacter" type="xboolean" value="false"/>
+    <entry key="quotePattern" type="xstring" value="&quot;"/>
+    <entry key="removeQuotes" type="xboolean" value="false"/>
+    <entry key="removeWhitespaces" type="xboolean" value="true"/>
+    <entry key="outputAsList" type="xboolean" value="false"/>
+    <entry key="outputAsSet" type="xboolean" value="false"/>
+    <entry key="outputAsColumns" type="xboolean" value="true"/>
+    <entry key="splitColumnNames" type="xboolean" value="true"/>
+    <entry key="guessNumOfCols" type="xboolean" value="true"/>
+    <entry key="numberOfCols" type="xint" value="6"/>
+    <entry key="hasScanLimit" type="xboolean" value="false"/>
+    <entry key="scanLimit" type="xint" value="50"/>
+    <entry key="useEmptyString" type="xboolean" value="false"/>
+</config>

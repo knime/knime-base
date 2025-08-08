@@ -47,9 +47,25 @@
  */
 package org.knime.base.node.preproc.cellsplit2;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * The cell splitter node factory.
@@ -59,44 +75,102 @@ import org.knime.core.node.NodeView;
  *
  * @author ohl, University of Konstanz
  */
-public final class CellSplitter2NodeFactory extends NodeFactory<CellSplitter2NodeModel> {
+@SuppressWarnings("restriction")
+public final class CellSplitter2NodeFactory extends NodeFactory<CellSplitter2NodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new CellSplitter2NodeDialogPane();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, CellSplitter2NodeParameters.class);
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, CellSplitter2NodeParameters.class));
+    }
+
+    // --- Node Description (migrated from XML) ---
+    private static final String NODE_NAME = "Cell Splitter";
+
+    private static final String NODE_ICON = "./cellsplitter.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Splits the string representation of cells in one column of the table
+            into separate columns or into one column containing a collection of
+            cells, based on a specified delimiter.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            This node uses a user-specified delimiter character to
+            split the content of a selected column into parts. It appends either a
+            fixed number of columns to the input table, each carrying one part of the
+            original column, or a single column containing a collection (list or
+            set) of cells with the split output. It can be specified whether the
+            output consists of one or more columns, only one column containing
+            list cells, or only one column containing set cells in which duplicates
+            are removed.
+            <br />
+            If the column contains more delimiters than needed
+            (leading to more parts than appended columns are available) the
+            additional delimiters are ignored (resulting in the last column containing
+            the unsplit rest of the column).
+            <br />
+            If the selected column contains too
+            few delimiters (leading to less parts than expected), empty columns
+            will be created in that row.
+            <br />
+            Based on the delimiters and the resulting parts the collection cells
+            can have different sizes. The content of the new columns will be trimmed if specified
+            (i.e. leading and trailing spaces will be deleted).
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(fixedPort("Input Table", """
+            Input data table with column containing the cells to split
+            """));
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(fixedPort("Output Table", """
+            Output data table with additional columns.
+            """));
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), // no views
+            CellSplitter2NodeParameters.class, //
+            null, // no view settings
+            NodeType.Manipulator, //
+            List.of(), // no filters
+            null // no since version override
+        );
+    }
+
     @Override
     public CellSplitter2NodeModel createNodeModel() {
         return new CellSplitter2NodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<CellSplitter2NodeModel> createNodeView(final int viewIndex,
         final CellSplitter2NodeModel nodeModel) {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected boolean hasDialog() {
         return true;

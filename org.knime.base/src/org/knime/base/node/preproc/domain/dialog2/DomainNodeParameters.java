@@ -46,6 +46,7 @@ package org.knime.base.node.preproc.domain.dialog2;
 
 import java.util.Optional;
 
+import org.knime.base.node.util.EnumSettingsModelBooleanPersistor;
 import org.knime.core.data.BoundedValue;
 import org.knime.core.data.NominalValue;
 import org.knime.core.data.container.DataContainerSettings;

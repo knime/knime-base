@@ -70,47 +70,47 @@ class CellSplitter2UserSettings {
     /**
      * keys to store user settings with.
      */
-    private static final String CFG_COLNAME = "colName";
+    static final String CFG_COLNAME = "colName";
 
-    private static final String CFG_QUOTES = "quotePattern";
+    static final String CFG_QUOTES = "quotePattern";
 
-    private static final String CFG_REMOVEQUOTES = "removeQuotes";
+    static final String CFG_REMOVEQUOTES = "removeQuotes";
 
-    private static final String CFG_NUMOFCOLS = "numberOfCols";
+    static final String CFG_NUMOFCOLS = "numberOfCols";
 
-    private static final String CFG_GUESSCOLS = "guessNumOfCols";
+    static final String CFG_GUESSCOLS = "guessNumOfCols";
 
-    private static final String CFG_DELIMITER = "delimiter";
+    static final String CFG_DELIMITER = "delimiter";
 
-    private static final String CFG_USEEMPTYSTRING = "useEmptyString";
+    static final String CFG_USEEMPTYSTRING = "useEmptyString";
 
-    private static final String CFG_USEESCAPECHAR = "useEscapeCharacter";
+    static final String CFG_USEESCAPECHAR = "useEscapeCharacter";
 
-    private static final String CFG_OUTPUTASLIST = "outputAsList";
+    static final String CFG_OUTPUTASLIST = "outputAsList";
 
-    private static final String CFG_OUTPUTASSET = "outputAsSet";
+    static final String CFG_OUTPUTASSET = "outputAsSet";
 
-    private static final String CFG_OUTPUTASCOLS = "outputAsColumns";
+    static final String CFG_OUTPUTASCOLS = "outputAsColumns";
 
-    private static final String CFG_TRIM = "removeWhitespaces";
+    static final String CFG_TRIM = "removeWhitespaces";
 
-    private static final String CFG_SPLIT_COLUMN_NAMES = "splitColumnNames";
+    static final String CFG_SPLIT_COLUMN_NAMES = "splitColumnNames";
 
-    private static final String CFG_HAS_SCAN_LIMIT = "hasScanLimit";
+    static final String CFG_HAS_SCAN_LIMIT = "hasScanLimit";
 
-    private static final String CFG_SCAN_LIMIT = "scanLimit";
+    static final String CFG_SCAN_LIMIT = "scanLimit";
 
-    private static final String CFG_REMOVE_INPUT_COL = "removeInputColumn";
+    static final String CFG_REMOVE_INPUT_COL = "removeInputColumn";
 
     private String m_columnName = null;
 
     private String m_delimiter = null;
 
-    private String m_quotePattern = null;
+    private String m_quotePattern = "\"";
 
-    private boolean m_removeQuotes = false;
+    private boolean m_removeQuotes = true;
 
-    private int m_numOfCols = -1;
+    private int m_numOfCols = 6;
 
     private boolean m_guessNumOfCols = true;
 

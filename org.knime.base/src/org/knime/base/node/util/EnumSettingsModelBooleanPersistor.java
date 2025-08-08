@@ -46,7 +46,7 @@
  * History
  *   26 Aug 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.domain.dialog2;
+package org.knime.base.node.util;
 
 import java.util.Arrays;
 
@@ -60,8 +60,10 @@ import org.knime.node.parameters.persistence.NodeParametersPersistor;
  * Persistor for an enum with exactly two values that is stored as if it were a {@link SettingsModelBoolean}.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * @param <E> the type of the enum
+ * @since 5.7
  */
-abstract class EnumSettingsModelBooleanPersistor<E extends Enum<E>> implements NodeParametersPersistor<E> {
+public abstract class EnumSettingsModelBooleanPersistor<E extends Enum<E>> implements NodeParametersPersistor<E> {
 
     private final String m_configKey;
     private final E m_trueValue;
