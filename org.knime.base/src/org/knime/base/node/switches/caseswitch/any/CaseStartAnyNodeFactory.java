@@ -53,11 +53,16 @@ import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
-
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 /**
  * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
  */
-public final class CaseStartAnyNodeFactory extends ConfigurableNodeFactory<CaseStartAnyNodeModel> {
+public final class CaseStartAnyNodeFactory extends ConfigurableNodeFactory<CaseStartAnyNodeModel>
+        implements NodeDialogFactory {
 
     /**
      * {@inheritDoc}
@@ -103,8 +108,15 @@ public final class CaseStartAnyNodeFactory extends ConfigurableNodeFactory<CaseS
      */
     @Override
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        final var config = creationConfig.getPortConfig().orElseThrow();
-        return new CaseStartAnyNodeDialog(config.getOutputPorts());
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, CaseStartAnyNodeSettings.class);
     }
 
 }
