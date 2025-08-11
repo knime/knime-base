@@ -1,4 +1,4 @@
-/* 
+/*
  * ------------------------------------------------------------------------
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
@@ -27,10 +27,7 @@
  *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
  *  license terms of ECLIPSE themselves allow for the respective use and
  *  propagation of ECLIPSE together with KNIME.
- * --------------------------------------------------------------------------
- * 
- * History
- *   19.06.2007 (cebron): created
+ * -------------------------------------------------------------------
  */
 package org.knime.base.node.preproc.caseconvert;
 
@@ -52,21 +49,17 @@ import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeFactory;
 import org.xml.sax.SAXException;
 
-/**
- * NodeFactory for the Case Converter Node. Modern Web-UI based factory.
- */
 @SuppressWarnings("restriction")
-public class CaseConvertNodeFactory extends NodeFactory implements NodeDialogFactory {
+public final class CaseConvertWebUINodeFactory extends NodeFactory implements NodeDialogFactory {
 
     private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
         .name("Case Converter") //
-        .icon("case_converter.png") //
+        .icon("case_converter.png") // existing icon in this package
         .shortDescription("Converts letters in selected string columns to upper- or lowercase.") //
         .fullDescription("""
-                Converts the case of alphanumeric characters in the selected string-compatible columns.\n\n"
-                + "Select the columns and whether to convert to upper- or lowercase. Missing values are preserved."
-                + """
-        )//
+                This node converts the case of alphanumeric characters in the selected columns.
+                Choose the columns to convert and whether to convert to upper- or lowercase. Missing values are left as-is.
+                """)//
         .modelSettingsClass(CaseConvertNodeSettings.class) //
         .addInputPort("Input Table", BufferedDataTable.TYPE, "Table with string columns to convert.") //
         .addOutputPort("Transformed Table", BufferedDataTable.TYPE, "Table with converted columns.") //
@@ -85,7 +78,7 @@ public class CaseConvertNodeFactory extends NodeFactory implements NodeDialogFac
     }
 
     @Override
-    public NodeView createNodeView(final int viewIndex, final NodeModel nodeModel) {
+    public NodeView createNodeView(final int i, final NodeModel nodeModel) {
         throw new InternalError();
     }
 
@@ -105,7 +98,7 @@ public class CaseConvertNodeFactory extends NodeFactory implements NodeDialogFac
     }
 
     @Override
-    protected NodeDialogPane createNodeDialogPane() {
+    public NodeDialogPane createNodeDialogPane() {
         return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
 }
