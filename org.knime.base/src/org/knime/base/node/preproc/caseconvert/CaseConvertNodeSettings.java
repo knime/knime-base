@@ -47,7 +47,7 @@ package org.knime.base.node.preproc.caseconvert;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.StringValue;
-import org.knime.node.parameters.NodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.layout.Layout;
@@ -57,25 +57,35 @@ import org.knime.node.parameters.widget.choices.filter.TwinlistWidget;
 import org.knime.node.parameters.widget.choices.util.FilteredInputTableColumnsProvider;
 
 /**
- * Settings for the Case Converter node (WebUI).
+ * Settings for the Case Converter node (WebUI) using DefaultNodeSettings.
  *
- * Preserves legacy config keys: "include" (String[]) and "uppercase" (boolean).
+ * Preserves legacy config keys: "include" (String[]) and "uppercase" (boolean) so that the
+ * {@link CaseConvertNodeModel} and {@link CaseConvertWebUINodeModel} can load them unchanged.
  */
 @SuppressWarnings("restriction")
-final class CaseConvertNodeSettings implements NodeParameters {
+final class CaseConvertNodeSettings extends DefaultNodeSettings {
 
-    @Section(title = "Options")
+    @Section(title = "Column selection & conversion mode",
+        description = "Select the string-compatible input columns to convert and choose whether their contents"
+            + " should be transformed to upper or lower case. Only columns compatible with string values are"
+            + " offered. If no columns are selected the node will pass the input table through unchanged and"
+            + " issue a warning.")
     interface Options {
     }
 
-    @Widget(title = "Input columns", description = "Select string-compatible columns to convert.")
+    @Widget(title = "Input columns to convert",
+        description = "Choose the string-compatible input columns whose textual values should be case converted."
+            + " Move columns between the 'Columns to convert' and 'Available columns' lists. Only columns"
+            + " compatible with the String data type are shown.")
     @Layout(Options.class)
     @ChoicesProvider(StringColumnsProvider.class)
     @TwinlistWidget(includedLabel = "Columns to convert", excludedLabel = "Available columns")
     @Persist(configKey = CaseConvertNodeModel.CFG_INCLUDED_COLUMNS)
     String[] m_columns = new String[]{};
 
-    @Widget(title = "Convert to UPPERCASE", description = "If disabled, converts to lowercase.")
+    @Widget(title = "Convert to UPPERCASE",
+        description = "Enable to convert all characters in the selected columns to upper case using the current"
+            + " locale. Disable to convert them to lower case instead.")
     @Layout(Options.class)
     @Persist(configKey = CaseConvertNodeModel.CFG_UPPERCASE)
     boolean m_uppercase = true;
