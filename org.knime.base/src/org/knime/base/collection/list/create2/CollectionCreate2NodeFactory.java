@@ -47,46 +47,39 @@
  */
 package org.knime.base.collection.list.create2;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
  * 
  * @author wiswedel, University of Konstanz
  */
 public class CollectionCreate2NodeFactory 
-    extends NodeFactory<CollectionCreate2NodeModel> {
+    extends WebUINodeFactory<CollectionCreate2NodeModel> {
 
-    /** {@inheritDoc} */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new CollectionCreate2NodeDialogPane();
+    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()
+        .name("Create Collection Column")
+        .icon("collectioncreate.png")
+        .shortDescription("Combines multiple columns into a new collection column.")
+        .fullDescription("""
+                This node aggregates multiple columns in a separate new column, whose type is a "collection type".
+                The cells in the new column are typed collections of cells; that is, the content can safely be split
+                into the original column content. The reverse operation is available in the "Split Collection Column"
+                node.
+                """)
+        .modelSettingsClass(CollectionCreate2NodeSettings.class)
+        .nodeType(NodeType.Manipulator)
+        .addInputTable("Input Table", "Any input data")
+        .addOutputTable("Output Table", "The input data along with a newly appended collection column.")
+        .build();
+
+    public CollectionCreate2NodeFactory() {
+        super(CONFIG);
     }
 
-    /** {@inheritDoc} */
     @Override
     public CollectionCreate2NodeModel createNodeModel() {
+        // Keep the execution model unchanged for backwards compatibility
         return new CollectionCreate2NodeModel();
     }
-
-    /** {@inheritDoc} */
-    @Override
-    public NodeView<CollectionCreate2NodeModel> createNodeView(
-            final int index, final CollectionCreate2NodeModel model) {
-        return null;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
 }
