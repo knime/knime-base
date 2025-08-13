@@ -43,7 +43,7 @@
  * -------------------------------------------------------------------
  *
  * History
- *    17.10.2008 (Tobias Koetter): created
+ *   17.10.2008 (Tobias Koetter): created
  */
 
 package org.knime.base.node.preproc.ungroup;
@@ -55,6 +55,7 @@ import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
@@ -65,15 +66,13 @@ import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeFactory;
 import org.xml.sax.SAXException;
 
-
 /**
- * Node Factory for the Ungroup node that provides both modern WebUI dialog and legacy dialog support.
- * This factory has been updated to use the new WebUI dialog system while maintaining backward compatibility.
+ * WebUI Node Factory for the Ungroup node that provides both modern WebUI dialog and legacy dialog support.
  *
  * @author Tobias Koetter, University of Konstanz
  */
 @SuppressWarnings("restriction") // New Node UI is not yet API
-public class UngroupNodeFactory extends NodeFactory<UngroupNodeModel> implements NodeDialogFactory {
+public class UngroupWebUINodeFactory extends NodeFactory<UngroupNodeModel> implements NodeDialogFactory {
 
     private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()
         .name("Ungroup")
@@ -82,6 +81,7 @@ public class UngroupNodeFactory extends NodeFactory<UngroupNodeModel> implements
         .fullDescription("""
                 Creates for each list of collection values a list of rows with the values of the collection in one column and all other columns given from the original row.
                 Rows with an empty collection are skipped, as well as rows that contain only missing values in the collection cell with the 'Skip missing values' option enabled.
+                
                 This node takes a table with collection columns and "ungroupes" them by creating individual rows for each element in the collections.
                 For example, if you have a row with a list column containing [A, B, C], this node will create three separate rows, each containing one of these values.
                 """)
@@ -96,30 +96,6 @@ public class UngroupNodeFactory extends NodeFactory<UngroupNodeModel> implements
      * {@inheritDoc}
      */
     @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeDialog createNodeDialog() {
-        return new DefaultNodeDialog(SettingsType.MODEL, UngroupNodeParameters.class);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
-        return WebUINodeFactory.createNodeDescription(CONFIG);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public UngroupNodeModel createNodeModel() {
         return new UngroupNodeModel();
     }
@@ -128,8 +104,7 @@ public class UngroupNodeFactory extends NodeFactory<UngroupNodeModel> implements
      * {@inheritDoc}
      */
     @Override
-    public NodeView<UngroupNodeModel> createNodeView(final int viewIndex,
-            final UngroupNodeModel nodeModel) {
+    public NodeView<UngroupNodeModel> createNodeView(final int viewIndex, final UngroupNodeModel nodeModel) {
         return null;
     }
 
@@ -149,4 +124,27 @@ public class UngroupNodeFactory extends NodeFactory<UngroupNodeModel> implements
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
+        return WebUINodeFactory.createNodeDescription(CONFIG);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, UngroupNodeParameters.class);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
 }
