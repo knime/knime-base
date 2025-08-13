@@ -1,0 +1,381 @@
+{
+  "data" : {
+    "model" : {
+      "columns" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : false
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "replaceAppend" : "REPLACE",
+      "suffix" : "(new Date&Time)",
+      "autoType" : true,
+      "manualType" : "LOCAL_DATE_TIME",
+      "addZoneIfPossible" : false,
+      "timeZoneId" : "Europe/Berlin"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "addZoneIfPossible" : {
+            "type" : "boolean",
+            "title" : "Add time zone, if possible",
+            "description" : "When enabled this option attempts to upgrade legacy values containing both Date &amp; Time components to Date &amp; time &amp; zone by attaching the selected time zone. If a value contains date only or time only no time zone is added.",
+            "default" : false
+          },
+          "autoType" : {
+            "type" : "boolean",
+            "title" : "Automatic type detection",
+            "description" : "If enabled the new type for each included column is inferred from the first non-missing cell: the legacy value's components (date / time / both) decide whether Date, Time, Date &amp; time or (optionally) Date &amp; time &amp; zone is chosen.",
+            "default" : true
+          },
+          "columns" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Columns to convert",
+            "description" : "Move columns between the lists to specify which legacy Date&amp;Time columns (old type) should be converted to the new KNIME Date&amp;Time types. Only columns compatible with the legacy Date&amp;Time data type are shown.",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "manualType" : {
+            "oneOf" : [ {
+              "const" : "LOCAL_DATE",
+              "title" : "Date"
+            }, {
+              "const" : "LOCAL_TIME",
+              "title" : "Time"
+            }, {
+              "const" : "LOCAL_DATE_TIME",
+              "title" : "Date & time"
+            }, {
+              "const" : "ZONED_DATE_TIME",
+              "title" : "Date & time & zone"
+            } ],
+            "title" : "Manual new type",
+            "description" : "Choose the target Date&amp;Time type to which all included columns will be converted when automatic type detection is disabled.\n<ul>\n<li><b>Date</b>: Outputs values of type Date</li>\n<li><b>Time</b>: Outputs values of type Time</li>\n<li><b>Date &amp; time</b>: Outputs values of type Date&amp;time (Local)</li>\n<li><b>Date &amp; time &amp; zone</b>: Outputs values of type Date&amp;time (Zoned)</li>\n</ul>",
+            "default" : "LOCAL_DATE_TIME"
+          },
+          "replaceAppend" : {
+            "oneOf" : [ {
+              "const" : "APPEND",
+              "title" : "Append selected columns"
+            }, {
+              "const" : "REPLACE",
+              "title" : "Replace the selected columns"
+            } ],
+            "title" : "Output mode",
+            "description" : "Select how converted columns should appear in the output.\n<ul>\n<li><b>Append selected columns</b>: Keep the original columns and add new columns with a configurable suffix.</li>\n<li><b>Replace the selected columns</b>: Overwrites the original columns.</li>\n</ul>",
+            "default" : "REPLACE"
+          },
+          "suffix" : {
+            "type" : "string",
+            "title" : "Suffix of appended columns",
+            "description" : "Suffix appended to each converted column when <b>Append selected columns</b> is chosen. Must yield unique column names.",
+            "default" : "(new Date&Time)"
+          },
+          "timeZoneId" : {
+            "type" : "string",
+            "title" : "Time zone",
+            "description" : "The IANA time zone identifier used either (a) when automatic type detection is enabled and 'Add time zone' is checked, or (b) when manual type selection is active and the chosen type is Date &amp; time &amp; zone.",
+            "default" : "Europe/Berlin"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/columns",
+      "options" : {
+        "format" : "typedStringFilter",
+        "unknownValuesText" : "Any unknown column",
+        "emptyStateLabel" : "No columns in this list.",
+        "includedLabel" : "Included columns",
+        "excludedLabel" : "Available columns"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "label" : "Output Type",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/autoType",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/manualType",
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/autoType",
+            "schema" : {
+              "const" : false
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/addZoneIfPossible",
+        "options" : {
+          "format" : "checkbox"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/autoType",
+            "schema" : {
+              "const" : true
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/timeZoneId",
+        "options" : {
+          "format" : "dropDown",
+          "possibleValues" : [ {
+            "id" : "America/New_York",
+            "text" : "America/New_York"
+          }, {
+            "id" : "Asia/Karachi",
+            "text" : "Asia/Karachi"
+          }, {
+            "id" : "Europe/Berlin",
+            "text" : "Europe/Berlin"
+          }, {
+            "id" : "UTC",
+            "text" : "UTC"
+          } ]
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "type" : "OR",
+            "conditions" : [ {
+              "type" : "AND",
+              "conditions" : [ {
+                "scope" : "#/properties/model/properties/autoType",
+                "schema" : {
+                  "const" : true
+                }
+              }, {
+                "scope" : "#/properties/model/properties/addZoneIfPossible",
+                "schema" : {
+                  "const" : true
+                }
+              } ]
+            }, {
+              "type" : "AND",
+              "conditions" : [ {
+                "scope" : "#/properties/model/properties/autoType",
+                "schema" : {
+                  "not" : {
+                    "const" : true
+                  }
+                }
+              }, {
+                "scope" : "#/properties/model/properties/manualType",
+                "schema" : {
+                  "oneOf" : [ {
+                    "const" : "ZONED_DATE_TIME"
+                  } ]
+                }
+              } ]
+            } ]
+          }
+        }
+      } ]
+    }, {
+      "label" : "Output Columns",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/replaceAppend",
+        "options" : {
+          "format" : "radio",
+          "radioLayout" : "vertical"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/suffix",
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/replaceAppend",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "APPEND"
+              } ]
+            }
+          }
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columns" : {
+            "configPaths" : [ [ "col_select", "filter-type" ], [ "col_select", "included_names" ], [ "col_select", "excluded_names" ], [ "col_select", "enforce_option" ], [ "col_select", "name_pattern", "pattern" ], [ "col_select", "name_pattern", "type" ], [ "col_select", "name_pattern", "caseSensitive" ], [ "col_select", "name_pattern", "excludeMatching" ] ]
+          },
+          "replaceAppend" : {
+            "configPaths" : [ [ "replace_or_append" ] ]
+          },
+          "suffix" : {
+            "configKey" : "suffix"
+          },
+          "autoType" : {
+            "configKey" : "type_bool"
+          },
+          "manualType" : {
+            "configKey" : "newTypeEnum"
+          },
+          "addZoneIfPossible" : {
+            "configKey" : "zone_bool"
+          },
+          "timeZoneId" : {
+            "configKey" : "time_zone_select"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/columns",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Date",
+        "text" : "Date",
+        "type" : {
+          "id" : "org.knime.core.data.date.DateAndTimeValue",
+          "text" : "Date and Time"
+        }
+      } ]
+    } ]
+  } ]
+}
