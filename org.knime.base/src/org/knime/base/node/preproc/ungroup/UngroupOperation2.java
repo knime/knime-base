@@ -88,7 +88,7 @@ import org.knime.core.node.streamable.RowOutput;
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  * @since 3.6
  */
-public class UngroupOperation2 {
+class UngroupOperation2 {
 
     private final boolean m_skipMissingValues;
 

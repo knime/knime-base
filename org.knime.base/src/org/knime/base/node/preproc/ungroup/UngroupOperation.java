@@ -86,7 +86,7 @@ import org.knime.core.node.streamable.RowOutput;
  * @deprecated use {@link UngroupOperation2} instead
  */
 @Deprecated
-public class UngroupOperation {
+class UngroupOperation {
 
     private boolean m_enableHilite = false;
 

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<component id="org.knime.base" version="2">
+    <resource path="src/org/knime/base/node/preproc/ungroup/UngroupNodeFactory.java" type="org.knime.base.node.preproc.ungroup.UngroupNodeFactory">
+        <filter comment="Nodes shouldn't be API" id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.ungroup.UngroupNodeFactory"/>
+                <message_argument value="org.knime.base_5.7.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/ungroup/UngroupNodeModel.java" type="org.knime.base.node.preproc.ungroup.UngroupNodeModel">
+        <filter comment="nodes shouldn't be public api" id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.ungroup.UngroupNodeModel"/>
+                <message_argument value="org.knime.base_5.7.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/ungroup/UngroupOperation.java" type="org.knime.base.node.preproc.ungroup.UngroupOperation">
+        <filter comment="nodes shouldn't be public api" id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.ungroup.UngroupOperation"/>
+                <message_argument value="org.knime.base_5.7.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/ungroup/UngroupOperation2.java" type="org.knime.base.node.preproc.ungroup.UngroupOperation2">
+        <filter comment="nodes shouldn't be public api" id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.ungroup.UngroupOperation2"/>
+                <message_argument value="org.knime.base_5.7.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+</component>
