@@ -47,20 +47,31 @@ package org.knime.time.node.convert.oldtonew;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 
 /**
  * The factory class of the node which converts old to new date&time types.
  *
  * @author Simon Schmid, KNIME.com, Konstanz, Germany
  */
-public final class OldToNewTimeNodeFactory extends NodeFactory<OldToNewTimeNodeModel> {
+public final class OldToNewTimeNodeFactory extends NodeFactory<OldToNewTimeNodeModel> implements NodeDialogFactory {
 
     /**
      * {@inheritDoc}
      */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new OldToNewTimeNodeDialog();
+        // Use legacy flow variable wrapper around the new WebUI dialog
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, OldToNewTimeNodeSettings.class);
     }
 
     /**
