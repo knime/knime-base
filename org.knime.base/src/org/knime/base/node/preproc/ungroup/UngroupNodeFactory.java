@@ -48,24 +48,48 @@
 
 package org.knime.base.node.preproc.ungroup;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import org.knime.core.node.BufferedDataTable;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 
 /**
+ * Node Factory for the Ungroup node that provides both modern WebUI dialog and legacy dialog support.
+ * This factory has been updated to use the new WebUI dialog system while maintaining backward compatibility.
  *
  * @author Tobias Koetter, University of Konstanz
+ * @author AI Migration
  */
-public class UngroupNodeFactory extends NodeFactory<UngroupNodeModel> {
+@SuppressWarnings({"restriction", "deprecation"})
+public class UngroupNodeFactory extends WebUINodeFactory<UngroupNodeModel> {
 
     /**
-     * {@inheritDoc}
+     * Default constructor
      */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new UngroupNodeDialog();
+    public UngroupNodeFactory() {
+        super(CONFIG);
     }
+
+    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()
+        .name("Ungroup")
+        .icon("./ungroup.png") // existing icon from the original factory XML
+        .shortDescription("""
+                Creates for each list of collection values a list of rows with the values of the collection in
+                one column and all other columns given from the original row.
+                """)
+        .fullDescription("""
+                Creates for each list of collection values a list of rows with the values of the collection in one
+                column and all other columns given from the original row. Rows with an empty collection are skipped,
+                as well as rows that contain only missing values in the collection cell with the 'Skip missing values'
+                option enabled.
+                """)
+        .modelSettingsClass(UngroupNodeParameters.class)
+        .addInputPort("Data table", BufferedDataTable.TYPE, "The input table to ungroup")
+        .addOutputPort("Data table", BufferedDataTable.TYPE, "Ungrouped table")
+        .nodeType(NodeType.Manipulator)
+        .keywords("ungroup", "expand", "collection", "list", "set")
+        .sinceVersion(5, 8, 0)
+        .build();
 
     /**
      * {@inheritDoc}
@@ -73,31 +97,6 @@ public class UngroupNodeFactory extends NodeFactory<UngroupNodeModel> {
     @Override
     public UngroupNodeModel createNodeModel() {
         return new UngroupNodeModel();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<UngroupNodeModel> createNodeView(final int viewIndex,
-            final UngroupNodeModel nodeModel) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean hasDialog() {
-        return true;
     }
 
 }

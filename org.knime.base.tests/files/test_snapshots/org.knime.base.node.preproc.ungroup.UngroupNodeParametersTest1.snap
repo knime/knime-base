@@ -1,0 +1,255 @@
+{
+  "data" : {
+    "model" : {
+      "collectionColumns" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : true,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "Set(Cluster Membership)" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : true
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "removeCollectionColumn" : true,
+      "skipMissingValues" : true,
+      "skipEmptyCollections" : true,
+      "enableHiliting" : true
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "collectionColumns" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Collection columns to ungroup",
+            "description" : "Select the collection columns that should be ungrouped.",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ "Set(Cluster Membership)" ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "enableHiliting" : {
+            "type" : "boolean",
+            "title" : "Enable hiliting",
+            "description" : "If enabled, the hiliting of an input row results in hiliting all rows (given in the collection cell) of the ungrouped output table. Conversely, if all output rows (represented in one or more collection cells) are highlighted, the input row(s) are highlighted as well. Depending on the number of rows, enabling this feature might consume a lot of memory.",
+            "default" : false
+          },
+          "removeCollectionColumn" : {
+            "type" : "boolean",
+            "title" : "Remove selected collection column",
+            "description" : "If enabled, the selected collection column will be removed from the result table. If disabled, the original collection column will be kept in the output alongside the ungrouped values.",
+            "default" : true
+          },
+          "skipEmptyCollections" : {
+            "type" : "boolean",
+            "title" : "Skip empty collections",
+            "description" : "If enabled, rows in which all selected collection columns are empty will be skipped.",
+            "default" : false
+          },
+          "skipMissingValues" : {
+            "type" : "boolean",
+            "title" : "Skip missing values",
+            "description" : "If enabled, rows with a missing value in all selected collection columns are skipped, as well as missing values in a collection cell if they occur in all selected collection columns.",
+            "default" : false
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/collectionColumns",
+      "options" : {
+        "format" : "typedStringFilter",
+        "unknownValuesText" : "Any unknown column",
+        "emptyStateLabel" : "No columns in this list.",
+        "includedLabel" : "Input columns to ungroup",
+        "excludedLabel" : "Excludes"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "label" : "Additional settings",
+      "type" : "Section",
+      "description" : "Configure additional options for the ungrouping operation.",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/removeCollectionColumn",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/skipMissingValues",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/skipEmptyCollections",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/enableHiliting",
+        "options" : {
+          "format" : "checkbox",
+          "isAdvanced" : true
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "collectionColumns" : {
+            "configPaths" : [ [ "columnNames", "filter-type" ], [ "columnNames", "included_names" ], [ "columnNames", "excluded_names" ], [ "columnNames", "enforce_option" ], [ "columnNames", "name_pattern", "pattern" ], [ "columnNames", "name_pattern", "type" ], [ "columnNames", "name_pattern", "caseSensitive" ], [ "columnNames", "name_pattern", "excludeMatching" ] ]
+          },
+          "removeCollectionColumn" : {
+            "configKey" : "removeCollectionCol"
+          },
+          "skipMissingValues" : {
+            "configKey" : "skipMissingValues"
+          },
+          "skipEmptyCollections" : {
+            "configKey" : "skipEmptyCollections"
+          },
+          "enableHiliting" : {
+            "configKey" : "enableHilite"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/collectionColumns",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Set(Cluster Membership)",
+        "text" : "Set(Cluster Membership)",
+        "type" : {
+          "id" : "org.knime.core.data.collection.SetDataValue",
+          "text" : "Collection (Set)"
+        }
+      } ]
+    } ]
+  } ]
+}
