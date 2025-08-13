@@ -72,9 +72,9 @@ class CellSplitter2UserSettings {
      */
     private static final String CFG_COLNAME = "colName";
 
-    private static final String CFG_QUOTES = "quotePattern";
+    static final String CFG_QUOTES = "quotePattern";
 
-    private static final String CFG_REMOVEQUOTES = "removeQuotes";
+    static final String CFG_REMOVEQUOTES = "removeQuotes";
 
     private static final String CFG_NUMOFCOLS = "numberOfCols";
 
@@ -92,7 +92,7 @@ class CellSplitter2UserSettings {
 
     private static final String CFG_OUTPUTASCOLS = "outputAsColumns";
 
-    private static final String CFG_TRIM = "removeWhitespaces";
+    static final String CFG_TRIM = "removeWhitespaces";
 
     private static final String CFG_SPLIT_COLUMN_NAMES = "splitColumnNames";
 
