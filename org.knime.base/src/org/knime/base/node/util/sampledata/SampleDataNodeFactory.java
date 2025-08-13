@@ -49,18 +49,24 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 
 /**
  * Factory to instantiate new model.
  * 
  * @author Bernd Wiswedel, University of Konstanz
  */
-public class SampleDataNodeFactory extends NodeFactory {
+public class SampleDataNodeFactory extends NodeFactory<SampleDataNodeModel> implements NodeDialogFactory {
     /**
      * {@inheritDoc}
+     * @since 5.x
      */
     @Override
-    public NodeModel createNodeModel() {
+    public SampleDataNodeModel createNodeModel() {
         return new SampleDataNodeModel();
     }
 
@@ -80,9 +86,8 @@ public class SampleDataNodeFactory extends NodeFactory {
      * @see NodeFactory#createNodeView(int, NodeModel)
      */
     @Override
-    public NodeView createNodeView(final int viewIndex,
-            final NodeModel nodeModel) {
-        throw new IndexOutOfBoundsException("Invalid index: " + viewIndex);
+    public NodeView<SampleDataNodeModel> createNodeView(final int viewIndex, final SampleDataNodeModel nodeModel) {
+        return null; // no views
     }
 
     /**
@@ -92,7 +97,15 @@ public class SampleDataNodeFactory extends NodeFactory {
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new SampleDataNodeDialog();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+    
+    @Override
+    /**
+     * @since 5.x
+     */
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, SampleDataNodeSettings.class);
     }
 
     /**
