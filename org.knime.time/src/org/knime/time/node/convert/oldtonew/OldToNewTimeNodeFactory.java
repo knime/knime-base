@@ -44,23 +44,39 @@
  */
 package org.knime.time.node.convert.oldtonew;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import org.knime.core.node.BufferedDataTable;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
  * The factory class of the node which converts old to new date&time types.
  *
  * @author Simon Schmid, KNIME.com, Konstanz, Germany
  */
-public final class OldToNewTimeNodeFactory extends NodeFactory<OldToNewTimeNodeModel> {
+public final class OldToNewTimeNodeFactory extends WebUINodeFactory<OldToNewTimeNodeModel> {
+
+    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
+        .name("Legacy Date&Time to Date&Time") //
+        .icon("old_to_new.png") //
+        .shortDescription("Converts old Date&amp;Time to new.") //
+        .fullDescription("""
+                This node converts columns from the old Date&amp;Time data type to
+                the new types. It is only useful if
+                you have to use nodes that have
+                not been adapted to the new Date&amp;Time type yet.
+                """)//
+        .modelSettingsClass(OldToNewTimeNodeParameters.class) //
+        .addInputPort("Table to be converted", BufferedDataTable.TYPE, "Input table.") //
+        .addOutputPort("Extracted converted", BufferedDataTable.TYPE, "Output table "
+            + "containing the converted columns.") //
+        .nodeType(NodeType.Manipulator) //
+        .build();
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new OldToNewTimeNodeDialog();
+    * Default constructor for the node factory.
+    */
+    public OldToNewTimeNodeFactory() {
+        super(CONFIG);
     }
 
     /**
@@ -69,30 +85,6 @@ public final class OldToNewTimeNodeFactory extends NodeFactory<OldToNewTimeNodeM
     @Override
     public OldToNewTimeNodeModel createNodeModel() {
         return new OldToNewTimeNodeModel();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<OldToNewTimeNodeModel> createNodeView(final int viewIndex, final OldToNewTimeNodeModel nodeModel) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean hasDialog() {
-        return true;
     }
 
 }
