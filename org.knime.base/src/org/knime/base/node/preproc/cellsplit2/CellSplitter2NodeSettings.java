@@ -64,6 +64,7 @@ import org.knime.node.parameters.updates.EffectPredicate;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.util.BooleanReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
@@ -112,32 +113,28 @@ final class CellSplitter2NodeSettings implements NodeParameters {
     interface SizeModeRef extends ParameterReference<SizeMode> {
     }
 
-    interface ScanLimitEnabledRef extends ParameterReference<Boolean> {
+    static final class ScanLimitEnabledRef implements BooleanReference {
+
     }
 
     // ===== ENUMS =====
 
     enum OutputMode {
-        @Label("As list")
-        //@Description("Output will consist of one column containing list collection cells. Duplicates can occur.")
+        @Label(value = "As list", description = "If selected, the output will consist of one column containing list collection cells in which the split parts are stored. Duplicates can occur in list cells. ")
         AS_LIST,
 
-        @Label("As set (remove duplicates)")
-      //  @Widget.Description("Output will consist of one column containing set collection cells. Duplicates are removed.")
+        @Label(value = "As set (remove duplicates)", description = "If selected, the output will consist of one column containing set collection cells in which the split parts are stored. Duplicates are removed and can not occur in set cells.")
         AS_SET,
 
-        @Label("As new columns")
-       // @Widget.Description("Output will consist of one or more columns, each containing a split part.")
+        @Label(value = "As new columns", description = "If selected, the output will consist of one or more columns, each containing a split part. ")
         AS_COLUMNS
     }
 
     enum SizeMode {
-        @Label("Set array size")
-      //  @Widget.Description("Specify the number of columns to append. All created columns will be of type String.")
+        @Label(value = "Set array size", description = "Check this and specify the number of columns to append. All created columns will be of type String. (See node description for what happens if the split produces a different number of parts.) ")
         FIXED_SIZE,
 
-        @Label("Guess size and column types (requires additional data table scan)")
-       // @Widget.Description("Performs an additional scan through the entire data table to compute the number of columns needed and determine column types.")
+        @Label(value = "Guess size and column types (requires additional data table scan)", description = "If this is checked, the node performs an additional scan through the entire data table and computes the number of columns needed to hold all parts of the split. In addition it determines the column type of the new columns.")
         GUESS_SIZE
     }
 
@@ -191,9 +188,8 @@ final class CellSplitter2NodeSettings implements NodeParameters {
     static final class IsOutputAsColumnsAndGuessSizeAndScanLimitEnabled implements EffectPredicateProvider {
         @Override
         public EffectPredicate init(final PredicateInitializer i) {
-            return (i.getEnum(OutputModeRef.class).isOneOf(OutputMode.AS_COLUMNS))
-                .and(i.getEnum(SizeModeRef.class).isOneOf(SizeMode.GUESS_SIZE));
-                //.and(i.getBoolean(ScanLimitEnabledRef.class));
+            return i.getEnum(OutputModeRef.class).isOneOf(OutputMode.AS_COLUMNS)
+                .and(i.getEnum(SizeModeRef.class).isOneOf(SizeMode.GUESS_SIZE)).and(i.getPredicate(ScanLimitEnabledRef.class));
         }
     }
 
@@ -254,7 +250,7 @@ final class CellSplitter2NodeSettings implements NodeParameters {
 
     @Layout(ColumnSelectionSection.class)
     @Widget(title = "Select a column",
-            description = "Select the column whose values are to be split based on the specified delimiter.")
+            description = "Select the column whose values are split.")
     @ChoicesProvider(StringColumnsProvider.class)
     @Persist(configKey = "colName")
     String columnName;
@@ -269,18 +265,10 @@ final class CellSplitter2NodeSettings implements NodeParameters {
 
     @Layout(SettingsSection.class)
     @Widget(title = "Enter a delimiter",
-            description = "Specify the delimiter character(s) that will be used to split each cell value into parts.")
-    @TextInputWidget(placeholder = "e.g., , or ; or |")
+            description = "Specify the delimiter in the value, thatsplits each part.")
+    @TextInputWidget(placeholder = "")
     @Persist(configKey = "delimiter")
-    String delimiter = ",";
-
-    @Layout(SettingsSection.class)
-    @Widget(title = "Enter a quotation character",
-            description = "Specify the quotation character if the different parts in the value are quoted. " +
-                         "The character to escape quotes is always the backslash. Leave empty if no quotation character is needed.")
-    @TextInputWidget(placeholder = "e.g., \" or ' (leave empty for none)")
-    @Persist(configKey = "quotePattern")
-    String quotePattern = "\"";
+    String delimiter = "";
 
     @Layout(SettingsSection.class)
     @Widget(title = "Use \\ as escape character",
@@ -288,6 +276,17 @@ final class CellSplitter2NodeSettings implements NodeParameters {
                          "You can use the full escape capabilities of Java.")
     @Persist(configKey = "useEscapeCharacter")
     boolean useEscapeCharacter = false;
+
+    @Layout(SettingsSection.class)
+    @Widget(title = "Enter a quotation character",
+            description = "Specify the quotation character if the different parts in the value are quoted. " +
+                         "(The character to escape quotes is always the backslash.) If no quotation character is needed leave it empty.")
+    @TextInputWidget(placeholder = "(leave empty for none)")
+    @Persist(configKey = CellSplitter2UserSettings.CFG_QUOTES)
+    String quotePattern = "";
+
+
+    boolean m_removeQuotes = true;
 
     @Layout(SettingsSection.class)
     @Widget(title = "Remove leading and trailing white space chars (trim)",
@@ -328,11 +327,11 @@ final class CellSplitter2NodeSettings implements NodeParameters {
     @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
     @Effect(predicate = IsOutputAsColumnsAndFixedSize.class, type = EffectType.SHOW)
     @Persist(configKey = "numberOfCols")
-    int numberOfColumns = 1000;
+    int numberOfColumns = 6;
 
     @Layout(OutputSection.class)
     @Widget(title = "Scan limit (number of lines to guess on)",
-            description = "Enable to limit the number of rows scanned when guessing the number of output columns and their types.")
+            description = "Maximum number of rows to scan for guessing the numberof output columns.")
     @Effect(predicate = IsOutputAsColumnsAndGuessSize.class, type = EffectType.SHOW)
     @ValueReference(ScanLimitEnabledRef.class)
     @Persist(configKey = "hasScanLimit")
@@ -344,7 +343,7 @@ final class CellSplitter2NodeSettings implements NodeParameters {
     @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
     @Effect(predicate = IsOutputAsColumnsAndGuessSizeAndScanLimitEnabled.class, type = EffectType.SHOW)
     @Persist(configKey = "scanLimit")
-    int scanLimit = 25;
+    int scanLimit = 50;
 
     // ===== MISSING VALUE HANDLING SECTION =====
 
