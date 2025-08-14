@@ -237,8 +237,8 @@ final class DateTimeDifferenceNodeModel2Test {
     );
 
     private static final List<TestCaseIntegerValue<Temporal>> TEST_CASES_INTEGER_OUTPUT =
-        TEST_CASES_DECIMAL_OUTPUT.stream().map(tc -> new TestCaseIntegerValue<>(tc.name, tc.arg1, tc.arg2, tc.unit,
-            tc.expected == null ? null : tc.expected.longValue(), tc.dataType)).toList();
+        TEST_CASES_DECIMAL_OUTPUT.stream().map(tc -> new TestCaseIntegerValue<Temporal>(tc.name, tc.arg1, tc.arg2,
+                tc.unit, tc.expected == null ? null : tc.expected.longValue(), tc.dataType)).toList();
 
     static Stream<Arguments> provideTestCasesWithTemporalOutput() {
         return TEST_CASES_TEMPORAL_OUTPUT.stream().map(tc -> Stream.of( //
