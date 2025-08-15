@@ -48,8 +48,6 @@
  */
 package org.knime.base.node.preproc.table.cellupdater;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -68,9 +66,9 @@ import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
-import org.knime.node.parameters.widget.choices.StringChoicesProvider;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
+import org.knime.node.parameters.widget.choices.util.AllFlowVariablesProvider;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
 import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 
@@ -140,7 +138,7 @@ public final class CellUpdaterSettings implements NodeParameters {
     boolean m_countFromEnd = false;
 
     @Widget(title = "New cell value", description = "Select the flow variable containing the new cell value.")
-    @ChoicesProvider(AllVariables.class)
+    @ChoicesProvider(AllFlowVariablesProvider.class)
     String m_flowVariableName;
 
     private static final class AllColumns extends AllColumnsProvider {
@@ -150,13 +148,6 @@ public final class CellUpdaterSettings implements NodeParameters {
             return 1;
         }
 
-    }
-
-    private static final class AllVariables implements StringChoicesProvider {
-        @Override
-        public List<String> choices(final NodeParametersInput context) {
-            return Arrays.asList(((NodeParametersInputImpl)context).getAvailableFlowVariableNames());
-        }
     }
 
     enum ColumnMode {
