@@ -9,7 +9,7 @@
           "isInverted" : false
         },
         "manualFilter" : {
-          "manuallySelected" : [ ],
+          "manuallySelected" : [ "test1" ],
           "manuallyDeselected" : [ ],
           "includeUnknownColumns" : true
         },
@@ -18,7 +18,7 @@
           "typeDisplays" : [ ]
         }
       },
-      "binningType" : "EQUAL_FREQUENCY",
+      "binningType" : "EQUAL_WIDTH",
       "numberOfBins" : 20,
       "customCutoffs" : [ {
         "cutoff" : 0.0,
@@ -29,23 +29,23 @@
         "matchType" : "TO_LOWER_BIN"
       } ],
       "enforceIntegerCutoffs" : false,
-      "fixLowerBound" : true,
-      "fixedLowerBound" : 1.1,
+      "fixLowerBound" : false,
+      "fixedLowerBound" : 0.0,
       "fixUpperBound" : false,
       "fixedUpperBound" : 0.0,
-      "binNames" : "BORDERS",
+      "binNames" : "NUMBERED",
       "prefix" : "Bin ",
-      "lowerOutlierValue" : "small",
+      "lowerOutlierValue" : "Lower outlier",
       "upperOutlierValue" : "Upper outlier",
-      "numberFormat" : "CUSTOM",
+      "numberFormat" : "COLUMN_FORMAT",
       "numberFormatSettings" : {
         "numberFormat" : "STANDARD_STRING",
         "precision" : 3,
-        "precisionMode" : "SIGNIFICANT_FIGURES",
+        "precisionMode" : "DECIMAL_PLACES",
         "roundingMode" : "HALF_UP"
       },
-      "replaceOrAppend" : "APPEND",
-      "suffix" : "_disc"
+      "replaceOrAppend" : "REPLACE",
+      "suffix" : " (Binned)"
     }
   },
   "schema" : {
@@ -451,17 +451,17 @@
         "scope" : "#/properties/model/properties/numberOfBins",
         "options" : {
           "validation" : {
-            "min" : {
-              "errorMessage" : "The value must be at least 1.",
-              "parameters" : {
-                "min" : 1.0,
-                "isExclusive" : false
-              }
-            },
             "max" : {
               "errorMessage" : "The value must not exceed 2147483647.",
               "parameters" : {
                 "max" : 2.147483647E9,
+                "isExclusive" : false
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 1.",
+              "parameters" : {
+                "min" : 1.0,
                 "isExclusive" : false
               }
             }
@@ -520,17 +520,17 @@
             "scope" : "#/properties/quantile",
             "options" : {
               "validation" : {
-                "min" : {
-                  "errorMessage" : "The value must be at least 0.",
-                  "parameters" : {
-                    "min" : 0.0,
-                    "isExclusive" : false
-                  }
-                },
                 "max" : {
                   "errorMessage" : "The value must not exceed 1.",
                   "parameters" : {
                     "max" : 1.0,
+                    "isExclusive" : false
+                  }
+                },
+                "min" : {
+                  "errorMessage" : "The value must be at least 0.",
+                  "parameters" : {
+                    "min" : 0.0,
                     "isExclusive" : false
                   }
                 }
@@ -599,17 +599,6 @@
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/fixedLowerBound",
-        "options" : {
-          "validation" : {
-            "min" : {
-              "errorMessage" : "The value must be at least 0.",
-              "parameters" : {
-                "min" : 0.0,
-                "isExclusive" : false
-              }
-            }
-          }
-        },
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
@@ -653,17 +642,6 @@
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/fixedUpperBound",
-        "options" : {
-          "validation" : {
-            "min" : {
-              "errorMessage" : "The value must be at least 0.",
-              "parameters" : {
-                "min" : 0.0,
-                "isExclusive" : false
-              }
-            }
-          }
-        },
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
@@ -712,52 +690,10 @@
         }
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/lowerOutlierValue",
-        "rule" : {
-          "effect" : "SHOW",
-          "condition" : {
-            "type" : "OR",
-            "conditions" : [ {
-              "scope" : "#/properties/model/properties/fixLowerBound",
-              "schema" : {
-                "const" : true
-              }
-            }, {
-              "scope" : "#/properties/model/properties/binningType",
-              "schema" : {
-                "oneOf" : [ {
-                  "const" : "CUSTOM_CUTOFFS"
-                }, {
-                  "const" : "CUSTOM_QUANTILES"
-                } ]
-              }
-            } ]
-          }
-        }
+        "scope" : "#/properties/model/properties/lowerOutlierValue"
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/upperOutlierValue",
-        "rule" : {
-          "effect" : "SHOW",
-          "condition" : {
-            "type" : "OR",
-            "conditions" : [ {
-              "scope" : "#/properties/model/properties/fixUpperBound",
-              "schema" : {
-                "const" : true
-              }
-            }, {
-              "scope" : "#/properties/model/properties/binningType",
-              "schema" : {
-                "oneOf" : [ {
-                  "const" : "CUSTOM_CUTOFFS"
-                }, {
-                  "const" : "CUSTOM_QUANTILES"
-                } ]
-              }
-            } ]
-          }
-        }
+        "scope" : "#/properties/model/properties/upperOutlierValue"
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/numberFormat",
@@ -811,17 +747,17 @@
         "scope" : "#/properties/model/properties/numberFormatSettings/properties/precision",
         "options" : {
           "validation" : {
-            "min" : {
-              "errorMessage" : "The value must be at least 1.",
-              "parameters" : {
-                "min" : 1.0,
-                "isExclusive" : false
-              }
-            },
             "max" : {
               "errorMessage" : "The value must not exceed 2147483647.",
               "parameters" : {
                 "max" : 2.147483647E9,
+                "isExclusive" : false
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 1.",
+              "parameters" : {
+                "min" : 1.0,
                 "isExclusive" : false
               }
             }

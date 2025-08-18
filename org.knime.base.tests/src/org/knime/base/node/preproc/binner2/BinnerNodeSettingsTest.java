@@ -44,44 +44,59 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 16, 2025 (david): created
+ *   Jun 26, 2025 (david): created
  */
-package org.knime.base.node.preproc.autobinner4;
+package org.knime.base.node.preproc.binner2;
 
-import org.knime.core.node.port.pmml.PMMLPortObject;
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.impl.WebUINodeFactory;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.StringCell;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * Node factory for the web UI version of the AutoBinner node (which is the 4th version of this node!).
  *
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public final class AutoBinnerNodeFactory4 extends WebUINodeFactory<AutoBinnerNodeModel4> {
+final class BinnerNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    static final PortObjectSpec[] TEST_TABLE_SPECS = new PortObjectSpec[]{
+        new DataTableSpec(new String[]{"test1", "test2"}, new DataType[]{DoubleCell.TYPE, StringCell.TYPE}) //
+    };
 
-    /**
-     * Constructor for the AutoBinner node factory.
-     */
-    public AutoBinnerNodeFactory4() {
-        super(CONFIGURATION);
+    protected BinnerNodeSettingsTest() {
+        super(getConfig());
     }
 
-    @Override
-    public AutoBinnerNodeModel4 createNodeModel() {
-        return new AutoBinnerNodeModel4(CONFIGURATION);
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .withInputPortObjectSpecs(TEST_TABLE_SPECS) //
+            .testJsonFormsForModel(BinnerNodeSettings.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
     }
 
-    static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
-        .name("Binner") //
-        .icon("binner.png") //
-        .shortDescription("TODO") //
-        .fullDescription("TODO") //
-        .modelSettingsClass(AutoBinnerNodeSettings.class) //
-        .addInputTable("Input Data", "Data to be categorized") //
-        .addOutputTable("Binned Data", "Data with bins defined") //
-        .addOutputPort("PMML Processing Fragment", PMMLPortObject.TYPE,
-            "The PMML Model fragment containing information how to bin") //
-        .keywords("Auto Binner", "Numeric Binner") //
-        .build();
+    private static BinnerNodeSettings readSettings() {
+        try {
+            var path = getSnapshotPath(BinnerNodeSettings.class).getParent().resolve("node_settings")
+                .resolve("BinnerNodeSettings.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return NodeParametersUtil.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    BinnerNodeSettings.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 }

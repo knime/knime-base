@@ -46,24 +46,22 @@
  * History
  *   Apr 16, 2025 (david): created
  */
-package org.knime.base.node.preproc.autobinner4;
+package org.knime.base.node.preproc.binner2;
 
 import java.util.List;
 
-import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsEnums.BinBoundaryExactMatchBehaviour;
-import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsEnums.BinNaming;
-import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsEnums.BinningType;
-import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsEnums.NumberFormatSettingsGroup;
-import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsPredicates.BinNamesIsNumbered;
-import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsPredicates.BinningTypeIsCustomCutoffs;
-import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsPredicates.BinningTypeIsCustomQuantiles;
-import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsPredicates.BinningTypeIsNotCustomCutoffs;
-import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsPredicates.NumberOfBinsShouldBeShown;
-import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsPredicates.ShouldDisplayCustomNumberFormatSettings;
-import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsPredicates.ShouldShowFixedLowerBoundField;
-import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsPredicates.ShouldShowFixedUpperBoundField;
-import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsPredicates.ShouldShowLowerOutlierName;
-import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsPredicates.ShouldShowUpperOutlierName;
+import org.knime.base.node.preproc.binner2.BinnerNodeSettingsEnums.BinBoundaryExactMatchBehaviour;
+import org.knime.base.node.preproc.binner2.BinnerNodeSettingsEnums.BinNaming;
+import org.knime.base.node.preproc.binner2.BinnerNodeSettingsEnums.BinningType;
+import org.knime.base.node.preproc.binner2.BinnerNodeSettingsEnums.NumberFormatSettingsGroup;
+import org.knime.base.node.preproc.binner2.BinnerNodeSettingsPredicates.BinNamesIsNumbered;
+import org.knime.base.node.preproc.binner2.BinnerNodeSettingsPredicates.BinningTypeIsCustomCutoffs;
+import org.knime.base.node.preproc.binner2.BinnerNodeSettingsPredicates.BinningTypeIsCustomQuantiles;
+import org.knime.base.node.preproc.binner2.BinnerNodeSettingsPredicates.BinningTypeIsNotCustomCutoffs;
+import org.knime.base.node.preproc.binner2.BinnerNodeSettingsPredicates.NumberOfBinsShouldBeShown;
+import org.knime.base.node.preproc.binner2.BinnerNodeSettingsPredicates.ShouldDisplayCustomNumberFormatSettings;
+import org.knime.base.node.preproc.binner2.BinnerNodeSettingsPredicates.ShouldShowFixedLowerBoundField;
+import org.knime.base.node.preproc.binner2.BinnerNodeSettingsPredicates.ShouldShowFixedUpperBoundField;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
@@ -101,18 +99,18 @@ import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternVa
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-final class AutoBinnerNodeSettings implements NodeParameters {
+final class BinnerNodeSettings implements NodeParameters {
 
-    AutoBinnerNodeSettings() {
+    BinnerNodeSettings() {
     }
 
-    AutoBinnerNodeSettings(final NodeParametersInput context) {
+    BinnerNodeSettings(final NodeParametersInput context) {
         var spec = context.getInTableSpec(0);
 
         if (spec.isPresent()) {
             var dataTableSpec = spec.get();
             m_selectedColumns = new ColumnFilter(dataTableSpec.stream() //
-                .filter(AutoBinnerNodeSettings::isNumericColumn) //
+                .filter(BinnerNodeSettings::isNumericColumn) //
                 .map(DataColumnSpec::getName) //
                 .toArray(String[]::new)).withIncludeUnknownColumns();
         }
@@ -195,7 +193,6 @@ final class AutoBinnerNodeSettings implements NodeParameters {
             sorted into a special bin with a name \
             specified by the 'Lower outlier value' setting.
             """)
-    @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
     @Effect(predicate = ShouldShowFixedLowerBoundField.class, type = EffectType.SHOW)
     double m_fixedLowerBound;
 
@@ -216,7 +213,6 @@ final class AutoBinnerNodeSettings implements NodeParameters {
             sorted into a special bin with a name \
             specified by the 'Upper outlier value' setting.
             """)
-    @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
     @Effect(predicate = ShouldShowFixedUpperBoundField.class, type = EffectType.SHOW)
     double m_fixedUpperBound;
 
@@ -248,7 +244,6 @@ final class AutoBinnerNodeSettings implements NodeParameters {
             lowermost bin will be labeled with this value in \
             place of a bin name.
             """)
-    @Effect(predicate = ShouldShowLowerOutlierName.class, type = EffectType.SHOW)
     String m_lowerOutlierValue = "Lower outlier";
 
     @Layout(OutputSection.class)
@@ -257,7 +252,6 @@ final class AutoBinnerNodeSettings implements NodeParameters {
             bin will be labeled with this value in place of a bin \
             name.
             """)
-    @Effect(predicate = ShouldShowUpperOutlierName.class, type = EffectType.SHOW)
     String m_upperOutlierValue = "Upper outlier";
 
     @Layout(OutputSection.class)
@@ -352,7 +346,7 @@ final class AutoBinnerNodeSettings implements NodeParameters {
             return context.getInTableSpec(0) //
                 .stream() //
                 .flatMap(DataTableSpec::stream) //
-                .filter(AutoBinnerNodeSettings::isNumericColumn) //
+                .filter(BinnerNodeSettings::isNumericColumn) //
                 .toList();
         }
     }

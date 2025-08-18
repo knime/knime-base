@@ -46,15 +46,15 @@
  * History
  *   Jul 14, 2025 (david): created
  */
-package org.knime.base.node.preproc.autobinner4;
+package org.knime.base.node.preproc.binner2;
 
-import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettings.BinNamesRef;
-import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettings.BinningTypeRef;
-import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettings.FixLowerBoundRef;
-import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettings.FixUpperBoundRef;
-import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettings.NumberFormat;
-import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsEnums.BinNaming;
-import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsEnums.BinningType;
+import org.knime.base.node.preproc.binner2.BinnerNodeSettings.BinNamesRef;
+import org.knime.base.node.preproc.binner2.BinnerNodeSettings.BinningTypeRef;
+import org.knime.base.node.preproc.binner2.BinnerNodeSettings.FixLowerBoundRef;
+import org.knime.base.node.preproc.binner2.BinnerNodeSettings.FixUpperBoundRef;
+import org.knime.base.node.preproc.binner2.BinnerNodeSettings.NumberFormat;
+import org.knime.base.node.preproc.binner2.BinnerNodeSettingsEnums.BinNaming;
+import org.knime.base.node.preproc.binner2.BinnerNodeSettingsEnums.BinningType;
 import org.knime.node.parameters.updates.EffectPredicate;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
 
@@ -64,9 +64,9 @@ import org.knime.node.parameters.updates.EffectPredicateProvider;
  *
  * @author David Hickey, TNG Technology Consulting GmbH
  */
-final class AutoBinnerNodeSettingsPredicates {
+final class BinnerNodeSettingsPredicates {
 
-    private AutoBinnerNodeSettingsPredicates() {
+    private BinnerNodeSettingsPredicates() {
         // Utility class
     }
 
@@ -126,26 +126,6 @@ final class AutoBinnerNodeSettingsPredicates {
             return i //
                 .getPredicate(BinningTypeIsNotCustomCutoffs.class) //
                 .and(i.getBoolean(FixLowerBoundRef.class).isTrue());
-        }
-    }
-
-    static final class ShouldShowUpperOutlierName implements EffectPredicateProvider {
-        @Override
-        public EffectPredicate init(final PredicateInitializer i) {
-            return i //
-                .getBoolean(FixUpperBoundRef.class).isTrue() //
-                .or(i.getEnum(BinningTypeRef.class).isOneOf(BinningType.CUSTOM_CUTOFFS,
-                    BinningType.CUSTOM_QUANTILES));
-        }
-    }
-
-    static final class ShouldShowLowerOutlierName implements EffectPredicateProvider {
-        @Override
-        public EffectPredicate init(final PredicateInitializer i) {
-            return i //
-                .getBoolean(FixLowerBoundRef.class).isTrue() //
-                .or(i.getEnum(BinningTypeRef.class).isOneOf(BinningType.CUSTOM_CUTOFFS,
-                    BinningType.CUSTOM_QUANTILES));
         }
     }
 

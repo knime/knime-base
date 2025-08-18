@@ -46,38 +46,38 @@
  * History
  *   Jun 26, 2025 (david): created
  */
-package org.knime.base.node.preproc.autobinner4;
+package org.knime.base.node.preproc.binner2;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettings.CustomCutoffs;
-import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettings.CustomQuantilesWidgetGroup;
-import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsEnums.BinBoundaryExactMatchBehaviour;
-import org.knime.base.node.preproc.autobinner4.AutoBinnerNodeSettingsEnums.BinningType;
+import org.knime.base.node.preproc.binner2.BinnerNodeSettings.CustomCutoffs;
+import org.knime.base.node.preproc.binner2.BinnerNodeSettings.CustomQuantilesWidgetGroup;
+import org.knime.base.node.preproc.binner2.BinnerNodeSettingsEnums.BinBoundaryExactMatchBehaviour;
+import org.knime.base.node.preproc.binner2.BinnerNodeSettingsEnums.BinningType;
 import org.knime.core.node.InvalidSettingsException;
 
 /**
- * Tests for {@link AutoBinnerNodeModel4}.
+ * Tests for {@link BinnerNodeModel4}.
  *
  * @author David Hickey, TNG Technology Consulting GmbH
  */
-final class AutoBinnerNodeModelTest {
+final class BinnerNodeModelTest {
 
-    AutoBinnerNodeModel4 m_model;
+    BinnerNodeModel m_model;
 
     @BeforeEach
     void setup() {
-        m_model = new AutoBinnerNodeModel4(AutoBinnerNodeFactory4.CONFIGURATION);
+        m_model = new BinnerNodeModel(BinnerNodeFactory.CONFIGURATION);
     }
 
     @Nested
     class ValidateSettingsTests {
         @Test
         void testTooFewCustomCutoffs() throws InvalidSettingsException {
-            var settings = new AutoBinnerNodeSettings();
+            var settings = new BinnerNodeSettings();
 
             settings.m_binningType = BinningType.CUSTOM_CUTOFFS;
             settings.m_customCutoffs = new CustomCutoffs[]{new CustomCutoffs()};
@@ -96,7 +96,7 @@ final class AutoBinnerNodeModelTest {
 
         @Test
         void testTooFewCustomQuantiles() throws InvalidSettingsException {
-            var settings = new AutoBinnerNodeSettings();
+            var settings = new BinnerNodeSettings();
 
             settings.m_binningType = BinningType.CUSTOM_QUANTILES;
             settings.m_customQuantiles = new CustomQuantilesWidgetGroup[]{new CustomQuantilesWidgetGroup()};
@@ -115,7 +115,7 @@ final class AutoBinnerNodeModelTest {
 
         @Test
         void testEqualWidthAndTooFewBins() throws InvalidSettingsException {
-            var settings = new AutoBinnerNodeSettings();
+            var settings = new BinnerNodeSettings();
 
             settings.m_binningType = BinningType.EQUAL_WIDTH;
             settings.m_numberOfBins = 0;
@@ -131,7 +131,7 @@ final class AutoBinnerNodeModelTest {
 
         @Test
         void testEqualCountAndTooFewBins() throws InvalidSettingsException {
-            var settings = new AutoBinnerNodeSettings();
+            var settings = new BinnerNodeSettings();
 
             settings.m_binningType = BinningType.EQUAL_FREQUENCY;
             settings.m_numberOfBins = 0;
@@ -147,7 +147,7 @@ final class AutoBinnerNodeModelTest {
 
         @Test
         void testCustomCutoffsAreOrdered() throws InvalidSettingsException {
-            var settings = new AutoBinnerNodeSettings();
+            var settings = new BinnerNodeSettings();
 
             settings.m_binningType = BinningType.CUSTOM_CUTOFFS;
             settings.m_customCutoffs = new CustomCutoffs[]{ //
@@ -169,7 +169,7 @@ final class AutoBinnerNodeModelTest {
 
         @Test
         void testCustomQuantilesAreOrdered() throws InvalidSettingsException {
-            var settings = new AutoBinnerNodeSettings();
+            var settings = new BinnerNodeSettings();
 
             settings.m_binningType = BinningType.CUSTOM_QUANTILES;
             settings.m_customQuantiles = new CustomQuantilesWidgetGroup[]{ //
@@ -192,7 +192,7 @@ final class AutoBinnerNodeModelTest {
 
         @Test
         void testFixedLowerBoundGreaterThanUpperBound() throws InvalidSettingsException {
-            var settings = new AutoBinnerNodeSettings();
+            var settings = new BinnerNodeSettings();
 
             settings.m_fixLowerBound = true;
             settings.m_fixUpperBound = true;
@@ -220,7 +220,7 @@ final class AutoBinnerNodeModelTest {
 
         @Test
         void testValidatePassesWithSensibleSettings() throws InvalidSettingsException {
-            var settings = new AutoBinnerNodeSettings();
+            var settings = new BinnerNodeSettings();
 
             settings.m_binningType = BinningType.EQUAL_WIDTH;
             settings.m_numberOfBins = 5;
