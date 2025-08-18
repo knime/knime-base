@@ -2374,6 +2374,23 @@
             factory-class="org.knime.base.node.preproc.table.cellupdater.CellUpdaterNodeFactory"
             hidden="false">
       </node>
+      <node
+            category-path="/manipulation/table"
+            deprecated="false"
+            factory-class="org.knime.base.node.misc.jira.JiraTicketCreatorNodeFactory"
+            hidden="false">
+      </node>
+      <node category-path="/manipulation/table" factory-class="org.knime.base.node.misc.jira.search.JiraSearchIssuesNodeFactory"/>
+      <node category-path="/manipulation/table" factory-class="org.knime.base.node.misc.jira.update.JiraUpdateIssueNodeFactory"/>
+      <node category-path="/manipulation/table" factory-class="org.knime.base.node.misc.jira.issue.get.JiraGetIssueNodeFactory"/>
+      <node category-path="/manipulation/table" factory-class="org.knime.base.node.misc.jira.issue.comment.JiraAddCommentNodeFactory"/>
+      <node category-path="/manipulation/table" factory-class="org.knime.base.node.misc.jira.issue.transition.JiraTransitionIssueNodeFactory"/>
+      <node category-path="/manipulation/table" factory-class="org.knime.base.node.misc.jira.issue.link.JiraLinkIssuesNodeFactory"/>
+      <node category-path="/manipulation/table" factory-class="org.knime.base.node.misc.jira.issue.delete.JiraDeleteIssueNodeFactory"/>
+      <node category-path="/manipulation/table" factory-class="org.knime.base.node.misc.jira.issue.subtask.JiraCreateSubtaskNodeFactory"/>
+      <node category-path="/manipulation/table" factory-class="org.knime.base.node.misc.jira.issue.attach.JiraAttachFileNodeFactory"/>
+      <node category-path="/manipulation/table" factory-class="org.knime.base.node.misc.jira.conn.JiraConnectorNodeFactory"/>
+      <node category-path="/manipulation/table" factory-class="org.knime.base.node.misc.jira.webhook.JiraWebhookNodeFactory"/>
    </extension>
    <extension
          name="deprecated nodes without category"
@@ -2608,6 +2625,16 @@
      </extension>
      <extension
            point="org.knime.core.PortType">
+        <!-- Jira Connection Port Type -->
+        <portType
+              color="#1eb9dc"
+              hidden="false"
+              name="Jira Connection"
+              objectClass="org.knime.base.node.misc.jira.conn.JiraConnectionPortObject"
+              objectSerializer="org.knime.base.node.misc.jira.conn.JiraConnectionPortObject$Serializer"
+              specClass="org.knime.base.node.misc.jira.conn.JiraConnectionPortObjectSpec"
+              specSerializer="org.knime.base.node.misc.jira.conn.JiraConnectionPortObjectSpec$Serializer">
+        </portType>
         <portType
               color="#1eb9dc"
               hidden="false"
