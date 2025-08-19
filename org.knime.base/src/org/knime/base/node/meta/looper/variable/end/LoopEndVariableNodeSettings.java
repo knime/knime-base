@@ -50,16 +50,12 @@ package org.knime.base.node.meta.looper.variable.end;
 
 import org.knime.base.node.flowvariable.converter.variabletocell.VariableToCellConverterFactory.ConvertibleFlowVariablesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.LegacyFlowVariableFilterPersistor;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.persistence.Persistor;
-import org.knime.node.parameters.persistence.NodeParametersPersistor;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.node.parameters.widget.choices.filter.FlowVariableFilter;
 import org.knime.node.parameters.widget.choices.filter.FlowVariableFilterWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypedStringFilterMode;
 
 /**
  * Settings for the "Variable Loop End" node (modern Web UI dialog).
@@ -75,94 +71,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.T
 @SuppressWarnings("restriction")
 final class LoopEndVariableNodeSettings implements NodeParameters {
 
-    /** Custom persistor writing/reading the legacy NameFilterConfiguration structure under key 'variable_filter'. */
-    static final class FilterPersistor implements NodeParametersPersistor<FlowVariableFilter> {
-
-        private static final String KEY = "variable_filter";
-
-        @Override
-        public FlowVariableFilter load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            final var filter = new FlowVariableFilter();
-            if (!settings.containsKey(KEY)) { // nothing persisted yet
-                return filter;
-            }
-            final var cfg = settings.getNodeSettings(KEY);
-            // Included names
-            String[] included = readStringArray(cfg, "included_names");
-            String[] excluded = readStringArray(cfg, "excluded_names");
-            // enforce option
-            boolean includeUnknown = "EnforceInclusion".equals(cfg.getString("enforce_option", "EnforceExclusion"));
-            filter.m_manualFilter.m_manuallySelected = included;
-            filter.m_manualFilter.m_manuallyDeselected = excluded;
-            filter.m_manualFilter.m_includeUnknownColumns = includeUnknown;
-            // pattern settings
-            if (cfg.containsKey("name_pattern")) {
-                final var p = cfg.getNodeSettings("name_pattern");
-                filter.m_patternFilter.m_pattern = p.getString("pattern", "");
-                filter.m_patternFilter.m_isCaseSensitive = p.getBoolean("caseSensitive", false);
-                filter.m_patternFilter.m_isInverted = p.getBoolean("excludeMatching", false);
-                final var type = p.getString("type", "Wildcard");
-                switch (type) {
-                case "Regex":
-                case "REGEX":
-                    filter.m_mode = TypedStringFilterMode.REGEX; break;
-                case "Wildcard":
-                case "WILDCARD":
-                    filter.m_mode = TypedStringFilterMode.WILDCARD; break;
-                default:
-                    filter.m_mode = TypedStringFilterMode.MANUAL;
-                }
-            }
-            return filter;
-        }
-
-        private static String[] readStringArray(final NodeSettingsRO parent, final String key)
-                throws InvalidSettingsException {
-            if (!parent.containsKey(key)) { return new String[0]; }
-            final var c = parent.getNodeSettings(key);
-            final int size = c.getInt("array-size", 0);
-            final String[] result = new String[size];
-            for (int i = 0; i < size; i++) {
-                final String entryKey = Integer.toString(i);
-                result[i] = c.containsKey(entryKey) ? c.getString(entryKey) : "";
-            }
-            return result;
-        }
-
-        @Override
-        public void save(final FlowVariableFilter obj, final NodeSettingsWO settings) {
-            final var cfg = settings.addConfig(KEY);
-            cfg.addString("filter-type", "STANDARD");
-            // manual lists
-            writeStringArray(cfg.addConfig("included_names"), obj.m_manualFilter.m_manuallySelected);
-            writeStringArray(cfg.addConfig("excluded_names"), obj.m_manualFilter.m_manuallyDeselected);
-            cfg.addString("enforce_option", obj.m_manualFilter.m_includeUnknownColumns ? "EnforceInclusion" : "EnforceExclusion");
-            // pattern
-            final var p = cfg.addConfig("name_pattern");
-            p.addString("pattern", obj.m_patternFilter.m_pattern == null ? "" : obj.m_patternFilter.m_pattern);
-            final String type = switch (obj.m_mode) {
-                case REGEX -> "Regex";
-                case WILDCARD -> "Wildcard";
-                default -> "Wildcard"; // legacy default
-            };
-            p.addString("type", type);
-            p.addBoolean("caseSensitive", obj.m_patternFilter.m_isCaseSensitive);
-            p.addBoolean("excludeMatching", obj.m_patternFilter.m_isInverted);
-        }
-
-        private static void writeStringArray(final NodeSettingsWO cfg, final String[] values) {
-            final String[] arr = values == null ? new String[0] : values;
-            cfg.addInt("array-size", arr.length);
-            for (int i = 0; i < arr.length; i++) {
-                cfg.addString(Integer.toString(i), arr[i]);
-            }
-        }
-
-        @Override
-        public String[][] getConfigPaths() {
-            return new String[][] { {KEY, "filter-type"}, {KEY, "included_names"}, {KEY, "excluded_names"},
-                {KEY, "enforce_option"}, {KEY, "name_pattern", "pattern"}, {KEY, "name_pattern", "type"},
-                {KEY, "name_pattern", "caseSensitive"}, {KEY, "name_pattern", "excludeMatching"} };
+    /** Custom persistor for flow variable filter using legacy 'variable_filter' config key. */
+    static final class VariableFilterPersistor extends LegacyFlowVariableFilterPersistor {
+        VariableFilterPersistor() {
+            super("variable_filter");
         }
     }
 
@@ -170,12 +82,14 @@ final class LoopEndVariableNodeSettings implements NodeParameters {
      * Filter specifying which flow variables are converted into columns of the result table. The include list defines
      * the variables to output; excluded variables are ignored. Pattern, type, and manual selection modes are supported.
      */
-    @Widget(title = "Variable selection", description = "Select the flow variables that should be collected at the end "
-        + "of each loop iteration. Included variables become columns in the output table; excluded variables are ignored. "
-        + "You can switch between manual selection, name pattern based selection, or filtering by variable type. New "
-        + "variables encountered during execution are handled according to the chosen mode.")
+    /**
+     * Filter specifying which flow variables are converted into columns of the result table. The include list defines
+     * the variables to output; excluded variables are ignored. Pattern, type, and manual selection modes are supported.
+     */
+    @Widget(title = "Variables", description = "Flow variables to add as columns to the output table. "
+        + "Use the filter options to control which variables are available for selection.")
     @FlowVariableFilterWidget(choicesProvider = ConvertibleFlowVariablesProvider.class)
-    @Persistor(FilterPersistor.class)
+    @Persistor(VariableFilterPersistor.class)
     FlowVariableFilter m_filter = new FlowVariableFilter();
 
     /** Persistor for the propagate-loop-variables boolean using a SettingsModel to stay backwards compatible. */
