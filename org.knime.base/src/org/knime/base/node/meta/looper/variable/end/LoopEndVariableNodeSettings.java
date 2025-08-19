@@ -52,7 +52,7 @@ import java.util.List;
 
 import org.knime.base.node.flowvariable.converter.variabletocell.VariableToCellConverterFactory;
 import org.knime.core.node.workflow.FlowVariable;
-import org.knime.core.node.workflow.VariableType;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersInputImpl;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
@@ -90,20 +90,12 @@ public final class LoopEndVariableNodeSettings implements NodeParameters {
      * Flow variable choices provider that filters to supported variable types for conversion to data cells.
      */
     static final class SupportedVariableTypesProvider implements FlowVariableChoicesProvider {
+
         @Override
         public List<FlowVariable> flowVariableChoices(final NodeParametersInput context) {
-            final VariableType<?>[] supportedTypes = VariableToCellConverterFactory.getSupportedTypes();
-            return context.getFlowVariables()
-                .stream()
-                .filter(var -> {
-                    for (VariableType<?> type : supportedTypes) {
-                        if (type.equals(var.getVariableType())) {
-                            return true;
-                        }
-                    }
-                    return false;
-                })
-                .toList();
+            return ((NodeParametersInputImpl)context)
+                .getAvailableInputFlowVariables(VariableToCellConverterFactory.getSupportedTypes()) //
+                .values().stream().toList();
         }
     }
 
