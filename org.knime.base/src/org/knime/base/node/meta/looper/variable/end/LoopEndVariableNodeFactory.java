@@ -51,13 +51,18 @@ package org.knime.base.node.meta.looper.variable.end;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.node.DefaultNodeDialog;
+import org.knime.node.NodeDialog;
+import org.knime.node.NodeDialogFactory;
+import org.knime.node.NodeDialogManager;
+import org.knime.node.SettingsType;
 
 /**
  * The {@link NodeFactory} creating the 'Variable Loop End' node.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public final class LoopEndVariableNodeFactory extends NodeFactory<LoopEndVariableNodeModel> {
+public final class LoopEndVariableNodeFactory extends NodeFactory<LoopEndVariableNodeModel> implements NodeDialogFactory {
 
     @Override
     public LoopEndVariableNodeModel createNodeModel() {
@@ -82,7 +87,12 @@ public final class LoopEndVariableNodeFactory extends NodeFactory<LoopEndVariabl
 
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new LoopEndVariableNodeDialog();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, LoopEndVariableNodeSettings.class);
     }
 
 }
