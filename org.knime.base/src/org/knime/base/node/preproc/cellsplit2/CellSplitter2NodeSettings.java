@@ -227,6 +227,32 @@ final class CellSplitter2NodeSettings implements NodeParameters {
         }
     }
 
+    static final class QuotePatternPersistor implements NodeParametersPersistor<String> {
+
+        @Override
+        public void save(final String obj, final NodeSettingsWO settings) {
+            CellSplitter2UserSettings csSettings = new CellSplitter2UserSettings();
+
+            settings.addConfig(CellSplitter2UserSettings.CFG_QUOTES);
+            settings.addConfig(CellSplitter2UserSettings.CFG_REMOVEQUOTES);
+        }
+
+
+        @Override
+        public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{{CellSplitter2UserSettings.CFG_REMOVEQUOTES}, {CellSplitter2UserSettings.CFG_QUOTES}};
+        }
+
+
+
+    }
+
     static final class SizeModePersistor implements NodeParametersPersistor<SizeMode> {
         private static final String CFG_GUESS_NUM_OF_COLS = "guessNumOfCols";
 
@@ -282,8 +308,9 @@ final class CellSplitter2NodeSettings implements NodeParameters {
             description = "Specify the quotation character if the different parts in the value are quoted. " +
                          "(The character to escape quotes is always the backslash.) If no quotation character is needed leave it empty.")
     @TextInputWidget(placeholder = "(leave empty for none)")
-    @Persist(configKey = CellSplitter2UserSettings.CFG_QUOTES)
-    String quotePattern = "";
+    @Persist(configKey = "quotePattern")
+    //discuss with Carsten if this approach is correct or not...
+    String quotePattern = " ";
 
 
     boolean m_removeQuotes = true;
