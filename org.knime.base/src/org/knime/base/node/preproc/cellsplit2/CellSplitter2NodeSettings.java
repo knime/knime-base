@@ -310,9 +310,10 @@ final class CellSplitter2NodeSettings implements NodeParameters {
     @TextInputWidget(placeholder = "(leave empty for none)")
     @Persist(configKey = "quotePattern")
     //discuss with Carsten if this approach is correct or not...
-    String quotePattern = " ";
+    String quotePattern = null;
 
-
+    // this setting is not visible but is used by CellSplitter User settings class
+    //@Persist(configKey = "removeQuotes")
     boolean m_removeQuotes = true;
 
     @Layout(SettingsSection.class)
