@@ -79,6 +79,11 @@ import org.knime.core.node.util.filter.column.DataColumnSpecFilterPanel;
  *
  * @author Heiko Hofer
  */
+/**
+ * Legacy Swing dialog (deprecated). Replaced by Web UI settings implementation {@code CategoryToNumberNodeWebUISettings}.
+ * Kept intentionally (do NOT delete) to preserve backwards compatibility and per migration guidelines.
+ */
+@Deprecated
 public class CategoryToNumberNodeDialogPane  extends NodeDialogPane {
     private final CategoryToNumberNodeSettings m_settings;
 
