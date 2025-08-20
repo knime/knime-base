@@ -46,16 +46,35 @@
 
 package org.knime.base.node.preproc.columntrans2;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
- * <code>NodeFactory</code> for the "BayesianPredictor" Node. This is the description of the Bayesian Predictor
+ * <code>NodeFactory</code> for the "Many to One" Node.
  *
  * @author Tobias Koetter
+ * @author Robin Gerling, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.1
  */
-public class Many2OneCol2NodeFactory extends NodeFactory<Many2OneCol2NodeModel> {
+public class Many2OneCol2NodeFactory extends NodeFactory<Many2OneCol2NodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
     /**
      * {@inheritDoc}
      *
@@ -92,12 +111,63 @@ public class Many2OneCol2NodeFactory extends NodeFactory<Many2OneCol2NodeModel> 
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    private static final String NODE_NAME = "Many to One";
+
+    private static final String NODE_ICON = "./many2one.png";
+
+    private static final String SHORT_DESCRIPTION = "Aggregates several columns into one single column.";
+
+    private static final String FULL_DESCRIPTION = """
+            Aggregates several columns into one single column.
+            <br />
+            In each row, it finds a matching column from the set of selected columns and places the name of that
+            matching column into the aggregated result column. Which column matches depends on the selected
+            "Include method" and the include pattern.
+            <br />
+            If no column matches a missing value is added. If multiple columns match execution fails and no output is
+            generated.
+            <br />
+            Missing values in the selected columns are ignored. If all selected columns of one row consist of missing
+            values a missing value is put in the aggregated column. All include methods except the regular expression
+            require columns which are double compatible.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(fixedPort("Data to process", "Data"));
+
+    private static final List<PortDescription> OUTPUT_PORTS =
+        List.of(fixedPort("Processed data", "Data with aggregated column"));
+
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new Many2OneCol2NodeDialog();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, Many2OneCol2NodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            Many2OneCol2NodeParameters.class, //
+            null, //
+            NodeType.Manipulator, //
+            List.of(), //
+            null //
+        );
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, Many2OneCol2NodeParameters.class));
     }
 
 }

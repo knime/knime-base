@@ -75,6 +75,7 @@ import org.knime.core.node.port.pmml.PMMLPortObject;
 import org.knime.core.node.port.pmml.PMMLPortObjectSpec;
 import org.knime.core.node.port.pmml.PMMLPortObjectSpecCreator;
 import org.knime.core.node.util.filter.NameFilterConfiguration.FilterResult;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * This is the model implementation of Many2OneColPMML.
@@ -91,14 +92,19 @@ public class Many2OneCol2PMMLNodeModel extends NodeModel {
      * @author Alexander Fillbrunn, Fabian Dill, University of Konstanz
      */
     public enum IncludeMethod {
-        /** 1 matches, 0 not. */
-        Binary,
-        /** Maximum value of row matches. */
-        Maximum,
-        /** Minimum value of row matches. */
-        Minimum,
-        /** Regular Expression pattern matches. */
-        RegExpPattern
+            /** 1 matches, 0 not. */
+            @Label(value = "Binary", description = "Only the column with value \"1\" matches.")
+            Binary,
+            /** Maximum value of row matches. */
+            @Label(value = "Maximum", description = "The column with the maximum value in each row matches.")
+            Maximum,
+            /** Minimum value of row matches. */
+            @Label(value = "Minimum", description = "The column with the minimum value in each row matches.")
+            Minimum,
+            /** Regular Expression pattern matches. */
+            @Label(value = "RegExpPattern",
+                description = "The column matching the provided regular expression pattern matches.")
+            RegExpPattern
     }
 
     /** The port were the model expects the in data. */

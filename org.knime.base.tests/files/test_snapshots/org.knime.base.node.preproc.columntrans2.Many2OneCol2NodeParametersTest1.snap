@@ -1,0 +1,317 @@
+{
+  "data" : {
+    "model" : {
+      "includedColumns" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : true,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "Cluster_0", "Cluster_1", "Cluster_2", "Cluster_3" ],
+          "manuallyDeselected" : [ "Universe_0_0", "Universe_0_1", "Universe_1_0", "Universe_1_1", "Cluster Membership" ],
+          "includeUnknownColumns" : true
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "appendedColumnName" : "Condensed Column",
+      "includeMethod" : "Binary",
+      "pattern" : "[^0]*",
+      "keepColumns" : true
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "appendedColumnName" : {
+            "type" : "string",
+            "title" : "Appended column name",
+            "description" : "Name of the aggregate column that will be created.",
+            "default" : "Condensed Column"
+          },
+          "includeMethod" : {
+            "oneOf" : [ {
+              "const" : "Binary",
+              "title" : "Binary"
+            }, {
+              "const" : "Maximum",
+              "title" : "Maximum"
+            }, {
+              "const" : "Minimum",
+              "title" : "Minimum"
+            }, {
+              "const" : "RegExpPattern",
+              "title" : "RegExpPattern"
+            } ],
+            "title" : "Include method",
+            "description" : "Choose the method to determine the matching column:\n<ul>\n<li><b>Binary</b>: Only the column with value \"1\" matches.</li>\n<li><b>Maximum</b>: The column with the maximum value in each row matches.</li>\n<li><b>Minimum</b>: The column with the minimum value in each row matches.</li>\n<li><b>RegExpPattern</b>: The column matching the provided regular expression pattern matches.</li>\n</ul>",
+            "default" : "Binary"
+          },
+          "includedColumns" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Columns to aggregate",
+            "description" : "Select those columns which should be condensed into the aggregated result column.",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ "Cluster_0", "Cluster_1", "Cluster_2", "Cluster_3", "Universe_0_0", "Universe_0_1", "Universe_1_0", "Universe_1_1", "Cluster Membership" ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : true
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "keepColumns" : {
+            "type" : "boolean",
+            "title" : "Keep original columns",
+            "description" : "If checked, the selected columns are kept in the output table, otherwise they are deleted.",
+            "default" : true
+          },
+          "pattern" : {
+            "type" : "string",
+            "title" : "Include Pattern",
+            "description" : "Enter the regular expression pattern if RegExpPattern was chosen as include method.",
+            "default" : "[^0]*"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/includedColumns",
+      "options" : {
+        "format" : "typedStringFilter",
+        "unknownValuesText" : "Any unknown column",
+        "emptyStateLabel" : "No columns in this list."
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/appendedColumnName"
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/includeMethod"
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/pattern",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/includeMethod",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "RegExpPattern"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/keepColumns",
+      "options" : {
+        "format" : "checkbox"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "includedColumns" : {
+            "configPaths" : [ [ "many2OneCols2Condense", "filter-type" ], [ "many2OneCols2Condense", "included_names" ], [ "many2OneCols2Condense", "excluded_names" ], [ "many2OneCols2Condense", "enforce_option" ], [ "many2OneCols2Condense", "name_pattern", "pattern" ], [ "many2OneCols2Condense", "name_pattern", "type" ], [ "many2OneCols2Condense", "name_pattern", "caseSensitive" ], [ "many2OneCols2Condense", "name_pattern", "excludeMatching" ] ]
+          },
+          "appendedColumnName" : {
+            "configPaths" : [ [ "many2OneCondenseColName" ] ]
+          },
+          "includeMethod" : {
+            "configPaths" : [ [ "includeMethod" ] ]
+          },
+          "pattern" : {
+            "configPaths" : [ [ "many2OneRecoValBox" ] ]
+          },
+          "keepColumns" : {
+            "configPaths" : [ [ "many2OneRemoveCols" ] ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/includedColumns",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Cluster_0",
+        "text" : "Cluster_0",
+        "type" : {
+          "id" : "org.knime.core.data.IntValue",
+          "text" : "Number (Integer)"
+        }
+      }, {
+        "id" : "Cluster_1",
+        "text" : "Cluster_1",
+        "type" : {
+          "id" : "org.knime.core.data.IntValue",
+          "text" : "Number (Integer)"
+        }
+      }, {
+        "id" : "Cluster_2",
+        "text" : "Cluster_2",
+        "type" : {
+          "id" : "org.knime.core.data.IntValue",
+          "text" : "Number (Integer)"
+        }
+      }, {
+        "id" : "Cluster_3",
+        "text" : "Cluster_3",
+        "type" : {
+          "id" : "org.knime.core.data.IntValue",
+          "text" : "Number (Integer)"
+        }
+      }, {
+        "id" : "Universe_0_0",
+        "text" : "Universe_0_0",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Universe_0_1",
+        "text" : "Universe_0_1",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Universe_1_0",
+        "text" : "Universe_1_0",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Universe_1_1",
+        "text" : "Universe_1_1",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ]
+}

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <config key="many2OneCols2Condense">
+        <entry key="filter-type" type="xstring" value="STANDARD"/>
+        <config key="included_names">
+            <entry key="array-size" type="xint" value="4"/>
+            <entry key="0" type="xstring" value="Cluster_0"/>
+            <entry key="1" type="xstring" value="Cluster_1"/>
+            <entry key="2" type="xstring" value="Cluster_2"/>
+            <entry key="3" type="xstring" value="Cluster_3"/>
+        </config>
+        <config key="excluded_names">
+            <entry key="array-size" type="xint" value="5"/>
+            <entry key="0" type="xstring" value="Universe_0_0"/>
+            <entry key="1" type="xstring" value="Universe_0_1"/>
+            <entry key="2" type="xstring" value="Universe_1_0"/>
+            <entry key="3" type="xstring" value="Universe_1_1"/>
+            <entry key="4" type="xstring" value="Cluster Membership"/>
+        </config>
+        <entry key="enforce_option" type="xstring" value="EnforceExclusion"/>
+        <config key="name_pattern">
+            <entry key="pattern" type="xstring" value=""/>
+            <entry key="caseSensitive" type="xboolean" value="true"/>
+            <entry key="excludeMatching" type="xboolean" value="false"/>
+            <entry key="type" type="xstring" value="Wildcard"/>
+        </config>
+        <config key="datatype">
+            <config key="typelist"/>
+        </config>
+    </config>
+    <config key="many2OneCondenseColName_Internals">
+        <entry key="SettingsModelID" type="xstring" value="SMID_string"/>
+        <entry key="EnabledStatus" type="xboolean" value="true"/>
+    </config>
+    <entry key="many2OneCondenseColName" type="xstring" value="Condensed Column"/>
+    <config key="includeMethod_Internals">
+        <entry key="SettingsModelID" type="xstring" value="SMID_string"/>
+        <entry key="EnabledStatus" type="xboolean" value="true"/>
+    </config>
+    <entry key="includeMethod" type="xstring" value="Binary"/>
+    <config key="many2OneRecoValBox_Internals">
+        <entry key="SettingsModelID" type="xstring" value="SMID_string"/>
+        <entry key="EnabledStatus" type="xboolean" value="true"/>
+    </config>
+    <entry key="many2OneRecoValBox" type="xstring" value="[^0]*"/>
+    <config key="many2OneRemoveCols_Internals">
+        <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
+        <entry key="EnabledStatus" type="xboolean" value="true"/>
+    </config>
+    <entry key="many2OneRemoveCols" type="xboolean" value="true"/>
+</config>
