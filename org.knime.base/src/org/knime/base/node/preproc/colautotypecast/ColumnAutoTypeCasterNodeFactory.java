@@ -44,6 +44,11 @@
  */
 package org.knime.base.node.preproc.colautotypecast;
 
+import java.io.IOException;
+import java.util.Map;
+
+import org.apache.xmlbeans.XmlException;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
@@ -51,15 +56,22 @@ import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
+import org.xml.sax.SAXException;
 
 /**
  * Factory for the Column Type Changer node.
+ *
  * @author Tim-Oliver Buchholz, University of Konstanz
  */
 @SuppressWarnings("restriction")
-public class ColumnAutoTypeCasterNodeFactory
-    extends NodeFactory<ColumnAutoTypeCasterNodeModel> implements NodeDialogFactory {
+public class ColumnAutoTypeCasterNodeFactory extends NodeFactory<ColumnAutoTypeCasterNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     /** {@inheritDoc} */
     @Override
@@ -75,8 +87,8 @@ public class ColumnAutoTypeCasterNodeFactory
 
     /** {@inheritDoc} */
     @Override
-    public NodeView<ColumnAutoTypeCasterNodeModel> createNodeView(
-            final int viewIndex, final ColumnAutoTypeCasterNodeModel nodeModel) {
+    public NodeView<ColumnAutoTypeCasterNodeModel> createNodeView(final int viewIndex,
+        final ColumnAutoTypeCasterNodeModel nodeModel) {
         return null;
     }
 
@@ -96,6 +108,31 @@ public class ColumnAutoTypeCasterNodeFactory
     @Override
     public NodeDialog createNodeDialog() {
         return new DefaultNodeDialog(SettingsType.MODEL, ColumnAutoTypeCasterNodeSettings.class);
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, ColumnAutoTypeCasterNodeSettings.class));
+    }
+
+    @SuppressWarnings("deprecation")
+    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
+        .name("Column Auto Type Cast") //
+        .icon("ColumnAutoTypeCaster.png") //
+        .shortDescription("Converts a column of type String to a Numeric or Date type,"
+            + " if and only if all entries could be converted.") //
+        .fullDescription("This node determines the most specific type in the configured string columns and changes the"
+            + " column types accordingly. The type order is to first check if the values are dates, then integer, long,"
+            + " double, and finally string. For dates a custom format can be specified.") //
+        .modelSettingsClass(ColumnAutoTypeCasterNodeSettings.class) //
+        .addInputTable("Input", "Arbitrary input data.") //
+        .addOutputTable("Type-casted columns", "Input data with type-casted columns.") //
+        .addOutputTable("Type information", "Information about the chosen type casting.") //
+        .build();
+
+    @Override
+    protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
+        return WebUINodeFactory.createNodeDescription(CONFIG);
     }
 
 }

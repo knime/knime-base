@@ -41,20 +41,21 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------------
+ *
+ * History
+ *   20 Aug 2025 (Robin Gerling, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.preproc.colautotypecast;
 
 import static org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil.getStringColumnsOfFirstPort;
 
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.layout.After;
-import org.knime.node.parameters.layout.Layout;
-import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.persistence.legacy.LegacyColumnFilterPersistor;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.EffectPredicate;
@@ -62,7 +63,6 @@ import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
-import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider.StringColumnsProvider;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
@@ -71,21 +71,14 @@ import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinVa
 /**
  * Settings for the Column Auto Type Cast node.
  *
- * Replaces the legacy dialog by exposing the same parameters using the modern UI framework.
- *
- * - Column filter (string columns only), persisted under "column-filter".
- * - Date format (config key: "dateFormat").
- * - Missing value pattern (config key: "missingValuePattern").
- * - Quickscan toggle (config key: "doAQuickScan") and number of rows (config key: "numberOfRowsForQuickScan").
- * - Use legacy type names (config key: "useLegacyTypeNames").
- *
- * @since 5.x
+ * @author Robin Gerling
+ * @since 5.7
  */
 @SuppressWarnings("restriction")
+@LoadDefaultsForAbsentFields
 final class ColumnAutoTypeCasterNodeSettings implements NodeParameters {
 
     ColumnAutoTypeCasterNodeSettings(final NodeParametersInput context) {
-        // Default the column filter to available string columns and include unknown columns by default
         m_columnFilter = new ColumnFilter(getStringColumnsOfFirstPort(context)).withIncludeUnknownColumns();
     }
 
@@ -93,17 +86,6 @@ final class ColumnAutoTypeCasterNodeSettings implements NodeParameters {
     ColumnAutoTypeCasterNodeSettings() {
     }
 
-    // Sections
-    @Section(title = "Column selection")
-    interface ColumnsSection {
-    }
-
-    @Section(title = "Options")
-    @After(ColumnsSection.class)
-    interface OptionsSection {
-    }
-
-    // Column filter with legacy persistor for DataColumnSpecFilterConfiguration (key: "column-filter")
     static final class ColumnFilterPersistor extends LegacyColumnFilterPersistor {
         ColumnFilterPersistor() {
             super("column-filter");
@@ -111,28 +93,23 @@ final class ColumnAutoTypeCasterNodeSettings implements NodeParameters {
     }
 
     @Persistor(ColumnFilterPersistor.class)
-    @Widget(title = "Column filter",
-        description = "Select the string columns to consider for automatic type casting. "
-            + "Only columns compatible with String are offered. The filter supports manual selection and wildcard/regex.")
+    @Widget(title = "Column filter", description = "Select the string columns to consider for automatic type casting. "
+        + "Only columns compatible with String are offered. The filter supports manual selection and wildcard/regex.")
     @ChoicesProvider(StringColumnsProvider.class)
-    @Layout(ColumnsSection.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
-
-    // Options
 
     @Persist(configKey = ColumnAutoTypeCasterNodeModel.CFGKEY_DATEFORMAT)
     @Widget(title = "Choose a date format",
         description = "Choose or enter a date pattern used to detect dates in the selected columns. "
             + "Examples: 'dd.MM.yy', 'dd.MM.yy HH:mm:ss', 'dd.MM.yy HH:mm:ss:SSS', 'HH:mm:ss'. "
             + "Pattern symbols: y=Year, M=Month, d=Day, H=Hour, m=Minute, s=Second, S=Millisecond.")
-    @Layout(OptionsSection.class)
     String m_dateFormat = "dd.MM.yy";
 
     @Persist(configKey = ColumnAutoTypeCasterNodeModel.CFGKEY_MISSVALPAT)
     @Widget(title = "Missing value pattern",
         description = "Enter a missing value pattern applied to all included columns. "
-            + "Use '<none>' for no pattern (default) or '<empty>' for the empty string. Any other string will be treated as the pattern.")
-    @Layout(OptionsSection.class)
+            + "Use '&lt;none&gt;' for no pattern (default) or '&lt;empty&gt;' for the empty string."
+            + " Any other string will be treated as the pattern.")
     String m_missingValuePattern = ColumnAutoTypeCasterNodeModel.MISSVALDESC_NONE; // "<none>"
 
     interface QuickScanRef extends ParameterReference<Boolean> {
@@ -147,11 +124,9 @@ final class ColumnAutoTypeCasterNodeSettings implements NodeParameters {
 
     @Persist(configKey = ColumnAutoTypeCasterNodeModel.CFGKEY_QUICKSANBOOLEAN)
     @Widget(title = "Quickscan",
-        description = "Speed up by determining the most specific type based only on the first N rows. "
-            + "Note: With quickscan enabled this node may fail during execution if later rows contradict the inferred type.")
-    @ValueSwitchWidget
+        description = "Speed up by determining the most specific type based only on the first N rows. Note:"
+            + " With quickscan enabled this node may fail during execution if later rows contradict the inferred type.")
     @ValueReference(QuickScanRef.class)
-    @Layout(OptionsSection.class)
     boolean m_quickScan;
 
     @Persist(configKey = ColumnAutoTypeCasterNodeModel.CFGKEY_QUICKSCANROWS)
@@ -159,15 +134,13 @@ final class ColumnAutoTypeCasterNodeSettings implements NodeParameters {
         description = "Number of initial rows used when quickscan is enabled. Minimum is 1. Default is 1000.")
     @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
     @Effect(predicate = QuickScanIsEnabled.class, type = EffectType.SHOW)
-    @Layout(OptionsSection.class)
     int m_quickScanRows = 1000;
 
-    @Persist(configKey = ColumnAutoTypeCasterNodeModel.CFGKEY_USELEGACYTYPENAMES)
+    // Added as part of AP-23571
     @Widget(title = "Use legacy type names instead of identifiers",
         description = "Output legacy type names like 'Number (double)' on the second port instead of identifiers "
             + "like 'org.knime.core.data.def.DoubleCell'. This resembles the old behavior but is discouraged as "
             + "type names may change in future versions.")
-    @ValueSwitchWidget
-    @Layout(OptionsSection.class)
+    @Persist(configKey = ColumnAutoTypeCasterNodeModel.CFGKEY_USELEGACYTYPENAMES)
     boolean m_useLegacyTypeNames = true;
 }
