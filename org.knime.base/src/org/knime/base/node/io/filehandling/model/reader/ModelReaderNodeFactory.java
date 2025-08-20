@@ -45,8 +45,14 @@
  */
 package org.knime.base.node.io.filehandling.model.reader;
 
+import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortType;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog.SettingsType;
 import org.knime.filehandling.core.node.portobject.reader.SimplePortObjectReaderNodeFactory;
 
 /**
@@ -54,7 +60,7 @@ import org.knime.filehandling.core.node.portobject.reader.SimplePortObjectReader
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-public final class ModelReaderNodeFactory extends SimplePortObjectReaderNodeFactory {
+public final class ModelReaderNodeFactory extends SimplePortObjectReaderNodeFactory implements NodeDialogFactory {
 
     /** The mode file extensions/suffixes. */
     private static final String[] MODEL_SUFFIXES = new String[]{".model", ".zip"};
@@ -72,6 +78,16 @@ public final class ModelReaderNodeFactory extends SimplePortObjectReaderNodeFact
     @Override
     protected PortType getOutputPortType() {
         return PortObject.TYPE;
+    }
+
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, ModelReaderNodeSettings.class);
     }
 
 }

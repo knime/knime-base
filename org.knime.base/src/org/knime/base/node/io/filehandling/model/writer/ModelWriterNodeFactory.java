@@ -45,8 +45,14 @@
  */
 package org.knime.base.node.io.filehandling.model.writer;
 
+import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortType;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog.SettingsType;
 import org.knime.filehandling.core.node.portobject.writer.SimplePortObjectWriterNodeFactory;
 
 /**
@@ -54,7 +60,7 @@ import org.knime.filehandling.core.node.portobject.writer.SimplePortObjectWriter
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-public final class ModelWriterNodeFactory extends SimplePortObjectWriterNodeFactory {
+public final class ModelWriterNodeFactory extends SimplePortObjectWriterNodeFactory implements NodeDialogFactory {
 
     /** The mode file extensions/suffixes. */
     private static final String[] MODEL_SUFFIXES = new String[]{".model", ".zip"};
@@ -70,8 +76,12 @@ public final class ModelWriterNodeFactory extends SimplePortObjectWriterNodeFact
     }
 
     @Override
-    protected PortType getInputPortType() {
-        return PortObject.TYPE;
-    }
+    protected PortType getInputPortType() { return PortObject.TYPE; }
+
+    @Override
+    public NodeDialogPane createNodeDialogPane() { return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog()); }
+
+    @Override
+    public NodeDialog createNodeDialog() { return new DefaultNodeDialog(SettingsType.MODEL, ModelWriterNodeSettings.class); }
 
 }
