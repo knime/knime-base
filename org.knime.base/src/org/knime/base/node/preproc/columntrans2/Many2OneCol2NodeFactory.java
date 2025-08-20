@@ -46,6 +46,11 @@
 
 package org.knime.base.node.preproc.columntrans2;
 
+import java.io.IOException;
+import java.util.Map;
+
+import org.apache.xmlbeans.XmlException;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
@@ -53,14 +58,21 @@ import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
+import org.xml.sax.SAXException;
 
 /**
  * <code>NodeFactory</code> for the "Many to One" Node.
  *
  * @author Tobias Koetter
  */
-public class Many2OneCol2NodeFactory extends NodeFactory<Many2OneCol2NodeModel> implements NodeDialogFactory {
+public class Many2OneCol2NodeFactory extends NodeFactory<Many2OneCol2NodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
     /**
      * {@inheritDoc}
      *
@@ -111,6 +123,36 @@ public class Many2OneCol2NodeFactory extends NodeFactory<Many2OneCol2NodeModel> 
     @Override
     public NodeDialog createNodeDialog() {
         return new DefaultNodeDialog(SettingsType.MODEL, Many2OneCol2NodeSettings.class);
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, Many2OneCol2NodeSettings.class));
+    }
+
+    @SuppressWarnings("deprecation")
+    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
+        .name("Many to One") //
+        .icon("many2one.png") //
+        .shortDescription("Aggregates several columns into one single column.") //
+        .fullDescription("Aggregates several columns into one single column. <br />" //
+            + "In each row, it finds a matching column from the set of selected columns and places the name of that"
+            + " matching column into the aggregated result column. Which column matches depends on the selected"
+            + " \"include method\" and the include pattern. <br />" //
+            + "If no column matches a missing value is added. If multiple columns match execution fails and no output"
+            + " is generated.<br />" //
+            + "Missing values in the selected columns are ignored. If all selected columns of one row consist of"
+            + " missing values a missing value is put in the aggregated column. All include methods except the regular"
+            + " expression require columns which are double compatible.") //
+        .modelSettingsClass(Many2OneCol2NodeSettings.class) //
+        .addInputTable("Data to process", "Data") //
+        .addOutputTable("Processed data", "Data with aggregated column") //
+        .nodeType(NodeType.Manipulator) //
+        .build();
+
+    @Override
+    protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
+        return WebUINodeFactory.createNodeDescription(CONFIG);
     }
 
 }
