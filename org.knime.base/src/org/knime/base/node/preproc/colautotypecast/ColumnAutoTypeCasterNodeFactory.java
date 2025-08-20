@@ -47,18 +47,24 @@ package org.knime.base.node.preproc.colautotypecast;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 
 /**
  * Factory for the Column Type Changer node.
  * @author Tim-Oliver Buchholz, University of Konstanz
  */
+@SuppressWarnings("restriction")
 public class ColumnAutoTypeCasterNodeFactory
-        extends NodeFactory<ColumnAutoTypeCasterNodeModel> {
+    extends NodeFactory<ColumnAutoTypeCasterNodeModel> implements NodeDialogFactory {
 
     /** {@inheritDoc} */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new ColumnAutoTypeCasterNodeDialogPane();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
 
     /** {@inheritDoc} */
@@ -84,6 +90,12 @@ public class ColumnAutoTypeCasterNodeFactory
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, ColumnAutoTypeCasterNodeSettings.class);
     }
 
 }
