@@ -49,13 +49,18 @@ package org.knime.base.node.preproc.columntrans2;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 
 /**
- * <code>NodeFactory</code> for the "BayesianPredictor" Node. This is the description of the Bayesian Predictor
+ * <code>NodeFactory</code> for the "Many to One" Node.
  *
  * @author Tobias Koetter
  */
-public class Many2OneCol2NodeFactory extends NodeFactory<Many2OneCol2NodeModel> {
+public class Many2OneCol2NodeFactory extends NodeFactory<Many2OneCol2NodeModel> implements NodeDialogFactory {
     /**
      * {@inheritDoc}
      *
@@ -97,7 +102,15 @@ public class Many2OneCol2NodeFactory extends NodeFactory<Many2OneCol2NodeModel> 
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new Many2OneCol2NodeDialog();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, Many2OneCol2NodeSettings.class);
     }
 
 }
