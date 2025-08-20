@@ -44,21 +44,41 @@
  */
 package org.knime.base.node.preproc.colautotypecast;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * Factory for the Column Type Changer node.
+ *
  * @author Tim-Oliver Buchholz, University of Konstanz
+ * @author Robin Gerling, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.1
  */
-public class ColumnAutoTypeCasterNodeFactory
-        extends NodeFactory<ColumnAutoTypeCasterNodeModel> {
+@SuppressWarnings("restriction")
+public class ColumnAutoTypeCasterNodeFactory extends NodeFactory<ColumnAutoTypeCasterNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     /** {@inheritDoc} */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new ColumnAutoTypeCasterNodeDialogPane();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
 
     /** {@inheritDoc} */
@@ -69,8 +89,8 @@ public class ColumnAutoTypeCasterNodeFactory
 
     /** {@inheritDoc} */
     @Override
-    public NodeView<ColumnAutoTypeCasterNodeModel> createNodeView(
-            final int viewIndex, final ColumnAutoTypeCasterNodeModel nodeModel) {
+    public NodeView<ColumnAutoTypeCasterNodeModel> createNodeView(final int viewIndex,
+        final ColumnAutoTypeCasterNodeModel nodeModel) {
         return null;
     }
 
@@ -84,6 +104,51 @@ public class ColumnAutoTypeCasterNodeFactory
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+
+    private static final String NODE_NAME = "Column Auto Type Cast";
+
+    private static final String NODE_ICON = "./ColumnAutoTypeCaster.png";
+
+    private static final String SHORT_DESCRIPTION =
+        "Converts a column of type String to a Numeric or Date type, if and only if all entries could be converted.";
+
+    private static final String FULL_DESCRIPTION = """
+            This node determines the most specific type in the configured string columns and changes the column
+                types accordingly. The type order is to first check if the values are dates, then integer, long, double,
+                and finally string. For dates a custom format can be specified.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(fixedPort("Input", "Arbitrary input data."));
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of( //
+        fixedPort("Type-casted columns", "Input data with type-casted columns."), //
+        fixedPort("Type information", "Information about the chosen type casting."));
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, ColumnAutoTypeCasterNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            ColumnAutoTypeCasterNodeParameters.class, //
+            null, //
+            NodeType.Manipulator, //
+            List.of(), //
+            null);
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, ColumnAutoTypeCasterNodeParameters.class));
     }
 
 }
