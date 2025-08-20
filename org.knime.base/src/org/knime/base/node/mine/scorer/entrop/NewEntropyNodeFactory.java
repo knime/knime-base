@@ -47,14 +47,26 @@
  */
 package org.knime.base.node.mine.scorer.entrop;
 
+import java.util.Map;
+
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 
 /**
  * 
  * @author Bernd Wiswedel, University of Konstanz
  */
-public class NewEntropyNodeFactory extends NodeFactory<EntropyNodeModel> {
+@SuppressWarnings("restriction")
+public class NewEntropyNodeFactory extends NodeFactory<EntropyNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
     
     private final boolean m_enableOutput;
     
@@ -98,15 +110,22 @@ public class NewEntropyNodeFactory extends NodeFactory<EntropyNodeModel> {
      * {@inheritDoc}
      */
     @Override
-    public boolean hasDialog() {
+    public boolean hasDialog() { // legacy API still asked by platform
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return new EntropyNodeDialogPane();
+    protected NodeDialogPane createNodeDialogPane() { // wrap modern dialog to support legacy flow variables UI
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, EntropyScorerNodeSettings.class);
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, EntropyScorerNodeSettings.class));
     }
 }
