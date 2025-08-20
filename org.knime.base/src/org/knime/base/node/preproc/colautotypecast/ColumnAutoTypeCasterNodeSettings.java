@@ -53,6 +53,7 @@ import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.migration.Migrate;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.updates.Effect;
@@ -62,7 +63,6 @@ import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
-import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider.StringColumnsProvider;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
@@ -73,13 +73,15 @@ import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinVa
  *
  * Replaces the legacy dialog by exposing the same parameters using the modern UI framework.
  *
- * - Column filter (string columns only), persisted under "column-filter".
- * - Date format (config key: "dateFormat").
- * - Missing value pattern (config key: "missingValuePattern").
- * - Quickscan toggle (config key: "doAQuickScan") and number of rows (config key: "numberOfRowsForQuickScan").
- * - Use legacy type names (config key: "useLegacyTypeNames").
+ * <ul>
+ * <li>Column filter (string columns only), persisted under "column-filter".</li>
+ * <li>Date format (config key: "dateFormat").</li>
+ * <li>Missing value pattern (config key: "missingValuePattern").</li>
+ * <li>Quickscan toggle (config key: "doAQuickScan") and number of rows (config key: "numberOfRowsForQuickScan").</li>
+ * <li>Use legacy type names (config key: "useLegacyTypeNames").</li>
+ * </ul>
  *
- * @since 5.x
+ * @since 5.7
  */
 @SuppressWarnings("restriction")
 final class ColumnAutoTypeCasterNodeSettings implements NodeParameters {
@@ -111,11 +113,11 @@ final class ColumnAutoTypeCasterNodeSettings implements NodeParameters {
     }
 
     @Persistor(ColumnFilterPersistor.class)
-    @Widget(title = "Column filter",
-        description = "Select the string columns to consider for automatic type casting. "
-            + "Only columns compatible with String are offered. The filter supports manual selection and wildcard/regex.")
+    @Widget(title = "Column filter", description = "Select the string columns to consider for automatic type casting. "
+        + "Only columns compatible with String are offered. The filter supports manual selection and wildcard/regex.")
     @ChoicesProvider(StringColumnsProvider.class)
     @Layout(ColumnsSection.class)
+    @Migrate(loadDefaultIfAbsent = true)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
     // Options
@@ -131,7 +133,8 @@ final class ColumnAutoTypeCasterNodeSettings implements NodeParameters {
     @Persist(configKey = ColumnAutoTypeCasterNodeModel.CFGKEY_MISSVALPAT)
     @Widget(title = "Missing value pattern",
         description = "Enter a missing value pattern applied to all included columns. "
-            + "Use '<none>' for no pattern (default) or '<empty>' for the empty string. Any other string will be treated as the pattern.")
+            + "Use '&lt;none&gt;' for no pattern (default) or '&lt;empty&gt;' for the empty string."
+            + " Any other string will be treated as the pattern.")
     @Layout(OptionsSection.class)
     String m_missingValuePattern = ColumnAutoTypeCasterNodeModel.MISSVALDESC_NONE; // "<none>"
 
@@ -149,7 +152,6 @@ final class ColumnAutoTypeCasterNodeSettings implements NodeParameters {
     @Widget(title = "Quickscan",
         description = "Speed up by determining the most specific type based only on the first N rows. "
             + "Note: With quickscan enabled this node may fail during execution if later rows contradict the inferred type.")
-    @ValueSwitchWidget
     @ValueReference(QuickScanRef.class)
     @Layout(OptionsSection.class)
     boolean m_quickScan;
@@ -167,7 +169,6 @@ final class ColumnAutoTypeCasterNodeSettings implements NodeParameters {
         description = "Output legacy type names like 'Number (double)' on the second port instead of identifiers "
             + "like 'org.knime.core.data.def.DoubleCell'. This resembles the old behavior but is discouraged as "
             + "type names may change in future versions.")
-    @ValueSwitchWidget
     @Layout(OptionsSection.class)
     boolean m_useLegacyTypeNames = true;
 }
