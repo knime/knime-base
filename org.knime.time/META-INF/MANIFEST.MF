@@ -17,7 +17,7 @@ Export-Package: org.knime.base.data.filter.row.dialog,
   org.knime.core.data.v2.time,
   org.knime.time.util
 Require-Bundle: org.knime.core;bundle-version="[5.7.0,6.0.0)",
- org.knime.base;bundle-version="[5.6.0,6.0.0)",
+ org.knime.base;bundle-version="[5.7.0,6.0.0)",
  org.apache.commons.lang3;bundle-version="[3.2.1,4.0.0)",
  com.toedter.jcalendar;bundle-version="[1.4.0,1.5.0)",
  org.knime.core.table;bundle-version="[5.6.0,6.0.0)",
