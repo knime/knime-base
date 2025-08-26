@@ -52,7 +52,12 @@ import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 
 /**
@@ -61,63 +66,86 @@ import org.knime.node.parameters.widget.text.TextInputWidget;
  * @author Alexander Fillbrunn, University of Konstanz
  * @author Iris Adae, University of Konstanz
  */
-@SuppressWarnings("restriction")
 public final class CrossJoinerNodeSettings implements NodeParameters {
 
     @Section(title = "General Settings")
     interface GeneralSection {
     }
-    
+
     @Section(title = "Row ID Settings")
     interface RowIdSection {
     }
 
+    /** Reference for the "Append top data table's RowIds" toggle. */
+    interface ShowFirstRowIdsRef extends ParameterReference<Boolean> {
+    }
+
+    /** Reference for the "Append bottom data table's RowIds" toggle. */
+    interface ShowSecondRowIdsRef extends ParameterReference<Boolean> {
+    }
+
+    /** Predicate provider: show dependent controls when first RowIDs should be appended. */
+    static final class ShowFirstRowIdsIsTrue implements EffectPredicateProvider {
+        @Override
+        public EffectPredicate init(final PredicateInitializer i) {
+            return i.getBoolean(ShowFirstRowIdsRef.class).isTrue();
+        }
+    }
+
+    /** Predicate provider: show dependent controls when second RowIDs should be appended. */
+    static final class ShowSecondRowIdsIsTrue implements EffectPredicateProvider {
+        @Override
+        public EffectPredicate init(final PredicateInitializer i) {
+            return i.getBoolean(ShowSecondRowIdsRef.class).isTrue();
+        }
+    }
+
     @Layout(GeneralSection.class)
-    @Widget(title = "Bottom table's column name suffix", 
-            description = "Suffix to append to duplicate column names from the bottom table")
+    @Widget(title = "Bottom table's column name suffix",
+        description = "Suffix to append to duplicate column names from the bottom table")
     @TextInputWidget
     @Persist(configKey = "rigthSuffix")
     public String rightColumnNameSuffix = " (#1)";
 
     @Layout(GeneralSection.class)
-    @Widget(title = "Separator for new RowIds", 
-            description = "String used to separate the row IDs when creating new row IDs")
+    @Widget(title = "Separator for new RowIds",
+        description = "String used to separate the row IDs when creating new row IDs")
     @TextInputWidget
     @Persist(configKey = "CFG_SEPARATOR")
     public String rowKeySeparator = "_";
 
     @Layout(GeneralSection.class)
-    @Widget(title = "Chunk size", 
-            description = "Number of rows to process in each chunk to control memory usage")
-    @NumberInputWidget(min = 1, max = Integer.MAX_VALUE)
+    @Widget(title = "Chunk size", description = "Number of rows to process in each chunk to control memory usage")
+    @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
     @Persist(configKey = "CFG_CACHE")
     public int cacheSize = 1;
 
     @Layout(RowIdSection.class)
-    @Widget(title = "Append top data table's RowIds", 
-            description = "If checked, the row IDs from the top input table will be appended as a new column")
+    @Widget(title = "Append top data table's RowIds",
+        description = "If checked, the row IDs from the top input table will be appended as a new column")
     @Persist(configKey = "CFG_SHOW_FIRST")
+    @ValueReference(ShowFirstRowIdsRef.class)
     public boolean showFirstRowIds = false;
 
     @Layout(RowIdSection.class)
-    @Widget(title = "Column name (top)", 
-            description = "Name of the column containing the row IDs from the top table")
+    @Widget(title = "Column name (top)", description = "Name of the column containing the row IDs from the top table")
     @TextInputWidget
-    @Effect(signals = "showFirstRowIds", type = EffectType.SHOW)
+    @Effect(predicate = ShowFirstRowIdsIsTrue.class, type = EffectType.SHOW)
     @Persist(configKey = "CFG_FIRST_COLUMNNAME")
     public String firstRowIdsColumnName = "FirstRowIDs";
 
     @Layout(RowIdSection.class)
-    @Widget(title = "Append bottom data table's RowIds", 
-            description = "If checked, the row IDs from the bottom input table will be appended as a new column")
+    @Widget(title = "Append bottom data table's RowIds",
+        description = "If checked, the row IDs from the bottom input table will be appended as a new column")
     @Persist(configKey = "CFG_SHOW_SECOND")
+    @ValueReference(ShowSecondRowIdsRef.class)
     public boolean showSecondRowIds = false;
 
     @Layout(RowIdSection.class)
-    @Widget(title = "Column name (bottom)", 
-            description = "Name of the column containing the row IDs from the bottom table")
+    @Widget(title = "Column name (bottom)",
+        description = "Name of the column containing the row IDs from the bottom table")
     @TextInputWidget
-    @Effect(signals = "showSecondRowIds", type = EffectType.SHOW)
+    @Effect(predicate = ShowSecondRowIdsIsTrue.class, type = EffectType.SHOW)
     @Persist(configKey = "CFG_SECOND_COLUMNNAME")
     public String secondRowIdsColumnName = "SecondRowIDs";
 }
