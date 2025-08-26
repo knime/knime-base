@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <config key="columns2Btransformed">
+        <entry key="filter-type" type="xstring" value="STANDARD"/>
+        <config key="included_names">
+            <entry key="array-size" type="xint" value="3"/>
+            <entry key="0" type="xstring" value="StringCol"/>
+            <entry key="1" type="xstring" value="BooleanCol"/>
+            <entry key="2" type="xstring" value="LongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnName"/>
+        </config>
+        <config key="excluded_names">
+            <entry key="array-size" type="xint" value="1"/>
+            <entry key="0" type="xstring" value="MissingValStringCol"/>
+        </config>
+        <entry key="enforce_option" type="xstring" value="EnforceExclusion"/>
+        <config key="name_pattern">
+            <entry key="pattern" type="xstring" value="String.*"/>
+            <entry key="caseSensitive" type="xboolean" value="true"/>
+            <entry key="excludeMatching" type="xboolean" value="false"/>
+            <entry key="type" type="xstring" value="Wildcard"/>
+        </config>
+        <config key="datatype">
+            <config key="typelist">
+                <entry key="org.knime.core.data.BooleanValue" type="xboolean" value="true"/>
+            </config>
+        </config>
+    </config>
+    <entry key="removeSources" type="xboolean" value="true"/>
+</config>

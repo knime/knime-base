@@ -91,7 +91,9 @@ public class One2ManyCol2PMMLNodeModel extends NodeModel {
 
     @SuppressWarnings("unchecked")
     private final SettingsModelColumnFilter2 m_includedColumns = new SettingsModelColumnFilter2(CFG_COLUMNS,
-        NominalValue.class);
+        // even though we restrict the twinlist to list NominalValue cells, we still want to be able to further filter
+        // based on type
+        true, NominalValue.class);
 
 
     // if several columns should be converted and the possible values

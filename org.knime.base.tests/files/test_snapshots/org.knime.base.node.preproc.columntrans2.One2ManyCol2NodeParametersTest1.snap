@@ -1,0 +1,225 @@
+{
+  "data" : {
+    "model" : {
+      "columnsToTransform" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "String.*",
+          "isCaseSensitive" : true,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "StringCol", "BooleanCol", "LongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnName" ],
+          "manuallyDeselected" : [ "MissingValStringCol" ],
+          "includeUnknownColumns" : true
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ "org.knime.core.data.BooleanValue" ],
+          "typeDisplays" : [ {
+            "id" : "org.knime.core.data.BooleanValue",
+            "text" : "Boolean"
+          } ]
+        }
+      },
+      "removeSources" : true
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnsToTransform" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Columns to transform",
+            "description" : "Select the nominal columns that should be included in the transformation.\nFor each included column extra columns are appended, one for each possible value.\nIf no column name appears in the dialog but your input table contains nominal columns,\nyou could use the Domain Calculator node and connect its output to this node.\n",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "removeSources" : {
+            "type" : "boolean",
+            "title" : "Remove included columns from output",
+            "description" : "When enabled, the original columns selected for transformation are removed from the output. The included columns are replaced by the new generated columns.",
+            "default" : false
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/columnsToTransform",
+      "options" : {
+        "format" : "typedStringFilter",
+        "unknownValuesText" : "Any unknown column",
+        "emptyStateLabel" : "No columns in this list.",
+        "includedLabel" : "Columns to transform",
+        "excludedLabel" : "Available columns"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/removeSources",
+      "options" : {
+        "format" : "checkbox"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnsToTransform" : {
+            "configPaths" : [ [ "columns2Btransformed", "filter-type" ], [ "columns2Btransformed", "included_names" ], [ "columns2Btransformed", "excluded_names" ], [ "columns2Btransformed", "enforce_option" ], [ "columns2Btransformed", "name_pattern", "pattern" ], [ "columns2Btransformed", "name_pattern", "type" ], [ "columns2Btransformed", "name_pattern", "caseSensitive" ], [ "columns2Btransformed", "name_pattern", "excludeMatching" ] ]
+          },
+          "removeSources" : {
+            "configKey" : "removeSources"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/columnsToTransform",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "StringCol",
+        "text" : "StringCol",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "BooleanCol",
+        "text" : "BooleanCol",
+        "type" : {
+          "id" : "org.knime.core.data.BooleanValue",
+          "text" : "Boolean"
+        }
+      }, {
+        "id" : "MissingValStringCol",
+        "text" : "MissingValStringCol",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "LongStringColumnNameLongStringColumnNameLongStringColumnName",
+        "text" : "LongStringColumnNameLongStringColumnNameLongStringColumnName",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ]
+}

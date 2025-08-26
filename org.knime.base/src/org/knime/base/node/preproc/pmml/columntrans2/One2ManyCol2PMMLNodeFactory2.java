@@ -45,19 +45,38 @@
  */
 package org.knime.base.node.preproc.pmml.columntrans2;
 
-import org.knime.base.node.preproc.columntrans2.One2ManyCol2NodeDialog;
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.base.node.preproc.columntrans2.One2ManyCol2NodeParameters;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
 
 /**
+ * Factory for the "One to Many (PMML)" node.
  *
  * @author Dominik Morent, University of Konstanz
  */
-public class One2ManyCol2PMMLNodeFactory2 extends NodeFactory<One2ManyCol2PMMLNodeModel> {
+@SuppressWarnings("restriction")
+public class One2ManyCol2PMMLNodeFactory2 extends NodeFactory<One2ManyCol2PMMLNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     /**
      * {@inheritDoc}
+     *
      * @since 2.8
      */
     @Override
@@ -75,11 +94,12 @@ public class One2ManyCol2PMMLNodeFactory2 extends NodeFactory<One2ManyCol2PMMLNo
 
     /**
      * {@inheritDoc}
+     *
      * @since 2.8
      */
     @Override
     public NodeView<One2ManyCol2PMMLNodeModel> createNodeView(final int viewIndex,
-            final One2ManyCol2PMMLNodeModel nodeModel) {
+        final One2ManyCol2PMMLNodeModel nodeModel) {
         return null;
     }
 
@@ -96,7 +116,52 @@ public class One2ManyCol2PMMLNodeFactory2 extends NodeFactory<One2ManyCol2PMMLNo
      */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new One2ManyCol2NodeDialog();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
 
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, One2ManyCol2NodeParameters.class);
+    }
+
+    private static final String FULL_DESCRIPTION = """
+            Transforms all possible values in a selected column each
+            into a new column. The value is set as the new column's name,
+            the cell values in that column are either 1, if that row
+            contains this possible value, or 0 if not.<br />
+            The node appends as many columns as possible values are
+            defined for the selected column(s).<br />
+            If a row contains a missing value in a selected column all
+            corresponding new columns contain the value 0.<br />
+            To avoid duplicate column names with identical possible values
+            in different selected columns, the generated column name
+            includes the original column name in this case (i. e.
+            the name looks like possibleValue_originalColumnName).<br />
+            The dialog of the node allows you only to select columns with
+            nominal values. If no column name appears in the dialog but your
+            input table contains nominal columns, you could use the DomainCalculator
+            node and connect its output to this node.
+            """;
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription("One to Many (PMML)", //
+            "./one2many.png", //
+            List.of(fixedPort("Data", "Data to process.")), //
+            List.of(fixedPort("Processed data", "Data with transformed columns"),
+                fixedPort("Transformed PMML input", "PMML port object that includes the performed operations.")), //
+            "Transforms the values of one column into appended columns.", //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            One2ManyCol2NodeParameters.class, //
+            null, //
+            NodeType.Manipulator, //
+            List.of(), //
+            null);
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, One2ManyCol2NodeParameters.class));
+    }
 }
