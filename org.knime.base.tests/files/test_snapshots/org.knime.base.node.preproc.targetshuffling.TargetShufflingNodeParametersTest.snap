@@ -1,0 +1,155 @@
+{
+  "data" : {
+    "model" : {
+      "columnName" : "Iteration",
+      "useSeed" : false,
+      "seed" : "0"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnName" : {
+            "type" : "string",
+            "title" : "Column to shuffle",
+            "description" : "Select the column whose values should be randomly shuffled. This breaks the relationship between this column and other columns in the table, which is useful for creating negative controls in machine learning experiments.",
+            "default" : "Iteration"
+          },
+          "drawSeed" : {
+            "type" : "object",
+            "title" : "Draw seed",
+            "description" : "Generate a random seed and set it in the Random seed input above for reproducible runs."
+          },
+          "seed" : {
+            "type" : "string",
+            "title" : "Random seed",
+            "description" : "The seed value used for random number generation. Use the same seed to get identical shuffling results across multiple executions. You can enter a custom value or use the random seed generation button below.",
+            "default" : "0"
+          },
+          "useSeed" : {
+            "type" : "boolean",
+            "title" : "Use seed",
+            "description" : "When enabled, the shuffling will use a fixed seed value, making the randomization reproducible across multiple executions. When disabled, each execution will produce different random shuffling results.",
+            "default" : false
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/columnName",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/useSeed",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/seed",
+      "options" : {
+        "validation" : {
+          "pattern" : {
+            "errorMessage" : "Please enter a valid integer number between -9223372036854775808 to 9223372036854775807.",
+            "parameters" : {
+              "pattern" : "[+-]?(0|[1-9][0-9]{0,18})"
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/useSeed",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/drawSeed",
+      "options" : {
+        "format" : "simpleButton",
+        "triggerId" : "org.knime.base.node.preproc.targetshuffling.TargetShufflingNodeParameters$DrawSeedButtonRef"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/useSeed",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnName" : { },
+          "useSeed" : {
+            "configKey" : "useSeed"
+          },
+          "seed" : {
+            "configPaths" : [ [ "seed" ] ]
+          },
+          "drawSeed" : { }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/columnName",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Iteration",
+        "text" : "Iteration",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Value",
+        "text" : "Value",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Target",
+        "text" : "Target",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/columnName" ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.preproc.targetshuffling.TargetShufflingNodeParameters$DrawSeedButtonRef"
+    },
+    "dependencies" : [ ]
+  } ]
+}

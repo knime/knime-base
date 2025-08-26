@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -44,94 +45,61 @@
  */
 package org.knime.base.node.preproc.targetshuffling;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * This class holds the settings for the y-scrambling node.
+ * Snapshot test for {@link TargetShufflingNodeParameters}.
  *
- * @author Thorsten Meinl, University of Konstanz
- * @author Tim-Oliver Buchholz, University of Konstanz
+ * @author Ali Asghar Marvin, KNIME AG, Zurich, Switzerland
  */
-class TargetShufflingSettings {
-    static final String CFGKEY_COLUMNNAME = "columnName";
-    static final String CFGKEY_SEED = "seed";
-    static final String CFGKEY_USESEED = "useSeed";
-    private String m_columnName;
-    private boolean m_useSeed;
-    private long m_seed;
+final class TargetShufflingNodeParametersTest extends DefaultNodeSettingsSnapshotTest {
 
-
-    /**
-     * Returns the choosen column name.
-     *
-     * @return the column name
-     */
-    public String columnName() {
-        return m_columnName;
+    TargetShufflingNodeParametersTest() {
+        super(getConfig());
     }
 
-    /**
-     * Sets the choosen column name.
-     *
-     * @param name the column name
-     */
-    public void columnName(final String name) {
-        m_columnName = name;
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .withInputPortObjectSpecs(createInputPortSpecs()) //
+            .testJsonFormsForModel(TargetShufflingNodeParameters.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
     }
 
-    /**
-     * Loads the settings from the node settings object.
-     *
-     * @param settings the node settings
-     *
-     * @throws InvalidSettingsException if one of the settings is missing
-     */
-    public void loadSettingsFrom(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
-        m_columnName = settings.getString(CFGKEY_COLUMNNAME);
-        m_seed = settings.getLong(CFGKEY_SEED);
-        m_useSeed = settings.getBoolean(CFGKEY_USESEED);
+    private static TargetShufflingNodeParameters readSettings() {
+        try {
+            var path = getSnapshotPath(TargetShufflingNodeParameters.class).getParent().resolve("node_settings")
+                .resolve("TargetShufflingNodeParameters.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return NodeParametersUtil.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    TargetShufflingNodeParameters.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
-
-    /**
-     * Saves the settings to the node settings object.
-     *
-     * @param settings the node settings
-     */
-    public void saveSettingsTo(final NodeSettingsWO settings) {
-        settings.addString(CFGKEY_COLUMNNAME, m_columnName);
-        settings.addLong(CFGKEY_SEED, m_seed);
-        settings.addBoolean(CFGKEY_USESEED, m_useSeed);
+    private static PortObjectSpec[] createInputPortSpecs() {
+        return new PortObjectSpec[]{createDefaultTestTableSpec()};
     }
 
-    /**
-     * @return the useSeed
-     */
-    public boolean getUseSeed() {
-        return m_useSeed;
-    }
-
-    /**
-     * @param useSeed the useSeed to set
-     */
-    public void setUseSeed(final boolean useSeed) {
-        m_useSeed = useSeed;
-    }
-
-    /**
-     * @return the seed
-     */
-    public long getSeed() {
-        return m_seed;
-    }
-
-    /**
-     * @param l the seed to set
-     */
-    public void setSeed(final long l) {
-        m_seed = l;
+    private static DataTableSpec createDefaultTestTableSpec() {
+        return new DataTableSpec(new String[]{"Iteration", "Value", "Target"},
+            new DataType[]{DataType.getType(StringCell.class), DataType.getType(StringCell.class),
+                DataType.getType(StringCell.class)});
     }
 }
