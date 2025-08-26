@@ -47,11 +47,13 @@ package org.knime.base.node.preproc.columntrans2;
 
 import org.knime.base.node.preproc.pmml.columntrans2.One2ManyCol2PMMLNodeModel;
 import org.knime.core.data.NominalValue;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 import org.knime.node.parameters.widget.choices.filter.TwinlistWidget;
@@ -82,6 +84,12 @@ final class One2ManyCol2NodeSettings implements NodeParameters {
         }
     }
 
+    static final class ColumnsToTransformPersistor extends LegacyColumnFilterPersistor {
+        ColumnsToTransformPersistor() {
+            super(One2ManyCol2PMMLNodeModel.CFG_COLUMNS);
+        }
+    }
+
     @Widget(title = "Columns to transform", description = """
             Select the nominal columns that should be included in the transformation.
             For each included column extra columns are appended, one for each possible value.
@@ -91,7 +99,7 @@ final class One2ManyCol2NodeSettings implements NodeParameters {
     @ChoicesProvider(NominalColumnsProvider.class)
     @TwinlistWidget(excludedLabel = "Available columns", includedLabel = "Columns to transform")
     @Layout(ColumnSelectionSection.class)
-    @Persist(configKey = One2ManyCol2PMMLNodeModel.CFG_COLUMNS)
+    @Persistor(ColumnsToTransformPersistor.class)
     ColumnFilter m_columnsToTransform;
 
     @Widget(title = "Remove included columns from output",
