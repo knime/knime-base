@@ -102,6 +102,7 @@ public class UngroupNodeFactory extends NodeFactory<UngroupNodeModel> implements
 
     /**
      * {@inheritDoc}
+     * @since 5.7
      */
     @Override
     public NodeDialog createNodeDialog() {
