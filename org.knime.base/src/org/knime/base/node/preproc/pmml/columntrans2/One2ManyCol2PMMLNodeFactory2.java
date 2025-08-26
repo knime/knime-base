@@ -49,15 +49,21 @@ import org.knime.base.node.preproc.columntrans2.One2ManyCol2NodeDialog;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 
 /**
  *
  * @author Dominik Morent, University of Konstanz
  */
-public class One2ManyCol2PMMLNodeFactory2 extends NodeFactory<One2ManyCol2PMMLNodeModel> {
+public class One2ManyCol2PMMLNodeFactory2 extends NodeFactory<One2ManyCol2PMMLNodeModel> implements NodeDialogFactory {
 
     /**
      * {@inheritDoc}
+     * 
      * @since 2.8
      */
     @Override
@@ -75,11 +81,12 @@ public class One2ManyCol2PMMLNodeFactory2 extends NodeFactory<One2ManyCol2PMMLNo
 
     /**
      * {@inheritDoc}
+     * 
      * @since 2.8
      */
     @Override
     public NodeView<One2ManyCol2PMMLNodeModel> createNodeView(final int viewIndex,
-            final One2ManyCol2PMMLNodeModel nodeModel) {
+        final One2ManyCol2PMMLNodeModel nodeModel) {
         return null;
     }
 
@@ -96,7 +103,15 @@ public class One2ManyCol2PMMLNodeFactory2 extends NodeFactory<One2ManyCol2PMMLNo
      */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new One2ManyCol2NodeDialog();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, One2ManyCol2PMMLNodeSettings2.class);
     }
 
 }
