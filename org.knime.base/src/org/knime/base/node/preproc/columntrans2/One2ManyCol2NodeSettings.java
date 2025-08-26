@@ -45,84 +45,59 @@
  */
 package org.knime.base.node.preproc.columntrans2;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
-import org.knime.core.webui.node.dialog.NodeDialog;
-import org.knime.core.webui.node.dialog.NodeDialogFactory;
-import org.knime.core.webui.node.dialog.NodeDialogManager;
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.base.node.preproc.pmml.columntrans2.One2ManyCol2PMMLNodeModel;
+import org.knime.core.data.NominalValue;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.node.parameters.widget.choices.filter.TwinlistWidget;
+import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider;
 
 /**
+ * Settings for the "One to Many" node.
  *
- * @author Fabian Dill, University of Konstanz
+ * @author AI Migration Assistant
  */
-public class One2ManyCol2NodeFactory extends NodeFactory<One2ManyCol2NodeModel> implements NodeDialogFactory {
+@SuppressWarnings("restriction")
+final class One2ManyCol2NodeSettings implements NodeParameters {
 
-    /**
-     *
-     */
-    public One2ManyCol2NodeFactory() {
-        super();
+    @Section(title = "Column Selection")
+    interface ColumnSelectionSection {
     }
 
-    /**
-     * {@inheritDoc}
-     * @since 2.8
-     */
-    @Override
-    public One2ManyCol2NodeModel createNodeModel() {
-        return new One2ManyCol2NodeModel();
+    @Section(title = "Output Options")
+    @org.knime.node.parameters.layout.After(ColumnSelectionSection.class)
+    interface OutputOptionsSection {
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
+    static final class NominalColumnsProvider implements CompatibleColumnsProvider {
+        @Override
+        public Class<?> getColumnType() {
+            return NominalValue.class;
+        }
     }
 
+    @Widget(title = "Columns to transform", 
+            description = """
+                    Select the nominal columns that should be included in the transformation. 
+                    For each included column extra columns are appended, one for each possible value. 
+                    If no column name appears in the dialog but your input table contains nominal columns, 
+                    you could use the Domain Calculator node and connect its output to this node.
+                    """)
+    @ChoicesProvider(NominalColumnsProvider.class)
+    @TwinlistWidget(excludedLabel = "Available columns", includedLabel = "Columns to transform")
+    @Layout(ColumnSelectionSection.class)
+    @Persist(configKey = One2ManyCol2PMMLNodeModel.CFG_COLUMNS)
+    ColumnFilter m_columnsToTransform;
 
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasNodeDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeDialog createNodeDialog() {
-        return new DefaultNodeDialog(SettingsType.MODEL, One2ManyCol2NodeSettings.class);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<One2ManyCol2NodeModel> createNodeView(final int viewIndex, final One2ManyCol2NodeModel nodeModel) {
-        return null;
-    }
+    @Widget(title = "Remove included columns from output", 
+            description = "When enabled, the original columns selected for transformation are removed from the output. "
+                         + "The included columns are replaced by the new generated columns.")
+    @Layout(OutputOptionsSection.class)
+    @Persist(configKey = One2ManyCol2PMMLNodeModel.CFG_REMOVESOURCES)
+    boolean m_removeSources = false;
 }
