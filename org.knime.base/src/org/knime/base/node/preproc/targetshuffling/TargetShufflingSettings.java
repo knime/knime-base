@@ -55,9 +55,9 @@ import org.knime.core.node.NodeSettingsWO;
  * @author Tim-Oliver Buchholz, University of Konstanz
  */
 class TargetShufflingSettings {
-    private static final String CFGKEY_COLUMNNAME = "columnName";
-    private static final String CFGKEY_SEED = "seed";
-    private static final String CFGKEY_USESEED = "useSeed";
+    static final String CFGKEY_COLUMNNAME = "columnName";
+    static final String CFGKEY_SEED = "seed";
+    static final String CFGKEY_USESEED = "useSeed";
     private String m_columnName;
     private boolean m_useSeed;
     private long m_seed;
