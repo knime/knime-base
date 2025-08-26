@@ -51,11 +51,11 @@ package org.knime.base.node.preproc.colconvert.numbertostring2;
 import static org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil.getDoubleColumnsOfFirstPort;
 
 import org.knime.base.node.preproc.pmml.numbertostring3.AbstractNumberToStringNodeModel;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.persistence.legacy.LegacyColumnFilterPersistor;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider.DoubleColumnsProvider;
