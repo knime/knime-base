@@ -62,7 +62,6 @@ import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider;
  *
  * @author AI Migration Assistant
  */
-@SuppressWarnings("restriction")
 final class One2ManyCol2NodeSettings implements NodeParameters {
 
     @Section(title = "Column Selection")
@@ -74,29 +73,30 @@ final class One2ManyCol2NodeSettings implements NodeParameters {
     interface OutputOptionsSection {
     }
 
-    static final class NominalColumnsProvider implements CompatibleColumnsProvider {
-        @Override
-        public Class<?> getColumnType() {
-            return NominalValue.class;
+    static final class NominalColumnsProvider extends CompatibleColumnsProvider {
+        /**
+         * Needed for reflection.
+         */
+        protected NominalColumnsProvider() {
+            super(NominalValue.class);
         }
     }
 
-    @Widget(title = "Columns to transform", 
-            description = """
-                    Select the nominal columns that should be included in the transformation. 
-                    For each included column extra columns are appended, one for each possible value. 
-                    If no column name appears in the dialog but your input table contains nominal columns, 
-                    you could use the Domain Calculator node and connect its output to this node.
-                    """)
+    @Widget(title = "Columns to transform", description = """
+            Select the nominal columns that should be included in the transformation.
+            For each included column extra columns are appended, one for each possible value.
+            If no column name appears in the dialog but your input table contains nominal columns,
+            you could use the Domain Calculator node and connect its output to this node.
+            """)
     @ChoicesProvider(NominalColumnsProvider.class)
     @TwinlistWidget(excludedLabel = "Available columns", includedLabel = "Columns to transform")
     @Layout(ColumnSelectionSection.class)
     @Persist(configKey = One2ManyCol2PMMLNodeModel.CFG_COLUMNS)
     ColumnFilter m_columnsToTransform;
 
-    @Widget(title = "Remove included columns from output", 
-            description = "When enabled, the original columns selected for transformation are removed from the output. "
-                         + "The included columns are replaced by the new generated columns.")
+    @Widget(title = "Remove included columns from output",
+        description = "When enabled, the original columns selected for transformation are removed from the output. "
+            + "The included columns are replaced by the new generated columns.")
     @Layout(OutputOptionsSection.class)
     @Persist(configKey = One2ManyCol2PMMLNodeModel.CFG_REMOVESOURCES)
     boolean m_removeSources = false;

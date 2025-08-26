@@ -69,6 +69,7 @@ public class One2ManyCol2NodeFactory extends NodeFactory<One2ManyCol2NodeModel> 
 
     /**
      * {@inheritDoc}
+     * 
      * @since 2.8
      */
     @Override
@@ -83,8 +84,6 @@ public class One2ManyCol2NodeFactory extends NodeFactory<One2ManyCol2NodeModel> 
     protected int getNrNodeViews() {
         return 0;
     }
-
-
 
     /**
      * {@inheritDoc}
