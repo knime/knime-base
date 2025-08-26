@@ -55,13 +55,25 @@ import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
+import org.knime.node.parameters.widget.credentials.Credentials;
 import org.knime.node.parameters.widget.credentials.CredentialsWidget;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
-import org.knime.node.parameters.widget.text.PasswordWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 import org.knime.node.parameters.widget.text.TextAreaWidget;
 import org.knime.node.parameters.widget.text.TextInputWidget;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
 
 /**
  * Settings for the Send Email node.
@@ -91,6 +103,47 @@ public final class SendMailNodeSettings implements NodeParameters {
     interface AdvancedSection {
     }
 
+    // References for predicates
+    interface UseAuthenticationRef extends ParameterReference<Boolean> {
+    }
+
+    interface UseCredentialsRef extends ParameterReference<Boolean> {
+    }
+
+    // Predicate providers
+    static final class UseAuthenticationIsTrue implements EffectPredicateProvider {
+        @Override
+        public EffectPredicate init(final PredicateInitializer i) {
+            return i.getBoolean(UseAuthenticationRef.class).isTrue();
+        }
+    }
+
+    static final class AuthAndCredentials implements EffectPredicateProvider {
+        @Override
+        public EffectPredicate init(final PredicateInitializer i) {
+            return and(
+                i.getBoolean(UseAuthenticationRef.class).isTrue(),
+                i.getBoolean(UseCredentialsRef.class).isTrue());
+        }
+    }
+
+    static final class AuthAndNotCredentials implements EffectPredicateProvider {
+        @Override
+        public EffectPredicate init(final PredicateInitializer i) {
+            return and(
+                i.getBoolean(UseAuthenticationRef.class).isTrue(),
+                i.getBoolean(UseCredentialsRef.class).isFalse());
+        }
+    }
+
+    // Custom number validations
+    static final class PortMaxValidation extends NumberInputWidgetValidation.MaxValidation {
+        @Override
+        public double getMax() {
+            return 65535.0;
+        }
+    }
+
     // SMTP Settings
     @Layout(SmtpSection.class)
     @Widget(title = "SMTP Host", description = "The SMTP server hostname")
@@ -100,7 +153,7 @@ public final class SendMailNodeSettings implements NodeParameters {
 
     @Layout(SmtpSection.class)
     @Widget(title = "Port", description = "The SMTP server port")
-    @NumberInputWidget(min = 1, max = 65535)
+    @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class, maxValidation = PortMaxValidation.class)
     @Persist(configKey = "smtp_port")
     public int smtpPort = 25;
 
@@ -114,34 +167,50 @@ public final class SendMailNodeSettings implements NodeParameters {
     @Layout(AuthSection.class)
     @Widget(title = "Use authentication", description = "Check if SMTP server requires authentication")
     @Persist(configKey = "use_authentication")
+    @ValueReference(UseAuthenticationRef.class)
     public boolean useAuthentication = false;
 
     @Layout(AuthSection.class)
     @Widget(title = "Use credentials", description = "Use credentials from Credentials input port instead of username/password")
-    @Effect(signals = "useAuthentication", type = EffectType.SHOW)
+    @Effect(predicate = UseAuthenticationIsTrue.class, type = EffectType.SHOW)
     @Persist(configKey = "use_credentials")
+    @ValueReference(UseCredentialsRef.class)
     public boolean useCredentials = false;
 
     @Layout(AuthSection.class)
     @Widget(title = "Credentials ID", description = "The ID of the credentials to use")
     @TextInputWidget
-    @Effect(signals = {"useAuthentication", "useCredentials"}, type = EffectType.SHOW)
+    @Effect(predicate = AuthAndCredentials.class, type = EffectType.SHOW)
     @Persist(configKey = "credentials_id")
     public String credentialsId = "";
 
-    @Layout(AuthSection.class)
-    @Widget(title = "Username", description = "SMTP authentication username")
-    @TextInputWidget
-    @Effect(signals = {"useAuthentication", "!useCredentials"}, type = EffectType.SHOW)
-    @Persist(configKey = "smtp_user")
-    public String smtpUser = "";
+    /** Persistor to map a Credentials widget to legacy separate username/password keys. */
+    static final class UsernamePasswordPersistor implements NodeParametersPersistor<Credentials> {
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][] {{"smtp_user"}, {"smtp_password"}};
+        }
+
+        @Override
+        public Credentials load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            final var user = settings.getString("smtp_user", "");
+            final var pass = settings.getString("smtp_password", "");
+            return new Credentials(user, pass);
+        }
+
+        @Override
+        public void save(final Credentials value, final NodeSettingsWO settings) {
+            settings.addString("smtp_user", value.getUsername());
+            settings.addString("smtp_password", value.getPassword());
+        }
+    }
 
     @Layout(AuthSection.class)
-    @Widget(title = "Password", description = "SMTP authentication password")
-    @PasswordWidget
-    @Effect(signals = {"useAuthentication", "!useCredentials"}, type = EffectType.SHOW)
-    @Persist(configKey = "smtp_password")
-    public String smtpPassword = "";
+    @Widget(title = "Credentials", description = "SMTP authentication credentials")
+    @CredentialsWidget(usernameLabel = "Username", passwordLabel = "Password")
+    @Effect(predicate = AuthAndNotCredentials.class, type = EffectType.SHOW)
+    @Persistor(UsernamePasswordPersistor.class)
+    public Credentials smtpCredentials = new Credentials();
 
     // Recipients
     @Layout(RecipientsSection.class)
@@ -202,13 +271,13 @@ public final class SendMailNodeSettings implements NodeParameters {
     // Advanced Settings
     @Layout(AdvancedSection.class)
     @Widget(title = "Connection Timeout (ms)", description = "SMTP connection timeout in milliseconds")
-    @NumberInputWidget(min = 0, max = Integer.MAX_VALUE)
+    @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
     @Persist(configKey = "smtp_connection_timeout")
     public int smtpConnectionTimeout = 2000;
 
     @Layout(AdvancedSection.class)
     @Widget(title = "Read Timeout (ms)", description = "SMTP read timeout in milliseconds")
-    @NumberInputWidget(min = 0, max = Integer.MAX_VALUE)
+    @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
     @Persist(configKey = "smtp_read_timeout")
     public int smtpReadTimeout = 30000;
 }
