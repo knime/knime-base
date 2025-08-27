@@ -1,0 +1,454 @@
+{
+  "data" : {
+    "model" : {
+      "possibleValuesColumns" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : false
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "possibleValuesUnselectedHandling" : "RETAIN",
+      "maxPossibleValues" : 60,
+      "minMaxColumns" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : false
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "minMaxUnselectedHandling" : "RETAIN"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "maxPossibleValues" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int32",
+            "title" : "Maximum number of possible values",
+            "description" : "Restrict the number of different values that will be determined for each column.\nIf a column has more possible values than this limit, all values will be discarded and the column's\nmetadata won't support querying possible values. Leave unchecked for unlimited values.\n",
+            "default" : 60
+          },
+          "minMaxColumns" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Columns",
+            "description" : "    Select all columns for which min and max values shall be determined. The\n    default dialog option includes all &quot;boundable&quot; columns, for\n    instance numeric ones.\n",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "minMaxUnselectedHandling" : {
+            "oneOf" : [ {
+              "const" : "RETAIN",
+              "title" : "Retain domain"
+            }, {
+              "const" : "DROP",
+              "title" : "Drop domain"
+            } ],
+            "title" : "Excluded columns",
+            "description" : "    Choose what to do with the min/max domain information for columns in the exclude list.\n    You can either retain the existing min/max domain from the input table or drop it completely.\n",
+            "default" : "RETAIN"
+          },
+          "possibleValuesColumns" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Columns",
+            "description" : "Include the columns, for which possible values shall be determined and\nbe put in the table specification. The default dialog option selects\nall columns, which can represent themselves as String. For all\nnon-selected columns (the Exclude list) the possible value domain will\nbe dropped or retained, depending on the selection of the corresponding\nbuttons below the Exclude list.\n",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "possibleValuesUnselectedHandling" : {
+            "oneOf" : [ {
+              "const" : "RETAIN",
+              "title" : "Retain domain"
+            }, {
+              "const" : "DROP",
+              "title" : "Drop domain"
+            } ],
+            "title" : "Excluded columns",
+            "description" : "Choose what to do with the possible value domain for columns in the exclude list.\nYou can either retain the existing domain information from the input table or drop it completely.\n",
+            "default" : "RETAIN"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Possible values",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/possibleValuesColumns",
+        "options" : {
+          "format" : "typedStringFilter",
+          "unknownValuesText" : "Any unknown column",
+          "emptyStateLabel" : "No columns in this list.",
+          "includedLabel" : "Calculate possible values",
+          "excludedLabel" : "Do not calculate"
+        },
+        "providedOptions" : [ "possibleValues" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/possibleValuesUnselectedHandling",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/maxPossibleValues",
+        "options" : {
+          "validation" : {
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 2.147483647E9
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 1.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : 1.0
+              }
+            }
+          },
+          "hideOnNull" : true
+        },
+        "providedOptions" : [ "default" ]
+      } ]
+    }, {
+      "label" : "Minimum & maximum values",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/minMaxColumns",
+        "options" : {
+          "format" : "typedStringFilter",
+          "unknownValuesText" : "Any unknown column",
+          "emptyStateLabel" : "No columns in this list.",
+          "includedLabel" : "Calculate min/max values",
+          "excludedLabel" : "Do not calculate"
+        },
+        "providedOptions" : [ "possibleValues" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/minMaxUnselectedHandling",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "possibleValuesColumns" : {
+            "configPaths" : [ [ "colFilter_possVals", "filter-type" ], [ "colFilter_possVals", "included_names" ], [ "colFilter_possVals", "excluded_names" ], [ "colFilter_possVals", "enforce_option" ], [ "colFilter_possVals", "name_pattern", "pattern" ], [ "colFilter_possVals", "name_pattern", "type" ], [ "colFilter_possVals", "name_pattern", "caseSensitive" ], [ "colFilter_possVals", "name_pattern", "excludeMatching" ] ]
+          },
+          "possibleValuesUnselectedHandling" : {
+            "configPaths" : [ [ "possible_values_unselected_retain" ] ]
+          },
+          "maxPossibleValues" : {
+            "configPaths" : [ [ "max_poss_values" ] ]
+          },
+          "minMaxColumns" : {
+            "configPaths" : [ [ "colFilter_minMax", "filter-type" ], [ "colFilter_minMax", "included_names" ], [ "colFilter_minMax", "excluded_names" ], [ "colFilter_minMax", "enforce_option" ], [ "colFilter_minMax", "name_pattern", "pattern" ], [ "colFilter_minMax", "name_pattern", "type" ], [ "colFilter_minMax", "name_pattern", "caseSensitive" ], [ "colFilter_minMax", "name_pattern", "excludeMatching" ] ]
+          },
+          "minMaxUnselectedHandling" : {
+            "configPaths" : [ [ "min_max_unselected_retain" ] ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/maxPossibleValues",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : 60
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/minMaxColumns",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "IntCol",
+        "text" : "IntCol",
+        "type" : {
+          "id" : "org.knime.core.data.IntValue",
+          "text" : "Number (Integer)"
+        }
+      }, {
+        "id" : "DoubleCol",
+        "text" : "DoubleCol",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "BoolCol",
+        "text" : "BoolCol",
+        "type" : {
+          "id" : "org.knime.core.data.BooleanValue",
+          "text" : "Boolean"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/possibleValuesColumns",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "StringCol",
+        "text" : "StringCol",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "BoolCol",
+        "text" : "BoolCol",
+        "type" : {
+          "id" : "org.knime.core.data.BooleanValue",
+          "text" : "Boolean"
+        }
+      } ]
+    } ]
+  } ]
+}

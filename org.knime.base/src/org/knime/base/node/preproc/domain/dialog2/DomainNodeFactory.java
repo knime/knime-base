@@ -1,4 +1,4 @@
-/* 
+/*
  * ------------------------------------------------------------------------
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
@@ -41,62 +41,49 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * -------------------------------------------------------------------
- * 
+ *
  * History
  *   Aug 12, 2006 (wiswedel): created
  */
 package org.knime.base.node.preproc.domain.dialog2;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
- * 
+ * Factory for the Domain Calculator node using the WebUINodeFactory pattern.
+ *
  * @author wiswedel, University of Konstanz
  */
-public class DomainNodeFactory extends NodeFactory {
+@SuppressWarnings({"restriction", "deprecation"}) // DefaultNode is not useful here
+public final class DomainNodeFactory extends WebUINodeFactory<DomainNodeModel> {
+
+    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()
+        .name("Domain Calculator")
+        .icon("./domain.png")
+        .shortDescription("Determines domain information of selected columns.")
+        .fullDescription("""
+            Scans the data and updates the possible values list and/or the min- and max values of selected columns.
+            This node is useful when the domain information of the data has changed and must be updated in the table
+            specification, for instance, the domain information as contained in a table spec may be void when a row
+            filtering (e.g. outlier removal) is carried out.
+            """)
+        .modelSettingsClass(DomainNodeParameters.class)
+        .addInputTable("Input Data", "Any input data")
+        .addOutputTable("Output Data", "Input data with corrected specification")
+        .nodeType(NodeType.Manipulator)
+        // already existing node does not get an @since version
+        .build();
 
     /**
-     * {@inheritDoc}
+     * Create the DomainNodeFactory using the WebUINodeFactory pattern.
      */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new DomainNodeDialogPane();
+    public DomainNodeFactory() {
+        super(CONFIG);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public NodeModel createNodeModel() {
+    public DomainNodeModel createNodeModel() {
         return new DomainNodeModel();
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView createNodeView(
-            final int viewIndex, final NodeModel nodeModel) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
 }

@@ -61,7 +61,7 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.DomainCreatorColumnSelection;
 import org.knime.core.data.NominalValue;
-import org.knime.core.data.container.DataContainer;
+import org.knime.core.data.container.DataContainerSettings;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -79,11 +79,11 @@ import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
  *
  * @author wiswedel, University of Konstanz
  */
-public class DomainNodeModel extends NodeModel {
+final class DomainNodeModel extends NodeModel {
 
     /** Config identifier for columns for which possible values
      * must be determined. */
-    static final String CFG_POSSVAL_COLS = "possible_values_columns";
+    static final String CFG_POSSVAL_COLS = "colFilter_possVals";
 
     /** Config identifier whether possible value domain should be retained
      * for non-selected columns (will otherwise be dropped). */
@@ -92,22 +92,21 @@ public class DomainNodeModel extends NodeModel {
 
     /** Config identifier for columns for which min and max values
      * must be determined. */
-    static final String CFG_MIN_MAX_COLS = "min_max_columns";
+    static final String CFG_MIN_MAX_COLS = "colFilter_minMax";
 
     /** Config identifier whether min/max values should be retained
      * for non-selected columns (will otherwise be dropped). */
     static final String CFG_MIN_MAX_RETAIN_UNSELECTED =
         "min_max_unselected_retain";
 
-    /** Config identifier for columns for which min and max values
-     * must be determined. */
+    /** Config identifier for maximum number of possible values that should be calculated. */
     static final String CFG_MAX_POSS_VALUES = "max_poss_values";
 
     private DataColumnSpecFilterConfiguration m_possValConfig;
     private DataColumnSpecFilterConfiguration m_minMaxConfig;
     private boolean m_possValRetainUnselected = true;
     private boolean m_minMaxRetainUnselected = true;
-    private int m_maxPossValues = DataContainer.MAX_POSSIBLE_VALUES;
+    private int m_maxPossValues = DataContainerSettings.MAX_POSSIBLE_VALUES;
 
     /** Constructor, inits one input, one output. */
     public DomainNodeModel() {
@@ -303,7 +302,7 @@ public class DomainNodeModel extends NodeModel {
      * @return filter configuration
      */
     static final DataColumnSpecFilterConfiguration createDCSFilterConfigurationPossVals() {
-        return new DataColumnSpecFilterConfiguration("colFilter_possVals");
+        return new DataColumnSpecFilterConfiguration(CFG_POSSVAL_COLS);
     }
 
     /**
@@ -312,7 +311,7 @@ public class DomainNodeModel extends NodeModel {
      * @return filter configuration
      */
     static final DataColumnSpecFilterConfiguration createDCSFilterConfigurationMinMax() {
-        return new DataColumnSpecFilterConfiguration("colFilter_minMax");
+        return new DataColumnSpecFilterConfiguration(CFG_MIN_MAX_COLS);
     }
 }
 
