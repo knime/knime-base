@@ -41,20 +41,12 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * -------------------------------------------------------------------
- *
- * History
- *   Aug 12, 2006 (wiswedel): created
  */
 package org.knime.base.node.preproc.domain.dialog2;
 
-import java.util.List;
-import java.util.Optional;
-
 import org.knime.core.data.BoundedValue;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataValue;
 import org.knime.core.data.NominalValue;
-import org.knime.core.data.container.DataContainer;
+import org.knime.core.data.container.DataContainerSettings;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -67,12 +59,17 @@ import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
-import org.knime.node.parameters.widget.OptionalWidget;
-import org.knime.node.parameters.widget.choices.ChoicesProvider;
-import org.knime.node.parameters.widget.choices.EnumChoice;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.Label;
-import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilterWidget;
+import org.knime.node.parameters.widget.choices.filter.TwinlistWidget;
 import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
 import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
@@ -80,18 +77,12 @@ import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinVa
 /**
  * Settings for the Domain Calculator node.
  *
- * @author wiswedel, University of Konstanz
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-@Layout(DomainNodeSettings.PossibleValuesSection.class)
-public final class DomainNodeSettings implements NodeParameters {
+final class DomainNodeSettings implements NodeParameters {
 
-    /**
-     * Constructor for persistence and conversion from JSON.
-     */
-    public DomainNodeSettings() {
-        // Default constructor
-    }
+    // ====== Layout
 
     @Section(title = "Possible Values")
     interface PossibleValuesSection {
@@ -99,85 +90,98 @@ public final class DomainNodeSettings implements NodeParameters {
 
     @Section(title = "Min & Max Values")
     @After(PossibleValuesSection.class)
-    interface MinMaxValuesSection {
+    interface MinMaxSection {
     }
 
-    // Possible Values Section
-    @Persistor(PossibleValuesColumnsPersistor.class)
-    @Widget(title = "Columns for possible values calculation", 
-        description = "Select columns for which possible values shall be determined and put in the table specification. "
-            + "For all non-selected columns, the possible value domain will be dropped or retained, depending on the selection below.")
-    @ChoicesProvider(NominalValueColumnsProvider.class)
-    @Layout(PossibleValuesSection.class)
-    ColumnFilter m_possibleValuesColumns = new ColumnFilter();
+    // ====== Possible Values Settings
 
-    @Persistor(PossValRetainUnselectedPersistor.class)
-    @Widget(title = "For columns not selected above", 
-        description = "Choose what to do with possible value domains for columns not selected for calculation.")
-    @RadioButtonsWidget(horizontal = false)
-    @Layout(PossibleValuesSection.class)
-    PossibleValuesRetainMode m_possValRetainUnselected = PossibleValuesRetainMode.RETAIN;
-
-    @Persistor(MaxPossibleValuesPersistor.class)
-    @Widget(title = "Restrict number of possible values", 
-        description = "Limit the number of different values that are stored as possible values. "
-            + "If there are more possible values than the specified limit, all values are discarded and the column's "
-            + "meta information won't support querying the possible values.")
-    @OptionalWidget
-    @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
-    @Layout(PossibleValuesSection.class)
-    Optional<Integer> m_maxPossibleValues = Optional.empty();
-
-    // Min & Max Values Section
-    @Persistor(MinMaxColumnsPersistor.class)
-    @Widget(title = "Columns for min/max calculation", 
-        description = "Select columns for which min and max values shall be determined. "
-            + "For all non-selected columns, the min/max domain will be dropped or retained, depending on the selection below.")
-    @ChoicesProvider(BoundedValueColumnsProvider.class)
-    @Layout(MinMaxValuesSection.class)
-    ColumnFilter m_minMaxColumns = new ColumnFilter();
-
-    @Persistor(MinMaxRetainUnselectedPersistor.class)
-    @Widget(title = "For columns not selected above", 
-        description = "Choose what to do with min/max domains for columns not selected for calculation.")
-    @RadioButtonsWidget(horizontal = false)
-    @Layout(MinMaxValuesSection.class)
-    MinMaxRetainMode m_minMaxRetainUnselected = MinMaxRetainMode.RETAIN;
-
-    // Enums for retention modes
-    enum PossibleValuesRetainMode implements EnumChoice {
-        @Label("Retain possible value domain")
-        RETAIN,
-
-        @Label("Drop possible value domain")
-        DROP;
-    }
-
-    enum MinMaxRetainMode implements EnumChoice {
-        @Label("Retain min/max domain")
-        RETAIN,
-
-        @Label("Drop min/max domain")
-        DROP;
-    }
-
-    // Column providers
-    static final class NominalValueColumnsProvider extends CompatibleColumnsProvider {
-        protected NominalValueColumnsProvider() {
+    static final class NominalColumnsProvider extends CompatibleColumnsProvider {
+        protected NominalColumnsProvider() {
             super(NominalValue.class);
         }
     }
 
-    static final class BoundedValueColumnsProvider extends CompatibleColumnsProvider {
-        protected BoundedValueColumnsProvider() {
-            super(BoundedValue.class);
-        }
-    }
-
-    // Persistors
     static final class PossibleValuesColumnsPersistor extends LegacyColumnFilterPersistor {
         PossibleValuesColumnsPersistor() {
             super(DomainNodeModel.CFG_POSSVAL_COLS);
+        }
+    }
+
+    @Widget(title = "Columns", description = "Select columns for which possible values should be calculated.")
+    @ColumnFilterWidget(choicesProvider = NominalColumnsProvider.class)
+    @TwinlistWidget(includedLabel = "Calculate possible values", excludedLabel = "Do not calculate")
+    @Persistor(PossibleValuesColumnsPersistor.class)
+    @Layout(PossibleValuesSection.class)
+    ColumnFilter m_possibleValuesColumns = new ColumnFilter();
+
+    static final class PossibleValuesUnselectedHandlingPersistor
+        extends EnumSettingsModelBooleanPersistor<UnselectedDomainHandling> {
+        PossibleValuesUnselectedHandlingPersistor() {
+            super(DomainNodeModel.CFG_POSSVAL_RETAIN_UNSELECTED, UnselectedDomainHandling.class,
+                UnselectedDomainHandling.RETAIN);
+        }
+    }
+
+    @Widget(title = "Unselected Columns",
+        description = "Specify what to do with the possible value domain for columns not selected above.")
+    @ValueSwitchWidget
+    @Layout(PossibleValuesSection.class)
+    @Persistor(PossibleValuesUnselectedHandlingPersistor.class)
+    UnselectedDomainHandling m_possibleValuesUnselectedHandling = UnselectedDomainHandling.RETAIN;
+
+    static final class MaxPossibleValuesEnabledRef implements ParameterReference<Boolean> {
+    }
+
+    static final class MaxPossibleValuesEnabledPredicate implements EffectPredicateProvider {
+        @Override
+        public EffectPredicate init(final PredicateInitializer init) {
+            return init.getBoolean(MaxPossibleValuesEnabledRef.class).isTrue();
+        }
+    }
+
+    static final class LimitMaxPossibleValuesPersistor implements NodeParametersPersistor<Boolean> {
+        @Override
+        public void save(final Boolean val, final NodeSettingsWO settings) {
+            settings.addBoolean(DomainNodeModel.CFG_LIMIT_MAX_POSS_VALUES, val);
+        }
+
+        @Override
+        public Boolean load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            final var maxValue = settings.getInt(DomainNodeModel.CFG_MAX_POSS_VALUES); // must be present
+
+            // Backwards compatibility <5.7:
+            // The Swing version did not serialize the checkbox state at all. Instead it checked it if the maximum
+            // value was non-negative. In case the checkbox was not checked, the max value was overwritten to -1.
+            final var checkBoxDefault = maxValue >= 0;
+            return settings.getBoolean(DomainNodeModel.CFG_LIMIT_MAX_POSS_VALUES, checkBoxDefault);
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{{DomainNodeModel.CFG_LIMIT_MAX_POSS_VALUES}};
+        }
+    }
+
+    @Widget(title = "Restrict maximum number of possible values",
+        description = "Enable to limit the number of possible values calculated per column.")
+    @Layout(PossibleValuesSection.class)
+    @ValueReference(MaxPossibleValuesEnabledRef.class)
+    @Persistor(value = LimitMaxPossibleValuesPersistor.class)
+    boolean m_limitMaxPossibleValues;
+
+    @Widget(title = "Maximum number of possible values",
+        description = "The maximum number of possible values to be determined for each column.")
+    @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
+    @Effect(predicate = MaxPossibleValuesEnabledPredicate.class, type = EffectType.ENABLE)
+    @Layout(PossibleValuesSection.class)
+    @Persist(configKey = DomainNodeModel.CFG_MAX_POSS_VALUES)
+    int m_maxPossibleValues = DataContainerSettings.MAX_POSSIBLE_VALUES;
+
+    // ======== Min/Max Values Settings
+
+    static final class BoundedColumnsProvider extends CompatibleColumnsProvider {
+        protected BoundedColumnsProvider() {
+            super(BoundedValue.class);
         }
     }
 
@@ -187,58 +191,36 @@ public final class DomainNodeSettings implements NodeParameters {
         }
     }
 
-    static final class PossValRetainUnselectedPersistor implements NodeParametersPersistor<PossibleValuesRetainMode> {
-        @Override
-        public PossibleValuesRetainMode load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            boolean retain = settings.getBoolean(DomainNodeModel.CFG_POSSVAL_RETAIN_UNSELECTED);
-            return retain ? PossibleValuesRetainMode.RETAIN : PossibleValuesRetainMode.DROP;
-        }
+    @Widget(title = "Columns", description = "Select columns for which min and max values should be calculated.")
+    @ColumnFilterWidget(choicesProvider = BoundedColumnsProvider.class)
+    @TwinlistWidget(includedLabel = "Calculate min/max values", excludedLabel = "Do not calculate")
+    @Persistor(MinMaxColumnsPersistor.class)
+    @Layout(MinMaxSection.class)
+    ColumnFilter m_minMaxColumns = new ColumnFilter();
 
-        @Override
-        public void save(final PossibleValuesRetainMode obj, final NodeSettingsWO settings) {
-            settings.addBoolean(DomainNodeModel.CFG_POSSVAL_RETAIN_UNSELECTED, obj == PossibleValuesRetainMode.RETAIN);
-        }
-
-        @Override
-        public String[] getConfigPaths() {
-            return new String[]{DomainNodeModel.CFG_POSSVAL_RETAIN_UNSELECTED};
+    static final class MinMaxUnselectedHandlingPersistor
+        extends EnumSettingsModelBooleanPersistor<UnselectedDomainHandling> {
+        MinMaxUnselectedHandlingPersistor() {
+            super(DomainNodeModel.CFG_MIN_MAX_RETAIN_UNSELECTED, UnselectedDomainHandling.class,
+                UnselectedDomainHandling.RETAIN);
         }
     }
 
-    static final class MinMaxRetainUnselectedPersistor implements NodeParametersPersistor<MinMaxRetainMode> {
-        @Override
-        public MinMaxRetainMode load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            boolean retain = settings.getBoolean(DomainNodeModel.CFG_MIN_MAX_RETAIN_UNSELECTED);
-            return retain ? MinMaxRetainMode.RETAIN : MinMaxRetainMode.DROP;
-        }
+    @Widget(title = "Unselected Columns",
+        description = "Specify what to do with the min/max domain for columns not selected above.")
+    @ValueSwitchWidget
+    @Layout(MinMaxSection.class)
+    @Persistor(MinMaxUnselectedHandlingPersistor.class)
+    UnselectedDomainHandling m_minMaxUnselectedHandling = UnselectedDomainHandling.RETAIN;
 
-        @Override
-        public void save(final MinMaxRetainMode obj, final NodeSettingsWO settings) {
-            settings.addBoolean(DomainNodeModel.CFG_MIN_MAX_RETAIN_UNSELECTED, obj == MinMaxRetainMode.RETAIN);
-        }
+    // ====== Helpers
 
-        @Override
-        public String[] getConfigPaths() {
-            return new String[]{DomainNodeModel.CFG_MIN_MAX_RETAIN_UNSELECTED};
-        }
+    // this node parameter was originally a boolean, but we want to show a nice value switch with labels
+    enum UnselectedDomainHandling {
+            @Label("Retain Domain") //
+            RETAIN, //
+            @Label("Drop Domain") //
+            DROP
     }
 
-    static final class MaxPossibleValuesPersistor implements NodeParametersPersistor<Optional<Integer>> {
-        @Override
-        public Optional<Integer> load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            int maxPossValues = settings.getInt(DomainNodeModel.CFG_MAX_POSS_VALUES);
-            return maxPossValues >= 0 ? Optional.of(maxPossValues) : Optional.empty();
-        }
-
-        @Override
-        public void save(final Optional<Integer> obj, final NodeSettingsWO settings) {
-            int value = obj.orElse(-1);
-            settings.addInt(DomainNodeModel.CFG_MAX_POSS_VALUES, value);
-        }
-
-        @Override
-        public String[] getConfigPaths() {
-            return new String[]{DomainNodeModel.CFG_MAX_POSS_VALUES};
-        }
-    }
 }

@@ -1,4 +1,4 @@
-/* 
+/*
  * ------------------------------------------------------------------------
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
@@ -41,7 +41,7 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * -------------------------------------------------------------------
- * 
+ *
  * History
  *   Aug 12, 2006 (wiswedel): created
  */
@@ -49,7 +49,6 @@ package org.knime.base.node.preproc.domain.dialog2;
 
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
@@ -58,59 +57,39 @@ import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 
 /**
- * 
+ *
  * @author wiswedel, University of Konstanz
  */
-@SuppressWarnings("restriction")
-public class DomainNodeFactory extends NodeFactory implements NodeDialogFactory {
+public class DomainNodeFactory extends NodeFactory<DomainNodeModel> implements NodeDialogFactory {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    public DomainNodeModel createNodeModel() {
+        return new DomainNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeDialog createNodeDialog() {
         return new DefaultNodeDialog(SettingsType.MODEL, DomainNodeSettings.class);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public NodeModel createNodeModel() {
-        return new DomainNodeModel();
+    protected NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView createNodeView(
-            final int viewIndex, final NodeModel nodeModel) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+
+    @Override
+    public NodeView createNodeView(final int viewIndex, final DomainNodeModel nodeModel) {
+        return null;
+    }
+
+    @Override
+    protected int getNrNodeViews() {
+        return 0;
     }
 
 }
