@@ -1,4 +1,4 @@
-/* 
+/*
  * ------------------------------------------------------------------------
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
@@ -27,78 +27,54 @@
  *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
  *  license terms of ECLIPSE themselves allow for the respective use and
  *  propagation of ECLIPSE together with KNIME.
- *
- *  Additional permission relating to nodes for KNIME that extend the Node
- *  Extension (and in particular that are based on subclasses of NodeModel,
- *  NodeDialog, and NodeView) and that only interoperate with KNIME through
- *  standard APIs ("Nodes"):
- *  Nodes are deemed to be separate and independent programs and to not be
- *  covered works.  Notwithstanding anything to the contrary in the
- *  License, the License does not apply to Nodes, you are not required to
- *  license Nodes under the License, and you are granted a license to
- *  prepare and propagate Nodes, in each case even if such Nodes are
- *  propagated with or for interoperation with KNIME.  The owner of a Node
- *  may freely choose the license terms applicable to such Node, including
- *  when such Node is propagated with or for interoperation with KNIME.
  * --------------------------------------------------------------------------
- * 
+ *
  * History
  *   19.06.2007 (cebron): created
  */
 package org.knime.base.node.preproc.caseconvert;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeView;
+import org.knime.core.node.BufferedDataTable;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
- * NodeFactory for the CaseConverter Node. This node converts alphanumeric
- * characters to lowercase or uppercase.
- * 
  * @author cebron, University of Konstanz
+ * NodeFactory for the Case Converter Node. Modern Web-UI based factory.
  */
-public class CaseConvertNodeFactory extends NodeFactory {
+@SuppressWarnings({"restriction", "deprecation"})
+public final class CaseConvertNodeFactory extends WebUINodeFactory<CaseConvertNodeModel> {
 
     /**
-     * {@inheritDoc}
+     *
      */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new CaseConvertNodeDialog();
+    public CaseConvertNodeFactory() {
+        super(CONFIG);
     }
 
+    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
+        .name("Case Converter") //
+        .icon("case_converter.png") //
+        .shortDescription("Converts letters in selected string columns to upper- or lowercase.") //
+        .fullDescription("""
+                Converts the case of alphanumeric characters in the selected string-compatible columns.
+                Select the columns and whether to convert to upper- or lowercase. Missing values are preserved.
+                """
+        )//
+        .modelSettingsClass(CaseConvertNodeParameters.class) //
+        .addInputPort("Input Table", BufferedDataTable.TYPE, "Table with string columns to convert.") //
+        .addOutputPort("Transformed Table", BufferedDataTable.TYPE, "Table with converted columns.") //
+        .nodeType(NodeType.Manipulator) //
+        .keywords("Uppercase", "Lowercase", "Case", "String")//
+        .sinceVersion(5, 8, 0)
+        .build();
+
     /**
-     * {@inheritDoc}
+     * @since 5.8
      */
     @Override
-    public NodeModel createNodeModel() {
+    public CaseConvertNodeModel createNodeModel() {
         return new CaseConvertNodeModel();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView createNodeView(final int viewIndex,
-            final NodeModel nodeModel) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean hasDialog() {
-        return true;
     }
 
 }

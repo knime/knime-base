@@ -1,0 +1,117 @@
+{
+  "data" : {
+    "model" : {
+      "columns" : [ "Cluster Membership" ],
+      "mode" : "UPPERCASE"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columns" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            },
+            "title" : "Input columns to convert",
+            "description" : "Choose the string-compatible input columns whose textual values should be case-converted.\nMove columns between the 'Input columns to convert' and 'String columns' lists. Only columns\ncompatible with the String data type are shown.\n",
+            "default" : [ ]
+          },
+          "mode" : {
+            "oneOf" : [ {
+              "const" : "UPPERCASE",
+              "title" : "Uppercase"
+            }, {
+              "const" : "LOWERCASE",
+              "title" : "Lowercase"
+            } ],
+            "title" : "Casing",
+            "description" : "Choose if you want to convert to uppercase or lowercase.",
+            "default" : "UPPERCASE"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/columns",
+      "options" : {
+        "format" : "twinList",
+        "includedLabel" : "Columns to convert",
+        "excludedLabel" : "Available columns"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/mode",
+      "options" : {
+        "format" : "radio",
+        "radioLayout" : "horizontal"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columns" : {
+            "configKey" : "include"
+          },
+          "mode" : {
+            "configPaths" : [ [ "uppercase" ] ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/columns",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Column1",
+        "text" : "Column1",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Column2",
+        "text" : "Column2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Column3",
+        "text" : "Column3",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Column4",
+        "text" : "Column4",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ]
+}
