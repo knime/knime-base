@@ -55,12 +55,12 @@ final class JiraWebhookNodeModel extends WebUINodeModel<JiraWebhookNodeSettings>
 
         final var queue = new ArrayBlockingQueue<WebhookData>(1);
 
-        final HttpServer server = HttpServer.create(new InetSocketAddress(s.m_host, s.m_port), 0);
+    final HttpServer server = HttpServer.create(new InetSocketAddress(s.m_host, s.m_port), 0);
         final String path = normalizePath(s.m_path);
-        final ExecutorService executor = Executors.newSingleThreadExecutor();
+    final ExecutorService executor = Executors.newSingleThreadExecutor();
         server.createContext(path, new Handler(s.m_secret, s.m_responseBody, queue));
         server.setExecutor(executor);
-        server.start();
+    server.start();
         final int actualPort = server.getAddress().getPort();
 
         // Build internal URL (listener bind) and a public URL (for Jira registration)
@@ -103,22 +103,31 @@ final class JiraWebhookNodeModel extends WebUINodeModel<JiraWebhookNodeSettings>
                     registeredEndpointVersion = EndpointVersion.V9;
                 }
             } catch (Exception e) {
-                // Stop the server before failing
-                server.stop(0); executor.shutdownNow();
+                // Ensure cleanup on registration failure
+                try { server.stop(0); } catch (Exception ignore) {}
+                try { executor.shutdownNow(); } catch (Exception ignore) {}
+                // Try to unregister if we partially registered
+                if (s.m_unregister && registeredWebhookId != null) {
+                    try { unregister(connSpec, s, registeredWebhookId, registeredEndpointVersion); } catch (Exception ignore) {}
+                }
                 throw e;
             }
         }
 
         // Wait for a single request or timeout
-        final WebhookData data = queue.poll(s.m_timeoutSeconds, TimeUnit.SECONDS);
-        server.stop(0);
-        executor.shutdownNow();
-        if (data == null) {
-            // Optionally unregister if requested and we had registered
+        WebhookData data = null;
+        try {
+            data = queue.poll(s.m_timeoutSeconds, TimeUnit.SECONDS);
+            if (data == null) {
+                throw new RuntimeException("Timed out waiting for webhook (" + s.m_timeoutSeconds + "s)");
+            }
+        } finally {
+            try { server.stop(0); } catch (Exception ignore) {}
+            try { executor.shutdownNow(); } catch (Exception ignore) {}
+            try { executor.awaitTermination(2, TimeUnit.SECONDS); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
             if (s.m_unregister && registeredWebhookId != null) {
                 try { unregister(connSpec, s, registeredWebhookId, registeredEndpointVersion); } catch (Exception ignore) {}
             }
-            throw new RuntimeException("Timed out waiting for webhook (" + s.m_timeoutSeconds + "s)");
         }
 
         container.addRowToTable(new DefaultRow(RowKey.createRowKey(0), new DataCell[]{
@@ -127,10 +136,6 @@ final class JiraWebhookNodeModel extends WebUINodeModel<JiraWebhookNodeSettings>
         }));
         container.close();
 
-        // Unregister after success if configured
-        if (s.m_unregister && registeredWebhookId != null) {
-            try { unregister(connSpec, s, registeredWebhookId, registeredEndpointVersion); } catch (Exception ignore) {}
-        }
         return new BufferedDataTable[]{ container.getTable() };
     }
 

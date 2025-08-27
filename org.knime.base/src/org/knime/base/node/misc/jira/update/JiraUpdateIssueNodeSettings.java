@@ -24,6 +24,9 @@ import org.knime.node.parameters.widget.message.TextMessage.MessageType;
 import org.knime.base.node.misc.jira.conn.JiraConnectionPortObjectSpec;
 import org.knime.node.parameters.widget.text.TextAreaWidget;
 import org.knime.node.parameters.widget.text.TextInputWidget;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider.StringColumnsProvider;
+import org.knime.node.parameters.widget.choices.util.InputTableIndexHolder;
 
 @SuppressWarnings("restriction")
 public final class JiraUpdateIssueNodeSettings implements NodeParameters {
@@ -75,10 +78,21 @@ public final class JiraUpdateIssueNodeSettings implements NodeParameters {
     @Persist(configKey = "issue/key")
     public String m_key = "";
 
+    @Widget(title = "Issue Key column", description = "Select the column containing the Jira issue key (e.g. PROJ-123)")
+    @ChoicesProvider(KeyColumnChoices.class)
+    @Layout(UpdateSection.class)
+    @Persist(configKey = "issue/keyColumn")
+    public String m_keyColumn = "";
+
     @Widget(title = "Summary", description = "New summary/title") @TextInputWidget @Layout(UpdateSection.class) @Persist(configKey = "issue/summary") public String m_summary = "";
     @Widget(title = "Description", description = "New description text") @TextAreaWidget @Layout(UpdateSection.class) @Persist(configKey = "issue/description") public String m_description = "";
     @Widget(title = "Priority", description = "Priority name") @TextInputWidget @Layout(UpdateSection.class) @Persist(configKey = "issue/priority") public String m_priority = "";
     @Widget(title = "Assignee (account id)", description = "User account id") @TextInputWidget @Layout(UpdateSection.class) @Persist(configKey = "issue/assignee") public String m_assignee = "";
     @Widget(title = "Labels (comma-separated)", description = "Comma-separated labels") @TextInputWidget @Layout(UpdateSection.class) @Persist(configKey = "issue/labels") public String m_labels = "";
     @Widget(title = "Components (comma-separated)", description = "Comma-separated component names") @TextInputWidget @Layout(UpdateSection.class) @Persist(configKey = "issue/components") public String m_components = "";
+
+    /** Choices provider for key column on input table at port index 1. */
+    static final class KeyColumnChoices extends StringColumnsProvider implements InputTableIndexHolder {
+        @Override public int getInputTableIndex() { return 1; }
+    }
 }

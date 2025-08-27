@@ -35,6 +35,7 @@ public final class JiraUpdateIssueNodeFactory extends ConfigurableNodeFactory<Ji
     .fullDescription("Updates fields of an existing Jira issue.")
         .modelSettingsClass(JiraUpdateIssueNodeSettings.class)
     .addInputPort("Jira Connection", PortTypeRegistry.getInstance().getPortType(JiraConnectionPortObject.class, true), "Connection from the Jira Connector", true)
+        .addInputPort("Issue Table", BufferedDataTable.TYPE, "Optional table with an Issue Key column; one update per row.", true)
         .addOutputPort("Updated", BufferedDataTable.TYPE, "One row with key and URL")
         .build();
 
@@ -55,6 +56,7 @@ public final class JiraUpdateIssueNodeFactory extends ConfigurableNodeFactory<Ji
         final var b = new PortsConfigurationBuilder();
         b.addOptionalInputPortGroup("Jira Connection",
             PortTypeRegistry.getInstance().getPortType(JiraConnectionPortObject.class));
+    b.addOptionalInputPortGroup("Issue Table", BufferedDataTable.TYPE);
         b.addFixedOutputPortGroup("Updated", BufferedDataTable.TYPE);
         return Optional.of(b);
     }

@@ -18,6 +18,8 @@ public final class JiraClient {
 
     private JiraClient() {}
 
+    private static final HttpClient CLIENT = HttpClient.newHttpClient();
+
     public static String trimBase(final String baseUrl) {
         return baseUrl == null ? "" : baseUrl.replaceAll("/+$", "");
     }
@@ -34,7 +36,7 @@ public final class JiraClient {
             .header("Accept", "application/json")
             .GET()
             .build();
-        return HttpClient.newHttpClient().send(req, HttpResponse.BodyHandlers.ofString());
+    return CLIENT.send(req, HttpResponse.BodyHandlers.ofString());
     }
 
     public static HttpResponse<String> put(final String baseUrl, final String email, final String token, final String path, final String json) throws Exception {
@@ -44,7 +46,7 @@ public final class JiraClient {
             .header("Content-Type", "application/json")
             .PUT(HttpRequest.BodyPublishers.ofString(json))
             .build();
-        return HttpClient.newHttpClient().send(req, HttpResponse.BodyHandlers.ofString());
+    return CLIENT.send(req, HttpResponse.BodyHandlers.ofString());
     }
 
     public static HttpResponse<String> post(final String baseUrl, final String email, final String token, final String path, final String json) throws Exception {
@@ -54,7 +56,7 @@ public final class JiraClient {
             .header("Content-Type", "application/json")
             .POST(HttpRequest.BodyPublishers.ofString(json))
             .build();
-        return HttpClient.newHttpClient().send(req, HttpResponse.BodyHandlers.ofString());
+    return CLIENT.send(req, HttpResponse.BodyHandlers.ofString());
     }
 
     public static HttpResponse<String> delete(final String baseUrl, final String email, final String token, final String path) throws Exception {
@@ -63,7 +65,7 @@ public final class JiraClient {
             .header("Accept", "application/json")
             .DELETE()
             .build();
-        return HttpClient.newHttpClient().send(req, HttpResponse.BodyHandlers.ofString());
+    return CLIENT.send(req, HttpResponse.BodyHandlers.ofString());
     }
 
     public static HttpResponse<String> postAttachment(final String baseUrl, final String email, final String token, final String path, final String filename, final byte[] content) throws Exception {
@@ -86,7 +88,7 @@ public final class JiraClient {
             .header("Content-Type", "multipart/form-data; boundary=" + boundary)
             .POST(HttpRequest.BodyPublishers.ofByteArray(body))
             .build();
-        return HttpClient.newHttpClient().send(req, HttpResponse.BodyHandlers.ofString());
+    return CLIENT.send(req, HttpResponse.BodyHandlers.ofString());
     }
 
     public static String enc(final String v) {
