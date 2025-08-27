@@ -49,6 +49,7 @@ import org.knime.base.node.preproc.pmml.columntrans2.One2ManyCol2PMMLNodeModel;
 import org.knime.core.data.NominalValue;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.persistence.Persist;
@@ -60,10 +61,11 @@ import org.knime.node.parameters.widget.choices.filter.TwinlistWidget;
 import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider;
 
 /**
- * Settings for the "One to Many" node.
+ * WebUI settings for the "One to Many" node.
  *
- * @author AI Migration Assistant
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
+@SuppressWarnings("restriction")
 final class One2ManyCol2NodeSettings implements NodeParameters {
 
     @Section(title = "Column Selection")
@@ -71,20 +73,17 @@ final class One2ManyCol2NodeSettings implements NodeParameters {
     }
 
     @Section(title = "Output Options")
-    @org.knime.node.parameters.layout.After(ColumnSelectionSection.class)
+    @After(ColumnSelectionSection.class)
     interface OutputOptionsSection {
     }
 
     static final class NominalColumnsProvider extends CompatibleColumnsProvider {
-        /**
-         * Needed for reflection.
-         */
-        protected NominalColumnsProvider() {
+        NominalColumnsProvider() {
             super(NominalValue.class);
         }
     }
 
-    static final class ColumnsToTransform extends LegacyColumnFilterPersistor { // LegacyColumnFilterMigration {
+    static final class ColumnsToTransform extends LegacyColumnFilterPersistor {
         ColumnsToTransform() {
             super(One2ManyCol2PMMLNodeModel.CFG_COLUMNS);
         }
@@ -99,8 +98,6 @@ final class One2ManyCol2NodeSettings implements NodeParameters {
     @ChoicesProvider(NominalColumnsProvider.class)
     @TwinlistWidget(excludedLabel = "Available columns", includedLabel = "Columns to transform")
     @Layout(ColumnSelectionSection.class)
-//    @Persist(configKey = One2ManyCol2PMMLNodeModel.CFG_COLUMNS)
-//    @Migration(ColumnsToTransformMigration.class)
     @Persistor(ColumnsToTransform.class)
     ColumnFilter m_columnsToTransform = new ColumnFilter();
 
@@ -109,5 +106,5 @@ final class One2ManyCol2NodeSettings implements NodeParameters {
             + "The included columns are replaced by the new generated columns.")
     @Layout(OutputOptionsSection.class)
     @Persist(configKey = One2ManyCol2PMMLNodeModel.CFG_REMOVESOURCES)
-    boolean m_removeSources = false;
+    boolean m_removeSources;
 }
