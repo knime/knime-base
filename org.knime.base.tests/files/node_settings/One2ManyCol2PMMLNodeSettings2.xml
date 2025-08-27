@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="settings.xml">
+    <entry key="node_file" type="xstring" value="settings.xml"/>
+    <config key="flow_stack"/>
+    <config key="internal_node_subsettings">
+        <entry key="memory_policy" type="xstring" value="CacheSmallInMemory"/>
+    </config>
+    <config key="model">
+        <config key="columns2Btransformed_Internals">
+            <entry key="SettingsModelID" type="xstring" value="SMID_columnfilter"/>
+            <entry key="EnabledStatus" type="xboolean" value="true"/>
+        </config>
+        <config key="columns2Btransformed">
+            <entry key="filter-type" type="xstring" value="name_pattern"/>
+            <config key="included_names">
+                <entry key="array-size" type="xint" value="1"/>
+                <entry key="0" type="xstring" value="StringCol"/>
+            </config>
+            <config key="excluded_names">
+                <entry key="array-size" type="xint" value="3"/>
+                <entry key="0" type="xstring" value="BooleanCol"/>
+                <entry key="1" type="xstring" value="MissingValStringCol"/>
+                <entry key="2" type="xstring" value="LongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnName"/>
+            </config>
+            <entry key="enforce_option" type="xstring" value="EnforceExclusion"/>
+            <config key="name_pattern">
+                <entry key="pattern" type="xstring" value="String*"/>
+                <entry key="type" type="xstring" value="Wildcard"/>
+                <entry key="caseSensitive" type="xboolean" value="true"/>
+                <entry key="excludeMatching" type="xboolean" value="true"/>
+            </config>
+            <config key="datatype">
+                <config key="typelist">
+                    <entry key="org.knime.core.data.StringValue" type="xboolean" value="false"/>
+                    <entry key="org.knime.core.data.BooleanValue" type="xboolean" value="false"/>
+                </config>
+            </config>
+        </config>
+        <config key="removeSources_Internals">
+            <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
+            <entry key="EnabledStatus" type="xboolean" value="true"/>
+        </config>
+        <entry key="removeSources" type="xboolean" value="false"/>
+    </config>
+    <entry key="customDescription" type="xstring" isnull="true" value=""/>
+    <entry key="state" type="xstring" value="IDLE"/>
+    <config key="nodecontainer_message">
+        <entry key="type" type="xstring" value="WARNING"/>
+        <entry key="message" type="xstring" value="Possible value domain for column &quot;LongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnNameLongStringColumnName&quot; is empty, use the Domain Calculator node (with a sufficient possible value limit) to create it."/>
+    </config>
+    <entry key="factory" type="xstring" value="org.knime.base.node.preproc.pmml.columntrans2.One2ManyCol2PMMLNodeFactory2"/>
+    <entry key="node-name" type="xstring" value="One to Many (PMML)"/>
+    <entry key="node-bundle-name" type="xstring" value="KNIME Base Nodes"/>
+    <entry key="node-bundle-symbolic-name" type="xstring" value="org.knime.base"/>
+    <entry key="node-bundle-vendor" type="xstring" value="KNIME AG, Zurich, Switzerland"/>
+    <entry key="node-bundle-version" type="xstring" value="5.7.0.v202508212213"/>
+    <entry key="node-feature-name" type="xstring" value="KNIME Base nodes"/>
+    <entry key="node-feature-symbolic-name" type="xstring" value="org.knime.features.base.feature.group"/>
+    <entry key="node-feature-vendor" type="xstring" value="KNIME AG, Zurich, Switzerland"/>
+    <entry key="node-feature-version" type="xstring" value="5.7.0.v202508212213"/>
+    <config key="factory_settings"/>
+    <entry key="name" type="xstring" value="One to Many (PMML)"/>
+    <entry key="hasContent" type="xboolean" value="false"/>
+    <entry key="isInactive" type="xboolean" value="false"/>
+    <config key="ports">
+        <config key="port_1">
+            <entry key="index" type="xint" value="1"/>
+            <entry key="port_dir_location" type="xstring" isnull="true" value=""/>
+        </config>
+        <config key="port_2">
+            <entry key="index" type="xint" value="2"/>
+            <entry key="port_dir_location" type="xstring" isnull="true" value=""/>
+        </config>
+    </config>
+    <config key="filestores">
+        <entry key="file_store_location" type="xstring" isnull="true" value=""/>
+        <entry key="file_store_id" type="xstring" isnull="true" value=""/>
+    </config>
+</config>
