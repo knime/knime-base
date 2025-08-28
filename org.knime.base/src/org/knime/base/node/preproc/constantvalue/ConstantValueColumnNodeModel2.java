@@ -59,7 +59,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings.NewColumnSettings;
 import org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings.NewColumnSettings.AppendOrReplace;
 import org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings.NewColumnSettings.CustomOrMissingValue;
-import org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings.SupportedDataTypeChoicesProvider;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -94,14 +93,16 @@ final class ConstantValueColumnNodeModel2
 
     @Override
     protected void validateSettings(final ConstantValueColumnNodeSettings settings) throws InvalidSettingsException {
-        var firstInvalidCustomValue = Arrays.stream(settings.m_newColumnSettings) //
-            .filter(s -> s.m_customOrMissingValue == CustomOrMissingValue.CUSTOM) //
-            .filter(ConstantValueColumnNodeModel2::hasInvalidValue) //
-            .findFirst();
-        if (firstInvalidCustomValue.isPresent()) {
-            throw new InvalidSettingsException(
-                "The value '" + firstInvalidCustomValue.get().m_value + "' is not a valid value for the selected type "
-                    + firstInvalidCustomValue.get().m_type.toPrettyString() + ".");
+        for (var i = 0; i < settings.m_newColumnSettings.length; i++) {
+            final var singleColumnSettings = settings.m_newColumnSettings[i];
+            if (singleColumnSettings.m_customOrMissingValue == CustomOrMissingValue.CUSTOM) {
+                try {
+                    singleColumnSettings.m_customValueParameters.validate(singleColumnSettings.m_type);
+                } catch (InvalidSettingsException e) {
+                    throw new InvalidSettingsException(
+                        "The value parameters for constant column " + (i + 1) + " are invalid.", e);
+                }
+            }
         }
 
         // check no column is appended twice
@@ -137,10 +138,6 @@ final class ConstantValueColumnNodeModel2
             throw new InvalidSettingsException(
                 "The column name '" + firstDuplicateReplacedColumnName.get() + "' is replaced multiple times.");
         }
-    }
-
-    private static boolean hasInvalidValue(final NewColumnSettings s) {
-        return SupportedDataTypeChoicesProvider.createDataCellFromString(s.m_value, s.m_type, null).isEmpty();
     }
 
     /** Get the first duplicate element in a list, if it exists */
@@ -220,11 +217,15 @@ final class ConstantValueColumnNodeModel2
                 return new MissingCell("Missing cell from 'Constant Value Column'");
             }
 
-            var dataCell = SupportedDataTypeChoicesProvider.createDataCellFromString(m_singleColumnSettings.m_value,
-                m_singleColumnSettings.m_type, m_ctx);
-
-            return dataCell.orElseThrow(() -> new IllegalStateException("Could not create cell of type "
-                + m_singleColumnSettings.m_type + " from string '" + m_singleColumnSettings.m_value + "'."));
+            try {
+                return m_singleColumnSettings.m_customValueParameters.createDataCell(m_singleColumnSettings.m_type,
+                    m_ctx);
+            } catch (InvalidSettingsException e) {
+                throw new IllegalStateException(
+                    String.format("Could not create cell of type %s from value parameters '%s'.",
+                        m_singleColumnSettings.m_type, m_singleColumnSettings.m_customValueParameters),
+                    e);
+            }
         }
     }
 }

@@ -62,9 +62,7 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings.NewColumnSettings.AppendOrReplace;
 import org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings.NewColumnSettings.CustomOrMissingValue;
 import org.knime.base.node.util.InputTableNode.InputDataNodeFactory;
@@ -77,16 +75,20 @@ import org.knime.core.data.IntValue;
 import org.knime.core.data.LongValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.def.BooleanCell.BooleanCellFactory;
+import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.DoubleCell.DoubleCellFactory;
 import org.knime.core.data.def.IntCell.IntCellFactory;
 import org.knime.core.data.def.LongCell.LongCellFactory;
 import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.createcell.CreateDataCellParameters;
 import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
 
@@ -148,29 +150,12 @@ final class ConstantValueColumnNodeModel2Test {
         );
     }
 
-    /**
-     * Test cases that should fail when the node is executed.
-     */
-    static Stream<Arguments> provideFailingTestCases() {
-        record FailingTestCase(DataType type, String inputValue) {
-        }
-        var outTestCases = List.of( //
-            new FailingTestCase(DoubleCellFactory.TYPE, "foo"), //
-            new FailingTestCase(LongCellFactory.TYPE, "foo"), //
-            new FailingTestCase(IntCellFactory.TYPE, "foo") //
-        );
-
-        return outTestCases.stream().map( //
-            tc -> Arguments.of(tc.type, tc.inputValue) //
-        );
-    }
-
     @Test
     void testAppendColumn() throws InvalidSettingsException, IOException {
         var individualColumnSettings = new ConstantValueColumnNodeSettings.NewColumnSettings();
         individualColumnSettings.m_columnNameToAppend = "new column";
         individualColumnSettings.m_type = DoubleCellFactory.TYPE;
-        individualColumnSettings.m_value = "42.0";
+        individualColumnSettings.m_customValueParameters = new DummyIntParameters();
         individualColumnSettings.m_replaceOrAppend = AppendOrReplace.APPEND;
         individualColumnSettings.m_customOrMissingValue = CustomOrMissingValue.CUSTOM;
         m_settings.m_newColumnSettings =
@@ -201,7 +186,7 @@ final class ConstantValueColumnNodeModel2Test {
         var individualColumnSettings = new ConstantValueColumnNodeSettings.NewColumnSettings();
         individualColumnSettings.m_columnNameToReplace = "old column";
         individualColumnSettings.m_type = DoubleCellFactory.TYPE;
-        individualColumnSettings.m_value = "42.0";
+        individualColumnSettings.m_customValueParameters = new DummyIntParameters();
         individualColumnSettings.m_replaceOrAppend = AppendOrReplace.REPLACE;
         individualColumnSettings.m_customOrMissingValue = CustomOrMissingValue.CUSTOM;
         m_settings.m_newColumnSettings =
@@ -253,14 +238,13 @@ final class ConstantValueColumnNodeModel2Test {
         }
     }
 
-    @ParameterizedTest(name = "testType ''{0}''")
-    @MethodSource("provideTypeTestCases")
-    void testType(final DataType type, final String inputValue, final Predicate<DataCell> verifyValue)
-        throws InvalidSettingsException, IOException {
+    @Test
+    void testType() throws InvalidSettingsException, IOException {
+        final var type = DoubleCellFactory.TYPE;
         var individualColumnSettings = new ConstantValueColumnNodeSettings.NewColumnSettings();
         individualColumnSettings.m_columnNameToReplace = "old column";
         individualColumnSettings.m_type = type;
-        individualColumnSettings.m_value = inputValue;
+        individualColumnSettings.m_customValueParameters = new DummyIntParameters();
         individualColumnSettings.m_replaceOrAppend = AppendOrReplace.REPLACE;
         individualColumnSettings.m_customOrMissingValue = CustomOrMissingValue.CUSTOM;
         m_settings.m_newColumnSettings =
@@ -268,38 +252,17 @@ final class ConstantValueColumnNodeModel2Test {
         applySettings();
 
         var outputTable = setupAndExecuteWorkflow();
-
         assertTrue(m_node.getNodeContainerState().isExecuted(), "Expected node to be executed");
-
         // check the output table
         assertEquals(1, outputTable.getSpec().getNumColumns(), "Expected 1 column in output table");
         assertEquals(type, outputTable.getSpec().getColumnSpec(0).getType(), "Unexpected type in output table");
-
         try (var it = outputTable.iterator()) {
             while (it.hasNext()) {
                 var row = it.next();
-                assertTrue(verifyValue.test(row.getCell(0)), "Unexpected value in output table for input type " + type);
+                assertTrue(new DoubleCell(42).equals(row.getCell(0)),
+                    "Unexpected value in output table for input type " + type);
             }
         }
-    }
-
-    @ParameterizedTest(name = "testFailingType ''{0}''")
-    @MethodSource("provideFailingTestCases")
-    void testFailingType(final DataType type, final String inputValue) throws InvalidSettingsException, IOException {
-        var individualColumnSettings = new ConstantValueColumnNodeSettings.NewColumnSettings();
-        individualColumnSettings.m_columnNameToReplace = "old column";
-        individualColumnSettings.m_type = type;
-        individualColumnSettings.m_value = inputValue;
-        individualColumnSettings.m_replaceOrAppend = AppendOrReplace.REPLACE;
-        individualColumnSettings.m_customOrMissingValue = CustomOrMissingValue.CUSTOM;
-        m_settings.m_newColumnSettings =
-            new ConstantValueColumnNodeSettings.NewColumnSettings[]{individualColumnSettings};
-
-        var model = new ConstantValueColumnNodeModel2(ConstantValueColumnNodeFactory2.CONFIGURATION);
-
-        assertThrows(InvalidSettingsException.class, () -> {
-            model.validateSettings(m_settings);
-        }, "Expected an exception for invalid value '%s' for type %s".formatted(inputValue, type.toPrettyString()));
     }
 
     @Test
@@ -307,7 +270,18 @@ final class ConstantValueColumnNodeModel2Test {
         var individualColumnSettings = new ConstantValueColumnNodeSettings.NewColumnSettings();
         individualColumnSettings.m_columnNameToReplace = "old column";
         individualColumnSettings.m_type = DoubleCellFactory.TYPE;
-        individualColumnSettings.m_value = "42.0x"; // invalid value
+        individualColumnSettings.m_customValueParameters = new CreateDataCellParameters() {
+            @Override
+            public DataCell createDataCell(final DataType type, final ExecutionContext ctx)
+                throws InvalidSettingsException {
+                throw new UnsupportedOperationException("Not implemented");
+            }
+
+            @Override
+            public void validate(final DataType type) throws InvalidSettingsException {
+                throw new InvalidSettingsException("Invalid value");
+            }
+        };
         individualColumnSettings.m_replaceOrAppend = AppendOrReplace.REPLACE;
         individualColumnSettings.m_customOrMissingValue = CustomOrMissingValue.CUSTOM;
         m_settings.m_newColumnSettings =
@@ -437,5 +411,22 @@ final class ConstantValueColumnNodeModel2Test {
         m_workflowManager.executeAllAndWaitUntilDone();
 
         return (BufferedDataTable)m_node.getOutPort(1).getPortObject();
+    }
+
+    /**
+     * When saved, the @class field will be set to the name of this class. When loaded, the parameter class at that
+     * location will be used (as it is part of the registered naming scheme while this one here is not).
+     */
+    @DynamicParameters.OriginalClassName("org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.createcell.CoreCreateDataCellParameters$IntCellParameters")
+    static final class DummyIntParameters implements CreateDataCellParameters {
+
+        @Override
+        public DataCell createDataCell(final DataType type, final ExecutionContext ctx)
+            throws InvalidSettingsException {
+            throw new UnsupportedOperationException("Not implemented");
+        }
+
+        int m_value = 42;
+
     }
 }

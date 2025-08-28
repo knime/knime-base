@@ -406,6 +406,21 @@
               formatterClass="org.knime.time.node.format.durationperiodformatmanager.DurationPeriodDataValueFormatter">
         </formatter>
    </extension>
+   <extension 
+         point="org.knime.core.ui.createDataCellParameters">
+         <CreateDataCellParameters
+                factoryClass="org.knime.core.data.time.localtime.LocalTimeCellCreationParametersFactory">
+         </CreateDataCellParameters>
+         <CreateDataCellParameters
+                factoryClass="org.knime.core.data.time.localdate.LocalDateCellCreationParametersFactory">
+         </CreateDataCellParameters>
+         <CreateDataCellParameters
+                factoryClass="org.knime.core.data.time.localdatetime.LocalDateTimeCellCreationParametersFactory">
+         </CreateDataCellParameters>
+         <CreateDataCellParameters
+                factoryClass="org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellCreationParametersFactory">
+         </CreateDataCellParameters>
+    </extension>
    <extension
          point="org.knime.base.AggregationOperator">
       <AggregationOperator

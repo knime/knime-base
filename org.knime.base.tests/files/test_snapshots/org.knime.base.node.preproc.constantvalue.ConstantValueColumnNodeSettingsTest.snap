@@ -5,8 +5,7 @@
         "replaceOrAppend" : "APPEND",
         "columnNameToAppend" : "New column",
         "type" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "customOrMissingValue" : "MISSING",
-        "value" : ""
+        "customOrMissingValue" : "MISSING"
       } ]
     }
   },
@@ -45,6 +44,9 @@
                   "description" : "Whether to use a custom value for the new column, or fill it with missing cells.\n\n<ul>\n<li><b>Missing</b>: Fill the new constant column with missing cells</li>\n<li><b>Custom value</b>: Use a custom value to fill the new constant column</li>\n</ul>",
                   "default" : "MISSING"
                 },
+                "customValueParameters" : {
+                  "type" : "object"
+                },
                 "replaceOrAppend" : {
                   "oneOf" : [ {
                     "const" : "APPEND",
@@ -62,12 +64,6 @@
                   "title" : "Column type",
                   "description" : "The type of the new column.",
                   "default" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
-                },
-                "value" : {
-                  "type" : "string",
-                  "title" : "Custom value",
-                  "description" : "The value to be used when filling the output column.",
-                  "default" : ""
                 }
               }
             },
@@ -75,8 +71,7 @@
               "replaceOrAppend" : "APPEND",
               "columnNameToAppend" : "New column",
               "type" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-              "customOrMissingValue" : "MISSING",
-              "value" : ""
+              "customOrMissingValue" : "MISSING"
             } ]
           }
         }
@@ -98,6 +93,7 @@
           "type" : "Control",
           "scope" : "#/properties/columnNameToAppend",
           "options" : {
+            "placeholder" : "New column name",
             "validation" : {
               "pattern" : {
                 "errorMessage" : "The string must start and end with a non-whitespace character.",
@@ -105,8 +101,7 @@
                   "pattern" : "\\S(.*\\S)?"
                 }
               }
-            },
-            "placeholder" : "New column name"
+            }
           },
           "rule" : {
             "effect" : "HIDE",
@@ -152,7 +147,11 @@
           }
         }, {
           "type" : "Control",
-          "scope" : "#/properties/value",
+          "scope" : "#/properties/customValueParameters",
+          "options" : {
+            "format" : "dynamicInput"
+          },
+          "providedOptions" : [ "dynamicSettings" ],
           "rule" : {
             "effect" : "HIDE",
             "condition" : {
@@ -189,7 +188,10 @@
                   "configPaths" : [ [ "type", "cell_class" ] ]
                 },
                 "customOrMissingValue" : { },
-                "value" : { }
+                "customValueParameters" : {
+                  "type" : "object",
+                  "properties" : { }
+                }
               }
             }
           }
@@ -210,6 +212,20 @@
           "text" : "String"
         }
       } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/newColumnSettings/items/properties/customValueParameters",
+    "providedOptionName" : "dynamicSettings",
+    "values" : [ {
+      "indices" : [ 0 ],
+      "value" : {
+        "data" : {
+          "@class" : "org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.createcell.CoreCreateDataCellParameters$FromStringCellParameters",
+          "value" : ""
+        },
+        "schema" : "{\"type\":\"object\",\"properties\":{\"value\":{\"type\":\"string\",\"title\":\"Custom value\",\"description\":\"The value to be used when filling the output column.\",\"default\":\"\"}}}",
+        "uiSchema" : "{\"elements\":[{\"type\":\"Control\",\"scope\":\"#/properties/value\"}]}"
+      }
     } ]
   }, {
     "scope" : "#/properties/model/properties/newColumnSettings/items/properties/type",
@@ -245,5 +261,10 @@
       "scope" : "#/properties/model/properties/newColumnSettings"
     },
     "dependencies" : [ "#/properties/model/properties/newColumnSettings" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/newColumnSettings/items/properties/type"
+    },
+    "dependencies" : [ "#/properties/model/properties/newColumnSettings/items/properties/customValueParameters", "#/properties/model/properties/newColumnSettings/items/properties/type" ]
   } ]
 }
