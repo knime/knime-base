@@ -48,20 +48,27 @@
  */
 package org.knime.base.node.preproc.constantvalue;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
-import org.knime.core.data.DataCell;
 import org.knime.core.data.DataCellFactory.FromString;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataTypeRegistry;
 import org.knime.core.data.def.StringCell.StringCellFactory;
-import org.knime.core.node.ExecutionContext;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.ClassIdStrategy;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DefaultClassIdStrategy;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.DynamicParametersProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.createcell.CreateDataCellExtensionsUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.createcell.CreateDataCellParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
@@ -80,7 +87,6 @@ import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
-import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.ColumnNameValidation;
 
 /**
  * Settings for the Constant Value Column WebUI node.
@@ -120,7 +126,8 @@ final class ConstantValueColumnNodeSettings implements NodeParameters {
 
         @Widget(title = "New column", description = "The name of the new column.")
         @Effect(predicate = AppendOrReplace.IsReplace.class, type = EffectType.HIDE)
-        @TextInputWidget(placeholder = "New column name", patternValidation = ColumnNameValidationUtils.ColumnNameValidation.class)
+        @TextInputWidget(placeholder = "New column name",
+            patternValidation = ColumnNameValidationUtils.ColumnNameValidation.class)
         String m_columnNameToAppend = "New column";
 
         @Widget(title = "Replace column", description = "The name of the column to replace.")
@@ -130,6 +137,7 @@ final class ConstantValueColumnNodeSettings implements NodeParameters {
 
         @Widget(title = "Column type", description = "The type of the new column.")
         @ChoicesProvider(SupportedDataTypeChoicesProvider.class)
+        @ValueReference(DataTypeRef.class)
         DataType m_type = StringCellFactory.TYPE;
 
         @Widget(title = "Fill value", description = """
@@ -140,9 +148,73 @@ final class ConstantValueColumnNodeSettings implements NodeParameters {
         @ValueSwitchWidget
         CustomOrMissingValue m_customOrMissingValue = CustomOrMissingValue.MISSING;
 
-        @Widget(title = "Custom value", description = "The value to be used when filling the output column.")
         @Effect(predicate = CustomOrMissingValue.IsMissing.class, type = EffectType.HIDE)
-        String m_value = "";
+        @DynamicParameters(DataCellParametersProvider.class)
+        @ValueReference(SelfReference.class)
+        CreateDataCellParameters m_customValueParameters;
+
+        static class DataTypeRef implements ParameterReference<DataType> {
+        }
+
+        static class SelfReference implements ParameterReference<CreateDataCellParameters> {
+        }
+
+        static final class DataCellParametersProvider implements DynamicParametersProvider<CreateDataCellParameters> {
+
+            private Supplier<DataType> m_computeFromValueSupplier;
+
+            private Supplier<CreateDataCellParameters> m_currentValue;
+
+            final Map<DataType, Class<? extends CreateDataCellParameters>> m_parameterClasses;
+
+            private static final Class<? extends CreateDataCellParameters> FROM_STRING_CLASS =
+                CreateDataCellExtensionsUtil.getFromStringCreateDataCellParametersClass();
+
+            DataCellParametersProvider() {
+                final var parameterClassesFromExtensions =
+                    CreateDataCellExtensionsUtil.getCreateDataCellParametersExtensions();
+                m_parameterClasses = parameterClassesFromExtensions;
+            }
+
+            @Override
+            public ClassIdStrategy<CreateDataCellParameters> getClassIdStrategy() {
+                final var possibleClasses = Stream.concat(//
+                    m_parameterClasses.values().stream(), //
+                    Stream.of(FROM_STRING_CLASS)//
+                ).toList();
+                return new DefaultClassIdStrategy<>(possibleClasses);
+            }
+
+            @Override
+            public void init(final StateProviderInitializer initializer) {
+                initializer.computeBeforeOpenDialog();
+                m_computeFromValueSupplier = initializer.computeFromValueSupplier(DataTypeRef.class);
+                m_currentValue = initializer.getValueSupplier(SelfReference.class);
+            }
+
+            @Override
+            public CreateDataCellParameters computeParameters(final NodeParametersInput parametersInput)
+                throws StateComputationFailureException {
+                final var currentType = m_computeFromValueSupplier.get();
+                final var currentValue = m_currentValue.get();
+
+                final var targetClass = m_parameterClasses.getOrDefault(currentType, FROM_STRING_CLASS);
+
+                if (currentValue != null && targetClass.isInstance(currentValue)) {
+                    return currentValue;
+                }
+                try {
+                    final var constructor = targetClass.getDeclaredConstructor();
+                    constructor.setAccessible(true);
+                    return constructor.newInstance();
+                } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+                        | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+                    throw new IllegalStateException("Could not create new instance of " + targetClass, e);
+                }
+
+            }
+
+        }
 
         enum AppendOrReplace {
 
@@ -224,23 +296,5 @@ final class ConstantValueColumnNodeSettings implements NodeParameters {
                 }).toList();
         }
 
-        static Optional<DataCell> createDataCellFromString(final String value, final DataType type,
-            final ExecutionContext ctx) {
-
-            var factory = type.getCellFactory(ctx).orElseThrow(
-                () -> new IllegalArgumentException("No cell factory for " + type.toPrettyString() + " available"));
-
-            DataCell newCell;
-            try {
-                newCell = ((FromString)factory).createCell(value);
-            } catch (RuntimeException ex) { // NOSONAR some factories break the contract of createCell
-                // (i.e. they don't throw an IllegalArgumentException) which means that we need to catch
-                // everything instead
-                return Optional.empty();
-            }
-
-            // some factories also return a MissingCell when the input is invalid, so handle that too
-            return newCell.isMissing() ? Optional.empty() : Optional.of(newCell);
-        }
     }
 }
