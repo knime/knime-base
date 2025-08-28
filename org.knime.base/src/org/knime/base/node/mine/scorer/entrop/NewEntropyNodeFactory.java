@@ -1,4 +1,4 @@
-/*  
+/*
  * ------------------------------------------------------------------------
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
@@ -41,14 +41,18 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * -------------------------------------------------------------------
- * 
+ *
  * History
  *   Apr 13, 2006 (wiswedel): created
  */
 package org.knime.base.node.mine.scorer.entrop;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
 import java.util.Map;
 
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.webui.node.dialog.NodeDialog;
@@ -59,28 +63,34 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
 import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
+import org.knime.node.impl.description.ViewDescription;
 
 /**
- * 
+ *
  * @author Bernd Wiswedel, University of Konstanz
+ * @author Robin Gerling, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.1
  */
 @SuppressWarnings("restriction")
 public class NewEntropyNodeFactory extends NodeFactory<EntropyNodeModel>
     implements NodeDialogFactory, KaiNodeInterfaceFactory {
-    
+
     private final boolean m_enableOutput;
-    
-    /** @param enableOutput whether node should have output port 
-     * (it didn't have one in 1.x.x) */
+
+    /**
+     * @param enableOutput whether node should have output port (it didn't have one in 1.x.x)
+     */
     protected NewEntropyNodeFactory(final boolean enableOutput) {
         m_enableOutput = enableOutput;
     }
-    
+
     /** Instantiates class with enabled output. */
     public NewEntropyNodeFactory() {
         this(true);
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -101,8 +111,7 @@ public class NewEntropyNodeFactory extends NodeFactory<EntropyNodeModel>
      * {@inheritDoc}
      */
     @Override
-    public EntropyNodeView createNodeView(final int viewIndex,
-            final EntropyNodeModel nodeModel) {
+    public EntropyNodeView createNodeView(final int viewIndex, final EntropyNodeModel nodeModel) {
         return new EntropyNodeView(nodeModel);
     }
 
@@ -110,22 +119,96 @@ public class NewEntropyNodeFactory extends NodeFactory<EntropyNodeModel>
      * {@inheritDoc}
      */
     @Override
-    public boolean hasDialog() { // legacy API still asked by platform
+    public boolean hasDialog() {
         return true;
     }
 
+    private static final String NODE_NAME = "Entropy Scorer";
+
+    private static final String NODE_ICON = "./entropyscore.png";
+
+    private static final String SHORT_DESCRIPTION = "Scorer for clustering results given a reference clustering.";
+
+    private static final String FULL_DESCRIPTION =
+        """
+                Scorer for clustering results given a reference clustering. Connect the table containing the reference
+                clustering to the first input port (the table should contain a column with the cluster IDs) and the
+                table with the clustering results to the second input port (it should also contain a column with some
+                cluster IDs). Select the respective columns in both tables from the dialog. After successful execution,
+                the view will show entropy values (the smaller the better) and some quality value (in [0,1] - with 1
+                being the best possible value, as used in <a href="
+                http://www.uni-konstanz.de/bioml/bioml2/publications/Papers2007/WiBe07_fcum_ijar/Fuzzy%20Clustering%20in%20Parallel%20Universes_submitted.pdf
+                ">Fuzzy Clustering in Parallel Universes</a>, section 6: Experimental results).""";
+
+    private static final List<PortDescription> INPUT_PORTS = List.of( //
+        fixedPort("Reference clustering", "Table containing reference clustering."), //
+        fixedPort("Clustering to score", "Table containing clustering (to score)."));
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of( //
+        fixedPort("Quality Table", """
+                Table containing entropy values for each cluster. The last row contains statistics on the entire
+                clustering. It corresponds to the table show in the Statistics View.
+                """));
+
+    private static final List<ViewDescription> VIEWS = List.of(new ViewDescription("Statistics View", """
+                Simple statistics on the clustering such as number of clusters being found,
+            number of objects in clusters, number of reference clusters, and total number of objects. Further
+            statistics include:
+            <ul>
+             <li>
+               Entropy: The accumulated entropy of all identified clusters, weighted by the relative cluster size. The
+            entropy is not normalized and may be greater than 1.
+             </li>
+             <li>
+               Quality: The quality value according to the formula referenced above. It is the sum of the weighted
+               qualities of the individual clusters, whereby the quality of a single cluster is calculated as (1 -
+               normalized_entropy). The domain of the quality value is [0,1].
+             </li>
+            </ul>
+            The table at the bottom of the view provides statistics on <i>cluster size</i>, <i>cluster entropy</i>,
+             <i>normalized cluster entropy</i> and <i>quality</i>. The <i>entropy</i> of a clusters is based on the
+             reference clustering (provided at the first input port) and the <i>normalized entropy</i> is this value
+             scaled to an interval [0, 1]. More precisely, it is the entropy divided by log2(number of different
+             clusters in the  reference set). The quality value is only available in the last row (showing the overall
+             statistics).
+                """));
+
     @Override
-    protected NodeDialogPane createNodeDialogPane() { // wrap modern dialog to support legacy flow variables UI
+    public NodeDialogPane createNodeDialogPane() {
         return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
 
+    /**
+     * @since 5.8
+     */
     @Override
     public NodeDialog createNodeDialog() {
-        return new DefaultNodeDialog(SettingsType.MODEL, EntropyScorerNodeSettings.class);
+        return new DefaultNodeDialog(SettingsType.MODEL, NewEntropyNodeParameters.class);
     }
 
     @Override
-    public KaiNodeInterface createKaiNodeInterface() {
-        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, EntropyScorerNodeSettings.class));
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            NewEntropyNodeParameters.class, //
+            VIEWS, //
+            NodeType.Other, //
+            List.of(), //
+            null);
     }
+
+    /**
+     * @since 5.8
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, NewEntropyNodeParameters.class));
+    }
+
 }

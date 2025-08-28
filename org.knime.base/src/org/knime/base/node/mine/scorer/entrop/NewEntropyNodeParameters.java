@@ -42,6 +42,9 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   20 Aug 2025 (Robin Gerling, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.mine.scorer.entrop;
 
@@ -50,28 +53,28 @@ import static org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil.
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.layout.Layout;
-import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
-import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
+import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 
 /**
  * WebUI settings for the Entropy Scorer node.
  *
  * Backwards compatible with legacy settings via config keys in {@link EntropyNodeModel}.
+ *
+ * @author Robin Gerling, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.1
+ * @since 5.7
  */
 @SuppressWarnings("restriction")
-public final class EntropyScorerNodeSettings implements NodeParameters {
-
-    @Section(title = "Column Selection")
-    interface ColumnSelectionSection { }
+@LoadDefaultsForAbsentFields
+final class NewEntropyNodeParameters implements NodeParameters {
 
     /** Column containing the reference clustering (first input table). */
     @Widget(title = "Reference column",
         description = "Column containing the reference clustering from the first input table.")
     @ChoicesProvider(ReferenceStringColumns.class)
-    @Layout(ColumnSelectionSection.class)
     @Persist(configKey = EntropyNodeModel.CFG_REFERENCE_COLUMN)
     String m_referenceColumn;
 
@@ -79,38 +82,35 @@ public final class EntropyScorerNodeSettings implements NodeParameters {
     @Widget(title = "Clustering column",
         description = "Column containing the cluster IDs to evaluate from the second input table.")
     @ChoicesProvider(ClusteringStringColumns.class)
-    @Layout(ColumnSelectionSection.class)
     @Persist(configKey = EntropyNodeModel.CFG_CLUSTERING_COLUMN)
     String m_clusteringColumn;
 
     /** Default ctor for serialization. */
-    public EntropyScorerNodeSettings() {
-        // framework
+    NewEntropyNodeParameters() {
     }
 
     /** Initialize defaults from connected specs. */
-    EntropyScorerNodeSettings(final NodeParametersInput ctx) {
-        m_referenceColumn = ctx.getInTableSpec(EntropyNodeModel.INPORT_REFERENCE)
-                .flatMap(spec -> getFirstStringColumn(spec).map(c -> c.getName())).orElse(null);
-        m_clusteringColumn = ctx.getInTableSpec(EntropyNodeModel.INPORT_CLUSTERING)
-                .flatMap(spec -> getFirstStringColumn(spec).map(c -> c.getName())).orElse(null);
+    NewEntropyNodeParameters(final NodeParametersInput ctx) {
+        m_referenceColumn = getFirstStringColumnAtPort(ctx, EntropyNodeModel.INPORT_REFERENCE);
+        m_clusteringColumn = getFirstStringColumnAtPort(ctx, EntropyNodeModel.INPORT_CLUSTERING);
     }
 
-    /** Provides string columns of port 0. */
-    static final class ReferenceStringColumns implements ColumnChoicesProvider {
+    private static String getFirstStringColumnAtPort(final NodeParametersInput ctx, final int portInd) {
+        return ctx.getInTableSpec(portInd).flatMap(spec -> getFirstStringColumn(spec).map(c -> c.getName()))
+            .orElse(null);
+    }
+
+    static class ReferenceStringColumns extends AllColumnsProvider {
         @Override
-        public java.util.List<org.knime.core.data.DataColumnSpec> columnChoices(final org.knime.node.parameters.NodeParametersInput context) {
-            return org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil.getStringColumns(context,
-                EntropyNodeModel.INPORT_REFERENCE);
+        public int getInputTableIndex() {
+            return EntropyNodeModel.INPORT_REFERENCE;
         }
     }
 
-    /** Provides string columns of port 1. */
-    static final class ClusteringStringColumns implements ColumnChoicesProvider {
+    static class ClusteringStringColumns extends AllColumnsProvider {
         @Override
-        public java.util.List<org.knime.core.data.DataColumnSpec> columnChoices(final org.knime.node.parameters.NodeParametersInput context) {
-            return org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil.getStringColumns(context,
-                EntropyNodeModel.INPORT_CLUSTERING);
+        public int getInputTableIndex() {
+            return EntropyNodeModel.INPORT_CLUSTERING;
         }
     }
 }

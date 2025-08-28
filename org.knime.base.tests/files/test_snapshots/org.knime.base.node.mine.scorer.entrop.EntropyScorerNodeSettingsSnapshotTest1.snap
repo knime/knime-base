@@ -1,0 +1,106 @@
+{
+  "data" : {
+    "model" : {
+      "referenceColumn" : "StringCol1",
+      "clusteringColumn" : "StringCol3"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "clusteringColumn" : {
+            "type" : "string",
+            "title" : "Clustering column",
+            "description" : "Column containing the cluster IDs to evaluate from the second input table.",
+            "default" : "StringCol3"
+          },
+          "referenceColumn" : {
+            "type" : "string",
+            "title" : "Reference column",
+            "description" : "Column containing the reference clustering from the first input table.",
+            "default" : "StringCol1"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/referenceColumn",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/clusteringColumn",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "referenceColumn" : {
+            "configKey" : "reference_table_col_column"
+          },
+          "clusteringColumn" : {
+            "configKey" : "clustering_table_col_column"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/clusteringColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "StringCol3",
+        "text" : "StringCol3",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "StringCol4",
+        "text" : "StringCol4",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/referenceColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "StringCol1",
+        "text" : "StringCol1",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "StringCol2",
+        "text" : "StringCol2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ]
+}
