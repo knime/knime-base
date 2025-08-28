@@ -48,20 +48,35 @@
  */
 package org.knime.base.node.preproc.constantvalue;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
+import org.knime.base.node.preproc.constantvalue.CoreCreateDataCellParameters.StringBasedCellParameters;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataCellFactory.FromString;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataTypeRegistry;
+import org.knime.core.data.def.BooleanCell.BooleanCellFactory;
+import org.knime.core.data.def.DoubleCell.DoubleCellFactory;
+import org.knime.core.data.def.IntCell.IntCellFactory;
+import org.knime.core.data.def.LongCell.LongCellFactory;
 import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.node.ExecutionContext;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.ClassIdStrategy;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DefaultClassIdStrategy;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.DynamicParametersProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.createcell.CreateDataCellExtensionsUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.createcell.CreateDataCellParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
@@ -80,7 +95,6 @@ import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
-import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.ColumnNameValidation;
 
 /**
  * Settings for the Constant Value Column WebUI node.
@@ -120,7 +134,8 @@ final class ConstantValueColumnNodeSettings implements NodeParameters {
 
         @Widget(title = "New column", description = "The name of the new column.")
         @Effect(predicate = AppendOrReplace.IsReplace.class, type = EffectType.HIDE)
-        @TextInputWidget(placeholder = "New column name", patternValidation = ColumnNameValidationUtils.ColumnNameValidation.class)
+        @TextInputWidget(placeholder = "New column name",
+            patternValidation = ColumnNameValidationUtils.ColumnNameValidation.class)
         String m_columnNameToAppend = "New column";
 
         @Widget(title = "Replace column", description = "The name of the column to replace.")
@@ -130,6 +145,7 @@ final class ConstantValueColumnNodeSettings implements NodeParameters {
 
         @Widget(title = "Column type", description = "The type of the new column.")
         @ChoicesProvider(SupportedDataTypeChoicesProvider.class)
+        @ValueReference(DataTypeRef.class)
         DataType m_type = StringCellFactory.TYPE;
 
         @Widget(title = "Fill value", description = """
@@ -140,9 +156,83 @@ final class ConstantValueColumnNodeSettings implements NodeParameters {
         @ValueSwitchWidget
         CustomOrMissingValue m_customOrMissingValue = CustomOrMissingValue.MISSING;
 
-        @Widget(title = "Custom value", description = "The value to be used when filling the output column.")
         @Effect(predicate = CustomOrMissingValue.IsMissing.class, type = EffectType.HIDE)
-        String m_value = "";
+        @DynamicParameters(DataCellParametersProvider.class)
+        @ValueReference(SelfReference.class)
+        CreateDataCellParameters m_customValueParameters;
+
+        static class DataTypeRef implements ParameterReference<DataType> {
+        }
+
+        static class SelfReference implements ParameterReference<CreateDataCellParameters> {
+        }
+
+        static final class DataCellParametersProvider implements DynamicParametersProvider<CreateDataCellParameters> {
+
+            private Supplier<DataType> m_computeFromValueSupplier;
+
+            private Supplier<CreateDataCellParameters> m_currentValue;
+
+            static final Map<DataType, Class<? extends CreateDataCellParameters>> PARAMETER_CLASSES_CORE =
+                Map.ofEntries( //
+                    Map.entry(IntCellFactory.TYPE, CoreCreateDataCellParameters.IntCellParameters.class), //
+                    Map.entry(DoubleCellFactory.TYPE, CoreCreateDataCellParameters.DoubleCellParameters.class), //
+                    Map.entry(LongCellFactory.TYPE, CoreCreateDataCellParameters.LongCellParameters.class), //
+                    Map.entry(BooleanCellFactory.TYPE, CoreCreateDataCellParameters.BooleanCellParameters.class) //
+                );
+
+            final Map<DataType, Class<? extends CreateDataCellParameters>> m_parameterClasses;
+
+            DataCellParametersProvider() {
+                final var parameterClassesFromExtensions =
+                    CreateDataCellExtensionsUtil.getCreateDataCellParametersExtensions();
+                m_parameterClasses = Stream
+                    .concat(PARAMETER_CLASSES_CORE.entrySet().stream(),
+                        parameterClassesFromExtensions.entrySet().stream())
+                    .collect(java.util.stream.Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (v1, v2) -> v2 // in case of conflict, prefer extension
+                    ));
+
+            }
+
+            @Override
+            public ClassIdStrategy<CreateDataCellParameters> getClassIdStrategy() {
+                final var possibleClasses = Stream.concat(//
+                    m_parameterClasses.values().stream(), //
+                    Stream.of(StringBasedCellParameters.class)//
+                ).toList();
+                return new DefaultClassIdStrategy<>(possibleClasses);
+            }
+
+            @Override
+            public void init(final StateProviderInitializer initializer) {
+                initializer.computeBeforeOpenDialog();
+                m_computeFromValueSupplier = initializer.computeFromValueSupplier(DataTypeRef.class);
+                m_currentValue = initializer.getValueSupplier(SelfReference.class);
+            }
+
+            @Override
+            public CreateDataCellParameters computeParameters(final NodeParametersInput parametersInput)
+                throws StateComputationFailureException {
+                final var currentType = m_computeFromValueSupplier.get();
+                final var currentValue = m_currentValue.get();
+
+                final var targetClass = m_parameterClasses.getOrDefault(currentType, //
+                    CoreCreateDataCellParameters.StringBasedCellParameters.class//
+                );
+
+                if (currentValue != null && targetClass.isInstance(currentValue)) {
+                    return currentValue;
+                }
+                try {
+                    return targetClass.getDeclaredConstructor().newInstance();
+                } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+                        | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+                    throw new IllegalStateException("Could not create new instance of " + targetClass, e);
+                }
+
+            }
+
+        }
 
         enum AppendOrReplace {
 

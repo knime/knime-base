@@ -59,7 +59,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings.NewColumnSettings;
 import org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings.NewColumnSettings.AppendOrReplace;
 import org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings.NewColumnSettings.CustomOrMissingValue;
-import org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeSettings.SupportedDataTypeChoicesProvider;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -99,9 +98,9 @@ final class ConstantValueColumnNodeModel2
             .filter(ConstantValueColumnNodeModel2::hasInvalidValue) //
             .findFirst();
         if (firstInvalidCustomValue.isPresent()) {
-            throw new InvalidSettingsException(
-                "The value '" + firstInvalidCustomValue.get().m_value + "' is not a valid value for the selected type "
-                    + firstInvalidCustomValue.get().m_type.toPrettyString() + ".");
+            throw new InvalidSettingsException("The value '" + firstInvalidCustomValue.get().m_customValueParameters
+                + "' is not a valid value for the selected type "
+                + firstInvalidCustomValue.get().m_type.toPrettyString() + ".");
         }
 
         // check no column is appended twice
@@ -140,7 +139,7 @@ final class ConstantValueColumnNodeModel2
     }
 
     private static boolean hasInvalidValue(final NewColumnSettings s) {
-        return SupportedDataTypeChoicesProvider.createDataCellFromString(s.m_value, s.m_type, null).isEmpty();
+        return s.m_customValueParameters.createDataCell(s.m_type, null).isEmpty();
     }
 
     /** Get the first duplicate element in a list, if it exists */
@@ -220,11 +219,12 @@ final class ConstantValueColumnNodeModel2
                 return new MissingCell("Missing cell from 'Constant Value Column'");
             }
 
-            var dataCell = SupportedDataTypeChoicesProvider.createDataCellFromString(m_singleColumnSettings.m_value,
-                m_singleColumnSettings.m_type, m_ctx);
+            final var dataCell =
+                m_singleColumnSettings.m_customValueParameters.createDataCell(m_singleColumnSettings.m_type, m_ctx);
 
-            return dataCell.orElseThrow(() -> new IllegalStateException("Could not create cell of type "
-                + m_singleColumnSettings.m_type + " from string '" + m_singleColumnSettings.m_value + "'."));
+            return dataCell.orElseThrow(
+                () -> new IllegalStateException("Could not create cell of type " + m_singleColumnSettings.m_type
+                    + " from value parameters '" + m_singleColumnSettings.m_customValueParameters + "'."));
         }
     }
 }
