@@ -583,8 +583,7 @@
       </node>
       <node
             category-path="/manipulation/column/binning"
-            factory-class="org.knime.base.node.preproc.binner.BinnerNodeFactory"
-            deprecated="true"/>
+            factory-class="org.knime.base.node.preproc.binner.BinnerNodeFactory"/>
       <node
             category-path="/manipulation/column/binning"
             factory-class="org.knime.base.node.preproc.binnerdictionary.BinByDictionaryNodeFactory"
@@ -1683,12 +1682,12 @@
       <node
             category-path="/manipulation/column/binning"
             factory-class="org.knime.base.node.preproc.autobinner3.AutoBinnerLearnNodeFactory"
-            deprecated="true"
             >
       </node>
       <node
             category-path="/manipulation/column/binning"
             factory-class="org.knime.base.node.preproc.binner2.BinnerNodeFactory"
+            hidden="true"
             >
       </node>
       <node
