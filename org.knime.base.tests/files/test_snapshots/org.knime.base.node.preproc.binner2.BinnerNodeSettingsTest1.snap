@@ -66,7 +66,7 @@
               "title" : "Midpoints"
             } ],
             "title" : "Bin names/values",
-            "description" : "The method that will be used when naming the bins.\n\n<ul>\n<li><b>Numbered</b>: Bins will be named by their number, e.g. Bin 1</li>\n<li><b>Borders</b>: Bins will be named by their borders, e.g. [0.0, 1.0)</li>\n<li><b>Midpoints</b>: Bins will be named by their midpoints, e.g. 0.5</li>\n</ul>",
+            "description" : "Selects how bins are labeled in the output.\n<ul>\n<li><b>Numbered</b>: Bins are labeled by index (e.g., Bin 1, Bin 2).</li>\n<li><b>Borders</b>: Bins are labeled using interval borders (e.g., [0.0, 1.0)).</li>\n<li><b>Midpoints</b>: Bins are labeled using the midpoint of each interval.</li>\n</ul>",
             "default" : "NUMBERED"
           },
           "binningType" : {
@@ -84,7 +84,7 @@
               "title" : "Custom quantiles"
             } ],
             "title" : "Binning type",
-            "description" : "The algorithm to use when creating the bins, or the bins may be specified manually.\n\n<ul>\n<li><b>Equal width</b>: Each bin will have the same width. The number of bins must be specified.\n</li>\n<li><b>Equal frequency</b>: Each bin will contain the same number of values (or as close as possible). The number of bins must be specified.\n</li>\n<li><b>Custom cutoffs</b>: Bins will be created based on a fixed list of cutoffs. The cutoffs are specified as boundaries, i.e. the values that define the bin edges. At least two cutoffs must be provided.\n</li>\n<li><b>Custom quantiles</b>: Bins will be created based on a fixed list of quantiles. The quantiles are specified as boundaries, i.e. the values that define the bin edges. At least two quantiles must be provided.\n\nThe quantiles will be converted to bin edges using the R-7 algorithm, see <a href=\"\nhttps://en.wikipedia.org/wiki/Quantile\">WP:Quantile</a> for more details.\n</li>\n</ul>",
+            "description" : "Select the method used to define bin intervals.\n<ul>\n<li><b>Equal width</b>: Creates bins of equal size across the value range. Requires a specified number of bins.\n</li>\n<li><b>Equal frequency</b>: Creates bins with approximately the same number of values. Requires a specified number of bins.\n</li>\n<li><b>Custom cutoffs</b>: Manually define bin edges using a list of cutoff values. At least two cutoffs are required.\n</li>\n<li><b>Custom quantiles</b>: Define bin edges based on quantile values. At least two quantiles are required. Quantiles are converted to bin edges using the R-7 algorithm, see <a href=\"\nhttps://en.wikipedia.org/wiki/Quantile\">WP:Quantile</a> for more details.\n</li>\n</ul>",
             "default" : "EQUAL_WIDTH"
           },
           "customCutoffs" : {
@@ -96,7 +96,7 @@
                   "type" : "number",
                   "format" : "double",
                   "title" : "Cutoff",
-                  "description" : "The exact value at which the bin boundary should be placed.\n",
+                  "description" : "Specifies the exact value at which the bin boundary should be placed.\n",
                   "default" : 0.0
                 },
                 "matchType" : {
@@ -108,13 +108,13 @@
                     "title" : "To upper bin"
                   } ],
                   "title" : "Exact match",
-                  "description" : "The behaviour when a value is exactly equal to the cutoff between two bins.\n\n<ul>\n<li><b>To lower bin</b>: Values that fall on the bin border will be assigned to the lower bin.\n</li>\n<li><b>To upper bin</b>: Values that fall on the bin border will be assigned to the upper bin.\n</li>\n</ul>",
+                  "description" : "Defines how to assign values that match a cutoff exactly.\n\n<ul>\n<li><b>To lower bin</b>: Assign to the bin below the cutoff.</li>\n<li><b>To upper bin</b>: Assign to the bin above the cutoff.</li>\n</ul>",
                   "default" : "TO_LOWER_BIN"
                 }
               }
             },
             "title" : "Custom cutoffs",
-            "description" : "The bin boundaries may be defined manually by entering the values. The behaviour when a value is exactly equal to a cutoff can be configured separately for each boundary.\n",
+            "description" : "Specifies the exact value at which the bin boundary should be placed.\n",
             "default" : [ {
               "cutoff" : 0.0,
               "matchType" : "TO_LOWER_BIN"
@@ -134,14 +134,14 @@
                     "title" : "To upper bin"
                   } ],
                   "title" : "Exact match",
-                  "description" : "The behaviour when a value is exactly equal to the cutoff between two bins.\n\n<ul>\n<li><b>To lower bin</b>: Values that fall on the bin border will be assigned to the lower bin.\n</li>\n<li><b>To upper bin</b>: Values that fall on the bin border will be assigned to the upper bin.\n</li>\n</ul>",
+                  "description" : "Defines how to assign values that match a cutoff exactly.\n\n<ul>\n<li><b>To lower bin</b>: Assign to the bin below the cutoff.</li>\n<li><b>To upper bin</b>: Assign to the bin above the cutoff.</li>\n</ul>",
                   "default" : "TO_LOWER_BIN"
                 },
                 "quantile" : {
                   "type" : "number",
                   "format" : "double",
                   "title" : "Quantile",
-                  "description" : "The exact value at which the bin boundary should be placed.\n",
+                  "description" : "Specifies a quantile value (between 0 and 1) used as a bin boundary.\n",
                   "default" : 0.0
                 }
               }
@@ -156,39 +156,39 @@
           "enforceIntegerCutoffs" : {
             "type" : "boolean",
             "title" : "Enforce integer cutoffs",
-            "description" : "If enabled, the cutoffs between bins will be rounded to the nearest integer. Not applicable if the cutoffs are defined manually.\n",
+            "description" : "If enabled, bin boundaries will be rounded to the nearest integer. Not available when using custom cutoffs.\n",
             "default" : false
           },
           "fixLowerBound" : {
             "type" : "boolean",
             "title" : "Fix lower bound",
-            "description" : "If enabled, values below the lower bound will be sorted into a special bin with a name specified by the 'Lower outlier value' setting. ",
+            "description" : "If enabled, values below the specified lower bound will be assigned to a dedicated outlier bin. The bin will have the name specified by the 'Lower outlier value' setting.\n",
             "default" : false
           },
           "fixUpperBound" : {
             "type" : "boolean",
             "title" : "Fix upper bound",
-            "description" : "If enabled, values above the upper bound will be sorted into a special bin with a name specified by the 'Upper outlier value' setting. ",
+            "description" : "If enabled, values above the specified upper bound will be assigned to a dedicated outlier bin. The bin will have the name specified by the 'Upper outlier value' setting.\n",
             "default" : false
           },
           "fixedLowerBound" : {
             "type" : "number",
             "format" : "double",
             "title" : "Lower bound",
-            "description" : "The lower bound below which values will be sorted into a special bin with a name specified by the 'Lower outlier value' setting.\n",
+            "description" : "Sets the minimum value for binning. Values below this will be assigned to the lower outlier bin.\n",
             "default" : 0.0
           },
           "fixedUpperBound" : {
             "type" : "number",
             "format" : "double",
             "title" : "Upper bound",
-            "description" : "The upper bound above which values will be sorted into a special bin with a name specified by the 'Upper outlier value' setting.\n",
+            "description" : "Sets the maximum value for binning. Values above this will be assigned to the upper outlier bin.\n",
             "default" : 0.0
           },
           "lowerOutlierValue" : {
             "type" : "string",
             "title" : "Lower outlier value",
-            "description" : "Values that are below the lower bound of the lowermost bin will be labeled with this value in place of a bin name.\n",
+            "description" : "Label assigned to values below the fixed lower bound.",
             "default" : "Lower outlier"
           },
           "numberFormat" : {
@@ -279,13 +279,13 @@
             "type" : "integer",
             "format" : "int32",
             "title" : "Number of bins",
-            "description" : "The number of bins to create.",
+            "description" : "Specifies the number of bins to create. Used with Equal width and Equal frequency binning.\n",
             "default" : 20
           },
           "prefix" : {
             "type" : "string",
             "title" : "Prefix",
-            "description" : "If the bin names are numbered, this prefix will be prepended to the bin names. For example \"Bin 1\", \"Bin 2\", etc. ",
+            "description" : "Text to prepend to bin labels when using numbered naming (e.g., Bin 1, Bin 2).\n",
             "default" : "Bin "
           },
           "replaceOrAppend" : {
@@ -297,7 +297,7 @@
               "title" : "Append"
             } ],
             "title" : "Output columns",
-            "description" : "Whether to replace the original columns with the binned columns, or to append the binned columns with new names created by appending the specified suffix to the original column names.\n\n<ul>\n<li><b>Replace</b>: Replace the original columns with the binned columns.</li>\n<li><b>Append</b>: Create new columns with the binned values, whose names are the original column names with a suffix appended.\n</li>\n</ul>",
+            "description" : "Whether to replace the original columns with the binned columns, or to append the binned columns with new names created by appending the specified suffix to the original column names.\n\n<ul>\n<li><b>Replace</b>: Replaces the original column with the binned result.</li>\n<li><b>Append</b>: Adds a new column with the binned values.</li>\n</ul>",
             "default" : "REPLACE"
           },
           "selectedColumns" : {
@@ -391,7 +391,7 @@
               }
             },
             "title" : "Columns to bin",
-            "description" : "Only the included columns will be binned.",
+            "description" : "Select the numeric columns to apply binning to. Only the selected columns will be transformed.\n",
             "default" : {
               "mode" : "MANUAL",
               "patternFilter" : {
@@ -413,13 +413,13 @@
           "suffix" : {
             "type" : "string",
             "title" : "Suffix",
-            "description" : "If the binned columns are appended, this suffix will be appended to the original column names.\n",
+            "description" : "Text appended to column names when new columns are created using the Append option.",
             "default" : " (Binned)"
           },
           "upperOutlierValue" : {
             "type" : "string",
             "title" : "Upper outlier value",
-            "description" : "Values that are above the upper bound of the uppermost bin will be labeled with this value in place of a bin name.\n",
+            "description" : "Label assigned to values above the fixed upper bound.",
             "default" : "Upper outlier"
           }
         }
@@ -451,17 +451,17 @@
         "scope" : "#/properties/model/properties/numberOfBins",
         "options" : {
           "validation" : {
-            "max" : {
-              "errorMessage" : "The value must not exceed 2147483647.",
-              "parameters" : {
-                "max" : 2.147483647E9,
-                "isExclusive" : false
-              }
-            },
             "min" : {
               "errorMessage" : "The value must be at least 1.",
               "parameters" : {
                 "min" : 1.0,
+                "isExclusive" : false
+              }
+            },
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "max" : 2.147483647E9,
                 "isExclusive" : false
               }
             }
@@ -520,17 +520,17 @@
             "scope" : "#/properties/quantile",
             "options" : {
               "validation" : {
-                "max" : {
-                  "errorMessage" : "The value must not exceed 1.",
-                  "parameters" : {
-                    "max" : 1.0,
-                    "isExclusive" : false
-                  }
-                },
                 "min" : {
                   "errorMessage" : "The value must be at least 0.",
                   "parameters" : {
                     "min" : 0.0,
+                    "isExclusive" : false
+                  }
+                },
+                "max" : {
+                  "errorMessage" : "The value must not exceed 1.",
+                  "parameters" : {
+                    "max" : 1.0,
                     "isExclusive" : false
                   }
                 }
@@ -747,17 +747,17 @@
         "scope" : "#/properties/model/properties/numberFormatSettings/properties/precision",
         "options" : {
           "validation" : {
-            "max" : {
-              "errorMessage" : "The value must not exceed 2147483647.",
-              "parameters" : {
-                "max" : 2.147483647E9,
-                "isExclusive" : false
-              }
-            },
             "min" : {
               "errorMessage" : "The value must be at least 1.",
               "parameters" : {
                 "min" : 1.0,
+                "isExclusive" : false
+              }
+            },
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "max" : 2.147483647E9,
                 "isExclusive" : false
               }
             }

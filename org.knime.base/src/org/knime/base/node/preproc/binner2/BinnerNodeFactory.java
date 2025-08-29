@@ -75,8 +75,17 @@ public final class BinnerNodeFactory extends WebUINodeFactory<BinnerNodeModel> {
     static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
         .name("Binner") //
         .icon("binner.png") //
-        .shortDescription("TODO") //
-        .fullDescription("TODO") //
+        .shortDescription("Groups numeric values into labeled bins using automatic or custom-defined intervals.") //
+        .fullDescription("""
+                Groups numeric columns into discrete intervals, known as bins. This \
+                node supports both automatic and manual binning methods, including \
+                equal-width, equal-frequency, custom cutoffs, and quantile-based \
+                binning. Each bin is assigned a label based on its position, boundary \
+                values, or midpoint. The resulting binned values are output as \
+                string-type columns, either replacing the original data or appended \
+                alongside it. This node combines the functionality of the Auto-Binner \
+                and Numeric Binner nodes.
+                """) //
         .modelSettingsClass(BinnerNodeSettings.class) //
         .addInputTable("Input Data", "Data to be categorized") //
         .addOutputTable("Binned Data", "Data with bins defined") //
