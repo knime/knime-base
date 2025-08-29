@@ -121,32 +121,33 @@ final class BinnerNodeSettings implements NodeParameters {
     }
 
     @Layout(BinningSection.class)
-    @Widget(title = "Columns to bin", description = "Only the included columns will be binned.")
+    @Widget(title = "Columns to bin", description = """
+            Select the numeric columns to apply binning to. Only the \
+            selected columns will be transformed.
+            """)
     @TwinlistWidget
     @ChoicesProvider(NumericColumnsProvider.class)
     ColumnFilter m_selectedColumns = new ColumnFilter().withIncludeUnknownColumns();
 
     @Layout(BinningSection.class)
-    @Widget(title = "Binning type", description = """
-            The algorithm to use when creating the \
-            bins, or the bins may be specified manually.
-            """)
+    @Widget(title = "Binning type", description = "Select the method used to define bin intervals.")
     @RadioButtonsWidget
     @ValueReference(BinningTypeRef.class)
     BinningType m_binningType = BinningType.EQUAL_WIDTH;
 
     @Layout(BinningSection.class)
-    @Widget(title = "Number of bins", description = "The number of bins to create.")
+    @Widget(title = "Number of bins", description = """
+            Specifies the number of bins to create. Used with Equal \
+            width and Equal frequency binning.
+            """)
     @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
     @Effect(predicate = NumberOfBinsShouldBeShown.class, type = EffectType.SHOW)
     int m_numberOfBins = 20;
 
     @Layout(BinningSection.class)
     @Widget(title = "Custom cutoffs", description = """
-            The bin boundaries may be defined manually \
-            by entering the values. The behaviour when a \
-            value is exactly equal to a cutoff can be \
-            configured separately for each boundary.
+            Specifies the exact value at which the bin boundary \
+            should be placed.
             """) // this title and description aren't displayed in dialogue, only node desc
     @ArrayWidget(elementTitle = "Cutoff", addButtonText = "New cutoff", showSortButtons = true)
     @Effect(predicate = BinningTypeIsCustomCutoffs.class, type = EffectType.SHOW)
@@ -169,18 +170,17 @@ final class BinnerNodeSettings implements NodeParameters {
 
     @Layout(BinningSection.class)
     @Widget(title = "Enforce integer cutoffs", description = """
-            If enabled, the cutoffs between bins will be \
-            rounded to the nearest integer. Not applicable \
-            if the cutoffs are defined manually.
+            If enabled, bin boundaries will be rounded to the \
+            nearest integer. Not available when using custom cutoffs.
             """)
     @Effect(predicate = BinningTypeIsNotCustomCutoffs.class, type = EffectType.SHOW)
     boolean m_enforceIntegerCutoffs;
 
     @Layout(BinningSection.class)
     @Widget(title = "Fix lower bound", description = """
-            If enabled, values below the lower bound \
-            will be sorted into a special bin with a name \
-            specified by the 'Lower outlier value' setting. \
+            If enabled, values below the specified lower bound will \
+            be assigned to a dedicated outlier bin. The bin will have \
+            the name specified by the 'Lower outlier value' setting.
             """)
     @Effect(predicate = BinningTypeIsNotCustomCutoffs.class, type = EffectType.SHOW)
     @ValueReference(FixLowerBoundRef.class)
@@ -189,18 +189,17 @@ final class BinnerNodeSettings implements NodeParameters {
 
     @Layout(BinningSection.class)
     @Widget(title = "Lower bound", description = """
-            The lower bound below which values will be \
-            sorted into a special bin with a name \
-            specified by the 'Lower outlier value' setting.
+            Sets the minimum value for binning. Values below this will \
+            be assigned to the lower outlier bin.
             """)
     @Effect(predicate = ShouldShowFixedLowerBoundField.class, type = EffectType.SHOW)
     double m_fixedLowerBound;
 
     @Layout(BinningSection.class)
     @Widget(title = "Fix upper bound", description = """
-            If enabled, values above the upper bound \
-            will be sorted into a special bin with a name \
-            specified by the 'Upper outlier value' setting. \
+            If enabled, values above the specified upper bound will \
+            be assigned to a dedicated outlier bin. The bin will have \
+            the name specified by the 'Upper outlier value' setting.
             """)
     @Effect(predicate = BinningTypeIsNotCustomCutoffs.class, type = EffectType.SHOW)
     @ValueReference(FixUpperBoundRef.class)
@@ -209,9 +208,8 @@ final class BinnerNodeSettings implements NodeParameters {
 
     @Layout(BinningSection.class)
     @Widget(title = "Upper bound", description = """
-            The upper bound above which values will be \
-            sorted into a special bin with a name \
-            specified by the 'Upper outlier value' setting.
+            Sets the maximum value for binning. Values above this will \
+            be assigned to the upper outlier bin.
             """)
     @Effect(predicate = ShouldShowFixedUpperBoundField.class, type = EffectType.SHOW)
     double m_fixedUpperBound;
@@ -221,37 +219,25 @@ final class BinnerNodeSettings implements NodeParameters {
     }
 
     @Layout(OutputSection.class)
-    @Widget(title = "Bin names/values", description = """
-            The method that will be used when naming \
-            the bins.
-            """)
+    @Widget(title = "Bin names/values", description = "Selects how bins are labeled in the output.")
     @RadioButtonsWidget
     @ValueReference(BinNamesRef.class)
     BinNaming m_binNames = BinNaming.NUMBERED;
 
     @Layout(OutputSection.class)
     @Widget(title = "Prefix", description = """
-            If the bin names are numbered, this \
-            prefix will be prepended to the bin names. \
-            For example "Bin 1", "Bin 2", etc. \
+            Text to prepend to bin labels when using numbered \
+            naming (e.g., Bin 1, Bin 2).
             """)
     @Effect(predicate = BinNamesIsNumbered.class, type = EffectType.SHOW)
     String m_prefix = "Bin ";
 
     @Layout(OutputSection.class)
-    @Widget(title = "Lower outlier value", description = """
-            Values that are below the lower bound of the \
-            lowermost bin will be labeled with this value in \
-            place of a bin name.
-            """)
+    @Widget(title = "Lower outlier value", description = "Label assigned to values below the fixed lower bound.")
     String m_lowerOutlierValue = "Lower outlier";
 
     @Layout(OutputSection.class)
-    @Widget(title = "Upper outlier value", description = """
-            Values that are above the upper bound of the uppermost \
-            bin will be labeled with this value in place of a bin \
-            name.
-            """)
+    @Widget(title = "Upper outlier value", description = "Label assigned to values above the fixed upper bound.")
     String m_upperOutlierValue = "Upper outlier";
 
     @Layout(OutputSection.class)
@@ -285,10 +271,8 @@ final class BinnerNodeSettings implements NodeParameters {
     ReplaceOrAppend m_replaceOrAppend = ReplaceOrAppend.REPLACE;
 
     @Layout(OutputSection.class)
-    @Widget(title = "Suffix", description = """
-            If the binned columns are appended, this \
-            suffix will be appended to the original column names.
-            """)
+    @Widget(title = "Suffix",
+        description = "Text appended to column names when new columns are created using the Append option.")
     @Effect(predicate = ReplaceOrAppend.IsAppend.class, type = EffectType.SHOW)
     @TextInputWidget(minLengthValidation = IsNotEmptyValidation.class)
     String m_suffix = " (Binned)";
@@ -316,13 +300,9 @@ final class BinnerNodeSettings implements NodeParameters {
     }
 
     enum ReplaceOrAppend {
-            @Label(value = "Replace", description = "Replace the original columns with the binned columns.")
+            @Label(value = "Replace", description = "Replaces the original column with the binned result.")
             REPLACE, //
-            @Label(value = "Append", description = """
-                    Create new columns with the binned values, \
-                    whose names are the original column names \
-                    with a suffix appended.
-                    """)
+            @Label(value = "Append", description = "Adds a new column with the binned values.")
             APPEND;
 
         static final class Ref implements ParameterReference<ReplaceOrAppend> {
@@ -368,13 +348,18 @@ final class BinnerNodeSettings implements NodeParameters {
     }
 
     private static final String CUTOFF_DESC = """
-            The exact value at which the bin boundary \
+            Specifies the exact value at which the bin boundary \
             should be placed.
             """;
 
+    private static final String QUANTILE_DESC = """
+            Specifies a quantile value (between 0 and 1) used as \
+            a bin boundary.
+            """;
+
     private static final String EXACT_MATCH_DESC = """
-            The behaviour when a value is exactly equal \
-            to the cutoff between two bins.
+            Defines how to assign values that match a cutoff \
+            exactly.
             """;
 
     static class CustomCutoffs implements NodeParameters {
@@ -403,7 +388,7 @@ final class BinnerNodeSettings implements NodeParameters {
     }
 
     static class CustomQuantilesWidgetGroup implements NodeParameters {
-        @Widget(title = "Quantile", description = CUTOFF_DESC)
+        @Widget(title = "Quantile", description = QUANTILE_DESC)
         @NumberInputWidget( //
             minValidation = IsNonNegativeValidation.class, //
             maxValidation = NumberIsAtMostOneValidation.class //
