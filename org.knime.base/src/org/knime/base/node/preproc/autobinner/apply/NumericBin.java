@@ -54,7 +54,10 @@ import org.knime.core.data.DoubleValue;
  * Encapsulates a bin.
  *
  * @author Heiko Hofer
+ *
+ * @deprecated please use {@link org.knime.core.util.binning.numeric.NumericBin} instead since this is a duplicate.
  */
+@Deprecated
 class NumericBin  {
     private final DataCell m_binName;
 

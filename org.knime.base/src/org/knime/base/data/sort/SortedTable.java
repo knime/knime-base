@@ -73,7 +73,10 @@ import org.knime.core.node.ExecutionContext;
  *
  * @author Christoph Sieb, University of Konstanz
  * @author Nicolas Cebron, University of Konstanz
+ *
+ * @deprecated Use {@link BufferedDataTableSorter} instead.
  */
+@Deprecated
 public class SortedTable implements DataTable {
 
     private final BufferedDataTable m_sortedTable;

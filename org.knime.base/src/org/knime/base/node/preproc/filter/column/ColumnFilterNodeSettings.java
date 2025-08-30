@@ -50,12 +50,12 @@ package org.knime.base.node.preproc.filter.column;
 
 import static org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil.getAllColumnsOfFirstPort;
 
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.Migrate;
 import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.persistence.legacy.LegacyColumnFilterPersistor;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
