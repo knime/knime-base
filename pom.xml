@@ -48,7 +48,6 @@
 				<module>org.knime.filehandling.utility.nodes</module>
 				<module>org.knime.filehandling.utility.nodes.tests</module>
 				<module>org.knime.time</module>
-				<module>org.knime.time.tests/lib/fetch_jars</module>
 				<module>org.knime.time.tests</module>
 			</modules>
 			<repositories>
