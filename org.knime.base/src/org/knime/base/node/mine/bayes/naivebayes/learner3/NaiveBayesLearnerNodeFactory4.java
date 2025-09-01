@@ -48,6 +48,12 @@
  */
 package org.knime.base.node.mine.bayes.naivebayes.learner3;
 
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+
+import org.apache.xmlbeans.XmlException;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.webui.node.dialog.NodeDialog;
@@ -55,14 +61,21 @@ import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
+import org.knime.node.impl.description.ViewDescription;
+import org.xml.sax.SAXException;
 
 /**
  * <code>NodeFactory</code> for the "Naive Bayes Learner" node.
  *
  * @author Tobias Koetter
+ * @author Carsten Haubold
  */
 @SuppressWarnings("restriction")
-public final class NaiveBayesLearnerNodeFactory4 extends NodeFactory<NaiveBayesLearnerNodeModel3> implements NodeDialogFactory {
+public final class NaiveBayesLearnerNodeFactory4 extends NodeFactory<NaiveBayesLearnerNodeModel3>
+    implements NodeDialogFactory {
+
     /**
      * {@inheritDoc}
      */
@@ -111,5 +124,55 @@ public final class NaiveBayesLearnerNodeFactory4 extends NodeFactory<NaiveBayesL
     @Override
     protected NodeDialogPane createNodeDialogPane() {
         return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * Use the WebUINodeConfiguration to generate the node description (replacing the XML file).
+     */
+    @Override
+    protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
+
+        Collection<PortDescription> inPortDescriptions =
+            List.of(new PortDescription("id", "The training data", "Training data", false));
+        Collection<PortDescription> outPortDescriptions = List.of(//
+            new PortDescription("id2", "PMML Naive Bayes Model",
+                "Learned naive Bayes model. The model can be used to classify data with unknown target (class) attribute. "
+                    + "To do so, connect the model out port to the \"Naive Bayes Predictor\" node.",
+                false), //
+            new PortDescription("id3", "Statistics table",
+                "Data table with attribute statistics e.g. counts per attribute class pair, mean and standard deviation.",
+                false) //
+        );
+
+        return DefaultNodeDescriptionUtil.createNodeDescription("Naive Bayes Learner", //
+            "naiveBayesLearner.png", //
+            inPortDescriptions, //
+            outPortDescriptions, //
+            "Creates a naive Bayes model from the given classified data.", //
+            """
+                    The node creates a <a href=\"http://en.wikipedia.org/wiki/Naive_Bayes_classifier\">Bayesian model</a> from
+                    the given training data. It
+                    calculates the number of rows per attribute value per class for
+                    nominal attributes and the Gaussian distribution for numerical
+                    attributes. The created model could be used in the naive Bayes
+                    predictor to predict the class membership of unclassified data.
+
+                    <p>
+                    The node displays a warning message if any columns are ignored due to unsupported data types.
+                    For example Bit Vector columns are ignored when the PMML compatibility flag is enabled since they are
+                    not supported by the PMML standard.
+                    </p>
+                    """,
+            List.of(), //
+            NaiveBayesLearnerNodeSettings.class, //
+            List.of(new ViewDescription("Naive Bayes Learner View", """
+                    The view displays the learned model with the number of rows per class
+                    attribute. The number of rows per attribute per class for nominal
+                    attributes and the Gaussian distribution per class
+                    for numerical attributes.
+                    """)), //
+            NodeType.Learner, //
+            List.of(), //
+            null);
     }
 }
