@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/2008/09/XMLConfig_2_8.xsd" key="settings.xml">
+<entry key="node_file" type="xstring" value="settings.xml"/>
+<config key="model">
+<entry key="compare_entirely" type="xboolean" value="false"/>
+<config key="column_filter">
+<entry key="filter-type" type="xstring" value="STANDARD"/>
+<config key="included_names">
+<entry key="array-size" type="xint" value="2"/>
+<entry key="0" type="xstring" value="Column1"/>
+<entry key="1" type="xstring" value="Column2"/>
+</config>
+<config key="excluded_names">
+<entry key="array-size" type="xint" value="1"/>
+<entry key="0" type="xstring" value="Column3"/>
+</config>
+<entry key="enforce_option" type="xstring" value="EnforceExclusion"/>
+</config>
+<entry key="failure_mode" type="xstring" value="DIFFERENT_VALUES"/>
+</config>
+<config key="ports">
+<config key="port_0">
+<entry key="index" type="xint" value="0"/>
+<config key="port_spec_class">
+<entry key="cell_class" type="xstring" value="org.knime.core.data.DataTableSpec"/>
+</config>
+<config key="port_object_class">
+<entry key="cell_class" type="xstring" value="org.knime.core.node.BufferedDataTable"/>
+</config>
+<entry key="port_name" type="xstring" value="Table to compare to"/>
+<entry key="port_dir" type="xstring" value="IN"/>
+<entry key="port_type" type="xstring" value="Data"/>
+</config>
+<config key="port_1">
+<entry key="index" type="xint" value="1"/>
+<config key="port_spec_class">
+<entry key="cell_class" type="xstring" value="org.knime.core.data.DataTableSpec"/>
+</config>
+<config key="port_object_class">
+<entry key="cell_class" type="xstring" value="org.knime.core.node.BufferedDataTable"/>
+</config>
+<entry key="port_name" type="xstring" value="Reference table"/>
+<entry key="port_dir" type="xstring" value="IN"/>
+<entry key="port_type" type="xstring" value="Data"/>
+</config>
+</config>
+<entry key="factory" type="xstring" value="org.knime.base.node.preproc.tablediff.TableDifferNodeFactory"/>
+</config>
