@@ -73,9 +73,9 @@ import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
  * Settings for the web UI dialog of the Loop End (Dynamic) node.
  *
  * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
+ * @author Carsten Haubold, KNIME GmbH, Konstanz, Germany
  * @since 4.5
  */
-@Layout(LoopEndDynamicNodeWebUISettings.RowIdSection.class)
 final class LoopEndDynamicNodeWebUISettings implements NodeParameters {
 
     /**
@@ -96,12 +96,7 @@ final class LoopEndDynamicNodeWebUISettings implements NodeParameters {
         }
     }
 
-    @Section(title = "Row ID Policy")
-    interface RowIdSection {
-    }
-
-    @Section(title = "General Options")
-    @After(RowIdSection.class)
+    @Section(title = "General Settings")
     interface GeneralSection {
     }
 
@@ -116,65 +111,57 @@ final class LoopEndDynamicNodeWebUISettings implements NodeParameters {
     RowKeyPolicyOption m_rowKeyPolicy = RowKeyPolicyOption.APPEND_SUFFIX;
 
     enum RowKeyPolicyOption {
-        @Label("Generate new RowIDs")
-        GENERATE_NEW,
+            @Label("Generate new RowIDs")
+            GENERATE_NEW,
 
-        @Label("Unique RowIDs by appending a suffix")
-        APPEND_SUFFIX,
+            @Label("Unique RowIDs by appending a suffix")
+            APPEND_SUFFIX,
 
-        @Label("Leave RowIDs unmodified")
-        UNMODIFIED;
+            @Label("Leave RowIDs unmodified")
+            UNMODIFIED;
     }
 
     @Layout(GeneralSection.class)
     @Widget(title = "Add iteration column",
-            description = "Allows you to add a column containing the iteration number to the output tables.")
+        description = "Allows you to add a column containing the iteration number to the output tables.")
     boolean m_addIterationColumn = true;
 
     @Layout(GeneralSection.class)
     @Widget(title = "Propagate modified loop variables",
-            description = "If checked, variables whose values are modified within the loop are exported by this node. "
-                + "These variables must be declared outside the loop, i.e. injected into the loop from a side-branch "
-                + "or be available upstream of the corresponding loop start node. For the latter, any modification of "
-                + "a variable is passed back to the start node in subsequent iterations (e.g. moving sum calculation). "
-                + "Note that variables defined by the loop start node itself are excluded as these usually represent "
-                + "loop controls (e.g. \"currentIteration\").")
+        description = "If checked, variables whose values are modified within the loop are exported by this node. "
+            + "These variables must be declared outside the loop, i.e. injected into the loop from a side-branch "
+            + "or be available upstream of the corresponding loop start node. For the latter, any modification of "
+            + "a variable is passed back to the start node in subsequent iterations (e.g. moving sum calculation). "
+            + "Note that variables defined by the loop start node itself are excluded as these usually represent "
+            + "loop controls (e.g. \"currentIteration\").")
     boolean m_propagateLoopVariables = false;
 
     @Layout(TableSection.class)
     @Widget(title = "Table Settings",
-            description = "Settings for each input table port. Configure how to handle empty tables, column types, "
-                + "and changing table specifications for each port.")
-    @ArrayWidget(addButtonText = "Add Port",
-                 elementTitle = "Port",
-                 showSortButtons = false,
-                 hasFixedSize = true)
+        description = "Settings for each input table port. Configure how to handle empty tables, column types, "
+            + "and changing table specifications for each port.")
+    @ArrayWidget(addButtonText = "Add Port", elementTitle = "Port", showSortButtons = false, hasFixedSize = true)
     @Persistor(TableSettingsPersistor.class)
     @ValueReference(TableSettingsReference.class)
     @ValueProvider(TableSettingsProvider.class)
     TableSettings[] m_tableSettings = new TableSettings[0];
 
-    @Layout(TableSettings.TableSettingsLayout.class)
     static final class TableSettings implements NodeParameters {
-
-        interface TableSettingsLayout {
-        }
-
         @Widget(title = "Ignore empty input tables",
-                description = "If this option is checked, empty input tables and their structures are ignored "
-                    + "and will not cause the node to fail.")
+            description = "If this option is checked, empty input tables and their structures are ignored "
+                + "and will not cause the node to fail.")
         boolean m_ignoreEmptyTables = true;
 
         @Widget(title = "Allow variable column types",
-                description = "If checked, the loop does not fail when the column types between different table "
-                    + "iterations change. The resulting column will have the common super type of the different "
-                    + "column types.")
+            description = "If checked, the loop does not fail when the column types between different table "
+                + "iterations change. The resulting column will have the common super type of the different "
+                + "column types.")
         boolean m_tolerateColumnTypes = false;
 
         @Widget(title = "Allow changing table specifications",
-                description = "If checked, the table specifications between iterations can differ. If columns have "
-                    + "been added or removed between iterations, missing values are inserted accordingly in the "
-                    + "result table. If not checked and the table specifications differ, the node will fail.")
+            description = "If checked, the table specifications between iterations can differ. If columns have "
+                + "been added or removed between iterations, missing values are inserted accordingly in the "
+                + "result table. If not checked and the table specifications differ, the node will fail.")
         boolean m_tolerateChangingSpecs = false;
     }
 
@@ -205,7 +192,7 @@ final class LoopEndDynamicNodeWebUISettings implements NodeParameters {
 
         @Override
         public String[][] getConfigPaths() {
-            return new String[][] { { "rowKeyPolicy" } };
+            return new String[][]{{"rowKeyPolicy"}};
         }
     }
 
@@ -219,8 +206,8 @@ final class LoopEndDynamicNodeWebUISettings implements NodeParameters {
             final boolean[] tolerateChangingSpecs = settings.getBooleanArray("tolerateChangingSpecs", new boolean[0]);
 
             // Determine the number of ports based on the longest array
-            final int numberOfPorts = Math.max(Math.max(ignoreEmptyTables.length, tolerateColumnTypes.length),
-                tolerateChangingSpecs.length);
+            final int numberOfPorts =
+                Math.max(Math.max(ignoreEmptyTables.length, tolerateColumnTypes.length), tolerateChangingSpecs.length);
 
             if (numberOfPorts == 0) {
                 return new TableSettings[0];
@@ -271,15 +258,12 @@ final class LoopEndDynamicNodeWebUISettings implements NodeParameters {
          */
         @Override
         public String[][] getConfigPaths() {
-            return new String[][] {
-                { "ignoreEmptyTables" },
-                { "tolerateColumnTypes" },
-                { "tolerateChangingSpecs" }
-            };
+            return new String[][]{{"ignoreEmptyTables"}, {"tolerateColumnTypes"}, {"tolerateChangingSpecs"}};
         }
     }
 
-    static final class TableSettingsReference implements ParameterReference<TableSettings[]> {}
+    static final class TableSettingsReference implements ParameterReference<TableSettings[]> {
+    }
 
     static final class TableSettingsProvider implements StateProvider<TableSettings[]> {
 
@@ -292,23 +276,24 @@ final class LoopEndDynamicNodeWebUISettings implements NodeParameters {
         }
 
         @Override
-        public TableSettings[] computeState(final NodeParametersInput parametersInput) throws StateComputationFailureException {
+        public TableSettings[] computeState(final NodeParametersInput parametersInput)
+            throws StateComputationFailureException {
             var numInputPorts = parametersInput.getInPortSpecs().length;
             var currentSettings = m_supplier.get();
-            
+
             if (currentSettings.length == numInputPorts) {
                 return currentSettings;
             }
-            
+
             var newSettings = new TableSettings[numInputPorts];
-            
+
             var numCurrentSettings = Math.min(currentSettings.length, numInputPorts);
             System.arraycopy(currentSettings, 0, newSettings, 0, numCurrentSettings);
-            
+
             for (int i = numCurrentSettings; i < numInputPorts; i++) {
                 newSettings[i] = new TableSettings();
             }
-            
+
             return newSettings;
         }
 
