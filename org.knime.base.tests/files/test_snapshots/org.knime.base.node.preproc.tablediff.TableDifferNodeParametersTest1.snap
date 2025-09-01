@@ -1,0 +1,258 @@
+{
+  "data" : {
+    "model" : {
+      "compareTablesEntirely" : false,
+      "comparedColumns" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "Column1", "Column2" ],
+          "manuallyDeselected" : [ "Column3" ],
+          "includeUnknownColumns" : true
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "failureMode" : "DIFFERENT_VALUES"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "compareTablesEntirely" : {
+            "type" : "boolean",
+            "title" : "Compare entire tables",
+            "description" : "If this option is checked all columns from the first as well as the second input will be compared\nagainst each other. Otherwise, the tables will solely be compared respective the selected columns\nof the reference, i.e., the second input table.\n<b>Note</b>: RowIDs are not being compared.\n",
+            "default" : true
+          },
+          "comparedColumns" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Select columns from reference table",
+            "description" : "The list contains the names of those columns in the reference table to be included for the\ncomparison. It allows you to select the columns manually (by moving them to the right panel),\nvia wildcard/regex (all columns whose names match the wildcard/regex are included) or via type\nselection (all columns with a certain type are included).\n",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ "Column1", "Column2", "Column3" ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "failureMode" : {
+            "oneOf" : [ {
+              "const" : "NEVER",
+              "title" : "Never"
+            }, {
+              "const" : "DIFFERENT_SPECS",
+              "title" : "Different table specs"
+            }, {
+              "const" : "DIFFERENT_VALUES",
+              "title" : "Different values"
+            } ],
+            "title" : "Fail option",
+            "description" : "Select what to do when differences are found.\n\n<ul>\n<li><b>Never</b>: The node will not fail on any differences between the two tables.</li>\n<li><b>Different table specs</b>: The node will fail if any of the selected columns does not exist in the other table, or the columns differ in type or domain. <i>Note</i> that differing column positions are being ignored.</li>\n<li><b>Different values</b>: On the first occurrence of differences in the values the node will fail.</li>\n</ul>",
+            "default" : "NEVER"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Column Selection",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/compareTablesEntirely",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/comparedColumns",
+        "options" : {
+          "format" : "typedStringFilter",
+          "unknownValuesText" : "Any unknown column",
+          "emptyStateLabel" : "No columns in this list."
+        },
+        "providedOptions" : [ "possibleValues" ],
+        "rule" : {
+          "effect" : "ENABLE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/compareTablesEntirely",
+            "schema" : {
+              "not" : {
+                "const" : true
+              }
+            }
+          }
+        }
+      } ]
+    }, {
+      "label" : "Failure Handling",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/failureMode",
+        "options" : {
+          "format" : "radio",
+          "radioLayout" : "vertical"
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "compareTablesEntirely" : {
+            "configKey" : "compare_entirely"
+          },
+          "comparedColumns" : {
+            "configPaths" : [ [ "column_filter", "filter-type" ], [ "column_filter", "included_names" ], [ "column_filter", "excluded_names" ], [ "column_filter", "enforce_option" ], [ "column_filter", "name_pattern", "pattern" ], [ "column_filter", "name_pattern", "type" ], [ "column_filter", "name_pattern", "caseSensitive" ], [ "column_filter", "name_pattern", "excludeMatching" ] ]
+          },
+          "failureMode" : {
+            "configKey" : "failure_mode"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/comparedColumns",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Column1",
+        "text" : "Column1",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Column2",
+        "text" : "Column2",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Column3",
+        "text" : "Column3",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ]
+}

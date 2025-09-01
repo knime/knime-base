@@ -47,16 +47,33 @@
  */
 package org.knime.base.node.preproc.tablediff;
 
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
  * Factory of the "Table Difference Finder" node.
  *
  * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
+ * @author Paul Baernreuther, KNIME GmbH, Germany
+ * @author AI Migration Pipeline v0.0
  */
-public final class TableDifferNodeFactory extends NodeFactory<TableDifferNodeModel> {
+@SuppressWarnings("restriction")
+public final class TableDifferNodeFactory extends NodeFactory<TableDifferNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     @Override
     public TableDifferNodeModel createNodeModel() {
@@ -80,7 +97,52 @@ public final class TableDifferNodeFactory extends NodeFactory<TableDifferNodeMod
 
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new TableDifferNodeDialog();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, TableDifferNodeParameters.class);
+    }
+
+    @Override
+    @SuppressWarnings({"deprecation"})
+    public NodeDescription createNodeDescription() {
+        final var config = WebUINodeConfiguration.builder().name("Table Difference Finder") //
+            .icon("equals.png") //
+            .shortDescription("""
+                    Compares two tables with respect to their values as well as their column specs.
+                    """) //
+            .fullDescription("""
+                    The Table Difference Finder offers the functionality to compare two tables by means
+                    of their values and table specs. Firstly, the values in the selected columns are
+                    compared in both tables, and the possible differences are shown for each row and
+                    column. Secondly, the types, domains, and positions of the selected columns are
+                    compared in both tables, and the results are shown for each column. The selected
+                    columns are either all columns in both tables, or a subset of columns in the
+                    reference table, i.e. the second input.
+                    """) //
+            .modelSettingsClass(TableDifferNodeParameters.class) //
+            .nodeType(NodeType.Manipulator) //
+            .addInputTable("Table to compare to", """
+                    Table to check for compliance.
+                    """) //
+            .addInputTable("Reference table", """
+                    Reference table.
+                    """) //
+            .addOutputTable("Value differences", """
+                    Table exhibiting all differing entries.
+                    """) //
+            .addOutputTable("Domain differences", """
+                    Table containing a row for each unique column.
+                    """) //
+            .build();
+        return WebUINodeFactory.createNodeDescription(config);
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, TableDifferNodeParameters.class));
     }
 
 }
