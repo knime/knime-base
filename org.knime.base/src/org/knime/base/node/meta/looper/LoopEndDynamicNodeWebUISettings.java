@@ -111,13 +111,19 @@ final class LoopEndDynamicNodeWebUISettings implements NodeParameters {
     RowKeyPolicyOption m_rowKeyPolicy = RowKeyPolicyOption.APPEND_SUFFIX;
 
     enum RowKeyPolicyOption {
-            @Label("Generate new RowIDs")
+            @Label(value = "Generate new RowIDs", description = "RowIDs are newly generated (Row0, Row1, ...)")
             GENERATE_NEW,
 
-            @Label("Unique RowIDs by appending a suffix")
+            @Label(value = "Unique RowIDs by appending a suffix", description = """
+                    The iteration number is added to each RowID from the incoming table,
+                    thus making the RowIDs unique over all iterations""")
             APPEND_SUFFIX,
 
-            @Label("Leave RowIDs unmodified")
+            @Label(value = "Leave RowIDs unmodified", description = """
+                    The incoming RowIDs are not altered. In this case you have
+                    to make sure that there are not duplicate RowIDs in different iterations.
+                    Otherwise an error occurs.
+                    """)
             UNMODIFIED;
     }
 
