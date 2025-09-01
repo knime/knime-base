@@ -48,121 +48,150 @@
  */
 package org.knime.base.node.mine.bayes.naivebayes.learner3;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.knime.base.node.mine.bayes.naivebayes.datamodel3.NaiveBayesModel;
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.NominalValue;
 import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.ValueProvider;
+import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
-import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
+import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
 import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation;
 import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
-import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 
 /**
  * Node settings for the Naive Bayes Learner node.
  *
  * @author Tobias Koetter
- * @author Generated
+ * @author Carsten Haubold, KNIME GmbH, Konstanz, Germany
  */
-public final class NaiveBayesLearnerNodeSettings implements NodeParameters {
-
-    /**
-     * Constructor called by the framework to get default settings.
-     *
-     * @param context of the settings creation
-     */
-    NaiveBayesLearnerNodeSettings(final NodeParametersInput context) {
-        // Default constructor
-    }
-
-    /**
-     * Constructor called by the framework for persistence and JSON conversion.
-     */
-    NaiveBayesLearnerNodeSettings() {
-        // Default constructor
-    }
-
-    @Widget(title = "Classification Column",
-            description = "The column containing the class values that the model should learn to predict.")
+final class NaiveBayesLearnerNodeSettings implements NodeParameters {
+    @Widget(title = "Classification column",
+        description = "The column containing the class values that the model should learn to predict.")
     @ChoicesProvider(NominalColumnChoicesProvider.class)
     @Persist(configKey = NaiveBayesLearnerNodeModel3.CFG_CLASSIFYCOLUMN_KEY)
     String m_classifyColumn;
 
-    @Widget(title = "Default probability",
-            description = "A probability of zero for a given attribute/class value pair requires special attention. "
-                + "Without adjustment, a probability of zero would exercise an absolute veto over a likelihood in which that "
-                + "probability appears as a factor. Therefore, the Bayes model incorporates a default probability parameter "
-                + "that specifies a default (usually very small) probability to use in lieu of zero probability for a "
-                + "given attribute/class value pair. The default probability is used if the attribute is: "
-                + "(1) nominal and was not seen by the learner, or "
-                + "(2) continuous and its probability is smaller than the default probability.")
+    @Widget(title = "Default probability", //
+        description = """
+                A probability of zero for a given attribute/class value pair requires special attention. 
+                Without adjustment, a probability of zero would exercise an absolute veto over a likelihood in which that 
+                probability appears as a factor. Therefore, the Bayes model incorporates a default probability parameter 
+                that specifies a default (usually very small) probability to use in lieu of zero probability for a 
+                given attribute/class value pair. The default probability is used if the attribute is:
+                <ul>
+                    <li>nominal and was not seen by the learner
+                    </li>
+                    <li>continuous and its probability is smaller than the default probability
+                    </li>
+                </ul>
+                """)
     @NumberInputWidget(minValidation = MinProbabilityThresholdValidation.class)
-    @Persist(configKey = "threshold")
+    @Persist(configKey = NaiveBayesLearnerNodeModel3.CFG_THRESHOLD_KEY)
     double m_threshold = NaiveBayesModel.DEFAULT_MIN_PROB_THRESHOLD;
 
     @Widget(title = "Minimum standard deviation",
-            description = "Specify the minimum standard deviation to use for observations without enough (diverse) data. "
-                + "The value must be at least 1e-10.")
+        description = "Specify the minimum standard deviation to use for observations without enough (diverse) data. "
+            + "The value must be at least 1e-10.")
     @NumberInputWidget(minValidation = MinProbabilityThresholdValidation.class)
     @Persist(configKey = NaiveBayesLearnerNodeModel3.CFG_MIN_SD_VALUE_KEY)
     double m_minSdValue = NaiveBayesLearnerNodeModel3.MIN_SD_VALUE_DEF;
 
     @Widget(title = "Threshold standard deviation",
-            description = "Specify the threshold for standard deviation. The value must be positive. "
-                + "If this threshold is not met, the minimum standard deviation value is used.")
+        description = "Specify the threshold for standard deviation. The value must be positive. "
+            + "If this threshold is not met, the minimum standard deviation value is used.")
     @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
     @Persist(configKey = NaiveBayesLearnerNodeModel3.CFG_MIN_SD_THRESHOLD_KEY)
-    double m_minSdThreshold = 0.0;
+    double m_minSdThreshold = NaiveBayesLearnerNodeModel3.MIN_SD_THRESHOLD_DEF;
 
     @Widget(title = "Maximum number of unique nominal values per attribute",
-            description = "All nominal columns with more unique values than the defined number will be skipped during learning.")
-    @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
+        description = "All nominal columns with more unique values than the defined number will be skipped during learning.")
+    @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
     @Persist(configKey = NaiveBayesLearnerNodeModel3.CFG_MAX_NO_OF_NOMINAL_VALS_KEY)
-    int m_maxNoOfNominalVals = 20;
+    int m_maxNoOfNominalVals = NaiveBayesLearnerNodeModel3.MAX_NO_OF_NOMINAL_VALS_DEF;
 
     @Widget(title = "Ignore missing values",
-            description = "By default the node uses the missing value information to improve the prediction result. "
-                + "Since the PMML standard does not support this option and ignores missing values this option is disabled "
-                + "if the PMML compatibility option is selected and missing values are ignored.")
+        description = "By default the node uses the missing value information to improve the prediction result. "
+            + "Since the PMML standard does not support this option and ignores missing values this option is disabled "
+            + "if the PMML compatibility option is selected and missing values are ignored.")
+    @Effect(predicate = PmmlCompatibleIsTrue.class, type = EffectType.DISABLE)
+    @ValueReference(IgnoreMissingValsRef.class)
+    @ValueProvider(IgnoreMissingValsValueProvider.class)
     @Persist(configKey = NaiveBayesLearnerNodeModel3.CFG_SKIP_MISSING_VALUES)
     boolean m_ignoreMissingVals = false;
 
-    @Widget(title = "Create PMML 4.2 compatible model",
-            description = "Select this option to create a model which is compliant with the PMML 4.2 standard. "
-                + "The PMML 4.2 standard ignores missing values and does not support bit vectors. Therefore bit vector columns "
-                + "and missing values are ignored during learning and prediction if this option is selected. "
-                + "Even if this option is not selected the node creates a valid PMML model. However the model contains "
-                + "KNIME specific information to store missing value and bit vector information. This information is used in "
-                + "the KNIME Naive Bayes Predictor to improve the prediction result but ignored by any other PMML compatible "
-                + "predictor which might result in different prediction results.")
+    @Widget(title = "Create PMML 4.2 compatible model", //
+        description = """
+                Select this option to create a model which is compliant with the 
+                <a href="http://www.dmg.org/v4-2/NaiveBayes.html">PMML 4.2 standard</a>.
+                The PMML 4.2 standard ignores missing values and does not support bit vectors. Therefore bit vector columns
+                and missing values are ignored during learning and prediction if this option is selected.
+                <p>
+                Even if this option is not selected the node creates a valid PMML model. However the model contains 
+                KNIME specific information to store missing value and bit vector information. This information is used in 
+                the KNIME Naive Bayes Predictor to improve the prediction result but ignored by any other PMML compatible 
+                predictor which might result in different prediction results.
+                </p>
+                """)
     @Persist(configKey = NaiveBayesLearnerNodeModel3.CFG_PMML_COMPATIBLE)
+    @ValueReference(PmmlCompatibleRef.class)
     boolean m_pmmlCompatible = false;
 
     /**
      * Column choices provider for nominal columns only.
      */
-    static final class NominalColumnChoicesProvider implements ColumnChoicesProvider {
-        @Override
-        public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
-            return context.getInTableSpec(0) //
-                .map(spec -> spec.stream() //
-                   .filter(colSpec -> colSpec.getType().isCompatible(NominalValue.class))) //
-                   .orElse(Arrays.stream(new DataColumnSpec[0]))
-                   .toList();
+    static final class NominalColumnChoicesProvider extends CompatibleColumnsProvider {
+        NominalColumnChoicesProvider() {
+            super(NominalValue.class);
         }
     }
 
+    interface PmmlCompatibleRef extends ParameterReference<Boolean> {
+    }
+
+    static final class PmmlCompatibleIsTrue implements EffectPredicateProvider {
+        @Override
+        public EffectPredicate init(final PredicateInitializer i) {
+            return i.getBoolean(PmmlCompatibleRef.class).isTrue();
+        }
+    }
+
+    interface IgnoreMissingValsRef extends ParameterReference<Boolean> {
+    }
+
     /**
-     *
+     * Ensures that ignore-missing is set to true whenever PMML compatibility is enabled, otherwise leaves it as is.
      */
-    static final class MinProbabilityThresholdValidation extends MinValidation{
+    static final class IgnoreMissingValsValueProvider implements StateProvider<Boolean> {
+        private java.util.function.Supplier<Boolean> m_pmmlSupplier;
+
+        private java.util.function.Supplier<Boolean> m_currentValueSupplier;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            // Recompute on PMML compatibility changes and depend on its value
+            m_pmmlSupplier = initializer.computeFromValueSupplier(PmmlCompatibleRef.class);
+            // Read current value without triggering recomputation (to preserve user choice when PMML is off)
+            m_currentValueSupplier = initializer.getValueSupplier(IgnoreMissingValsRef.class);
+            // Also compute once when opening the dialog to enforce true initially when needed
+            initializer.computeBeforeOpenDialog();
+        }
+
+        @Override
+        public Boolean computeState(final org.knime.node.parameters.NodeParametersInput parametersInput) {
+            return Boolean.TRUE.equals(m_pmmlSupplier.get()) ? Boolean.TRUE : m_currentValueSupplier.get();
+        }
+    }
+
+    static final class MinProbabilityThresholdValidation extends MinValidation {
         @Override
         public double getMin() {
             return NaiveBayesLearnerNodeModel3.MIN_PROB_THRESHOLD_DEF;
