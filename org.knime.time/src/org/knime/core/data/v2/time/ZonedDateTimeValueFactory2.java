@@ -65,6 +65,8 @@ public final class ZonedDateTimeValueFactory2
 
         private final StringReadAccess m_zoneId;
 
+        private static final long NANOSECONDS_IN_A_DAY = 24 * 60 * 60 * 1_000_000_000L;
+
         private DefaultZonedDateTimeReadValue(final StructReadAccess access) {
             m_dayOfEpoch = access.getAccess(0);
             m_nanoOfDay = access.getAccess(1);
@@ -80,7 +82,19 @@ public final class ZonedDateTimeValueFactory2
         @Override
         public ZonedDateTime getZonedDateTime() {
             var localDate = LocalDate.ofEpochDay(m_dayOfEpoch.getLongValue());
-            var localTime = LocalTime.ofNanoOfDay(m_nanoOfDay.getLongValue());
+            LocalTime localTime;
+
+            if (m_nanoOfDay.getLongValue() > NANOSECONDS_IN_A_DAY) {
+
+                // Handle the case where nanoOfDay is out of bounds
+                long remainderNano = m_nanoOfDay.getLongValue() % NANOSECONDS_IN_A_DAY;
+                localTime = LocalTime.ofNanoOfDay(remainderNano);
+            } else if (m_nanoOfDay.getLongValue() == NANOSECONDS_IN_A_DAY) {
+                long lastNanoOfDay = m_nanoOfDay.getLongValue() - 1;
+                localTime = LocalTime.ofNanoOfDay(lastNanoOfDay);
+            } else {
+                localTime = LocalTime.ofNanoOfDay(m_nanoOfDay.getLongValue());
+            }
             var localDateTime = LocalDateTime.of(localDate, localTime);
             var zoneOffset = ZoneOffset.ofTotalSeconds(m_zoneOffset.getIntValue());
             var zoneId = ZoneId.of(m_zoneId.getStringValue());

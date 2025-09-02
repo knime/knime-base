@@ -48,14 +48,16 @@
 package org.knime.base.node.flowvariable.credentialspropertiesextractor;
 
 import java.util.List;
+import java.util.Map;
 
+import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.VariableType.CredentialsType;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersInputImpl;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
-import org.knime.node.parameters.widget.choices.StringChoicesProvider;
+import org.knime.node.parameters.widget.choices.FlowVariableChoicesProvider;
 import org.knime.node.parameters.widget.choices.filter.StringFilter;
 
 /**
@@ -69,7 +71,11 @@ public final class CredentialsPropertyExtractorSettings implements NodeParameter
     }
 
     CredentialsPropertyExtractorSettings(final NodeParametersInput context) {
-        m_selectedCredentials = new StringFilter(CredentialsFlowVariables.getAllCredentialsVariables(context));
+        m_selectedCredentials = new StringFilter(getCredentialsVariables(context).keySet().stream().toList());
+    }
+
+    private static Map<String, FlowVariable> getCredentialsVariables(final NodeParametersInput context) {
+        return ((NodeParametersInputImpl)context).getAvailableInputFlowVariables(CredentialsType.INSTANCE);
     }
 
     @Widget(title = "Credentials Selection", description = """
@@ -97,17 +103,11 @@ public final class CredentialsPropertyExtractorSettings implements NodeParameter
     boolean m_failOnEmptySecondAuthenticationFactor;
 
     /** Select all credentials variables by default. */
-    private static final class CredentialsFlowVariables implements StringChoicesProvider {
+    private static final class CredentialsFlowVariables implements FlowVariableChoicesProvider {
+
         @Override
-        public List<String> choices(final NodeParametersInput context) {
-            return getAllCredentialsVariables(context);
-        }
-
-        static List<String> getAllCredentialsVariables(final NodeParametersInput context) {
-            final var credentialVariables =
-                ((NodeParametersInputImpl)context).getAvailableInputFlowVariables(CredentialsType.INSTANCE);
-            return credentialVariables.keySet().stream().toList();
-
+        public List<FlowVariable> flowVariableChoices(final NodeParametersInput context) {
+            return getCredentialsVariables(context).values().stream().toList();
         }
     }
 }

@@ -52,9 +52,9 @@ import java.util.List;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
 import org.knime.node.parameters.migration.ConfigMigration;
 import org.knime.node.parameters.migration.NodeParametersMigration;
+import org.knime.node.parameters.persistence.legacy.LegacyColumnFilterPersistor;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 
 /**

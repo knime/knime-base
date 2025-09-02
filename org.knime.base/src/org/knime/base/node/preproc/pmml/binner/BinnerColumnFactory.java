@@ -61,8 +61,7 @@ import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.NodeSettingsWO;
 
 /**
- * Factory to generate binned string cells from a selected column which can be
- * either replaced or appended.
+ * Factory to generate binned string cells from a selected column which can be either replaced or appended.
  *
  * @author Thomas Gabriel, University of Konstanz
  * @since 3.1
@@ -78,16 +77,15 @@ public final class BinnerColumnFactory implements CellFactory {
     private final boolean m_append;
 
     /**
-     * A binned column created by name and a number of bins. The new, binned
-     * column is either append or replaced in the current table.
+     * A binned column created by name and a number of bins. The new, binned column is either append or replaced in the
+     * current table.
      *
      * @param columnIdx the column index to bin
      * @param name the new binned column name
      * @param bins a set of bins
      * @param append append or replace column
      */
-    public BinnerColumnFactory(final int columnIdx, final Bin[] bins,
-            final String name, final boolean append) {
+    public BinnerColumnFactory(final int columnIdx, final Bin[] bins, final String name, final boolean append) {
         m_columnIdx = columnIdx;
         m_bins = bins;
         // ensures that all bin names are available as possible values
@@ -98,10 +96,8 @@ public final class BinnerColumnFactory implements CellFactory {
         for (int i = 0; i < binNames.length; i++) {
             binNames[i] = new StringCell(bins[i].getBinName());
         }
-        DataColumnDomain dom =
-            new DataColumnDomainCreator(binNames).createDomain();
-        DataColumnSpecCreator specCreator =
-            new DataColumnSpecCreator(name, StringCell.TYPE);
+        DataColumnDomain dom = new DataColumnDomainCreator(binNames).createDomain();
+        DataColumnSpecCreator specCreator = new DataColumnSpecCreator(name, StringCell.TYPE);
         specCreator.setDomain(dom);
         m_columnSpec = specCreator.createSpec();
         m_append = append;
@@ -146,8 +142,7 @@ public final class BinnerColumnFactory implements CellFactory {
     }
 
     /**
-     * Apply a value to this bining trying to cover it at all available
-     * <code>Bin</code>s.
+     * Apply a value to this bining trying to cover it at all available <code>Bin</code>s.
      *
      * @param cell the value to cover
      * @return the bin's name as DataCell which cover's this value
@@ -166,7 +161,10 @@ public final class BinnerColumnFactory implements CellFactory {
 
     /**
      * General bin.
+     *
+     * @deprecated please use {@link org.knime.core.util.binning.numeric.Bin} instead since this is a duplicate.
      */
+    @Deprecated
     public interface Bin {
 
         /**
@@ -210,9 +208,7 @@ public final class BinnerColumnFactory implements CellFactory {
      * {@inheritDoc}
      */
     @Override
-    public void setProgress(final int curRowNr, final int rowCount,
-            final RowKey lastKey, final ExecutionMonitor exec) {
-        exec.setProgress(1.0 * curRowNr / rowCount, "Binning row: "
-                + lastKey.getString());
+    public void setProgress(final int curRowNr, final int rowCount, final RowKey lastKey, final ExecutionMonitor exec) {
+        exec.setProgress(1.0 * curRowNr / rowCount, "Binning row: " + lastKey.getString());
     }
 }

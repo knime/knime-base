@@ -57,6 +57,8 @@ import javax.xml.transform.sax.TransformerHandler;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.port.pmml.PMMLContentHandler;
 import org.knime.core.node.port.pmml.preproc.PMMLPreprocOperation;
+import org.knime.core.node.port.pmml.preproc.PMMLPreprocTranslator;
+import org.knime.core.util.binning.numeric.PMMLBinningTranslator;
 import org.w3c.dom.Element;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -65,7 +67,11 @@ import org.xml.sax.helpers.AttributesImpl;
 /**
  *
  * @author Heiko Hofer
+ *
+ * @deprecated This relies on the deprecated {@link PMMLPreprocOperation} and should not be used anymore. Instead use an
+ * implementation of {@link PMMLPreprocTranslator} such as {@link PMMLBinningTranslator}.
  */
+@Deprecated
 public final class PMMLPreprocDiscretize extends PMMLPreprocOperation {
     /** Name of the summary Extension element. */
     private static final String SUMMARY = "summary";

@@ -200,7 +200,11 @@
       "indices" : [ ],
       "value" : [ {
         "id" : "knime.workspace",
-        "text" : "knime.workspace"
+        "text" : "knime.workspace",
+        "type" : {
+          "id" : "STRING",
+          "text" : "StringType"
+        }
       } ]
     } ]
   } ]

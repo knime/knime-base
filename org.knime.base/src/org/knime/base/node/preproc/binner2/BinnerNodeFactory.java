@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,80 +41,47 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * -------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
  * History
- *   24.06.2010 (hofer): created
+ *   Apr 16, 2025 (david): created
  */
-package org.knime.base.node.preproc.autobinner.apply;
+package org.knime.base.node.preproc.binner2;
 
-import org.knime.core.data.DataCell;
-import org.knime.core.data.DoubleValue;
+import org.knime.core.node.port.pmml.PMMLPortObject;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
- * Encapsulates a bin.
+ * Node factory for the web UI version of the AutoBinner node (which is the 4th version of this node!).
  *
- * @author Heiko Hofer
- *
- * @deprecated please use {@link org.knime.core.util.binning.numeric.NumericBin} instead since this is a duplicate.
+ * @author David Hickey, TNG Technology Consulting GmbH
  */
-@Deprecated
-class NumericBin  {
-    private final DataCell m_binName;
-
-    private final boolean m_isLeftOpen;
-
-    private final double m_leftMargin;
-
-    private final boolean m_isRightOpen;
-
-    private final double m_rightMargin;
+@SuppressWarnings("restriction")
+public final class BinnerNodeFactory extends WebUINodeFactory<BinnerNodeModel> {
 
     /**
-     *
-     * @param binName the value of the bin
-     * @param isLeftOpen <code>true</code> if left interval is open
-     * @param leftMargin the left interval margin
-     * @param isRightOpen <code>true</code> if the right interval is open
-     * @param rightMargin the right interval margin
+     * Constructor for the AutoBinner node factory.
      */
-    NumericBin(final DataCell binName, final boolean isLeftOpen,
-            final double leftMargin, final boolean isRightOpen,
-            final double rightMargin) {
-        m_binName = binName;
-        m_isLeftOpen = isLeftOpen;
-        m_leftMargin = leftMargin;
-        m_isRightOpen = isRightOpen;
-        m_rightMargin = rightMargin;
+    public BinnerNodeFactory() {
+        super(CONFIGURATION);
     }
 
-    /**
-     * @return the value of a bin
-     */
-    public DataCell getValue() {
-        return m_binName;
+    @Override
+    public BinnerNodeModel createNodeModel() {
+        return new BinnerNodeModel(CONFIGURATION);
     }
 
-    /**
-     * @param cell the cell to check coverage
-     * @return <code>true</code>, if interval covers the given value
-     * @throws ClassCastException if the cell is not of type {@link DoubleValue}
-     */
-    public boolean covers(final DataCell cell) {
-        if (cell.isMissing()) {
-            return false;
-        }
-        double value = ((DoubleValue)cell).getDoubleValue();
-        assert (m_leftMargin <= m_rightMargin);
-        if (m_leftMargin < value && value < m_rightMargin) {
-            return true;
-        }
-        if (m_leftMargin == value && !m_isLeftOpen) {
-            return true;
-        }
-        if (m_rightMargin == value && !m_isRightOpen) {
-            return true;
-        }
-        return false;
-    }
+    static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
+        .name("Binner") //
+        .icon("binner.png") //
+        .shortDescription("TODO") //
+        .fullDescription("TODO") //
+        .modelSettingsClass(BinnerNodeSettings.class) //
+        .addInputTable("Input Data", "Data to be categorized") //
+        .addOutputTable("Binned Data", "Data with bins defined") //
+        .addOutputPort("PMML Processing Fragment", PMMLPortObject.TYPE,
+            "The PMML Model fragment containing information how to bin") //
+        .keywords("Auto Binner", "Numeric Binner") //
+        .build();
 }
