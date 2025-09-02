@@ -65,7 +65,7 @@ abstract class EnumSettingsModelBooleanPersistor<E extends Enum<E>> implements N
 
     private final String m_configKey;
     private final E m_trueValue;
-    private final Class<E> m_enumClass;
+    private final E m_falseValue;
 
     /**
      * Constructor for a new two-value enum persistor that is stored as boolean in the settings.
@@ -78,16 +78,17 @@ abstract class EnumSettingsModelBooleanPersistor<E extends Enum<E>> implements N
      */
     protected EnumSettingsModelBooleanPersistor(final String configKey, final Class<E> enumClass, final E trueValue) {
         m_configKey = configKey;
-        m_enumClass = enumClass;
         m_trueValue = trueValue;
         // to be able to represent as boolean config, it must have exactly two values
         // runtime check is better than nothing...
-        if (enumClass.getEnumConstants().length != 2) {
+        final var consts = enumClass.getEnumConstants();
+        if (consts.length != 2) {
             final var names =
-                String.join(", ", Arrays.stream(enumClass.getEnumConstants()).map(Enum::name).toArray(String[]::new));
+                String.join(", ", Arrays.stream(consts).map(Enum::name).toArray(String[]::new));
             throw new IllegalArgumentException("Enum class \"%s\" must have exactly two values, has: \"%s\""
                 .formatted(enumClass.getSimpleName(), names));
         }
+        m_falseValue = consts[0] == m_trueValue ? consts[1] : consts[0];
     }
 
     @Override
@@ -100,12 +101,7 @@ abstract class EnumSettingsModelBooleanPersistor<E extends Enum<E>> implements N
     public E load(final NodeSettingsRO settings) throws InvalidSettingsException {
         final var model = new SettingsModelBoolean(m_configKey, true);
         model.loadSettingsFrom(settings);
-        return model.getBooleanValue() ? m_trueValue : findFalseValue();
-    }
-
-    private E findFalseValue() {
-        final var consts = m_enumClass.getEnumConstants();
-        return consts[0] == m_trueValue ? consts[1] : consts[0];
+        return model.getBooleanValue() ? m_trueValue : m_falseValue;
     }
 
     @Override
