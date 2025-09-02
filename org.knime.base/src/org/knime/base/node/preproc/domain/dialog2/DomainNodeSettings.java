@@ -122,7 +122,7 @@ final class DomainNodeSettings implements NodeParameters {
         }
     }
 
-    @Widget(title = "Unselected Columns",
+    @Widget(title = "Unselected columns",
         description = "Specify what to do with the possible value domain for columns not selected above.")
     @ValueSwitchWidget
     @Layout(PossibleValuesSection.class)
@@ -206,7 +206,7 @@ final class DomainNodeSettings implements NodeParameters {
         }
     }
 
-    @Widget(title = "Unselected Columns",
+    @Widget(title = "Unselected columns",
         description = "Specify what to do with the min/max domain for columns not selected above.")
     @ValueSwitchWidget
     @Layout(MinMaxSection.class)
@@ -217,9 +217,9 @@ final class DomainNodeSettings implements NodeParameters {
 
     // this node parameter was originally a boolean, but we want to show a nice value switch with labels
     enum UnselectedDomainHandling {
-            @Label("Retain Domain") //
+            @Label("Retain domain") //
             RETAIN, //
-            @Label("Drop Domain") //
+            @Label("Drop domain") //
             DROP
     }
 
