@@ -79,8 +79,8 @@ import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinVa
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction")
-final class DomainNodeSettings implements NodeParameters {
+@SuppressWarnings("restriction") // LegacyColumnFilterPersistor is not API
+final class DomainNodeParameters implements NodeParameters {
 
     // ====== Layout
 
@@ -140,9 +140,11 @@ final class DomainNodeSettings implements NodeParameters {
     }
 
     static final class LimitMaxPossibleValuesPersistor implements NodeParametersPersistor<Boolean> {
+        private static final String CFG_LIMIT_MAX_POSS_VALUES = "limit_max_poss_values";
+
         @Override
         public void save(final Boolean val, final NodeSettingsWO settings) {
-            settings.addBoolean(DomainNodeModel.CFG_LIMIT_MAX_POSS_VALUES, val);
+            settings.addBoolean(CFG_LIMIT_MAX_POSS_VALUES, val);
         }
 
         @Override
@@ -153,12 +155,12 @@ final class DomainNodeSettings implements NodeParameters {
             // The Swing version did not serialize the checkbox state at all. Instead it checked it if the maximum
             // value was non-negative. In case the checkbox was not checked, the max value was overwritten to -1.
             final var checkBoxDefault = maxValue >= 0;
-            return settings.getBoolean(DomainNodeModel.CFG_LIMIT_MAX_POSS_VALUES, checkBoxDefault);
+            return settings.getBoolean(CFG_LIMIT_MAX_POSS_VALUES, checkBoxDefault);
         }
 
         @Override
         public String[][] getConfigPaths() {
-            return new String[][]{{DomainNodeModel.CFG_LIMIT_MAX_POSS_VALUES}};
+            return new String[][]{{CFG_LIMIT_MAX_POSS_VALUES}};
         }
     }
 

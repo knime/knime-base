@@ -69,7 +69,7 @@ public class DomainNodeFactory extends NodeFactory<DomainNodeModel> implements N
 
     @Override
     public NodeDialog createNodeDialog() {
-        return new DefaultNodeDialog(SettingsType.MODEL, DomainNodeSettings.class);
+        return new DefaultNodeDialog(SettingsType.MODEL, DomainNodeParameters.class);
     }
 
     @Override

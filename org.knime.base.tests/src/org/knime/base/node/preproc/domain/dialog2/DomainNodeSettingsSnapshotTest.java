@@ -66,7 +66,7 @@ import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * Snapshot test for {@link DomainNodeSettings}.
+ * Snapshot test for {@link DomainNodeParameters}.
  *
  * @author AI Assistant
  */
@@ -83,20 +83,20 @@ final class DomainNodeSettingsSnapshotTest extends DefaultNodeSettingsSnapshotTe
     private static SnapshotTestConfiguration getConfig() {
         return SnapshotTestConfiguration.builder() //
                 .withInputPortObjectSpecs(TEST_TABLE_SPECS)
-                .testJsonFormsForModel(DomainNodeSettings.class)
+                .testJsonFormsForModel(DomainNodeParameters.class)
                 .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings())
                 .testNodeSettingsStructure(() -> readSettings()) //
                 .build();
     }
 
-    private static DomainNodeSettings readSettings() {
+    private static DomainNodeParameters readSettings() {
         try {
-            var path = getSnapshotPath(DomainNodeSettings.class).getParent().resolve("node_settings")
+            var path = getSnapshotPath(DomainNodeParameters.class).getParent().resolve("node_settings")
                 .resolve("DomainNodeSettings.xml");
             try (var fis = new FileInputStream(path.toFile())) {
                 var nodeSettings = NodeSettings.loadFromXML(fis);
                 return NodeParametersUtil.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
-                    DomainNodeSettings.class);
+                    DomainNodeParameters.class);
             }
         } catch (IOException | InvalidSettingsException e) {
             throw new IllegalStateException(e);

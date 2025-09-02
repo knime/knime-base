@@ -102,10 +102,6 @@ public class DomainNodeModel extends NodeModel {
     /** Config identifier for maximum number of possible values that should be calculated. */
     static final String CFG_MAX_POSS_VALUES = "max_poss_values";
 
-    /** Config identifier whether maximum number of possible values should be limited. */
-    // added in 5.7, before it was not serialized at all; `-1` max poss values implied `false`
-    static final String CFG_LIMIT_MAX_POSS_VALUES = "limit_max_poss_values";
-
     private DataColumnSpecFilterConfiguration m_possValConfig;
     private DataColumnSpecFilterConfiguration m_minMaxConfig;
     private boolean m_possValRetainUnselected = true;
