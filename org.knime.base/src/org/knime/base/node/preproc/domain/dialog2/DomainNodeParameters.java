@@ -86,11 +86,11 @@ final class DomainNodeParameters implements NodeParameters {
 
     // ====== Layout
 
-    @Section(title = "Possible Values")
+    @Section(title = "Possible values")
     interface PossibleValuesSection {
     }
 
-    @Section(title = "Min & Max Values")
+    @Section(title = "Minimum & maximum values")
     @After(PossibleValuesSection.class)
     interface MinMaxSection {
     }
@@ -109,7 +109,14 @@ final class DomainNodeParameters implements NodeParameters {
         }
     }
 
-    @Widget(title = "Columns", description = "Select columns for which possible values should be calculated.")
+    @Widget(title = "Columns", description = """
+            Include the columns, for which possible values shall be determined and
+            be put in the table specification. The default dialog option selects
+            all columns, which can represent themselves as String. For all
+            non-selected columns (the Exclude list) the possible value domain will
+            be dropped or retained, depending on the selection of the corresponding
+            buttons below the Exclude list.
+            """)
     @ColumnFilterWidget(choicesProvider = NominalColumnsProvider.class)
     @TwinlistWidget(includedLabel = "Calculate possible values", excludedLabel = "Do not calculate")
     @Persistor(PossibleValuesColumnsPersistor.class)
@@ -124,8 +131,10 @@ final class DomainNodeParameters implements NodeParameters {
         }
     }
 
-    @Widget(title = "Unselected columns",
-        description = "Specify what to do with the possible value domain for columns not selected above.")
+    @Widget(title = "Excluded columns", description = """
+            Choose what to do with the possible value domain for columns in the exclude list.
+            You can either retain the existing domain information from the input table or drop it completely.
+            """)
     @ValueSwitchWidget
     @Layout(PossibleValuesSection.class)
     @Persistor(PossibleValuesUnselectedHandlingPersistor.class)
@@ -176,8 +185,11 @@ final class DomainNodeParameters implements NodeParameters {
         }
     }
 
-    @Widget(title = "Maximum number of possible values",
-        description = "The maximum number of possible values to be determined for each column.")
+    @Widget(title = "Maximum number of possible values", description = """
+            Restrict the number of different values that will be determined for each column.
+            If a column has more possible values than this limit, all values will be discarded and the column's
+            metadata won't support querying possible values. Leave unchecked for unlimited values.
+                """)
     @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
     @Layout(PossibleValuesSection.class)
     @Persistor(MaxPossibleValuesPersistor.class)
@@ -198,7 +210,11 @@ final class DomainNodeParameters implements NodeParameters {
         }
     }
 
-    @Widget(title = "Columns", description = "Select columns for which min and max values should be calculated.")
+    @Widget(title = "Columns", description = """
+                Select all columns for which min and max values shall be determined. The
+                default dialog option includes all &quot;boundable&quot; columns, for
+                instance numeric ones.
+            """)
     @ColumnFilterWidget(choicesProvider = BoundedColumnsProvider.class)
     @TwinlistWidget(includedLabel = "Calculate min/max values", excludedLabel = "Do not calculate")
     @Persistor(MinMaxColumnsPersistor.class)
@@ -213,8 +229,10 @@ final class DomainNodeParameters implements NodeParameters {
         }
     }
 
-    @Widget(title = "Unselected columns",
-        description = "Specify what to do with the min/max domain for columns not selected above.")
+    @Widget(title = "Excluded columns", description = """
+                Choose what to do with the min/max domain information for columns in the exclude list.
+                You can either retain the existing min/max domain from the input table or drop it completely.
+            """)
     @ValueSwitchWidget
     @Layout(MinMaxSection.class)
     @Persistor(MinMaxUnselectedHandlingPersistor.class)

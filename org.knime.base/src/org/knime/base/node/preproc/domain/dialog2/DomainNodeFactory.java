@@ -47,49 +47,43 @@
  */
 package org.knime.base.node.preproc.domain.dialog2;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
-import org.knime.core.webui.node.dialog.NodeDialog;
-import org.knime.core.webui.node.dialog.NodeDialogFactory;
-import org.knime.core.webui.node.dialog.NodeDialogManager;
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
+ * Factory for the Domain Calculator node using the WebUINodeFactory pattern.
  *
  * @author wiswedel, University of Konstanz
  */
-public class DomainNodeFactory extends NodeFactory<DomainNodeModel> implements NodeDialogFactory {
+@SuppressWarnings({"restriction", "deprecation"}) // DefaultNode is not useful here
+public final class DomainNodeFactory extends WebUINodeFactory<DomainNodeModel> {
+
+    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()
+        .name("Domain Calculator")
+        .icon("./domain.png")
+        .shortDescription("Determines domain information of selected columns.")
+        .fullDescription("""
+            Scans the data and updates the possible values list and/or the min- and max values of selected columns.
+            This node is useful when the domain information of the data has changed and must be updated in the table
+            specification, for instance, the domain information as contained in a table spec may be void when a row
+            filtering (e.g. outlier removal) is carried out.
+            """)
+        .modelSettingsClass(DomainNodeParameters.class)
+        .addInputTable("Input Data", "Any input data")
+        .addOutputTable("Output Data", "Input data with corrected specification")
+        .nodeType(NodeType.Manipulator)
+        // already existing node does not get an @since version
+        .build();
+
+    /**
+     * Create the DomainNodeFactory using the WebUINodeFactory pattern.
+     */
+    public DomainNodeFactory() {
+        super(CONFIG);
+    }
 
     @Override
     public DomainNodeModel createNodeModel() {
         return new DomainNodeModel();
     }
-
-    @Override
-    public NodeDialog createNodeDialog() {
-        return new DefaultNodeDialog(SettingsType.MODEL, DomainNodeParameters.class);
-    }
-
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
-    }
-
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    @Override
-    public NodeView createNodeView(final int viewIndex, final DomainNodeModel nodeModel) {
-        return null;
-    }
-
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
 }
