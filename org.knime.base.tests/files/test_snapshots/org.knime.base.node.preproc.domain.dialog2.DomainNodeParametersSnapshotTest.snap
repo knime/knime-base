@@ -19,7 +19,6 @@
         }
       },
       "possibleValuesUnselectedHandling" : "RETAIN",
-      "limitMaxPossibleValues" : false,
       "maxPossibleValues" : 60,
       "minMaxColumns" : {
         "mode" : "MANUAL",
@@ -47,17 +46,11 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "limitMaxPossibleValues" : {
-            "type" : "boolean",
-            "title" : "Restrict maximum number of possible values",
-            "description" : "Enable to limit the number of possible values calculated per column.",
-            "default" : false
-          },
           "maxPossibleValues" : {
-            "type" : "integer",
+            "type" : [ "integer", "null" ],
             "format" : "int32",
             "title" : "Maximum number of possible values",
-            "description" : "The maximum number of possible values to be determined for each column.",
+            "description" : "Restrict the number of different values that will be determined for each column.\nIf a column has more possible values than this limit, all values will be discarded and the column's\nmetadata won't support querying possible values. Leave unchecked for unlimited values.\n",
             "default" : 60
           },
           "minMaxColumns" : {
@@ -151,7 +144,7 @@
               }
             },
             "title" : "Columns",
-            "description" : "Select columns for which min and max values should be calculated.",
+            "description" : "    Select all columns for which min and max values shall be determined. The\n    default dialog option includes all &quot;boundable&quot; columns, for\n    instance numeric ones.\n",
             "default" : {
               "mode" : "MANUAL",
               "patternFilter" : {
@@ -173,13 +166,13 @@
           "minMaxUnselectedHandling" : {
             "oneOf" : [ {
               "const" : "RETAIN",
-              "title" : "Retain Domain"
+              "title" : "Retain domain"
             }, {
               "const" : "DROP",
-              "title" : "Drop Domain"
+              "title" : "Drop domain"
             } ],
-            "title" : "Unselected Columns",
-            "description" : "Specify what to do with the min/max domain for columns not selected above.",
+            "title" : "Excluded columns",
+            "description" : "    Choose what to do with the min/max domain information for columns in the exclude list.\n    You can either retain the existing min/max domain from the input table or drop it completely.\n",
             "default" : "RETAIN"
           },
           "possibleValuesColumns" : {
@@ -273,7 +266,7 @@
               }
             },
             "title" : "Columns",
-            "description" : "Select columns for which possible values should be calculated.",
+            "description" : "Include the columns, for which possible values shall be determined and\nbe put in the table specification. The default dialog option selects\nall columns, which can represent themselves as String. For all\nnon-selected columns (the Exclude list) the possible value domain will\nbe dropped or retained, depending on the selection of the corresponding\nbuttons below the Exclude list.\n",
             "default" : {
               "mode" : "MANUAL",
               "patternFilter" : {
@@ -295,13 +288,13 @@
           "possibleValuesUnselectedHandling" : {
             "oneOf" : [ {
               "const" : "RETAIN",
-              "title" : "Retain Domain"
+              "title" : "Retain domain"
             }, {
               "const" : "DROP",
-              "title" : "Drop Domain"
+              "title" : "Drop domain"
             } ],
-            "title" : "Unselected Columns",
-            "description" : "Specify what to do with the possible value domain for columns not selected above.",
+            "title" : "Excluded columns",
+            "description" : "Choose what to do with the possible value domain for columns in the exclude list.\nYou can either retain the existing domain information from the input table or drop it completely.\n",
             "default" : "RETAIN"
           }
         }
@@ -310,7 +303,7 @@
   },
   "ui_schema" : {
     "elements" : [ {
-      "label" : "Possible Values",
+      "label" : "Possible values",
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
@@ -331,12 +324,6 @@
         }
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/limitMaxPossibleValues",
-        "options" : {
-          "format" : "checkbox"
-        }
-      }, {
-        "type" : "Control",
         "scope" : "#/properties/model/properties/maxPossibleValues",
         "options" : {
           "validation" : {
@@ -354,20 +341,13 @@
                 "isExclusive" : false
               }
             }
-          }
+          },
+          "hideOnNull" : true
         },
-        "rule" : {
-          "effect" : "ENABLE",
-          "condition" : {
-            "scope" : "#/properties/model/properties/limitMaxPossibleValues",
-            "schema" : {
-              "const" : true
-            }
-          }
-        }
+        "providedOptions" : [ "default" ]
       } ]
     }, {
-      "label" : "Min & Max Values",
+      "label" : "Minimum & maximum values",
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
@@ -401,11 +381,8 @@
           "possibleValuesUnselectedHandling" : {
             "configPaths" : [ [ "possible_values_unselected_retain" ] ]
           },
-          "limitMaxPossibleValues" : {
-            "configPaths" : [ [ "limit_max_poss_values" ] ]
-          },
           "maxPossibleValues" : {
-            "configKey" : "max_poss_values"
+            "configPaths" : [ [ "max_poss_values" ] ]
           },
           "minMaxColumns" : {
             "configPaths" : [ [ "colFilter_minMax", "filter-type" ], [ "colFilter_minMax", "included_names" ], [ "colFilter_minMax", "excluded_names" ], [ "colFilter_minMax", "enforce_option" ], [ "colFilter_minMax", "name_pattern", "pattern" ], [ "colFilter_minMax", "name_pattern", "type" ], [ "colFilter_minMax", "name_pattern", "caseSensitive" ], [ "colFilter_minMax", "name_pattern", "excludeMatching" ] ]
@@ -418,6 +395,13 @@
     }
   },
   "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/maxPossibleValues",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : 60
+    } ]
+  }, {
     "scope" : "#/properties/model/properties/minMaxColumns",
     "providedOptionName" : "possibleValues",
     "values" : [ {

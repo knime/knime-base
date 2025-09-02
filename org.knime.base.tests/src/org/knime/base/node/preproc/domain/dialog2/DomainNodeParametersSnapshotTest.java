@@ -68,15 +68,15 @@ import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 /**
  * Snapshot test for {@link DomainNodeParameters}.
  *
- * @author AI Assistant
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction")
-final class DomainNodeSettingsSnapshotTest extends DefaultNodeSettingsSnapshotTest {
+@SuppressWarnings({"restriction", "javadoc"})
+final class DomainNodeParametersSnapshotTest extends DefaultNodeSettingsSnapshotTest {
     static final PortObjectSpec[] TEST_TABLE_SPECS =
         new PortObjectSpec[]{new DataTableSpec(new String[]{"StringCol", "IntCol", "DoubleCol", "BoolCol"},
             new DataType[]{StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE, BooleanCell.TYPE})};
 
-    protected DomainNodeSettingsSnapshotTest() {
+    protected DomainNodeParametersSnapshotTest() {
         super(getConfig());
     }
 
