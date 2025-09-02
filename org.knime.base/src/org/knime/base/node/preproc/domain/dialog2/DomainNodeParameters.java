@@ -44,27 +44,29 @@
  */
 package org.knime.base.node.preproc.domain.dialog2;
 
+import java.util.Optional;
+
 import org.knime.core.data.BoundedValue;
 import org.knime.core.data.NominalValue;
 import org.knime.core.data.container.DataContainerSettings;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
-import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.persistence.legacy.LegacyColumnFilterPersistor;
-import org.knime.node.parameters.updates.Effect;
-import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.EffectPredicate;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ParameterReference;
-import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.OptionalWidget;
+import org.knime.node.parameters.widget.OptionalWidget.DefaultValueProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
@@ -139,45 +141,48 @@ final class DomainNodeParameters implements NodeParameters {
         }
     }
 
-    static final class LimitMaxPossibleValuesPersistor implements NodeParametersPersistor<Boolean> {
-        private static final String CFG_LIMIT_MAX_POSS_VALUES = "limit_max_poss_values";
+    // Note on backwards compatibility <5.8:
+    // The Swing version did not serialize the state of the checkbox to enable/disable "max possible values".
+    // Instead it checked it if the maximum value was non-negative.
+    // In case the checkbox was not checked, the max value was overwritten to -1.
+    static final class MaxPossibleValuesPersistor implements NodeParametersPersistor<Optional<Integer>> {
 
         @Override
-        public void save(final Boolean val, final NodeSettingsWO settings) {
-            settings.addBoolean(CFG_LIMIT_MAX_POSS_VALUES, val);
+        public void save(final Optional<Integer> val, final NodeSettingsWO settings) {
+            // old dialog used -1 as sentinel value for "unlimited"
+            settings.addInt(DomainNodeModel.CFG_MAX_POSS_VALUES, val.orElse(-1));
         }
 
         @Override
-        public Boolean load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            final var maxValue = settings.getInt(DomainNodeModel.CFG_MAX_POSS_VALUES); // must be present
-
-            // Backwards compatibility <5.7:
-            // The Swing version did not serialize the checkbox state at all. Instead it checked it if the maximum
-            // value was non-negative. In case the checkbox was not checked, the max value was overwritten to -1.
-            final var checkBoxDefault = maxValue >= 0;
-            return settings.getBoolean(CFG_LIMIT_MAX_POSS_VALUES, checkBoxDefault);
+        public Optional<Integer> load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            final var maxValue = settings.getInt(DomainNodeModel.CFG_MAX_POSS_VALUES); // expected to be always present
+            if (maxValue < 0) {
+                // dialog used -1 as sentinel value for "unlimited"
+                return Optional.empty();
+            }
+            return Optional.of(maxValue);
         }
 
         @Override
         public String[][] getConfigPaths() {
-            return new String[][]{{CFG_LIMIT_MAX_POSS_VALUES}};
+            return new String[][]{{DomainNodeModel.CFG_MAX_POSS_VALUES}};
         }
     }
 
-    @Widget(title = "Restrict maximum number of possible values",
-        description = "Enable to limit the number of possible values calculated per column.")
-    @Layout(PossibleValuesSection.class)
-    @ValueReference(MaxPossibleValuesEnabledRef.class)
-    @Persistor(value = LimitMaxPossibleValuesPersistor.class)
-    boolean m_limitMaxPossibleValues;
+    static final class MaxPossibleValuesDefault implements DefaultValueProvider<Integer> {
+        @Override
+        public Integer computeState(final NodeParametersInput parametersInput) throws StateComputationFailureException {
+            return DataContainerSettings.MAX_POSSIBLE_VALUES;
+        }
+    }
 
     @Widget(title = "Maximum number of possible values",
         description = "The maximum number of possible values to be determined for each column.")
     @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
-    @Effect(predicate = MaxPossibleValuesEnabledPredicate.class, type = EffectType.ENABLE)
     @Layout(PossibleValuesSection.class)
-    @Persist(configKey = DomainNodeModel.CFG_MAX_POSS_VALUES)
-    int m_maxPossibleValues = DataContainerSettings.MAX_POSSIBLE_VALUES;
+    @Persistor(MaxPossibleValuesPersistor.class)
+    @OptionalWidget(defaultProvider = MaxPossibleValuesDefault.class)
+    Optional<Integer> m_maxPossibleValues = Optional.of(DataContainerSettings.MAX_POSSIBLE_VALUES);
 
     // ======== Min/Max Values Settings
 
