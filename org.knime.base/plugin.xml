@@ -833,10 +833,10 @@
             after="org.knime.base.node.preproc.column.renamer.ColumnRenamerNodeFactory"/>
       <node
             category-path="/manipulation/column/column-convert+replace"
+            deprecated="true"
             factory-class="org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeFactory"/>
       <node
             category-path="/manipulation/column/column-convert+replace"
-            hidden="true"
             factory-class="org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeFactory2"/>
       <node
             category-path="/analytics/mining/subgroup"
