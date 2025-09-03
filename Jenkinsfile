@@ -30,6 +30,7 @@ try {
                         "knime-bigdata",
                         "knime-bigdata-externals",
                         "knime-birt",
+                        "knime-cef",
                         "knime-chemistry",
                         "knime-cloud",
                         "knime-conda",
