@@ -103,18 +103,13 @@ public final class NaiveBayesPredictorNodeModel3 extends NodeModel {
 
     private final SettingsModelBoolean m_inclProbVals = createProbabilityColumnModel();
 
+    static final String INCLUDE_PROBABILITY_VALUES_KEY = "inclProbVals";
+
     /**
      * @return include probability column model
      */
     static SettingsModelBoolean createProbabilityColumnModel() {
-        return new SettingsModelBoolean("inclProbVals", false);
-    }
-
-    /**
-     * @return the normalize model
-     */
-    static SettingsModelBoolean createNormalizeModel() {
-        return new SettingsModelBoolean("normalize", true);
+        return new SettingsModelBoolean(INCLUDE_PROBABILITY_VALUES_KEY, false);
     }
 
     private final SettingsModelString m_predictionColumnName = PredictorHelper.getInstance().createPredictionColumn();
