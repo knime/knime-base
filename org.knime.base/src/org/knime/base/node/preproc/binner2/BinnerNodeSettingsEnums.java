@@ -51,14 +51,8 @@ package org.knime.base.node.preproc.binner2;
 import java.math.RoundingMode;
 
 import org.knime.core.util.binning.BinningSettings;
-import org.knime.core.util.binning.BinningSettings.BinNamingUtils.BinNamingNumberFormatter;
 import org.knime.core.util.binning.BinningSettings.BinNamingUtils.BinNamingNumberFormatterUtils;
-import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.widget.choices.Label;
-import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
-import org.knime.node.parameters.widget.number.NumberInputWidget;
-import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 
 /**
  * Enums used in the settings for this node. Most of them are duplicates of enums in {@link BinningSettings}, but they
@@ -139,40 +133,6 @@ final class BinnerNodeSettingsEnums {
         }
     }
 
-    enum PrecisionMode {
-            @Label(value = BinNamingNumberFormatterUtils.PrecisionMode.NAME_DECIMAL_PLACES,
-                description = BinNamingNumberFormatterUtils.PrecisionMode.DESC_DECIMAL_PLACES)
-            DECIMAL_PLACES(BinNamingNumberFormatterUtils.PrecisionMode.DECIMAL_PLACES), //
-
-            @Label(value = BinNamingNumberFormatterUtils.PrecisionMode.NAME_SIGNIFICANT_FIGURES,
-                description = BinNamingNumberFormatterUtils.PrecisionMode.DESC_SIGNIFICANT_FIGURES)
-            SIGNIFICANT_FIGURES(BinNamingNumberFormatterUtils.PrecisionMode.SIGNIFICANT_FIGURES);
-
-        final BinNamingNumberFormatterUtils.PrecisionMode m_baseValue;
-
-        PrecisionMode(final BinNamingNumberFormatterUtils.PrecisionMode value) {
-            m_baseValue = value;
-        }
-    }
-
-    enum NumberFormat {
-            @Label(value = BinNamingNumberFormatterUtils.CustomNumberFormat.NAME_STANDARD_STRING,
-                description = BinNamingNumberFormatterUtils.CustomNumberFormat.DESC_STANDARD_STRING)
-            STANDARD_STRING(BinNamingNumberFormatterUtils.CustomNumberFormat.STANDARD_STRING), //
-            @Label(value = BinNamingNumberFormatterUtils.CustomNumberFormat.NAME_PLAIN_STRING,
-                description = BinNamingNumberFormatterUtils.CustomNumberFormat.DESC_PLAIN_STRING)
-            PLAIN_STRING(BinNamingNumberFormatterUtils.CustomNumberFormat.PLAIN_STRING), //
-            @Label(value = BinNamingNumberFormatterUtils.CustomNumberFormat.NAME_ENGINEERING_STRING,
-                description = BinNamingNumberFormatterUtils.CustomNumberFormat.DESC_ENGINEERING_STRING)
-            ENGINEERING_STRING(BinNamingNumberFormatterUtils.CustomNumberFormat.ENGINEERING_STRING);
-
-        final BinNamingNumberFormatterUtils.CustomNumberFormat m_baseValue;
-
-        NumberFormat(final BinNamingNumberFormatterUtils.CustomNumberFormat value) {
-            m_baseValue = value;
-        }
-    }
-
     enum BinBoundaryExactMatchBehaviour {
             @Label(value = BinningSettings.BinBoundary.BinBoundaryExactMatchBehaviour.NAME_TO_LOWER_BIN,
                 description = BinningSettings.BinBoundary.BinBoundaryExactMatchBehaviour.DESC_TO_LOWER_BIN)
@@ -188,42 +148,4 @@ final class BinnerNodeSettingsEnums {
         }
     }
 
-    static final class NumberFormatSettingsGroup implements NodeParameters {
-
-        @Widget(title = "Number format", description = """
-                The format used for numbers in the bins with regard to \
-                how fractions and exponents are displayed.
-                """)
-        @ValueSwitchWidget
-        NumberFormat m_numberFormat = NumberFormat.STANDARD_STRING;
-
-        @Widget(title = "Precision", description = """
-                The number of digits to use for the precision of \
-                numbers in the bins.
-                """)
-        @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
-        int m_precision = 3;
-
-        @Widget(title = "Precision mode", description = """
-                Whether to use a fixed number of decimal places \
-                or a fixed number of significant figures when \
-                rounding numbers in the bins.
-                """)
-        @ValueSwitchWidget
-        PrecisionMode m_precisionMode = PrecisionMode.DECIMAL_PLACES;
-
-        @Widget(title = "Rounding mode", description = """
-                The rounding mode to use when rounding numbers \
-                in the bins.
-                """)
-        RoundingDirection m_roundingMode = RoundingDirection.HALF_UP;
-
-        BinNamingNumberFormatter toFormatter() {
-            return BinNamingNumberFormatterUtils.createCustomNumberFormatter(m_numberFormat.m_baseValue, //
-                m_precision, //
-                m_precisionMode.m_baseValue, //
-                m_roundingMode.m_baseValue);
-
-        }
-    }
 }

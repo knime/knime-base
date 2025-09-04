@@ -308,18 +308,13 @@ final class BinnerNodeModel extends WebUINodeModel<BinnerNodeSettings> {
         final DataColumnSpec colSpec) {
         var binNaming = switch (settings.m_binNames) {
             case NUMBERED -> BinNamingUtils.numberedBinNaming;
-            case BORDERS -> BinNamingUtils.getBordersBinNaming(getNumberFormatting(settings, colSpec));
-            case MIDPOINTS -> BinNamingUtils.getMidpointsBinNaming(getNumberFormatting(settings, colSpec));
+            case BORDERS -> BinNamingUtils.getBordersBinNaming(getNumberFormatting(colSpec));
+            case MIDPOINTS -> BinNamingUtils.getMidpointsBinNaming(getNumberFormatting(colSpec));
         };
         return new BinNamingScheme(binNaming, settings.m_lowerOutlierValue, settings.m_upperOutlierValue);
     }
 
-    private static BinNamingNumberFormatter getNumberFormatting(final BinnerNodeSettings settings,
-        final DataColumnSpec colSpec) {
-        return switch (settings.m_numberFormat) {
-            case COLUMN_FORMAT -> BinNamingUtils.BinNamingNumberFormatterUtils
-                .getDefaultNumberFormatterForColumn(colSpec);
-            case CUSTOM -> settings.m_numberFormatSettings.toFormatter();
-        };
+    private static BinNamingNumberFormatter getNumberFormatting(final DataColumnSpec colSpec) {
+        return BinNamingUtils.BinNamingNumberFormatterUtils.getDefaultNumberFormatterForColumn(colSpec);
     }
 }

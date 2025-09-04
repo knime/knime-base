@@ -45,13 +45,6 @@
     <entry key="prefix" type="xstring" value="Bin "/>
     <entry key="lowerOutlierValue" type="xstring" value="small"/>
     <entry key="upperOutlierValue" type="xstring" value="Upper outlier"/>
-    <entry key="numberFormat" type="xstring" value="CUSTOM"/>
-    <config key="numberFormatSettings">
-        <entry key="numberFormat" type="xstring" value="STANDARD_STRING"/>
-        <entry key="precision" type="xint" value="3"/>
-        <entry key="precisionMode" type="xstring" value="SIGNIFICANT_FIGURES"/>
-        <entry key="roundingMode" type="xstring" value="HALF_UP"/>
-    </config>
     <entry key="replaceOrAppend" type="xstring" value="APPEND"/>
     <entry key="suffix" type="xstring" value="_disc"/>
 </config>

@@ -52,7 +52,6 @@ import org.knime.base.node.preproc.binner2.BinnerNodeSettings.BinNamesRef;
 import org.knime.base.node.preproc.binner2.BinnerNodeSettings.BinningTypeRef;
 import org.knime.base.node.preproc.binner2.BinnerNodeSettings.FixLowerBoundRef;
 import org.knime.base.node.preproc.binner2.BinnerNodeSettings.FixUpperBoundRef;
-import org.knime.base.node.preproc.binner2.BinnerNodeSettings.NumberFormat;
 import org.knime.base.node.preproc.binner2.BinnerNodeSettingsEnums.BinNaming;
 import org.knime.base.node.preproc.binner2.BinnerNodeSettingsEnums.BinningType;
 import org.knime.node.parameters.updates.EffectPredicate;
@@ -138,12 +137,4 @@ final class BinnerNodeSettingsPredicates {
         }
     }
 
-    static final class ShouldDisplayCustomNumberFormatSettings implements EffectPredicateProvider {
-        @Override
-        public EffectPredicate init(final PredicateInitializer i) {
-            return i //
-                .getPredicate(BinNamesIsNumbered.class).negate() //
-                .and(i.getEnum(NumberFormat.Ref.class).isOneOf(NumberFormat.CUSTOM));
-        }
-    }
 }

@@ -53,19 +53,16 @@ import java.util.List;
 import org.knime.base.node.preproc.binner2.BinnerNodeSettingsEnums.BinBoundaryExactMatchBehaviour;
 import org.knime.base.node.preproc.binner2.BinnerNodeSettingsEnums.BinNaming;
 import org.knime.base.node.preproc.binner2.BinnerNodeSettingsEnums.BinningType;
-import org.knime.base.node.preproc.binner2.BinnerNodeSettingsEnums.NumberFormatSettingsGroup;
 import org.knime.base.node.preproc.binner2.BinnerNodeSettingsPredicates.BinNamesIsNumbered;
 import org.knime.base.node.preproc.binner2.BinnerNodeSettingsPredicates.BinningTypeIsCustomCutoffs;
 import org.knime.base.node.preproc.binner2.BinnerNodeSettingsPredicates.BinningTypeIsCustomQuantiles;
 import org.knime.base.node.preproc.binner2.BinnerNodeSettingsPredicates.BinningTypeIsNotCustomCutoffs;
 import org.knime.base.node.preproc.binner2.BinnerNodeSettingsPredicates.NumberOfBinsShouldBeShown;
-import org.knime.base.node.preproc.binner2.BinnerNodeSettingsPredicates.ShouldDisplayCustomNumberFormatSettings;
 import org.knime.base.node.preproc.binner2.BinnerNodeSettingsPredicates.ShouldShowFixedLowerBoundField;
 import org.knime.base.node.preproc.binner2.BinnerNodeSettingsPredicates.ShouldShowFixedUpperBoundField;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
-import org.knime.node.parameters.Advanced;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
@@ -219,7 +216,9 @@ final class BinnerNodeSettings implements NodeParameters {
     }
 
     @Layout(OutputSection.class)
-    @Widget(title = "Bin names/values", description = "Selects how bins are labeled in the output.")
+    @Widget(title = "Bin names/values",
+        description = "Selects how bins are labeled in the output. "
+            + "Use a 'Number Format Manager' node to customize number formatting.")
     @RadioButtonsWidget
     @ValueReference(BinNamesRef.class)
     BinNaming m_binNames = BinNaming.NUMBERED;
@@ -239,25 +238,6 @@ final class BinnerNodeSettings implements NodeParameters {
     @Layout(OutputSection.class)
     @Widget(title = "Upper outlier value", description = "Label assigned to values above the fixed upper bound.")
     String m_upperOutlierValue = "Upper outlier";
-
-    @Layout(OutputSection.class)
-    @Widget(title = "Number format", advanced = true, description = """
-            The format that will be used to display numbers \
-            in the bin values in the output table.
-            """)
-    @ValueSwitchWidget
-    @ValueReference(NumberFormat.Ref.class)
-    @Effect(predicate = BinNamesIsNumbered.class, type = EffectType.HIDE)
-    NumberFormat m_numberFormat = NumberFormat.COLUMN_FORMAT;
-
-    @Layout(OutputSection.class)
-    @Effect(predicate = ShouldDisplayCustomNumberFormatSettings.class, type = EffectType.SHOW)
-    @Widget(title = "Custom format", description = """
-            The exact format for numbers in the bin values, \
-            when a custom format is selected.
-            """)
-    @Advanced
-    NumberFormatSettingsGroup m_numberFormatSettings = new NumberFormatSettingsGroup();
 
     @Layout(OutputSection.class)
     @Widget(title = "Output columns", description = """
@@ -281,28 +261,10 @@ final class BinnerNodeSettings implements NodeParameters {
         return cs.getType().isCompatible(DoubleValue.class);
     }
 
-    enum NumberFormat {
-            COLUMN_FORMAT, //
-            CUSTOM;
-
-        static final class Ref implements ParameterReference<NumberFormat> {
-        }
-
-        static final class IsCustom implements EffectPredicateProvider {
-
-            @Override
-            public EffectPredicate init(final PredicateInitializer i) {
-                return i //
-                    .getEnum(Ref.class) //
-                    .isOneOf(NumberFormat.CUSTOM);
-            }
-        }
-    }
-
     enum ReplaceOrAppend {
             @Label(value = "Replace", description = "Replaces the original column with the binned result.")
             REPLACE, //
-            @Label(value = "Append", description = "Adds a new column with the binned values.")
+            @Label(value = "Append with suffix", description = "Adds a new column with the binned values.")
             APPEND;
 
         static final class Ref implements ParameterReference<ReplaceOrAppend> {

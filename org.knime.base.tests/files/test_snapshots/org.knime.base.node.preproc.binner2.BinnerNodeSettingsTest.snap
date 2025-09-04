@@ -37,13 +37,6 @@
       "prefix" : "Bin ",
       "lowerOutlierValue" : "Lower outlier",
       "upperOutlierValue" : "Upper outlier",
-      "numberFormat" : "COLUMN_FORMAT",
-      "numberFormatSettings" : {
-        "numberFormat" : "STANDARD_STRING",
-        "precision" : 3,
-        "precisionMode" : "DECIMAL_PLACES",
-        "roundingMode" : "HALF_UP"
-      },
       "replaceOrAppend" : "REPLACE",
       "suffix" : " (Binned)"
     }
@@ -66,7 +59,7 @@
               "title" : "Midpoints"
             } ],
             "title" : "Bin names/values",
-            "description" : "Selects how bins are labeled in the output.\n<ul>\n<li><b>Numbered</b>: Bins are labeled by index (e.g., Bin 1, Bin 2).</li>\n<li><b>Borders</b>: Bins are labeled using interval borders (e.g., [0.0, 1.0)).</li>\n<li><b>Midpoints</b>: Bins are labeled using the midpoint of each interval.</li>\n</ul>",
+            "description" : "Selects how bins are labeled in the output. Use a 'Number Format Manager' node to customize number formatting.\n<ul>\n<li><b>Numbered</b>: Bins are labeled by index (e.g., Bin 1, Bin 2).</li>\n<li><b>Borders</b>: Bins are labeled using interval borders (e.g., [0.0, 1.0)).</li>\n<li><b>Midpoints</b>: Bins are labeled using the midpoint of each interval.</li>\n</ul>",
             "default" : "NUMBERED"
           },
           "binningType" : {
@@ -84,7 +77,7 @@
               "title" : "Custom quantiles"
             } ],
             "title" : "Binning type",
-            "description" : "Select the method used to define bin intervals.\n<ul>\n<li><b>Equal width</b>: Creates bins of equal size across the value range. Requires a specified number of bins.\n</li>\n<li><b>Equal frequency</b>: Creates bins with approximately the same number of values. Requires a specified number of bins.\n</li>\n<li><b>Custom cutoffs</b>: Manually define bin edges using a list of cutoff values. At least two cutoffs are required.\n</li>\n<li><b>Custom quantiles</b>: Define bin edges based on quantile values. At least two quantiles are required. Quantiles are converted to bin edges using the R-7 algorithm, see <a href=\"\nhttps://en.wikipedia.org/wiki/Quantile\">WP:Quantile</a> for more details.\n</li>\n</ul>",
+            "description" : "Select the method used to define bin intervals.\n<ul>\n<li><b>Equal width</b>: Creates bins of equal size across the value range. Requires a specified number of bins.\n</li>\n<li><b>Equal frequency</b>: Creates bins with approximately the same number of values. Requires a specified number of bins.\n</li>\n<li><b>Custom cutoffs</b>: Manually define bin edges using a list of cutoff values. At least two cutoffs are required.\n</li>\n<li><b>Custom quantiles</b>: Define bin edges based on quantile values. At least two quantiles are required. Quantiles are converted to bin edges using the R-7 algorithm, see <a href=\"\nhttps://en.wikipedia.org/wiki/Quantile\">WP:Quantile</a> for more details. Note that when setting an upper or lower bound values outside the bounds are considered when calculating the quantiles.\n</li>\n</ul>",
             "default" : "EQUAL_WIDTH"
           },
           "customCutoffs" : {
@@ -191,90 +184,6 @@
             "description" : "Label assigned to values below the fixed lower bound.",
             "default" : "Lower outlier"
           },
-          "numberFormat" : {
-            "oneOf" : [ {
-              "const" : "COLUMN_FORMAT",
-              "title" : "Column format"
-            }, {
-              "const" : "CUSTOM",
-              "title" : "Custom"
-            } ],
-            "title" : "Number format",
-            "description" : "The format that will be used to display numbers in the bin values in the output table.\n",
-            "default" : "COLUMN_FORMAT"
-          },
-          "numberFormatSettings" : {
-            "type" : "object",
-            "properties" : {
-              "numberFormat" : {
-                "oneOf" : [ {
-                  "const" : "STANDARD_STRING",
-                  "title" : "Standard"
-                }, {
-                  "const" : "PLAIN_STRING",
-                  "title" : "Plain"
-                }, {
-                  "const" : "ENGINEERING_STRING",
-                  "title" : "Engineering"
-                } ],
-                "title" : "Number format",
-                "description" : "The format used for numbers in the bins with regard to how fractions and exponents are displayed.\n\n<ul>\n<li><b>Standard</b>: Will use an exponent only if needed</li>\n<li><b>Plain</b>: Will not use an exponent, e.g. 1.234</li>\n<li><b>Engineering</b>: Will use an exponent only if needed. Exponents are always a multiple of 3, e.g. 12.3E3\n</li>\n</ul>",
-                "default" : "STANDARD_STRING"
-              },
-              "precision" : {
-                "type" : "integer",
-                "format" : "int32",
-                "title" : "Precision",
-                "description" : "The number of digits to use for the precision of numbers in the bins.\n",
-                "default" : 3
-              },
-              "precisionMode" : {
-                "oneOf" : [ {
-                  "const" : "DECIMAL_PLACES",
-                  "title" : "Decimal places"
-                }, {
-                  "const" : "SIGNIFICANT_FIGURES",
-                  "title" : "Significant figures"
-                } ],
-                "title" : "Precision mode",
-                "description" : "Whether to use a fixed number of decimal places or a fixed number of significant figures when rounding numbers in the bins.\n\n<ul>\n<li><b>Decimal places</b>: Will round to the given number of decimal places, e.g. 12.34567 will become 12.346 if the precision is set to 3.\n</li>\n<li><b>Significant figures</b>: Will round to the given number of significant figures, e.g. 12.34567 will become 12.3 if the precision is set to 3.\n</li>\n</ul>",
-                "default" : "DECIMAL_PLACES"
-              },
-              "roundingMode" : {
-                "oneOf" : [ {
-                  "const" : "UP",
-                  "title" : "Up"
-                }, {
-                  "const" : "DOWN",
-                  "title" : "Down"
-                }, {
-                  "const" : "CEILING",
-                  "title" : "Ceiling"
-                }, {
-                  "const" : "FLOOR",
-                  "title" : "Floor"
-                }, {
-                  "const" : "HALF_UP",
-                  "title" : "Half up"
-                }, {
-                  "const" : "HALF_DOWN",
-                  "title" : "Half down"
-                }, {
-                  "const" : "HALF_EVEN",
-                  "title" : "Half even"
-                } ],
-                "title" : "Rounding mode",
-                "description" : "The rounding mode to use when rounding numbers in the bins.\n\n<ul>\n<li><b>Up</b>: Will round away from zero, e.g. 1.2 will become 2 and -1.2 will become -2.\n</li>\n<li><b>Down</b>: Will round towards zero, e.g. 1.2 will become 1 and -1.2 will become -1.\n</li>\n<li><b>Ceiling</b>: Will round towards positive infinity, e.g. 1.2 will become 2 and -1.2 will become -1.\n</li>\n<li><b>Floor</b>: Will round towards negative infinity, e.g. 1.2 will become 1 and -1.2 will become -2.\n</li>\n<li><b>Half up</b>: Will round towards the nearest neighbor. When the number is exactly halfway between two neighbors, it will round away from zero, e.g. 1.5 will become 2 and -1.5 will become -2.\n</li>\n<li><b>Half down</b>: Will round towards the nearest neighbor. When the number is exactly halfway between two neighbors, it will round towards zero, e.g. 1.5 will become 1 and -1.5 will become -1.\n</li>\n<li><b>Half even</b>: Will round towards the nearest neighbor. When the number is exactly halfway between two neighbors, it will round towards the nearest even neighbor, e.g. 1.5 will become 2 and 2.5 will become 2.\n</li>\n</ul>",
-                "default" : "HALF_UP"
-              }
-            },
-            "default" : {
-              "numberFormat" : "STANDARD_STRING",
-              "precision" : 3,
-              "precisionMode" : "DECIMAL_PLACES",
-              "roundingMode" : "HALF_UP"
-            }
-          },
           "numberOfBins" : {
             "type" : "integer",
             "format" : "int32",
@@ -294,10 +203,10 @@
               "title" : "Replace"
             }, {
               "const" : "APPEND",
-              "title" : "Append"
+              "title" : "Append with suffix"
             } ],
             "title" : "Output columns",
-            "description" : "Whether to replace the original columns with the binned columns, or to append the binned columns with new names created by appending the specified suffix to the original column names.\n\n<ul>\n<li><b>Replace</b>: Replaces the original column with the binned result.</li>\n<li><b>Append</b>: Adds a new column with the binned values.</li>\n</ul>",
+            "description" : "Whether to replace the original columns with the binned columns, or to append the binned columns with new names created by appending the specified suffix to the original column names.\n\n<ul>\n<li><b>Replace</b>: Replaces the original column with the binned result.</li>\n<li><b>Append with suffix</b>: Adds a new column with the binned values.</li>\n</ul>",
             "default" : "REPLACE"
           },
           "selectedColumns" : {
@@ -451,18 +360,18 @@
         "scope" : "#/properties/model/properties/numberOfBins",
         "options" : {
           "validation" : {
-            "min" : {
-              "errorMessage" : "The value must be at least 1.",
-              "parameters" : {
-                "min" : 1.0,
-                "isExclusive" : false
-              }
-            },
             "max" : {
               "errorMessage" : "The value must not exceed 2147483647.",
               "parameters" : {
-                "max" : 2.147483647E9,
-                "isExclusive" : false
+                "isExclusive" : false,
+                "max" : 2.147483647E9
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 1.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : 1.0
               }
             }
           }
@@ -520,18 +429,18 @@
             "scope" : "#/properties/quantile",
             "options" : {
               "validation" : {
-                "min" : {
-                  "errorMessage" : "The value must be at least 0.",
-                  "parameters" : {
-                    "min" : 0.0,
-                    "isExclusive" : false
-                  }
-                },
                 "max" : {
                   "errorMessage" : "The value must not exceed 1.",
                   "parameters" : {
-                    "max" : 1.0,
-                    "isExclusive" : false
+                    "isExclusive" : false,
+                    "max" : 1.0
+                  }
+                },
+                "min" : {
+                  "errorMessage" : "The value must be at least 0.",
+                  "parameters" : {
+                    "isExclusive" : false,
+                    "min" : 0.0
                   }
                 }
               }
@@ -696,158 +605,6 @@
         "scope" : "#/properties/model/properties/upperOutlierValue"
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/numberFormat",
-        "options" : {
-          "isAdvanced" : true,
-          "format" : "valueSwitch"
-        },
-        "rule" : {
-          "effect" : "HIDE",
-          "condition" : {
-            "scope" : "#/properties/model/properties/binNames",
-            "schema" : {
-              "oneOf" : [ {
-                "const" : "NUMBERED"
-              } ]
-            }
-          }
-        }
-      }, {
-        "type" : "Control",
-        "scope" : "#/properties/model/properties/numberFormatSettings/properties/numberFormat",
-        "options" : {
-          "isAdvanced" : true,
-          "format" : "valueSwitch"
-        },
-        "rule" : {
-          "effect" : "SHOW",
-          "condition" : {
-            "type" : "AND",
-            "conditions" : [ {
-              "scope" : "#/properties/model/properties/binNames",
-              "schema" : {
-                "not" : {
-                  "oneOf" : [ {
-                    "const" : "NUMBERED"
-                  } ]
-                }
-              }
-            }, {
-              "scope" : "#/properties/model/properties/numberFormat",
-              "schema" : {
-                "oneOf" : [ {
-                  "const" : "CUSTOM"
-                } ]
-              }
-            } ]
-          }
-        }
-      }, {
-        "type" : "Control",
-        "scope" : "#/properties/model/properties/numberFormatSettings/properties/precision",
-        "options" : {
-          "validation" : {
-            "min" : {
-              "errorMessage" : "The value must be at least 1.",
-              "parameters" : {
-                "min" : 1.0,
-                "isExclusive" : false
-              }
-            },
-            "max" : {
-              "errorMessage" : "The value must not exceed 2147483647.",
-              "parameters" : {
-                "max" : 2.147483647E9,
-                "isExclusive" : false
-              }
-            }
-          },
-          "isAdvanced" : true
-        },
-        "rule" : {
-          "effect" : "SHOW",
-          "condition" : {
-            "type" : "AND",
-            "conditions" : [ {
-              "scope" : "#/properties/model/properties/binNames",
-              "schema" : {
-                "not" : {
-                  "oneOf" : [ {
-                    "const" : "NUMBERED"
-                  } ]
-                }
-              }
-            }, {
-              "scope" : "#/properties/model/properties/numberFormat",
-              "schema" : {
-                "oneOf" : [ {
-                  "const" : "CUSTOM"
-                } ]
-              }
-            } ]
-          }
-        }
-      }, {
-        "type" : "Control",
-        "scope" : "#/properties/model/properties/numberFormatSettings/properties/precisionMode",
-        "options" : {
-          "isAdvanced" : true,
-          "format" : "valueSwitch"
-        },
-        "rule" : {
-          "effect" : "SHOW",
-          "condition" : {
-            "type" : "AND",
-            "conditions" : [ {
-              "scope" : "#/properties/model/properties/binNames",
-              "schema" : {
-                "not" : {
-                  "oneOf" : [ {
-                    "const" : "NUMBERED"
-                  } ]
-                }
-              }
-            }, {
-              "scope" : "#/properties/model/properties/numberFormat",
-              "schema" : {
-                "oneOf" : [ {
-                  "const" : "CUSTOM"
-                } ]
-              }
-            } ]
-          }
-        }
-      }, {
-        "type" : "Control",
-        "scope" : "#/properties/model/properties/numberFormatSettings/properties/roundingMode",
-        "options" : {
-          "isAdvanced" : true
-        },
-        "rule" : {
-          "effect" : "SHOW",
-          "condition" : {
-            "type" : "AND",
-            "conditions" : [ {
-              "scope" : "#/properties/model/properties/binNames",
-              "schema" : {
-                "not" : {
-                  "oneOf" : [ {
-                    "const" : "NUMBERED"
-                  } ]
-                }
-              }
-            }, {
-              "scope" : "#/properties/model/properties/numberFormat",
-              "schema" : {
-                "oneOf" : [ {
-                  "const" : "CUSTOM"
-                } ]
-              }
-            } ]
-          }
-        }
-      }, {
-        "type" : "Control",
         "scope" : "#/properties/model/properties/replaceOrAppend",
         "options" : {
           "format" : "valueSwitch"
@@ -951,16 +708,6 @@
           "prefix" : { },
           "lowerOutlierValue" : { },
           "upperOutlierValue" : { },
-          "numberFormat" : { },
-          "numberFormatSettings" : {
-            "type" : "object",
-            "properties" : {
-              "numberFormat" : { },
-              "precision" : { },
-              "precisionMode" : { },
-              "roundingMode" : { }
-            }
-          },
           "replaceOrAppend" : { },
           "suffix" : { }
         }
