@@ -8,3 +8,4 @@ target/
 **/.polyglot.feature.xml
 org.knime.base.tests/files/test_snapshots/**/*.snap.debug
 *.snap.debug
+.DS_Store

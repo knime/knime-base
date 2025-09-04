@@ -47,14 +47,27 @@
  */
 package org.knime.base.node.meta.looper;
 
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
+import org.apache.xmlbeans.XmlException;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ConfigurableNodeFactory;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.port.PortType;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
+import org.xml.sax.SAXException;
 
 /**
  * This factory create all necessary classes for the for-loop head node.
@@ -62,7 +75,8 @@ import org.knime.core.node.port.PortType;
  * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
  * @since 4.5
  */
-public final class LoopEndDynamicNodeFactory extends ConfigurableNodeFactory<LoopEndDynamicNodeModel> {
+public final class LoopEndDynamicNodeFactory extends ConfigurableNodeFactory<LoopEndDynamicNodeModel>
+    implements NodeDialogFactory {
 
     @Override
     protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
@@ -79,8 +93,15 @@ public final class LoopEndDynamicNodeFactory extends ConfigurableNodeFactory<Loo
 
     @Override
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        final var config = creationConfig.getPortConfig().orElseThrow();
-        return new LoopEndDynamicNodeDialog(config.getInputPorts().length);
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * @since 5.7
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, LoopEndDynamicNodeWebUISettings.class);
     }
 
     @Override
@@ -97,5 +118,42 @@ public final class LoopEndDynamicNodeFactory extends ConfigurableNodeFactory<Loo
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+
+    /**
+     * Use the WebUINodeConfiguration to generate the node description (replacing the XML file).
+     */
+    @Override
+    protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
+        Collection<PortDescription> inPortDescriptions = List.of(//
+            new PortDescription("inId", "Input table", "Any data table", false), //
+            new PortDescription("Collector", "Input table", "Any data table", true));
+        Collection<PortDescription> outPortDescriptions = List.of(//
+            new PortDescription("outId", "Collected results", "Collected results from the loop body", false), //
+            new PortDescription("Collector", "Collected results", "Collected results from the loop body", true));
+
+        return DefaultNodeDescriptionUtil.createNodeDescription("Loop End", //
+            "loop_end.png", //
+            inPortDescriptions, //
+            outPortDescriptions, //
+            "Node at the end of a loop", //
+            """
+                    <p>
+                    Node at the end of a loop. It is used to mark the end of a workflow loop and collects the
+                    intermediate results by row-wise concatenation of the incoming tables. The start of the loop
+                    is defined by the loop start node, in which you can define how often the loop should be executed
+                    (either fixed or derived from data, e.g. the "group loop start").
+                    All nodes in between are executed that many times.
+                    </p>
+                    <p>
+                        You can add more input and ouput tables using the &#8220;&#8230;&#8221; menu.
+                    </p>
+                    """, //
+            List.of(), // resources
+            LoopEndDynamicNodeWebUISettings.class, //
+            List.of(), // view descriptions
+            NodeType.LoopEnd, //
+            List.of(), // keywords
+            null);
     }
 }
