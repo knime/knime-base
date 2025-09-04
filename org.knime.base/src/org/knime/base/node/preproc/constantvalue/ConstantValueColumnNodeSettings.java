@@ -148,8 +148,31 @@ final class ConstantValueColumnNodeSettings implements NodeParameters {
         @ValueSwitchWidget
         CustomOrMissingValue m_customOrMissingValue = CustomOrMissingValue.MISSING;
 
+        static final String DYNAMIC_PARAMETERS_KAI_SCHEMA =
+            """
+                    {
+                      "type": "object",
+                      "properties": {
+                        "@class": {
+                          "const": "org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.createcell.CoreCreateDataCellParameters.FromStringCellParameters"
+                        },
+                        "value": {
+                          "type": "string",
+                          "title": "Custom value",
+                          "description": "The value to fill the new constant column with. If the column type is not String, an attempt will be made to convert the string to the target type."
+                        }
+                      },
+                      "required": ["@class", "value"]
+                    }
+                    """;
+
         @Effect(predicate = CustomOrMissingValue.IsMissing.class, type = EffectType.HIDE)
-        @DynamicParameters(DataCellParametersProvider.class)
+        @DynamicParameters(value = DataCellParametersProvider.class,
+            schemaForDefaultKaiNodeInterface = DYNAMIC_PARAMETERS_KAI_SCHEMA, //
+            widgetAppearingInNodeDescription = @Widget(//
+                title = CreateDataCellParameters.CUSTOM_VALUE_TITLE,
+                description = CreateDataCellParameters.CUSTOM_VALUE_DESCRIPTION//
+            ))
         @ValueReference(SelfReference.class)
         CreateDataCellParameters m_customValueParameters;
 
