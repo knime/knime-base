@@ -48,14 +48,14 @@
  */
 package org.knime.base.node.mine.bayes.naivebayes.predictor4;
 
+import java.util.function.Supplier;
+
 import org.knime.base.node.mine.util.PredictorHelper;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.node.port.pmml.PMMLPortObjectSpec;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.layout.Layout;
-import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
@@ -65,24 +65,14 @@ import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.widget.text.TextInputWidget;
 
 /**
- * Node settings for the Naive Bayes Predictor node.
+ * Node parameters for the Naive Bayes Predictor node.
  *
  * @author Tobias Koetter, KNIME AG, Zurich, Switzerland
  * @author Carsten Haubold, KNIME GmbH, Konstanz, Germany
- * @since 5.7
  */
-public final class NaiveBayesPredictorNodeSettings implements NodeParameters {
-
-    @Section(title = "Prediction Settings")
-    interface PredictionSection {
-    }
-
-    @Section(title = "Probability Column Settings")
-    interface ProbabilitySection {
-    }
+final class NaiveBayesPredictorNodeParameters implements NodeParameters {
 
     static class OverridePredictedRef implements ParameterReference<Boolean> {
     }
@@ -107,7 +97,8 @@ public final class NaiveBayesPredictorNodeSettings implements NodeParameters {
     }
 
     /** Reference for the prediction column name value (needed for ValueProvider). */
-    static class PredictionColumnNameRef implements ParameterReference<String> { }
+    static class PredictionColumnNameRef implements ParameterReference<String> {
+    }
 
     /**
      * Provides a dynamic default for the prediction column name once the PMML spec (with target column) is available.
@@ -116,7 +107,7 @@ public final class NaiveBayesPredictorNodeSettings implements NodeParameters {
      */
     static class PredictionColumnNameProvider implements StateProvider<String> {
 
-        private java.util.function.Supplier<String> m_currentValue;
+        private Supplier<String> m_currentValue;
 
         @Override
         public void init(final StateProviderInitializer i) {
@@ -130,14 +121,12 @@ public final class NaiveBayesPredictorNodeSettings implements NodeParameters {
         public String computeState(final NodeParametersInput context) {
             final String current = m_currentValue.get();
             // Respect a user-entered custom value.
-            if (current != null && !current.isEmpty()
-                    && !PredictorHelper.DEFAULT_PREDICTION_COLUMN.equals(current)) {
+            if (current != null && !current.isEmpty() && !PredictorHelper.DEFAULT_PREDICTION_COLUMN.equals(current)) {
                 return current;
             }
             return getDefaultPredictionColumnNameFromContext(context);
         }
     }
-
 
     /**
      * Get the default prediction column name based on the PMML model input spec.
@@ -164,42 +153,39 @@ public final class NaiveBayesPredictorNodeSettings implements NodeParameters {
         return PredictorHelper.DEFAULT_PREDICTION_COLUMN;
     }
 
-
-    @Layout(PredictionSection.class)
-    @Widget(title = "Change prediction column name",
-            description = "When set, you can change the name of the prediction column. "
-                + "The default prediction column name is: Prediction (trainingColumn).")
+    @Widget(title = "Change prediction column name", description = """
+            When set, you can change the name of the prediction column.
+            The default prediction column name is: <tt>Prediction (trainingColumn)</tt>.
+            """)
     @ValueReference(OverridePredictedRef.class)
     @Persist(configKey = PredictorHelper.CFGKEY_CHANGE_PREDICTION)
     boolean m_overridePredicted = PredictorHelper.DEFAULT_CHANGE_PREDICTION;
 
-    @Layout(PredictionSection.class)
-    @Widget(title = "Prediction column name",
-            description = "Specify the custom name for the prediction column. This field is only enabled when "
-                + "'Change prediction column name' is checked.")
+    @Widget(title = "Prediction column name", description = """
+            Specify the custom name for the prediction column. This field is only enabled when
+            <i>'Change prediction column name'</i> is checked.
+            """)
     @Effect(predicate = ChangePredictionNamePredicate.class, type = EffectType.SHOW)
-    @TextInputWidget
     @Persist(configKey = PredictorHelper.CFGKEY_PREDICTION_COLUMN)
     @ValueReference(PredictionColumnNameRef.class)
     @ValueProvider(PredictionColumnNameProvider.class)
     String m_predictionColumnName = PredictorHelper.DEFAULT_PREDICTION_COLUMN; // initial placeholder until provider runs
 
-    @Layout(ProbabilitySection.class)
-    @Widget(title = "Append columns with normalized class distribution",
-            description = "If selected, a column is appended for each class instance with the normalized probability "
-                + "of this row being a member of this class. The probability columns will have names like: "
-                + "P (trainingColumn=value) with an optional suffix.")
+    @Widget(title = "Append columns with normalized class distribution", description = """
+            If selected, a column is appended for each class instance with the normalized probability
+            of this row being a member of this class. The probability columns will have names like:
+            <tt>P (trainingColumn=value)</tt> with an optional suffix.)
+            """)
     @ValueReference(IncludeProbabilityRef.class)
-    @Persist(configKey = "inclProbVals")
+    @Persist(configKey = NaiveBayesPredictorNodeModel3.INCLUDE_PROBABILITY_VALUES_KEY)
     boolean m_inclProbVals = false;
 
-    @Layout(ProbabilitySection.class)
-    @Widget(title = "Suffix for probability columns",
-            description = "Specify a suffix to append to the probability column names. The probability columns are named "
-                + "like: P (trainingColumn=value) followed by this suffix. This field is only enabled when "
-                + "'Append columns with normalized class distribution' is checked.")
+    @Widget(title = "Suffix for probability columns", description = """
+            Specify a suffix to append to the probability column names. The probability columns are named
+            like: <tt>P (trainingColumn=value)</tt> followed by this suffix. This field is only enabled when
+            <i>'Append columns with normalized class distribution'</i> is checked.
+            """)
     @Effect(predicate = AppendProbabilityColumnsPredicate.class, type = EffectType.SHOW)
-    @TextInputWidget
     @Persist(configKey = PredictorHelper.CFGKEY_SUFFIX)
     String m_probabilitySuffix = PredictorHelper.DEFAULT_SUFFIX;
 }

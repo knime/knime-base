@@ -48,6 +48,12 @@
  */
 package org.knime.base.node.mine.bayes.naivebayes.predictor4;
 
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+
+import org.apache.xmlbeans.XmlException;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
@@ -56,6 +62,9 @@ import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
+import org.xml.sax.SAXException;
 
 /**
  * <code>NodeFactory</code> for the "Naive Bayes Predictor" node.
@@ -64,7 +73,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
  * @noreference This class is not intended to be referenced by clients.
  */
 @SuppressWarnings("restriction")
-public final class NaiveBayesPredictorNodeFactory3 extends NodeFactory<NaiveBayesPredictorNodeModel3> implements NodeDialogFactory {
+public final class NaiveBayesPredictorNodeFactory3 extends NodeFactory<NaiveBayesPredictorNodeModel3>
+    implements NodeDialogFactory {
     /**
      * {@inheritDoc}
      */
@@ -101,11 +111,11 @@ public final class NaiveBayesPredictorNodeFactory3 extends NodeFactory<NaiveBaye
     /**
      * {@inheritDoc}
      *
-     * @since 5.6
+     * @since 5.8
      */
     @Override
     public NodeDialog createNodeDialog() {
-        return new DefaultNodeDialog(SettingsType.MODEL, NaiveBayesPredictorNodeSettings.class);
+        return new DefaultNodeDialog(SettingsType.MODEL, NaiveBayesPredictorNodeParameters.class);
     }
 
     /**
@@ -114,6 +124,48 @@ public final class NaiveBayesPredictorNodeFactory3 extends NodeFactory<NaiveBaye
     @Override
     public NodeDialogPane createNodeDialogPane() {
         return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * Use the WebUINodeConfiguration to generate the node description (replacing the XML file).
+     */
+    @Override
+    protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
+        Collection<PortDescription> inPortDescriptions = List.of(//
+            new PortDescription("modelId", "The naive Bayes model to use", "A previously learned naive Bayes model",
+                false), //
+            new PortDescription("tableId", "Input data to classify", "Input data to classify", false));
+        Collection<PortDescription> outPortDescriptions = List.of(//
+            new PortDescription("outId", "The classified data", //
+                "The input table with one column added containing the \n"//
+                    + "        classification and the probabilities depending on the options.", //
+                false));
+
+        return DefaultNodeDescriptionUtil.createNodeDescription("Naive Bayes Predictor", //
+            "./naiveBayesPredictor.png", //
+            inPortDescriptions, //
+            outPortDescriptions, //
+            """
+
+                            Uses the PMML naive Bayes model from the naive Bayes learner to predict
+                    the class membership of each row in the input data.
+                    """, """
+                    Predicts the class per row based on the learned model. The class
+                    probability is the product of the probability per attribute and the
+                    probability of the class attribute itself.
+                    <p>
+                        The probability for nominal values is the number of occurrences of
+                        the class value with the given value divided by the number of total
+                        occurrences of the class value. The probability of numerical values
+                        is calculated by assuming a normal distribution per attribute.
+                    </p>
+                    """, //
+            List.of(), // resources
+            NaiveBayesPredictorNodeParameters.class, //
+            List.of(), // view descriptions
+            NodeType.Predictor, //
+            List.of(), // keywords
+            null);
     }
 
 }
