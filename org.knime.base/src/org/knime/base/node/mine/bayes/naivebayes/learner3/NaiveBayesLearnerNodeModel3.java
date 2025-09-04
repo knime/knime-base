@@ -106,10 +106,12 @@ final class NaiveBayesLearnerNodeModel3 extends NodeModel {
     private static final double MIN_SD_LOWER_BOUND = 1e-10;
 
     /** The default minimum standard deviation epsilon. */
-    private static final int MIN_SD_THRESHOLD_DEF = 0;
+    static final int MIN_SD_THRESHOLD_DEF = 0;
 
     /** The default minimum probability threshold. */
     static final double MIN_PROB_THRESHOLD_DEF = 1e-10;
+
+    static final int MAX_NO_OF_NOMINAL_VALS_DEF = 20;
 
     private static final String CFG_DATA = "naivebayesData";
 
@@ -131,13 +133,17 @@ final class NaiveBayesLearnerNodeModel3 extends NodeModel {
     public static final String CFG_MAX_NO_OF_NOMINAL_VALS_KEY = "maxNoOfNomVals";
 
     /** Key to store the pmml compatibility flag. */
-    private static final String CFG_PMML_COMPATIBLE = "compatiblePMML";
+    static final String CFG_PMML_COMPATIBLE = "compatiblePMML";
 
     /** Key to store the minimum standard deviation value. */
-    private static final String CFG_MIN_SD_VALUE_KEY = "minSdValue";
+    static final String CFG_MIN_SD_VALUE_KEY = "minSdValue";
 
     /** Key to store the minimum standard deviation threshold. */
-    private static final String CFG_MIN_SD_THRESHOLD_KEY = "minSdThreshold";
+    static final String CFG_MIN_SD_THRESHOLD_KEY = "minSdThreshold";
+
+    /** Key to store the Laplace corrector model */
+    static final String CFG_THRESHOLD_KEY = "threshold";
+
     /**
      * The number of the training data in port.
      */
@@ -171,7 +177,7 @@ final class NaiveBayesLearnerNodeModel3 extends NodeModel {
      * @return the Laplace corrector model
      */
     static SettingsModelDoubleBounded createThresholdModel() {
-        return new SettingsModelDoubleBounded("threshold", NaiveBayesModel.DEFAULT_MIN_PROB_THRESHOLD,
+        return new SettingsModelDoubleBounded(CFG_THRESHOLD_KEY, NaiveBayesModel.DEFAULT_MIN_PROB_THRESHOLD,
             MIN_PROB_THRESHOLD_DEF, Double.MAX_VALUE);
     }
 
@@ -179,7 +185,7 @@ final class NaiveBayesLearnerNodeModel3 extends NodeModel {
      * @return the maximum number of nominal values
      */
     static SettingsModelIntegerBounded createMaxNominalValsModel() {
-        return new SettingsModelIntegerBounded(CFG_MAX_NO_OF_NOMINAL_VALS_KEY, 20, 0,
+        return new SettingsModelIntegerBounded(CFG_MAX_NO_OF_NOMINAL_VALS_KEY, MAX_NO_OF_NOMINAL_VALS_DEF, 0,
             Integer.MAX_VALUE);
     }
 
