@@ -192,7 +192,7 @@ final class NaiveBayesPredictorNodeParameters implements NodeParameters {
 
         @Override
         public String[][] getConfigPaths() {
-            return new String[][]{{m_booleanCfgKey, m_stringCfgKey}};
+            return new String[][]{{m_booleanCfgKey}, {m_stringCfgKey}};
         }
 
     }
