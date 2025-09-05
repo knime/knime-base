@@ -65,6 +65,8 @@ import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 import org.knime.testing.node.dialog.SnapshotTestConfiguration;
+import org.knime.time.util.LocaleStateProviderTest;
+import org.knime.time.util.LocaleStateProviderTest.TestLocaleStateProvider;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -74,6 +76,8 @@ final class TimestampToDateTimeNodeSettingsTest extends DefaultNodeSettingsSnaps
     private Locale m_defaultLocale;
 
     private MockedStatic<ZoneId> m_mockedStaticZoneId;
+
+    private TestLocaleStateProvider m_mockedLocaleStateProvider;
 
     private static final ZoneId MOCKED_ZONE_ID = ZoneId.of("Europe/Berlin");
 
@@ -92,12 +96,14 @@ final class TimestampToDateTimeNodeSettingsTest extends DefaultNodeSettingsSnaps
         m_mockedStaticZoneId = Mockito.mockStatic(ZoneId.class, Mockito.CALLS_REAL_METHODS);
         m_mockedStaticZoneId.when(() -> ZoneId.systemDefault()).thenReturn(MOCKED_ZONE_ID);
 
+        m_mockedLocaleStateProvider = LocaleStateProviderTest.withMockedLocales();
     }
 
     @AfterEach
     void resetDefaultLocaleAndStaticMocks() {
         Locale.setDefault(m_defaultLocale);
         m_mockedStaticZoneId.close();
+        m_mockedLocaleStateProvider.close();
     }
 
     private static SnapshotTestConfiguration getConfig() {
