@@ -66,6 +66,8 @@ import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 import org.knime.testing.node.dialog.SnapshotTestConfiguration;
+import org.knime.time.util.LocaleStateProviderTest;
+import org.knime.time.util.LocaleStateProviderTest.TestLocaleStateProvider;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -91,6 +93,8 @@ final class CreateDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshotTe
     private MockedStatic<ZoneId> m_mockedStaticZoneId;
 
     private MockedStatic<LocalTime> m_mockedStaticLocalTime;
+
+    private TestLocaleStateProvider m_mockedLocaleStateProvider;
 
     private static final LocalDate MOCKED_DATE = LocalDate.of(2020, 1, 1);
 
@@ -125,6 +129,7 @@ final class CreateDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshotTe
         m_mockedStaticLocalTime = Mockito.mockStatic(LocalTime.class, Mockito.CALLS_REAL_METHODS);
         m_mockedStaticLocalTime.when(LocalTime::now).thenReturn(MOCKED_TIME);
 
+        m_mockedLocaleStateProvider = LocaleStateProviderTest.withMockedLocales();
     }
 
     @AfterEach
@@ -136,6 +141,7 @@ final class CreateDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshotTe
         m_mockedStaticLocalDate.close();
         m_mockedStaticZoneId.close();
         m_mockedStaticLocalTime.close();
+        m_mockedLocaleStateProvider.close();
     }
 
     private static SnapshotTestConfiguration getConfig() {
