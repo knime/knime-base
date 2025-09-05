@@ -2789,19 +2789,37 @@
               impl="org.knime.base.node.preproc.valuelookup.ValueLookupNodeFunc">
         </nodeFunc>
         <nodeFunc
-              impl="org.knime.base.node.preproc.filter.row3.RowIDRowFilterNodeFunc">
+              impl="org.knime.base.node.preproc.filter.row3.RowFilterNodeFunc$RowIDRowFilterNodeFunc">
         </nodeFunc>
         <nodeFunc
-              impl="org.knime.base.node.preproc.filter.row3.MissingValueRowFilterNodeFunc">
+              impl="org.knime.base.node.preproc.filter.row3.RowFilterNodeFunc$MissingValueRowFilterNodeFunc">
         </nodeFunc>
         <nodeFunc
-              impl="org.knime.base.node.preproc.filter.row3.AttributePatternRowFilterNodeFunc">
+              impl="org.knime.base.node.preproc.filter.row3.RowFilterNodeFunc$AttributePatternRowFilterNodeFunc">
         </nodeFunc>
         <nodeFunc
-              impl="org.knime.base.node.preproc.filter.row3.RowFilterByRowNumberNodeFunc">
+              impl="org.knime.base.node.preproc.filter.row3.RowFilterNodeFunc$RowFilterByRowNumberNodeFunc">
         </nodeFunc>
         <nodeFunc
-              impl="org.knime.base.node.preproc.filter.row3.AttributeRangeRowFilterNodeFunc">
+              impl="org.knime.base.node.preproc.filter.row3.RowFilterNodeFunc$AttributeRangeRowFilterNodeFunc">
         </nodeFunc>
      </extension>
+    <extension
+        point="org.knime.core.ui.filterOperators">
+        <FilterOperators
+            factoryClass="org.knime.base.node.preproc.filter.row3.operators.StringFilterOperators">
+        </FilterOperators>
+        <FilterOperators
+            factoryClass="org.knime.base.node.preproc.filter.row3.operators.BooleanFilterOperators">
+        </FilterOperators>
+        <FilterOperators
+            factoryClass="org.knime.base.node.preproc.filter.row3.operators.IntFilterOperators">
+        </FilterOperators>
+        <FilterOperators
+            factoryClass="org.knime.base.node.preproc.filter.row3.operators.LongFilterOperators">
+        </FilterOperators>
+        <FilterOperators
+            factoryClass="org.knime.base.node.preproc.filter.row3.operators.DoubleFilterOperators">
+        </FilterOperators>
+    </extension>
 </plugin>

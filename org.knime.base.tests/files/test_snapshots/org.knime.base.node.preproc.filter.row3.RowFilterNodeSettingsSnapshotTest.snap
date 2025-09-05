@@ -2,7 +2,13 @@
   "data" : {
     "model" : {
       "matchCriteria" : "AND",
-      "predicates" : [ ],
+      "predicates" : [ {
+        "column" : {
+          "regularChoice" : "BoolCol"
+        },
+        "columnType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "operator" : "IS_TRUE"
+      } ],
       "domains" : "RETAIN",
       "outputMode" : "MATCHING"
     }
@@ -76,96 +82,29 @@
                     "regularChoice" : "BoolCol"
                   }
                 },
-                "operator" : {
-                  "oneOf" : [ {
-                    "const" : "EQ",
-                    "title" : "Equals"
-                  }, {
-                    "const" : "NEQ",
-                    "title" : "Is not equal (nor missing)"
-                  }, {
-                    "const" : "NEQ_MISS",
-                    "title" : "Is not equal"
-                  }, {
-                    "const" : "LT",
-                    "title" : "Less than"
-                  }, {
-                    "const" : "LTE",
-                    "title" : "Less than or equal"
-                  }, {
-                    "const" : "GT",
-                    "title" : "Greater than"
-                  }, {
-                    "const" : "GTE",
-                    "title" : "Greater than or equal"
-                  }, {
-                    "const" : "FIRST_N_ROWS",
-                    "title" : "First n rows"
-                  }, {
-                    "const" : "LAST_N_ROWS",
-                    "title" : "Last n rows"
-                  }, {
-                    "const" : "REGEX",
-                    "title" : "Matches regex"
-                  }, {
-                    "const" : "WILDCARD",
-                    "title" : "Matches wildcard"
-                  }, {
-                    "const" : "IS_TRUE",
-                    "title" : "Is true"
-                  }, {
-                    "const" : "IS_FALSE",
-                    "title" : "Is false"
-                  }, {
-                    "const" : "IS_MISSING",
-                    "title" : "Is missing"
-                  }, {
-                    "const" : "IS_NOT_MISSING",
-                    "title" : "Is not missing"
-                  } ],
-                  "title" : "Operator",
-                  "description" : "The operator determines whether a value meets the filter criterion. A value matches the criterion if the\napplied operator returns \"true\" and does not match if it returns \"false.\"\nNot all operators are compatible with every column data type. Only the applicable operators are shown\nfor the selected column.\n<br /><br />\n\n<b>Missing value handling:</b> The \"is missing\" and \"is not missing\" operators are available for all\ndata types. Most other operators do not evaluate on missing values and will not match if a missing cell\nis encountered. An exception is the \"is not equal\" operator, which matches missing cells because they\ncannot equal the reference value. To exclude missing cells in this case, use the \"is not equal (nor\nmissing)\" operator. \"RowID\" and \"Row number\" special columns are never missing.\n\n<ul>\n<li><b>Equals</b>: Value in column must be <b>equal</b> to the specified reference value.\nEquality is define by the particular data type(s) involved and may be on the value's string\nrepresentation.\n</li>\n<li><b>Is not equal (nor missing)</b>: Value in column must be <b>not equal</b> to specified reference and also not missing.\n</li>\n<li><b>Is not equal</b>: Value in column must be <b>not equal</b> to specified reference value but can be missing.\n</li>\n<li><b>Less than</b>: Value in column must be <b>strictly smaller</b> than specified value.\n<br />\n\nThis operator is applicable for all data types that offer a more meaningful ordering than just\nlexicographic ordering. In particular, this includes by default numeric types and Date &amp; Time types.\nString and Boolean types are not supported.\nThe same requirements apply to the other ordering-based operators: \"Less than\", \"Less than or equal\",\n\"Greather than\", and \"Greater than or equal\".\n</li>\n<li><b>Less than or equal</b>: Value in column must be <b>smaller than or equal</b> to specified value</li>\n<li><b>Greater than</b>: Value in column must be <b>strictly larger</b> than specified value</li>\n<li><b>Greater than or equal</b>: Value in column must be <b>larger than or equal</b> than specified value</li>\n<li><b>First n rows</b>: Matches the specified number of rows counted from the start of the input.\n</li>\n<li><b>Last n rows</b>: Matches the specified number of rows counted from the end of the input.\n</li>\n<li><b>Matches regex</b>: Value in column must match the specified regular expression.\n<br />\n\nThis operator is applicable to all data types that are string-compatible,\ni.e. offer a meaningful string representation of themselves, or integral numbers.\nIn particular, this includes Date &amp; Time types.\nThe same requirements apply to the \"Matches wildcard\" operator.\n<br /><br />\n\n<b>Regex matching behavior:</b> By default, the regex pattern must match the whole cell value,\nnot just parts of it, since\nthe regex pattern is configured with the <tt>DOTALL</tt> and <tt>MULTILINE</tt> flags\n<i>enabled</i>. To disable the <tt>DOTALL</tt> flag, prefix the pattern with <tt>(?-s)</tt>, to disable\n<tt>MULTILINE</tt> use prefix <tt>(?-m)</tt>. To disable both, use <tt>(?-sm)</tt>.\n</li>\n<li><b>Matches wildcard</b>: Value in column must match the specified pattern, which may contain wildcards <tt>*</tt> and <tt>?</tt>.</li>\n<li><b>Is true</b>: Boolean value in column must be <tt>true</tt></li>\n<li><b>Is false</b>: Boolean value in column must be <tt>false</tt></li>\n<li><b>Is missing</b>: Value in column must be <i>missing</i></li>\n<li><b>Is not missing</b>: Value in column must <em>not</em> be <i>missing</i></li>\n</ul>",
-                  "default" : "EQ"
+                "columnType" : {
+                  "type" : "string",
+                  "default" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
                 },
-                "predicateValues" : {
-                  "type" : "object",
-                  "properties" : {
-                    "inputKind" : {
-                      "oneOf" : [ {
-                        "const" : "SINGLE",
-                        "title" : "Single"
-                      }, {
-                        "const" : "DOUBLE",
-                        "title" : "Double"
-                      }, {
-                        "const" : "COLLECTION",
-                        "title" : "Collection"
-                      } ]
-                    },
-                    "values" : {
-                      "type" : "array",
-                      "items" : {
-                        "type" : "object"
-                      }
-                    }
-                  },
-                  "title" : "Filter value",
-                  "description" : "The value for the filter criterion.\n<br/><br />\n\n<i>Note:</i> Currently, comparison values for non-numeric and non-string data types, e.g.\ndate&amp;time-based types, must be entered as its string representation like in the <a href=\"\nhttps://hub.knime.com/knime/extensions/org.knime.features.base/latest/org.knime.base.node.io.tablecreator.TableCreator2NodeFactory\"><i>Table Creator</i></a> node.\n<br/>\n\nThe format for date&amp;time-based values is \"ISO-8601 extended\". For example, a \"Local Date\" must be\nentered in the format \"2006-07-28\". More information can be obtained from the ISO patterns in the\n\"Predefined Formatters\" table of the <a href=\"\nhttps://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html#predefined\">Java SE 17 documentation</a>.\n",
-                  "default" : {
-                    "values" : [ {
-                      "value" : false,
-                      "cellClassName" : "org.knime.core.data.def.BooleanCell",
-                      "valueDataType" : "{\"name\":\"dataTypeConfig\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-                      "useStringCaseMatchingSettings" : false
-                    } ],
-                    "inputKind" : "SINGLE"
-                  }
+                "filterValueParameters" : {
+                  "type" : "object"
+                },
+                "operator" : {
+                  "type" : "string",
+                  "title" : "Operator",
+                  "default" : "IS_TRUE"
                 }
               }
             },
             "title" : "Filter criteria",
             "description" : "The list of criteria that should be filtered on.",
-            "default" : [ ]
+            "default" : [ {
+              "column" : {
+                "regularChoice" : "BoolCol"
+              },
+              "columnType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+              "operator" : "IS_TRUE"
+            } ]
           }
         }
       }
@@ -220,10 +159,11 @@
             } ]
           }, {
             "type" : "Control",
-            "scope" : "#/properties/predicateValues",
+            "scope" : "#/properties/filterValueParameters",
             "options" : {
-              "format" : "dynamicValue"
-            }
+              "format" : "dynamicInput"
+            },
+            "providedOptions" : [ "dynamicSettings" ]
           } ],
           "addButtonText" : "Add filter criterion",
           "arrayElementTitle" : "Criterion",
@@ -274,18 +214,16 @@
                     "deprecated" : [ [ "column" ] ]
                   } ]
                 },
+                "columnType" : {
+                  "configPaths" : [ [ "columnType", "cell_class" ] ]
+                },
                 "operator" : { },
-                "predicateValues" : {
+                "filterValueParameters" : {
                   "type" : "object",
-                  "properties" : {
-                    "values" : {
-                      "type" : "array",
-                      "items" : {
-                        "propertiesConfigPaths" : [ ]
-                      }
-                    },
-                    "inputKind" : { }
-                  }
+                  "properties" : { },
+                  "deprecatedConfigKeys" : [ {
+                    "deprecated" : [ [ "predicateValues" ] ]
+                  } ]
                 }
               }
             }
@@ -332,6 +270,276 @@
       } ]
     } ]
   }, {
+    "scope" : "#/properties/model/properties/predicates/items/properties/columnType",
+    "values" : [ {
+      "indices" : [ 0 ],
+      "value" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/predicates/items/properties/columnType",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.blob.BinaryObjectDataCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Binary Object",
+        "type" : {
+          "id" : "org.knime.core.data.blob.BinaryObjectDataValue",
+          "text" : "Binary Object"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.vector.bitvector.DenseBitVectorCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Bit Vector",
+        "type" : {
+          "id" : "org.knime.core.data.vector.bitvector.BitVectorValue",
+          "text" : "Bit Vector"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.vector.bitvector.SparseBitVectorCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Bit Vector (Sparse)",
+        "type" : {
+          "id" : "org.knime.core.data.vector.bitvector.SparseBitVectorValue",
+          "text" : "Bit Vector (Sparse)"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Boolean",
+        "type" : {
+          "id" : "org.knime.core.data.BooleanValue",
+          "text" : "Boolean"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.vector.bytevector.DenseByteVectorCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Byte Vector",
+        "type" : {
+          "id" : "org.knime.core.data.vector.bytevector.ByteVectorValue",
+          "text" : "Byte Vector"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.chem.types.cdx.CDXMLCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "CDXML",
+        "type" : {
+          "id" : "org.knime.chem.types.cdx.CDXMLValue",
+          "text" : "CDXML"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.chem.types.CMLCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "CML",
+        "type" : {
+          "id" : "org.knime.chem.types.CMLValue",
+          "text" : "CML"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.chem.types.CtabCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "CTab",
+        "type" : {
+          "id" : "org.knime.chem.types.CtabValue",
+          "text" : "CTab"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.time.localdate.LocalDateCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Date",
+        "type" : {
+          "id" : "org.knime.core.data.time.localdate.LocalDateValue",
+          "text" : "Date"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.time.localdatetime.LocalDateTimeCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Date&time (Local)",
+        "type" : {
+          "id" : "org.knime.core.data.time.localdatetime.LocalDateTimeValue",
+          "text" : "Date&time (Local)"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.time.zoneddatetime.ZonedDateTimeCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Date&time (Zoned)",
+        "type" : {
+          "id" : "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue",
+          "text" : "Date&time (Zoned)"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"collection_element_type\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"}}},\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.vector.doublevector.DenseDoubleVectorCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Double Vector (Collection of: Number (Float))",
+        "type" : {
+          "id" : "org.knime.core.data.vector.doublevector.DoubleVectorValue",
+          "text" : "Double Vector"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.time.period.PeriodCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Duration (Date-based)",
+        "type" : {
+          "id" : "org.knime.core.data.time.period.PeriodValue",
+          "text" : "Duration (Date-based)"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.time.duration.DurationCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Duration (Time-based)",
+        "type" : {
+          "id" : "org.knime.core.data.time.duration.DurationValue",
+          "text" : "Duration (Time-based)"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.chem.types.helm.HELMCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "HELM",
+        "type" : {
+          "id" : "org.knime.chem.types.helm.HELMValue",
+          "text" : "HELM"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.image.png.PNGImageCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Image (PNG)",
+        "type" : {
+          "id" : "org.knime.core.data.image.png.PNGImageValue",
+          "text" : "Image (PNG)"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.chem.types.InchiCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "InChI",
+        "type" : {
+          "id" : "org.knime.chem.types.InchiValue",
+          "text" : "InChI"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.xml.PMMLCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Model (PMML)",
+        "type" : {
+          "id" : "org.knime.core.data.xml.PMMLValue",
+          "text" : "Model (PMML)"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.chem.types.Mol2Cell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Mol2",
+        "type" : {
+          "id" : "org.knime.chem.types.Mol2Value",
+          "text" : "Mol2"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.chem.types.MolCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Molfile",
+        "type" : {
+          "id" : "org.knime.chem.types.MolValue",
+          "text" : "Molfile"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Number (Float)",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.IntCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Number (Integer)",
+        "type" : {
+          "id" : "org.knime.core.data.IntValue",
+          "text" : "Number (Integer)"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.LongCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Number (Long Integer)",
+        "type" : {
+          "id" : "org.knime.core.data.LongValue",
+          "text" : "Number (Long Integer)"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.filehandling.core.data.location.cell.SimpleFSLocationCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Path",
+        "type" : {
+          "id" : "org.knime.filehandling.core.data.location.FSLocationValue",
+          "text" : "Path"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.chem.types.RxnCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Rxn",
+        "type" : {
+          "id" : "org.knime.chem.types.RxnValue",
+          "text" : "Rxn"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.chem.types.SdfCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "SDF",
+        "type" : {
+          "id" : "org.knime.chem.types.SdfValue",
+          "text" : "SDF"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.chem.types.SmartsCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "SMARTS",
+        "type" : {
+          "id" : "org.knime.chem.types.SmartsValue",
+          "text" : "SMARTS"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.chem.types.SmilesCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "SMILES",
+        "type" : {
+          "id" : "org.knime.chem.types.SmilesValue",
+          "text" : "SMILES"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "String",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"collection_element_type\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"}}},\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.vector.stringvector.DenseStringVectorCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "String Vector (Collection of: String)",
+        "type" : {
+          "id" : "org.knime.core.data.vector.stringvector.StringVectorValue",
+          "text" : "String Vector"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.time.localtime.LocalTimeCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Time",
+        "type" : {
+          "id" : "org.knime.core.data.time.localtime.LocalTimeValue",
+          "text" : "Time"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.uri.URIDataCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "URI",
+        "type" : {
+          "id" : "org.knime.core.data.uri.URIDataValue",
+          "text" : "URI"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.xml.XMLCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "XML",
+        "type" : {
+          "id" : "org.knime.core.data.xml.XMLValue",
+          "text" : "XML"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/predicates/items/properties/filterValueParameters",
+    "providedOptionName" : "dynamicSettings",
+    "values" : [ {
+      "indices" : [ 0 ],
+      "value" : null
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/predicates/items/properties/operator",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ 0 ],
+      "value" : [ {
+        "id" : "IS_TRUE",
+        "text" : "Is true"
+      }, {
+        "id" : "IS_FALSE",
+        "text" : "Is false"
+      }, {
+        "id" : "IS_MISSING",
+        "text" : "Is missing"
+      }, {
+        "id" : "IS_NOT_MISSING",
+        "text" : "Is not missing"
+      } ]
+    } ]
+  }, {
     "scope" : "#/properties/model/properties/predicates",
     "providedOptionName" : "elementDefaultValue",
     "values" : [ {
@@ -340,34 +548,20 @@
         "column" : {
           "regularChoice" : "BoolCol"
         },
-        "operator" : "IS_TRUE",
-        "predicateValues" : {
-          "values" : [ {
-            "value" : false,
-            "cellClassName" : "org.knime.core.data.def.BooleanCell",
-            "valueDataType" : "{\"name\":\"dataTypeConfig\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-            "useStringCaseMatchingSettings" : false
-          } ],
-          "inputKind" : "SINGLE"
-        }
+        "columnType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "operator" : "IS_TRUE"
       }
     } ]
   } ],
   "globalUpdates" : [ {
     "trigger" : {
-      "id" : "after-open-dialog"
-    },
-    "triggerInitially" : true,
-    "dependencies" : [ "#/properties/model/properties/predicates/items/properties/column" ]
-  }, {
-    "trigger" : {
       "scope" : "#/properties/model/properties/predicates/items/properties/column"
     },
-    "dependencies" : [ "#/properties/model/properties/predicates/items/properties/column", "#/properties/model/properties/predicates/items/properties/operator", "#/properties/model/properties/predicates/items/properties/predicateValues" ]
+    "dependencies" : [ "#/properties/model/properties/predicates/items/properties/column", "#/properties/model/properties/predicates/items/properties/columnType", "#/properties/model/properties/predicates/items/properties/filterValueParameters", "#/properties/model/properties/predicates/items/properties/operator" ]
   }, {
     "trigger" : {
       "scope" : "#/properties/model/properties/predicates/items/properties/operator"
     },
-    "dependencies" : [ "#/properties/model/properties/predicates/items/properties/column", "#/properties/model/properties/predicates/items/properties/operator", "#/properties/model/properties/predicates/items/properties/predicateValues" ]
+    "dependencies" : [ "#/properties/model/properties/predicates/items/properties/column", "#/properties/model/properties/predicates/items/properties/columnType", "#/properties/model/properties/predicates/items/properties/filterValueParameters", "#/properties/model/properties/predicates/items/properties/operator" ]
   } ]
 }

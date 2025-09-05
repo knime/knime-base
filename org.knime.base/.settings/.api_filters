@@ -1,45 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <component id="org.knime.base" version="2">
-    <resource path="src-deprecated/org/knime/base/node/mine/cluster/kmeans/ClusterNodeDialog.java" type="org.knime.base.node.mine.cluster.kmeans.ClusterNodeDialog">
-        <filter comment="Node implementation is not API" id="305365105">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.mine.cluster.kmeans.ClusterNodeDialog"/>
-                <message_argument value="org.knime.base_5.9.0"/>
-            </message_arguments>
-        </filter>
-    </resource>
-    <resource path="src-deprecated/org/knime/base/node/mine/cluster/kmeans/ClusterNodeFactory.java" type="org.knime.base.node.mine.cluster.kmeans.ClusterNodeFactory">
-        <filter comment="Node implementation is not API" id="305365105">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.mine.cluster.kmeans.ClusterNodeFactory"/>
-                <message_argument value="org.knime.base_5.9.0"/>
-            </message_arguments>
-        </filter>
-    </resource>
-    <resource path="src-deprecated/org/knime/base/node/mine/cluster/kmeans/ClusterNodeFactory2.java" type="org.knime.base.node.mine.cluster.kmeans.ClusterNodeFactory2">
-        <filter comment="Node implementation is not API" id="305365105">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.mine.cluster.kmeans.ClusterNodeFactory2"/>
-                <message_argument value="org.knime.base_5.9.0"/>
-            </message_arguments>
-        </filter>
-    </resource>
-    <resource path="src-deprecated/org/knime/base/node/mine/cluster/kmeans/ClusterNodeModel.java" type="org.knime.base.node.mine.cluster.kmeans.ClusterNodeModel">
-        <filter comment="Node implementation is not API" id="305365105">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.mine.cluster.kmeans.ClusterNodeModel"/>
-                <message_argument value="org.knime.base_5.9.0"/>
-            </message_arguments>
-        </filter>
-    </resource>
-    <resource path="src-deprecated/org/knime/base/node/mine/cluster/kmeans/ClusterNodeView.java" type="org.knime.base.node.mine.cluster.kmeans.ClusterNodeView">
-        <filter comment="Node implementation is not API" id="305365105">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.mine.cluster.kmeans.ClusterNodeView"/>
-                <message_argument value="org.knime.base_5.9.0"/>
-            </message_arguments>
-        </filter>
-    </resource>
     <resource path="src/org/knime/base/data/aggregation/AggregationOperatorParameters.java" type="org.knime.base.data.aggregation.AggregationOperatorParameters">
         <filter comment="We should be able to implement our own preview API" id="576720909">
             <message_arguments>
@@ -75,13 +35,6 @@
                 <message_argument value="NodeDialog"/>
                 <message_argument value="GroupByNodeFactory"/>
                 <message_argument value="createNodeDialog()"/>
-            </message_arguments>
-        </filter>
-    </resource>
-    <resource path="src/org/knime/base/node/preproc/pmml/numbertostring3/AbstractNumberToStringNodeModel.java" type="org.knime.base.node.preproc.pmml.numbertostring3.AbstractNumberToStringNodeModel$ConverterFactory">
-        <filter comment="Ignoring &quot;reduced visibility&quot; -- there were no changes that I could see -- the class is still public and the package is exported" id="337686583">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.pmml.numbertostring3.AbstractNumberToStringNodeModel.ConverterFactory"/>
             </message_arguments>
         </filter>
     </resource>

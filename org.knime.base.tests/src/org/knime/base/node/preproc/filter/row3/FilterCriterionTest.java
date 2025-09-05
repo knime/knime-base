@@ -48,9 +48,8 @@
  */
 package org.knime.base.node.preproc.filter.row3;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
@@ -62,8 +61,9 @@ import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
+import org.knime.node.parameters.NodeParametersInput;
 
 /**
  * Tests for the {@code FilterCriterion} class.
@@ -85,405 +85,429 @@ final class FilterCriterionTest {
             new DataColumnSpecCreator("Dummy1", FilterDummyDataCellExtension.FilterDummyCell.TYPE).createSpec()) //
         .createSpec();
 
-    @Nested
-    final class Equality {
-        /**
-         * Tests that RowID can be compared with the default value of the EQ and NEQ operators.
-         */
-        @Test
-        void testEqualityRowID() {
-            // RowID with default values
-            final var criterion = new FilterCriterion();
-            criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_ID);
-            criterion.m_predicateValues = DynamicValuesInput.forRowID();
+    private static final NodeParametersInput CTX =
+        NodeParametersUtil.createDefaultNodeSettingsContext(new DataTableSpec[]{SPEC});
 
-            criterion.m_operator = FilterOperator.EQ;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("RowID with default value via EQ") //
-                .doesNotThrowAnyException();
+    /**
+     * Tests that auto-configuration works. Last available column or row id of no column is available.
+     */
+    @Test
+    @SuppressWarnings("static-method")
+    void testAutoconfiguration() {
+        final var auto = new FilterCriterion(CTX);
+        assertThat(auto.m_column) //
+            .as("Auto-configured column")//
+            .extracting(StringOrEnum::getStringChoice)//
+            .isEqualTo(SPEC.getColumnSpec(SPEC.getNumColumns() - 1).getName());
 
-            criterion.m_operator = FilterOperator.NEQ;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("RowID with default value via NEQ") //
-                .doesNotThrowAnyException();
-        }
-
-        /**
-         * Tests that "Long" column can be compared with the default value of the EQ and NEQ operators.
-         */
-        @SuppressWarnings("restriction")
-        @Test
-        void testEqualityLong() {
-            // Long column with default values
-            final var criterion = new FilterCriterion();
-
-            criterion.m_column = new StringOrEnum<>("Long1");
-            criterion.m_predicateValues =
-                DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(LongCell.TYPE);
-
-            criterion.m_operator = FilterOperator.EQ;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("Long with default value via EQ") //
-                .doesNotThrowAnyException();
-
-            criterion.m_operator = FilterOperator.NEQ;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("Long with default value via NEQ") //
-                .doesNotThrowAnyException();
-
-            criterion.m_operator = FilterOperator.NEQ_MISS;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("Long with default value via NEQ_MISS") //
-                .doesNotThrowAnyException();
-        }
-
-        /**
-         * Tests that "Int" column can be compared with the default values of supported data types via EQ and NEQ
-         * operators.
-         */
-        @SuppressWarnings("restriction")
-        @Test
-        void testEqualityInt() {
-            final var criterion = new FilterCriterion();
-
-            // Int column with Int reference
-            criterion.m_column = new StringOrEnum<>("Int1");
-            criterion.m_predicateValues =
-                DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(IntCell.TYPE);
-
-            criterion.m_operator = FilterOperator.EQ;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("Int with default value via EQ") //
-                .doesNotThrowAnyException();
-
-            criterion.m_operator = FilterOperator.NEQ;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("Int with default value via NEQ") //
-                .doesNotThrowAnyException();
-
-            criterion.m_operator = FilterOperator.NEQ_MISS;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("Int with default value via NEQ_MISS") //
-                .doesNotThrowAnyException();
-
-            // Int column with Long reference
-            criterion.m_predicateValues =
-                DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(LongCell.TYPE);
-
-            criterion.m_operator = FilterOperator.EQ;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("Int with default Long value via EQ") //
-                .doesNotThrowAnyException();
-            criterion.m_operator = FilterOperator.NEQ;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("Int with default Long value via NEQ") //
-                .doesNotThrowAnyException();
-            criterion.m_operator = FilterOperator.NEQ_MISS;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("Int with default Long value via NEQ_MISS") //
-                .doesNotThrowAnyException();
-
-            // Int column with Double reference
-            criterion.m_predicateValues =
-                DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(DoubleCell.TYPE);
-
-            criterion.m_operator = FilterOperator.EQ;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("Int with default Double value via EQ") //
-                .doesNotThrowAnyException();
-            criterion.m_operator = FilterOperator.NEQ;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("Int with default Double value via NEQ") //
-                .doesNotThrowAnyException();
-            criterion.m_operator = FilterOperator.NEQ_MISS;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("Int with default Double value via NEQ_MISS") //
-                .doesNotThrowAnyException();
-        }
-
-        /**
-         * Tests that other, custom data types are supported if certain conditions are met (currently that the type
-         * mapping framework has a registered String->Cell factory).
-         */
-        @Test
-        void testEqualityDummy() {
-            final var criterion = new FilterCriterion();
-            criterion.m_column = new StringOrEnum<>("Dummy1");
-            criterion.m_predicateValues = DynamicValuesInput
-                .singleValueWithCaseMatchingForStringWithDefault(FilterDummyDataCellExtension.FilterDummyCell.TYPE);
-
-            criterion.m_operator = FilterOperator.EQ;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("Dummy with default value via EQ") //
-                .doesNotThrowAnyException();
-        }
-
-        @Test
-        void testEqualityIntException() {
-            // Int column with default values and a String reference value
-            final var criterion = new FilterCriterion();
-            criterion.m_column = new StringOrEnum<>("Int1");
-            criterion.m_predicateValues =
-                DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(StringCell.TYPE);
-            criterion.m_operator = FilterOperator.EQ;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("Int with default value via EQ") //
-                .hasMessageContaining("Cannot compare input column of type \"" + IntCell.TYPE.getName()
-                    + "\" with a value of type \"" + StringCell.TYPE.getName() + "\" for equality");
-            criterion.m_operator = FilterOperator.NEQ;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("Int with default value via NEQ") //
-                .hasMessageContaining("Cannot compare input column of type \"" + IntCell.TYPE.getName()
-                    + "\" with a value of type \"" + StringCell.TYPE.getName() + "\" for inequality");
-            criterion.m_operator = FilterOperator.NEQ_MISS;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("Int with default value via NEQ_MISS") //
-                .hasMessageContaining("Cannot compare input column of type \"" + IntCell.TYPE.getName()
-                    + "\" with a value of type \"" + StringCell.TYPE.getName() + "\" for inequality");
-        }
-
-        /**
-         * Tests that comparing a "Long" column with a "String" reference value for EQ and NEQ throws an exception.
-         */
-        @SuppressWarnings("restriction")
-        @Test
-        void testEqualityLongException() {
-            // Long column with default values
-            final var criterion = new FilterCriterion();
-
-            criterion.m_column = new StringOrEnum<>("Long1");
-            criterion.m_predicateValues =
-                DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(StringCell.TYPE);
-
-            criterion.m_operator = FilterOperator.EQ;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("Long with default value via EQ") //
-                .hasMessageContaining("Cannot compare input column of type \"" + LongCell.TYPE.getName()
-                    + "\" with a value of type \"" + StringCell.TYPE.getName() + "\" for equality");
-
-            criterion.m_operator = FilterOperator.NEQ;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("Long with default value via NEQ") //
-                .hasMessageContaining("Cannot compare input column of type \"" + LongCell.TYPE.getName()
-                    + "\" with a value of type \"" + StringCell.TYPE.getName() + "\" for inequality");
-
-            criterion.m_operator = FilterOperator.NEQ_MISS;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("Long with default value via NEQ_MISS") //
-                .hasMessageContaining("Cannot compare input column of type \"" + LongCell.TYPE.getName()
-                    + "\" with a value of type \"" + StringCell.TYPE.getName() + "\" for inequality");
-        }
+        // RowID if no column available
+        final var ctxNoCols = NodeParametersUtil
+            .createDefaultNodeSettingsContext(new DataTableSpec[]{new DataTableSpecCreator().createSpec()});
+        assertThat(new FilterCriterion(ctxNoCols).m_column) //
+            .as("Auto-configuration without columns") //
+            .extracting(choice -> choice.getEnumChoice().orElseThrow()) //
+            .isEqualTo(RowIdentifiers.ROW_ID);
     }
-
-    @Nested
-    final class BooleanOperators {
-        @SuppressWarnings("restriction")
-        @Test
-        void testBooleanCell() {
-            // Boolean cell can be filtered by IS_TRUE and IS_FALSE and nothing else.
-            final var criterion = new FilterCriterion();
-
-            criterion.m_column = new StringOrEnum<>("Bool1");
-            criterion.m_predicateValues =
-                DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(BooleanCell.TYPE);
-
-            criterion.m_operator = FilterOperator.IS_TRUE;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("Boolean via IS_TRUE") //
-                .doesNotThrowAnyException();
-
-            criterion.m_operator = FilterOperator.IS_FALSE;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("Boolean via IS_FALSE") //
-                .doesNotThrowAnyException();
-
-            criterion.m_operator = FilterOperator.EQ;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("Boolean via EQ") //
-                .hasMessage("Unsupported operator for input column type \"" + BooleanCell.TYPE.getName() + "\"");
-        }
-
-        @Test
-        void testUnsupportedTruthy() {
-            // anything other than BooleanCell are not supported by IS_TRUE and IS_FALSE
-            final var criterion = new FilterCriterion();
-            criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_ID);
-            criterion.m_predicateValues = DynamicValuesInput.forRowID();
-
-            criterion.m_operator = FilterOperator.IS_TRUE;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("RowID cannot be compared with IS_TRUE") //
-                .hasMessage("Unsupported operator \"IS_TRUE\" for RowID comparison");
-
-            criterion.m_operator = FilterOperator.IS_FALSE;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("RowID cannot be compared with IS_FALSE") //
-                .hasMessage("Unsupported operator \"IS_FALSE\" for RowID comparison");
-        }
-    }
-
-    @Nested
-    final class Ordering {
-        @SuppressWarnings("restriction")
-        @Test
-        void testOrdering() {
-            // for backwards compatibility with the initial release, we allow any column value to be ordered
-            // we just show the operators only for the ones that implement BoundedValue
-            final var criterion = new FilterCriterion();
-
-            criterion.m_operator = FilterOperator.LT;
-
-            // Row numbers are orderable, but are handled via slicing, so there will be no predicate (factory) for it
-            criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_NUMBER);
-            criterion.m_predicateValues = DynamicValuesInput.forRowNumber(LongCell.TYPE);
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("Row number via LT") //
-                .hasMessage("Unsupported operator \"LT\" for row number comparison");
-
-            // RowIDs cannot be ordered (only column values)
-            criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_ID);
-            criterion.m_predicateValues = DynamicValuesInput.forRowID();
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("RowID cannot be compared via ordering") //
-                .hasMessage("Unsupported operator \"LT\" for RowID comparison");
-
-            // Other DataCells can be ordered (for backwards-compatibility) but operators are hidden
-            criterion.m_column = new StringOrEnum<>("String1");
-            criterion.m_predicateValues =
-                DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(StringCell.TYPE);
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("DataCell (non-BoundedValue) can be ordered, but operators may be hidden in dialog") //
-                .doesNotThrowAnyException();
-
-            // Normal column that implements BoundedValue
-            criterion.m_column = new StringOrEnum<>("Long1");
-            criterion.m_predicateValues =
-                DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(LongCell.TYPE);
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("Long (BoundedValue) can be ordered") //
-                .doesNotThrowAnyException();
-        }
-    }
-
-    @Nested
-    final class PatternMatching {
-
-        @Test
-        void testPatternMatchingRowID() {
-            // RowID with default values
-            final var criterion = new FilterCriterion();
-            criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_ID);
-            criterion.m_predicateValues = DynamicValuesInput.forRowID();
-
-            criterion.m_operator = FilterOperator.WILDCARD;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("RowID with default value via wildcard") //
-                .doesNotThrowAnyException();
-
-            criterion.m_operator = FilterOperator.REGEX;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("RowID with default value via regex") //
-                .doesNotThrowAnyException();
-        }
-
-        @Test
-        void testPatternMatchingRowNumber() {
-            // RowNumber with default values
-            final var criterion = new FilterCriterion();
-            criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_NUMBER);
-            criterion.m_predicateValues = DynamicValuesInput.forRowNumber(StringCell.TYPE);
-
-            criterion.m_operator = FilterOperator.WILDCARD;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("RowNumber with default value via wildcard") //
-                .doesNotThrowAnyException();
-
-            criterion.m_operator = FilterOperator.REGEX;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("RowNumber with default value via regex") //
-                .doesNotThrowAnyException();
-        }
-
-        @SuppressWarnings("restriction")
-        @Test
-        void testPatternMatchingLong() {
-            // Long column with default values
-            final var criterion = new FilterCriterion();
-
-            criterion.m_column = new StringOrEnum<>("Long1");
-            criterion.m_predicateValues =
-                DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(StringCell.TYPE);
-
-            criterion.m_operator = FilterOperator.WILDCARD;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("Long with default value via wildcard") //
-                .doesNotThrowAnyException();
-
-            criterion.m_operator = FilterOperator.REGEX;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("Long with default value via regex") //
-                .doesNotThrowAnyException();
-        }
-
-        @SuppressWarnings("restriction")
-        @Test
-        void testPatternMatchingInt() {
-            // Long column with default values
-            final var criterion = new FilterCriterion();
-
-            criterion.m_column = new StringOrEnum<>("Int1");
-            criterion.m_predicateValues =
-                DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(StringCell.TYPE);
-
-            criterion.m_operator = FilterOperator.WILDCARD;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("Int with default value via wildcard") //
-                .doesNotThrowAnyException();
-
-            criterion.m_operator = FilterOperator.REGEX;
-            assertThatCode(() -> criterion.toPredicate(SPEC)) //
-                .as("Int with default value via regex") //
-                .doesNotThrowAnyException();
-        }
-
-        @SuppressWarnings("restriction")
-        @Test
-        void testPatternMatchingString() {
-            // String column with default values
-            final var criterion = new FilterCriterion();
-
-            criterion.m_column = new StringOrEnum<>("String1");
-            criterion.m_predicateValues =
-                DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(StringCell.TYPE);
-
-            criterion.m_operator = FilterOperator.WILDCARD;
-            assertThatCode(() -> criterion.toPredicate(SPEC)).as("String with default value via wildcard") //
-                .doesNotThrowAnyException();
-
-            criterion.m_operator = FilterOperator.REGEX;
-            assertThatCode(() -> criterion.toPredicate(SPEC)).as("String with default value via regex") //
-                .doesNotThrowAnyException();
-        }
-
-        @SuppressWarnings("restriction")
-        @Test
-        void testPatternMatchingDoubleUnsupported() {
-            // Double column with default values
-            final var criterion = new FilterCriterion();
-
-            criterion.m_column = new StringOrEnum<>("Double1");
-            criterion.m_predicateValues =
-                DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(StringCell.TYPE);
-
-            criterion.m_operator = FilterOperator.WILDCARD;
-            assertThatCode(() -> criterion.toPredicate(SPEC)).as("Double with default value via wildcard") //
-                .hasMessageContaining(
-                    "Unsupported operator for input column type \"" + DoubleCell.TYPE.getName() + "\"");
-
-            criterion.m_operator = FilterOperator.REGEX;
-            assertThatCode(() -> criterion.toPredicate(SPEC)).as("Double with default value via regex") //
-                .hasMessageContaining(
-                    "Unsupported operator for input column type \"" + DoubleCell.TYPE.getName() + "\"");
-        }
-    }
+    //
+    //    @Nested
+    //    final class Equality {
+    //        /**
+    //         * Tests that RowID can be compared with the default value of the EQ and NEQ operators.
+    //         */
+    //        @Test
+    //        void testEqualityRowID() {
+    //            // RowID with default values
+    //            final var criterion = new FilterCriterion();
+    //            criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_ID);
+    //            criterion.m_predicateValues = DynamicValuesInput.forRowID();
+    //
+    //            criterion.m_operator = LegacyFilterOperator.EQ;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("RowID with default value via EQ") //
+    //                .doesNotThrowAnyException();
+    //
+    //            criterion.m_operator = LegacyFilterOperator.NEQ;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("RowID with default value via NEQ") //
+    //                .doesNotThrowAnyException();
+    //        }
+    //
+    //        /**
+    //         * Tests that "Long" column can be compared with the default value of the EQ and NEQ operators.
+    //         */
+    //        @SuppressWarnings("restriction")
+    //        @Test
+    //        void testEqualityLong() {
+    //            // Long column with default values
+    //            final var criterion = new FilterCriterion();
+    //
+    //            criterion.m_column = new StringOrEnum<>("Long1");
+    //            criterion.m_predicateValues =
+    //                DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(LongCell.TYPE);
+    //
+    //            criterion.m_operator = LegacyFilterOperator.EQ;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("Long with default value via EQ") //
+    //                .doesNotThrowAnyException();
+    //
+    //            criterion.m_operator = LegacyFilterOperator.NEQ;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("Long with default value via NEQ") //
+    //                .doesNotThrowAnyException();
+    //
+    //            criterion.m_operator = LegacyFilterOperator.NEQ_MISS;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("Long with default value via NEQ_MISS") //
+    //                .doesNotThrowAnyException();
+    //        }
+    //
+    //        /**
+    //         * Tests that "Int" column can be compared with the default values of supported data types via EQ and NEQ
+    //         * operators.
+    //         */
+    //        @SuppressWarnings("restriction")
+    //        @Test
+    //        void testEqualityInt() {
+    //            final var criterion = new FilterCriterion();
+    //
+    //            // Int column with Int reference
+    //            criterion.m_column = new StringOrEnum<>("Int1");
+    //            criterion.m_predicateValues =
+    //                DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(IntCell.TYPE);
+    //
+    //            criterion.m_operator = LegacyFilterOperator.EQ;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("Int with default value via EQ") //
+    //                .doesNotThrowAnyException();
+    //
+    //            criterion.m_operator = LegacyFilterOperator.NEQ;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("Int with default value via NEQ") //
+    //                .doesNotThrowAnyException();
+    //
+    //            criterion.m_operator = LegacyFilterOperator.NEQ_MISS;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("Int with default value via NEQ_MISS") //
+    //                .doesNotThrowAnyException();
+    //
+    //            // Int column with Long reference
+    //            criterion.m_predicateValues =
+    //                DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(LongCell.TYPE);
+    //
+    //            criterion.m_operator = LegacyFilterOperator.EQ;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("Int with default Long value via EQ") //
+    //                .doesNotThrowAnyException();
+    //            criterion.m_operator = LegacyFilterOperator.NEQ;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("Int with default Long value via NEQ") //
+    //                .doesNotThrowAnyException();
+    //            criterion.m_operator = LegacyFilterOperator.NEQ_MISS;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("Int with default Long value via NEQ_MISS") //
+    //                .doesNotThrowAnyException();
+    //
+    //            // Int column with Double reference
+    //            criterion.m_predicateValues =
+    //                DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(DoubleCell.TYPE);
+    //
+    //            criterion.m_operator = LegacyFilterOperator.EQ;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("Int with default Double value via EQ") //
+    //                .doesNotThrowAnyException();
+    //            criterion.m_operator = LegacyFilterOperator.NEQ;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("Int with default Double value via NEQ") //
+    //                .doesNotThrowAnyException();
+    //            criterion.m_operator = LegacyFilterOperator.NEQ_MISS;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("Int with default Double value via NEQ_MISS") //
+    //                .doesNotThrowAnyException();
+    //        }
+    //
+    //        /**
+    //         * Tests that other, custom data types are supported if certain conditions are met (currently that the type
+    //         * mapping framework has a registered String->Cell factory).
+    //         */
+    //        @Test
+    //        void testEqualityDummy() {
+    //            final var criterion = new FilterCriterion();
+    //            criterion.m_column = new StringOrEnum<>("Dummy1");
+    //            criterion.m_predicateValues = DynamicValuesInput
+    //                .singleValueWithCaseMatchingForStringWithDefault(FilterDummyDataCellExtension.FilterDummyCell.TYPE);
+    //
+    //            criterion.m_operator = LegacyFilterOperator.EQ;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("Dummy with default value via EQ") //
+    //                .doesNotThrowAnyException();
+    //        }
+    //
+    //        @Test
+    //        void testEqualityIntException() {
+    //            // Int column with default values and a String reference value
+    //            final var criterion = new FilterCriterion();
+    //            criterion.m_column = new StringOrEnum<>("Int1");
+    //            criterion.m_predicateValues =
+    //                DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(StringCell.TYPE);
+    //            criterion.m_operator = LegacyFilterOperator.EQ;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("Int with default value via EQ") //
+    //                .hasMessageContaining("Cannot compare input column of type \"" + IntCell.TYPE.getName()
+    //                    + "\" with a value of type \"" + StringCell.TYPE.getName() + "\" for equality");
+    //            criterion.m_operator = LegacyFilterOperator.NEQ;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("Int with default value via NEQ") //
+    //                .hasMessageContaining("Cannot compare input column of type \"" + IntCell.TYPE.getName()
+    //                    + "\" with a value of type \"" + StringCell.TYPE.getName() + "\" for inequality");
+    //            criterion.m_operator = LegacyFilterOperator.NEQ_MISS;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("Int with default value via NEQ_MISS") //
+    //                .hasMessageContaining("Cannot compare input column of type \"" + IntCell.TYPE.getName()
+    //                    + "\" with a value of type \"" + StringCell.TYPE.getName() + "\" for inequality");
+    //        }
+    //
+    //        /**
+    //         * Tests that comparing a "Long" column with a "String" reference value for EQ and NEQ throws an exception.
+    //         */
+    //        @SuppressWarnings("restriction")
+    //        @Test
+    //        void testEqualityLongException() {
+    //            // Long column with default values
+    //            final var criterion = new FilterCriterion();
+    //
+    //            criterion.m_column = new StringOrEnum<>("Long1");
+    //            criterion.m_predicateValues =
+    //                DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(StringCell.TYPE);
+    //
+    //            criterion.m_operator = LegacyFilterOperator.EQ;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("Long with default value via EQ") //
+    //                .hasMessageContaining("Cannot compare input column of type \"" + LongCell.TYPE.getName()
+    //                    + "\" with a value of type \"" + StringCell.TYPE.getName() + "\" for equality");
+    //
+    //            criterion.m_operator = LegacyFilterOperator.NEQ;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("Long with default value via NEQ") //
+    //                .hasMessageContaining("Cannot compare input column of type \"" + LongCell.TYPE.getName()
+    //                    + "\" with a value of type \"" + StringCell.TYPE.getName() + "\" for inequality");
+    //
+    //            criterion.m_operator = LegacyFilterOperator.NEQ_MISS;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("Long with default value via NEQ_MISS") //
+    //                .hasMessageContaining("Cannot compare input column of type \"" + LongCell.TYPE.getName()
+    //                    + "\" with a value of type \"" + StringCell.TYPE.getName() + "\" for inequality");
+    //        }
+    //    }
+    //
+    //    @Nested
+    //    final class BooleanOperators {
+    //        @SuppressWarnings("restriction")
+    //        @Test
+    //        void testBooleanCell() {
+    //            // Boolean cell can be filtered by IS_TRUE and IS_FALSE and nothing else.
+    //            final var criterion = new FilterCriterion();
+    //
+    //            criterion.m_column = new StringOrEnum<>("Bool1");
+    //            criterion.m_predicateValues =
+    //                DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(BooleanCell.TYPE);
+    //
+    //            criterion.m_operator = LegacyFilterOperator.IS_TRUE;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("Boolean via IS_TRUE") //
+    //                .doesNotThrowAnyException();
+    //
+    //            criterion.m_operator = LegacyFilterOperator.IS_FALSE;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("Boolean via IS_FALSE") //
+    //                .doesNotThrowAnyException();
+    //
+    //            criterion.m_operator = LegacyFilterOperator.EQ;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("Boolean via EQ") //
+    //                .hasMessage("Unsupported operator for input column type \"" + BooleanCell.TYPE.getName() + "\"");
+    //        }
+    //
+    //        @Test
+    //        void testUnsupportedTruthy() {
+    //            // anything other than BooleanCell are not supported by IS_TRUE and IS_FALSE
+    //            final var criterion = new FilterCriterion();
+    //            criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_ID);
+    //            criterion.m_predicateValues = DynamicValuesInput.forRowID();
+    //
+    //            criterion.m_operator = LegacyFilterOperator.IS_TRUE;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("RowID cannot be compared with IS_TRUE") //
+    //                .hasMessage("Unsupported operator \"IS_TRUE\" for RowID comparison");
+    //
+    //            criterion.m_operator = LegacyFilterOperator.IS_FALSE;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("RowID cannot be compared with IS_FALSE") //
+    //                .hasMessage("Unsupported operator \"IS_FALSE\" for RowID comparison");
+    //        }
+    //    }
+    //
+    //    @Nested
+    //    final class Ordering {
+    //        @SuppressWarnings("restriction")
+    //        @Test
+    //        void testOrdering() {
+    //            // for backwards compatibility with the initial release, we allow any column value to be ordered
+    //            // we just show the operators only for the ones that implement BoundedValue
+    //            final var criterion = new FilterCriterion();
+    //
+    //            criterion.m_operator = LegacyFilterOperator.LT;
+    //
+    //            // Row numbers are orderable, but are handled via slicing, so there will be no predicate (factory) for it
+    //            criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_NUMBER);
+    //            criterion.m_predicateValues = DynamicValuesInput.forRowNumber(LongCell.TYPE);
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("Row number via LT") //
+    //                .hasMessage("Unsupported operator \"LT\" for row number comparison");
+    //
+    //            // RowIDs cannot be ordered (only column values)
+    //            criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_ID);
+    //            criterion.m_predicateValues = DynamicValuesInput.forRowID();
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("RowID cannot be compared via ordering") //
+    //                .hasMessage("Unsupported operator \"LT\" for RowID comparison");
+    //
+    //            // Other DataCells can be ordered (for backwards-compatibility) but operators are hidden
+    //            criterion.m_column = new StringOrEnum<>("String1");
+    //            criterion.m_predicateValues =
+    //                DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(StringCell.TYPE);
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("DataCell (non-BoundedValue) can be ordered, but operators may be hidden in dialog") //
+    //                .doesNotThrowAnyException();
+    //
+    //            // Normal column that implements BoundedValue
+    //            criterion.m_column = new StringOrEnum<>("Long1");
+    //            criterion.m_predicateValues =
+    //                DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(LongCell.TYPE);
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("Long (BoundedValue) can be ordered") //
+    //                .doesNotThrowAnyException();
+    //        }
+    //    }
+    //
+    //    @Nested
+    //    final class PatternMatching {
+    //
+    //        @Test
+    //        void testPatternMatchingRowID() {
+    //            // RowID with default values
+    //            final var criterion = new FilterCriterion();
+    //            criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_ID);
+    //            criterion.m_predicateValues = DynamicValuesInput.forRowID();
+    //
+    //            criterion.m_operator = LegacyFilterOperator.WILDCARD;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("RowID with default value via wildcard") //
+    //                .doesNotThrowAnyException();
+    //
+    //            criterion.m_operator = LegacyFilterOperator.REGEX;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("RowID with default value via regex") //
+    //                .doesNotThrowAnyException();
+    //        }
+    //
+    //        @Test
+    //        void testPatternMatchingRowNumber() {
+    //            // RowNumber with default values
+    //            final var criterion = new FilterCriterion();
+    //            criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_NUMBER);
+    //            criterion.m_predicateValues = DynamicValuesInput.forRowNumber(StringCell.TYPE);
+    //
+    //            criterion.m_operator = LegacyFilterOperator.WILDCARD;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("RowNumber with default value via wildcard") //
+    //                .doesNotThrowAnyException();
+    //
+    //            criterion.m_operator = LegacyFilterOperator.REGEX;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("RowNumber with default value via regex") //
+    //                .doesNotThrowAnyException();
+    //        }
+    //
+    //        @SuppressWarnings("restriction")
+    //        @Test
+    //        void testPatternMatchingLong() {
+    //            // Long column with default values
+    //            final var criterion = new FilterCriterion();
+    //
+    //            criterion.m_column = new StringOrEnum<>("Long1");
+    //            criterion.m_predicateValues =
+    //                DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(StringCell.TYPE);
+    //
+    //            criterion.m_operator = LegacyFilterOperator.WILDCARD;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("Long with default value via wildcard") //
+    //                .doesNotThrowAnyException();
+    //
+    //            criterion.m_operator = LegacyFilterOperator.REGEX;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("Long with default value via regex") //
+    //                .doesNotThrowAnyException();
+    //        }
+    //
+    //        @SuppressWarnings("restriction")
+    //        @Test
+    //        void testPatternMatchingInt() {
+    //            // Long column with default values
+    //            final var criterion = new FilterCriterion();
+    //
+    //            criterion.m_column = new StringOrEnum<>("Int1");
+    //            criterion.m_predicateValues =
+    //                DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(StringCell.TYPE);
+    //
+    //            criterion.m_operator = LegacyFilterOperator.WILDCARD;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("Int with default value via wildcard") //
+    //                .doesNotThrowAnyException();
+    //
+    //            criterion.m_operator = LegacyFilterOperator.REGEX;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)) //
+    //                .as("Int with default value via regex") //
+    //                .doesNotThrowAnyException();
+    //        }
+    //
+    //        @SuppressWarnings("restriction")
+    //        @Test
+    //        void testPatternMatchingString() {
+    //            // String column with default values
+    //            final var criterion = new FilterCriterion();
+    //
+    //            criterion.m_column = new StringOrEnum<>("String1");
+    //            criterion.m_predicateValues =
+    //                DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(StringCell.TYPE);
+    //
+    //            criterion.m_operator = LegacyFilterOperator.WILDCARD;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)).as("String with default value via wildcard") //
+    //                .doesNotThrowAnyException();
+    //
+    //            criterion.m_operator = LegacyFilterOperator.REGEX;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)).as("String with default value via regex") //
+    //                .doesNotThrowAnyException();
+    //        }
+    //
+    //        @SuppressWarnings("restriction")
+    //        @Test
+    //        void testPatternMatchingDoubleUnsupported() {
+    //            // Double column with default values
+    //            final var criterion = new FilterCriterion();
+    //
+    //            criterion.m_column = new StringOrEnum<>("Double1");
+    //            criterion.m_predicateValues =
+    //                DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(StringCell.TYPE);
+    //
+    //            criterion.m_operator = LegacyFilterOperator.WILDCARD;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)).as("Double with default value via wildcard") //
+    //                .hasMessageContaining(
+    //                    "Unsupported operator for input column type \"" + DoubleCell.TYPE.getName() + "\"");
+    //
+    //            criterion.m_operator = LegacyFilterOperator.REGEX;
+    //            assertThatCode(() -> criterion.toPredicate(SPEC)).as("Double with default value via regex") //
+    //                .hasMessageContaining(
+    //                    "Unsupported operator for input column type \"" + DoubleCell.TYPE.getName() + "\"");
+    //        }
+    //    }
 }

@@ -51,10 +51,15 @@ package org.knime.base.node.preproc.filter.row3;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.LongFunction;
 
+import org.knime.base.data.filter.row.v2.FilterPartition;
 import org.knime.base.data.filter.row.v2.RowFilter;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.ColumnDomains;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
+import org.knime.base.node.preproc.filter.row3.operators.FilterOperatorsUtil;
+import org.knime.base.node.preproc.filter.row3.operators.rownumber.RowNumberFilterOperator;
+import org.knime.base.node.preproc.filter.row3.operators.rownumber.RowNumberFilterSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.DataContainerSettings;
 import org.knime.core.node.BufferedDataTable;
@@ -123,7 +128,7 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
         if (dataCriteria.isEmpty()) {
             // slicing-only is possible since we never look at any column
             final var includedExcludedPartition = RowNumberFilterSpec.computeRowPartition(isAnd,
-                RowNumberFilterSpec.toFilterSpec(rowNumberCriteria), settings.outputMode(), tableSize);
+                toFilterSpec(rowNumberCriteria), settings.outputMode(), tableSize);
             return RowFilter.slice(exec, in, includedExcludedPartition, isSplitter);
         }
         final var inSpec = in.getSpec();
@@ -156,6 +161,24 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
     }
 
     /**
+     * Gets each of the passed criteria as a filter spec, if supported.
+     *
+     * @param rowNumberCriteria criteria to map to filter specs
+     * @return
+     * @throws InvalidSettingsException if not supported
+     * @see {@link #getAsFilterSpec(FilterCriterion)}
+     */
+    static List<LongFunction<FilterPartition>> toFilterSpec(final List<FilterCriterion> rowNumberCriteria)
+        throws InvalidSettingsException {
+        final List<LongFunction<FilterPartition>> rowNumberFilterSpecs = new ArrayList<>();
+        for (final var criterion : rowNumberCriteria) {
+            rowNumberFilterSpecs
+                .add(RowNumberFilterSpec.toPartitionFunction(criterion.m_operator, criterion.m_filterValueParameters));
+        }
+        return rowNumberFilterSpecs;
+    }
+
+    /**
      * Partitions the criteria into row number and data (incl. RowID) criteria.
      *
      * @param criteria list of criteria to partition
@@ -166,10 +189,16 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
         partitionCriteria(final FilterCriterion[] criteria) {
         final var rowNumberCriteria = new ArrayList<FilterCriterion>();
         final var dataCriteria = new ArrayList<FilterCriterion>();
+        final var availableRowNumberOperators = FilterOperatorsUtil.getRowNumberOperators();
         for (final var c : criteria) {
-            // in case of REGEX and WILDCARD operators, we treat the row number column as a data column
+            /**
+             * We deliberately do not check for parameter class matching here since the parameters of row number
+             * operators are under our control. Note that we also allow for {@link LegacyFilterParameters} in
+             * combination with every identifier.
+             */
             if (c.m_column.getEnumChoice().filter(RowIdentifiers.ROW_NUMBER::equals).isPresent()
-                && RowNumberFilterSpec.supportsOperator(c.m_operator)) {
+                && availableRowNumberOperators.stream().filter(o -> o.getId().equals(c.m_operator))
+                    .filter(RowNumberFilterOperator::supportsSlicing).findFirst().isPresent()) {
                 rowNumberCriteria.add(c);
             } else {
                 dataCriteria.add(c);
@@ -235,7 +264,7 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
                 final var dataPredicates = rowNumberAndDataPredicates.getSecond();
                 if (!rowNumberPredicates.isEmpty() && dataPredicates.isEmpty()) {
                     // we can only filter based on row numbers
-                    final var filterSpecs = RowNumberFilterSpec.toFilterSpec(rowNumberPredicates);
+                    final var filterSpecs = toFilterSpec(rowNumberPredicates);
                     final var rowPartition = RowNumberFilterSpec.computeRowPartition(settings.m_matchCriteria.isAnd(),
                         filterSpecs, settings.outputMode(), UNKNOWN_SIZE);
                     final var included = (RowOutput)outputs[MATCHING_OUTPUT];
