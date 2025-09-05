@@ -44,70 +44,59 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   27 Aug 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   Sep 8, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.preproc.filter.row3.predicates;
+package org.knime.base.node.preproc.filter.row3;
 
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
-
-import org.knime.filehandling.core.util.WildcardToRegexUtil;
+import org.knime.core.node.ExecutionContext;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.Before;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
- * String predicate supporting equality comarison or pattern matching.
+ * Parameter class for string based filter value parameters.
  *
- * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * @author Paul Bärnreuther
  */
-public final class StringPredicate implements Predicate<String> {
+public class StringValueParameters implements FilterValueParameters {
 
-    private final Predicate<String> m_predicate;
+    @Before(ValuePart.class)
+    interface CaseSensitivityPart {
+    }
 
-    private StringPredicate(final Predicate<String> predicate) {
-        m_predicate = predicate;
+    interface ValuePart {
+
+    }
+
+    @Layout(ValuePart.class)
+    @Widget(title = SingleCellValueParameters.FILTER_VALUE_TITLE,
+        description = SingleCellValueParameters.FILTER_VALUE_DESCRIPTION)
+    String m_value;
+
+    @Override
+    public String[] stash(final ExecutionContext exec) {
+        return new String[]{m_value};
     }
 
     @Override
-    public boolean test(final String str) {
-        return m_predicate.test(str);
+    public void applyStash(final String[] stashedValues, final ExecutionContext exec) {
+        if (stashedValues.length > 0) {
+            m_value = stashedValues[0];
+        }
     }
 
     /**
-     * Creates an equality string predicate.
-     *
-     * @param referenceValue value to compare with
-     * @param isCaseSensitive whether the comparison should be case-sensitive or not
-     * @return equality string predicate
+     * Parameters class to use when literal strings should be compared for equality. It includes a case sensitivity
+     * option.
      */
-    public static StringPredicate equality(final String referenceValue, final boolean isCaseSensitive) {
-        final Predicate<String> predicate = isCaseSensitive ? referenceValue::equals : referenceValue::equalsIgnoreCase;
-        return new StringPredicate(predicate);
-    }
+    public static final class EqualsStringParameters extends StringValueParameters {
 
-    /**
-     * Creates a string predicate that supports regex or wildcard patterns.
-     *
-     * @param pattern pattern to match
-     * @param isRegex {@code true} if the pattern represents a regex, {@code false} if it represents a wildcard
-     * @param isCaseSensitive whether the match should be case-sensitive or not
-     * @return pattern string predicate
-     */
-    public static StringPredicate pattern(final String pattern, final boolean isRegex, final boolean isCaseSensitive) {
-        final var regexPattern = isRegex ? pattern : WildcardToRegexUtil.wildcardToRegex(pattern);
-        var flags = Pattern.DOTALL | Pattern.MULTILINE;
-        flags |= isCaseSensitive ? 0 : Pattern.CASE_INSENSITIVE;
-        final var regex = Pattern.compile(regexPattern, flags);
-        return new StringPredicate(stringValue -> regex.matcher(stringValue).matches());
-    }
-
-    /**
-     * Creates a string predicate that supports regex or wildcard patterns.
-     *
-     * @param pattern pattern to match
-     * @param isRegex {@code true} if the pattern represents a regex, {@code false} if it represents a wildcard
-     * @return pattern string predicate
-     */
-    public static StringPredicate pattern(final String pattern, final boolean isRegex) {
-        return pattern(pattern, isRegex, true);
+        @Layout(CaseSensitivityPart.class)
+        @ValueSwitchWidget
+        @Widget(title = "Case matching", description = "Whether the comparison should be case sensitive or not.")
+        CaseSensitivity m_caseSensitivity = CaseSensitivity.CASE_SENSITIVE;
     }
 
 }

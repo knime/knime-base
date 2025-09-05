@@ -53,24 +53,40 @@ import static org.knime.base.node.preproc.filter.row3.RowIdentifiers.ROW_NUMBER;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion.SelectedColumnRef;
+import org.knime.base.node.preproc.filter.row3.FilterOperator.InternalFilterOperator;
 import org.knime.base.node.preproc.filter.row3.predicates.PredicateFactories;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.data.DataValue;
+import org.knime.core.data.DataValueComparatorDelegator;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.data.v2.RowRead;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.util.Pair;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.ClassIdStrategy;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DefaultClassIdStrategy;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.DynamicParametersProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.BuiltinOperator;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.BuiltinOperator.SingleCellOperatorFamily;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelectionToStringOrEnumMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
@@ -93,6 +109,8 @@ import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.StringChoice;
+import org.knime.node.parameters.widget.choices.StringChoicesProvider;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 
@@ -194,6 +212,58 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
         static final class SelectedColumnRef implements ParameterReference<StringOrEnum<RowIdentifiers>> {
         }
 
+        /**
+         * The type of the currently selected column when in a dialog, otherwise the type of the selected column the
+         * last time the dialog was applied. null if no column is selected (i.e. ROW_ID or ROW_NUMBER is selected) or
+         * the selected column is missing and the dialog is opened.
+         */
+        @ValueProvider(DataTypeProvider.class)
+        DataType m_columnType;
+
+        static final class DataTypeProvider implements StateProvider<DataType> {
+
+            private Supplier<StringOrEnum<RowIdentifiers>> m_selectedColumn;
+
+            @Override
+            public void init(final StateProviderInitializer initializer) {
+                initializer.computeBeforeOpenDialog();
+                m_selectedColumn = initializer.computeFromValueSupplier(SelectedColumnRef.class);
+            }
+
+            @Override
+            public DataType computeState(final NodeParametersInput context) throws StateComputationFailureException {
+                final var selectedColumn = m_selectedColumn.get();
+                if (selectedColumn.getEnumChoice().isPresent()) {
+                    return null;
+                }
+                return context.getInTableSpec(0)
+                    .flatMap(s -> Optional.ofNullable(s.getColumnSpec(selectedColumn.getStringChoice())))
+                    .map(DataColumnSpec::getType).orElse(null);
+            }
+        }
+
+        static final class OperatorsProvider implements StringChoicesProvider {
+
+            private Supplier<DataType> m_dataType;
+
+            @Override
+            public void init(final StateProviderInitializer initializer) {
+                initializer.computeBeforeOpenDialog();
+                m_dataType = initializer.computeFromProvidedState(DataTypeProvider.class);
+            }
+
+            @Override
+            public List<StringChoice> computeState(final NodeParametersInput context) {
+                final var dataType = m_dataType.get();
+                if (dataType == null) {
+                    return List.of();
+                }
+                final var availableOperators = FilterOperator2Util.getOperatorsForColumn(dataType);
+                return FilterOperator2Util.getSortedChoices(availableOperators);
+            }
+
+        }
+
         // We explicitly do not "reset" the current operator to one applicable for the current column data type,
         // in order to allow the user to switch between columns without resetting their operator selection.
         @Widget(title = "Operator", description = """
@@ -215,6 +285,15 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
         FilterOperator m_operator = FilterOperator.EQ;
 
         static class OperatorRef implements ParameterReference<FilterOperator> {
+        }
+
+        @Widget(title = "Operator (extension point)", description = "")
+        @Layout(Condition.ColumnOperator.Operator.class)
+        @ValueReference(OperatorIdRef.class)
+        @ChoicesProvider(OperatorsProvider.class)
+        String m_operatorId = "EQ";
+
+        static class OperatorIdRef implements ParameterReference<String> {
         }
 
         FilterCriterion() {
@@ -269,6 +348,107 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
             if (columnIndex < 0) {
                 throw new InvalidSettingsException("Column \"%s\" could not be found in input table".formatted(column));
             }
+            final var extensionOperators = FilterOperator2Util.EXTENSION_FILTER_OPERATORS.get(m_columnType);
+
+            final var availableOperators = FilterOperator2Util.getOperatorsForColumn(m_columnType);
+
+            if (extensionOperators != null) {
+                final var selectedOperator = extensionOperators.stream().filter(op -> {
+                    if (op instanceof BuiltinOperator bop) {
+                        return FilterOperator2Util.idsForBuiltinOperator(bop).toList().contains(m_operatorId);
+                    } else {
+                        return m_operatorId.equals(op.getId());
+                    }
+                }).findFirst();
+                if (selectedOperator.isPresent()
+                    && selectedOperator.get().getNodeParametersClass().isInstance(m_filterValueParameters)) {
+                    final var operator = selectedOperator.get();
+                    if (operator instanceof SingleCellOperatorFamily) {
+                        // then we can be sure that the parameters are SingleCellValueParameters
+                        final var singleValueParameters =
+                            (FilterValueParameters.SingleCellValueParameters<?>)m_filterValueParameters;
+                        final var parametersType = singleValueParameters.getSpecificType();
+                        final var columnType = spec.getColumnSpec(columnIndex).getType();
+                        final DataType comparisonType;
+                        if (parametersType.isASuperTypeOf(columnType)) {
+                            comparisonType = parametersType;
+                        } else if (columnType.isASuperTypeOf(parametersType)) {
+                            comparisonType = columnType;
+                        } else {
+                            throw new InvalidSettingsException( // TODO message
+                                "The filter value type (%s) is not compatible with the column type (%s)"
+                                    .formatted(parametersType, columnType));
+                        }
+                        final var comparator =
+                            new DataValueComparatorDelegator<DataValue>(comparisonType.getComparator());
+                        final var comparisonValue = singleValueParameters.createCell();
+                        final Function<DataValue, Integer> compare = v -> comparator.compare(v, comparisonValue);
+                        if ("NEQ".equals(m_operatorId)) {
+                            return new IndexedRowReadPredicate() {
+
+                                @Override
+                                public boolean test(final long index, final RowRead read) {
+                                    if (read.isMissing(columnIndex)) {
+                                        return true;
+                                    }
+                                    return compare.apply(read.getValue(columnIndex)) != 0;
+                                }
+                            };
+                        } else {
+                            Predicate<Integer> comparisonResultPredicate = switch (m_operatorId) {
+                                case "EQ" -> r -> r == 0;
+                                case "NEQ_MISS" -> r -> r != 0;
+                                case "LT" -> r -> r < 0;
+                                case "LTE" -> r -> r <= 0;
+                                case "GT" -> r -> r > 0;
+                                case "GTE" -> r -> r >= 0;
+                                default -> throw new IllegalStateException("Unhandled operator id: " + m_operatorId);
+                            };
+                            return new IndexedRowReadPredicate() {
+
+                                @Override
+                                public boolean test(final long index, final RowRead read) {
+                                    if (read.isMissing(columnIndex)) {
+                                        return false;
+                                    }
+                                    return comparisonResultPredicate.test(compare.apply(read.getValue(columnIndex)));
+                                }
+                            };
+
+                        }
+                    }
+
+                    final var predicate = operator.createPredicateUnsafe(m_filterValueParameters);
+                    return new IndexedRowReadPredicate() {
+
+                        @Override
+                        public boolean test(final long index, final RowRead read) {
+                            if (read.isMissing(columnIndex)) {
+                                return false;
+                            }
+                            try {
+                                return predicate.test(read.getValue(columnIndex));
+                            } catch (InvalidSettingsException e) {
+                                // TODO: Maybe runtime exception instead of ISE?
+                                throw new RuntimeException(
+                                    "Could not evaluate predicate for column \"%s\" with value %s".formatted(column,
+                                        read.getValue(columnIndex)),
+                                    e);
+                            }
+                        }
+
+                    };
+                }
+            }
+
+            // TODO: For future backwards-compatibility we should check internal operators before extension operators
+            final var internalFilterOperator = availableOperators.internalBuiltinOperators().stream()
+                .filter(ifo -> ifo.getFirst().name().equals(m_operatorId)).findFirst().map(Pair::getSecond);
+
+            if (internalFilterOperator.isPresent()) {
+                return InternalFilterOperator.toPredicate(internalFilterOperator.get(), m_filterValueParameters,
+                    OptionalInt.of(columnIndex), m_columnType);
+            }
 
             return m_operator.translateToPredicate(m_predicateValues, columnIndex,
                 spec.getColumnSpec(columnIndex).getType());
@@ -316,6 +496,78 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
         @ValueProvider(TypeAndOperatorBasedInput.class)
         @ValueReference(DynamicValuesInputRef.class)
         DynamicValuesInput m_predicateValues = DynamicValuesInput.emptySingle();
+
+        @Layout(Condition.ValueInput.class)
+        @DynamicParameters(FilterValueParametersProvider.class)
+        @ValueReference(CurrentFilterValueParametersRef.class)
+        FilterValueParameters m_filterValueParameters;
+
+        static final class CurrentFilterValueParametersRef implements ParameterReference<FilterValueParameters> {
+        }
+
+        static class FilterValueParametersProvider implements DynamicParametersProvider<FilterValueParameters> {
+
+            private Supplier<DataType> m_dataType;
+
+            private Supplier<String> m_currentOperatorId;
+
+            private Supplier<FilterValueParameters> m_currentValue;
+
+            @Override
+            public void init(final StateProviderInitializer initializer) {
+                initializer.computeBeforeOpenDialog();
+                m_dataType = initializer.computeFromProvidedState(DataTypeProvider.class);
+                m_currentOperatorId = initializer.computeFromValueSupplier(OperatorIdRef.class);
+                m_currentValue = initializer.getValueSupplier(CurrentFilterValueParametersRef.class);
+            }
+
+            @Override
+            public ClassIdStrategy<FilterValueParameters> getClassIdStrategy() {
+                final Collection<Class<? extends FilterValueParameters>> possibleClasses = new ArrayList<>();
+                for (var operators : FilterOperator2Util.EXTENSION_FILTER_OPERATORS.values()) {
+                    for (var operator : operators) {
+                        possibleClasses.add(operator.getNodeParametersClass());
+                    }
+                }
+                possibleClasses.addAll(FilterOperator.InternalFilterOperator.ALL_PARAMETER_CLASSES);
+                return new DefaultClassIdStrategy<>(possibleClasses);
+            }
+
+            @Override
+            public FilterValueParameters computeParameters(final NodeParametersInput parametersInput)
+                throws StateComputationFailureException {
+                final var dataType = m_dataType.get();
+                if (dataType == null) {
+                    throw new StateComputationFailureException("No column selected");
+                }
+                final var availableOperators = FilterOperator2Util.getOperatorsForColumn(dataType);
+                final var currentOperatorId = m_currentOperatorId.get();
+                Class<? extends FilterValueParameters> targetClass;
+                try {
+                    targetClass = FilterOperator2Util.getTargetClass(availableOperators, currentOperatorId);
+                } catch (InvalidSettingsException e) {
+                    throw new StateComputationFailureException("Not implemented yet ");
+                }
+                final var currentValue = m_currentValue.get();
+                if (currentValue != null && targetClass.equals(currentValue.getClass())) {
+                    return currentValue;
+                }
+                try {
+                    final var constructor = targetClass.getDeclaredConstructor();
+                    constructor.setAccessible(true);
+                    final var newInstance = constructor.newInstance();
+                    if (currentValue != null) {
+                        newInstance.applyStash(currentValue.stash(null), null);
+                    }
+                    return newInstance;
+                } catch (Exception e) {
+                    throw new IllegalStateException(
+                        "Could not instantiate FilterValueParameters of type " + targetClass, e);
+                }
+
+            }
+
+        }
 
         static class DynamicValuesInputRef implements ParameterReference<DynamicValuesInput> {
 
