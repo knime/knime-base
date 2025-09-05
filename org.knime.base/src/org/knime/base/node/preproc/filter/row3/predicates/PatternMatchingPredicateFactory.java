@@ -67,14 +67,13 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
 
-
 /**
  * Factory for creating predicates that test whether a string representation of a value matches a pattern (regex or
  * wildcard). The string representation is supplied by a function that operates on an indexed row read.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-abstract class PatternMatchingPredicateFactory extends AbstractPredicateFactory {
+public abstract class PatternMatchingPredicateFactory extends AbstractPredicateFactory {
 
     protected final boolean m_isRegex;
 
@@ -129,7 +128,7 @@ abstract class PatternMatchingPredicateFactory extends AbstractPredicateFactory 
      * @param isRegex whether the pattern is a regex or a wildcard
      * @return predicate factory for pattern matching on the specified column
      */
-    static Optional<PredicateFactory> forColumn(final DataType columnDataType, final boolean isRegex) {
+    public static Optional<PredicateFactory> forColumn(final DataType columnDataType, final boolean isRegex) {
         if (!isSupported(columnDataType)) {
             return Optional.empty();
         }
@@ -204,11 +203,11 @@ abstract class PatternMatchingPredicateFactory extends AbstractPredicateFactory 
         }
     }
 
-    private static boolean isSupported(final DataType type) {
+    public static boolean isSupported(final DataType type) {
         final var preferredValueClass = type.getPreferredValueClass();
         return !BooleanValue.class.equals(preferredValueClass) // booleans have only IS_TRUE and IS_FALSE operators
-                && (type.isCompatible(StringValue.class) //
-                    || type.isCompatible(IntValue.class) || type.isCompatible(LongValue.class));
+            && (type.isCompatible(StringValue.class) //
+                || type.isCompatible(IntValue.class) || type.isCompatible(LongValue.class));
     }
 
 }
