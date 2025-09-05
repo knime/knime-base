@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,62 +41,18 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * -------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
  * History
- *    17.10.2008 (Tobias Koetter): created
+ *   Sep 8, 2025 (Paul Bärnreuther): created
  */
+package org.knime.base.node.preproc.filter.row3;
 
-package org.knime.base.node.preproc.ungroup;
+import org.knime.node.parameters.widget.choices.Label;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
-
-/**
- *
- * @author Tobias Koetter, University of Konstanz
- */
-public class UngroupNodeFactory extends NodeFactory<UngroupNodeModel> {
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new UngroupNodeDialog();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public UngroupNodeModel createNodeModel() {
-        return new UngroupNodeModel();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<UngroupNodeModel> createNodeView(final int viewIndex, final UngroupNodeModel nodeModel) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
+public enum CaseSensitivity {
+        @Label("Case sensitive")
+        CASE_SENSITIVE, //
+        @Label("Case insensitive")
+        CASE_INSENSITIVE;
 }

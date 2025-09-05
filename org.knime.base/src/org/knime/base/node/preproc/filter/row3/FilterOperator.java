@@ -48,18 +48,26 @@
  */
 package org.knime.base.node.preproc.filter.row3;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.function.Predicate;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
 import org.knime.base.node.preproc.filter.row3.predicates.PredicateFactories;
+import org.knime.base.node.preproc.filter.row3.predicates2.PatternFilterOperators;
+import org.knime.base.node.preproc.filter.row3.predicates2.PatternFilterOperators.PatternFilterOperator.PatternFilterParameters;
+import org.knime.base.node.preproc.filter.row3.predicates2.PatternFilterOperators.RowNumberPatternFilterOperator.RowNumberPatternFilterParameters;
 import org.knime.core.data.BoundedValue;
 import org.knime.core.data.DataType;
+import org.knime.core.data.RowKeyValue;
 import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.v2.RowRead;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
 import org.knime.node.parameters.widget.choices.Label;
 
 /**
@@ -73,8 +81,7 @@ import org.knime.node.parameters.widget.choices.Label;
 public enum FilterOperator {
 
         /** Operator checking equality between values. */
-        @Label(value = "Equals", description =
-                """
+        @Label(value = "Equals", description = """
                 Value in column must be <b>equal</b> to the specified reference value.
                 Equality is define by the particular data type(s) involved and may be on the value's string
                 representation.
@@ -86,8 +93,7 @@ public enum FilterOperator {
          * nor non-equal to each other (following the SQL semantic of nullable comparison with {@code !=}/{@code <>}).
          * See also {@link #NEQ_MISS}.
          */
-        @Label(value = "Is not equal (nor missing)", description =
-                """
+        @Label(value = "Is not equal (nor missing)", description = """
                 Value in column must be <b>not equal</b> to specified reference and also not missing.
                 """)
         NEQ,
@@ -95,24 +101,22 @@ public enum FilterOperator {
         /**
          * Operator checking inequality between values, but allowing for missing values. See also {@link #NEQ}.
          */
-        @Label(value = "Is not equal", description =
-                """
+        @Label(value = "Is not equal", description = """
                 Value in column must be <b>not equal</b> to specified reference value but can be missing.
                 """)
         NEQ_MISS(true),
 
         /** Operator checking that the left-hand-side value is strictly less than the right-hand-side value. */
-        @Label(value = "Less than", description =
-        """
-        Value in column must be <b>strictly smaller</b> than specified value.
-        <br />
+        @Label(value = "Less than", description = """
+                Value in column must be <b>strictly smaller</b> than specified value.
+                <br />
 
-        This operator is applicable for all data types that offer a more meaningful ordering than just
-        lexicographic ordering. In particular, this includes by default numeric types and Date &amp; Time types.
-        String and Boolean types are not supported.
-        The same requirements apply to the other ordering-based operators: "Less than", "Less than or equal",
-        "Greather than", and "Greater than or equal".
-        """) //
+                This operator is applicable for all data types that offer a more meaningful ordering than just
+                lexicographic ordering. In particular, this includes by default numeric types and Date &amp; Time types.
+                String and Boolean types are not supported.
+                The same requirements apply to the other ordering-based operators: "Less than", "Less than or equal",
+                "Greather than", and "Greater than or equal".
+                """) //
         LT, //
 
         /** Operator checking that the lhs value is less than or equal to the rhs value. */
@@ -131,22 +135,19 @@ public enum FilterOperator {
         GTE, //
 
         /** Operator matching the first {@code n} rows. */
-        @Label(value = "First n rows", description =
-                """
+        @Label(value = "First n rows", description = """
                 Matches the specified number of rows counted from the start of the input.
                 """)
         FIRST_N_ROWS, //
 
         /** Operator matching the last {@code n} rows. */
-        @Label(value = "Last n rows", description =
-                """
+        @Label(value = "Last n rows", description = """
                 Matches the specified number of rows counted from the end of the input.
                 """)
         LAST_N_ROWS, //
 
         /** Operator matching the lhs value with the given regular expression. */
-        @Label(value = "Matches regex", description =
-                """
+        @Label(value = "Matches regex", description = """
                 Value in column must match the specified regular expression.
                 <br />
 
@@ -165,7 +166,7 @@ public enum FilterOperator {
         REGEX,
         /** Operator matching the lhs value with the given wildcard pattern. */
         @Label(value = "Matches wildcard", description = "Value in column must match the specified pattern, "
-                + "which may contain wildcards <tt>*</tt> and <tt>?</tt>.")
+            + "which may contain wildcards <tt>*</tt> and <tt>?</tt>.")
         WILDCARD,
 
         /** Operator checking that the lhs boolean cell value is true. */
@@ -229,8 +230,8 @@ public enum FilterOperator {
             case IS_TRUE, IS_FALSE -> dataType.equals(BooleanCell.TYPE);
             case NEQ_MISS -> specialColumn == null
                 && PredicateFactories.getValuePredicateFactory(this, dataType).isPresent();
-            case LT, LTE, GT, GTE, EQ, NEQ, REGEX, WILDCARD ->
-                PredicateFactories.getValuePredicateFactory(this, dataType).isPresent();
+            case LT, LTE, GT, GTE, EQ, NEQ, REGEX, WILDCARD -> PredicateFactories
+                .getValuePredicateFactory(this, dataType).isPresent();
         };
     }
 
@@ -326,5 +327,166 @@ public enum FilterOperator {
             return (idx, rowRead) -> !rowRead.isMissing(columnIndex) && valuePredicate.test(idx, rowRead);
         }
     }
+
+    interface InternalFilterOperator<T extends FilterValueParameters> {
+        Collection<? extends Class<? extends FilterValueParameters>> ALL_PARAMETER_CLASSES = List.of(//
+            PatternFilterParameters.class, //
+            RowNumberPatternFilterParameters.class //
+        );
+
+        Class<T> getParametersClass();
+
+        default boolean isHidden() {
+            return false;
+        }
+
+        @SuppressWarnings("unchecked")
+        static IndexedRowReadPredicate toPredicate(final InternalFilterOperator<?> operator,
+            final FilterValueParameters params, final OptionalInt columnIndex, final DataType dataType)
+            throws InvalidSettingsException {
+            if (operator instanceof ColumnFilterOperator colOp) {
+                if (columnIndex.isEmpty() || columnIndex.getAsInt() < 0) {
+                    throw new IllegalArgumentException("TODO");
+                }
+                return colOp.columnToPredicate(params, columnIndex.getAsInt(), dataType);
+            } else if (operator instanceof RowIDFilterOperator rowIdOp) {
+                if (columnIndex.isPresent() && columnIndex.getAsInt() >= 0) {
+                    throw new IllegalArgumentException("TODO");
+                }
+                final var predicate = rowIdOp.translateToPredicate(params);
+                return (idx, row) -> predicate.test(row.getRowKey());
+            } else if (operator instanceof RowNumberFilterOperator rowNumOp) {
+                if (columnIndex.isPresent() && columnIndex.getAsInt() >= 0) {
+                    throw new IllegalArgumentException("TODO");
+                }
+                final var predicate = rowNumOp.translateToPredicate(params);
+                return (idx, row) -> predicate.test(idx);
+            } else {
+                throw new IllegalArgumentException("Unknown operator type: %s".formatted(operator.getClass()));
+            }
+
+        }
+    }
+
+    /**
+     * Filter operator that can be applied to a column.
+     *
+     * @param <T> type of the parameters
+     */
+    public interface ColumnFilterOperator<T extends FilterValueParameters> extends InternalFilterOperator<T> {
+
+        /**
+         * Translates the operator and parameters into a predicate
+         *
+         * @param params parameters
+         * @param columnIndex index of the column to filter on
+         * @param dataType data type of the column to filter on
+         * @return predicate that can be used to filter rows
+         * @throws InvalidSettingsException
+         */
+        IndexedRowReadPredicate columnToPredicate(final T params, final int columnIndex, final DataType dataType)
+            throws InvalidSettingsException;
+    }
+
+    /**
+     * Filter operator that can be applied to row keys.
+     *
+     * @param <T> type of the parameters
+     */
+    public interface RowIDFilterOperator<T extends FilterValueParameters> extends InternalFilterOperator<T> {
+        /**
+         * Translates the operator and parameters into a predicate
+         *
+         * @param params parameters
+         * @return predicate that can be used to filter rows
+         * @throws InvalidSettingsException in case the parameters are invalid
+         */
+        Predicate<RowKeyValue> translateToPredicate(final T params) throws InvalidSettingsException;
+    }
+
+    /**
+     * Filter operator that can be applied to row numbers.
+     *
+     * @param <T> type of the parameters
+     */
+    public interface RowNumberFilterOperator<T extends FilterValueParameters> extends InternalFilterOperator<T> {
+
+        /**
+         * Translates the operator and parameters into a predicate
+         *
+         * @param params parameters
+         * @return predicate that can be used to filter rows
+         * @throws InvalidSettingsException in case the parameters are invalid
+         */
+        Predicate<Long> translateToPredicate(final T params) throws InvalidSettingsException;
+    }
+
+    enum FilterColumn {
+            COLUMN, ROW_ID, ROW_NUMBER
+    }
+
+    Optional<ColumnFilterOperator<?>> getColumnFilterOperator(final DataType dataType) {
+        switch (this) {
+            case REGEX, WILDCARD:
+                if (PatternFilterOperators.isSupported(dataType)) {
+                    return Optional.of(new PatternFilterOperators.PatternFilterOperator(this == REGEX));
+                } else {
+                    return Optional.empty();
+                }
+                // TODO
+            case EQ, NEQ, NEQ_MISS:
+                if (dataType.equals(StringCell.TYPE)) {
+                }
+                return Optional.empty();
+            default:
+                return Optional.empty();
+
+        }
+
+    }
+
+    Optional<RowIDFilterOperator> getRowIdFilterOperator() {
+        switch (this) {
+            case REGEX, WILDCARD:
+                return Optional.of(new PatternFilterOperators.PatternFilterOperator(this == REGEX));
+            // TODO
+            default:
+                return Optional.empty();
+
+        }
+
+    }
+
+    Optional<RowNumberFilterOperator> getRowNumberFilterOperator() {
+        switch (this) {
+            case REGEX, WILDCARD:
+                return Optional.of(new PatternFilterOperators.RowNumberPatternFilterOperator(this == REGEX));
+            // TODO
+            default:
+                return Optional.empty();
+        }
+    }
+
+    //    Class<? extends FilterValueParameters> getNodeParametersClass(final DataType dataType) {
+    //        switch (this) {
+    //            case REGEX, WILDCARD:
+    //                return PatternFilterParameters.class;
+    //            case FIRST_N_ROWS, LAST_N_ROWS:
+    //                throw new NotImplementedException();
+    //            case IS_TRUE, IS_FALSE, IS_MISSING, IS_NOT_MISSING:
+    //                return null;
+    //            case EQ, NEQ, NEQ_MISS:
+    //                if (dataType.equals(StringCell.TYPE)) {
+    //                    return StringValueParameters.EqualsStringParameters.class;
+    //                } else {
+    //                    return StringValueParameters.class;
+    //                }
+    //            case LT, LTE, GT, GTE:
+    //                return StringValueParameters.class;
+    //            default:
+    //                throw new NotImplementedException();
+    //
+    //        }
+    //    }
 
 }
