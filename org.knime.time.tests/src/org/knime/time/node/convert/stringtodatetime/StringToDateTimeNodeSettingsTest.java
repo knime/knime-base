@@ -89,6 +89,8 @@ import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 import org.knime.testing.node.dialog.updates.DialogUpdateSimulator;
 import org.knime.testing.util.TableTestUtil;
+import org.knime.time.util.LocaleStateProviderTest;
+import org.knime.time.util.LocaleStateProviderTest.TestLocaleStateProvider;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -104,6 +106,8 @@ final class StringToDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshot
     private MockedStatic<ZonedDateTime> m_mockedStaticLocalZonedDateTime;
 
     private MockedStatic<DateTimeFormatStringHistoryManager> m_mockedStaticDateTimeFormatStringHistoryManager;
+
+    private TestLocaleStateProvider m_mockedLocaleStateProvider;
 
     private static final ZoneId MOCKED_ZONE_ID = ZoneId.of("Europe/Berlin");
 
@@ -134,8 +138,9 @@ final class StringToDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshot
         m_mockedStaticDateTimeFormatStringHistoryManager =
             Mockito.mockStatic(DateTimeFormatStringHistoryManager.class, Mockito.CALLS_REAL_METHODS);
         m_mockedStaticDateTimeFormatStringHistoryManager
-            .when(() -> DateTimeFormatStringHistoryManager.getRecentFormats()).thenReturn(MOCKED_RECENT_FORMATS);
+            .when(DateTimeFormatStringHistoryManager::getRecentFormats).thenReturn(MOCKED_RECENT_FORMATS);
 
+        m_mockedLocaleStateProvider = LocaleStateProviderTest.withMockedLocales();
     }
 
     @AfterEach
@@ -144,6 +149,7 @@ final class StringToDateTimeNodeSettingsTest extends DefaultNodeSettingsSnapshot
 
         m_mockedStaticLocalZonedDateTime.close();
         m_mockedStaticDateTimeFormatStringHistoryManager.close();
+        m_mockedLocaleStateProvider.close();
     }
 
     @Test
