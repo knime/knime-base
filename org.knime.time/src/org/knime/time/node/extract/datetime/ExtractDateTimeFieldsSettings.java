@@ -85,7 +85,6 @@ import org.knime.node.parameters.widget.choices.StringChoice;
 import org.knime.node.parameters.widget.choices.StringChoicesProvider;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
-import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.EmptyOrColumnNameValidation;
 import org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings.ColumnNameProvider.DateTimeFieldReference;
 import org.knime.time.util.DateTimeUtils.DateTimeColumnProvider;
 
@@ -419,15 +418,20 @@ class ExtractDateTimeFieldsSettings implements NodeParameters {
 
         @Override
         public List<StringChoice> computeState(final NodeParametersInput context) {
-            return Arrays.stream(LocaleProvider.JAVA_11.getLocales())
-                .map(locale -> new StringChoice(locale.toLanguageTag(), locale.getDisplayName())).toList();
+            return Arrays.stream(getLocaleChoices())
+                .map(locale -> new StringChoice(locale.toLanguageTag(), locale.getDisplayName(Locale.US))).toList();
         }
+    }
+
+    // for mocking in tests
+    static Locale[] getLocaleChoices() {
+        return LocaleProvider.JAVA_11.getLocales();
     }
 
     private static final Locale FALLBACK_LOCALE = Locale.US;
 
     static Locale getDefaultLocale() {
-        final Locale defaultLocale = Locale.getDefault();
+        final var defaultLocale = Locale.getDefault();
         if (Arrays.stream(LocaleProvider.JAVA_11.getLocales()).anyMatch(defaultLocale::equals)) {
             return defaultLocale;
         }

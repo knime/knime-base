@@ -64,6 +64,8 @@ import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 import org.knime.testing.node.dialog.SnapshotTestConfiguration;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 /**
  *
@@ -73,6 +75,7 @@ import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 final class ExtractDateTimeFieldsSettingsTest extends DefaultNodeSettingsSnapshotTest { // NOSONAR
 
     private Locale m_defaultLocale;
+    private MockedStatic<ExtractDateTimeFieldsSettings> m_choicesProvider;
 
     protected ExtractDateTimeFieldsSettingsTest() {
         super(getConfig());
@@ -82,11 +85,17 @@ final class ExtractDateTimeFieldsSettingsTest extends DefaultNodeSettingsSnapsho
     void setDefaultLocale() {
         m_defaultLocale = Locale.getDefault();
         Locale.setDefault(Locale.GERMANY);
+
+        final var mock = Mockito.mockStatic(ExtractDateTimeFieldsSettings.class, Mockito.CALLS_REAL_METHODS);
+        mock.when(ExtractDateTimeFieldsSettings::getLocaleChoices)
+            .thenReturn(new Locale[]{Locale.GERMANY, Locale.US, Locale.forLanguageTag("nl-NL")});
+        m_choicesProvider = mock;
     }
 
     @AfterEach
     void resetDefaultLocale() {
         Locale.setDefault(m_defaultLocale);
+        m_choicesProvider.close();
     }
 
     private static SnapshotTestConfiguration getConfig() {
