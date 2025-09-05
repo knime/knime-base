@@ -83,8 +83,7 @@ public final class BinnerNodeFactory extends WebUINodeFactory<BinnerNodeModel> {
                 binning. Each bin is assigned a label based on its position, boundary \
                 values, or midpoint. The resulting binned values are output as \
                 string-type columns, either replacing the original data or appended \
-                alongside it. This node combines the functionality of the Auto-Binner \
-                and Numeric Binner nodes.
+                alongside it.
                 """) //
         .modelSettingsClass(BinnerNodeSettings.class) //
         .addInputTable("Input Data", "Data to be categorized") //

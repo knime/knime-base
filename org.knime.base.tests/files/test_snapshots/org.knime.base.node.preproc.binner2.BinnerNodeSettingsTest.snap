@@ -50,16 +50,16 @@
           "binNames" : {
             "oneOf" : [ {
               "const" : "NUMBERED",
-              "title" : "Numbered"
+              "title" : "Numbered (e.g., Bin 1, Bin 2)"
             }, {
               "const" : "BORDERS",
-              "title" : "Borders"
+              "title" : "Borders (e.g., [0.0, 1.0))"
             }, {
               "const" : "MIDPOINTS",
               "title" : "Midpoints"
             } ],
             "title" : "Bin names/values",
-            "description" : "Selects how bins are labeled in the output. Use a 'Number Format Manager' node to customize number formatting.\n<ul>\n<li><b>Numbered</b>: Bins are labeled by index (e.g., Bin 1, Bin 2).</li>\n<li><b>Borders</b>: Bins are labeled using interval borders (e.g., [0.0, 1.0)).</li>\n<li><b>Midpoints</b>: Bins are labeled using the midpoint of each interval.</li>\n</ul>",
+            "description" : "Selects how bins are labeled in the output. Use a 'Number Format Manager' node to customize number formatting.\n<ul>\n<li><b>Numbered (e.g., Bin 1, Bin 2)</b>: Bins are labeled by index.</li>\n<li><b>Borders (e.g., [0.0, 1.0))</b>: Bins are labeled using interval borders.</li>\n<li><b>Midpoints</b>: Bins are labeled using the midpoint of each interval.</li>\n</ul>",
             "default" : "NUMBERED"
           },
           "binningType" : {
@@ -77,7 +77,7 @@
               "title" : "Custom quantiles"
             } ],
             "title" : "Binning type",
-            "description" : "Select the method used to define bin intervals.\n<ul>\n<li><b>Equal width</b>: Creates bins of equal size across the value range. Requires a specified number of bins.\n</li>\n<li><b>Equal frequency</b>: Creates bins with approximately the same number of values. Requires a specified number of bins.\n</li>\n<li><b>Custom cutoffs</b>: Manually define bin edges using a list of cutoff values. At least two cutoffs are required.\n</li>\n<li><b>Custom quantiles</b>: Define bin edges based on quantile values. At least two quantiles are required. Quantiles are converted to bin edges using the R-7 algorithm, see <a href=\"\nhttps://en.wikipedia.org/wiki/Quantile\">WP:Quantile</a> for more details. Note that when setting an upper or lower bound values outside the bounds are considered when calculating the quantiles.\n</li>\n</ul>",
+            "description" : "Select the method used to define bin intervals.\n<ul>\n<li><b>Equal width</b>: Creates bins of equal size across the value range. Requires a specified number of bins.\n</li>\n<li><b>Equal frequency</b>: Creates bins with approximately the same number of values. Requires a specified number of bins.\n</li>\n<li><b>Custom cutoffs</b>: Manually define bin edges using a list of cutoff values. At least two cutoffs are required.\n</li>\n<li><b>Custom quantiles</b>: Define bin edges based on quantile values. At least two quantiles are required. Quantiles are converted to bin edges using the R-7 algorithm, see <a href=\"\nhttps://en.wikipedia.org/wiki/Quantile\">WP:Quantile</a> for more details. Note that when setting upper or lower bounds quantiles are calculated only on values within those bounds.\n</li>\n</ul>",
             "default" : "EQUAL_WIDTH"
           },
           "customCutoffs" : {
