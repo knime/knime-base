@@ -1,4 +1,4 @@
-/* 
+/*
  * ------------------------------------------------------------------------
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
@@ -41,32 +41,54 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * -------------------------------------------------------------------
- * 
+ *
  */
 package org.knime.base.node.util.sampledata;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * Factory to instantiate new model.
- * 
+ *
  * @author Bernd Wiswedel, University of Konstanz
+ * @author Daniel Bogenrieder, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.0
  */
-public class SampleDataNodeFactory extends NodeFactory {
+@SuppressWarnings("restriction")
+public class SampleDataNodeFactory extends NodeFactory<SampleDataNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
     /**
      * {@inheritDoc}
+     *
+     * @since 5.7
      */
     @Override
-    public NodeModel createNodeModel() {
+    public SampleDataNodeModel createNodeModel() {
         return new SampleDataNodeModel();
     }
 
     /**
      * This node has no view.
-     * 
+     *
      * @see NodeFactory#getNrNodeViews()
      */
     @Override
@@ -76,32 +98,78 @@ public class SampleDataNodeFactory extends NodeFactory {
 
     /**
      * Throws exception as there is no view to create.
-     * 
+     *
      * @see NodeFactory#createNodeView(int, NodeModel)
+     * @deprecated
+     * @since 5.7
      */
+    @Deprecated
     @Override
-    public NodeView createNodeView(final int viewIndex,
-            final NodeModel nodeModel) {
+    public NodeView createNodeView(final int viewIndex, final SampleDataNodeModel nodeModel) {
         throw new IndexOutOfBoundsException("Invalid index: " + viewIndex);
     }
 
     /**
-     * Throws exception so far.
-     * 
-     * @see NodeFactory#createNodeDialogPane()
+     * No Dialog available.
+     *
+     * @return <code>false</code>
+     * @deprecated
      */
+    @Deprecated
+    @Override
+    public boolean hasDialog() {
+        return false;
+    }
+
+    private static final String NODE_NAME = "Data Generator";
+
+    private static final String NODE_ICON = "./sampler.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Creates random data with clusters.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            Creates random data containing some clusters for Parallel Universes. The data contains a certain
+                fraction of noise patterns and data that is generated to clusters (all clusters have the same size). The
+                data is normalized in [0, 1].
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of();
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(fixedPort("Random data with cluster ID", """
+            Contains the data with the cluster id as last column
+            """), fixedPort("Cluster centers", """
+            Contains the cluster centers. The attributes in the universes where the cluster is not located, are
+            filled with missing values.
+            """));
+
+    @Deprecated
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new SampleDataNodeDialog();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
 
     /**
-     * No Dialog available.
-     * 
-     * @return <code>false</code>
+     * @since 5.7
      */
     @Override
-    public boolean hasDialog() {
-        return true;
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, SampleDataNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(NODE_NAME, NODE_ICON, INPUT_PORTS, OUTPUT_PORTS,
+            SHORT_DESCRIPTION, FULL_DESCRIPTION, List.of(), SampleDataNodeParameters.class, null, NodeType.Source,
+            List.of(), null);
+    }
+
+    /**
+     * @since 5.7
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, SampleDataNodeParameters.class));
     }
 }
