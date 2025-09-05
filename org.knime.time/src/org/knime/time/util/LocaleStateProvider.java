@@ -54,8 +54,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-import org.knime.node.parameters.NodeParametersInput;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.widget.choices.StringChoice;
 import org.knime.node.parameters.widget.choices.StringChoicesProvider;
 
@@ -69,13 +69,36 @@ import org.knime.node.parameters.widget.choices.StringChoicesProvider;
 @SuppressWarnings("restriction")
 public final class LocaleStateProvider implements StringChoicesProvider {
 
-    private static final List<Locale> LOCALES_TO_SHOW_FIRST = List.of(Locale.getDefault());
+    /**
+     * We show the system default locale first.
+     * @return system default locale
+     */
+    // package-private and own method to allow mocking in mockito (Mockito depends on unmocked `Locale`)
+    static Locale defaultLocale() {
+        return Locale.getDefault();
+    }
 
-    private static final List<Locale> LOCALES_TO_SHOW_SECOND = List.of( //
-        Locale.US, //
-        Locale.UK, //
-        Locale.GERMANY //
-    );
+    /**
+     * System-dependent available locales.
+     * @return system-dependent available locales
+     */
+    // package-private and own method to allow mocking in mockito (Mockito depends on unmocked `Locale`)
+    static Locale[] availableLocales() {
+        return Locale.getAvailableLocales();
+    }
+
+    /**
+     * We show some standard, commonly used locales second.
+     * @return standard locales
+     */
+    // package-private for tests
+    static Locale[] standardLocales() {
+        return new Locale[]{ //
+            Locale.US, //
+            Locale.UK, //
+            Locale.GERMANY //
+        };
+    }
 
     @Override
     public void init(final StateProviderInitializer initializer) {
@@ -84,16 +107,17 @@ public final class LocaleStateProvider implements StringChoicesProvider {
 
     @Override
     public List<StringChoice> computeState(final NodeParametersInput context) throws WidgetHandlerException {
-        List<Locale> sortedLocales = Arrays.stream(Locale.getAvailableLocales()) //
+        final var available = availableLocales();
+        final var sortedLocales = Arrays.stream(available) //
             .sorted(LocaleStateProvider::compareByEnglishTextRepresentation) //
-            .collect(Collectors.toCollection(ArrayList::new)); // modifiable list
-
+            .collect(Collectors.toCollection(ArrayList::new));
         // Move special locales to the front
-        for (List<Locale> locales : List.of(LOCALES_TO_SHOW_SECOND, LOCALES_TO_SHOW_FIRST)) {
+        final var toShowFirst = List.of(defaultLocale());
+        final var toShowSecond = List.of(standardLocales());
+        for (List<Locale> locales : List.of(toShowSecond, toShowFirst)) {
             sortedLocales.removeAll(locales);
             sortedLocales.addAll(0, locales);
         }
-
         return sortedLocales.stream() //
             .map(LocaleStateProvider::localeToStringChoice) //
             .toList();
