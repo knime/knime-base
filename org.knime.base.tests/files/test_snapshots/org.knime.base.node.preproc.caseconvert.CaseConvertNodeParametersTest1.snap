@@ -17,7 +17,7 @@
               "type" : "string"
             },
             "title" : "Input columns to convert",
-            "description" : "Choose the string-compatible input columns whose textual values should be case-converted.\nMove columns between the 'Input columns to convert' and 'String columns' lists. Only columns\ncompatible with the String data type are shown.\n",
+            "description" : "Choose the string-compatible input columns whose textual values should be case-converted.\nOnly columns compatible with the String data type are shown.\n",
             "default" : [ ]
           },
           "mode" : {
@@ -43,7 +43,7 @@
       "options" : {
         "format" : "twinList",
         "includedLabel" : "Columns to convert",
-        "excludedLabel" : "Available columns"
+        "excludedLabel" : "Excludes"
       },
       "providedOptions" : [ "possibleValues" ]
     }, {

@@ -70,11 +70,10 @@ final class CaseConvertNodeParameters implements NodeParameters {
 
     @Widget(title = "Input columns to convert", description = """
             Choose the string-compatible input columns whose textual values should be case-converted.
-            Move columns between the 'Input columns to convert' and 'String columns' lists. Only columns
-            compatible with the String data type are shown.
+            Only columns compatible with the String data type are shown.
             """)
     @ChoicesProvider(StringColumnsProvider.class)
-    @TwinlistWidget(includedLabel = "Columns to convert", excludedLabel = "Available columns")
+    @TwinlistWidget(includedLabel = "Columns to convert", excludedLabel = "Excludes")
     @Persist(configKey = CaseConvertNodeModel.CFG_INCLUDED_COLUMNS)
     String[] m_columns = new String[]{};
 
