@@ -45,9 +45,25 @@
  */
 package org.knime.base.node.preproc.crossjoin;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * <code>NodeFactory</code> for the "CrossJoiner" Node.
@@ -55,9 +71,12 @@ import org.knime.core.node.NodeView;
  *
  * @author Alexander Fillbrunn, Universität Konstanz
  * @author  Iris Adae, Universität Konstanz
+ * @author Carsten Haubold, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.1
  */
+@SuppressWarnings("restriction")
 public final  class CrossJoinerNodeFactory
-        extends NodeFactory<CrossJoinerNodeModel> {
+        extends NodeFactory<CrossJoinerNodeModel> implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     /**
      * {@inheritDoc}
@@ -95,9 +114,70 @@ public final  class CrossJoinerNodeFactory
     /**
      * {@inheritDoc}
      */
+    private static final String NODE_NAME = "Cross Joiner";
+    private static final String NODE_ICON = "./xjoiner.png";
+    private static final String SHORT_DESCRIPTION = """
+            Performs a cross join of two tables.
+            """;
+    private static final String FULL_DESCRIPTION = """
+                Performs a cross join of two tables. Each row of the top table is joined with each row of the bottom
+                table. Note, this is an extremely expensive operation as the number of rows in the output is the product
+                of both input table row counts, by increasing the chunk size there will be a speed up.
+
+                <p>
+                <i>Note:</i>
+                If executed in streaming mode only the top input will be processed in a streamable fashion.
+                </p>
+            """;
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Top Table", """
+                The top table to be joined (streamable)
+                """),
+            fixedPort("Bottom Table", """
+                The bottom table to be joined (non-streamable)
+                """)
+    );
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Joined Table", """
+                Cross join
+                """)
+    );
+
+    private static final List<String> KEYWORDS = List.of( //
+		"Append fields" //
+    );
+
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new CrossJoinerNodeDialog();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, CrossJoinerNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(
+            NODE_NAME,
+            NODE_ICON,
+            INPUT_PORTS,
+            OUTPUT_PORTS,
+            SHORT_DESCRIPTION,
+            FULL_DESCRIPTION,
+            List.of(),
+            CrossJoinerNodeParameters.class,
+            null,
+            NodeType.Manipulator,
+            KEYWORDS,
+            null
+        );
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, CrossJoinerNodeParameters.class));
     }
 
 }
