@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="settings.xml">
+    <config key="model">
+        <entry key="rigthSuffix" type="xstring" value="_"/>
+        <entry key="CFG_SEPARATOR" type="xstring" value=""/>
+        <entry key="CFG_CACHE" type="xint" value="1"/>
+        <entry key="CFG_SHOW_FIRST" type="xboolean" value="true"/>
+        <entry key="CFG_FIRST_COLUMNNAME" type="xstring" value="asdf"/>
+        <entry key="CFG_SHOW_SECOND" type="xboolean" value="false"/>
+        <entry key="CFG_SECOND_COLUMNNAME" type="xstring" value="SecondRowIDs"/>
+    </config>
+</config>
