@@ -86,6 +86,7 @@ import org.knime.core.node.util.ConvenienceMethods;
 import org.knime.core.node.util.StringHistory;
 import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.util.FileUtil;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * Configuration proxy for the node.
@@ -109,32 +110,42 @@ final class SendMailConfiguration {
     /** EMail format. */
     enum EMailFormat {
             /** Ordinary text. */
+            @Label("Text")
             Text,
             /** Text w/ html tags. */
+            @Label("HTML")
             Html;
     }
 
     /** Connection Security. */
     enum ConnectionSecurity {
             /** No security. */
+            @Label("None")
             NONE,
             /** StartTLS. */
+            @Label("STARTTLS")
             STARTTLS,
             /** Via ssl. */
+            @Label("SSL")
             SSL
     }
 
     /** EMail priority. */
     enum EMailPriority {
             /** Prio 1. */
+            @Label("Highest")
             Highest(1),
             /** Prio 2. */
+            @Label("High")
             High(2),
             /** Prio 3. */
+            @Label("Normal")
             Normal(3),
             /** Prio 4. */
+            @Label("Low")
             Low(4),
             /** Prio 5. */
+            @Label("Lowest")
             Lowest(5);
 
         private final int m_priority;

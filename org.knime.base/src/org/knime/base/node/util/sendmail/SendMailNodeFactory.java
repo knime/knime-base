@@ -46,20 +46,38 @@
  */
 package org.knime.base.node.util.sendmail;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
-/** Factory of node.
+/**
+ * Factory of node.
+ *
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
+ * @author Daniel Bogenrieder, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.0
  */
-public final class SendMailNodeFactory extends NodeFactory<SendMailNodeModel> {
+@SuppressWarnings("restriction")
+public final class SendMailNodeFactory extends NodeFactory<SendMailNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     /** {@inheritDoc} */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new SendMailNodeDialog();
-    }
 
     /** {@inheritDoc} */
     @Override
@@ -83,6 +101,48 @@ public final class SendMailNodeFactory extends NodeFactory<SendMailNodeModel> {
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+
+    private static final String NODE_NAME = "Send Email";
+
+    private static final String NODE_ICON = "mailsend.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Send an email using an external SMTP server.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            Use to send HTML or plaintext emails from an external SMTP server. Attachments from the filesystem may
+                also be included. Authentication is supported via workflow or node level credentials and connection
+                security via STARTTLS and SSL are both supported.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(fixedPort("Input Variables", """
+            An an optional flow variable port which may be used to control the message content and node settings.
+            """));
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of();
+
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, SendMailNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(NODE_NAME, NODE_ICON, INPUT_PORTS, OUTPUT_PORTS,
+            SHORT_DESCRIPTION, FULL_DESCRIPTION, List.of(), SendMailNodeParameters.class, null, NodeType.Other,
+            List.of(), null);
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, SendMailNodeParameters.class));
     }
 
 }
