@@ -181,7 +181,7 @@
       },
       "providedOptions" : [ "possibleValues" ]
     }, {
-      "label" : "Additional settings",
+      "label" : "Additional Settings",
       "type" : "Section",
       "description" : "Configure additional options for the ungrouping operation.",
       "elements" : [ {

@@ -70,7 +70,7 @@ import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider;
  */
 @LoadDefaultsForAbsentFields
 final class UngroupNodeParameters implements NodeParameters {
-    @Section(title = "Additional settings", description = "Configure additional options for the ungrouping operation.")
+    @Section(title = "Additional Settings", description = "Configure additional options for the ungrouping operation.")
     interface AdditionalSettings {
     }
 
