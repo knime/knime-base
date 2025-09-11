@@ -47,7 +47,7 @@
  */
 package org.knime.base.node.preproc.cellsplit2;
 
-import org.knime.base.node.util.EnumSettingsModelBooleanPersistor;
+import org.knime.base.node.util.EnumBooleanPersistor;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.StringValue;
@@ -230,7 +230,7 @@ final class CellSplitter2NodeParameters implements NodeParameters {
         }
     }
 
-    static final class SizeModePersistor extends EnumSettingsModelBooleanPersistor<SizeMode> {
+    static final class SizeModePersistor extends EnumBooleanPersistor<SizeMode> {
         SizeModePersistor() {
             super(CellSplitter2UserSettings.CFG_GUESSCOLS, SizeMode.class, SizeMode.GUESS_SIZE);
         }

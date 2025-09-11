@@ -57,17 +57,20 @@ import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 
 /**
- * Persistor for an enum with exactly two values that is stored as if it were a {@link SettingsModelBoolean}.
+ * Persistor for an enum with exactly two values that is stored as if it were a boolean.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
  * @param <E> the type of the enum
  * @since 5.7
  */
-public abstract class EnumSettingsModelBooleanPersistor<E extends Enum<E>> implements NodeParametersPersistor<E> {
+public abstract class EnumBooleanPersistor<E extends Enum<E>> implements NodeParametersPersistor<E> {
 
-    private final String m_configKey;
-    private final E m_trueValue;
-    private final E m_falseValue;
+    final String m_configKey;
+
+    final E m_trueValue;
+
+    final E m_falseValue;
 
     /**
      * Constructor for a new two-value enum persistor that is stored as boolean in the settings.
@@ -78,15 +81,14 @@ public abstract class EnumSettingsModelBooleanPersistor<E extends Enum<E>> imple
      *            represented by {@code false}
      * @throws IllegalArgumentException if the given enum class does not have exactly two values
      */
-    protected EnumSettingsModelBooleanPersistor(final String configKey, final Class<E> enumClass, final E trueValue) {
+    protected EnumBooleanPersistor(final String configKey, final Class<E> enumClass, final E trueValue) {
         m_configKey = configKey;
         m_trueValue = trueValue;
         // to be able to represent as boolean config, it must have exactly two values
         // runtime check is better than nothing...
         final var consts = enumClass.getEnumConstants();
         if (consts.length != 2) {
-            final var names =
-                String.join(", ", Arrays.stream(consts).map(Enum::name).toArray(String[]::new));
+            final var names = String.join(", ", Arrays.stream(consts).map(Enum::name).toArray(String[]::new));
             throw new IllegalArgumentException("Enum class \"%s\" must have exactly two values, has: \"%s\""
                 .formatted(enumClass.getSimpleName(), names));
         }
@@ -95,20 +97,55 @@ public abstract class EnumSettingsModelBooleanPersistor<E extends Enum<E>> imple
 
     @Override
     public void save(final E obj, final NodeSettingsWO settings) {
-        final var isTrueValue = obj == m_trueValue;
-        new SettingsModelBoolean(m_configKey, isTrueValue).saveSettingsTo(settings);
+        settings.addBoolean(m_configKey, obj == m_trueValue);
     }
 
     @Override
     public E load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        final var model = new SettingsModelBoolean(m_configKey, true);
-        model.loadSettingsFrom(settings);
-        return model.getBooleanValue() ? m_trueValue : m_falseValue;
+        return settings.getBoolean(m_configKey) ? m_trueValue : m_falseValue;
     }
 
     @Override
-    public String[][] getConfigPaths() {
-        return new String[][] { { m_configKey } };
+    public final String[][] getConfigPaths() {
+        return new String[][]{{m_configKey}};
+    }
+
+    /**
+     * Persistor for an enum with exactly two values that is stored as if it were a {@link SettingsModelBoolean}.
+     *
+     * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+     * @param <E> the type of the enum
+     * @since 5.7
+     */
+    public abstract static class EnumSettingsModelBooleanPersistor<E extends Enum<E>> extends EnumBooleanPersistor<E> {
+
+        /**
+         * Constructor for a new two-value enum persistor that is stored as {@link SettingsModelBoolean} in the
+         * settings.
+         *
+         * @param configKey the config key to use for storing the {@link SettingsModelBoolean} value
+         * @param enumClass the enum class to persist values of
+         * @param trueValue the enum value that is represented by {@code true} in the settings, the other value will be
+         *            represented by {@code false}
+         * @throws IllegalArgumentException if the given enum class does not have exactly two values
+         */
+        protected EnumSettingsModelBooleanPersistor(final String configKey, final Class<E> enumClass,
+            final E trueValue) {
+            super(configKey, enumClass, trueValue);
+        }
+
+        @Override
+        public void save(final E obj, final NodeSettingsWO settings) {
+            final var isTrueValue = obj == m_trueValue;
+            new SettingsModelBoolean(m_configKey, isTrueValue).saveSettingsTo(settings);
+        }
+
+        @Override
+        public E load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            final var model = new SettingsModelBoolean(m_configKey, true);
+            model.loadSettingsFrom(settings);
+            return model.getBooleanValue() ? m_trueValue : m_falseValue;
+        }
     }
 
 }
