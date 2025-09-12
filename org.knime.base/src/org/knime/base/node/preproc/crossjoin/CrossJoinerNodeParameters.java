@@ -70,11 +70,11 @@ import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternVa
 @LoadDefaultsForAbsentFields
 class CrossJoinerNodeParameters implements NodeParameters {
 
-    /** Reference for the "Append top data table's RowIds" toggle. */
+    /** Reference for the "Append top data table's RowIDs" toggle. */
     interface ShowFirstRowIdsRef extends ParameterReference<Boolean> {
     }
 
-    /** Reference for the "Append bottom data table's RowIds" toggle. */
+    /** Reference for the "Append bottom data table's RowIDs" toggle. */
     interface ShowSecondRowIdsRef extends ParameterReference<Boolean> {
     }
 
@@ -104,7 +104,7 @@ class CrossJoinerNodeParameters implements NodeParameters {
     @Persist(configKey = "rigthSuffix")
     public String rightColumnNameSuffix = " (#1)";
 
-    @Widget(title = "Separator for new RowIds", description = """
+    @Widget(title = "Separator for new RowIDs", description = """
             This string will separate the RowIDs in the new data table. E.g. <i>RowID1 + sep + RowID2</i>
             """)
     @TextInputWidget
@@ -119,7 +119,7 @@ class CrossJoinerNodeParameters implements NodeParameters {
     @Persist(configKey = "CFG_CACHE")
     public int cacheSize = 1;
 
-    @Widget(title = "Append top data table's RowIds", description = """
+    @Widget(title = "Append top data table's RowIDs", description = """
             If selected a new column will be attached to the output, containing the RowIDs
             of the top data table.
             """)
@@ -127,13 +127,13 @@ class CrossJoinerNodeParameters implements NodeParameters {
     @ValueReference(ShowFirstRowIdsRef.class)
     public boolean showFirstRowIds = false;
 
-    @Widget(title = "Column name (top)", description = "Name of the column containing the row IDs from the top table")
+    @Widget(title = "Column name (top)", description = "Name of the column containing the RowIDs from the top table")
     @TextInputWidget(patternValidation = IsNotBlankValidation.class)
     @Effect(predicate = ShowFirstRowIdsIsTrue.class, type = EffectType.SHOW)
     @Persist(configKey = "CFG_FIRST_COLUMNNAME")
     public String firstRowIdsColumnName = "FirstRowIDs";
 
-    @Widget(title = "Append bottom data table's RowIds", description = """
+    @Widget(title = "Append bottom data table's RowIDs", description = """
             If selected a new column will be attached to the output, containing the RowIDs
             of the bottom data table.
             """)
@@ -142,7 +142,7 @@ class CrossJoinerNodeParameters implements NodeParameters {
     public boolean showSecondRowIds = false;
 
     @Widget(title = "Column name (bottom)",
-        description = "Name of the column containing the row IDs from the bottom table")
+        description = "Name of the column containing the RowIDs from the bottom table")
     @TextInputWidget(patternValidation = IsNotBlankValidation.class)
     @Effect(predicate = ShowSecondRowIdsIsTrue.class, type = EffectType.SHOW)
     @Persist(configKey = "CFG_SECOND_COLUMNNAME")
