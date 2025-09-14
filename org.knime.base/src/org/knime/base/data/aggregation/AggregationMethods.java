@@ -71,6 +71,7 @@ import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.Platform;
+import org.knime.base.data.aggregation.binary.BinaryObjectConcatenateOperator;
 import org.knime.base.data.aggregation.bitvector.BitVectorIntersectionOperator;
 import org.knime.base.data.aggregation.bitvector.BitVectorNotSetCountOperator;
 import org.knime.base.data.aggregation.bitvector.BitVectorSetCountOperator;
@@ -270,6 +271,10 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
             addOperator(new TrueCountOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING));
             /**False count operator.*/
             addOperator(new FalseCountOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING));
+
+            // binary object methods
+            addOperator(new BinaryObjectConcatenateOperator(GlobalSettings.DEFAULT,
+                OperatorColumnSettings.DEFAULT_EXCL_MISSING));
 
             // Bit vector methods
             /**Set count operator.*/
