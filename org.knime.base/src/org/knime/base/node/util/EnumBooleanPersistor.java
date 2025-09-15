@@ -62,7 +62,7 @@ import org.knime.node.parameters.persistence.NodeParametersPersistor;
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  * @param <E> the type of the enum
- * @since 5.7
+ * @since 5.8
  */
 public abstract class EnumBooleanPersistor<E extends Enum<E>> implements NodeParametersPersistor<E> {
 

@@ -97,7 +97,7 @@ public final class LoopEndDynamicNodeFactory extends ConfigurableNodeFactory<Loo
     }
 
     /**
-     * @since 5.7
+     * @since 5.8
      */
     @Override
     public NodeDialog createNodeDialog() {
