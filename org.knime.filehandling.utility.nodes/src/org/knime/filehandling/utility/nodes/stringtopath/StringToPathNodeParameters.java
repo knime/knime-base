@@ -46,14 +46,12 @@
 
 package org.knime.filehandling.utility.nodes.stringtopath;
 
+import static org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil.getFirstStringColumn;
+
+import java.util.List;
+import java.util.stream.Stream;
+
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.StringValue;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.SettingsModelFileSystem;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
@@ -61,9 +59,7 @@ import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
-import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persist;
-import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.EffectPredicate;
@@ -71,8 +67,10 @@ import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
+import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider.StringColumnsProvider;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 
 /**
@@ -88,14 +86,17 @@ class StringToPathNodeParameters implements NodeParameters {
         // default constructor
     }
 
-    StringToPathNodeParameters(final NodeParametersInput input) {
-        // Auto-guess the first string column if available
-        var inputTableSpec = input.getInTableSpec(0);
-        if (inputTableSpec.isPresent()) {
-            m_selectedColumnName =
-                inputTableSpec.get().stream().filter(spec -> spec.getType().isCompatible(StringValue.class)).findFirst()
-                    .map(DataColumnSpec::getName).orElse("");
+    StringToPathNodeParameters(final NodeParametersInput context) {
+        var inputTableIndex = 0;
+        if (context.getInPortSpecs().length > 1) {
+            m_fileSystem = FileSystemMode.FS_CONNECTION;
+            inputTableIndex = 1;
         }
+        context.getInTableSpec(inputTableIndex).ifPresent(inputTableSpec -> {
+           getFirstStringColumn(inputTableSpec).ifPresent(column -> {
+               m_selectedColumnName = column.getName();
+           });
+        });
     }
 
     // ===== SECTION DEFINITIONS =====
@@ -122,64 +123,17 @@ class StringToPathNodeParameters implements NodeParameters {
     // ===== EFFECT PREDICATES =====
 
     static final class IsAppendMode implements EffectPredicateProvider {
+
         @Override
         public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(GenerateColumnModeRef.class).isOneOf(GenerateColumnMode.APPEND_NEW);
         }
+
     }
 
     // ===== CUSTOM PERSISTORS =====
 
-    static final class FileSystemPersistor implements NodeParametersPersistor<SettingsModelFileSystem> {
-
-        @Override
-        public void save(final SettingsModelFileSystem obj, final NodeSettingsWO settings) {
-            obj.saveSettingsTo(settings);
-        }
-
-        @Override
-        public SettingsModelFileSystem load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            // This will be initialized properly by the node factory
-            var model = new SettingsModelFileSystem("file_system", null,
-                StringToPathNodeModel.CONNECTION_INPUT_PORT_GRP_NAME, java.util.EnumSet.allOf(FSCategory.class));
-            model.loadSettingsFrom(settings);
-            return model;
-        }
-
-        @Override
-        public String[][] getConfigPaths() {
-            return new String[][]{{"file_system"}};
-        }
-    }
-
-    static final class GenerateColumnModePersistor implements NodeParametersPersistor<GenerateColumnMode> {
-
-        @Override
-        public void save(final GenerateColumnMode obj, final NodeSettingsWO settings) {
-            settings.addString("generated_column_mode", obj.getActionCommand());
-        }
-
-        @Override
-        public GenerateColumnMode load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            var modeStr = settings.getString("generated_column_mode", GenerateColumnMode.APPEND_NEW.getActionCommand());
-            return GenerateColumnMode.valueOf(modeStr);
-        }
-
-        @Override
-        public String[][] getConfigPaths() {
-            return new String[][]{{"generated_column_mode"}};
-        }
-    }
-
-    static final class StringColumnsProvider implements ChoicesProvider {
-        @Override
-        public String[] choices(final NodeParametersInput input) {
-            return input.getInTableSpec(0).map(DataTableSpec::stream)
-                .map(stream -> stream.filter(spec -> spec.getType().isCompatible(StringValue.class))
-                    .map(DataColumnSpec::getName).toArray(String[]::new))
-                .orElse(new String[0]);
-        }
-    }
+    // TODO: Map the values to the correct settings model
 
     // ===== PARAMETERS =====
 
@@ -188,13 +142,13 @@ class StringToPathNodeParameters implements NodeParameters {
         description = "Select the file system to which the created paths should be related to. "
             + "There are four default file system options to choose from: Local File System, Mountpoint, Relative to, and Custom/KNIME URL. "
             + "It is possible to use other file systems with this node by enabling the file system connection input port.")
-    @Persistor(FileSystemPersistor.class)
-    SettingsModelFileSystem m_fileSystem;
+    @ChoicesProvider(FilteredPossibleFileSystemModes.class)
+    FileSystemMode m_fileSystem = FileSystemMode.LOCAL;
 
     @Layout(ColumnSelectionSection.class)
     @Widget(title = "Column selection",
         description = "Column that will be converted. It has to contain a string with correct Path /foo/bar.txt syntax.")
-    @ChoicesProvider(StringColumnsProvider.class)
+    @ChoicesProvider(StringColumnsProviderDynamicPort.class)
     @Persist(configKey = "selected_column_name")
     String m_selectedColumnName = "";
 
@@ -215,9 +169,7 @@ class StringToPathNodeParameters implements NodeParameters {
         description = "Choose whether to append the new column to the table or replace the selected column with the new Path column.")
     @RadioButtonsWidget
     @ValueReference(GenerateColumnModeRef.class)
-    @Persistor(GenerateColumnModePersistor.class)
-    StringToPathNodeModel.GenerateColumnMode m_generatedColumnMode =
-        StringToPathNodeModel.GenerateColumnMode.APPEND_NEW;
+    GenerateColumnMode m_generatedColumnMode = GenerateColumnMode.APPEND_NEW;
 
     @Layout(OutputSection.class)
     @Widget(title = "New column name", description = "Name of the appended column.")
@@ -231,28 +183,63 @@ class StringToPathNodeParameters implements NodeParameters {
     enum GenerateColumnMode {
             @Label(value = "Append column",
                 description = "Append the new column to the table with the selected column name.")
-            APPEND_NEW("Append column:"),
+            APPEND_NEW,
 
             @Label(value = "Replace selected column",
                 description = "Replace the selected column with the new Path column.")
-            REPLACE_SELECTED("Replace selected column");
-
-        private final String m_text;
-
-        GenerateColumnMode(final String text) {
-            this.m_text = text;
-        }
-
-        public String getText() {
-            return m_text;
-        }
-
-        public String getActionCommand() {
-            return name();
-        }
-
-        public static GenerateColumnMode fromActionCommand(final String actionCommand) {
-            return valueOf(actionCommand);
-        }
+            REPLACE_SELECTED
     }
+
+    enum FileSystemMode {
+            @Label(value = "Local file system", description = "Use the local file system")
+            LOCAL,
+
+            @Label(value = "Mountpoint", description = "Use a KNIME mountpoint")
+            MOUNTPOINT,
+
+            @Label(value = "Relative to", description = "Use a path relative to a given base directory")
+            RELATIVE,
+
+            @Label(value = "Custom/KNIME URL", description = "Use a custom file system or KNIME URL")
+            CUSTOM_URL,
+
+            @Label(value = "Hub Space", description = "Use a Hub Space")
+            HUB_SPACE,
+
+            @Label(value = "File System Connection", description = "Use the file system connection from the input port")
+            FS_CONNECTION
+    }
+
+    // ===== CHOICES PROVIDERS =====
+
+    static final class FilteredPossibleFileSystemModes implements EnumChoicesProvider<FileSystemMode> {
+
+        @Override
+        public List<FileSystemMode> choices(final NodeParametersInput context) {
+            if (context.getInPortSpecs().length > 1) {
+                return List.of(FileSystemMode.FS_CONNECTION);
+            }
+            return List.of( //
+                FileSystemMode.LOCAL, //
+                FileSystemMode.MOUNTPOINT, //
+                FileSystemMode.RELATIVE, //
+                FileSystemMode.CUSTOM_URL, //
+                FileSystemMode.HUB_SPACE);
+        }
+
+    }
+
+    static final class StringColumnsProviderDynamicPort extends StringColumnsProvider {
+
+        @Override
+        public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
+            final var inputTableIndex = context.getInPortSpecs().length > 1 ? 1 : 0;
+            return context.getInTableSpec(inputTableIndex) //
+                .map(spec -> spec.stream().filter(this::isIncluded)) //
+                .orElseGet(Stream::empty) //
+                .toList();
+        }
+
+    }
+
 }
