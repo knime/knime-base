@@ -28,5 +28,9 @@
 
 	<keywords>
 		<keyword>table size extractor</keyword>
+		<keyword>shape</keyword>
+		<keyword>row count</keyword>
+		<keyword>column count</keyword>
+		<keyword>dimensions</keyword>
 	</keywords>
 </knimeNode>
