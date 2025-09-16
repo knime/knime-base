@@ -88,16 +88,16 @@ import org.knime.node.parameters.widget.choices.StringChoice;
  *
  * @author Paul Bärnreuther
  */
-public class FilterOperator2Util {
+public final class FilterOperator2Util {
 
     private FilterOperator2Util() {
         // utility class
     }
 
     record AvailableOperators(//
-        List<BuiltinOperator> builtinOperatorsFromExtension, //
-        List<Pair<FilterOperator, FilterOperator.InternalFilterOperator>> internalBuiltinOperators, //
-        List<FilterOperator2> customOperatorsFromExtension //
+        List<BuiltinOperator<?>> builtinOperatorsFromExtension, //
+        List<Pair<FilterOperator, FilterOperator.InternalFilterOperator<?>>> internalBuiltinOperators, //
+        List<FilterOperator2<?>> customOperatorsFromExtension //
     ) {
 
     }
@@ -109,21 +109,21 @@ public class FilterOperator2Util {
         final List<FilterOperator2<? extends FilterValueParameters>> operatorsFromExtension =
             EXTENSION_FILTER_OPERATORS.getOrDefault(dataType, List.of());
 
-        final List<BuiltinOperator> builtinOperators = new ArrayList<>();
-        final List<FilterOperator2> customOperators = new ArrayList<>();
+        final List<BuiltinOperator<?>> builtinOperators = new ArrayList<>();
+        final List<FilterOperator2<?>> customOperators = new ArrayList<>();
         for (final var op : operatorsFromExtension) {
-            if (op instanceof BuiltinOperator builtinOp) {
+            if (op instanceof BuiltinOperator<?> builtinOp) {
                 builtinOperators.add(builtinOp);
             } else {
                 customOperators.add(op);
             }
         }
-        final List<Pair<FilterOperator, FilterOperator.InternalFilterOperator>> internalBuiltinOperators =
+        final List<Pair<FilterOperator, FilterOperator.InternalFilterOperator<?>>> internalBuiltinOperators =
             new ArrayList<>();
         for (var fo : FilterOperator.values()) {
-            fo.getColumnFilterOperator(dataType).ifPresent(ifo -> {
-                internalBuiltinOperators.add(new Pair<>(fo, ifo));
-            });
+            fo.getColumnFilterOperator(dataType).ifPresent(ifo ->
+                internalBuiltinOperators.add(new Pair<>(fo, ifo))
+            );
         }
 
         return new AvailableOperators(//
