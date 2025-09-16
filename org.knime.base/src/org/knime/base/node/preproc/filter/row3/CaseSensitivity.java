@@ -50,9 +50,21 @@ package org.knime.base.node.preproc.filter.row3;
 
 import org.knime.node.parameters.widget.choices.Label;
 
+/**
+ * Case sensitivity options for string comparisons.
+ *
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ */
 public enum CaseSensitivity {
+
+        /**
+         * Case sensitive comparison.
+         */
         @Label("Case sensitive")
         CASE_SENSITIVE, //
+        /**
+         * Case-insensitive comparison.
+         */
         @Label("Case insensitive")
         CASE_INSENSITIVE;
 }
