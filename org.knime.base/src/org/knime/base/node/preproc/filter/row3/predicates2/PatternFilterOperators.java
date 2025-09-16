@@ -49,6 +49,7 @@
 package org.knime.base.node.preproc.filter.row3.predicates2;
 
 import java.util.function.Function;
+import java.util.function.LongPredicate;
 import java.util.function.Predicate;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
@@ -83,28 +84,6 @@ public final class PatternFilterOperators {
         // Utility
     }
 
-    private static StringPredicate getPredicate(final PatternFilterParameters params, final boolean isRegex) {
-        return StringPredicate.pattern(params.m_pattern, isRegex,
-            params.m_caseSensitivity == CaseSensitivity.CASE_SENSITIVE);
-    }
-
-    /**
-     * Creates a factory for pattern matching predicates on a column.
-     *
-     * @param columnDataType column data type
-     * @return method that returns a string from a given data value
-     */
-    private static Function<DataValue, String> toStringFunction(final DataType columnDataType) {
-        final var preferredValueClass = columnDataType.getPreferredValueClass();
-        if (preferredValueClass.equals(LongValue.class)) {
-            return value -> Long.toString(((LongValue)value).getLongValue());
-        } else if (preferredValueClass.equals(IntValue.class)) {
-            return value -> Integer.toString(((IntValue)value).getIntValue());
-        } else {
-            return value -> ((StringValue)value).getStringValue();
-        }
-    }
-
     public static boolean isSupported(final DataType type) {
         final var preferredValueClass = type.getPreferredValueClass();
         return !BooleanValue.class.equals(preferredValueClass) // booleans have only IS_TRUE and IS_FALSE operators
@@ -128,15 +107,15 @@ public final class PatternFilterOperators {
 
         @Override
         public Predicate<RowKeyValue> translateToPredicate(final PatternFilterParameters params) {
-            final var predicate = PatternFilterOperators.getPredicate(params, m_isRegex);
+            final var predicate = getPredicate(params, m_isRegex);
             return rowKey -> predicate.test(rowKey.getString());
         }
 
         @Override
-        public IndexedRowReadPredicate columnToPredicate(final PatternFilterParameters params, final int columnIndex,
+        public IndexedRowReadPredicate translateToPredicate(final PatternFilterParameters params, final int columnIndex,
             final DataType dataType) throws InvalidSettingsException {
             final var toStringFunction = toStringFunction(dataType);
-            final var predicate = PatternFilterOperators.getPredicate(params, m_isRegex);
+            final var predicate = getPredicate(params, m_isRegex);
             return (idx, row) -> predicate.test(toStringFunction.apply(row.getValue(columnIndex)));
         }
 
@@ -148,7 +127,34 @@ public final class PatternFilterOperators {
 
             @Widget(title = "Pattern", description = "The pattern to filter for.")
             public String m_pattern = "";
+        }
 
+        private static StringPredicate getPredicate(final PatternFilterParameters params, final boolean isRegex) {
+            return StringPredicate.pattern(params.m_pattern, isRegex,
+                params.m_caseSensitivity == CaseSensitivity.CASE_SENSITIVE);
+        }
+
+        /**
+         * String serialization function based on the data type's {@link DataType#getPreferredValueClass preferred value
+         * class} for integral numeric types, otherwise type must be compatible {@link StringValue}.
+         *
+         * @param columnDataType column data type
+         * @return method that returns a string from a given data value
+         * @throws InvalidSettingsException if the data type is not supported because it cannot produce a string value
+         */
+        private static Function<DataValue, String> toStringFunction(final DataType columnDataType)
+            throws InvalidSettingsException {
+            final var preferredValueClass = columnDataType.getPreferredValueClass();
+            if (preferredValueClass.equals(LongValue.class)) {
+                return value -> Long.toString(((LongValue)value).getLongValue());
+            } else if (preferredValueClass.equals(IntValue.class)) {
+                return value -> Integer.toString(((IntValue)value).getIntValue());
+            }
+            if (!columnDataType.isCompatible(StringValue.class)) {
+                throw new InvalidSettingsException("The type \"%s\" is not supported by the pattern filter operator."
+                    .formatted(columnDataType.getName()));
+            }
+            return value -> ((StringValue)value).getStringValue();
         }
 
     }
@@ -167,7 +173,7 @@ public final class PatternFilterOperators {
         }
 
         @Override
-        public Predicate<Long> translateToPredicate(final RowNumberPatternFilterParameters params) {
+        public LongPredicate translateToPredicate(final RowNumberPatternFilterParameters params) {
             final var predicate = StringPredicate.pattern(params.m_pattern, m_isRegex, false);
             // map from 0-based index to 1-based row number
             return rowNum -> predicate.test(Long.toString(rowNum + 1));

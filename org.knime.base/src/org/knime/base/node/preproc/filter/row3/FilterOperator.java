@@ -52,6 +52,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.function.LongPredicate;
 import java.util.function.Predicate;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
@@ -328,8 +329,11 @@ public enum FilterOperator {
         }
     }
 
+    /**
+     * An internal, aka. built-in, filter operator.
+     */
     interface InternalFilterOperator<T extends FilterValueParameters> {
-        Collection<? extends Class<? extends FilterValueParameters>> ALL_PARAMETER_CLASSES = List.of(//
+        Collection<Class<? extends FilterValueParameters>> ALL_PARAMETER_CLASSES = List.of(//
             PatternFilterParameters.class, //
             RowNumberPatternFilterParameters.class //
         );
@@ -340,31 +344,38 @@ public enum FilterOperator {
             return false;
         }
 
-        @SuppressWarnings("unchecked")
-        static IndexedRowReadPredicate toPredicate(final InternalFilterOperator<?> operator,
-            final FilterValueParameters params, final OptionalInt columnIndex, final DataType dataType)
-            throws InvalidSettingsException {
-            if (operator instanceof ColumnFilterOperator colOp) {
+        static <T extends FilterValueParameters> IndexedRowReadPredicate toPredicate(
+            final InternalFilterOperator<T> operator, final T params, final OptionalInt columnIndex,
+            final DataType dataType)
+                    throws InvalidSettingsException {
+            // normal column
+            if (operator instanceof ColumnFilterOperator<T> colOp) {
                 if (columnIndex.isEmpty() || columnIndex.getAsInt() < 0) {
-                    throw new IllegalArgumentException("TODO");
+                    final var kind = StringCell.TYPE.equals(dataType) ? "RowIDs" : "row numbers";
+                    throw new InvalidSettingsException("Cannot apply a column filter operator on %s.".formatted(kind));
                 }
-                return colOp.columnToPredicate(params, columnIndex.getAsInt(), dataType);
-            } else if (operator instanceof RowIDFilterOperator rowIdOp) {
+                return colOp.translateToPredicate(params, columnIndex.getAsInt(), dataType);
+            }
+
+            // "special columns"
+            if (operator instanceof RowIDFilterOperator<T> rowIdOp) {
                 if (columnIndex.isPresent() && columnIndex.getAsInt() >= 0) {
-                    throw new IllegalArgumentException("TODO");
+                    throw new InvalidSettingsException(
+                        "Cannot apply RowID filter operator on column %d.".formatted(columnIndex.getAsInt() + 1));
                 }
                 final var predicate = rowIdOp.translateToPredicate(params);
                 return (idx, row) -> predicate.test(row.getRowKey());
-            } else if (operator instanceof RowNumberFilterOperator rowNumOp) {
-                if (columnIndex.isPresent() && columnIndex.getAsInt() >= 0) {
-                    throw new IllegalArgumentException("TODO");
-                }
-                final var predicate = rowNumOp.translateToPredicate(params);
-                return (idx, row) -> predicate.test(idx);
-            } else {
-                throw new IllegalArgumentException("Unknown operator type: %s".formatted(operator.getClass()));
             }
-
+            if (operator instanceof RowNumberFilterOperator<T> rowNumOp) {
+                if (columnIndex.isPresent() && columnIndex.getAsInt() >= 0) {
+                    throw new InvalidSettingsException("Cannot apply row number filter operator on column %d."
+                        .formatted(columnIndex.getAsInt() + 1));
+                }
+                final LongPredicate predicate = rowNumOp.translateToPredicate(params);
+                return (idx, row) -> predicate.test(idx);
+            }
+            // unsupported type remains
+            throw new IllegalArgumentException("Unknown operator type: %s".formatted(operator.getClass()));
         }
     }
 
@@ -382,9 +393,9 @@ public enum FilterOperator {
          * @param columnIndex index of the column to filter on
          * @param dataType data type of the column to filter on
          * @return predicate that can be used to filter rows
-         * @throws InvalidSettingsException
+         * @throws InvalidSettingsException in case the parameters cannot be used to build the predicate
          */
-        IndexedRowReadPredicate columnToPredicate(final T params, final int columnIndex, final DataType dataType)
+        IndexedRowReadPredicate translateToPredicate(final T params, final int columnIndex, final DataType dataType)
             throws InvalidSettingsException;
     }
 
@@ -418,13 +429,14 @@ public enum FilterOperator {
          * @return predicate that can be used to filter rows
          * @throws InvalidSettingsException in case the parameters are invalid
          */
-        Predicate<Long> translateToPredicate(final T params) throws InvalidSettingsException;
+        LongPredicate translateToPredicate(final T params) throws InvalidSettingsException;
     }
 
     enum FilterColumn {
             COLUMN, ROW_ID, ROW_NUMBER
     }
 
+    // TODO use of the wildcard type feels like a code smell that we should get rid off
     Optional<ColumnFilterOperator<?>> getColumnFilterOperator(final DataType dataType) {
         switch (this) {
             case REGEX, WILDCARD:
