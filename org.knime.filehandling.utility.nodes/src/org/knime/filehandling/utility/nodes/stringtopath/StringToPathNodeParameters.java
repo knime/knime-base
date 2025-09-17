@@ -46,12 +46,13 @@
 
 package org.knime.filehandling.utility.nodes.stringtopath;
 
-import static org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil.getFirstStringColumn;
-
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
@@ -65,11 +66,15 @@ import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.EffectPredicate;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.util.BooleanReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
+import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
 import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider.StringColumnsProvider;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 
@@ -83,23 +88,16 @@ import org.knime.node.parameters.widget.text.TextInputWidget;
 class StringToPathNodeParameters implements NodeParameters {
 
     StringToPathNodeParameters() {
-        // default constructor
     }
 
     StringToPathNodeParameters(final NodeParametersInput context) {
-        var inputTableIndex = 0;
-        if (context.getInPortSpecs().length > 1) {
-            m_fileSystem = FileSystemMode.FS_CONNECTION;
-            inputTableIndex = 1;
-        }
+        final var inputTableIndex = findIndexOfFirstDataTable(context.getInPortSpecs());
         context.getInTableSpec(inputTableIndex).ifPresent(inputTableSpec -> {
-           getFirstStringColumn(inputTableSpec).ifPresent(column -> {
-               m_selectedColumnName = column.getName();
-           });
+            ColumnSelectionUtil.getFirstStringColumn(inputTableSpec).ifPresent(column -> {
+                m_selectedColumnName = column.getName();
+            });
         });
     }
-
-    // ===== SECTION DEFINITIONS =====
 
     @Section(title = "File system")
     interface FileSystemSection {
@@ -115,12 +113,8 @@ class StringToPathNodeParameters implements NodeParameters {
     interface OutputSection {
     }
 
-    // ===== PARAMETER REFERENCES FOR EFFECTS =====
-
     interface GenerateColumnModeRef extends ParameterReference<GenerateColumnMode> {
     }
-
-    // ===== EFFECT PREDICATES =====
 
     static final class IsAppendMode implements EffectPredicateProvider {
 
@@ -131,24 +125,14 @@ class StringToPathNodeParameters implements NodeParameters {
 
     }
 
-    // ===== CUSTOM PERSISTORS =====
-
-    // TODO: Map the values to the correct settings model
-
-    // ===== PARAMETERS =====
-
     @Layout(FileSystemSection.class)
-    @Widget(title = "File system",
-        description = "Select the file system to which the created paths should be related to. "
-            + "There are four default file system options to choose from: Local File System, Mountpoint, Relative to, and Custom/KNIME URL. "
-            + "It is possible to use other file systems with this node by enabling the file system connection input port.")
-    @ChoicesProvider(FilteredPossibleFileSystemModes.class)
-    FileSystemMode m_fileSystem = FileSystemMode.LOCAL;
+    @Persist(configKey = "file_system")
+    FileSystem m_fileSystem = new FileSystem();
 
     @Layout(ColumnSelectionSection.class)
     @Widget(title = "Column selection",
         description = "Column that will be converted. It has to contain a string with correct Path /foo/bar.txt syntax.")
-    @ChoicesProvider(StringColumnsProviderDynamicPort.class)
+    @ChoicesProvider(DynamicPortStringColumnsProvider.class)
     @Persist(configKey = "selected_column_name")
     String m_selectedColumnName = "";
 
@@ -169,6 +153,7 @@ class StringToPathNodeParameters implements NodeParameters {
         description = "Choose whether to append the new column to the table or replace the selected column with the new Path column.")
     @RadioButtonsWidget
     @ValueReference(GenerateColumnModeRef.class)
+    @Persist(configKey = "generated_column_mode")
     GenerateColumnMode m_generatedColumnMode = GenerateColumnMode.APPEND_NEW;
 
     @Layout(OutputSection.class)
@@ -178,7 +163,18 @@ class StringToPathNodeParameters implements NodeParameters {
     @Persist(configKey = "appended_column_name")
     String m_appendedColumnName = "Path";
 
-    // ===== ENUM DEFINITIONS =====
+    private static int findIndexOfFirstDataTable(final PortObjectSpec[] inSpecs) {
+        for (int i = 0; i < inSpecs.length; i++) {
+            if (inSpecs[i] instanceof DataTableSpec) {
+                return i;
+            }
+        }
+        throw new RuntimeException("No data table input port available.");
+    }
+
+    private static boolean hasFileSystemPort(final PortObjectSpec[] inSpecs) {
+        return findIndexOfFirstDataTable(inSpecs) == 1;
+    }
 
     enum GenerateColumnMode {
             @Label(value = "Append column",
@@ -190,54 +186,160 @@ class StringToPathNodeParameters implements NodeParameters {
             REPLACE_SELECTED
     }
 
-    enum FileSystemMode {
-            @Label(value = "Local file system", description = "Use the local file system")
-            LOCAL,
-
-            @Label(value = "Mountpoint", description = "Use a KNIME mountpoint")
-            MOUNTPOINT,
-
-            @Label(value = "Relative to", description = "Use a path relative to a given base directory")
-            RELATIVE,
-
-            @Label(value = "Custom/KNIME URL", description = "Use a custom file system or KNIME URL")
-            CUSTOM_URL,
-
-            @Label(value = "Hub Space", description = "Use a Hub Space")
-            HUB_SPACE,
-
-            @Label(value = "File System Connection", description = "Use the file system connection from the input port")
-            FS_CONNECTION
-    }
-
-    // ===== CHOICES PROVIDERS =====
-
-    static final class FilteredPossibleFileSystemModes implements EnumChoicesProvider<FileSystemMode> {
-
-        @Override
-        public List<FileSystemMode> choices(final NodeParametersInput context) {
-            if (context.getInPortSpecs().length > 1) {
-                return List.of(FileSystemMode.FS_CONNECTION);
-            }
-            return List.of( //
-                FileSystemMode.LOCAL, //
-                FileSystemMode.MOUNTPOINT, //
-                FileSystemMode.RELATIVE, //
-                FileSystemMode.CUSTOM_URL, //
-                FileSystemMode.HUB_SPACE);
-        }
-
-    }
-
-    static final class StringColumnsProviderDynamicPort extends StringColumnsProvider {
+    static final class DynamicPortStringColumnsProvider extends StringColumnsProvider {
 
         @Override
         public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
-            final var inputTableIndex = context.getInPortSpecs().length > 1 ? 1 : 0;
+            final var inputTableIndex = findIndexOfFirstDataTable(context.getInPortSpecs());
             return context.getInTableSpec(inputTableIndex) //
                 .map(spec -> spec.stream().filter(this::isIncluded)) //
                 .orElseGet(Stream::empty) //
                 .toList();
+        }
+
+    }
+
+    static final class FileSystem implements NodeParameters {
+
+        @Persist(configKey = "file_system_chooser__Internals")
+        FileSystemChooser m_fileSystemChooser = new FileSystemChooser();
+
+        @Persist(configKey = "location_spec")
+        LocationSpecification m_locationSpecification = new LocationSpecification();
+
+        static final class FileSystemChooser implements NodeParameters {
+
+            @Persist(configKey = "overwritten_by_variable")
+            boolean overwrittenByVariable = false;
+
+            @Persist(configKey = "has_fs_port")
+            @ValueReference(HasFileSystemPortRef.class)
+            @ValueProvider(HasFileSystemPortProvider.class)
+            boolean m_hasFileSystemPort;
+
+            @Widget(title = " ", description = "Select the file system to which the created paths should be related to. "
+                + "There are four default file system options to choose from: Local File System, Mountpoint, Relative to, and Custom/KNIME URL. "
+                + "It is possible to use other file systems with this node by enabling the file system connection input port.")
+            @Persist(configKey = "convenience_fs_category")
+            @ChoicesProvider(FileSystemCategoryChoicesProvider.class)
+            @ValueProvider(FileSystemCategoryProvider.class)
+            @ValueReference(FileSystemCategoryRef.class)
+            FileSystemCategory m_fileSystemCategory;
+
+            @Persist(configKey = "relative_to")
+            String relativeTo = "knime.workflow.data";
+
+            @Persist(configKey = "mountpoint")
+            String mountpoint = "knime-temp-space";
+
+            @Persist(configKey = "spaceId")
+            String spaceId = "";
+
+            @Persist(configKey = "spaceName")
+            String spaceName = "";
+
+            @Persist(configKey = "custom_url_timeout")
+            int customUrlTimeout = 10000;
+
+            @Persist(configKey = "connected_fs")
+            boolean connectedToFileSystemPort = false;
+
+            enum FileSystemCategory {
+                    @Label(value = "Local file system", description = "Use the local file system")
+                    LOCAL,
+
+                    @Label(value = "Mountpoint", description = "Use a KNIME mountpoint")
+                    MOUNTPOINT,
+
+                    @Label(value = "Relative to", description = "Use a path relative to a given base directory")
+                    RELATIVE,
+
+                    @Label(value = "Custom/KNIME URL", description = "Use a custom file system or KNIME URL")
+                    CUSTOM_URL,
+
+                    @Label(value = "Hub Space", description = "Use a Hub Space")
+                    HUB_SPACE,
+
+                    @Label(value = "File System Connection",
+                        description = "Use the file system connection from the input port")
+                    CONNECTED
+            }
+
+            static final class HasFileSystemPortRef implements BooleanReference {
+            }
+
+            static final class HasFileSystemPortProvider implements StateProvider<Boolean> {
+
+                @Override
+                public void init(final StateProviderInitializer initializer) {
+                    // Needed to compute the state when the dialog is opened
+                    initializer.computeBeforeOpenDialog();
+                }
+
+                @Override
+                public Boolean computeState(final NodeParametersInput context) {
+                    return hasFileSystemPort(context.getInPortSpecs());
+                }
+
+            }
+
+            static final class FileSystemCategoryRef implements ParameterReference<FileSystemCategory> {
+            }
+
+            static final class FileSystemCategoryChoicesProvider implements EnumChoicesProvider<FileSystemCategory> {
+
+                @Override
+                public List<FileSystemCategory> choices(final NodeParametersInput context) {
+                    return hasFileSystemPort(context.getInPortSpecs()) //
+                        ? List.of(FileSystemCategory.CONNECTED) //
+                        : List.of( //
+                            FileSystemCategory.LOCAL, //
+                            FileSystemCategory.MOUNTPOINT, //
+                            FileSystemCategory.RELATIVE, //
+                            FileSystemCategory.CUSTOM_URL, //
+                            FileSystemCategory.HUB_SPACE);
+                }
+            }
+
+            static final class FileSystemCategoryProvider implements StateProvider<FileSystemCategory> {
+
+                private Supplier<Boolean> m_hasFileSystemPortSupplier;
+
+                private Supplier<FileSystemCategory> m_fileSystemCategorySupplier;
+
+                @Override
+                public void init(final StateProviderInitializer initializer) {
+                    initializer.computeOnValueChange(HasFileSystemPortRef.class);
+                    m_hasFileSystemPortSupplier = initializer.getValueSupplier(HasFileSystemPortRef.class);
+                    m_fileSystemCategorySupplier = initializer.getValueSupplier(FileSystemCategoryRef.class);
+                }
+
+                @Override
+                public FileSystemCategory computeState(final NodeParametersInput context) {
+                    final var hasFileSystemPort = m_hasFileSystemPortSupplier.get().booleanValue();
+                    final var selectedCategory = m_fileSystemCategorySupplier.get();
+
+                    if (hasFileSystemPort) {
+                        return FileSystemCategory.CONNECTED;
+                    }
+
+                    return selectedCategory == FileSystemCategory.CONNECTED //
+                        ? FileSystemCategory.LOCAL //
+                        : selectedCategory;
+                }
+
+            }
+
+        }
+
+        static final class LocationSpecification implements NodeParameters {
+
+            @Persist(configKey = "location_present")
+            boolean m_locationPresent = true;
+
+            @Persist(configKey = "file_system_type")
+            String m_fileSystem_type = "LOCAL";
+
         }
 
     }
