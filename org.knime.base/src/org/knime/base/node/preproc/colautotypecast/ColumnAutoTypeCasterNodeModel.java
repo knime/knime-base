@@ -49,9 +49,18 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.DateTimeException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.TemporalQuery;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.TimeZone;
 
 import org.knime.base.node.io.filereader.DataCellFactory;
@@ -61,6 +70,7 @@ import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.data.DataTypeRegistry;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.container.ColumnRearranger;
@@ -103,6 +113,8 @@ public class ColumnAutoTypeCasterNodeModel extends NodeModel {
 
     static final String CFGKEY_USELEGACYTYPENAMES = "useLegacyTypeNames";
 
+    static final String CFGKEY_USE_LEGACY_DATE_TIME_TYPE = "useLegacyDateTimeType";
+
     static final String MISSVALDESC_NONE = "<none>";
 
     static final String MISSVALDESC_EMPTY = "<empty>";
@@ -121,6 +133,36 @@ public class ColumnAutoTypeCasterNodeModel extends NodeModel {
 
     // added in AP-23571 (5.5)
     private boolean m_useLegacyTypeNames = false;
+
+    // added in AP-24883 (5.8)
+    private boolean m_useLegacyDateTimeType;
+
+    private static final Optional<DataType> LOCAL_DATE_TIME_TYPE;
+
+    private static final Optional<DataType> ZONED_DATE_TIME_TYPE;
+
+    private static final Optional<DataType> LOCAL_TIME_TYPE;
+
+    private static final Optional<DataType> LOCAL_DATE_TYPE;
+
+    static {
+        /**
+         * We cannot refer to those classes directly as the do not live in org.knime.core, but in org.knime.time which
+         * has a dependency to org.knime.base -> would introduce a cycle
+         */
+        final var dateTimeTypes = DataTypeRegistry.getInstance().availableDataTypes().stream() //
+            .filter(dataType -> dataType.getCellClass().getName().startsWith("org.knime.core.data.time")).toList();
+        LOCAL_DATE_TIME_TYPE = dateTimeTypes.stream().filter(dataType -> dataType.getCellClass().getName()
+            .equals("org.knime.core.data.time.localdatetime.LocalDateTimeCell")).findFirst();
+        ZONED_DATE_TIME_TYPE = dateTimeTypes.stream().filter(dataType -> dataType.getCellClass().getName()
+            .equals("org.knime.core.data.time.zoneddatetime.ZonedDateTimeCell")).findFirst();
+        LOCAL_DATE_TYPE = dateTimeTypes.stream().filter(
+            dataType -> dataType.getCellClass().getName().equals("org.knime.core.data.time.localdate.LocalDateCell"))
+            .findFirst();
+        LOCAL_TIME_TYPE = dateTimeTypes.stream().filter(
+            dataType -> dataType.getCellClass().getName().equals("org.knime.core.data.time.localtime.LocalTimeCell"))
+            .findFirst();
+    }
 
     /**
      * Creates a new node model with one in- and outport.
@@ -160,7 +202,8 @@ public class ColumnAutoTypeCasterNodeModel extends NodeModel {
 
         if (data.size() > 0) {
             // empty table check
-            SimpleDateFormat dateFormat = new SimpleDateFormat(m_dateFormat);
+            SimpleDateFormat legacyDateFormat = new SimpleDateFormat(m_dateFormat);
+            final var dateFormat = DateTimeFormatter.ofPattern(m_dateFormat);
 
             long numberOfRows = m_quickScan ? Math.min(m_numberOfRows, data.size()) : data.size();
             for (DataRow row : data) {
@@ -174,7 +217,7 @@ public class ColumnAutoTypeCasterNodeModel extends NodeModel {
                     if (!c.isMissing() && c.toString().equals(m_missValPat)) {
                         continue;
                     }
-                    DataType newType = typeGuesser(c, dateFormat);
+                    DataType newType = typeGuesser(c, legacyDateFormat, dateFormat, m_useLegacyDateTimeType);
                     if (types[i] != null) {
                         DataType toSet = setType(types[i], newType);
                         if (!toSet.equals(types[i])) {
@@ -217,7 +260,21 @@ public class ColumnAutoTypeCasterNodeModel extends NodeModel {
                 DataColumnSpec colSpec = colSpecCreator.createSpec();
 
                 if (type.equals(DateAndTimeCell.TYPE)) {
-                    arrange.replace(createDateAndTimeConverter(colIdx, colSpec), colIdx);
+                    arrange.replace(createLegacyDateAndTimeConverter(colIdx, colSpec), colIdx);
+                } else if (type.equals(ZONED_DATE_TIME_TYPE.get())) {
+                    arrange.replace(
+                        createDateAndTimeConverter(colIdx, colSpec, ZONED_DATE_TIME_TYPE.get(), ZonedDateTime::from),
+                        colIdx);
+                } else if (type.equals(LOCAL_DATE_TIME_TYPE.get())) {
+                    arrange.replace(
+                        createDateAndTimeConverter(colIdx, colSpec, LOCAL_DATE_TIME_TYPE.get(), LocalDateTime::from),
+                        colIdx);
+                } else if (type.equals(LOCAL_DATE_TYPE.get())) {
+                    arrange.replace(createDateAndTimeConverter(colIdx, colSpec, LOCAL_DATE_TYPE.get(), LocalDate::from),
+                        colIdx);
+                } else if (type.equals(LOCAL_TIME_TYPE.get())) {
+                    arrange.replace(createDateAndTimeConverter(colIdx, colSpec, LOCAL_TIME_TYPE.get(), LocalTime::from),
+                        colIdx);
                 } else if (type.equals(LongCell.TYPE)) {
                     arrange.replace(createLongConverter(colIdx, colSpec), colIdx);
                 } else {
@@ -231,12 +288,12 @@ public class ColumnAutoTypeCasterNodeModel extends NodeModel {
 
             outTable = exec.createColumnRearrangeTable(data, arrange, exec);
 
-             for (int i = 0; i < m_reasons.length; i++) {
+            for (int i = 0; i < m_reasons.length; i++) {
                 DataCell[] row = new DataCell[m_reasons[i].length];
                 for (int j = 0; j < m_reasons[i].length; j++) {
                     row[j] = new StringCell(m_reasons[i][j]);
                 }
-                reasonsCon.addRowToTable(new DefaultRow(RowKey.createRowKey((long) i), row));
+                reasonsCon.addRowToTable(new DefaultRow(RowKey.createRowKey((long)i), row));
             }
         }
 
@@ -247,8 +304,8 @@ public class ColumnAutoTypeCasterNodeModel extends NodeModel {
 
     }
 
-    private SingleCellFactory
-        createNumberConverter(final int colIdx, final DataType type, final DataColumnSpec colSpec) {
+    private SingleCellFactory createNumberConverter(final int colIdx, final DataType type,
+        final DataColumnSpec colSpec) {
         return new SingleCellFactory(colSpec) {
             private final DataCellFactory m_fac = new DataCellFactory();
 
@@ -294,9 +351,9 @@ public class ColumnAutoTypeCasterNodeModel extends NodeModel {
                         try {
                             return new LongCell(Long.parseLong(str));
                         } catch (NumberFormatException nfe) {
-                            throw new NumberFormatException("Can't convert '" + str + "' to "
-                                + LongCell.TYPE.toString() + ". In " + row.getKey() + " Column" + colIdx + ". Disable "
-                                + "quickscan and try again.");
+                            throw new NumberFormatException(
+                                "Can't convert '" + str + "' to " + LongCell.TYPE.toString() + ". In " + row.getKey()
+                                    + " Column" + colIdx + ". Disable " + "quickscan and try again.");
                         }
                     } else {
                         return DataType.getMissingCell();
@@ -309,7 +366,7 @@ public class ColumnAutoTypeCasterNodeModel extends NodeModel {
         };
     }
 
-    private SingleCellFactory createDateAndTimeConverter(final int colIdx, final DataColumnSpec colSpec) {
+    private SingleCellFactory createLegacyDateAndTimeConverter(final int colIdx, final DataColumnSpec colSpec) {
         return new SingleCellFactory(colSpec) {
             private final Calendar m_cal = Calendar.getInstance(TimeZone.getDefault());
 
@@ -341,9 +398,10 @@ public class ColumnAutoTypeCasterNodeModel extends NodeModel {
                             m_cal.setTime(m_format.parse(str));
                             return new DateAndTimeCell(m_cal.getTimeInMillis(), m_hasDate, m_hasTime, m_hasMillis);
                         } catch (ParseException e) {
-                            throw new IllegalArgumentException("Can't convert '" + str + "' to "
-                                + DateAndTimeCell.TYPE.toString() + ". In " + row.getKey() + " Column" + colIdx
-                                + ". Disable quickscan and try again.", e);
+                            throw new IllegalArgumentException(
+                                "Can't convert '" + str + "' to " + DateAndTimeCell.TYPE.toString() + ". In "
+                                    + row.getKey() + " Column" + colIdx + ". Disable quickscan and try again.",
+                                e);
                         }
                     } else {
                         return DataType.getMissingCell();
@@ -352,6 +410,40 @@ public class ColumnAutoTypeCasterNodeModel extends NodeModel {
                 } else {
                     // create MissingCell
                     return DataType.getMissingCell();
+                }
+            }
+        };
+    }
+
+    private <T> SingleCellFactory createDateAndTimeConverter(final int colIdx, final DataColumnSpec colSpec,
+        final DataType dataType, final TemporalQuery<T> temporalQuery) {
+        return new SingleCellFactory(colSpec) {
+
+            private final DateTimeFormatter m_format = DateTimeFormatter.ofPattern(m_dateFormat);
+
+            private static final DataCellFactory CELL_FACTORY = new DataCellFactory();
+
+            @Override
+            public DataCell getCell(final DataRow row) {
+                DataCell cell = row.getCell(colIdx);
+                if (cell.isMissing()) {
+                    return DataType.getMissingCell();
+                }
+                String str = ((StringValue)cell).getStringValue();
+                if (str.equals(m_missValPat)) {
+                    return DataType.getMissingCell();
+                }
+                try {
+                    final var parsedDateTime = m_format.parse(str, temporalQuery);
+                    /**
+                     * to string returns the iso format of the given LocalDate, LocalTime, LocalDateTime, or
+                     * ZonedDateTime, which is needed as CELL_FACTORY.createDataCellOfType calls the default create of
+                     * the different cells which all use the ISO format
+                     */
+                    return CELL_FACTORY.createDataCellOfType(dataType, parsedDateTime.toString());
+                } catch (DateTimeParseException e) {
+                    throw new IllegalArgumentException("Can't convert '" + str + "' to " + dataType.toString() + ". In "
+                        + row.getKey() + " Column" + colIdx + ". Disable quickscan and try again.", e);
                 }
             }
         };
@@ -390,15 +482,23 @@ public class ColumnAutoTypeCasterNodeModel extends NodeModel {
      * @param cell
      * @return new DataType if string could be parsed else return old DataType
      */
-    private DataType typeGuesser(final DataCell cell, final DateFormat dateFormat) {
+    private static DataType typeGuesser(final DataCell cell, final DateFormat legacyDateFormat,
+        final DateTimeFormatter dateTimeFormat, final boolean useLegacyDateTimeType) {
         if (!cell.isMissing()) {
             String str = cell.toString();
 
-            try {
-                dateFormat.parse(str);
-                return DateAndTimeCell.TYPE;
-            } catch (ParseException e1) {
-                // try another one
+            if (useLegacyDateTimeType) {
+                try {
+                    legacyDateFormat.parse(str);
+                    return DateAndTimeCell.TYPE;
+                } catch (ParseException e1) {
+                    // try another one
+                }
+            } else {
+                final var dateTimeType = guessDateTimeType(dateTimeFormat, str);
+                if (dateTimeType.isPresent()) {
+                    return dateTimeType.get();
+                }
             }
 
             try {
@@ -430,8 +530,47 @@ public class ColumnAutoTypeCasterNodeModel extends NodeModel {
         return cell.getType();
     }
 
+    private static Optional<DataType> guessDateTimeType(final DateTimeFormatter dateTimeFormat, final String value) {
+        try {
+            final var parsedDateTime = dateTimeFormat.parse(value);
+            if (ZONED_DATE_TIME_TYPE.isEmpty() || LOCAL_DATE_TIME_TYPE.isEmpty() || LOCAL_DATE_TYPE.isEmpty()
+                || LOCAL_TIME_TYPE.isEmpty()) {
+                throw new IllegalStateException(String.format(
+                    "Trying to convert '%s' to a date&time, but the date&time types could not be found.", value));
+            }
+            try {
+                ZonedDateTime.from(parsedDateTime);
+                return Optional.of(ZONED_DATE_TIME_TYPE.get());
+            } catch (DateTimeException e) {
+                // try another date&time type
+            }
+            try {
+                LocalDateTime.from(parsedDateTime);
+                return Optional.of(LOCAL_DATE_TIME_TYPE.get());
+            } catch (DateTimeException e) {
+                // try another date&time type
+            }
+            try {
+                LocalTime.from(parsedDateTime);
+                return Optional.of(LOCAL_TIME_TYPE.get());
+            } catch (DateTimeException e) {
+                // try another date&time type
+            }
+            try {
+                LocalDate.from(parsedDateTime);
+                return Optional.of(LOCAL_DATE_TYPE.get());
+            } catch (DateTimeException e) {
+                // try another data type
+            }
+        } catch (DateTimeParseException e) {
+            // try another data type
+        }
+        return Optional.empty();
+    }
+
     /**
      * {@inheritDoc}
+     *
      * @throws InvalidSettingsException thrown if some input columns are not available during execution.
      */
     @Override
@@ -454,8 +593,8 @@ public class ColumnAutoTypeCasterNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec) throws IOException,
-        CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
     }
 
     /**
@@ -480,14 +619,16 @@ public class ColumnAutoTypeCasterNodeModel extends NodeModel {
         m_quickScan = settings.getBoolean(CFGKEY_QUICKSANBOOLEAN);
         m_numberOfRows = settings.getInt(CFGKEY_QUICKSCANROWS);
         m_useLegacyTypeNames = settings.getBoolean(CFGKEY_USELEGACYTYPENAMES, true);
+        m_useLegacyDateTimeType = settings.getBoolean(CFGKEY_USE_LEGACY_DATE_TIME_TYPE, true);
+
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec) throws IOException,
-        CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
     }
 
     /**
@@ -509,6 +650,7 @@ public class ColumnAutoTypeCasterNodeModel extends NodeModel {
         settings.addBoolean(CFGKEY_QUICKSANBOOLEAN, m_quickScan);
         settings.addInt(CFGKEY_QUICKSCANROWS, m_numberOfRows);
         settings.addBoolean(CFGKEY_USELEGACYTYPENAMES, m_useLegacyTypeNames);
+        settings.addBoolean(CFGKEY_USE_LEGACY_DATE_TIME_TYPE, m_useLegacyDateTimeType);
     }
 
     /**
