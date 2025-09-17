@@ -29,4 +29,5 @@
     <entry key="doAQuickScan" type="xboolean" value="false"/>
     <entry key="numberOfRowsForQuickScan" type="xint" value="1000"/>
     <entry key="useLegacyTypeNames" type="xboolean" value="true"/>
+    <entry key="useLegacyDateTimeType" type="xboolean" value="true"/>
 </config>

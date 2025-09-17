@@ -22,7 +22,8 @@
       "missingValuePattern" : "mvp",
       "quickScan" : false,
       "quickScanRows" : 1000,
-      "useLegacyTypeNames" : true
+      "useLegacyTypeNames" : true,
+      "useLegacyDateTimeType" : true
     }
   },
   "schema" : {
@@ -143,14 +144,14 @@
           },
           "dateFormat" : {
             "type" : "string",
-            "title" : "Choose a date format",
-            "description" : "Choose or enter a date pattern used to detect dates in the selected columns. Examples: 'dd.MM.yy', 'dd.MM.yy HH:mm:ss', 'dd.MM.yy HH:mm:ss:SSS', 'HH:mm:ss'. Pattern symbols: y=Year, M=Month, d=Day, H=Hour, m=Minute, s=Second, S=Millisecond.",
+            "title" : "Choose a date&time format",
+            "description" : "Choose or enter a date, time, or date&amp;time pattern used to detect dates in the selected columns. The used locale will be the system default. For further configurations use the <i>String to Date&amp;Time</i> node.<ul><li><b>Examples</b>: 'dd.MM.yy', 'dd.MM.yy HH:mm:ss', 'dd.MM.yy HH:mm:ss:SSS', 'HH:mm:ss'.</li><li><b>Pattern symbols</b>: y=Year, M=Month, d=Day, H=Hour, m=Minute, s=Second, S=Millisecond.</li></ul>",
             "default" : "dd.MM.yy"
           },
           "missingValuePattern" : {
             "type" : "string",
             "title" : "Missing value pattern",
-            "description" : "Enter a missing value pattern applied to all included columns. Use '&lt;none&gt;' for no pattern (default) or '&lt;empty&gt;' for the empty string. Any other string will be treated as the pattern.",
+            "description" : "Enter a missing value pattern applied to all included columns. Two special strings which will not be treated as pattern exist:<ul><li><i>&lt;none&gt;</i>: no pattern (default)</li><li><i>&lt;empty&gt;</i>: for the empty string</li></ul>",
             "default" : "<none>"
           },
           "quickScan" : {
@@ -165,6 +166,12 @@
             "title" : "Number of rows to consider",
             "description" : "Number of initial rows used when quickscan is enabled.",
             "default" : 1000
+          },
+          "useLegacyDateTimeType" : {
+            "type" : "boolean",
+            "title" : "Use legacy date&time type",
+            "description" : "Output date with the legacy date and time type (org.knime.core.data.date.DateAndTimeCell) or the successor types (org.knime.core.data.time.*.LocalTimeCell/LocalDateCell/LocalDateTimeCell/ZonedDateTimeCell).",
+            "default" : false
           },
           "useLegacyTypeNames" : {
             "type" : "boolean",
@@ -234,6 +241,12 @@
       "options" : {
         "format" : "checkbox"
       }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/useLegacyDateTimeType",
+      "options" : {
+        "format" : "checkbox"
+      }
     } ]
   },
   "persist" : {
@@ -259,6 +272,12 @@
           },
           "useLegacyTypeNames" : {
             "configKey" : "useLegacyTypeNames",
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ ]
+            } ]
+          },
+          "useLegacyDateTimeType" : {
+            "configKey" : "useLegacyDateTimeType",
             "deprecatedConfigKeys" : [ {
               "deprecated" : [ ]
             } ]

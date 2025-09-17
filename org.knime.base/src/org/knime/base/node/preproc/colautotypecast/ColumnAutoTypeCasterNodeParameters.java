@@ -99,18 +99,23 @@ final class ColumnAutoTypeCasterNodeParameters implements NodeParameters {
     ColumnFilter m_columnFilter = new ColumnFilter();
 
     @Persist(configKey = ColumnAutoTypeCasterNodeModel.CFGKEY_DATEFORMAT)
-    @Widget(title = "Choose a date format",
-        description = "Choose or enter a date pattern used to detect dates in the selected columns. "
-            + "Examples: 'dd.MM.yy', 'dd.MM.yy HH:mm:ss', 'dd.MM.yy HH:mm:ss:SSS', 'HH:mm:ss'. "
-            + "Pattern symbols: y=Year, M=Month, d=Day, H=Hour, m=Minute, s=Second, S=Millisecond.")
+    @Widget(title = "Choose a date&time format",
+        description = "Choose or enter a date, time, or date&amp;time pattern used to detect dates in the"
+            + " selected columns. The used locale will be the system default. For further configurations use the "
+            + "<i>String to Date&amp;Time</i> node." //
+            + "<ul>" //
+            + "<li><b>Examples</b>: 'dd.MM.yy', 'dd.MM.yy HH:mm:ss', 'dd.MM.yy HH:mm:ss:SSS', 'HH:mm:ss'.</li>"
+            + "<li><b>Pattern symbols</b>: y=Year, M=Month, d=Day, H=Hour, m=Minute, s=Second, S=Millisecond.</li>"
+            + "</ul>")
     String m_dateFormat = "dd.MM.yy";
 
     @Persist(configKey = ColumnAutoTypeCasterNodeModel.CFGKEY_MISSVALPAT)
     @Widget(title = "Missing value pattern",
-        description = "Enter a missing value pattern applied to all included columns. "
-            + "Use '&lt;none&gt;' for no pattern (default) or '&lt;empty&gt;' for the empty string."
-            + " Any other string will be treated as the pattern.")
-    String m_missingValuePattern = ColumnAutoTypeCasterNodeModel.MISSVALDESC_NONE; // "<none>"
+        description = "Enter a missing value pattern applied to all included columns."
+            + " Two special strings which will not be treated as pattern exist:<ul>"
+            + "<li><i>&lt;none&gt;</i>: no pattern (default)</li>"
+            + "<li><i>&lt;empty&gt;</i>: for the empty string</li></ul>")
+    String m_missingValuePattern = ColumnAutoTypeCasterNodeModel.MISSVALDESC_NONE;
 
     interface QuickScanParameterReference extends ParameterReference<Boolean> {
     }
@@ -151,4 +156,13 @@ final class ColumnAutoTypeCasterNodeParameters implements NodeParameters {
     @Persist(configKey = ColumnAutoTypeCasterNodeModel.CFGKEY_USELEGACYTYPENAMES)
     @Migration(LoadTrueForOldNodes.class)
     boolean m_useLegacyTypeNames;
+
+    // Added as part of AP-24883
+    @Widget(title = "Use legacy date&time type",
+        description = "Output date with the legacy date and time type"
+            + " (org.knime.core.data.date.DateAndTimeCell) or the successor types"
+            + " (org.knime.core.data.time.*.LocalTimeCell/LocalDateCell/LocalDateTimeCell/ZonedDateTimeCell).")
+    @Persist(configKey = ColumnAutoTypeCasterNodeModel.CFGKEY_USE_LEGACY_DATE_TIME_TYPE)
+    @Migration(LoadTrueForOldNodes.class)
+    boolean m_useLegacyDateTimeType;
 }
