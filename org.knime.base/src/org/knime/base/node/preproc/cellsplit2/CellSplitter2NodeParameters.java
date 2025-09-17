@@ -136,6 +136,10 @@ final class CellSplitter2NodeParameters implements NodeParameters {
     // ===== ENUMS =====
 
     enum OutputMode {
+            @Label(value = "As new columns", description = "If selected, the output will consist of one "
+                + "or more columns, each containing a split part.")
+            AS_COLUMNS,
+
             @Label(value = "As list", description = "If selected, the output will consist of one column containing list"
                 + " collection cells in which the split parts are stored." + " Duplicates can occur in list cells.")
             AS_LIST,
@@ -144,26 +148,22 @@ final class CellSplitter2NodeParameters implements NodeParameters {
                 description = "If selected, the output will consist of one column "
                     + "containing set collection cells in which the split parts are stored. "
                     + "Duplicates are removed and can not occur in set cells.")
-            AS_SET,
-
-            @Label(value = "As new columns", description = "If selected, the output will consist of one "
-                + "or more columns, each containing a split part.")
-            AS_COLUMNS
+            AS_SET
     }
 
     enum SizeMode {
-            @Label(value = "Set array size",
-                description = "Check this and specify the number of columns to append. "
-                    + "All created columns will be of type String. " + "(See node description for what happens if the "
-                    + "split produces a different number of parts.)")
-            FIXED_SIZE,
-
             @Label(value = "Guess size and column types (requires additional data table scan)",
                 description = "If this is checked, the node performs an "
                     + "additional scan through the entire data table and "
                     + "computes the number of columns needed to hold all parts of the split. "
                     + "In addition it determines the column type of the new columns.")
-            GUESS_SIZE
+            GUESS_SIZE,
+
+            @Label(value = "Set array size",
+                description = "Check this and specify the number of columns to append. "
+                    + "All created columns will be of type String. " + "(See node description for what happens if the "
+                    + "split produces a different number of parts.)")
+            FIXED_SIZE
     }
 
     // ===== EFFECT PREDICATES =====

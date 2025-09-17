@@ -50,17 +50,17 @@
           },
           "outputMode" : {
             "oneOf" : [ {
+              "const" : "AS_COLUMNS",
+              "title" : "As new columns"
+            }, {
               "const" : "AS_LIST",
               "title" : "As list"
             }, {
               "const" : "AS_SET",
               "title" : "As set (remove duplicates)"
-            }, {
-              "const" : "AS_COLUMNS",
-              "title" : "As new columns"
             } ],
             "title" : "Output format",
-            "description" : "Select how the split results should be output: as a list collection, as a set collection (duplicates removed), or as separate columns.\n<ul>\n<li><b>As list</b>: If selected, the output will consist of one column containing list collection cells in which the split parts are stored. Duplicates can occur in list cells.</li>\n<li><b>As set (remove duplicates)</b>: If selected, the output will consist of one column containing set collection cells in which the split parts are stored. Duplicates are removed and can not occur in set cells.</li>\n<li><b>As new columns</b>: If selected, the output will consist of one or more columns, each containing a split part.</li>\n</ul>",
+            "description" : "Select how the split results should be output: as a list collection, as a set collection (duplicates removed), or as separate columns.\n<ul>\n<li><b>As new columns</b>: If selected, the output will consist of one or more columns, each containing a split part.</li>\n<li><b>As list</b>: If selected, the output will consist of one column containing list collection cells in which the split parts are stored. Duplicates can occur in list cells.</li>\n<li><b>As set (remove duplicates)</b>: If selected, the output will consist of one column containing set collection cells in which the split parts are stored. Duplicates are removed and can not occur in set cells.</li>\n</ul>",
             "default" : "AS_COLUMNS"
           },
           "quotePattern" : {
@@ -88,14 +88,14 @@
           },
           "sizeMode" : {
             "oneOf" : [ {
-              "const" : "FIXED_SIZE",
-              "title" : "Set array size"
-            }, {
               "const" : "GUESS_SIZE",
               "title" : "Guess size and column types (requires additional data table scan)"
+            }, {
+              "const" : "FIXED_SIZE",
+              "title" : "Set array size"
             } ],
             "title" : "Size determination",
-            "description" : "Choose whether to specify a fixed number of output columns or to automatically determine the size.\n\n<ul>\n<li><b>Set array size</b>: Check this and specify the number of columns to append. All created columns will be of type String. (See node description for what happens if the split produces a different number of parts.)</li>\n<li><b>Guess size and column types (requires additional data table scan)</b>: If this is checked, the node performs an additional scan through the entire data table and computes the number of columns needed to hold all parts of the split. In addition it determines the column type of the new columns.</li>\n</ul>",
+            "description" : "Choose whether to specify a fixed number of output columns or to automatically determine the size.\n\n<ul>\n<li><b>Guess size and column types (requires additional data table scan)</b>: If this is checked, the node performs an additional scan through the entire data table and computes the number of columns needed to hold all parts of the split. In addition it determines the column type of the new columns.</li>\n<li><b>Set array size</b>: Check this and specify the number of columns to append. All created columns will be of type String. (See node description for what happens if the split produces a different number of parts.)</li>\n</ul>",
             "default" : "GUESS_SIZE"
           },
           "splitColumnNames" : {
