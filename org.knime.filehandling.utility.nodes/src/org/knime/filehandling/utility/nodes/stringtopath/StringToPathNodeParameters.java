@@ -51,8 +51,14 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
+import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.filehandling.core.port.FileSystemPortObject;
+import org.knime.filehandling.utility.nodes.stringtopath.StringToPathNodeParameters.FileSystem.FileSystemChooser.FileSystemCategory;
+import org.knime.filehandling.utility.nodes.stringtopath.StringToPathNodeParameters.FileSystem.FileSystemChooser.FileSystemCategoryRef;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
@@ -60,7 +66,9 @@ import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.EffectPredicate;
@@ -74,6 +82,7 @@ import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
+import org.knime.node.parameters.widget.choices.StringChoicesProvider;
 import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
 import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider.StringColumnsProvider;
 import org.knime.node.parameters.widget.text.TextInputWidget;
@@ -85,13 +94,13 @@ import org.knime.node.parameters.widget.text.TextInputWidget;
  * @author AI Migration Pipeline v1.1
  */
 @LoadDefaultsForAbsentFields
-class StringToPathNodeParameters implements NodeParameters {
+final class StringToPathNodeParameters implements NodeParameters {
 
     StringToPathNodeParameters() {
     }
 
     StringToPathNodeParameters(final NodeParametersInput context) {
-        final var inputTableIndex = findIndexOfFirstDataTable(context.getInPortSpecs());
+        final var inputTableIndex = findIndexOfFirst(DATA_TABLE_PORT_SPEC_CLASS, context.getInPortSpecs());
         context.getInTableSpec(inputTableIndex).ifPresent(inputTableSpec -> {
             ColumnSelectionUtil.getFirstStringColumn(inputTableSpec).ifPresent(column -> {
                 m_selectedColumnName = column.getName();
@@ -163,17 +172,39 @@ class StringToPathNodeParameters implements NodeParameters {
     @Persist(configKey = "appended_column_name")
     String m_appendedColumnName = "Path";
 
-    private static int findIndexOfFirstDataTable(final PortObjectSpec[] inSpecs) {
+    private static final Class<? extends PortObjectSpec> DATA_TABLE_PORT_SPEC_CLASS =
+        BufferedDataTable.TYPE.getPortObjectSpecClass();
+
+    private static final Class<? extends PortObjectSpec> FILE_SYSTEM_PORT_SPEC_CLASS =
+        FileSystemPortObject.TYPE.getPortObjectSpecClass();
+
+    @SuppressWarnings("serial")
+    private static final class PortNotFoundException extends RuntimeException {
+
+        PortNotFoundException(final Class<? extends PortObjectSpec> clazz) {
+            super("Could not find port of type <" + clazz.getSimpleName() + ">."
+                + " Please check your connected input ports.");
+        }
+
+    }
+
+    private static <T extends PortObjectSpec> int findIndexOfFirst(final Class<T> clazz,
+        final PortObjectSpec[] inSpecs) {
         for (int i = 0; i < inSpecs.length; i++) {
-            if (inSpecs[i] instanceof DataTableSpec) {
+            if (clazz.isInstance(inSpecs[i])) {
                 return i;
             }
         }
-        throw new RuntimeException("No data table input port available.");
+        throw new PortNotFoundException(clazz);
     }
 
     private static boolean hasFileSystemPort(final PortObjectSpec[] inSpecs) {
-        return findIndexOfFirstDataTable(inSpecs) == 1;
+        try {
+            findIndexOfFirst(FILE_SYSTEM_PORT_SPEC_CLASS, inSpecs);
+            return true;
+        } catch (PortNotFoundException e) {
+            return false;
+        }
     }
 
     enum GenerateColumnMode {
@@ -190,7 +221,7 @@ class StringToPathNodeParameters implements NodeParameters {
 
         @Override
         public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
-            final var inputTableIndex = findIndexOfFirstDataTable(context.getInPortSpecs());
+            final var inputTableIndex = findIndexOfFirst(DATA_TABLE_PORT_SPEC_CLASS, context.getInPortSpecs());
             return context.getInTableSpec(inputTableIndex) //
                 .map(spec -> spec.stream().filter(this::isIncluded)) //
                 .orElseGet(Stream::empty) //
@@ -217,7 +248,7 @@ class StringToPathNodeParameters implements NodeParameters {
             @ValueProvider(HasFileSystemPortProvider.class)
             boolean m_hasFileSystemPort;
 
-            @Widget(title = " ", description = "Select the file system to which the created paths should be related to. "
+            @Widget(title = "File system category", description = "Select the file system to which the created paths should be related to. "
                 + "There are four default file system options to choose from: Local File System, Mountpoint, Relative to, and Custom/KNIME URL. "
                 + "It is possible to use other file systems with this node by enabling the file system connection input port.")
             @Persist(configKey = "convenience_fs_category")
@@ -226,11 +257,16 @@ class StringToPathNodeParameters implements NodeParameters {
             @ValueReference(FileSystemCategoryRef.class)
             FileSystemCategory m_fileSystemCategory;
 
-            @Persist(configKey = "relative_to")
-            String relativeTo = "knime.workflow.data";
-
+            @Widget(title = "Mountpoint", description = "Select the mountpoint to which the created paths should be related to.")
+            @Effect(predicate = IsFileSystemCategoryMountpoint.class, type = EffectType.SHOW)
             @Persist(configKey = "mountpoint")
-            String mountpoint = "knime-temp-space";
+            @ChoicesProvider(MountpointChoicesProvider.class)
+            String mountpoint;
+
+            @Widget(title = "Relative to", description = "Select the base directory to which the created paths should be relative to.")
+            @Effect(predicate = IsFileSystemCategoryRelative.class, type = EffectType.SHOW)
+            @Persistor(RelativeToPersistor.class)
+            RelativeToOption relativeTo = RelativeToOption.WORKFLOW_DATA;
 
             @Persist(configKey = "spaceId")
             String spaceId = "";
@@ -328,6 +364,89 @@ class StringToPathNodeParameters implements NodeParameters {
                         : selectedCategory;
                 }
 
+            }
+
+        }
+
+        static final class IsFileSystemCategoryMountpoint implements EffectPredicateProvider {
+
+            @Override
+            public EffectPredicate init(final PredicateInitializer i) {
+                return i.getEnum(FileSystemCategoryRef.class).isOneOf(FileSystemCategory.MOUNTPOINT);
+            }
+
+        }
+
+        static final class IsFileSystemCategoryRelative implements EffectPredicateProvider {
+
+            @Override
+            public EffectPredicate init(final PredicateInitializer i) {
+                return i.getEnum(FileSystemCategoryRef.class).isOneOf(FileSystemCategory.RELATIVE);
+            }
+
+        }
+
+        static final class MountpointChoicesProvider implements StringChoicesProvider {
+
+            @Override
+            public List<String> choices(final NodeParametersInput context) {
+                // TODO: Creating these is more elaborate, see {@link FileSystemChooser}.
+                return List.of("knime-temp-space", "LOCAL", "EXAMPLES", "My-KNIME-Hub");
+            }
+
+        }
+
+        enum RelativeToOption {
+                @Label(value = "Current Hub Space", description = "...")
+                HUB_SPACE("knime.space"),
+
+                @Label(value = "Current mountpoint", description = "...")
+                MOUNTPOINT("knime.mountpoint"),
+
+                @Label(value = "Current workflow", description = "...")
+                WORKFLOW("knime.workflow"),
+
+                @Label(value = "Current workflow data area", description = "...")
+                WORKFLOW_DATA("knime.workflow.data");
+
+            private final String m_value;
+
+            RelativeToOption(final String value) {
+                m_value = value;
+            }
+
+            String getValue() {
+                return m_value;
+            }
+
+            static RelativeToOption fromValue(final String value) {
+                for (RelativeToOption option : values()) {
+                    if (option.getValue().equals(value)) {
+                        return option;
+                    }
+                }
+                return null;
+            }
+        }
+
+        static final class RelativeToPersistor implements NodeParametersPersistor<RelativeToOption> {
+
+            private static final String CFG_KEY = "relative_to";
+
+            @Override
+            public RelativeToOption load(final NodeSettingsRO settings) throws InvalidSettingsException {
+                final var relativeToString = settings.getString(CFG_KEY, RelativeToOption.WORKFLOW_DATA.getValue());
+                return RelativeToOption.fromValue(relativeToString);
+            }
+
+            @Override
+            public void save(final RelativeToOption param, final NodeSettingsWO settings) {
+                settings.addString(CFG_KEY, param.getValue());
+            }
+
+            @Override
+            public String[][] getConfigPaths() {
+                return null;
             }
 
         }
