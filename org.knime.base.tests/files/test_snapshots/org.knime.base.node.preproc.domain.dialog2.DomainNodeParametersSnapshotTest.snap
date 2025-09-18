@@ -313,7 +313,7 @@
           "unknownValuesText" : "Any unknown column",
           "emptyStateLabel" : "No columns in this list.",
           "includedLabel" : "Calculate possible values",
-          "excludedLabel" : "Do not calculate"
+          "excludedLabel" : "Excluded"
         },
         "providedOptions" : [ "possibleValues" ]
       }, {

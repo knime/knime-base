@@ -118,7 +118,7 @@ final class DomainNodeParameters implements NodeParameters {
             buttons below the Exclude list.
             """)
     @ColumnFilterWidget(choicesProvider = NominalColumnsProvider.class)
-    @TwinlistWidget(includedLabel = "Calculate possible values", excludedLabel = "Do not calculate")
+    @TwinlistWidget(includedLabel = "Calculate possible values", excludedLabel = "Excluded")
     @Persistor(PossibleValuesColumnsPersistor.class)
     @Layout(PossibleValuesSection.class)
     ColumnFilter m_possibleValuesColumns = new ColumnFilter();
