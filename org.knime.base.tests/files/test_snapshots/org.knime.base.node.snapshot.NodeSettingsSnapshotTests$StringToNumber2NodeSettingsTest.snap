@@ -261,10 +261,13 @@
             "configPaths" : [ [ "parse_type" ] ]
           },
           "genericParse" : {
-            "configPaths" : [ [ "generic_parse" ] ]
+            "configKey" : "generic_parse",
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ ]
+            } ]
           },
           "failOnError" : {
-            "configPaths" : [ [ "fail_on_error" ] ]
+            "configKey" : "fail_on_error"
           },
           "inclCols" : {
             "configPaths" : [ [ "include", "filter-type" ], [ "include", "included_names" ], [ "include", "excluded_names" ], [ "include", "enforce_option" ], [ "include", "name_pattern", "pattern" ], [ "include", "name_pattern", "type" ], [ "include", "name_pattern", "caseSensitive" ], [ "include", "name_pattern", "excludeMatching" ] ]

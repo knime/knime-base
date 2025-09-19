@@ -55,15 +55,15 @@ import org.knime.base.node.preproc.columnheaderextract.ColumnHeaderExtractorNode
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.node.parameters.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelStringPersistor;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.updates.Effect;
-import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.updates.util.BooleanReference;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
@@ -147,7 +147,7 @@ public final class ColumnHeaderExtractorNodeSettings implements NodeParameters {
 
         @Override
         public OutputFormat load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return settings.getBoolean(CFG_TRANSPOSE_COL_HEADER) ? OutputFormat.COLUMN : OutputFormat.ROW;
+            return settings.getBoolean(CFG_TRANSPOSE_COL_HEADER, false) ? OutputFormat.COLUMN : OutputFormat.ROW;
         }
 
         @Override

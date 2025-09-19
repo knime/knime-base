@@ -58,11 +58,11 @@ import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.EffectPredicate;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
@@ -194,7 +194,7 @@ public final class AppendedRowsNodeSettings implements NodeParameters {
             strategy.m_suffix = settings.getString(AppendedRowsNodeModel.CFG_SUFFIX, strategy.m_suffix);
             if (settings.getBoolean(AppendedRowsNodeModel.CFG_NEW_ROWIDS, false)) {
                 strategy.m_strategy = RowIdStrategySelection.RowIdStrategy.CREATE_NEW;
-            } else if (settings.getBoolean(AppendedRowsNodeModel.CFG_FAIL_ON_DUPLICATES)) {
+            } else if (settings.getBoolean(AppendedRowsNodeModel.CFG_FAIL_ON_DUPLICATES, false)) {
                 strategy.m_strategy = RowIdStrategySelection.RowIdStrategy.REUSE_EXISTING;
                 strategy.m_rowIdResolution = RowIdStrategySelection.DuplicateRowIdResolution.FAIL;
             } else if (settings.getBoolean(AppendedRowsNodeModel.CFG_APPEND_SUFFIX)) {
