@@ -49,6 +49,7 @@ import org.knime.base.node.preproc.pmml.columntrans2.One2ManyCol2PMMLNodeModel;
 import org.knime.core.data.NominalValue;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.persistence.legacy.LegacyColumnFilterPersistor;
@@ -62,6 +63,7 @@ import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider;
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
+@LoadDefaultsForAbsentFields
 public final class One2ManyCol2NodeParameters implements NodeParameters {
 
     static final class NominalColumnsProvider extends CompatibleColumnsProvider {
