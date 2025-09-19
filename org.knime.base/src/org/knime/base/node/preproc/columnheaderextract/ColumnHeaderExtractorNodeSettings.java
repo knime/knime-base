@@ -130,7 +130,7 @@ public final class ColumnHeaderExtractorNodeSettings implements NodeParameters {
 
         @Override
         public OutputFormat load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return settings.getBoolean(CFG_TRANSPOSE_COL_HEADER) ? OutputFormat.COLUMN : OutputFormat.ROW;
+            return settings.getBoolean(CFG_TRANSPOSE_COL_HEADER, false) ? OutputFormat.COLUMN : OutputFormat.ROW;
         }
 
         @Override

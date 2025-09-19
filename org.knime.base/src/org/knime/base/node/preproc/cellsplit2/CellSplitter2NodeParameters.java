@@ -59,6 +59,7 @@ import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
@@ -87,7 +88,7 @@ import org.knime.node.parameters.widget.text.TextInputWidget;
  *
  * @author Ali Asghar Marvi
  */
-
+@LoadDefaultsForAbsentFields
 final class CellSplitter2NodeParameters implements NodeParameters {
 
     CellSplitter2NodeParameters() {

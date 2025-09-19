@@ -52,6 +52,7 @@ import org.knime.base.node.mine.bayes.naivebayes.datamodel3.NaiveBayesModel;
 import org.knime.core.data.NominalValue;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
@@ -73,6 +74,7 @@ import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinVa
  * @author Tobias Koetter
  * @author Carsten Haubold, KNIME GmbH, Konstanz, Germany
  */
+@LoadDefaultsForAbsentFields
 final class NaiveBayesLearnerNodeParameters implements NodeParameters {
     @Widget(title = "Classification column",
         description = "The column containing the class values that the model should learn to predict.")

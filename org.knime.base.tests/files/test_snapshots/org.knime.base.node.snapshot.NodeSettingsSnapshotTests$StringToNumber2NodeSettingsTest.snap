@@ -261,7 +261,10 @@
             "configPaths" : [ [ "parse_type" ] ]
           },
           "genericParse" : {
-            "configKey" : "generic_parse"
+            "configKey" : "generic_parse",
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ ]
+            } ]
           },
           "failOnError" : {
             "configKey" : "fail_on_error"

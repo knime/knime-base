@@ -151,7 +151,7 @@ public final class ColumnAppenderSettings implements NodeParameters {
         @Override
         public Integer load(final NodeSettingsRO settings) throws InvalidSettingsException {
             var zeroBased = settings.getInt(ColumnAppender2NodeModel.KEY_SELECTED_ROWID_TABLE);
-            var oneBased = settings.getInt(ColumnAppender2NodeModel.KEY_SELECTED_ROWID_TABLE_NUMBER);
+            var oneBased = settings.getInt(ColumnAppender2NodeModel.KEY_SELECTED_ROWID_TABLE_NUMBER, NOT_SET);
 
             if (oneBased == NOT_SET) {
                 return zeroBased + 1;

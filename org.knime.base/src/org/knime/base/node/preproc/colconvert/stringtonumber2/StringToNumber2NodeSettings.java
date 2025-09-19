@@ -62,6 +62,9 @@ import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.migration.DefaultProvider;
+import org.knime.node.parameters.migration.Migrate;
+import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
@@ -179,6 +182,7 @@ public final class StringToNumber2NodeSettings implements NodeParameters {
     }
 
     @Persist(configKey = AbstractStringToNumberNodeModel.CFG_GENERIC_PARSE)
+    @Migration(CompactGenericParseMigration.class)
     @Widget(title = "Accept type suffix, e.g. 'd', 'D', 'f', 'F'",
         description = "When checked, the type suffix will be accepted, "
             + "otherwise it fails to parse input like <tt>1d</tt>. " + "These suffixes are typically used "
@@ -186,7 +190,17 @@ public final class StringToNumber2NodeSettings implements NodeParameters {
             + "Default is not checked.")
     boolean m_genericParse = AbstractStringToNumberNodeModel.DEFAULT_GENERIC_PARSE;
 
+    static final class CompactGenericParseMigration implements DefaultProvider<Boolean> {
+
+        @Override
+        public Boolean getDefault() {
+            return AbstractStringToNumberNodeModel.COMPAT_GENERIC_PARSE;
+        }
+
+    }
+
     @Persist(configKey = AbstractStringToNumberNodeModel.CFG_FAIL_ON_ERROR)
+    @Migrate(loadDefaultIfAbsent = true)
     @Widget(title = "Fail on error", description = "When checked, the node will fail if an error occurs.")
     boolean m_failOnError = AbstractStringToNumberNodeModel.DEFAULT_FAIL_ON_ERROR;
 
