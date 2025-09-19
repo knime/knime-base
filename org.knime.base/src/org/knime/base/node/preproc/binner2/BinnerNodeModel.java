@@ -121,6 +121,10 @@ final class BinnerNodeModel extends WebUINodeModel<BinnerNodeSettings> {
 
         var selectedColumns = modelSettings.m_selectedColumns.filter(binnableColumns);
 
+        if (selectedColumns.length == 0) {
+            throw new InvalidSettingsException("No columns are selected for binning.");
+        }
+
         var outputColumns = getOutputColumns(modelSettings, selectedColumns);
         var outputTableSpec = createOutputSpec(inSpec, outputColumns);
         var pmmlSpec = BinningPMMLApplyUtil.createPMMLOutSpec(outputTableSpec, Arrays.asList(selectedColumns));

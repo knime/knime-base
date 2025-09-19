@@ -1682,17 +1682,23 @@
       <node
             category-path="/manipulation/column/binning"
             factory-class="org.knime.base.node.preproc.autobinner3.AutoBinnerLearnNodeFactory"
-            >
-      </node>
-      <node
-            category-path="/manipulation/column/binning"
-            factory-class="org.knime.base.node.preproc.binner2.BinnerNodeFactory"
-            hidden="true"
+            deprecated="true"
             >
       </node>
       <node
             category-path="/manipulation/column/binning"
             factory-class="org.knime.base.node.preproc.autobinner.apply.AutoBinnerApplyNodeFactory"
+            deprecated="true"
+            >
+      </node>
+      <node
+            category-path="/manipulation/column/binning"
+            factory-class="org.knime.base.node.preproc.binner2.BinnerNodeFactory"
+            >
+      </node>
+      <node
+            category-path="/manipulation/column/binning"
+            factory-class="org.knime.base.node.preproc.binner2.apply.BinnerApplyNodeFactory"
             >
       </node>        
       <node
