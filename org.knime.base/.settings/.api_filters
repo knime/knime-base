@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <component id="org.knime.base" version="2">
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.base.node.image.ImageToTableNodeDialog">
+        <filter id="305324134">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.image.ImageToTableNodeDialog"/>
+                <message_argument value="org.knime.base_5.8.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="META-INF/MANIFEST.MF" type="org.knime.base.node.preproc.caseconvert.CaseConvertNodeDialog">
         <filter comment="Node implementations are not API" id="305324134">
             <message_arguments>
@@ -28,6 +36,22 @@
         <filter comment="Node implementations are not API" id="305324134">
             <message_arguments>
                 <message_argument value="org.knime.base.node.util.sampledata.SampleDataNodeDialog"/>
+                <message_argument value="org.knime.base_5.8.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/image/ImageToTableNodeFactory.java" type="org.knime.base.node.image.ImageToTableNodeFactory">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.image.ImageToTableNodeFactory"/>
+                <message_argument value="org.knime.base_5.8.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/image/ImageToTableNodeModel.java" type="org.knime.base.node.image.ImageToTableNodeModel">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.image.ImageToTableNodeModel"/>
                 <message_argument value="org.knime.base_5.8.0"/>
             </message_arguments>
         </filter>

@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -41,53 +42,31 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------------
- *
  */
+
 package org.knime.base.node.image;
 
-import java.util.ArrayList;
-
-import org.knime.core.data.RowKey;
-import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponentString;
-import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
+import org.knime.node.parameters.persistence.Persist;
 
 /**
- * Dialog for the Image To Table node allowing to specify the row ID,
- * manually or by flow variable.
- * @author Thomas Gabriel, KNIME AG, Zurich, Switzerland
+ * Node parameters for Image to Table.
+ *
+ * @author Tobias Koetter, KNIME GmbH, Berlin, Germany
+ * @author AI Migration Pipeline v1.1
  */
-public class ImageToTableNodeDialog extends DefaultNodeSettingsPane {
+@LoadDefaultsForAbsentFields
+class ImageToTableNodeParameters implements NodeParameters {
 
-    /** Default row key, if no key is entered. */
-    static final RowKey DEFAULT_ROWKEY = RowKey.createRowKey(0);
+    @Persist(configKey = "generated_rowkey")
+    @Widget(title = "Row identifier", description = "Specify the RowID used for the single row created by this node.")
+    String m_rowIdentifier = ImageToTableNodeModel.DEFAULT_ROWKEY.getString();
 
-    /**
-     *
-     */
-    public ImageToTableNodeDialog() {
-        SettingsModelString rowIdModel = createStringModel();
-        ArrayList<String> list = new ArrayList<>(1);
-        list.add(DEFAULT_ROWKEY.toString());
-        super.addDialogComponent(new DialogComponentStringSelection(rowIdModel, "Row Identifier: ", list, true,
-            super.createFlowVariableModel(rowIdModel)));
-        final SettingsModelString colNameModel = createColumnNameModel();
-        super.addDialogComponent(new DialogComponentString(colNameModel, "Column Name: ", true, 15,
-            super.createFlowVariableModel(colNameModel)));
-    }
+    @Persist(configKey = "columnName")
+    @Widget(title = "Column name",
+        description = "Specify the column name used for the image column created by this node.")
+    String m_columnName = "Image";
 
-    /** @return settings model string used to define the row key for the
-     *          single output table row
-     */
-    static SettingsModelString createStringModel() {
-        return new SettingsModelString("generated_rowkey", DEFAULT_ROWKEY.toString());
-    }
-
-    /**
-     * @return settings model used to define the column name
-     */
-    static SettingsModelString createColumnNameModel() {
-        return new SettingsModelString("columnName", "Image");
-    }
 }

@@ -76,13 +76,30 @@ import org.knime.core.node.port.image.ImagePortObjectSpec;
  *
  * @author Thomas Gabriel, KNIME AG, Zurich, Switzerland
  */
-public class ImageToTableNodeModel extends NodeModel {
+final class ImageToTableNodeModel extends NodeModel {
+
+    /** Default row key, if no key is entered. */
+    static final RowKey DEFAULT_ROWKEY = RowKey.createRowKey(0);
+
+    /** @return settings model string used to define the row key for the
+     *          single output table row
+     */
+    static SettingsModelString createStringModel() {
+        return new SettingsModelString("generated_rowkey", DEFAULT_ROWKEY.toString());
+    }
+
+    /**
+     * @return settings model used to define the column name
+     */
+    static SettingsModelString createColumnNameModel() {
+        return new SettingsModelString("columnName", "Image");
+    }
 
     private final SettingsModelString m_rowKeyModel =
-        ImageToTableNodeDialog.createStringModel();
+        createStringModel();
 
     private final SettingsModelString m_columnNameModel =
-            ImageToTableNodeDialog.createColumnNameModel();
+            createColumnNameModel();
 
     /**
      * New node model with on image port input and a data table output.
@@ -119,7 +136,7 @@ public class ImageToTableNodeModel extends NodeModel {
         RowKey rowKey;
         String rowKeyValue = m_rowKeyModel.getStringValue();
         if (rowKeyValue == null || rowKeyValue.trim().isEmpty()) {
-            rowKey = ImageToTableNodeDialog.DEFAULT_ROWKEY;
+            rowKey = DEFAULT_ROWKEY;
         } else {
             rowKey = new RowKey(rowKeyValue);
         }

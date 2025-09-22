@@ -45,19 +45,36 @@
  */
 package org.knime.base.node.image;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
-
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
- * Factory to create a table with one cell from an image port object. This node
- * has not view and no dialog.
+ * Factory to create a table with one cell from an image port object. This node has not view and no dialog.
  *
  * @author Thomas Gabriel, KNIME AG, Zurich, Switzerland
+ * @author Tobias Koetter, KNIME GmbH, Berlin, Germany
+ * @author AI Migration Pipeline v1.1
  */
-public class ImageToTableNodeFactory
-        extends NodeFactory<ImageToTableNodeModel> {
+@SuppressWarnings("restriction")
+public final class ImageToTableNodeFactory extends NodeFactory<ImageToTableNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     /**
      * {@inheritDoc}
@@ -79,8 +96,7 @@ public class ImageToTableNodeFactory
      * {@inheritDoc}
      */
     @Override
-    public NodeView<ImageToTableNodeModel> createNodeView(final int viewIndex,
-            final ImageToTableNodeModel nodeModel) {
+    public NodeView<ImageToTableNodeModel> createNodeView(final int viewIndex, final ImageToTableNodeModel nodeModel) {
         return null;
     }
 
@@ -95,9 +111,45 @@ public class ImageToTableNodeFactory
     /**
      * {@inheritDoc}
      */
+    private static final String NODE_NAME = "Image to Table";
+
+    private static final String NODE_ICON = "./image_to_table.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Converts a given image into a table with one cell.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            Converts a given generic image into a table with one cell holding the image as data cell.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(fixedPort("Image Input", """
+            Image port
+            """));
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(fixedPort("Table with Image", """
+            Table with image in one cell
+            """));
+
     @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new ImageToTableNodeDialog();
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
 
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, ImageToTableNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(NODE_NAME, NODE_ICON, INPUT_PORTS, OUTPUT_PORTS,
+            SHORT_DESCRIPTION, FULL_DESCRIPTION, List.of(), ImageToTableNodeParameters.class, null, NodeType.Other,
+            List.of(), null);
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, ImageToTableNodeParameters.class));
+    }
 }
