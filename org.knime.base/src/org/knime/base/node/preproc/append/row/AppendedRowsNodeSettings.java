@@ -54,6 +54,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.migration.Migrate;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
@@ -102,6 +103,7 @@ public final class AppendedRowsNodeSettings implements NodeParameters {
     RowIdStrategySelection m_rowIdStrategy = new RowIdStrategySelection();
 
     @Persist(configKey = AppendedRowsNodeModel.CFG_HILITING)
+    @Migrate(loadDefaultIfAbsent = true)
     @Widget(title = "Enable hiliting",
         description = "Enable hiliting between both inputs and the concatenated output table.", advanced = true)
     boolean m_enableHiliting = false; //NOSONAR being explicit is desired here
