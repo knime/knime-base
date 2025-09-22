@@ -89,7 +89,6 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetGroupModifier;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
@@ -234,7 +233,7 @@ public final class CommonReaderTransformationSettingsStateProviders {
                 configIdSettings.applyToConfig(config);
             } catch (IllegalArgumentException e) {
                 LOGGER.error(e);
-                throw new StateComputationFailureException(e.getMessage());
+                throw new StateComputationFailureException();
             }
 
             final var tableReader = getTableReader();
