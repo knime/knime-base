@@ -110,6 +110,7 @@ import org.knime.core.node.property.hilite.HiLiteTranslator;
  *
  * @author Michael Berthold, University of Konstanz
  */
+@Deprecated
 public class ClusterNodeModel extends NodeModel {
     /** Constant for the centroid initialization method in the dialog. */
     private static final String CFG_CENTROID_INITIALIZATION = "centroid_initialization";

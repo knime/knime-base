@@ -57,6 +57,7 @@ import org.knime.core.node.util.ButtonGroupEnumInterface;
  *
  * @author Perla Gjoka, KNIME GmbH, Konstanz, Germany
  */
+@Deprecated
 enum CentroidInitialization implements ButtonGroupEnumInterface {
         FIRST_ROWS("First k rows", null),
         RANDOM_INITIALIZATION("Random initialization", null);
@@ -103,6 +104,7 @@ enum CentroidInitialization implements ButtonGroupEnumInterface {
         return RANDOM_INITIALIZATION == this;
     }
 
+    @Deprecated
     public static CentroidInitialization getDefault() {
         CentroidInitialization[] possibleValues = values();
         for (final CentroidInitialization centroid : possibleValues) {

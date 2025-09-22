@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -44,56 +45,68 @@
  */
 package org.knime.base.node.mine.cluster.kmeans;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.def.DoubleCell;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * Create classes for k-means Clustering NodeModel, NodeView and NodeDialogPane.
+ * Snapshot test for {@link ClusterNodeSettings}.
  *
- * @author Michael Berthold, University of Konstanz
- * @since 3.1
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
  */
-public class ClusterNodeFactory2 extends NodeFactory<ClusterNodeModel> {
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ClusterNodeModel createNodeModel() {
-        return new ClusterNodeModel(false, true);
+@SuppressWarnings("restriction")
+class ClusterNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+
+    protected ClusterNodeSettingsTest() {
+        super(getConfig());
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int getNrNodeViews() {
-        return 1;
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .withInputPortObjectSpecs(createInputPortSpecs()) //
+            .testJsonFormsForModel(ClusterNodeSettings.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ClusterNodeView createNodeView(final int i, final ClusterNodeModel nodeModel) {
-        if (i != 0) {
-            throw new IllegalStateException();
+    private static ClusterNodeSettings readSettings() {
+        try {
+            var path = getSnapshotPath(ClusterNodeSettings.class).getParent().resolve("node_settings")
+                .resolve("ClusterNodeSettings.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return NodeParametersUtil.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    ClusterNodeSettings.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
         }
-        return new ClusterNodeView(nodeModel);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasDialog() {
-        return true;
+    private static PortObjectSpec[] createInputPortSpecs() {
+        return new PortObjectSpec[]{createDefaultTestTableSpec()};
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return new ClusterNodeDialog();
+    private static DataTableSpec createDefaultTestTableSpec() {
+        return new DataTableSpec(
+            new String[]{"feature1", "feature2", "feature3", "feature4"},
+            new DataType[]{
+                DataType.getType(DoubleCell.class),
+                DataType.getType(DoubleCell.class),
+                DataType.getType(DoubleCell.class),
+                DataType.getType(DoubleCell.class)
+            }
+        );
     }
 }
