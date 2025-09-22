@@ -2,7 +2,7 @@
 <knimeNode type="Learner" icon="./kmeans.png"
 xmlns="http://knime.org/node/v4.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
 xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
-	<name>k-Means</name>
+	<name>k-Means (deprecated)</name>
 	<shortDescription>Creates a crisp center based clustering.</shortDescription>
 	<fullDescription>
 		<intro>

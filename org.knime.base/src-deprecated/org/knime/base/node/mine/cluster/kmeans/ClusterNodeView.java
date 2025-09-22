@@ -76,6 +76,7 @@ import org.knime.core.node.property.hilite.KeyEvent;
 /**
  * @author Michael Berthold, University of Konstanz
  */
+@Deprecated
 public class ClusterNodeView extends NodeView<ClusterNodeModel>
     implements HiLiteListener {
 
@@ -107,6 +108,7 @@ public class ClusterNodeView extends NodeView<ClusterNodeModel>
      *
      * @param nodeModel the underlying model
      */
+    @Deprecated
     public ClusterNodeView(final ClusterNodeModel nodeModel) {
         super(nodeModel);
         JComponent myComp = new JPanel();
@@ -299,8 +301,8 @@ public class ClusterNodeView extends NodeView<ClusterNodeModel>
                 // c
                 for (int c = 0; c < viewData.getNrOfClusters(); c++) {
                     // add information about coverage and center vector
-                    clusterParent = new ClusterMutableTreeNode(ClusterNodeModel.CLUSTER + c + " (coverage: "
-                                    + viewData.getClusterCoverage(c) + ")", new RowKey(ClusterNodeModel.CLUSTER + c));
+                    clusterParent = new ClusterMutableTreeNode(ClusterNodeModel2.CLUSTER + c + " (coverage: "
+                                    + viewData.getClusterCoverage(c) + ")", new RowKey(ClusterNodeModel2.CLUSTER + c));
                     for (int i = 0; i < viewData.getNrOfUsedColumns(); i++) {
                         clusterParent.add(new DefaultMutableTreeNode(
                                   viewData.getFeatureName(i) + " = " + viewData.getClusterCenter(c)[i]));
