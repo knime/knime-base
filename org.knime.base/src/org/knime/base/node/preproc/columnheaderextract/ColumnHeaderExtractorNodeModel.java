@@ -105,7 +105,7 @@ import org.knime.node.parameters.widget.choices.Label;
 @SuppressWarnings("restriction")
 public class ColumnHeaderExtractorNodeModel extends NodeModel {
 
-    private static final String CFG_ONE_BASED_INDEXING = "use_one_based_indexing" + SettingsModel.CFGKEY_INTERNAL;
+    static final String CFG_ONE_BASED_INDEXING = "use_one_based_indexing" + SettingsModel.CFGKEY_INTERNAL;
 
     static final String CFG_TRANSPOSE_COL_HEADER = "transposeColHeader";
 

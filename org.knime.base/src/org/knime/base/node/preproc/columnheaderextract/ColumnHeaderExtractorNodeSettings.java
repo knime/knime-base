@@ -49,6 +49,7 @@
 package org.knime.base.node.preproc.columnheaderextract;
 
 import static org.knime.base.node.preproc.columnheaderextract.ColumnHeaderExtractorNodeModel.CFG_COLTYPE;
+import static org.knime.base.node.preproc.columnheaderextract.ColumnHeaderExtractorNodeModel.CFG_ONE_BASED_INDEXING;
 import static org.knime.base.node.preproc.columnheaderextract.ColumnHeaderExtractorNodeModel.CFG_TRANSPOSE_COL_HEADER;
 
 import org.knime.base.node.preproc.columnheaderextract.ColumnHeaderExtractorNodeModel.ColType;
@@ -119,6 +120,10 @@ public final class ColumnHeaderExtractorNodeSettings implements NodeParameters {
     @ValueSwitchWidget
     ColType m_colTypeFilter = ColType.ALL;
 
+    // Hidden field for backward compatibility - controls indexing behavior
+    @Persistor(UseOneBasedIndexingPersistor.class)
+    boolean m_useOneBasedIndexing = true;
+
     enum OutputFormat {
             @Label("Row")
             ROW, //
@@ -159,6 +164,25 @@ public final class ColumnHeaderExtractorNodeSettings implements NodeParameters {
         @Override
         public String[][] getConfigPaths() {
             return new String[][]{{CFG_COLTYPE}};
+        }
+    }
+
+    private static final class UseOneBasedIndexingPersistor implements NodeParametersPersistor<Boolean> {
+
+        @Override
+        public Boolean load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            // added in 5.0. Old workflows should use 0-based indexing, new workflows 1-based
+            return settings.getBoolean(CFG_ONE_BASED_INDEXING, false);
+        }
+
+        @Override
+        public void save(final Boolean obj, final NodeSettingsWO settings) {
+            settings.addBoolean(CFG_ONE_BASED_INDEXING, obj);
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{{CFG_ONE_BASED_INDEXING}};
         }
     }
 }
