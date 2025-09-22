@@ -95,7 +95,6 @@ import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
-import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.ColumnNameValidation;
 import org.knime.time.util.DateTimeUtils;
 import org.knime.time.util.Granularity;
 
@@ -399,7 +398,7 @@ final class DateTimeDifferenceNodeSettings implements NodeParameters {
             }
             final var typeOfFirstColumn = firstColumnSpec.getType();
             final var dataValueOfFirstColumn = toCompatibleDateTimeDataValue(typeOfFirstColumn);
-            if (typeOfFirstColumn == null) {
+            if (typeOfFirstColumn == null || dataValueOfFirstColumn == null) {
                 return List.of();
             }
             return spec.map(DataTableSpec::stream) //
