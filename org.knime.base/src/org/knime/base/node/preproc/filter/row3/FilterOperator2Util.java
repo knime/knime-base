@@ -48,27 +48,6 @@
  */
 package org.knime.base.node.preproc.filter.row3;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.stream.Stream;
-
-import org.apache.commons.lang3.StringUtils;
-import org.knime.core.data.DataType;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.util.Pair;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.BuiltinOperator;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.BuiltinOperator.EqualsOperator;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.BuiltinOperator.GreaterThanOperator;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.BuiltinOperator.LessThanOperator;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.BuiltinOperator.SingleCellOperatorFamily;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator2;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorsExtensionsUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
-import org.knime.node.parameters.widget.choices.Label;
-import org.knime.node.parameters.widget.choices.StringChoice;
 
 /**
  * This utility is used both during configuration of the dialog and execution of the node.
@@ -89,146 +68,152 @@ import org.knime.node.parameters.widget.choices.StringChoice;
  * @author Paul Bärnreuther
  */
 public final class FilterOperator2Util {
-
-    private FilterOperator2Util() {
-        // utility class
-    }
-
-    record AvailableOperators(//
-        List<BuiltinOperator<?>> builtinOperatorsFromExtension, //
-        List<Pair<FilterOperator, FilterOperator.InternalFilterOperator<?>>> internalBuiltinOperators, //
-        List<FilterOperator2<?>> customOperatorsFromExtension //
-    ) {
-
-    }
-
-    static final Map<DataType, List<FilterOperator2<? extends FilterValueParameters>>> EXTENSION_FILTER_OPERATORS =
-        FilterOperatorsExtensionsUtil.getFilterOperatorExtensions();
-
-    static AvailableOperators getOperatorsForColumn(final DataType dataType) {
-        final List<FilterOperator2<? extends FilterValueParameters>> operatorsFromExtension =
-            EXTENSION_FILTER_OPERATORS.getOrDefault(dataType, List.of());
-
-        final List<BuiltinOperator<?>> builtinOperators = new ArrayList<>();
-        final List<FilterOperator2<?>> customOperators = new ArrayList<>();
-        for (final var op : operatorsFromExtension) {
-            if (op instanceof BuiltinOperator<?> builtinOp) {
-                builtinOperators.add(builtinOp);
-            } else {
-                customOperators.add(op);
-            }
-        }
-        final List<Pair<FilterOperator, FilterOperator.InternalFilterOperator<?>>> internalBuiltinOperators =
-            new ArrayList<>();
-        for (var fo : FilterOperator.values()) {
-            fo.getColumnFilterOperator(dataType).ifPresent(ifo ->
-                internalBuiltinOperators.add(new Pair<>(fo, ifo))
-            );
-        }
-
-        return new AvailableOperators(//
-            builtinOperators, //
-            internalBuiltinOperators, //
-            customOperators//
-        );
-
-    }
-
-    static final List<Pair<FilterOperator, StringChoice>> BUILTIN_CHOICES_ORDERED = Arrays
-        .stream(FilterOperator.values()).map(c -> new Pair<>(c, new StringChoice(c.name(), getLabelTitle(c)))).toList();
-
-    public static String getLabelTitle(final Enum<?> constant) {
-        var enumClass = constant.getDeclaringClass();
-        var name = constant.name();
-        try {
-            final var field = enumClass.getField(name);
-            if (field.isAnnotationPresent(Label.class)) {
-                final var label = field.getAnnotation(Label.class);
-                return label.value();
-            }
-        } catch (NoSuchFieldException | SecurityException e) {
-            throw new IllegalStateException(String.format("Exception when accessing field %s.", name), e);
-        }
-        return StringUtils.capitalize(name.toLowerCase(Locale.getDefault()).replace("_", " "));
-    }
-
-    static final Map<String, Class<? extends BuiltinOperator>> BUILTIN_OPERATOR_ID_MAP = Map.ofEntries(//
-        Map.entry("EQ", EqualsOperator.class), //
-        Map.entry("NEQ", EqualsOperator.class), //
-        Map.entry("NEQ_MISS", EqualsOperator.class), //
-        Map.entry("LT", LessThanOperator.class), //
-        Map.entry("GT", GreaterThanOperator.class), //
-        Map.entry("LTE", GreaterThanOperator.class), //
-        Map.entry("GTE", LessThanOperator.class)//
-    );
-
-    static Stream<String> idsForBuiltinOperator(final BuiltinOperator builtinOp) {
-        return BUILTIN_OPERATOR_ID_MAP.entrySet().stream().filter(e -> e.getValue().isInstance(builtinOp))
-            .map(Map.Entry::getKey);
-    }
-
-    /**
-     * DIALOG USE CASE:
-     *
-     * <ul>
-     * <li>hidden operators are not shown</li>
-     * <li>if an operator is provided via extension point, the builtin version is not shown</li>
-     * </ul>
-     */
-
-    static List<StringChoice> getSortedChoices(final AvailableOperators opsAvailable) {
-        final List<StringChoice> sortedChoices = new ArrayList<>();
-        for (var builtinStringChoice : BUILTIN_CHOICES_ORDERED) {
-            final var filterOp = builtinStringChoice.getFirst();
-            final var stringChoice = builtinStringChoice.getSecond();
-            final var builtinOpInterface = BUILTIN_OPERATOR_ID_MAP.get(filterOp.name());
-            if (builtinOpInterface != null) {
-                for (var builtinOp : opsAvailable.builtinOperatorsFromExtension()) {
-                    if (builtinOpInterface.isInstance(builtinOp)) {
-                        sortedChoices.add(stringChoice);
-                        continue; // no internal builtin operator needed
-                    }
-                }
-            }
-            // Add internal operators
-            if (!sortedChoices.contains(stringChoice) && opsAvailable.internalBuiltinOperators().stream()
-                .filter(pair -> !pair.getSecond().isHidden()).anyMatch(pair -> pair.getFirst().equals(filterOp))) {
-                sortedChoices.add(stringChoice);
-            }
-
-        }
-        for (var customOp : opsAvailable.customOperatorsFromExtension()) {
-            sortedChoices.add(new StringChoice(customOp.getId(), customOp.getDisplayName()));
-        }
-        return sortedChoices;
-
-    }
-
-    static Class<? extends FilterValueParameters> getTargetClass(final AvailableOperators opsAvailable,
-        final String chosenId) throws InvalidSettingsException {
-        final var builtinOpInterface = BUILTIN_OPERATOR_ID_MAP.get(chosenId);
-        if (builtinOpInterface != null) {
-            for (var builtinOp : opsAvailable.builtinOperatorsFromExtension()) {
-                if (builtinOpInterface.isInstance(builtinOp)) {
-                    return builtinOp.getNodeParametersClass();
-                }
-            }
-        }
-        for (var customOp : opsAvailable.customOperatorsFromExtension()) {
-            if (customOp.getId().equals(chosenId)) {
-                return customOp.getNodeParametersClass();
-            }
-        }
-        for (var ifo : opsAvailable.internalBuiltinOperators()) {
-            final var id = ifo.getFirst().name();
-            if (id.equals(chosenId)) {
-                return ifo.getSecond().getParametersClass();
-            }
-        }
-        throw new InvalidSettingsException(
-            "Could not find operator with id " + chosenId + " for the selected column. ");
-
-    }
+//
+//    private FilterOperator2Util() {
+//        // utility class
+//    }
+//
+//    //
+//    // builtin -> EQ/NEQ, LT, GT
+//    // default: our impls for builtins
+//    // derived (from builtin) -> NEQ_NORMISS, LTE, GTE
+//    //
+//
+//    record AvailableOperators(//
+//        List<BuiltinOperator<?>> builtinOperatorsFromExtension, //
+//        List<Pair<FilterOperator, FilterOperator.InternalFilterOperator<?>>> internalBuiltinOperators, //
+//        List<ValueFilterOperator<?>> customOperatorsFromExtension //
+//    ) {
+//
+//    }
+//
+//    static final Map<DataType, List<ValueFilterOperator<FilterValueParameters>>> EXTENSION_FILTER_OPERATORS =
+//        FilterOperatorsExtensionsUtil.getFilterOperatorExtensions();
+//
+//    static AvailableOperators getOperatorsForColumn(final DataType dataType) {
+//        final List<ValueFilterOperator<? extends FilterValueParameters>> operatorsFromExtension =
+//            EXTENSION_FILTER_OPERATORS.getOrDefault(dataType, List.of());
+//
+//        final List<BuiltinOperator<?>> builtinOperators = new ArrayList<>();
+//        final List<ValueFilterOperator<?>> customOperators = new ArrayList<>();
+//        for (final var op : operatorsFromExtension) {
+//            if (op instanceof BuiltinOperator<?> builtinOp) {
+//                builtinOperators.add(builtinOp);
+//            } else {
+//                customOperators.add(op);
+//            }
+//        }
+//        final List<Pair<FilterOperator, FilterOperator.InternalFilterOperator<?>>> internalBuiltinOperators =
+//            new ArrayList<>();
+//        for (var fo : FilterOperator.values()) {
+//            fo.getColumnFilterOperator(dataType).ifPresent(ifo ->
+//                internalBuiltinOperators.add(new Pair<>(fo, ifo))
+//            );
+//        }
+//
+//        return new AvailableOperators(//
+//            builtinOperators, //
+//            internalBuiltinOperators, //
+//            customOperators//
+//        );
+//
+//    }
+//
+//    static final List<Pair<FilterOperator, StringChoice>> BUILTIN_CHOICES_ORDERED = Arrays
+//        .stream(FilterOperator.values()).map(c -> new Pair<>(c, new StringChoice(c.name(), getLabelTitle(c)))).toList();
+//
+//    public static String getLabelTitle(final Enum<?> constant) {
+//        var enumClass = constant.getDeclaringClass();
+//        var name = constant.name();
+//        try {
+//            final var field = enumClass.getField(name);
+//            if (field.isAnnotationPresent(Label.class)) {
+//                final var label = field.getAnnotation(Label.class);
+//                return label.value();
+//            }
+//        } catch (NoSuchFieldException | SecurityException e) {
+//            throw new IllegalStateException(String.format("Exception when accessing field %s.", name), e);
+//        }
+//        return StringUtils.capitalize(name.toLowerCase(Locale.getDefault()).replace("_", " "));
+//    }
+//
+//    static final Map<String, Class<? extends BuiltinOperator>> BUILTIN_OPERATOR_ID_MAP = Map.ofEntries(//
+//        Map.entry("EQ", EqualsOperator.class), //
+//        Map.entry("NEQ", EqualsOperator.class), //
+//        Map.entry("NEQ_MISS", EqualsOperator.class), //
+//        Map.entry("LT", LessThanOperator.class), //
+//        Map.entry("GT", GreaterThanOperator.class), //
+//        Map.entry("LTE", GreaterThanOperator.class), //
+//        Map.entry("GTE", LessThanOperator.class)//
+//    );
+//
+//    static Stream<String> idsForBuiltinOperator(final BuiltinOperator builtinOp) {
+//        return BUILTIN_OPERATOR_ID_MAP.entrySet().stream().filter(e -> e.getValue().isInstance(builtinOp))
+//            .map(Map.Entry::getKey);
+//    }
+//
+//    /**
+//     * DIALOG USE CASE:
+//     *
+//     * <ul>
+//     * <li>hidden operators are not shown</li>
+//     * <li>if an operator is provided via extension point, the builtin version is not shown</li>
+//     * </ul>
+//     */
+//
+//    static List<StringChoice> getSortedChoices(final AvailableOperators opsAvailable) {
+//        final List<StringChoice> sortedChoices = new ArrayList<>();
+//        for (var builtinStringChoice : BUILTIN_CHOICES_ORDERED) {
+//            final var filterOp = builtinStringChoice.getFirst();
+//            final var stringChoice = builtinStringChoice.getSecond();
+//            final var builtinOpInterface = BUILTIN_OPERATOR_ID_MAP.get(filterOp.name());
+//            if (builtinOpInterface != null) {
+//                for (var builtinOp : opsAvailable.builtinOperatorsFromExtension()) {
+//                    if (builtinOpInterface.isInstance(builtinOp)) {
+//                        sortedChoices.add(stringChoice);
+//                        continue; // no internal builtin operator needed
+//                    }
+//                }
+//            }
+//            // Add internal operators
+//            if (!sortedChoices.contains(stringChoice) && opsAvailable.internalBuiltinOperators().stream()
+//                .filter(pair -> !pair.getSecond().isHidden()).anyMatch(pair -> pair.getFirst().equals(filterOp))) {
+//                sortedChoices.add(stringChoice);
+//            }
+//
+//        }
+//        for (var customOp : opsAvailable.customOperatorsFromExtension()) {
+//            sortedChoices.add(new StringChoice(customOp.getId(), customOp.getDisplayName()));
+//        }
+//        return sortedChoices;
+//
+//    }
+//
+//    static Class<? extends FilterValueParameters> getTargetClass(final AvailableOperators opsAvailable,
+//        final String chosenId) throws InvalidSettingsException {
+//        final var builtinOpInterface = BUILTIN_OPERATOR_ID_MAP.get(chosenId);
+//        if (builtinOpInterface != null) {
+//            for (var builtinOp : opsAvailable.builtinOperatorsFromExtension()) {
+//                if (builtinOpInterface.isInstance(builtinOp)) {
+//                    return builtinOp.getNodeParametersClass();
+//                }
+//            }
+//        }
+//        for (var customOp : opsAvailable.customOperatorsFromExtension()) {
+//            if (customOp.getId().equals(chosenId)) {
+//                return customOp.getNodeParametersClass();
+//            }
+//        }
+//        for (var ifo : opsAvailable.internalBuiltinOperators()) {
+//            final var id = ifo.getFirst().name();
+//            if (id.equals(chosenId)) {
+//                return ifo.getSecond().getParametersClass();
+//            }
+//        }
+//        throw new InvalidSettingsException(
+//            "Could not find operator with id " + chosenId + " for the selected column. ");
+//
+//    }
 
     /**
      * EXECUTION USE CASE:

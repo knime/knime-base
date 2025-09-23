@@ -44,64 +44,37 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 8, 2025 (Paul Bärnreuther): created
+ *   17 Sept 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.core.data.time.localdate;
 
-import org.knime.core.data.DataValue;
-import org.knime.core.data.StringValue;
-import org.knime.core.data.def.StringCell;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.knime.core.data.DataType;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorFamily;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorFamily.Single;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperators;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
-import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.layout.Before;
-import org.knime.node.parameters.layout.Layout;
-import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
- * Parameter class for string based filter value parameters.
  *
- * @author Paul Bärnreuther
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public class StringValueParameters implements FilterValueParameters {
-
-    @Before(ValuePart.class)
-    interface CaseSensitivityPart {
-    }
-
-    interface ValuePart {
-
-    }
-
-    @Layout(ValuePart.class)
-    @Widget(title = SingleCellValueParameters.FILTER_VALUE_TITLE,
-        description = SingleCellValueParameters.FILTER_VALUE_DESCRIPTION)
-    String m_value;
+@SuppressWarnings("restriction")
+public class LocalDateCellFilterOperators implements FilterOperators<LocalDateValue> {
 
     @Override
-    public StringValue[] stash() {
-        return new StringValue[]{ new StringCell(m_value) };
+    public DataType getDataType() {
+        return LocalDateCell.TYPE;
     }
 
     @Override
-    public void applyStash(final DataValue[] stashedValues) {
-        if (stashedValues.length > 0) {
-            final var first = stashedValues[0];
-            if (first instanceof StringValue val) {
-                m_value = val.getStringValue();
-            }
-        }
-    }
-
-    /**
-     * Parameters class to use when literal strings should be compared for equality. It includes a case sensitivity
-     * option.
-     */
-    public static final class EqualsStringParameters extends StringValueParameters {
-
-        @Layout(CaseSensitivityPart.class)
-        @ValueSwitchWidget
-        @Widget(title = "Case matching", description = "Whether the comparison should be case sensitive or not.")
-        CaseSensitivity m_caseSensitivity = CaseSensitivity.CASE_SENSITIVE;
+    public List<FilterOperatorFamily<LocalDateValue, ? extends FilterValueParameters>> getOperatorFamilies() {
+        final List<FilterOperatorFamily<LocalDateValue, ? extends FilterValueParameters>> operators =
+            new ArrayList<>();
+        operators.add(new Single<>(new LocalDateCellFilterParameters.OperatorIsUnixEpoch()));
+        return operators;
     }
 
 }

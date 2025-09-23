@@ -421,6 +421,13 @@
                 factoryClass="org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellCreationParametersFactory">
          </CreateDataCellParameters>
     </extension>
+    <extension
+    	point="org.knime.core.ui.filterOperators">
+    	<FilterOperators
+    		factoryClass="org.knime.core.data.time.localdate.LocalDateCellFilterOperators">
+    	</FilterOperators>
+    </extension>
+    
    <extension
          point="org.knime.base.AggregationOperator">
       <AggregationOperator
