@@ -1,0 +1,206 @@
+{
+  "data" : {
+    "model" : {
+      "countMode" : "AT_LEAST",
+      "rowCount" : 15,
+      "newRowKeyPrefix" : "Empty ",
+      "fillValueDouble" : null,
+      "fillValueInt" : null,
+      "fillValueString" : null
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "countMode" : {
+            "oneOf" : [ {
+              "const" : "AT_LEAST",
+              "title" : "At least"
+            }, {
+              "const" : "ADDITIONAL",
+              "title" : "Additional"
+            } ],
+            "title" : "Mode",
+            "description" : "Choose whether to add a fixed number of rows to the input table (\"Additional\"), independent of\nthe input table's row count; or to add rows to the table only in case there are less rows than\nindicated (\"At least\"). The latter will not change the input table if there are already more rows\nthan specified in the corresponding field.\n",
+            "default" : "ADDITIONAL"
+          },
+          "fillValueDouble" : {
+            "type" : [ "number", "null" ],
+            "format" : "double",
+            "title" : "Number (Float)",
+            "description" : "Fill value for Float columns in newly added rows.",
+            "default" : null
+          },
+          "fillValueInt" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int32",
+            "title" : "Number (Integer)",
+            "description" : "Fill value for Integer columns in newly added rows.",
+            "default" : null
+          },
+          "fillValueString" : {
+            "type" : [ "string", "null" ],
+            "title" : "String",
+            "description" : "Fill value for String columns in newly added rows.",
+            "default" : null
+          },
+          "newRowKeyPrefix" : {
+            "type" : "string",
+            "title" : "RowID Prefix",
+            "description" : "Prefix for the row IDs of newly added rows.",
+            "default" : "Empty "
+          },
+          "rowCount" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Count",
+            "description" : "Number of rows to add or minimum number of rows in the output table.",
+            "default" : 15
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Number of rows in output",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/countMode",
+        "options" : {
+          "format" : "radio",
+          "radioLayout" : "vertical"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/rowCount",
+        "options" : {
+          "validation" : {
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 2.147483647E9
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 0.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : 0.0
+              }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/newRowKeyPrefix",
+        "options" : {
+          "validation" : {
+            "minLength" : {
+              "errorMessage" : "The field cannot be empty (it must contain at least one character).",
+              "parameters" : {
+                "minLength" : 1
+              }
+            }
+          }
+        }
+      } ]
+    }, {
+      "label" : "Fill Data",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/fillValueDouble",
+        "options" : {
+          "hideOnNull" : true
+        },
+        "providedOptions" : [ "default" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/fillValueInt",
+        "options" : {
+          "validation" : {
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 2.147483647E9
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least -2147483648.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : -2.147483648E9
+              }
+            }
+          },
+          "hideOnNull" : true
+        },
+        "providedOptions" : [ "default" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/fillValueString",
+        "options" : {
+          "hideOnNull" : true
+        },
+        "providedOptions" : [ "default" ]
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "countMode" : {
+            "configPaths" : [ [ "atLeastMode" ] ]
+          },
+          "rowCount" : {
+            "configKey" : "rowCount"
+          },
+          "newRowKeyPrefix" : {
+            "configKey" : "newRowKeyPrefix"
+          },
+          "fillValueDouble" : {
+            "configPaths" : [ [ "double", "useMissing" ], [ "double", "fillValue" ] ]
+          },
+          "fillValueInt" : {
+            "configPaths" : [ [ "int", "useMissing" ], [ "int", "fillValue" ] ]
+          },
+          "fillValueString" : {
+            "configPaths" : [ [ "String", "useMissing" ], [ "String", "fillValue" ] ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/fillValueDouble",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : 0.0
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/fillValueInt",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : 0
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/fillValueString",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "empty"
+    } ]
+  } ]
+}

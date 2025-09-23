@@ -57,6 +57,15 @@ import org.knime.core.node.NodeSettingsWO;
  */
 final class AddEmptyRowsConfig {
 
+    static final String CFG_KEY_AT_LEAST_MODE = "atLeastMode";
+    static final String CFG_KEY_ROW_COUNT = "rowCount";
+    static final String CFG_KEY_NEW_ROW_KEY_PREFIX = "newRowKeyPrefix";
+    static final String CFG_KEY_DOUBLE = "double";
+    static final String CFG_KEY_INT = "int";
+    static final String CFG_KEY_STRING = "String";
+    static final String CFG_KEY_USE_MISSING = "useMissing";
+    static final String CFG_KEY_FILL_VALUE = "fillValue";
+
     private boolean m_atLeastMode = true;
 
     private int m_rowCount = 15;
@@ -203,21 +212,21 @@ final class AddEmptyRowsConfig {
      * @param settings To save to.
      */
     void saveSettingsTo(final NodeSettingsWO settings) {
-        settings.addBoolean("atLeastMode", m_atLeastMode);
-        settings.addInt("rowCount", m_rowCount);
-        settings.addString("newRowKeyPrefix", m_newRowKeyPrefix);
+        settings.addBoolean(CFG_KEY_AT_LEAST_MODE, m_atLeastMode);
+        settings.addInt(CFG_KEY_ROW_COUNT, m_rowCount);
+        settings.addString(CFG_KEY_NEW_ROW_KEY_PREFIX, m_newRowKeyPrefix);
 
-        NodeSettingsWO doubleSet = settings.addNodeSettings("double");
-        doubleSet.addBoolean("useMissing", m_useMissingDouble);
-        doubleSet.addDouble("fillValue", m_fillValueDouble);
+        NodeSettingsWO doubleSet = settings.addNodeSettings(CFG_KEY_DOUBLE);
+        doubleSet.addBoolean(CFG_KEY_USE_MISSING, m_useMissingDouble);
+        doubleSet.addDouble(CFG_KEY_FILL_VALUE, m_fillValueDouble);
 
         NodeSettingsWO intSet = settings.addNodeSettings("int");
-        intSet.addBoolean("useMissing", m_useMissingInt);
-        intSet.addInt("fillValue", m_fillValueInt);
+        intSet.addBoolean(CFG_KEY_USE_MISSING, m_useMissingInt);
+        intSet.addInt(CFG_KEY_FILL_VALUE, m_fillValueInt);
 
-        NodeSettingsWO stringSet = settings.addNodeSettings("String");
-        stringSet.addBoolean("useMissing", m_useMissingString);
-        stringSet.addString("fillValue", m_fillValueString);
+        NodeSettingsWO stringSet = settings.addNodeSettings(CFG_KEY_STRING);
+        stringSet.addBoolean(CFG_KEY_USE_MISSING, m_useMissingString);
+        stringSet.addString(CFG_KEY_FILL_VALUE, m_fillValueString);
     }
 
     /**
@@ -228,20 +237,20 @@ final class AddEmptyRowsConfig {
      */
     void loadSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
-        m_atLeastMode = settings.getBoolean("atLeastMode");
-        m_rowCount = settings.getInt("rowCount");
-        m_newRowKeyPrefix = settings.getString("newRowKeyPrefix");
+        m_atLeastMode = settings.getBoolean(CFG_KEY_AT_LEAST_MODE);
+        m_rowCount = settings.getInt(CFG_KEY_ROW_COUNT);
+        m_newRowKeyPrefix = settings.getString(CFG_KEY_NEW_ROW_KEY_PREFIX);
 
-        NodeSettingsRO doubleSet = settings.getNodeSettings("double");
-        m_useMissingDouble = doubleSet.getBoolean("useMissing");
-        m_fillValueDouble = doubleSet.getDouble("fillValue");
+        NodeSettingsRO doubleSet = settings.getNodeSettings(CFG_KEY_DOUBLE);
+        m_useMissingDouble = doubleSet.getBoolean(CFG_KEY_USE_MISSING);
+        m_fillValueDouble = doubleSet.getDouble(CFG_KEY_FILL_VALUE);
 
-        NodeSettingsRO intSet = settings.getNodeSettings("int");
-        m_useMissingInt = intSet.getBoolean("useMissing");
-        m_fillValueInt = intSet.getInt("fillValue");
+        NodeSettingsRO intSet = settings.getNodeSettings(CFG_KEY_INT);
+        m_useMissingInt = intSet.getBoolean(CFG_KEY_USE_MISSING);
+        m_fillValueInt = intSet.getInt(CFG_KEY_FILL_VALUE);
 
-        NodeSettingsRO stringSet = settings.getNodeSettings("String");
-        m_useMissingString = stringSet.getBoolean("useMissing");
-        m_fillValueString = stringSet.getString("fillValue");
+        NodeSettingsRO stringSet = settings.getNodeSettings(CFG_KEY_STRING);
+        m_useMissingString = stringSet.getBoolean(CFG_KEY_USE_MISSING);
+        m_fillValueString = stringSet.getString(CFG_KEY_FILL_VALUE);
     }
 }

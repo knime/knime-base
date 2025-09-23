@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <entry key="atLeastMode" type="xboolean" value="true"/>
+    <entry key="rowCount" type="xint" value="15"/>
+    <entry key="newRowKeyPrefix" type="xstring" value="Empty "/>
+    <config key="double">
+        <entry key="useMissing" type="xboolean" value="true"/>
+        <entry key="fillValue" type="xdouble" value="0.0"/>
+    </config>
+    <config key="int">
+        <entry key="useMissing" type="xboolean" value="true"/>
+        <entry key="fillValue" type="xint" value="0"/>
+    </config>
+    <config key="String">
+        <entry key="useMissing" type="xboolean" value="true"/>
+        <entry key="fillValue" type="xstring" value=""/>
+    </config>
+</config>

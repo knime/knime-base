@@ -47,18 +47,37 @@
  */
 package org.knime.base.node.preproc.addemptyrows;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * <code>NodeFactory</code> for the "AddEmptyRows" Node.
  * Adds a certain number of empty rows with missing values or a given constant.
  *
  * @author Bernd Wiswedel
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.1
  */
+@SuppressWarnings("restriction")
 public class AddEmptyRowsNodeFactory
-        extends NodeFactory<AddEmptyRowsNodeModel> {
+        extends NodeFactory<AddEmptyRowsNodeModel> implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     /**
      * {@inheritDoc}
@@ -96,9 +115,72 @@ public class AddEmptyRowsNodeFactory
     /**
      * {@inheritDoc}
      */
+    private static final String NODE_NAME = "Add Empty Rows";
+    private static final String NODE_ICON = "./add_empty_rows.png";
+    private static final String SHORT_DESCRIPTION = """
+            Adds a certain number of empty rows with missing values or a given constant to the input table.
+            """;
+    private static final String FULL_DESCRIPTION = """
+            Adds a certain number of empty rows with missing values (or a constant) to the input table. This can be
+                useful when used in a report table to ensure that a table has a minimum number of rows, which are then
+                shown as blank rows. The content of the appended rows can be defined in the dialog, the default is to
+                fill the corresponding cells with missing values. Note that the reporting engine allows you to format
+                cells containing missing values (or any other specific value) using the "Map" feature. For instance, if
+                you want to format missing values (shown as NaN in the report) as blank fields, add a map rule
+                isNaN(row["Column x"]), which needs to evaluate to True.
+            """;
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Input table", """
+                Any input table
+                """)
+    );
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Output table", """
+                Input table augmented by additional rows
+                """)
+    );
+
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new AddEmptyRowsNodeDialog();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 5.8
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, AddEmptyRowsNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(
+            NODE_NAME,
+            NODE_ICON,
+            INPUT_PORTS,
+            OUTPUT_PORTS,
+            SHORT_DESCRIPTION,
+            FULL_DESCRIPTION,
+            List.of(),
+            AddEmptyRowsNodeParameters.class,
+            null,
+            NodeType.Manipulator,
+            List.of(),
+            null
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 5.8
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, AddEmptyRowsNodeParameters.class));
     }
 
 }
