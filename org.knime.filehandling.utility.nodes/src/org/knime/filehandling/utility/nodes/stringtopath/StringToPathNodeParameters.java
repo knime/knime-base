@@ -240,6 +240,15 @@ final class StringToPathNodeParameters implements NodeParameters {
 
         static final class FileSystemChooser implements NodeParameters {
 
+            // Notes:
+            // * We don't get the 'PortsConfig' as input, so we cannot just do
+            //   'StringToPathNodeModel.createSettingsModelFileSystem(portsConfig)' here.
+            // * In 'StringToPathNodeDialog' we use
+            //   'org.knime.filehandling.core.defaultnodesettings.filesystemchooser.DialogComponentFileSystem'
+            //   which uses 'org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.FileSystemChooser'
+            //   to display the dialog, validate, load and save the settings.
+            // * The question is: Do we want to re-produce this whole logic here, or can we trim it down to a minimum?
+
             @Persist(configKey = "overwritten_by_variable")
             boolean overwrittenByVariable = false;
 
