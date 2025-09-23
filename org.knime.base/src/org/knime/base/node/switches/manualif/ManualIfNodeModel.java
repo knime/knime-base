@@ -69,10 +69,11 @@ import org.knime.core.node.port.inactive.InactiveBranchPortObjectSpec;
  * (alternatively also both), depending on the configuration.
  *
  * @author M. Berthold, University of Konstanz
+ * @author Kai Franze, KNIME GmbH, Germany
  */
-public class ManualIfNodeModel extends NodeModel {
+final class ManualIfNodeModel extends NodeModel {
 
-    private static final String ACTIVATE_OUTPUT_CFG = "activate_all_outputs_during_configure";
+    static final String ACTIVATE_OUTPUT_CFG = "activate_all_outputs_during_configure";
 
     private final SettingsModelString m_choice = createChoiceModel();
 
@@ -96,10 +97,10 @@ public class ManualIfNodeModel extends NodeModel {
         outSpecs[0] = inSpecs[0];
         outSpecs[1] = inSpecs[0];
         boolean v = m_activateAllOutputsDuringConfigureModel.getBooleanValue();
-        if (!v && m_choice.getStringValue().equals(ManualIfNodeDialog.TOP)) {
+        if (!v && m_choice.getStringValue().equals(ManualIfNodeParameters.PortChoice.TOP.m_value)) {
             outSpecs[1] = InactiveBranchPortObjectSpec.INSTANCE;
         }
-        if (!v && m_choice.getStringValue().equals(ManualIfNodeDialog.BOTTOM)) {
+        if (!v && m_choice.getStringValue().equals(ManualIfNodeParameters.PortChoice.BOTTOM.m_value)) {
             outSpecs[0] = InactiveBranchPortObjectSpec.INSTANCE;
         }
         return outSpecs;
@@ -114,10 +115,10 @@ public class ManualIfNodeModel extends NodeModel {
         PortObject[] outData = new PortObject[2];
         outData[0] = inData[0];
         outData[1] = inData[0];
-        if (m_choice.getStringValue().equals(ManualIfNodeDialog.TOP)) {
+        if (m_choice.getStringValue().equals(ManualIfNodeParameters.PortChoice.TOP.m_value)) {
             outData[1] = InactiveBranchPortObject.INSTANCE;
         }
-        if (m_choice.getStringValue().equals(ManualIfNodeDialog.BOTTOM)) {
+        if (m_choice.getStringValue().equals(ManualIfNodeParameters.PortChoice.BOTTOM.m_value)) {
             outData[0] = InactiveBranchPortObject.INSTANCE;
         }
         return outData;

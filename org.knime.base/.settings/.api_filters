@@ -16,6 +16,14 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.base.node.switches.manualif.ManualIfNodeDialog">
+        <filter id="305324134">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.switches.manualif.ManualIfNodeDialog"/>
+                <message_argument value="org.knime.base_5.8.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="META-INF/MANIFEST.MF" type="org.knime.base.node.util.sampledata.SampleDataNodeDialog">
         <filter comment="Node implementations are not API" id="305324134">
             <message_arguments>
@@ -60,6 +68,22 @@
         <filter comment="Node implementations are not API" id="305365105">
             <message_arguments>
                 <message_argument value="org.knime.base.node.preproc.ungroup.UngroupOperation"/>
+                <message_argument value="org.knime.base_5.8.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/switches/manualif/ManualIfNodeFactory.java" type="org.knime.base.node.switches.manualif.ManualIfNodeFactory">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.switches.manualif.ManualIfNodeFactory"/>
+                <message_argument value="org.knime.base_5.8.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/switches/manualif/ManualIfNodeModel.java" type="org.knime.base.node.switches.manualif.ManualIfNodeModel">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.switches.manualif.ManualIfNodeModel"/>
                 <message_argument value="org.knime.base_5.8.0"/>
             </message_arguments>
         </filter>

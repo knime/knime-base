@@ -1,0 +1,71 @@
+{
+  "data" : {
+    "model" : {
+      "portChoice" : "BOTH",
+      "activateAllOutputsDuringConfigure" : true
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "activateAllOutputsDuringConfigure" : {
+            "type" : "boolean",
+            "title" : "Activate all outputs during configuration step",
+            "description" : "When set the node will keep all outputs active during workflow configuration (that is, while the traffic light of the node is 'yellow'). This allows the configuration of connected downstream nodes and simplifies the workflow design at the expense of additional configuration calls of nodes that are later on inactive. It's recommended to switch this flag off for production workflows as this avoids unnecessary configuration calls of the inactive branches.",
+            "default" : true
+          },
+          "portChoice" : {
+            "oneOf" : [ {
+              "const" : "BOTH",
+              "title" : "Both"
+            }, {
+              "const" : "TOP",
+              "title" : "Top"
+            }, {
+              "const" : "BOTTOM",
+              "title" : "Bottom"
+            } ],
+            "title" : "Select active port",
+            "description" : "Select the active output port",
+            "default" : "BOTH"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/portChoice",
+      "options" : {
+        "format" : "radio",
+        "radioLayout" : "horizontal"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/activateAllOutputsDuringConfigure",
+      "options" : {
+        "format" : "checkbox"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "portChoice" : {
+            "configPaths" : [ [ "PortChoice" ] ]
+          },
+          "activateAllOutputsDuringConfigure" : {
+            "configKey" : "activate_all_outputs_during_configure"
+          }
+        }
+      }
+    }
+  }
+}
