@@ -44,64 +44,72 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 8, 2025 (Paul Bärnreuther): created
+ *   17 Sept 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.core.data.time.localdate;
 
-import org.knime.core.data.DataValue;
-import org.knime.core.data.StringValue;
-import org.knime.core.data.def.StringCell;
+import java.time.LocalDate;
+import java.util.function.Predicate;
+
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.ValueFilterOperator;
 import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.layout.Before;
-import org.knime.node.parameters.layout.Layout;
-import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
- * Parameter class for string based filter value parameters.
+ * TODO This is only a sample impl for testing whether the framework works
  *
- * @author Paul Bärnreuther
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public class StringValueParameters implements FilterValueParameters {
+public class LocalDateCellFilterParameters implements FilterValueParameters {
 
-    @Before(ValuePart.class)
-    interface CaseSensitivityPart {
-    }
+    public static class OperatorIsUnixEpoch
+        implements ValueFilterOperator<LocalDateValue, LocalDateCellFilterParameters> {
 
-    interface ValuePart {
-
-    }
-
-    @Layout(ValuePart.class)
-    @Widget(title = SingleCellValueParameters.FILTER_VALUE_TITLE,
-        description = SingleCellValueParameters.FILTER_VALUE_DESCRIPTION)
-    String m_value;
-
-    @Override
-    public StringValue[] stash() {
-        return new StringValue[]{ new StringCell(m_value) };
-    }
-
-    @Override
-    public void applyStash(final DataValue[] stashedValues) {
-        if (stashedValues.length > 0) {
-            final var first = stashedValues[0];
-            if (first instanceof StringValue val) {
-                m_value = val.getStringValue();
-            }
+        @Override
+        public String getId() {
+            return "IS_UNIX_EPOCH";
         }
+
+        @Override
+        public String getLabel() {
+            return "Is Unix Epoch (1970-01-01)";
+        }
+
+        @Override
+        public boolean handlesMissingCells() {
+            return false;
+        }
+
+        @Override
+        public DataType getDataType() {
+            return LocalDateCell.TYPE;
+        }
+
+        @Override
+        public Class<LocalDateCellFilterParameters> getNodeParametersClass() {
+            return LocalDateCellFilterParameters.class;
+        }
+
+        @Override
+        public Predicate<LocalDateValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
+            final LocalDateCellFilterParameters filterParameters) throws InvalidSettingsException {
+            return dv -> filterParameters.m_invert != LocalDate.EPOCH.equals(dv.getLocalDate());
+        }
+
     }
+    //
+    //    interface BoundedFilterOperatorFamily<D extends DataValue, T extends FilterValueParameters> extends FilterOperator2<D,T> {
+    //
+    //
+    //    }
+    //
+    //    OperatorIsBefore implements BoundedFilterOperatorFamily<LocalDateValue, LocalDateCellFilterParameters> {
+    //
+    //    }
 
-    /**
-     * Parameters class to use when literal strings should be compared for equality. It includes a case sensitivity
-     * option.
-     */
-    public static final class EqualsStringParameters extends StringValueParameters {
-
-        @Layout(CaseSensitivityPart.class)
-        @ValueSwitchWidget
-        @Widget(title = "Case matching", description = "Whether the comparison should be case sensitive or not.")
-        CaseSensitivity m_caseSensitivity = CaseSensitivity.CASE_SENSITIVE;
-    }
-
+    @Widget(title = "Invert", description = "Invert return value (test for custom settings)")
+    boolean m_invert;
 }
