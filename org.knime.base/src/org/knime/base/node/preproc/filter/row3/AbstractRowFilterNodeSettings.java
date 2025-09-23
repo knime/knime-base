@@ -74,6 +74,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DefaultCl
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.DynamicParametersProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorsRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelectionToStringOrEnumMigration;
@@ -276,9 +277,10 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
         @Layout(Condition.ColumnOperator.Operator.class)
         @ValueReference(OperatorRef.class)
         @ChoicesProvider(TypeBasedOperatorsProvider.class)
-        FilterOperator m_operator = FilterOperator.EQ;
+        org.knime.base.node.preproc.filter.row3.FilterOperator m_operator = org.knime.base.node.preproc.filter.row3.FilterOperator.EQ;
 
-        static class OperatorRef implements ParameterReference<FilterOperator> {
+
+        static class OperatorRef implements ParameterReference<org.knime.base.node.preproc.filter.row3.FilterOperator> {
         }
 
         @Widget(title = "Operator (extension point)", description = "")
@@ -351,128 +353,129 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
                 .findFirst() //
                 .orElseThrow(() -> new InvalidSettingsException(
                     "Selected operator \"%s\" is not currently known".formatted(m_operatorId)));
+            return toIndexedRowReadPredicate(selectedOperator, spec, columnIndex);
 
+        }
+
+        IndexedRowReadPredicate toIndexedRowReadPredicate(final FilterOperator<FilterValueParameters> selectedOperator,
+            final DataTableSpec spec, final int columnIndex) throws InvalidSettingsException {
             final var predicate =
                 selectedOperator.createPredicate(spec.getColumnSpec(columnIndex), m_filterValueParameters);
 
-            final var handlesMissing = selectedOperator.handlesMissingCells();
-
-            if (handlesMissing) {
-                return (index, read) -> predicate.test(read.isMissing(columnIndex) //
-                    ? DataType.getMissingCell() : read.getValue(columnIndex));
-            }
+            final var returnTrueForMissingCells = selectedOperator.returnTrueForMissingCells();
             return (index, read) -> {
                 if (read.isMissing(columnIndex)) {
-                    return false;
+                    return returnTrueForMissingCells;
                 }
-                return predicate.test(read.getValue(columnIndex));
+                final var dataValue = read.getValue(columnIndex);
+                return predicate.test(dataValue);
             };
-
-            //            final var extensionOperators = FilterOperator2Util.EXTENSION_FILTER_OPERATORS.get(m_columnType);
-            //
-            //            final var availableOperators = FilterOperator2Util.getOperatorsForColumn(m_columnType);
-            //
-            //            if (extensionOperators != null) {
-            //                final var selectedOperator = extensionOperators.stream().filter(op -> {
-            //                    if (op instanceof BuiltinOperator bop) {
-            //                        return FilterOperator2Util.idsForBuiltinOperator(bop).toList().contains(m_operatorId);
-            //                    } else {
-            //                        return m_operatorId.equals(op.getId());
-            //                    }
-            //                }).findFirst();
-            //                if (selectedOperator.isPresent()
-            //                    && selectedOperator.get().getNodeParametersClass().isInstance(m_filterValueParameters)) {
-            //                    final var operator = selectedOperator.get();
-            //
-            //                    if (operator instanceof EqualsOperator eqOp) {
-            //                        // get predicate
-            //                        final var predicate;
-            //                        if (eqOp instanceof EqualsByComparatorOperatorFamily fam) {
-            //                            // from family
-            //                          final var singleValueParameters =
-            //                              (FilterValueParameters.SingleCellValueParameters<?>)m_filterValueParameters;
-            //                          predicate = singleValueParameters.createValue().
-            //                        } else {
-            //                            // direct
-            //                          pred=  eqOp.
-            //                        }
-            //                        // multiplex the three cases (=, !=, != (miss))
-            //
-            //                    } else if (operator instanceof LessThanOperatorMarker ltOp) {
-            //
-            //                    } else if (operator instanceof GreaterThanOperatorMarker gtOp) {
-            //
-            //                    } else {
-            //                        Objects.requireNonNull(m_filterValueParameters,
-            //                            "Filter value parameters must not be null for operator " + operator.getId());
-            //                    }
-            //                        // TODO adapt to interfaces
-            ////                        final var parametersType = singleValueParameters.getSpecificType();
-            ////                        final var columnType = spec.getColumnSpec(columnIndex).getType();
-            ////                        final DataType comparisonType;
-            ////                        if (parametersType.isASuperTypeOf(columnType)) {
-            ////                            comparisonType = parametersType;
-            ////                        } else if (columnType.isASuperTypeOf(parametersType)) {
-            ////                            comparisonType = columnType;
-            ////                        } else {
-            ////                            throw new InvalidSettingsException( // TODO message
-            ////                                "The filter value type (%s) is not compatible with the column type (%s)"
-            ////                                    .formatted(parametersType, columnType));
-            ////                        }
-            ////                        final var comparator =
-            ////                            new DataValueComparatorDelegator<DataValue>(comparisonType.getComparator());
-            ////                        final var comparisonValue = singleValueParameters.createCell();
-            ////                        final Function<DataValue, Integer> compare = v -> comparator.compare(v, comparisonValue);
-            ////                        if ("NEQ".equals(m_operatorId)) {
-            ////                            return (index, read) -> {
-            ////                                if (read.isMissing(columnIndex)) {
-            ////                                    return true;
-            ////                                }
-            ////                                return compare.apply(read.getValue(columnIndex)) != 0;
-            ////                            };
-            ////                        } else {
-            ////                            final IntPredicate comparisonResultPredicate = switch (m_operatorId) {
-            ////                                case "EQ" -> r -> r == 0;
-            ////                                case "NEQ_MISS" -> r -> r != 0;
-            ////                                case "LT" -> r -> r < 0;
-            ////                                case "LTE" -> r -> r <= 0;
-            ////                                case "GT" -> r -> r > 0;
-            ////                                case "GTE" -> r -> r >= 0;
-            ////                                default -> throw new IllegalStateException("Unhandled operator id: " + m_operatorId);
-            ////                            };
-            ////                            return (index, read) -> {
-            ////                                if (read.isMissing(columnIndex)) {
-            ////                                    return false;
-            ////                                }
-            ////                                return comparisonResultPredicate.test(compare.apply(read.getValue(columnIndex)));
-            ////                            };
-            ////
-            ////                        }
-            //
-            //                    }
-            //
-            //                    final var predicate = operator.createPredicateUnsafe(m_filterValueParameters);
-            //                    return (index, read) -> {
-            //                        if (read.isMissing(columnIndex)) {
-            //                            return false;
-            //                        }
-            //                        return predicate.test(read.getValue(columnIndex));
-            //                    };
-            //                }
-            //            }
-            //
-            //            // TODO: For future backwards-compatibility we should check internal operators before extension operators
-            //            final var internalFilterOperator = availableOperators.internalBuiltinOperators().stream()
-            //                .filter(ifo -> ifo.getFirst().name().equals(m_operatorId)).findFirst().map(Pair::getSecond);
-            //
-            //            if (internalFilterOperator.isPresent()) {
-            //                return InternalFilterOperator.toPredicate(internalFilterOperator.get(), m_filterValueParameters,
-            //                    OptionalInt.of(columnIndex), m_columnType);
-            //            }
-            //
-            //            return m_operator.translateToPredicate(m_predicateValues, columnIndex,
-            //                spec.getColumnSpec(columnIndex).getType());
         }
+
+        //            final var extensionOperators = FilterOperator2Util.EXTENSION_FILTER_OPERATORS.get(m_columnType);
+        //
+        //            final var availableOperators = FilterOperator2Util.getOperatorsForColumn(m_columnType);
+        //
+        //            if (extensionOperators != null) {
+        //                final var selectedOperator = extensionOperators.stream().filter(op -> {
+        //                    if (op instanceof BuiltinOperator bop) {
+        //                        return FilterOperator2Util.idsForBuiltinOperator(bop).toList().contains(m_operatorId);
+        //                    } else {
+        //                        return m_operatorId.equals(op.getId());
+        //                    }
+        //                }).findFirst();
+        //                if (selectedOperator.isPresent()
+        //                    && selectedOperator.get().getNodeParametersClass().isInstance(m_filterValueParameters)) {
+        //                    final var operator = selectedOperator.get();
+        //
+        //                    if (operator instanceof EqualsOperator eqOp) {
+        //                        // get predicate
+        //                        final var predicate;
+        //                        if (eqOp instanceof EqualsByComparatorOperatorFamily fam) {
+        //                            // from family
+        //                          final var singleValueParameters =
+        //                              (FilterValueParameters.SingleCellValueParameters<?>)m_filterValueParameters;
+        //                          predicate = singleValueParameters.createValue().
+        //                        } else {
+        //                            // direct
+        //                          pred=  eqOp.
+        //                        }
+        //                        // multiplex the three cases (=, !=, != (miss))
+        //
+        //                    } else if (operator instanceof LessThanOperatorMarker ltOp) {
+        //
+        //                    } else if (operator instanceof GreaterThanOperatorMarker gtOp) {
+        //
+        //                    } else {
+        //                        Objects.requireNonNull(m_filterValueParameters,
+        //                            "Filter value parameters must not be null for operator " + operator.getId());
+        //                    }
+        //                        // TODO adapt to interfaces
+        ////                        final var parametersType = singleValueParameters.getSpecificType();
+        ////                        final var columnType = spec.getColumnSpec(columnIndex).getType();
+        ////                        final DataType comparisonType;
+        ////                        if (parametersType.isASuperTypeOf(columnType)) {
+        ////                            comparisonType = parametersType;
+        ////                        } else if (columnType.isASuperTypeOf(parametersType)) {
+        ////                            comparisonType = columnType;
+        ////                        } else {
+        ////                            throw new InvalidSettingsException( // TODO message
+        ////                                "The filter value type (%s) is not compatible with the column type (%s)"
+        ////                                    .formatted(parametersType, columnType));
+        ////                        }
+        ////                        final var comparator =
+        ////                            new DataValueComparatorDelegator<DataValue>(comparisonType.getComparator());
+        ////                        final var comparisonValue = singleValueParameters.createCell();
+        ////                        final Function<DataValue, Integer> compare = v -> comparator.compare(v, comparisonValue);
+        ////                        if ("NEQ".equals(m_operatorId)) {
+        ////                            return (index, read) -> {
+        ////                                if (read.isMissing(columnIndex)) {
+        ////                                    return true;
+        ////                                }
+        ////                                return compare.apply(read.getValue(columnIndex)) != 0;
+        ////                            };
+        ////                        } else {
+        ////                            final IntPredicate comparisonResultPredicate = switch (m_operatorId) {
+        ////                                case "EQ" -> r -> r == 0;
+        ////                                case "NEQ_MISS" -> r -> r != 0;
+        ////                                case "LT" -> r -> r < 0;
+        ////                                case "LTE" -> r -> r <= 0;
+        ////                                case "GT" -> r -> r > 0;
+        ////                                case "GTE" -> r -> r >= 0;
+        ////                                default -> throw new IllegalStateException("Unhandled operator id: " + m_operatorId);
+        ////                            };
+        ////                            return (index, read) -> {
+        ////                                if (read.isMissing(columnIndex)) {
+        ////                                    return false;
+        ////                                }
+        ////                                return comparisonResultPredicate.test(compare.apply(read.getValue(columnIndex)));
+        ////                            };
+        ////
+        ////                        }
+        //
+        //                    }
+        //
+        //                    final var predicate = operator.createPredicateUnsafe(m_filterValueParameters);
+        //                    return (index, read) -> {
+        //                        if (read.isMissing(columnIndex)) {
+        //                            return false;
+        //                        }
+        //                        return predicate.test(read.getValue(columnIndex));
+        //                    };
+        //                }
+        //            }
+        //
+        //            // TODO: For future backwards-compatibility we should check internal operators before extension operators
+        //            final var internalFilterOperator = availableOperators.internalBuiltinOperators().stream()
+        //                .filter(ifo -> ifo.getFirst().name().equals(m_operatorId)).findFirst().map(Pair::getSecond);
+        //
+        //            if (internalFilterOperator.isPresent()) {
+        //                return InternalFilterOperator.toPredicate(internalFilterOperator.get(), m_filterValueParameters,
+        //                    OptionalInt.of(columnIndex), m_columnType);
+        //            }
+        //
+        //            return m_operator.translateToPredicate(m_predicateValues, columnIndex,
+        //                spec.getColumnSpec(columnIndex).getType());
 
         private IndexedRowReadPredicate rowKeyPredicate(final DynamicValuesInput predicateValues)
             throws InvalidSettingsException {
@@ -545,7 +548,7 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
             public ClassIdStrategy<FilterValueParameters> getClassIdStrategy() {
                 final Collection<Class<? extends FilterValueParameters>> possibleClasses = new ArrayList<>();
                 possibleClasses.addAll(FilterOperatorsRegistry.getInstance().getAllParameterClasses());
-                possibleClasses.addAll(FilterOperator.InternalFilterOperator.ALL_PARAMETER_CLASSES);
+                possibleClasses.addAll(org.knime.base.node.preproc.filter.row3.FilterOperator.InternalFilterOperator.ALL_PARAMETER_CLASSES);
                 return new DefaultClassIdStrategy<>(possibleClasses);
             }
 
@@ -601,7 +604,7 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
 
             private Supplier<DynamicValuesInput> m_currentValue;
 
-            private Supplier<FilterOperator> m_currentOperator;
+            private Supplier<org.knime.base.node.preproc.filter.row3.FilterOperator> m_currentOperator;
 
             @Override
             public void init(final StateProviderInitializer initializer) {
@@ -791,7 +794,7 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
     /**
      * Compute possible enum values for filter operator based on the selected column.
      */
-    static class TypeBasedOperatorsProvider implements EnumChoicesProvider<FilterOperator> {
+    static class TypeBasedOperatorsProvider implements EnumChoicesProvider<org.knime.base.node.preproc.filter.row3.FilterOperator> {
 
         private Supplier<StringOrEnum<RowIdentifiers>> m_columnSelection;
 
@@ -802,11 +805,11 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
         }
 
         @Override
-        public List<FilterOperator> choices(final NodeParametersInput context) throws WidgetHandlerException {
+        public List<org.knime.base.node.preproc.filter.row3.FilterOperator> choices(final NodeParametersInput context) throws WidgetHandlerException {
             return getFilterOperators(context, m_columnSelection.get());
         }
 
-        private static List<FilterOperator> getFilterOperators(final NodeParametersInput context,
+        private static List<org.knime.base.node.preproc.filter.row3.FilterOperator> getFilterOperators(final NodeParametersInput context,
             final StringOrEnum<RowIdentifiers> column) {
 
             final var rowIdentifierChoice = column.getEnumChoice();
@@ -818,10 +821,10 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
 
             if (dataType.isEmpty()) {
                 // we don't know the column, but we know that columns always can contain missing cells
-                return List.of(FilterOperator.IS_MISSING, FilterOperator.IS_NOT_MISSING);
+                return List.of(org.knime.base.node.preproc.filter.row3.FilterOperator.IS_MISSING, org.knime.base.node.preproc.filter.row3.FilterOperator.IS_NOT_MISSING);
             }
             // filter on top-level type
-            return Arrays.stream(FilterOperator.values()) //
+            return Arrays.stream(org.knime.base.node.preproc.filter.row3.FilterOperator.values()) //
                 .filter(op -> !op.isHidden(rowIdentifierChoice.orElse(null), dataType.get())) //
                 .toList();
         }
@@ -845,7 +848,7 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
         public FilterCriterion computeState(final NodeParametersInput context) {
             final var filterCriterion = new FilterCriterion(context);
             final var validOperators = TypeBasedOperatorsProvider.getFilterOperators(context, filterCriterion.m_column);
-            if (!validOperators.contains(FilterOperator.EQ)) {
+            if (!validOperators.contains(org.knime.base.node.preproc.filter.row3.FilterOperator.EQ)) {
                 filterCriterion.m_operator = validOperators.get(0);
             }
             return filterCriterion;
@@ -855,7 +858,7 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
     // UTILITIES
 
     static boolean hasLastNFilter(final List<FilterCriterion> criteria) {
-        return criteria.stream().anyMatch(c -> c.m_operator == FilterOperator.LAST_N_ROWS);
+        return criteria.stream().anyMatch(c -> c.m_operator == org.knime.base.node.preproc.filter.row3.FilterOperator.LAST_N_ROWS);
     }
 
     // SECTIONS
