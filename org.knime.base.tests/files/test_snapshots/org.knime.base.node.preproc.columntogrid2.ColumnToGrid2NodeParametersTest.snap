@@ -1,0 +1,275 @@
+{
+  "data" : {
+    "model" : {
+      "gridColumnCount" : 4,
+      "columnFilter" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "StringCol" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : false
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "groupColumn" : null
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnFilter" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Columns to include",
+            "description" : "Select the column(s) that are to be displayed in a grid. If multiple columns are selected, the\nentire set will constitute a grid column.\n",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ "StringCol" ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "gridColumnCount" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Grid column count",
+            "description" : "The number of grid columns, this should be a relatively small number.\n",
+            "default" : 4
+          },
+          "groupColumn" : {
+            "type" : [ "string", "null" ],
+            "title" : "Group column",
+            "description" : "Select this option and choose a group column in order to separate input rows that do not belong\nto the same group. This is useful when visualizing, e.g. clustering results, whereby records from\ndifferent clusters are represented by different output rows. The group column will be another\ncolumn in the output table.\n",
+            "default" : null
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/gridColumnCount",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 1.0
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/columnFilter",
+      "options" : {
+        "format" : "typedStringFilter",
+        "unknownValuesText" : "Any unknown column",
+        "emptyStateLabel" : "No columns in this list."
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/groupColumn",
+      "options" : {
+        "format" : "dropDown",
+        "hideOnNull" : true
+      },
+      "providedOptions" : [ "possibleValues", "default" ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "gridColumnCount" : {
+            "configKey" : "grid_col_count"
+          },
+          "columnFilter" : {
+            "configPaths" : [ [ "column-filter", "filter-type" ], [ "column-filter", "included_names" ], [ "column-filter", "excluded_names" ], [ "column-filter", "enforce_option" ], [ "column-filter", "name_pattern", "pattern" ], [ "column-filter", "name_pattern", "type" ], [ "column-filter", "name_pattern", "caseSensitive" ], [ "column-filter", "name_pattern", "excludeMatching" ] ]
+          },
+          "groupColumn" : {
+            "configPaths" : [ [ "groupColumn" ] ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/columnFilter",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "StringCol",
+        "text" : "StringCol",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "IntCol",
+        "text" : "IntCol",
+        "type" : {
+          "id" : "org.knime.core.data.IntValue",
+          "text" : "Number (Integer)"
+        }
+      }, {
+        "id" : "CategoryCol",
+        "text" : "CategoryCol",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/groupColumn",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "StringCol"
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/groupColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "StringCol",
+        "text" : "StringCol",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "CategoryCol",
+        "text" : "CategoryCol",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ]
+}

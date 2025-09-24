@@ -88,6 +88,18 @@ import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
  */
 final class ColumnToGrid2NodeModel extends org.knime.core.node.NodeModel {
 
+    /** Configuration key for the grid column count setting. */
+    static final String GRID_COLUMN_COUNT = "grid_col_count";
+
+    /** Configuration key for the group column setting. */
+    static final String GROUP_COLUMN = "groupColumn";
+
+    /** Configuration key for the column filter. */
+    static final String COLUMN_FILTER = "column-filter";
+
+    /** Legacy configuration key for included columns (used in old settings models). */
+    static final String INCLUDE_COLS = "include_cols";
+
     private ColumnToGrid2Configuration m_configuration;
     private final HiLiteHandler m_hiliteHandler;
     private String[] m_included;
@@ -319,13 +331,13 @@ final class ColumnToGrid2NodeModel extends org.knime.core.node.NodeModel {
     /** @return new settings model used in model and dialog. */
     static final SettingsModelFilterString createColFilterModel() {
         return new SettingsModelFilterString(
-                "include_cols", new String[0], new String[0]);
+                INCLUDE_COLS, new String[0], new String[0]);
     }
 
     /** @return new settings model used in model and dialog. */
     static final SettingsModelIntegerBounded createGridColCountModel() {
         return new SettingsModelIntegerBounded(
-                "grid_col_count", 4, 1, Integer.MAX_VALUE);
+                GRID_COLUMN_COUNT, 4, 1, Integer.MAX_VALUE);
     }
 
     private static final class PushBackRowIterator extends RowIterator {
@@ -368,7 +380,7 @@ final class ColumnToGrid2NodeModel extends org.knime.core.node.NodeModel {
      * @return filter configuration
      */
     static final DataColumnSpecFilterConfiguration createDCSFilterConfiguration() {
-        return new DataColumnSpecFilterConfiguration("column-filter");
+        return new DataColumnSpecFilterConfiguration(COLUMN_FILTER);
     }
 
 }

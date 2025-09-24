@@ -101,8 +101,8 @@ final class ColumnToGrid2Configuration {
     void saveSettingsTo(final NodeSettingsWO settings) {
         if (m_filterConfig != null) {
             m_filterConfig.saveConfiguration(settings);
-            settings.addInt("grid_col_count", m_colCount);
-            settings.addString("groupColumn", m_groupColumn);
+            settings.addInt(ColumnToGrid2NodeModel.GRID_COLUMN_COUNT, m_colCount);
+            settings.addString(ColumnToGrid2NodeModel.GROUP_COLUMN, m_groupColumn);
         }
     }
 
@@ -116,13 +116,13 @@ final class ColumnToGrid2Configuration {
         conf.loadConfigurationInModel(settings);
         m_filterConfig = conf;
 
-        m_colCount = settings.getInt("grid_col_count");
+        m_colCount = settings.getInt(ColumnToGrid2NodeModel.GRID_COLUMN_COUNT);
         if (m_colCount <= 0) {
             throw new InvalidSettingsException(
                     "Invalid grid col count: " + m_colCount);
         }
 
-        m_groupColumn = settings.getString("groupColumn");
+        m_groupColumn = settings.getString(ColumnToGrid2NodeModel.GROUP_COLUMN);
     }
 
     /** Loads settings in dialog, inits default if invalid.
@@ -135,11 +135,11 @@ final class ColumnToGrid2Configuration {
         conf.loadConfigurationInDialog(settings, spec);
         m_filterConfig = conf;
 
-        m_colCount = settings.getInt("grid_col_count", DEF_COL_COUNT);
+        m_colCount = settings.getInt(ColumnToGrid2NodeModel.GRID_COLUMN_COUNT, DEF_COL_COUNT);
         if (m_colCount <= 0) {
             m_colCount = DEF_COL_COUNT;
         }
-        m_groupColumn = settings.getString("groupColumn", null);
+        m_groupColumn = settings.getString(ColumnToGrid2NodeModel.GROUP_COLUMN, null);
     }
 
     /** @return the colCount */
