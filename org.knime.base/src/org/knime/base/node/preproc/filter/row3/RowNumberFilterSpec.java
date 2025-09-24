@@ -50,16 +50,16 @@ package org.knime.base.node.preproc.filter.row3;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.LongFunction;
 
 import org.knime.base.data.filter.row.v2.FilterPartition;
 import org.knime.base.data.filter.row.v2.OffsetFilter;
 import org.knime.base.data.filter.row.v2.OffsetFilter.Operator;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterMode;
-import org.knime.core.data.LongValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.CheckUtils;
-
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
 
 /**
  * Subset of filter operators that represent a numeric filter on the row number.
@@ -115,11 +115,11 @@ final class RowNumberFilterSpec {
         };
     }
 
-    static FilterPartition computeRowPartition(final boolean isAnd, final List<RowNumberFilterSpec> rowNumberFilters,
-        final FilterMode outputMode, final long optionalTableSize) {
+    static FilterPartition computeRowPartition(final boolean isAnd,
+        final List<LongFunction<FilterPartition>> rowNumberFilters, final FilterMode outputMode,
+        final long optionalTableSize) {
         final var matchedNonMatchedPartition = rowNumberFilters.stream() //
-            .map(filterSpec -> FilterPartition.computePartition(filterSpec.toOffsetFilter(optionalTableSize),
-                optionalTableSize))
+            .map(createPartition -> createPartition.apply(optionalTableSize)) //
             .reduce((a, b) -> a.combine(isAnd, b)) //
             .orElseThrow(() -> new IllegalArgumentException("Need at least one filter criterion"));
         // determine whether matched or non-matched rows are included in the first output, flip pair as needed
@@ -133,18 +133,20 @@ final class RowNumberFilterSpec {
      * @return row number filter specification
      * @throws InvalidSettingsException if the filter criterion contains an unsupported operator or the value is missing
      */
-    static RowNumberFilterSpec toFilterSpec(final FilterCriterion criterion) throws InvalidSettingsException {
-        final var value = (criterion.m_predicateValues.getCellAt(0)//
-            .filter(cell -> !cell.isMissing())//
-            .map(LongValue.class::cast)//
-            .orElseThrow(() -> new InvalidSettingsException("Row number value is missing")))//
-                .getLongValue();
-        if (criterion.m_operator == FilterOperator.FIRST_N_ROWS || criterion.m_operator == FilterOperator.LAST_N_ROWS) {
-            CheckUtils.checkSetting(value >= 0, "Number of rows must not be negative: %d", value);
-        } else {
-            CheckUtils.checkSetting(value > 0, "Row number must be larger than zero: %d", value);
-        }
-        return new RowNumberFilterSpec(criterion.m_operator, value);
+    static LongFunction<FilterPartition> toFilterSpec(final FilterCriterion criterion) throws InvalidSettingsException {
+        final var rowNumberOperators = FilterOperatorsUtil.getRowNumberOperators();
+        final var matchingOperator = rowNumberOperators.stream().filter(op -> op.getId().equals(criterion.m_operatorId))
+            .filter(op -> op.getNodeParametersClass().equals(criterion.m_filterValueParameters.getClass())).findFirst()
+            .orElse(null); // TODO
+
+        // Check if the operator supports slicing via createSliceFilter
+        return toSliceFilter(matchingOperator, criterion.m_filterValueParameters);
+    }
+
+    static <P extends FilterValueParameters> LongFunction<FilterPartition> toSliceFilter(
+        final RowNumberFilterOperator<P> matchingOperator, final FilterValueParameters filterValueParameters)
+        throws InvalidSettingsException {
+        return matchingOperator.createSliceFilter((P)filterValueParameters);
     }
 
     /**
@@ -155,9 +157,9 @@ final class RowNumberFilterSpec {
      * @throws InvalidSettingsException if not supported
      * @see {@link #getAsFilterSpec(FilterCriterion)}
      */
-    static List<RowNumberFilterSpec> toFilterSpec(final List<FilterCriterion> rowNumberCriteria)
+    static List<LongFunction<FilterPartition>> toFilterSpec(final List<FilterCriterion> rowNumberCriteria)
         throws InvalidSettingsException {
-        final List<RowNumberFilterSpec> rowNumberFilterSpecs = new ArrayList<>();
+        final List<LongFunction<FilterPartition>> rowNumberFilterSpecs = new ArrayList<>();
         for (final var criterion : rowNumberCriteria) {
             rowNumberFilterSpecs.add(toFilterSpec(criterion));
         }
