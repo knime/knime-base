@@ -50,19 +50,23 @@ package org.knime.base.node.preproc.filter.row3;
 
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import org.knime.base.node.preproc.filter.row3.operators.missing.IsMissingFilterOperator;
+import org.knime.base.node.preproc.filter.row3.operators.missing.IsNotMissingFilterOperator;
 import org.knime.base.node.preproc.filter.row3.operators.pattern.PatternFilterUtils;
 import org.knime.base.node.preproc.filter.row3.operators.pattern.RegexPatternFilterOperator;
 import org.knime.base.node.preproc.filter.row3.operators.pattern.WildcardPatternFilterOperator;
 import org.knime.core.data.DataType;
+import org.knime.core.data.DataValue;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorsRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
 
 /**
  * Utility class that extends the FilterOperatorsRegistry functionality by adding predicate-based operators (like
- * pattern matching) that can work with multiple data types.
+ * pattern matching and missing value checks) that can work with multiple data types.
  *
  * @author Paul Bärnreuther
  */
@@ -71,6 +75,16 @@ public final class FilterOperatorsUtil {
     private FilterOperatorsUtil() {
         // Utility class
     }
+
+    /**
+     * The predicate instance that always returns false.
+     */
+    public static final Predicate<DataValue> PREDICATE_ALWAYS_FALSE = dataValue -> false;
+
+    /**
+     * The predicate instance that always returns true.
+     */
+    public static final Predicate<DataValue> PREDICATE_ALWAYS_TRUE = dataValue -> true;
 
     /**
      * Gets all filter operators for the given data type, including both exact-match operators from the registry and
@@ -95,9 +109,10 @@ public final class FilterOperatorsUtil {
     public static List<FilterOperator<FilterValueParameters>> getAllOperators(final DataType dataType) {
         final var registryOperators = FilterOperatorsRegistry.getInstance().getOperators(dataType);
         final var patternOperators = getPatternOperators(dataType);
+        final var missingValueOperators = getMissingValueOperators();
 
-        return Stream.concat(registryOperators.stream(),
-            patternOperators.stream().map(c -> (FilterOperator<FilterValueParameters>)c)).toList();
+        return Stream.concat(Stream.concat(registryOperators.stream(), patternOperators.stream()),
+            missingValueOperators.stream()).map(c -> (FilterOperator<FilterValueParameters>)c).toList();
     }
 
     /**
@@ -108,8 +123,10 @@ public final class FilterOperatorsUtil {
     public static List<Class<? extends FilterValueParameters>> getAllParameterClasses() {
         final var registryClasses = FilterOperatorsRegistry.getInstance().getAllParameterClasses();
         final var patternClasses = getPatternParameterClasses();
+        final var missingValueClasses = getMissingValueParameterClasses();
 
-        return Stream.concat(registryClasses.stream(), patternClasses).distinct().toList();
+        return Stream.concat(Stream.concat(registryClasses.stream(), patternClasses), missingValueClasses).distinct()
+            .toList();
     }
 
     /**
@@ -127,6 +144,15 @@ public final class FilterOperatorsUtil {
     }
 
     /**
+     * Gets missing value filter operators. Missing value operators can always be applied to any data type.
+     *
+     * @return list of missing value operators
+     */
+    private static List<FilterOperator<? extends FilterValueParameters>> getMissingValueOperators() {
+        return List.of(IsMissingFilterOperator.INSTANCE, IsNotMissingFilterOperator.INSTANCE);
+    }
+
+    /**
      * Gets parameter classes from pattern filter operators.
      *
      * @return stream of pattern filter parameter classes
@@ -135,6 +161,18 @@ public final class FilterOperatorsUtil {
         return Stream.of(//
             new RegexPatternFilterOperator().getNodeParametersClass(),
             new WildcardPatternFilterOperator().getNodeParametersClass()//
+        );
+    }
+
+    /**
+     * Gets parameter classes from missing value filter operators.
+     *
+     * @return stream of missing value filter parameter classes
+     */
+    private static Stream<Class<? extends FilterValueParameters>> getMissingValueParameterClasses() {
+        return Stream.of(//
+            IsMissingFilterOperator.INSTANCE.getNodeParametersClass(),
+            IsNotMissingFilterOperator.INSTANCE.getNodeParametersClass()//
         );
     }
 
