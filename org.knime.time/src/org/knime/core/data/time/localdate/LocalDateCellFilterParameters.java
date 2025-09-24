@@ -52,9 +52,10 @@ import java.time.LocalDate;
 import java.util.function.Predicate;
 
 import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataType;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.ValueFilterOperator;
 import org.knime.node.parameters.Widget;
 
 /**
@@ -65,7 +66,7 @@ import org.knime.node.parameters.Widget;
 public class LocalDateCellFilterParameters implements FilterValueParameters {
 
     public static class OperatorIsUnixEpoch
-        implements FilterOperator<LocalDateValue, LocalDateCellFilterParameters> {
+        implements ValueFilterOperator<LocalDateValue, LocalDateCellFilterParameters> {
 
         @Override
         public String getId() {
@@ -78,19 +79,19 @@ public class LocalDateCellFilterParameters implements FilterValueParameters {
         }
 
         @Override
-        public boolean handlesMissingCells() {
-            return false;
-        }
-
-        @Override
         public Class<LocalDateCellFilterParameters> getNodeParametersClass() {
             return LocalDateCellFilterParameters.class;
         }
 
         @Override
-        public Predicate<LocalDateValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
+        public Predicate<LocalDateValue> createTypedPredicate(final DataColumnSpec runtimeColumnSpec,
             final LocalDateCellFilterParameters filterParameters) throws InvalidSettingsException {
             return dv -> filterParameters.m_invert != LocalDate.EPOCH.equals(dv.getLocalDate());
+        }
+
+        @Override
+        public DataType getDataType() {
+            return LocalDateCell.TYPE;
         }
 
     }

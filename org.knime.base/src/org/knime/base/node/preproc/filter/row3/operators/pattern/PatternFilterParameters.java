@@ -44,37 +44,26 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   17 Sept 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   Sep 23, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.data.time.localdate;
+package org.knime.base.node.preproc.filter.row3.operators.pattern;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.knime.core.data.DataType;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorFamily;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorFamily.Single;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperators;
+import org.knime.base.node.preproc.filter.row3.CaseSensitivity;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
+ * Shared parameters for pattern filter operators (both regex and wildcard).
  *
- * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * @author Paul Bärnreuther
  */
-@SuppressWarnings("restriction")
-public class LocalDateCellFilterOperators implements FilterOperators<LocalDateValue> {
+public class PatternFilterParameters implements FilterValueParameters {
 
-    @Override
-    public DataType getDataType() {
-        return LocalDateCell.TYPE;
-    }
+    @Widget(title = "Case matching", description = "Whether to consider case when matching the pattern.")
+    @ValueSwitchWidget
+    public CaseSensitivity m_caseSensitivity = CaseSensitivity.CASE_INSENSITIVE;
 
-    @Override
-    public List<FilterOperatorFamily<? extends FilterValueParameters>> getOperatorFamilies() {
-        final List<FilterOperatorFamily<? extends FilterValueParameters>> operators =
-            new ArrayList<>();
-        operators.add(new Single<>(new LocalDateCellFilterParameters.OperatorIsUnixEpoch()));
-        return operators;
-    }
-
+    @Widget(title = "Pattern", description = "The pattern to filter for.")
+    public String m_pattern = "";
 }

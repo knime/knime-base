@@ -46,15 +46,46 @@
  * History
  *   Sep 23, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.base.node.preproc.filter.row3.operators.pattern;
 
+import java.util.function.Predicate;
+
+import org.knime.base.node.preproc.filter.row3.CaseSensitivity;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataValue;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
+ * Filter operator for regex pattern matching.
  *
  * @author Paul Bärnreuther
  */
-public class PatternMatchingFilterOperator implements FilterOperator<FilterValueParameters> {
+public class RegexPatternFilterOperator implements FilterOperator<PatternFilterParameters> {
+
+    @Override
+    public String getId() {
+        return "REGEX";
+    }
+
+    @Override
+    public String getLabel() {
+        return "Matches regex";
+    }
+
+    @Override
+    public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
+        final PatternFilterParameters params) throws InvalidSettingsException {
+        return PatternFilterUtils.createPredicate(params.m_pattern, true,
+            params.m_caseSensitivity == CaseSensitivity.CASE_SENSITIVE, runtimeColumnSpec);
+    }
+
+    @Override
+    public Class<PatternFilterParameters> getNodeParametersClass() {
+        return PatternFilterParameters.class;
+    }
 
 }
