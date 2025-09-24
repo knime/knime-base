@@ -49,62 +49,34 @@
 package org.knime.core.data.time.localdate;
 
 import java.time.LocalDate;
-import java.util.function.Predicate;
 
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.ValueFilterOperator;
 import org.knime.node.parameters.Widget;
 
 /**
- * TODO This is only a sample impl for testing whether the framework works
+ *
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public class LocalDateCellFilterParameters implements FilterValueParameters {
+public class LocalDateCellFilterParameters implements FilterValueParameters.SingleCellValueParameters<LocalDateCell> {
 
-    public static class OperatorIsUnixEpoch
-        implements ValueFilterOperator<LocalDateValue, LocalDateCellFilterParameters> {
+    @Widget(title = "Date", description = "The date to compare against")
+    LocalDate m_date = LocalDate.now();
 
-        @Override
-        public String getId() {
-            return "IS_UNIX_EPOCH";
-        }
-
-        @Override
-        public String getLabel() {
-            return "Is Unix Epoch (1970-01-01)";
-        }
-
-        @Override
-        public Class<LocalDateCellFilterParameters> getNodeParametersClass() {
-            return LocalDateCellFilterParameters.class;
-        }
-
-        @Override
-        public Predicate<LocalDateValue> createTypedPredicate(final DataColumnSpec runtimeColumnSpec,
-            final LocalDateCellFilterParameters filterParameters) throws InvalidSettingsException {
-            return dv -> filterParameters.m_invert != LocalDate.EPOCH.equals(dv.getLocalDate());
-        }
-
-        @Override
-        public DataType getDataType() {
-            return LocalDateCell.TYPE;
-        }
-
+    @Override
+    public LocalDateCell createCell() {
+        return (LocalDateCell)LocalDateCellFactory.create(m_date);
     }
-    //
-    //    interface BoundedFilterOperatorFamily<D extends DataValue, T extends FilterValueParameters> extends FilterOperator2<D,T> {
-    //
-    //
-    //    }
-    //
-    //    OperatorIsBefore implements BoundedFilterOperatorFamily<LocalDateValue, LocalDateCellFilterParameters> {
-    //
-    //    }
 
-    @Widget(title = "Invert", description = "Invert return value (test for custom settings)")
-    boolean m_invert;
+    @Override
+    public void loadFrom(final LocalDateCell valueFromStash) {
+        m_date = valueFromStash.getLocalDate();
+    }
+
+    @Override
+    public DataType getSpecificType() {
+        return LocalDateCell.TYPE;
+    }
+
 }
