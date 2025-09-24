@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <entry key="CFG_ALWAYS_POPULATE" type="xboolean" value="false"/>
+    <entry key="CFG_DEFAULT_TEXT_VARIABLE" type="xstring" value="none"/>
+    <entry key="CFG_DEFAULT_TEXT_MESSAGE" type="xstring" value="none"/>
+    <entry key="CFG_DEFAULT_TEXT_DETAILS" type="xstring" value="none"/>
+    <entry key="CFG_DEFAULT_STACK_TRACE" type="xstring" value="none"/>
+    <entry key="CFG_PROPAGATE_VARIABLES" type="xboolean" value="true"/>
+</config>

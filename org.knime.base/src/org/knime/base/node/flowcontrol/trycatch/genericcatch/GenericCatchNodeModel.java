@@ -90,10 +90,12 @@ final class GenericCatchNodeModel extends NodeModel
     static final String VAR_FAILING_DETAILS = "FailingNodeDetails";
     static final String VAR_FAILING_STACKTRACE = "FailingNodeStackTrace";
 
-    private static final String CFG_FAILING_NAME = "CFG_DEFAULT_TEXT_VARIABLE";
-    private static final String CFG_FAILING_MESSAGE = "CFG_DEFAULT_TEXT_MESSAGE";
-    private static final String CFG_FAILING_DETAILS = "CFG_DEFAULT_TEXT_DETAILS";
-    private static final String CFG_FAILING_STACKTRACE = "CFG_DEFAULT_STACK_TRACE";
+    static final String CFG_FAILING_NAME = "CFG_DEFAULT_TEXT_VARIABLE";
+    static final String CFG_FAILING_MESSAGE = "CFG_DEFAULT_TEXT_MESSAGE";
+    static final String CFG_FAILING_DETAILS = "CFG_DEFAULT_TEXT_DETAILS";
+    static final String CFG_FAILING_STACKTRACE = "CFG_DEFAULT_STACK_TRACE";
+    static final String CFG_ALWAYS_POPULATE = "CFG_ALWAYS_POPULATE";
+    static final String CFG_PROPAGATE_VARIABLES = "CFG_PROPAGATE_VARIABLES";
 
     // new since 2.11
     private final SettingsModelBoolean m_alwaysPopulate = getAlwaysPopulate();
@@ -279,7 +281,7 @@ final class GenericCatchNodeModel extends NodeModel
      * @return the SM for always populating the model. (if true, the flow variables will always be shown)
      */
     static SettingsModelBoolean getAlwaysPopulate() {
-        return new SettingsModelBoolean("CFG_ALWAYS_POPULATE", false);
+        return new SettingsModelBoolean(CFG_ALWAYS_POPULATE, false);
     }
 
     /**
@@ -327,6 +329,6 @@ final class GenericCatchNodeModel extends NodeModel
     }
 
     static SettingsModelBoolean createPropagateVariablesModel() {
-        return new SettingsModelBoolean("CFG_PROPAGATE_VARIABLES", true);
+        return new SettingsModelBoolean(CFG_PROPAGATE_VARIABLES, true);
     }
 }

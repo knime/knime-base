@@ -47,15 +47,37 @@
  */
 package org.knime.base.node.flowcontrol.trycatch.genericcatch;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
 import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
+ * Node factory for the Catch Errors (Data Ports) node.
+ *
  * @author M. Berthold, University of Konstanz
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.1
  */
-public class DataPortCatchNodeFactory extends NodeFactory<GenericCatchNodeModel> {
+@SuppressWarnings("restriction")
+public class DataPortCatchNodeFactory extends NodeFactory<GenericCatchNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     /**
      * Create factory, that instantiates nodes.
@@ -63,35 +85,91 @@ public class DataPortCatchNodeFactory extends NodeFactory<GenericCatchNodeModel>
     public DataPortCatchNodeFactory() {
     }
 
-    /** {@inheritDoc} */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new GenericCatchNodeDialog();
-    }
-
-    /** {@inheritDoc} */
     @Override
     public GenericCatchNodeModel createNodeModel() {
         return new GenericCatchNodeModel(BufferedDataTable.TYPE);
     }
 
-    /** {@inheritDoc} */
     @Override
     public NodeView<GenericCatchNodeModel> createNodeView(final int index,
             final GenericCatchNodeModel model) {
         return null;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+    private static final String NODE_NAME = "Catch Errors (Data Ports)";
+    private static final String NODE_ICON = "catch.png";
+    private static final String SHORT_DESCRIPTION = """
+            End of Try-Catch construct. Use second input if execution leading to first input failed.
+            """;
+    private static final String FULL_DESCRIPTION = """
+            This node forwards the input from the first port if the execution was successful. If execution on the
+                top branch failed (and a matching try node was connected before the failing node!) then the input from
+                the second port will be forwarded and the second variable outport will contain information about the
+                observed error.
+            """;
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Original input", """
+                The original input
+                """),
+            fixedPort("Default input", """
+                The input to be used when execution on the main branch failed.
+                """)
+    );
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Output", """
+                Original input or default if execution failed.
+                """),
+            fixedPort("Failure", """
+                Reasons for Failure (if any).
+                """)
+    );
+
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * @since 5.8
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, GenericCatchNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(
+            NODE_NAME,
+            NODE_ICON,
+            INPUT_PORTS,
+            OUTPUT_PORTS,
+            SHORT_DESCRIPTION,
+            FULL_DESCRIPTION,
+            List.of(),
+            GenericCatchNodeParameters.class,
+            null,
+            NodeType.ScopeEnd,
+            List.of(),
+            null
+        );
+    }
+
+    /**
+     * @since 5.8
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, GenericCatchNodeParameters.class));
     }
 
 }

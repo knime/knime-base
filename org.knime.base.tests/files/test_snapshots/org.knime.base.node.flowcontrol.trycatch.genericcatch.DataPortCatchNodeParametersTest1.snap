@@ -1,0 +1,159 @@
+{
+  "data" : {
+    "model" : {
+      "alwaysPopulate" : false,
+      "defaultVariable" : "none",
+      "defaultMessage" : "none",
+      "defaultDetails" : "none",
+      "defaultStackTrace" : "none",
+      "propagateVariables" : true
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "alwaysPopulate" : {
+            "type" : "boolean",
+            "title" : "Always populate error variables",
+            "description" : "If selected, the variables will also be generated when the node is not failing with the default values as selected.",
+            "default" : false
+          },
+          "defaultDetails" : {
+            "type" : "string",
+            "title" : "Default value for the 'FailingNodeDetails' variable, if no node is failing. Since this option was added in 5.4, existing nodes will be initialized with the default for the 'FailingNodeMessage' value.",
+            "default" : "none"
+          },
+          "defaultMessage" : {
+            "type" : "string",
+            "title" : "Default value for the 'FailingNodeMessage' variable, if no node is failing.",
+            "default" : "none"
+          },
+          "defaultStackTrace" : {
+            "type" : "string",
+            "title" : "Default value for the 'FailingNodeStackTrace' variable, if no node is failing.",
+            "default" : "none"
+          },
+          "defaultVariable" : {
+            "type" : "string",
+            "title" : "Default value for the 'FailingNode' variable, if no node is failing.",
+            "default" : "none"
+          },
+          "propagateVariables" : {
+            "type" : "boolean",
+            "title" : "Propagate variables",
+            "description" : "If selected, variables defined (or modified) within the Try-Catch block are propagated downstream of this Catch Errors node. In most cases users will want to check this box (which is also the default). Previous versions of KNIME did not have this option and variables were always limited in scope and not visible downstream.",
+            "default" : true
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Error Variables",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/alwaysPopulate",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/defaultVariable",
+        "rule" : {
+          "effect" : "ENABLE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/alwaysPopulate",
+            "schema" : {
+              "const" : true
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/defaultMessage",
+        "rule" : {
+          "effect" : "ENABLE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/alwaysPopulate",
+            "schema" : {
+              "const" : true
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/defaultDetails",
+        "rule" : {
+          "effect" : "ENABLE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/alwaysPopulate",
+            "schema" : {
+              "const" : true
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/defaultStackTrace",
+        "rule" : {
+          "effect" : "ENABLE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/alwaysPopulate",
+            "schema" : {
+              "const" : true
+            }
+          }
+        }
+      } ]
+    }, {
+      "label" : "Scope Variables",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/propagateVariables",
+        "options" : {
+          "format" : "checkbox"
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "alwaysPopulate" : {
+            "configKey" : "CFG_ALWAYS_POPULATE"
+          },
+          "defaultVariable" : {
+            "configKey" : "CFG_DEFAULT_TEXT_VARIABLE"
+          },
+          "defaultMessage" : {
+            "configKey" : "CFG_DEFAULT_TEXT_MESSAGE"
+          },
+          "defaultDetails" : {
+            "configKey" : "CFG_DEFAULT_TEXT_DETAILS",
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ ]
+            } ]
+          },
+          "defaultStackTrace" : {
+            "configKey" : "CFG_DEFAULT_STACK_TRACE"
+          },
+          "propagateVariables" : {
+            "configKey" : "CFG_PROPAGATE_VARIABLES",
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ ]
+            } ]
+          }
+        }
+      }
+    }
+  }
+}
