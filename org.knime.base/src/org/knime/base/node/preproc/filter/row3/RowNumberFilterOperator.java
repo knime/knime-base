@@ -53,7 +53,7 @@ import java.util.function.LongPredicate;
 
 import org.knime.base.data.filter.row.v2.FilterPartition;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorMetadata;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorDefinition;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
 
 /**
@@ -63,7 +63,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  * @param <T> type of the parameters
  * @author Paul Bärnreuther
  */
-public interface RowNumberFilterOperator<T extends FilterValueParameters> extends FilterOperatorMetadata<T> {
+public interface RowNumberFilterOperator<T extends FilterValueParameters> extends FilterOperatorDefinition<T> {
 
     /**
      * Creates an efficient slice filter if the operator supports slicing optimization. This is used for performance

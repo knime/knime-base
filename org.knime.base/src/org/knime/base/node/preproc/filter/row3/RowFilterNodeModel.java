@@ -168,9 +168,13 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
         final var dataCriteria = new ArrayList<FilterCriterion>();
         final var availableRowNumberOperators = FilterOperatorsUtil.getRowNumberOperators();
         for (final var c : criteria) {
-            // in case of REGEX and WILDCARD operators, we treat the row number column as a data column
+            /**
+             * We deliberately do not check for parameter class matching here since the parameters of row number
+             * operators are under our control. Note that we also allow for {@link LegacyFilterParameters} in
+             * combination with every identifier.
+             */
             if (c.m_column.getEnumChoice().filter(RowIdentifiers.ROW_NUMBER::equals).isPresent()
-                && availableRowNumberOperators.stream().filter(o -> o.getId().equals(c.m_operatorId))
+                && availableRowNumberOperators.stream().filter(o -> o.getId().equals(c.m_operator))
                     .filter(RowNumberFilterOperator::supportsSlicing).findFirst().isPresent()) {
                 rowNumberCriteria.add(c);
             } else {

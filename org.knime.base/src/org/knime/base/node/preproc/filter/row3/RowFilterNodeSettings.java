@@ -48,7 +48,6 @@
  */
 package org.knime.base.node.preproc.filter.row3;
 
-import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
@@ -58,20 +57,9 @@ import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction") // webui is not public yet
 final class RowFilterNodeSettings extends AbstractRowFilterNodeSettings {
 
     // we need to repeat both constructors, otherwise InstantiationUtil cannot instantiate our concrete settings class
-
-    // for de-/serialization
-    RowFilterNodeSettings() {
-        super();
-    }
-
-    // auto-configuration constructor needs to be "re-declared" in subclass
-    RowFilterNodeSettings(final NodeParametersInput ctx) {
-        super(ctx);
-    }
 
     @Override
     boolean isSecondOutputActive() {

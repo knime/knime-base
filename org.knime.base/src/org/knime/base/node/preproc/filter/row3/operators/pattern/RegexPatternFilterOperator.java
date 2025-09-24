@@ -64,17 +64,7 @@ import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
  *
  * @author Paul Bärnreuther
  */
-public class RegexPatternFilterOperator implements FilterOperator<PatternFilterParameters> {
-
-    @Override
-    public String getId() {
-        return "REGEX";
-    }
-
-    @Override
-    public String getLabel() {
-        return "Matches regex";
-    }
+public class RegexPatternFilterOperator implements FilterOperator<PatternFilterParameters>, RegexOperator {
 
     @Override
     public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,

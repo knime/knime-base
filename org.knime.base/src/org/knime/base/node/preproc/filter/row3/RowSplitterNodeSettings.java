@@ -48,7 +48,6 @@
  */
 package org.knime.base.node.preproc.filter.row3;
 
-import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.widget.choices.Label;
@@ -59,20 +58,7 @@ import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction") // webui
 final class RowSplitterNodeSettings extends AbstractRowFilterNodeSettings {
-
-    // we need to repeat both constructors, otherwise InstantiationUtil cannot instantiate our concrete settings class
-
-    // for de-/serialization
-    RowSplitterNodeSettings() {
-        super();
-    }
-
-    // auto-configuration constructor needs to be "re-declared" in subclass
-    RowSplitterNodeSettings(final NodeParametersInput ctx) {
-        super(ctx);
-    }
 
     @Override
     boolean isSecondOutputActive() {
@@ -97,10 +83,9 @@ final class RowSplitterNodeSettings extends AbstractRowFilterNodeSettings {
     // variants are named exactly as in `FilterMode` to make it easier to switch from Filter to Splitter when using
     // flow variables
     private enum SplitterMode {
-        @Label("Matching rows at first output, non-matching at second output")
-        MATCHING,
-        @Label("Non-matching rows at first output, matching at second output")
-        NON_MATCHING
+            @Label("Matching rows at first output, non-matching at second output")
+            MATCHING, @Label("Non-matching rows at first output, matching at second output")
+            NON_MATCHING
     }
 
 }

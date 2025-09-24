@@ -50,6 +50,9 @@ package org.knime.base.node.preproc.filter.row3;
 
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -57,7 +60,6 @@ import org.knime.base.node.preproc.filter.row3.operators.missing.IsMissingFilter
 import org.knime.base.node.preproc.filter.row3.operators.missing.IsNotMissingFilterOperator;
 import org.knime.base.node.preproc.filter.row3.operators.pattern.PatternFilterUtils;
 import org.knime.base.node.preproc.filter.row3.operators.pattern.RegexPatternFilterOperator;
-import org.knime.base.node.preproc.filter.row3.operators.pattern.RowKeyFilterOperator;
 import org.knime.base.node.preproc.filter.row3.operators.pattern.RowKeyRegexPatternFilterOperator;
 import org.knime.base.node.preproc.filter.row3.operators.pattern.RowKeyWildcardPatternFilterOperator;
 import org.knime.base.node.preproc.filter.row3.operators.pattern.RowNumberRegexPatternFilterOperator;
@@ -66,7 +68,6 @@ import org.knime.base.node.preproc.filter.row3.operators.pattern.WildcardPattern
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorMetadata;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorsRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
 
@@ -93,6 +94,52 @@ public final class FilterOperatorsUtil {
     public static final Predicate<DataValue> PREDICATE_ALWAYS_TRUE = dataValue -> true;
 
     /**
+     * Interface for grouping operators with their applicability logic.
+     */
+    private interface OperatorGroup {
+        List<FilterOperator<? extends FilterValueParameters>> getOperators();
+
+        default boolean isApplicable(final DataType dataType) {
+            return true;
+        }
+    }
+
+    /**
+     * Default operator groups available for column filtering.
+     */
+    private static final List<OperatorGroup> DEFAULT_COLUMN_OPERATOR_GROUPS = List.of(new OperatorGroup() {
+        @Override
+        public List<FilterOperator<? extends FilterValueParameters>> getOperators() {
+            return List.of(new RegexPatternFilterOperator(), new WildcardPatternFilterOperator());
+        }
+
+        @Override
+        public boolean isApplicable(final DataType dataType) {
+            return PatternFilterUtils.isSupported(dataType);
+        }
+    }, new OperatorGroup() {
+        @Override
+        public List<FilterOperator<? extends FilterValueParameters>> getOperators() {
+            return List.of(IsMissingFilterOperator.INSTANCE, IsNotMissingFilterOperator.INSTANCE);
+        }
+    });
+
+    /**
+     * Default operators available for row key filtering.
+     */
+    private static final List<RowKeyFilterOperator<? extends FilterValueParameters>> DEFAULT_ROW_KEY_OPERATORS =
+        List.of(//
+            new RowKeyRegexPatternFilterOperator(), //
+            new RowKeyWildcardPatternFilterOperator() //
+        );
+
+    /**
+     * Default operators available for row number filtering.
+     */
+    private static final List<RowNumberFilterOperator<? extends FilterValueParameters>> DEFAULT_ROW_NUMBER_OPERATORS =
+        List.of(new RowNumberRegexPatternFilterOperator(), new RowNumberWildcardPatternFilterOperator());
+
+    /**
      * Gets all filter operators for the given data type, including both exact-match operators from the registry and
      * predicate-based operators that support the data type. Deduplicates operators by ID, preferring registry operators
      * over pattern operators.
@@ -101,7 +148,7 @@ public final class FilterOperatorsUtil {
      * @return list of deduplicated filter operators for UI display
      */
     public static List<FilterOperator<FilterValueParameters>> getOperators(final DataType dataType) {
-        return deduplicateOperatorsById(getAllOperators(dataType));
+        return deduplicateOperatorsById(getAllColumnOperators(dataType));
     }
 
     /**
@@ -112,13 +159,30 @@ public final class FilterOperatorsUtil {
      * @param dataType the data type to get operators for
      * @return list of all applicable filter operators including duplicates
      */
-    public static List<FilterOperator<FilterValueParameters>> getAllOperators(final DataType dataType) {
+    public static List<FilterOperator<FilterValueParameters>> getAllColumnOperators(final DataType dataType) {
         final var registryOperators = FilterOperatorsRegistry.getInstance().getOperators(dataType);
-        final var patternOperators = getPatternOperators(dataType);
-        final var missingValueOperators = getMissingValueOperators();
+        final var defaultOperators = DEFAULT_COLUMN_OPERATOR_GROUPS.stream()
+            .filter(group -> group.isApplicable(dataType)).flatMap(group -> group.getOperators().stream());
 
-        return Stream.concat(Stream.concat(registryOperators.stream(), patternOperators.stream()),
-            missingValueOperators.stream()).map(c -> (FilterOperator<FilterValueParameters>)c).toList();
+        return Stream.concat(registryOperators.stream(), defaultOperators)
+            .map(c -> (FilterOperator<FilterValueParameters>)c).toList();
+    }
+
+    /**
+     * Finds the matching operator for the given operator ID and parameter class. This method handles backwards
+     * compatibility by checking both operator ID and parameter class. Multiple operators may have the same ID (e.g.,
+     * registry operators and pattern operators both providing "REGEX"), so we use the parameter class to disambiguate
+     * and find the exact operator that was used when the workflow was saved.
+     */
+    static Optional<FilterOperator<FilterValueParameters>> findMatchingColumnOperator(final DataType columnType,
+        final String operatorId, final FilterValueParameters parameters) {
+        final var allAvailableOperators = getAllColumnOperators(columnType);
+        final var parameterClass = parameters == null ? null : parameters.getClass();
+        return allAvailableOperators.stream() //
+            .filter(op -> op.getId().equals(operatorId)) //
+            .filter(op -> Objects.equals(op.getNodeParametersClass(), parameterClass)) //
+            .findFirst();
+
     }
 
     /**
@@ -128,80 +192,37 @@ public final class FilterOperatorsUtil {
      */
     public static List<Class<? extends FilterValueParameters>> getAllParameterClasses() {
         final var registryClasses = FilterOperatorsRegistry.getInstance().getAllParameterClasses();
-        final var patternClasses = getPatternParameterClasses();
-        final var missingValueClasses = getMissingValueParameterClasses();
+        final var defaultClasses = Stream.of(
+            DEFAULT_COLUMN_OPERATOR_GROUPS.stream().flatMap(group -> group.getOperators().stream())
+                .map(op -> op.getNodeParametersClass()),
+            DEFAULT_ROW_KEY_OPERATORS.stream().map(op -> op.getNodeParametersClass()),
+            DEFAULT_ROW_NUMBER_OPERATORS.stream().map(op -> op.getNodeParametersClass()),
+            Stream.of(LegacyFilterParameters.class)//
+        ).flatMap(Function.identity());
 
-        return Stream.concat(Stream.concat(registryClasses.stream(), patternClasses), missingValueClasses).distinct()
-            .toList();
+        return Stream.concat(registryClasses.stream(), defaultClasses).distinct().toList();
     }
 
-    /**
-     * Gets pattern filter operators if the data type supports pattern filtering.
-     *
-     * @param dataType the data type to check
-     * @return list of pattern operators if supported, empty list otherwise
-     */
-    private static List<FilterOperator<? extends FilterValueParameters>> getPatternOperators(final DataType dataType) {
-        if (!PatternFilterUtils.isSupported(dataType)) {
-            return List.of();
-        }
-
-        return List.of(new RegexPatternFilterOperator(), new WildcardPatternFilterOperator());
+    static List<RowNumberFilterOperator<? extends FilterValueParameters>> getRowNumberOperators() {
+        return DEFAULT_ROW_NUMBER_OPERATORS;
     }
 
-    /**
-     * Gets missing value filter operators. Missing value operators can always be applied to any data type.
-     *
-     * @return list of missing value operators
-     */
-    private static List<FilterOperator<? extends FilterValueParameters>> getMissingValueOperators() {
-        return List.of(IsMissingFilterOperator.INSTANCE, IsNotMissingFilterOperator.INSTANCE);
+    static List<RowKeyFilterOperator<? extends FilterValueParameters>> getRowKeyOperators() {
+        return DEFAULT_ROW_KEY_OPERATORS;
     }
 
-    /**
-     * Gets row key filter operators.
-     *
-     * @return list of row key filter operators
-     */
-    public static List<RowKeyFilterOperator<? extends FilterValueParameters>> getRowKeyOperators() {
-        return List.of(new RowKeyRegexPatternFilterOperator(), new RowKeyWildcardPatternFilterOperator());
+    static Optional<RowNumberFilterOperator<? extends FilterValueParameters>>
+        findMatchingRowNumberOperator(final String operatorId) {
+        return DEFAULT_ROW_NUMBER_OPERATORS.stream() //
+            .filter(op -> op.getId().equals(operatorId)) //
+            .findFirst();
     }
 
-    /**
-     * Gets row number filter operators.
-     *
-     * @return list of row number filter operators
-     */
-    public static List<RowNumberFilterOperator<? extends FilterValueParameters>> getRowNumberOperators() {
-        return List.of(new RowNumberRegexPatternFilterOperator(), new RowNumberWildcardPatternFilterOperator());
-    }
-
-    /**
-     * Gets parameter classes from pattern filter operators.
-     *
-     * @return stream of pattern filter parameter classes
-     */
-    private static Stream<Class<? extends FilterValueParameters>> getPatternParameterClasses() {
-        return Stream.of(//
-            new RegexPatternFilterOperator().getNodeParametersClass(),
-            new WildcardPatternFilterOperator().getNodeParametersClass(),
-            new RowKeyRegexPatternFilterOperator().getNodeParametersClass(),
-            new RowKeyWildcardPatternFilterOperator().getNodeParametersClass(),
-            new RowNumberRegexPatternFilterOperator().getNodeParametersClass(),
-            new RowNumberWildcardPatternFilterOperator().getNodeParametersClass()//
-        );
-    }
-
-    /**
-     * Gets parameter classes from missing value filter operators.
-     *
-     * @return stream of missing value filter parameter classes
-     */
-    private static Stream<Class<? extends FilterValueParameters>> getMissingValueParameterClasses() {
-        return Stream.of(//
-            IsMissingFilterOperator.INSTANCE.getNodeParametersClass(),
-            IsNotMissingFilterOperator.INSTANCE.getNodeParametersClass()//
-        );
+    public static Optional<RowKeyFilterOperator<? extends FilterValueParameters>>
+        findMatchingRowKeyOperator(final String operatorId) {
+        return DEFAULT_ROW_KEY_OPERATORS.stream() //
+            .filter(op -> op.getId().equals(operatorId)) //
+            .findFirst();
     }
 
     /**
@@ -218,4 +239,5 @@ public final class FilterOperatorsUtil {
         }
         return List.copyOf(seen.values());
     }
+
 }
