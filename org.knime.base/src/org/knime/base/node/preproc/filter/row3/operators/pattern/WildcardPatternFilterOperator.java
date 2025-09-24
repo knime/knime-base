@@ -44,37 +44,48 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   17 Sept 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   Sep 23, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.data.time.localdate;
+package org.knime.base.node.preproc.filter.row3.operators.pattern;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.function.Predicate;
 
-import org.knime.core.data.DataType;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorFamily;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorFamily.Single;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperators;
+import org.knime.base.node.preproc.filter.row3.CaseSensitivity;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataValue;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
+ * Filter operator for wildcard pattern matching.
  *
- * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * @author Paul Bärnreuther
  */
-@SuppressWarnings("restriction")
-public class LocalDateCellFilterOperators implements FilterOperators<LocalDateValue> {
+public class WildcardPatternFilterOperator implements FilterOperator<PatternFilterParameters> {
 
     @Override
-    public DataType getDataType() {
-        return LocalDateCell.TYPE;
+    public String getId() {
+        return "WILDCARD";
     }
 
     @Override
-    public List<FilterOperatorFamily<? extends FilterValueParameters>> getOperatorFamilies() {
-        final List<FilterOperatorFamily<? extends FilterValueParameters>> operators =
-            new ArrayList<>();
-        operators.add(new Single<>(new LocalDateCellFilterParameters.OperatorIsUnixEpoch()));
-        return operators;
+    public String getLabel() {
+        return "Matches wildcard";
+    }
+
+    @Override
+    public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
+        final PatternFilterParameters params) throws InvalidSettingsException {
+        return PatternFilterUtils.createPredicate(params.m_pattern, false,
+            params.m_caseSensitivity == CaseSensitivity.CASE_SENSITIVE, runtimeColumnSpec);
+    }
+
+    @Override
+    public Class<PatternFilterParameters> getNodeParametersClass() {
+        return PatternFilterParameters.class;
     }
 
 }
