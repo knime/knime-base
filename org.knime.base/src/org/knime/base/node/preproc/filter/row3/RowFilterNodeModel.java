@@ -166,10 +166,12 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
         partitionCriteria(final FilterCriterion[] criteria) {
         final var rowNumberCriteria = new ArrayList<FilterCriterion>();
         final var dataCriteria = new ArrayList<FilterCriterion>();
+        final var availableRowNumberOperators = FilterOperatorsUtil.getRowNumberOperators();
         for (final var c : criteria) {
             // in case of REGEX and WILDCARD operators, we treat the row number column as a data column
             if (c.m_column.getEnumChoice().filter(RowIdentifiers.ROW_NUMBER::equals).isPresent()
-                && RowNumberFilterSpec.supportsOperator(c.m_operator)) {
+                && availableRowNumberOperators.stream().filter(o -> o.getId().equals(c.m_operatorId))
+                    .filter(RowNumberFilterOperator::supportsSlicing).findFirst().isPresent()) {
                 rowNumberCriteria.add(c);
             } else {
                 dataCriteria.add(c);

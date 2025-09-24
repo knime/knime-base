@@ -52,17 +52,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
-import java.util.function.LongPredicate;
-import java.util.function.Predicate;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
+import org.knime.base.node.preproc.filter.row3.operators.pattern.PatternFilterParameters;
+import org.knime.base.node.preproc.filter.row3.operators.pattern.RowNumberPatternFilterParameters;
 import org.knime.base.node.preproc.filter.row3.predicates.PredicateFactories;
-import org.knime.base.node.preproc.filter.row3.predicates2.PatternFilterOperators;
-import org.knime.base.node.preproc.filter.row3.predicates2.PatternFilterOperators.PatternFilterOperator.PatternFilterParameters;
-import org.knime.base.node.preproc.filter.row3.predicates2.PatternFilterOperators.RowNumberPatternFilterOperator.RowNumberPatternFilterParameters;
 import org.knime.core.data.BoundedValue;
 import org.knime.core.data.DataType;
-import org.knime.core.data.RowKeyValue;
 import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.v2.RowRead;
@@ -342,140 +338,6 @@ public enum FilterOperator {
 
         default boolean isHidden() {
             return false;
-        }
-
-        static <T extends FilterValueParameters> IndexedRowReadPredicate toPredicate(
-            final InternalFilterOperator<T> operator, final T params, final OptionalInt columnIndex,
-            final DataType dataType)
-                    throws InvalidSettingsException {
-            // normal column
-            if (operator instanceof ColumnFilterOperator<T> colOp) {
-                if (columnIndex.isEmpty() || columnIndex.getAsInt() < 0) {
-                    final var kind = StringCell.TYPE.equals(dataType) ? "RowIDs" : "row numbers";
-                    throw new InvalidSettingsException("Cannot apply a column filter operator on %s.".formatted(kind));
-                }
-                return colOp.translateToPredicate(params, columnIndex.getAsInt(), dataType);
-            }
-
-            // "special columns"
-            if (operator instanceof RowIDFilterOperator<T> rowIdOp) {
-                if (columnIndex.isPresent() && columnIndex.getAsInt() >= 0) {
-                    throw new InvalidSettingsException(
-                        "Cannot apply RowID filter operator on column %d.".formatted(columnIndex.getAsInt() + 1));
-                }
-                final var predicate = rowIdOp.translateToPredicate(params);
-                return (idx, row) -> predicate.test(row.getRowKey());
-            }
-            if (operator instanceof RowNumberFilterOperator<T> rowNumOp) {
-                if (columnIndex.isPresent() && columnIndex.getAsInt() >= 0) {
-                    throw new InvalidSettingsException("Cannot apply row number filter operator on column %d."
-                        .formatted(columnIndex.getAsInt() + 1));
-                }
-                final LongPredicate predicate = rowNumOp.translateToPredicate(params);
-                return (idx, row) -> predicate.test(idx);
-            }
-            // unsupported type remains
-            throw new IllegalArgumentException("Unknown operator type: %s".formatted(operator.getClass()));
-        }
-    }
-
-    /**
-     * Filter operator that can be applied to a column.
-     *
-     * @param <T> type of the parameters
-     */
-    public interface ColumnFilterOperator<T extends FilterValueParameters> extends InternalFilterOperator<T> {
-
-        /**
-         * Translates the operator and parameters into a predicate
-         *
-         * @param params parameters
-         * @param columnIndex index of the column to filter on
-         * @param dataType data type of the column to filter on
-         * @return predicate that can be used to filter rows
-         * @throws InvalidSettingsException in case the parameters cannot be used to build the predicate
-         */
-        IndexedRowReadPredicate translateToPredicate(final T params, final int columnIndex, final DataType dataType)
-            throws InvalidSettingsException;
-    }
-
-    /**
-     * Filter operator that can be applied to row keys.
-     *
-     * @param <T> type of the parameters
-     */
-    public interface RowIDFilterOperator<T extends FilterValueParameters> extends InternalFilterOperator<T> {
-        /**
-         * Translates the operator and parameters into a predicate
-         *
-         * @param params parameters
-         * @return predicate that can be used to filter rows
-         * @throws InvalidSettingsException in case the parameters are invalid
-         */
-        Predicate<RowKeyValue> translateToPredicate(final T params) throws InvalidSettingsException;
-    }
-
-    /**
-     * Filter operator that can be applied to row numbers.
-     *
-     * @param <T> type of the parameters
-     */
-    public interface RowNumberFilterOperator<T extends FilterValueParameters> extends InternalFilterOperator<T> {
-
-        /**
-         * Translates the operator and parameters into a predicate
-         *
-         * @param params parameters
-         * @return predicate that can be used to filter rows
-         * @throws InvalidSettingsException in case the parameters are invalid
-         */
-        LongPredicate translateToPredicate(final T params) throws InvalidSettingsException;
-    }
-
-    enum FilterColumn {
-            COLUMN, ROW_ID, ROW_NUMBER
-    }
-
-    // TODO use of the wildcard type feels like a code smell that we should get rid off
-    Optional<ColumnFilterOperator<?>> getColumnFilterOperator(final DataType dataType) {
-        switch (this) {
-            case REGEX, WILDCARD:
-                if (PatternFilterOperators.isSupported(dataType)) {
-                    return Optional.of(new PatternFilterOperators.PatternFilterOperator(this == REGEX));
-                } else {
-                    return Optional.empty();
-                }
-                // TODO
-            case EQ, NEQ, NEQ_MISS:
-                if (dataType.equals(StringCell.TYPE)) {
-                }
-                return Optional.empty();
-            default:
-                return Optional.empty();
-
-        }
-
-    }
-
-    Optional<RowIDFilterOperator> getRowIdFilterOperator() {
-        switch (this) {
-            case REGEX, WILDCARD:
-                return Optional.of(new PatternFilterOperators.PatternFilterOperator(this == REGEX));
-            // TODO
-            default:
-                return Optional.empty();
-
-        }
-
-    }
-
-    Optional<RowNumberFilterOperator> getRowNumberFilterOperator() {
-        switch (this) {
-            case REGEX, WILDCARD:
-                return Optional.of(new PatternFilterOperators.RowNumberPatternFilterOperator(this == REGEX));
-            // TODO
-            default:
-                return Optional.empty();
         }
     }
 

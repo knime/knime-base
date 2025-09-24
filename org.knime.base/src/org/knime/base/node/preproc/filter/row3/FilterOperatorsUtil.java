@@ -57,10 +57,16 @@ import org.knime.base.node.preproc.filter.row3.operators.missing.IsMissingFilter
 import org.knime.base.node.preproc.filter.row3.operators.missing.IsNotMissingFilterOperator;
 import org.knime.base.node.preproc.filter.row3.operators.pattern.PatternFilterUtils;
 import org.knime.base.node.preproc.filter.row3.operators.pattern.RegexPatternFilterOperator;
+import org.knime.base.node.preproc.filter.row3.operators.pattern.RowKeyFilterOperator;
+import org.knime.base.node.preproc.filter.row3.operators.pattern.RowKeyRegexPatternFilterOperator;
+import org.knime.base.node.preproc.filter.row3.operators.pattern.RowKeyWildcardPatternFilterOperator;
+import org.knime.base.node.preproc.filter.row3.operators.pattern.RowNumberRegexPatternFilterOperator;
+import org.knime.base.node.preproc.filter.row3.operators.pattern.RowNumberWildcardPatternFilterOperator;
 import org.knime.base.node.preproc.filter.row3.operators.pattern.WildcardPatternFilterOperator;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorMetadata;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorsRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
 
@@ -153,6 +159,24 @@ public final class FilterOperatorsUtil {
     }
 
     /**
+     * Gets row key filter operators.
+     *
+     * @return list of row key filter operators
+     */
+    public static List<RowKeyFilterOperator<? extends FilterValueParameters>> getRowKeyOperators() {
+        return List.of(new RowKeyRegexPatternFilterOperator(), new RowKeyWildcardPatternFilterOperator());
+    }
+
+    /**
+     * Gets row number filter operators.
+     *
+     * @return list of row number filter operators
+     */
+    public static List<RowNumberFilterOperator<? extends FilterValueParameters>> getRowNumberOperators() {
+        return List.of(new RowNumberRegexPatternFilterOperator(), new RowNumberWildcardPatternFilterOperator());
+    }
+
+    /**
      * Gets parameter classes from pattern filter operators.
      *
      * @return stream of pattern filter parameter classes
@@ -160,7 +184,11 @@ public final class FilterOperatorsUtil {
     private static Stream<Class<? extends FilterValueParameters>> getPatternParameterClasses() {
         return Stream.of(//
             new RegexPatternFilterOperator().getNodeParametersClass(),
-            new WildcardPatternFilterOperator().getNodeParametersClass()//
+            new WildcardPatternFilterOperator().getNodeParametersClass(),
+            new RowKeyRegexPatternFilterOperator().getNodeParametersClass(),
+            new RowKeyWildcardPatternFilterOperator().getNodeParametersClass(),
+            new RowNumberRegexPatternFilterOperator().getNodeParametersClass(),
+            new RowNumberWildcardPatternFilterOperator().getNodeParametersClass()//
         );
     }
 
