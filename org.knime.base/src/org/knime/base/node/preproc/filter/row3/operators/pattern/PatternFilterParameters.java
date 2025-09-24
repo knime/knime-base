@@ -60,6 +60,14 @@ import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
  */
 public class PatternFilterParameters implements FilterValueParameters {
 
+    PatternFilterParameters() {
+        // for instantiation by framework
+    }
+
+    public PatternFilterParameters(final String pattern) {
+        m_pattern = pattern;
+    }
+
     @Widget(title = "Case matching", description = "Whether to consider case when matching the pattern.")
     @ValueSwitchWidget
     public CaseSensitivity m_caseSensitivity = CaseSensitivity.CASE_INSENSITIVE;

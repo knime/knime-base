@@ -46,29 +46,35 @@
  * History
  *   Sep 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.preproc.filter.row3.operators.pattern;
+package org.knime.base.node.preproc.filter.row3;
 
-import java.util.function.Predicate;
+import java.util.List;
 
-import org.knime.core.data.RowKeyValue;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorMetadata;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
 
 /**
- * Interface for filter operators that can be applied to row keys.
+ * Migration to {@link LegacyFilterParameters} for nodes that used the DynamicValuesInput parameters.
  *
- * @param <T> type of the parameters
  * @author Paul Bärnreuther
  */
-public interface RowKeyFilterOperator<T extends FilterValueParameters> extends FilterOperatorMetadata<T> {
+class LegacyFilterParametersMigration implements NodeParametersMigration<FilterValueParameters> {
 
-    /**
-     * Creates a predicate that tests RowKeyValue objects.
-     *
-     * @param params the filter parameters
-     * @return predicate that tests row keys
-     * @throws InvalidSettingsException if the parameters are invalid
-     */
-    Predicate<RowKeyValue> createPredicate(T params) throws InvalidSettingsException;
+    private static final String PREDICATE_VALUES_KEY = "predicateValues";
+
+    @Override
+    public List<ConfigMigration<FilterValueParameters>> getConfigMigrations() {
+        return List.of(ConfigMigration.builder(LegacyFilterParametersMigration::loadLegacyFilterParameters)
+            .withDeprecatedConfigPath(PREDICATE_VALUES_KEY).build());
+    }
+
+    private static FilterValueParameters loadLegacyFilterParameters(final NodeSettingsRO legacyFilterCriterionSettings)
+        throws InvalidSettingsException {
+        return NodeParametersUtil.loadSettings(legacyFilterCriterionSettings, LegacyFilterParameters.class);
+    }
+
 }
