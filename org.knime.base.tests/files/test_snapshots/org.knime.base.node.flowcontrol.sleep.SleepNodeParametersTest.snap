@@ -1,0 +1,178 @@
+{
+  "data" : {
+    "model" : {
+      "waitMode" : "WAIT_FOR_TIME",
+      "forTime" : "00:00:01",
+      "toTime" : "00:00:00",
+      "filePath" : "",
+      "fileEvent" : "MODIFICATION"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "fileEvent" : {
+            "oneOf" : [ {
+              "const" : "MODIFICATION",
+              "title" : "Modified"
+            }, {
+              "const" : "CREATION",
+              "title" : "Created"
+            }, {
+              "const" : "DELETION",
+              "title" : "Deleted"
+            } ],
+            "title" : "File change",
+            "description" : "Type of file event to wait for.\n<ul>\n<li><b>Modified</b>: Waits until the specified file is modified.</li>\n<li><b>Created</b>: Waits until the specified file is created.</li>\n<li><b>Deleted</b>: Waits until the specified file is deleted.</li>\n</ul>",
+            "default" : "MODIFICATION"
+          },
+          "filePath" : {
+            "type" : "string",
+            "title" : "File",
+            "description" : "Path to the file to monitor for events. Can be a local file or URL pointing to a local file.",
+            "default" : ""
+          },
+          "forTime" : {
+            "type" : "string",
+            "format" : "date-time",
+            "title" : "Duration",
+            "description" : "The duration to wait for.",
+            "default" : "00:00:01"
+          },
+          "toTime" : {
+            "type" : "string",
+            "format" : "date-time",
+            "title" : "Time",
+            "description" : "The time of day to wait until.",
+            "default" : "00:00:00"
+          },
+          "waitMode" : {
+            "oneOf" : [ {
+              "const" : "WAIT_FOR_TIME",
+              "title" : "For duration"
+            }, {
+              "const" : "WAIT_UNTIL_TIME",
+              "title" : "To time of day"
+            }, {
+              "const" : "WAIT_FILE",
+              "title" : "For file change"
+            } ],
+            "title" : "Wait",
+            "description" : "Select how the node should wait: for a duration, until a specific time, or for a file event.\n<ul>\n<li><b>For duration</b>: The node waits for the entered time (HH:mm:ss).</li>\n<li><b>To time of day</b>: The node waits until the entered time of day has passed.</li>\n<li><b>For file change</b>: The node waits until the selected file (or URL that\npoints to a local file) either gets created, modified or deleted.\n</li>\n</ul>",
+            "default" : "WAIT_FOR_TIME"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/waitMode",
+      "options" : {
+        "format" : "radio",
+        "radioLayout" : "vertical"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/forTime",
+      "options" : {
+        "showMilliseconds" : true,
+        "format" : "localTime"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/waitMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "WAIT_FOR_TIME"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/toTime",
+      "options" : {
+        "showMilliseconds" : true,
+        "format" : "localTime"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/waitMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "WAIT_UNTIL_TIME"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/filePath",
+      "options" : {
+        "fileExtensions" : [ ],
+        "placeholder" : "",
+        "format" : "localFileChooser"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/waitMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "WAIT_FILE"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/fileEvent",
+      "options" : {
+        "format" : "valueSwitch"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/waitMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "WAIT_FILE"
+            } ]
+          }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "waitMode" : {
+            "configPaths" : [ [ "wait_option" ] ]
+          },
+          "forTime" : {
+            "configPaths" : [ [ "for_hours" ], [ "for_minutes" ], [ "for_seconds" ] ]
+          },
+          "toTime" : {
+            "configPaths" : [ [ "to_hours" ], [ "to_min" ], [ "to_seconds" ] ]
+          },
+          "filePath" : {
+            "configKey" : "path_to_file"
+          },
+          "fileEvent" : {
+            "configPaths" : [ [ "file_status_to_observe" ] ]
+          }
+        }
+      }
+    }
+  }
+}

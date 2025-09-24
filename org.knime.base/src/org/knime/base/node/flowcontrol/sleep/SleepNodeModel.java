@@ -82,6 +82,7 @@ import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.util.FileUtil;
 import org.knime.core.util.valueformat.NumberFormatter;
+import org.knime.node.parameters.widget.choices.Label;
 
 import com.google.common.base.Objects;
 
@@ -94,15 +95,28 @@ import com.google.common.base.Objects;
 public class SleepNodeModel extends NodeModel {
 
     enum WaitMode {
-        WAIT_FOR_TIME,
-        WAIT_UNTIL_TIME,
-        WAIT_FILE
+            @Label(value = "For duration", description = "The node waits for the entered time (HH:mm:ss).")
+            WAIT_FOR_TIME,
+
+            @Label(value = "To time of day", description = "The node waits until the entered time of day has passed.")
+            WAIT_UNTIL_TIME,
+
+            @Label(value = "For file change", description = """
+                    The node waits until the selected file (or URL that
+                    points to a local file) either gets created, modified or deleted.
+                    """)
+            WAIT_FILE
     }
 
     enum FileEvent {
-        DELETION("Deletion"),
-        MODIFICATION("Modification"),
-        CREATION("Creation");
+            @Label(value = "Modified", description = "Waits until the specified file is modified.")
+            MODIFICATION("Modification"),
+
+            @Label(value = "Created", description = "Waits until the specified file is created.")
+            CREATION("Creation"),
+
+            @Label(value = "Deleted", description = "Waits until the specified file is deleted.")
+            DELETION("Deletion");
 
         private String m_description;
 
@@ -145,7 +159,6 @@ public class SleepNodeModel extends NodeModel {
     /** Number of milliseconds to sleep between progress updates. Trade-off between progress frequency and CPU load. */
     private static final long PROGRESS_SLEEP_MS = 100;
 
-
     private WaitMode m_selection = WaitMode.WAIT_FOR_TIME; // initialized with default value
 
     private FileEvent m_fileEvent;
@@ -162,11 +175,11 @@ public class SleepNodeModel extends NodeModel {
 
     private int m_forMin;
 
-    private int m_forSec;
+    private int m_forSec = 1;
 
     /** One input, one output. */
     protected SleepNodeModel() {
-        super(new PortType[]{ FlowVariablePortObject.TYPE_OPTIONAL}, new PortType[]{FlowVariablePortObject.TYPE });
+        super(new PortType[]{FlowVariablePortObject.TYPE_OPTIONAL}, new PortType[]{FlowVariablePortObject.TYPE});
     }
 
     @Override
@@ -178,26 +191,26 @@ public class SleepNodeModel extends NodeModel {
     protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
         KNIMEConstants.GLOBAL_THREAD_POOL.runInvisible(() -> {
             switch (m_selection) {
-                case WAIT_FOR_TIME   -> waitForTime(exec);
+                case WAIT_FOR_TIME -> waitForTime(exec);
                 case WAIT_UNTIL_TIME -> waitUntilTime(exec);
-                case WAIT_FILE       -> waitFile(exec);
+                case WAIT_FILE -> waitFile(exec);
             }
             return null;
         });
-        return inData[0] != null ? inData : new PortObject[]{ FlowVariablePortObject.INSTANCE };
+        return inData[0] != null ? inData : new PortObject[]{FlowVariablePortObject.INSTANCE};
     }
 
     /**
      * Wait for a specified amount of time.
      */
     private void waitForTime(final ExecutionMonitor exec)
-            throws InvalidSettingsException, InterruptedException, CanceledExecutionException {
+        throws InvalidSettingsException, InterruptedException, CanceledExecutionException {
         // wait for
         final var numFormat = NumberFormatter.builder().setGroupSeparator(",") //
-                .setMinimumDecimals(1) //
-                .setMaximumDecimals(1) //
-                .setAlwaysShowDecimalSeparator(true) //
-                .build();
+            .setMinimumDecimals(1) //
+            .setMaximumDecimals(1) //
+            .setAlwaysShowDecimalSeparator(true) //
+            .build();
 
         final var ticker = new AtomicLong();
         final var targetTime = OffsetDateTime.now().plusHours(m_forHours).plusMinutes(m_forMin).plusSeconds(m_forSec);
@@ -234,7 +247,7 @@ public class SleepNodeModel extends NodeModel {
     }
 
     private static void waitFor(final long delay, final ExecutionMonitor exec, final LongConsumer waitedCallback)
-            throws InterruptedException, CanceledExecutionException {
+        throws InterruptedException, CanceledExecutionException {
         final var t0 = System.currentTimeMillis();
         var waited = 0L;
         while (waited < delay) {
@@ -249,7 +262,7 @@ public class SleepNodeModel extends NodeModel {
      * Wait until a specific event (created/deleted/modified) is registered for a given file.
      */
     private void waitFile(final ExecutionMonitor exec) // NOSONAR complex, but still OK
-            throws IOException, URISyntaxException, InterruptedException, CanceledExecutionException {
+        throws IOException, URISyntaxException, InterruptedException, CanceledExecutionException {
         final var path = FileUtil.resolveToPath(FileUtil.toURL(m_filePath));
         if (path == null) {
             throw new IllegalArgumentException("File location '" + m_filePath + "' is not a local file.");
@@ -261,11 +274,12 @@ public class SleepNodeModel extends NodeModel {
         }
 
         // `FileSystems.getDefault()` throws `UnsupportedOperationException` when closed on Windows!
-        try (@SuppressWarnings("resource") final var ws = FileSystems.getDefault().newWatchService()) {
+        try (@SuppressWarnings("resource")
+        final var ws = FileSystems.getDefault().newWatchService()) {
 
             final var elapsed = new AtomicLong();
             final Supplier<String> message = () -> "Waiting for " + m_fileEvent.name().toLowerCase(Locale.US)
-                    + " of file '" + path + "', for " + DurationFormatUtils.formatDurationHMS(elapsed.get());
+                + " of file '" + path + "', for " + DurationFormatUtils.formatDurationHMS(elapsed.get());
             exec.setMessage(message);
 
             final var eventKind = switch (m_fileEvent) {
@@ -284,7 +298,7 @@ public class SleepNodeModel extends NodeModel {
 
                 WatchKey key = ws.poll(PROGRESS_SLEEP_MS, TimeUnit.MILLISECONDS);
                 if (key != null && (key.pollEvents().stream().anyMatch(e -> Objects.equal(e.context(), fileName))
-                        || !key.reset())) {
+                    || !key.reset())) {
                     // the even we've been waiting for has fired for the file we were watching
                     break;
                 }
@@ -340,9 +354,9 @@ public class SleepNodeModel extends NodeModel {
             sms.loadSettingsFrom(settings);
             final var fileEventDesc = sms.getStringValue();
             m_fileEvent = Arrays.stream(FileEvent.values()) //
-                    .filter(evt -> evt.description().equals(fileEventDesc)) //
-                    .findAny() //
-                    .orElseThrow(() -> new InvalidSettingsException("Unknown file event: '" + fileEventDesc + "'"));
+                .filter(evt -> evt.description().equals(fileEventDesc)) //
+                .findAny() //
+                .orElseThrow(() -> new InvalidSettingsException("Unknown file event: '" + fileEventDesc + "'"));
         }
     }
 
@@ -375,18 +389,18 @@ public class SleepNodeModel extends NodeModel {
         sms.saveSettingsTo(settings);
     }
 
-    private static WaitMode getWaitMode(final NodeSettingsRO settings) throws InvalidSettingsException {
+    static WaitMode getWaitMode(final NodeSettingsRO settings) throws InvalidSettingsException {
         final var waitOption = settings.getInt(CFGKEY_WAITOPTION);
         final var modes = WaitMode.values();
         if (waitOption < 0 || waitOption >= modes.length) {
-            throw new InvalidSettingsException("Invalid wait mode " + waitOption
-                + ", must be between 0 and " + (modes.length - 1));
+            throw new InvalidSettingsException(
+                "Invalid wait mode " + waitOption + ", must be between 0 and " + (modes.length - 1));
         }
         return modes[waitOption];
     }
 
     private static BiFunction<Double, StringBuilder, StringBuilder> paddedSeconds(final NumberFormatter formatter,
-            final double total) {
+        final double total) {
         final var totalStr = formatter.format(total);
         final var paddingStr = totalStr.replaceAll("\\d", "\u2007").replace(',', ' ').replace('.', ' '); // NOSONAR
         return (secs, sb) -> {
