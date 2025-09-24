@@ -44,87 +44,28 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 8, 2025 (Paul Bärnreuther): created
+ *   Sep 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.base.node.preproc.filter.row3.operators.pattern;
 
-import org.knime.core.data.DataValue;
-import org.knime.core.data.StringValue;
-import org.knime.core.data.def.StringCell;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
-import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.layout.Before;
-import org.knime.node.parameters.layout.Layout;
-import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorBase;
 
 /**
- * Parameter class for string based filter value parameters.
+ * Interface for wildcard pattern filter operators that provides the standard ID and label.
+ * Concrete wildcard operators can implement this interface to automatically get
+ * the correct wildcard operator identification.
  *
  * @author Paul Bärnreuther
  */
-public class StringValueParameters implements FilterValueParameters {
+public interface WildcardOperator extends FilterOperatorBase {
 
-    @Before(ValuePart.class)
-    interface CaseSensitivityPart {
-    }
-
-    interface ValuePart {
-
-    }
-
-    @Layout(ValuePart.class)
-    @Widget(title = SingleCellValueParameters.FILTER_VALUE_TITLE,
-        description = SingleCellValueParameters.FILTER_VALUE_DESCRIPTION)
-    String m_value;
-
-    /**
-     * @param value
-     */
-    public StringValueParameters(final String value) {
-        m_value = value;
-    }
-
-    StringValueParameters() {
-        // for instantiation by framework
+    @Override
+    default String getId() {
+        return "WILDCARD";
     }
 
     @Override
-    public StringValue[] stash() {
-        return new StringValue[]{new StringCell(m_value)};
+    default String getLabel() {
+        return "Matches wildcard";
     }
-
-    @Override
-    public void applyStash(final DataValue[] stashedValues) {
-        if (stashedValues.length > 0) {
-            final var first = stashedValues[0];
-            if (first instanceof StringValue val) {
-                m_value = val.getStringValue();
-            }
-        }
-    }
-
-    /**
-     * Parameters class to use when literal strings should be compared for equality. It includes a case sensitivity
-     * option.
-     */
-    public static final class EqualsStringParameters extends StringValueParameters {
-
-        EqualsStringParameters() {
-            super();
-            // for instantiation by framework
-        }
-
-        /**
-         * @param value
-         */
-        public EqualsStringParameters(final String value) {
-            super(value);
-        }
-
-        @Layout(CaseSensitivityPart.class)
-        @ValueSwitchWidget
-        @Widget(title = "Case matching", description = "Whether the comparison should be case sensitive or not.")
-        CaseSensitivity m_caseSensitivity = CaseSensitivity.CASE_SENSITIVE;
-    }
-
 }

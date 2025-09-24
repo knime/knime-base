@@ -64,17 +64,7 @@ import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
  *
  * @author Paul Bärnreuther
  */
-public class WildcardPatternFilterOperator implements FilterOperator<PatternFilterParameters> {
-
-    @Override
-    public String getId() {
-        return "WILDCARD";
-    }
-
-    @Override
-    public String getLabel() {
-        return "Matches wildcard";
-    }
+public class WildcardPatternFilterOperator implements FilterOperator<PatternFilterParameters>, WildcardOperator {
 
     @Override
     public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,

@@ -134,12 +134,13 @@ final class RowNumberFilterSpec {
      * @throws InvalidSettingsException if the filter criterion contains an unsupported operator or the value is missing
      */
     static LongFunction<FilterPartition> toFilterSpec(final FilterCriterion criterion) throws InvalidSettingsException {
-        final var rowNumberOperators = FilterOperatorsUtil.getRowNumberOperators();
-        final var matchingOperator = rowNumberOperators.stream().filter(op -> op.getId().equals(criterion.m_operatorId))
-            .filter(op -> op.getNodeParametersClass().equals(criterion.m_filterValueParameters.getClass())).findFirst()
-            .orElse(null); // TODO
-
-        // Check if the operator supports slicing via createSliceFilter
+        if (criterion.m_filterValueParameters instanceof LegacyFilterParameters legacyParameters) {
+            final var rowNumberFilterSpec = legacyParameters.toFilterSpec();
+            return tableSize -> FilterPartition.computePartition(rowNumberFilterSpec.toOffsetFilter(tableSize),
+                tableSize);
+        }
+        final var matchingOperator = FilterOperatorsUtil.findMatchingRowNumberOperator(criterion.m_operator)
+            .orElseThrow(IllegalStateException::new);
         return toSliceFilter(matchingOperator, criterion.m_filterValueParameters);
     }
 
