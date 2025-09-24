@@ -47,17 +47,62 @@
  */
 package org.knime.base.node.flowcontrol.sleep;
 
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
-
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.ExternalResource;
+import org.knime.node.impl.description.PortDescription;
 
 /**
+ * The class is the factory for momentarily halting the workflow depending on condition selected in the dialog.
+ *
  * @author M. Berthold, University of Konstanz
+ * @author Ali Asghar Marvi, KNIME AG, Zurich, Switzerland
  */
-public class SleepNodeFactory extends NodeFactory<SleepNodeModel> {
+@SuppressWarnings("restriction")
+public final class SleepNodeFactory extends NodeFactory<SleepNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    /** Create factory, that instantiates nodes.
+    private static final String NODE_NAME = "Wait...";
+
+    private static final String NODE_ICON = "sleep.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            This node waits for a certain time, to a certain time or for a file event.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            This node waits for a certain time,
+            to a certain time or for a file event
+            (such as file creation, modification or deletion).
+            Note that on some operating systems file events need a few seconds to be noticed by the application.
+            <br />
+            This node is derived from the Vernalis community extension.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(PortDescription.fixedPort("Input table", """
+            The input variables.
+            """));
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(PortDescription.fixedPort("Output table", """
+            The input variables
+            """));
+
+    /**
+     * Create factory, that instantiates nodes.
      */
     public SleepNodeFactory() {
         // wow, such empty
@@ -65,7 +110,17 @@ public class SleepNodeFactory extends NodeFactory<SleepNodeModel> {
 
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new SleepNodeDialog();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, SleepNodeParameters.class);
+    }
+
+    @Override
+    public boolean hasNodeDialog() {
+        return true;
     }
 
     @Override
@@ -86,5 +141,19 @@ public class SleepNodeFactory extends NodeFactory<SleepNodeModel> {
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(NODE_NAME, NODE_ICON, INPUT_PORTS, OUTPUT_PORTS,
+            SHORT_DESCRIPTION, FULL_DESCRIPTION,
+            List.of(new ExternalResource("https://www.knime.com/book/vernalis-nodes-for-knime-trusted-extension",
+                "Vernalis community extension")),
+            SleepNodeParameters.class, null, NodeType.Manipulator, List.of(), null);
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, SleepNodeParameters.class));
     }
 }

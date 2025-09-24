@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <entry key="wait_option" type="xint" value="0"/>
+    <entry key="for_hours" type="xint" value="0"/>
+    <entry key="for_minutes" type="xint" value="0"/>
+    <entry key="for_seconds" type="xint" value="5"/>
+    <entry key="for_milliseconds" type="xint" value="0"/>
+    <entry key="to_hours" type="xint" value="0"/>
+    <entry key="to_min" type="xint" value="0"/>
+    <entry key="to_seconds" type="xint" value="0"/>
+    <entry key="to_milliseconds" type="xint" value="0"/>
+    <entry key="path_to_file" type="xstring" value=""/>
+    <entry key="file_status_to_observe" type="xstring" value="Modification"/>
+</config>

@@ -1,0 +1,464 @@
+{
+  "data" : {
+    "model" : {
+      "waitMode" : "WAIT_FOR_TIME",
+      "forHours" : 0,
+      "forMinutes" : 0,
+      "forSeconds" : 5,
+      "forMilliseconds" : 0,
+      "toHours" : 0,
+      "toMinutes" : 0,
+      "toSeconds" : 0,
+      "toMilliseconds" : 0,
+      "filePath" : "",
+      "fileEvent" : "MODIFICATION"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "fileEvent" : {
+            "oneOf" : [ {
+              "const" : "MODIFICATION",
+              "title" : "Modified"
+            }, {
+              "const" : "CREATION",
+              "title" : "Created"
+            }, {
+              "const" : "DELETION",
+              "title" : "Deleted"
+            } ],
+            "title" : "File change",
+            "description" : "Type of file event to wait for.\n<ul>\n<li><b>Modified</b>: Waits until the specified file is modified.</li>\n<li><b>Created</b>: Waits until the specified file is created.</li>\n<li><b>Deleted</b>: Waits until the specified file is deleted.</li>\n</ul>",
+            "default" : "MODIFICATION"
+          },
+          "filePath" : {
+            "type" : "string",
+            "title" : "File",
+            "description" : "Path to the file to monitor for events. Can be a local file or URL pointing to a local file.",
+            "default" : ""
+          },
+          "forHours" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Hours",
+            "description" : "The amount of hours to wait for.",
+            "default" : 0
+          },
+          "forMilliseconds" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Milliseconds",
+            "description" : "The amount of milliseconds to wait for.",
+            "default" : 0
+          },
+          "forMinutes" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Minutes",
+            "description" : "The amount of minutes to wait for.",
+            "default" : 0
+          },
+          "forSeconds" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Seconds",
+            "description" : "The amount of seconds to wait for.",
+            "default" : 1
+          },
+          "toHours" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Hour of day",
+            "description" : "The hour of day to wait until.",
+            "default" : 0
+          },
+          "toMilliseconds" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Millisecond of second",
+            "description" : "The millisecond of the second to wait until.",
+            "default" : 0
+          },
+          "toMinutes" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Minute of hour",
+            "description" : "The minute of the hour to wait until.",
+            "default" : 0
+          },
+          "toSeconds" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Second of minute",
+            "description" : "The second of the minute to wait until.",
+            "default" : 0
+          },
+          "waitMode" : {
+            "oneOf" : [ {
+              "const" : "WAIT_FOR_TIME",
+              "title" : "For duration"
+            }, {
+              "const" : "WAIT_UNTIL_TIME",
+              "title" : "To time of day"
+            }, {
+              "const" : "WAIT_FILE",
+              "title" : "For file change"
+            } ],
+            "title" : "Wait",
+            "description" : "Select how the node should wait: for a duration, until a specific time, or for a file event.\n<ul>\n<li><b>For duration</b>: The node waits for the entered time (HH:mm:ss).</li>\n<li><b>To time of day</b>: The node waits until the entered time of day has passed.</li>\n<li><b>For file change</b>: The node waits until the selected file (or URL that\npoints to a local file) either gets created, modified or deleted.\n</li>\n</ul>",
+            "default" : "WAIT_FOR_TIME"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/waitMode",
+      "options" : {
+        "format" : "radio",
+        "radioLayout" : "vertical"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/forHours",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 23.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 23.0
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 0.0
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/waitMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "WAIT_FOR_TIME"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/forMinutes",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 59.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 59.0
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 0.0
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/waitMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "WAIT_FOR_TIME"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/forSeconds",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 59.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 59.0
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 0.0
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/waitMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "WAIT_FOR_TIME"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/forMilliseconds",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 999.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 999.0
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 0.0
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/waitMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "WAIT_FOR_TIME"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/toHours",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 23.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 23.0
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 0.0
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/waitMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "WAIT_UNTIL_TIME"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/toMinutes",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 59.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 59.0
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 0.0
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/waitMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "WAIT_UNTIL_TIME"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/toSeconds",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 59.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 59.0
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 0.0
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/waitMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "WAIT_UNTIL_TIME"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/toMilliseconds",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 999.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 999.0
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 0.0
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/waitMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "WAIT_UNTIL_TIME"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/filePath",
+      "options" : {
+        "fileExtensions" : [ ],
+        "placeholder" : "",
+        "format" : "localFileChooser"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/waitMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "WAIT_FILE"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/fileEvent",
+      "options" : {
+        "format" : "valueSwitch"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/waitMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "WAIT_FILE"
+            } ]
+          }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "waitMode" : {
+            "configPaths" : [ [ "wait_option" ] ]
+          },
+          "forHours" : {
+            "configKey" : "for_hours"
+          },
+          "forMinutes" : {
+            "configKey" : "for_minutes"
+          },
+          "forSeconds" : {
+            "configKey" : "for_seconds"
+          },
+          "forMilliseconds" : {
+            "configKey" : "for_milliseconds"
+          },
+          "toHours" : {
+            "configKey" : "to_hours"
+          },
+          "toMinutes" : {
+            "configKey" : "to_min"
+          },
+          "toSeconds" : {
+            "configKey" : "to_seconds"
+          },
+          "toMilliseconds" : {
+            "configKey" : "to_milliseconds"
+          },
+          "filePath" : {
+            "configKey" : "path_to_file"
+          },
+          "fileEvent" : {
+            "configPaths" : [ [ "file_status_to_observe" ] ]
+          }
+        }
+      }
+    }
+  }
+}
