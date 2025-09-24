@@ -251,7 +251,7 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
                 if (dataType == null) {
                     return List.of();
                 }
-                return FilterOperatorsRegistry.getInstance().getOperators(dataType).stream() //
+                return FilterOperatorsUtil.getOperators(dataType).stream() //
                     .map(op -> new StringChoice(op.getId(), op.getLabel())).toList();
                 //final var availableOperators = FilterOperator2Util.getOperatorsForColumn(dataType);
                 // return FilterOperator2Util.getSortedChoices(availableOperators);
@@ -345,14 +345,7 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
                 throw new InvalidSettingsException("Column \"%s\" could not be found in input table".formatted(column));
             }
 
-            // operator choices based on reference cell type
-            final var availableOperators = FilterOperatorsRegistry.getInstance().getOperators(m_columnType);
-
-            final var selectedOperator = availableOperators.stream() //
-                .filter(op -> op.getId().equals(m_operatorId)) //
-                .findFirst() //
-                .orElseThrow(() -> new InvalidSettingsException(
-                    "Selected operator \"%s\" is not currently known".formatted(m_operatorId)));
+            final var selectedOperator = findMatchingOperator(m_columnType, m_operatorId, m_filterValueParameters);
             return toIndexedRowReadPredicate(selectedOperator, spec, columnIndex);
 
         }
@@ -499,6 +492,34 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
             return m_column.getEnumChoice().map(ROW_NUMBER::equals).orElse(false);
         }
 
+        /**
+         * Finds the matching operator for the given operator ID and parameter class.
+         * This method handles backwards compatibility by checking both operator ID and parameter class.
+         * Multiple operators may have the same ID (e.g., registry operators and pattern operators both
+         * providing "REGEX"), so we use the parameter class to disambiguate and find the exact operator
+         * that was used when the workflow was saved.
+         */
+        private static FilterOperator<FilterValueParameters> findMatchingOperator(final DataType columnType,
+            final String operatorId, final FilterValueParameters parameters) throws InvalidSettingsException {
+            final var allAvailableOperators = FilterOperatorsUtil.getAllOperators(columnType);
+
+            final var operatorsWithMatchingId = allAvailableOperators.stream() //
+                .filter(op -> op.getId().equals(operatorId)) //
+                .toList();
+
+            if (operatorsWithMatchingId.isEmpty()) {
+                throw new InvalidSettingsException(
+                    "Selected operator \"%s\" is not currently known".formatted(operatorId));
+            }
+
+            final var parameterClass = parameters.getClass();
+            return operatorsWithMatchingId.stream() //
+                .filter(op -> op.getNodeParametersClass().equals(parameterClass)) //
+                .findFirst() //
+                .orElseThrow(() -> new InvalidSettingsException(
+                    "No operator found for ID \"%s\" with parameter class \"%s\"".formatted(operatorId, parameterClass.getName())));
+        }
+
         @Widget(title = "Filter value", description = """
                 The value for the filter criterion.
                 <br/><br />
@@ -547,7 +568,7 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
             @Override
             public ClassIdStrategy<FilterValueParameters> getClassIdStrategy() {
                 final Collection<Class<? extends FilterValueParameters>> possibleClasses = new ArrayList<>();
-                possibleClasses.addAll(FilterOperatorsRegistry.getInstance().getAllParameterClasses());
+                possibleClasses.addAll(FilterOperatorsUtil.getAllParameterClasses());
                 possibleClasses.addAll(org.knime.base.node.preproc.filter.row3.FilterOperator.InternalFilterOperator.ALL_PARAMETER_CLASSES);
                 return new DefaultClassIdStrategy<>(possibleClasses);
             }
@@ -559,7 +580,7 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
                 if (dataType == null) {
                     throw new StateComputationFailureException("No column selected");
                 }
-                final var availableOperators = FilterOperatorsRegistry.getInstance().getOperators(dataType);// FilterOperator2Util.getOperatorsForColumn(dataType);
+                final var availableOperators = FilterOperatorsUtil.getOperators(dataType);
                 final var currentOperatorId = m_currentOperatorId.get();
                 Class<? extends FilterValueParameters> targetClass;
                 //                try {
