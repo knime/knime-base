@@ -48,7 +48,6 @@ package org.knime.base.node.preproc.addemptyrows;
 
 import java.util.Optional;
 
-import org.knime.base.node.util.EnumBooleanPersistor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -62,6 +61,7 @@ import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.persistence.legacy.EnumBooleanPersistor;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.OptionalWidget;

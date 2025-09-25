@@ -1,47 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
-    <config key="column_Internals">
-        <entry key="SettingsModelID" type="xstring" value="SMID_string"/>
-        <entry key="EnabledStatus" type="xboolean" value="true"/>
-    </config>
     <entry key="column" type="xstring" value="col"/>
-    <config key="pattern_Internals">
-        <entry key="SettingsModelID" type="xstring" value="SMID_string"/>
-        <entry key="EnabledStatus" type="xboolean" value="true"/>
-    </config>
     <entry key="pattern" type="xstring" value="pattern"/>
     <entry key="isCaseInsensitive" type="xboolean" value="true"/>
     <entry key="requireWholeMatch" type="xboolean" value="true"/>
     <entry key="noMatchBehaviour" type="xstring" value="INSERT_MISSING"/>
-    <config key="isUnixLines_Internals">
-        <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-        <entry key="EnabledStatus" type="xboolean" value="true"/>
-    </config>
     <entry key="isUnixLines" type="xboolean" value="true"/>
-    <config key="isMultiLine_Internals">
-        <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-        <entry key="EnabledStatus" type="xboolean" value="true"/>
-    </config>
     <entry key="isMultiLine" type="xboolean" value="true"/>
-    <config key="isDotAll_Internals">
-        <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-        <entry key="EnabledStatus" type="xboolean" value="true"/>
-    </config>
     <entry key="isDotAll" type="xboolean" value="true"/>
-    <config key="isUniCodeCase_Internals">
-        <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-        <entry key="EnabledStatus" type="xboolean" value="true"/>
-    </config>
     <entry key="isUniCodeCase" type="xboolean" value="true"/>
-    <config key="isCanonEQ_Internals">
-        <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-        <entry key="EnabledStatus" type="xboolean" value="true"/>
-    </config>
     <entry key="isCanonEQ" type="xboolean" value="true"/>
-    <config key="isUnicodeCharacterClass_Internals">
-        <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-        <entry key="EnabledStatus" type="xboolean" value="true"/>
-    </config>
     <entry key="isUnicodeCharacterClass" type="xboolean" value="false"/>
     <entry key="decrementGroupIndexByOne" type="xboolean" value="true"/>
     <config key="output">
@@ -54,14 +22,6 @@
         <entry key="removeInputColumn" type="xboolean" value="false"/>
     </config>
     <entry key="doNotAllowEmptyBlankOrPaddedColumnName_Internals" type="xboolean" value="true"/>
-    <config key="isLiteral_Internals">
-        <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-        <entry key="EnabledStatus" type="xboolean" value="true"/>
-    </config>
     <entry key="isLiteral" type="xboolean" value="true"/>
-    <config key="isComments_Internals">
-        <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-        <entry key="EnabledStatus" type="xboolean" value="true"/>
-    </config>
     <entry key="isComments" type="xboolean" value="true"/>
 </config>

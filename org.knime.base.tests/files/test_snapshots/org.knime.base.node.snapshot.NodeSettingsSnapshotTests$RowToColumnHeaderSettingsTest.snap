@@ -41,18 +41,18 @@
       "scope" : "#/properties/model/properties/headerRowIndex",
       "options" : {
         "validation" : {
-          "min" : {
-            "errorMessage" : "The value must be at least 0.",
-            "parameters" : {
-              "min" : 0.0,
-              "isExclusive" : false
-            }
-          },
           "max" : {
             "errorMessage" : "The value must not exceed 2147483647.",
             "parameters" : {
-              "max" : 2.147483647E9,
-              "isExclusive" : false
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 0.0
             }
           }
         }
@@ -77,15 +77,9 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "headerRowIndex" : {
-            "configPaths" : [ [ "headerRowIndex" ] ]
-          },
-          "discardBefore" : {
-            "configPaths" : [ [ "discardBefore" ] ]
-          },
-          "detectTypes" : {
-            "configPaths" : [ [ "detectTypes" ] ]
-          }
+          "headerRowIndex" : { },
+          "discardBefore" : { },
+          "detectTypes" : { }
         }
       }
     }

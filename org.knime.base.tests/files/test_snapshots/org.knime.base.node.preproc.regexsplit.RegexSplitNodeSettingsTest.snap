@@ -468,35 +468,21 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "column" : {
-            "configPaths" : [ [ "column" ] ]
-          },
-          "pattern" : {
-            "configPaths" : [ [ "pattern" ] ]
-          },
+          "column" : { },
+          "pattern" : { },
           "caseMatching" : {
             "configPaths" : [ [ "isCaseInsensitive" ] ]
           },
           "requireWholeMatch" : { },
           "noMatchBehaviour" : { },
-          "isUnixLines" : {
-            "configPaths" : [ [ "isUnixLines" ] ]
-          },
-          "isMultiLine" : {
-            "configPaths" : [ [ "isMultiLine" ] ]
-          },
-          "isDotAll" : {
-            "configPaths" : [ [ "isDotAll" ] ]
-          },
+          "isUnixLines" : { },
+          "isMultiLine" : { },
+          "isDotAll" : { },
           "isUnicodeCase" : {
-            "configPaths" : [ [ "isUniCodeCase" ] ]
+            "configKey" : "isUniCodeCase"
           },
-          "isCanonEQ" : {
-            "configPaths" : [ [ "isCanonEQ" ] ]
-          },
-          "isUnicodeCharacterClass" : {
-            "configPaths" : [ [ "isUnicodeCharacterClass" ] ]
-          },
+          "isCanonEQ" : { },
+          "isUnicodeCharacterClass" : { },
           "decrementGroupIndexByOne" : {
             "deprecatedConfigKeys" : [ {
               "deprecated" : [ ]
@@ -520,12 +506,8 @@
           "doNotAllowEmptyBlankOrPaddedColumnName" : {
             "configPaths" : [ ]
           },
-          "isLiteral" : {
-            "configPaths" : [ [ "isLiteral" ] ]
-          },
-          "isComments" : {
-            "configPaths" : [ [ "isComments" ] ]
-          }
+          "isLiteral" : { },
+          "isComments" : { }
         }
       }
     }

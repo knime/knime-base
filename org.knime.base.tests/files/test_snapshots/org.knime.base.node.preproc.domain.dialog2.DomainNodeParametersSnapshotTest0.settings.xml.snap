@@ -53,10 +53,6 @@
             </config>
         </config>
     </config>
-    <config key="possible_values_unselected_retain_Internals">
-        <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-        <entry key="EnabledStatus" type="xboolean" value="true"/>
-    </config>
     <entry key="possible_values_unselected_retain" type="xboolean" value="false"/>
     <entry key="max_poss_values" type="xint" value="-1"/>
     <config key="colFilter_minMax">
@@ -109,10 +105,6 @@
         <config key="datatype">
             <config key="typelist"/>
         </config>
-    </config>
-    <config key="min_max_unselected_retain_Internals">
-        <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-        <entry key="EnabledStatus" type="xboolean" value="true"/>
     </config>
     <entry key="min_max_unselected_retain" type="xboolean" value="true"/>
 </config>

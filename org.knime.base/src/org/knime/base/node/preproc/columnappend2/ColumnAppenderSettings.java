@@ -54,11 +54,11 @@ import org.knime.base.node.preproc.columnappend2.ColumnAppender2NodeModel.RowKey
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.EnumSettingsModelStringPersistor;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
@@ -80,15 +80,7 @@ import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinVa
 @SuppressWarnings("restriction")
 public final class ColumnAppenderSettings implements NodeParameters {
 
-    static final class RowKeyModeSettingsModelStringPersistor extends EnumSettingsModelStringPersistor<RowKeyMode> {
-
-        RowKeyModeSettingsModelStringPersistor() {
-            super(ColumnAppender2NodeModel.KEY_SELECTED_ROWID_MODE, RowKeyMode.class);
-        }
-
-    }
-
-    @Persistor(RowKeyModeSettingsModelStringPersistor.class)
+    @Persist(configKey = ColumnAppender2NodeModel.KEY_SELECTED_ROWID_MODE)
     @Widget(title = "RowID mode", description = "Determines the RowIDs of the output table:" + "<ul>"//
         + "<li><b>Identical RowIDs and table lengths</b>: If the RowIDs in both input tables exactly match "
         + "(i.e. the RowID names, their order, and their number have to match) this option can "//

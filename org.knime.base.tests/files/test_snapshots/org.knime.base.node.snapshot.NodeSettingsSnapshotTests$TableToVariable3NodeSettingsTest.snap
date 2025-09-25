@@ -259,18 +259,18 @@
         "scope" : "#/properties/model/properties/defaultValueInteger",
         "options" : {
           "validation" : {
-            "min" : {
-              "errorMessage" : "The value must be at least -2147483648.",
-              "parameters" : {
-                "min" : -2.147483648E9,
-                "isExclusive" : false
-              }
-            },
             "max" : {
               "errorMessage" : "The value must not exceed 2147483647.",
               "parameters" : {
-                "max" : 2.147483647E9,
-                "isExclusive" : false
+                "isExclusive" : false,
+                "max" : 2.147483647E9
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least -2147483648.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : -2.147483648E9
               }
             }
           }
@@ -291,18 +291,18 @@
         "scope" : "#/properties/model/properties/defaultValueLong",
         "options" : {
           "validation" : {
-            "min" : {
-              "errorMessage" : "Value too small to process without risking precision loss (< -9007199254740991).",
-              "parameters" : {
-                "min" : -9.007199254740991E15,
-                "isExclusive" : false
-              }
-            },
             "max" : {
               "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
               "parameters" : {
-                "max" : 9.007199254740991E15,
-                "isExclusive" : false
+                "isExclusive" : false,
+                "max" : 9.007199254740991E15
+              }
+            },
+            "min" : {
+              "errorMessage" : "Value too small to process without risking precision loss (< -9007199254740991).",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : -9.007199254740991E15
               }
             }
           }
@@ -345,7 +345,7 @@
             "configPaths" : [ [ "column_selection", "filter-type" ], [ "column_selection", "included_names" ], [ "column_selection", "excluded_names" ], [ "column_selection", "enforce_option" ], [ "column_selection", "name_pattern", "pattern" ], [ "column_selection", "name_pattern", "type" ], [ "column_selection", "name_pattern", "caseSensitive" ], [ "column_selection", "name_pattern", "excludeMatching" ] ]
           },
           "onMissing" : {
-            "configPaths" : [ [ "missing_value_policy" ] ]
+            "configKey" : "missing_value_policy"
           },
           "defaultValueString" : {
             "configKey" : "default_value_string"

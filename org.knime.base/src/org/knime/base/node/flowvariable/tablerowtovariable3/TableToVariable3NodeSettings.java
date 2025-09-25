@@ -53,7 +53,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.node.parameters.NodeParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.EnumSettingsModelStringPersistor;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
@@ -63,11 +62,11 @@ import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.persistence.legacy.LegacyColumnFilterPersistor;
 import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.EffectPredicate;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
@@ -147,16 +146,7 @@ public final class TableToVariable3NodeSettings implements NodeParameters {
 
     }
 
-    static final class MissingValuePolicySettingsModelStringPersistor
-        extends EnumSettingsModelStringPersistor<MissingValuePolicy> {
-
-        MissingValuePolicySettingsModelStringPersistor() {
-            super(CFG_KEY_ON_MISSING, MissingValuePolicy.class);
-        }
-
-    }
-
-    @Persistor(MissingValuePolicySettingsModelStringPersistor.class)
+    @Persist(configKey = CFG_KEY_ON_MISSING)
     @Widget(title = "If value in cell is missing", description = """
             Behavior in case of missing values in the first row or an input table with no rows.
             <ul>

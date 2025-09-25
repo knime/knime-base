@@ -55,7 +55,6 @@ import java.util.stream.Stream;
 
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
 import org.knime.node.parameters.NodeParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelColumnNameMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
@@ -66,6 +65,7 @@ import org.knime.node.parameters.migration.ConfigMigration;
 import org.knime.node.parameters.migration.Migrate;
 import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.legacy.SettingsModelColumnNameMigration;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 
