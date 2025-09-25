@@ -243,6 +243,9 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
                 if (selectedColumn.getEnumChoice().isPresent()) {
                     return null;
                 }
+                if (context == null) {
+                    return null;
+                }
                 return context.getInTableSpec(0)
                     .flatMap(s -> Optional.ofNullable(s.getColumnSpec(selectedColumn.getStringChoice())))
                     .map(DataColumnSpec::getType).orElse(null);
@@ -301,6 +304,18 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
 
         FilterCriterion() {
             // no-arg constructor for persistence
+        }
+
+        // for construction by K-AI
+        FilterCriterion(final DataColumnSpec colSpec) {
+            m_column = new StringOrEnum<>(colSpec.getName());
+            m_columnType = colSpec.getType();
+            final var validOperatorsIds =
+                OperatorsProvider.getOperators(m_column, null).map(FilterOperatorDefinition::getId).toList();
+            if (!validOperatorsIds.contains(EqualsOperator.ID)) {
+                m_operator = validOperatorsIds.get(0);
+            }
+            m_filterValueParameters = FilterValueParametersProvider.createNewParameters(null, m_column, m_operator);
         }
 
         FilterCriterion(final NodeParametersInput ctx) {
