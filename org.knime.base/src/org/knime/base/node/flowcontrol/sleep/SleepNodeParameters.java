@@ -43,8 +43,11 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------------
  */
-    
+
 package org.knime.base.node.flowcontrol.sleep;
+
+import java.time.LocalTime;
+import java.util.Arrays;
 
 import org.knime.base.node.flowcontrol.sleep.SleepNodeModel.FileEvent;
 import org.knime.base.node.flowcontrol.sleep.SleepNodeModel.WaitMode;
@@ -52,220 +55,209 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileReaderWidget;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.layout.Layout;
-import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
-import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
-import org.knime.node.parameters.widget.number.NumberInputWidget;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 
 /**
  * Node parameters for Wait....
- * 
- * @author GitHub Copilot
- * @author AI Migration Pipeline v1.1
+ *
+ * @author Ali Asghar Marvi, KNIME AG, Zurich, Switzerland
  */
 @LoadDefaultsForAbsentFields
 class SleepNodeParameters implements NodeParameters {
 
-    /**
-     * The wait mode enumeration for the UI
-     */
-    enum WaitModeUI {
-        @Label("Wait for time")
-        WAIT_FOR_TIME,
-        @Label("Wait to time") 
-        WAIT_UNTIL_TIME,
-        @Label("Wait for file")
-        WAIT_FILE
+    // ===== PARAMETER REFERENCES FOR EFFECTS =====
+
+    interface WaitModeRef extends ParameterReference<WaitMode> {
     }
 
-    /**
-     * The file event enumeration for the UI
-     */
-    enum FileEventUI {
-        @Label("Creation")
-        CREATION,
-        @Label("Modification")
-        MODIFICATION,
-        @Label("Deletion")
-        DELETION
+    interface FileEventRef extends ParameterReference<FileEvent> {
     }
 
-    @Section(title = "Wait Configuration")
-    interface WaitConfigSection {
+    // ===== EFFECT PREDICATES =====
+
+    static final class IsWaitForTime implements EffectPredicateProvider {
+        @Override
+        public EffectPredicate init(final PredicateInitializer i) {
+            return i.getEnum(WaitModeRef.class).isOneOf(WaitMode.WAIT_FOR_TIME);
+        }
+    }
+
+    static final class IsWaitToTime implements EffectPredicateProvider {
+        @Override
+        public EffectPredicate init(final PredicateInitializer i) {
+            return i.getEnum(WaitModeRef.class).isOneOf(WaitMode.WAIT_UNTIL_TIME);
+        }
+    }
+
+    static final class IsWaitForFile implements EffectPredicateProvider {
+        @Override
+        public EffectPredicate init(final PredicateInitializer i) {
+            return i.getEnum(WaitModeRef.class).isOneOf(WaitMode.WAIT_FILE);
+        }
     }
 
     // Main wait mode selection
-    @Widget(title = "Wait Mode", 
-            description = "Select how the node should wait: for a duration, until a specific time, or for a file event.")
-    @RadioButtonsWidget
-    @Layout(WaitConfigSection.class)
+    @Widget(title = "Wait Mode",
+        description = "Select how the node should wait: for a duration, until a specific time, or for a file event.")
+    @ValueSwitchWidget
+    @ValueReference(WaitModeRef.class)
     @Persistor(WaitModePersistor.class)
-    @Effect(signals = WaitModeUI.class, operation = EffectType.SHOW)
-    WaitModeUI waitMode = WaitModeUI.WAIT_FOR_TIME;
+    WaitMode m_waitMode = WaitMode.WAIT_FOR_TIME;
 
     // Wait for time duration fields
-    @Widget(title = "Hours", 
-            description = "Number of hours to wait")
-    @NumberInputWidget(min = 0)
-    @Layout(WaitConfigSection.class)
-    @ValueSwitchWidget(WaitModeUI.WAIT_FOR_TIME)
-    @Persist(configKey = SleepNodeModel.CFGKEY_FORHOURS)
-    int forHours = 0;
+    @Widget(title = "", description = "")
+    //create a custom persistor for wait For time
+    @Persistor(WaitForTimePersistor.class)
+    @Effect(predicate = IsWaitForTime.class, type = EffectType.SHOW)
+    LocalTime m_forTime = LocalTime.MIDNIGHT;
 
-    @Widget(title = "Minutes", 
-            description = "Number of minutes to wait (0-59)")
-    @NumberInputWidget(min = 0, max = 59)
-    @Layout(WaitConfigSection.class)
-    @ValueSwitchWidget(WaitModeUI.WAIT_FOR_TIME)
-    @Persist(configKey = SleepNodeModel.CFGKEY_FORMINUTES)
-    int forMinutes = 0;
+    // Wait to time duration fields
+    @Widget(title = "", description = "")
+    //create a custom persistor for wait to Time
+    @Persistor(WaitToTimePersistor.class)
+    @Effect(predicate = IsWaitToTime.class, type = EffectType.SHOW)
+    LocalTime m_toTime = LocalTime.MIDNIGHT;
 
-    @Widget(title = "Seconds", 
-            description = "Number of seconds to wait (0-59)")
-    @NumberInputWidget(min = 0, max = 59)
-    @Layout(WaitConfigSection.class)
-    @ValueSwitchWidget(WaitModeUI.WAIT_FOR_TIME)
-    @Persist(configKey = SleepNodeModel.CFGKEY_FORSECONDS)
-    int forSeconds = 0;
+    //Wait for Time Persistor
+    static class WaitForTimePersistor implements NodeParametersPersistor<LocalTime> {
 
-    // Wait until time of day fields
-    @Widget(title = "Hours", 
-            description = "Hour of day to wait until (0-23)")
-    @NumberInputWidget(min = 0, max = 23)
-    @Layout(WaitConfigSection.class)
-    @ValueSwitchWidget(WaitModeUI.WAIT_UNTIL_TIME)
-    @Persist(configKey = SleepNodeModel.CFGKEY_TOHOURS)
-    int toHours = 0;
+        @Override
+        public void save(final LocalTime time, final NodeSettingsWO settings) {
 
-    @Widget(title = "Minutes", 
-            description = "Minute of hour to wait until (0-59)")
-    @NumberInputWidget(min = 0, max = 59)
-    @Layout(WaitConfigSection.class)
-    @ValueSwitchWidget(WaitModeUI.WAIT_UNTIL_TIME)
-    @Persist(configKey = SleepNodeModel.CFGKEY_TOMINUTES)
-    int toMinutes = 0;
+            settings.addInt(SleepNodeModel.CFGKEY_FORHOURS, time.getHour());
+            settings.addInt(SleepNodeModel.CFGKEY_FORMINUTES, time.getMinute());
+            settings.addInt(SleepNodeModel.CFGKEY_FORSECONDS, time.getSecond());
 
-    @Widget(title = "Seconds", 
-            description = "Second of minute to wait until (0-59)")
-    @NumberInputWidget(min = 0, max = 59)
-    @Layout(WaitConfigSection.class)
-    @ValueSwitchWidget(WaitModeUI.WAIT_UNTIL_TIME)
-    @Persist(configKey = SleepNodeModel.CFGKEY_TOSECONDS)
-    int toSeconds = 0;
+        }
+
+        @Override
+        public LocalTime load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            int hours = settings.getInt(SleepNodeModel.CFGKEY_FORHOURS, 0);
+            int minutes = settings.getInt(SleepNodeModel.CFGKEY_FORMINUTES, 0);
+            int seconds = settings.getInt(SleepNodeModel.CFGKEY_FORSECONDS, 0);
+            return LocalTime.of(hours, minutes, seconds);
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{{SleepNodeModel.CFGKEY_FORHOURS}, {SleepNodeModel.CFGKEY_FORMINUTES},
+                {SleepNodeModel.CFGKEY_FORSECONDS}};
+        }
+    }
+
+    static class WaitToTimePersistor implements NodeParametersPersistor<LocalTime> {
+
+        @Override
+        public void save(final LocalTime time, final NodeSettingsWO settings) {
+            settings.addInt(SleepNodeModel.CFGKEY_TOHOURS, time.getHour());
+            settings.addInt(SleepNodeModel.CFGKEY_TOMINUTES, time.getMinute());
+            settings.addInt(SleepNodeModel.CFGKEY_TOSECONDS, time.getSecond());
+
+        }
+
+        @Override
+        public LocalTime load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            int hours = settings.getInt(SleepNodeModel.CFGKEY_TOHOURS, 0);
+            int minutes = settings.getInt(SleepNodeModel.CFGKEY_TOMINUTES, 0);
+            int seconds = settings.getInt(SleepNodeModel.CFGKEY_TOSECONDS, 0);
+            return LocalTime.of(hours, minutes, seconds);
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{{SleepNodeModel.CFGKEY_TOHOURS}, {SleepNodeModel.CFGKEY_TOMINUTES},
+                {SleepNodeModel.CFGKEY_TOSECONDS}};
+        }
+    }
 
     // Wait for file fields
-    @Widget(title = "File path", 
-            description = "Path to the file to monitor for events. Can be a local file or URL pointing to a local file.")
+    @Widget(title = "File path",
+        description = "Path to the file to monitor for events. Can be a local file or URL pointing to a local file.")
     @TextInputWidget
-    @Layout(WaitConfigSection.class)
-    @ValueSwitchWidget(WaitModeUI.WAIT_FILE)
     @Persist(configKey = SleepNodeModel.CFGKEY_FILEPATH)
+    @LocalFileReaderWidget()
+    @Effect(predicate = IsWaitForFile.class, type = EffectType.SHOW)
     String filePath = "";
 
-    @Widget(title = "File event", 
-            description = "Type of file event to wait for.")
+    @Widget(title = "File event", description = "Type of file event to wait for.")
     @RadioButtonsWidget
-    @Layout(WaitConfigSection.class)
-    @ValueSwitchWidget(WaitModeUI.WAIT_FILE)
     @Persistor(FileEventPersistor.class)
-    FileEventUI fileEvent = FileEventUI.MODIFICATION;
+    @Effect(predicate = IsWaitForFile.class, type = EffectType.SHOW)
+    FileEvent fileEvent = FileEvent.MODIFICATION;
 
     /**
      * Custom persistor for WaitMode to handle conversion between UI enum and model enum
      */
-    static class WaitModePersistor implements NodeParametersPersistor {
-        
+    static class WaitModePersistor implements NodeParametersPersistor<WaitMode> {
+
         @Override
-        public void save(Object obj, NodeSettingsWO settings) {
-            if (obj instanceof WaitModeUI uiMode) {
-                WaitMode modelMode = switch (uiMode) {
-                    case WAIT_FOR_TIME -> WaitMode.WAIT_FOR_TIME;
-                    case WAIT_UNTIL_TIME -> WaitMode.WAIT_UNTIL_TIME;
-                    case WAIT_FILE -> WaitMode.WAIT_FILE;
-                };
-                settings.addInt(SleepNodeModel.CFGKEY_WAITOPTION, modelMode.ordinal());
-            }
+        public void save(final WaitMode obj, final NodeSettingsWO settings) {
+
+            settings.addInt(SleepNodeModel.CFGKEY_WAITOPTION, obj.ordinal());
         }
 
         @Override
-        public WaitModeUI load(NodeSettingsRO settings) throws InvalidSettingsException {
-            int waitOption = settings.getInt(SleepNodeModel.CFGKEY_WAITOPTION, WaitMode.WAIT_FOR_TIME.ordinal());
-            WaitMode[] modes = WaitMode.values();
-            if (waitOption >= 0 && waitOption < modes.length) {
-                WaitMode modelMode = modes[waitOption];
-                return switch (modelMode) {
-                    case WAIT_FOR_TIME -> WaitModeUI.WAIT_FOR_TIME;
-                    case WAIT_UNTIL_TIME -> WaitModeUI.WAIT_UNTIL_TIME;
-                    case WAIT_FILE -> WaitModeUI.WAIT_FILE;
-                };
-            }
-            return WaitModeUI.WAIT_FOR_TIME;
+        public WaitMode load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return SleepNodeModel.getWaitMode(settings);
         }
 
         @Override
-        public String[] getConfigPaths() {
-            return new String[]{SleepNodeModel.CFGKEY_WAITOPTION};
+        public String[][] getConfigPaths() {
+            return new String[][]{{SleepNodeModel.CFGKEY_WAITOPTION}};
         }
     }
 
     /**
      * Custom persistor for FileEvent to handle conversion between UI enum and model enum
      */
-    static class FileEventPersistor implements NodeParametersPersistor {
-        
+    static class FileEventPersistor implements NodeParametersPersistor<FileEvent> {
+
         @Override
-        public void save(Object obj, NodeSettingsWO settings) {
-            if (obj instanceof FileEventUI uiEvent) {
-                FileEvent modelEvent = switch (uiEvent) {
-                    case CREATION -> FileEvent.CREATION;
-                    case MODIFICATION -> FileEvent.MODIFICATION;
-                    case DELETION -> FileEvent.DELETION;
-                };
-                // The model saves this as a string description, not ordinal
-                SettingsModelString sms = new SettingsModelString(SleepNodeModel.CFGKEY_FILESTATUS, 
-                                                                  modelEvent.description());
-                sms.setStringValue(modelEvent.description());
-                sms.saveSettingsTo(settings);
-            }
+        public void save(final FileEvent obj, final NodeSettingsWO settings) {
+
+            // reusing the SettingsModelString from the node model instead of SettingsModelStringPersistor.
+            // This is because the enum needs to persist the description,
+            // as default value from the SleepNodeModel.FileEvent class.
+            // SettingsModelStringPersistor does not provides the option to
+            // explicity accept a custom value in its corresponding save method.
+            final var sms =
+                new SettingsModelString(SleepNodeModel.CFGKEY_FILESTATUS, FileEvent.MODIFICATION.description());
+            sms.setStringValue(obj == null ? null : obj.description());
+            sms.saveSettingsTo(settings);
+
         }
 
         @Override
-        public FileEventUI load(NodeSettingsRO settings) throws InvalidSettingsException {
-            SettingsModelString sms = new SettingsModelString(SleepNodeModel.CFGKEY_FILESTATUS, 
-                                                              FileEvent.MODIFICATION.description());
-            try {
-                sms.loadSettingsFrom(settings);
-                String eventDesc = sms.getStringValue();
-                
-                for (FileEvent event : FileEvent.values()) {
-                    if (event.description().equals(eventDesc)) {
-                        return switch (event) {
-                            case CREATION -> FileEventUI.CREATION;
-                            case MODIFICATION -> FileEventUI.MODIFICATION;
-                            case DELETION -> FileEventUI.DELETION;
-                        };
-                    }
-                }
-            } catch (Exception e) {
-                // Fallback to default
-            }
-            return FileEventUI.MODIFICATION;
+        public FileEvent load(final NodeSettingsRO settings) throws InvalidSettingsException {
+
+            //following up from above, had to replicate the load method from Model class.
+            final var sms = new SettingsModelString(SleepNodeModel.CFGKEY_FILESTATUS, null);
+            sms.loadSettingsFrom(settings);
+            final var fileEventDesc = sms.getStringValue();
+            return Arrays.stream(FileEvent.values()) //
+                .filter(evt -> evt.description().equals(fileEventDesc)) //
+                .findAny() //
+                .orElseThrow(() -> new InvalidSettingsException("Unknown file event: '" + fileEventDesc + "'"));
         }
 
         @Override
-        public String[] getConfigPaths() {
-            return new String[]{SleepNodeModel.CFGKEY_FILESTATUS};
+        public String[][] getConfigPaths() {
+            return new String[][]{{SleepNodeModel.CFGKEY_FILESTATUS}};
         }
     }
 }
