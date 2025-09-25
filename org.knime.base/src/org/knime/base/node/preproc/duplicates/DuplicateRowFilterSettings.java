@@ -166,12 +166,22 @@ final class DuplicateRowFilterSettings {
     private final SettingsModelString m_uniqueStatusColumnName =
         new SettingsModelString(UNIQUE_FLAG_COLUMN_NAME_KEY, "Duplicate Status");
 
+    /**
+     * Value used for unique status columnn name for nodes saved before this was configurable.
+     */
+    static final String UNIQUE_COLUMN_NAME_LEGACY_VALUE = "duplicate-type-classifier";
+
     /** Settings model storing the add row id flag. */
     private final SettingsModelBoolean m_addRowLabel = new SettingsModelBoolean(ADD_ROW_ID_FLAG_KEY, false);
 
     /** Settings model storing the column name of the chosen row ids. */
     private final SettingsModelString m_chosenRowIdsColumnName =
         new SettingsModelString(ROW_ID_FLAG_COLUMN_NAME_KEY, "Duplicate Chosen");
+
+    /**
+     * Value used for row id columnn name for nodes saved before this was configurable.
+     */
+    static final String ROW_ID_COLUMN_NAME_LEGACY_VALUE = "duplicate-row-identifier";
 
     /** Settings model storing the reference column name. */
     private final SettingsModelString m_referenceCol = new SettingsModelString(REFERENCE_COL_KEY, null);
@@ -304,14 +314,14 @@ final class DuplicateRowFilterSettings {
             m_uniqueStatusColumnName.loadSettingsFrom(settings);
 
         } else {
-            m_uniqueStatusColumnName.setStringValue("duplicate-type-classifier");
+            m_uniqueStatusColumnName.setStringValue(UNIQUE_COLUMN_NAME_LEGACY_VALUE);
         }
         m_addRowLabel.loadSettingsFrom(settings);
         if (settings.containsKey(ROW_ID_FLAG_COLUMN_NAME_KEY)) {
             // Added in 5.2, defaults to old column name
             m_chosenRowIdsColumnName.loadSettingsFrom(settings);
         } else {
-            m_chosenRowIdsColumnName.setStringValue("duplicate-row-identifier");
+            m_chosenRowIdsColumnName.setStringValue(ROW_ID_COLUMN_NAME_LEGACY_VALUE);
         }
         m_inMemory.loadSettingsFrom(settings);
         loadSettingsForDialog(settings);

@@ -60,7 +60,9 @@ import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Before;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.migration.DefaultProvider;
 import org.knime.node.parameters.migration.Migrate;
+import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
@@ -79,11 +81,10 @@ import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
-import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.ColumnNameValidation;
 
 /**
- * {@link NodeParameters} implementation for the Duplicate Row Filter to auto-generate a Web-UI based dialog. Note
- * that this class is only used for the dialog generation and not by the node model.
+ * {@link NodeParameters} implementation for the Duplicate Row Filter to auto-generate a Web-UI based dialog. Note that
+ * this class is only used for the dialog generation and not by the node model.
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
  */
@@ -171,7 +172,7 @@ public final class DuplicateRowFilterDialogSettings implements NodeParameters {
     boolean m_addUniqueLabel = true;
 
     @Persist(configKey = DuplicateRowFilterSettings.UNIQUE_FLAG_COLUMN_NAME_KEY)
-    @Migrate(loadDefaultIfAbsent = true)
+    @Migration(LoadLegacyUniqueStatusColumnName.class)
     @Widget(title = "Column name of row status",
         description = "Choose the column name to which the row status "
             + "('unique', 'chosen', 'duplicate') should be outputted.")
@@ -179,6 +180,14 @@ public final class DuplicateRowFilterDialogSettings implements NodeParameters {
     @Layout(DuplicateHandlingSection.class)
     @TextInputWidget(patternValidation = ColumnNameValidationUtils.ColumnNameValidation.class)
     String m_uniqueStatusColumnName = "Duplicate Status";
+
+    static final class LoadLegacyUniqueStatusColumnName implements DefaultProvider<String> {
+
+        @Override
+        public String getDefault() {
+            return DuplicateRowFilterSettings.UNIQUE_COLUMN_NAME_LEGACY_VALUE;
+        }
+    }
 
     @Persist(configKey = DuplicateRowFilterSettings.ADD_ROW_ID_FLAG_KEY)
     @Widget(title = "Add column identifying the RowID of the chosen row for each duplicate row",
@@ -190,7 +199,7 @@ public final class DuplicateRowFilterDialogSettings implements NodeParameters {
     boolean m_addRowIdLabel;
 
     @Persist(configKey = DuplicateRowFilterSettings.ROW_ID_FLAG_COLUMN_NAME_KEY)
-    @Migrate(loadDefaultIfAbsent = true)
+    @Migration(LoadLegacyChosenRowIdsColumnName.class)
     @Widget(title = "Column name of chosen RowIDs",
         description = "Choose the column name to which the RowID "
             + "of the chosen row for each duplicate row should be outputted.")
@@ -198,6 +207,14 @@ public final class DuplicateRowFilterDialogSettings implements NodeParameters {
     @Layout(DuplicateHandlingSection.class)
     @TextInputWidget(patternValidation = ColumnNameValidationUtils.ColumnNameValidation.class)
     String m_chosenRowIdsColumnName = "Duplicate Chosen";
+
+    static final class LoadLegacyChosenRowIdsColumnName implements DefaultProvider<String> {
+
+        @Override
+        public String getDefault() {
+            return DuplicateRowFilterSettings.ROW_ID_COLUMN_NAME_LEGACY_VALUE;
+        }
+    }
 
     static final String DO_NOT_ALLOW_EMPTY_BLANK_PADDED_COLUMN_NAME_CFG_KEY = "doNotAllowEmptyBlankOrPaddedColumnName";
 
@@ -296,7 +313,8 @@ public final class DuplicateRowFilterDialogSettings implements NodeParameters {
             @Label("Keep duplicate rows")
             KEEP;
 
-        static EffectPredicateProvider isKeep(final Class<? extends ParameterReference<DuplicateRowHandling>> reference) {
+        static EffectPredicateProvider
+            isKeep(final Class<? extends ParameterReference<DuplicateRowHandling>> reference) {
             return i -> i.getEnum(reference).isOneOf(KEEP);
         }
     }
@@ -323,7 +341,8 @@ public final class DuplicateRowFilterDialogSettings implements NodeParameters {
             @Label("Maximum of")
             MAXIMUM;
 
-        static EffectPredicateProvider isFirstOrLast(final Class<? extends ParameterReference<RowSelection>> reference) {
+        static EffectPredicateProvider
+            isFirstOrLast(final Class<? extends ParameterReference<RowSelection>> reference) {
             return i -> i.getEnum(reference).isOneOf(FIRST, LAST);
         }
 

@@ -358,7 +358,9 @@
           "removeInputColumn" : { },
           "delimiter" : { },
           "useEscapeCharacter" : { },
-          "quotePattern" : { },
+          "quotePattern" : {
+            "configPaths" : [ [ "quotePattern" ] ]
+          },
           "removeQuotes" : { },
           "trim" : {
             "configKey" : "removeWhitespaces"
