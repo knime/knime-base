@@ -47,6 +47,7 @@ package org.knime.base.node.preproc.columntrans2;
 
 import org.knime.base.node.preproc.pmml.columntrans2.One2ManyCol2PMMLNodeModel;
 import org.knime.core.data.NominalValue;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.TypedStringFilterWidgetInternal;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.persistence.Persist;
@@ -84,6 +85,7 @@ public final class One2ManyCol2NodeParameters implements NodeParameters {
             you could use the Domain Calculator node and connect its output to this node.
             """)
     @ChoicesProvider(NominalColumnsProvider.class)
+    @TypedStringFilterWidgetInternal(hideTypeFilter = true)
     @TwinlistWidget(excludedLabel = "Available columns", includedLabel = "Columns to transform")
     @Persistor(ColumnsToTransform.class)
     ColumnFilter m_columnsToTransform = new ColumnFilter();

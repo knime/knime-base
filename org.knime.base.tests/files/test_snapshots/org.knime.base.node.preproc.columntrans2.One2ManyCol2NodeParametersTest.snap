@@ -153,6 +153,7 @@
       "scope" : "#/properties/model/properties/columnsToTransform",
       "options" : {
         "format" : "typedStringFilter",
+        "hideTypeFilter" : true,
         "unknownValuesText" : "Any unknown column",
         "emptyStateLabel" : "No columns in this list.",
         "includedLabel" : "Columns to transform",
