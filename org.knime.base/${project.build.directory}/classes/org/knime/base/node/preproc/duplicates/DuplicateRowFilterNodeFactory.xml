@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode type="Manipulator" icon="./duplicate_row_filter.png" xmlns="http://knime.org/node/v4.1" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+	<name>Duplicate Row Filter</name>
+	<shortDescription>
+		Removes or marks duplicate rows.
+	</shortDescription>
+	<fullDescription>
+		<intro>
+		This node identifies duplicate rows. Duplicate rows have
+        identical values in certain columns. The node chooses a single 
+        row for each set of duplicates ("chosen"). You can either remove all duplicate
+        rows from the input table and keep only unique and chosen rows or
+        mark the rows with additional information about their duplication status.
+		</intro>
+	<tab name="Duplicate detection">
+		<option name="Choose columns for duplicates detection">
+            Allows the selection of columns identifying the duplicates. Columns
+            not selected are handled under "Row selection" in the "Advanced" tab.
+		</option>
+	</tab>
+	<tab name="Duplicate handling">
+		<option name="Duplicate rows">
+        	<ul>
+        		<li><b>Remove duplicate rows:</b> Removes duplicate rows and keeps only unique and chosen rows.</li>
+        		<li><b>Keep duplicate rows:</b> Appends columns with additional information to the input table.</li>
+        	</ul>
+		</option>
+		<option name="Row chosen in case of duplicate">
+			<ul>
+            	<li><b>First:</b> The first row in sequence is chosen.</li>
+            	<li><b>Last:</b> The last row in sequence is chosen.</li>
+            	<li><b>Minimum of:</b> The first row with the minimum value in the selected column is chosen. 
+            		In case of strings, the row will be chosen following lexicographical order.
+            		Missing values are sorted after the maximum value.</li>
+            	<li><b>Maximum of:</b> The first row with the maximum value in the selected column is chosen. 
+            		In case of strings, the row will be chosen following lexicographical order. 
+            		Missing values are sorted before the minimum value.</li>
+           	</ul>
+		</option>
+	</tab>
+    <tab name="Performance">
+		<option name="Compute in memory">
+            Advanced setting that, if selected, computation is sped up by utilizing working memory (RAM). 
+            The amount of required memory is higher than for a regular computation and also depends on the amount 
+            of input data.
+		</option>
+		<option name="Retain row order">
+            Advanced setting that, if selected, the rows in the output table are guaranteed to have the same 
+            order as in the input table.
+		</option>
+		<option name="Update domains of all columns">
+            Advanced setting to enable recomputation of the domains of all columns in the output tables such that the 
+            domains' bounds exactly match the bounds of the data in the output tables.
+		</option>
+    </tab>
+	</fullDescription>
+	<ports>
+		<inPort name="Input Data" index="0">
+			The data table containing potential duplicates.
+		</inPort>
+		<outPort name="Filtered/Labeled Data" index="0">
+			Either the input data without duplicates or the input data with additional
+			columns identifying duplicates.
+		</outPort>
+	</ports>
+	<keywords>
+		<keyword>Unique</keyword>
+	</keywords>
+</knimeNode>

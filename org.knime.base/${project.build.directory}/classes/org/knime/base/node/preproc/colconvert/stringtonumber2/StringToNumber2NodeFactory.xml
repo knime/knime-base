@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode icon="./string_number.png" type="Manipulator" xmlns="http://knime.org/node/v4.1" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+	<name>String to Number</name>
+	
+	<shortDescription>
+	    Converts strings in a column to numbers.
+	</shortDescription>
+	
+	<fullDescription>
+		<intro>
+			Converts strings in a column (or a set of columns) to numbers.
+			If the node fails to parse a string, it will generate a missing cell and append
+	    	a warning message to the KNIME Console with detailed information.
+		</intro>
+		<option name="Column Selection">
+		Move the columns of interest into the
+		&quot;Include&quot; list</option>
+		  <option name="Type">Choose the DataType that your string should
+		  be converted to.</option>
+    	<option name="Decimal Separator">Choose a decimal separator, 
+		which is used to mark the boundary between the integral and the 
+		fractional parts of the decimal string.</option>
+		<option name="Thousands Separator">Choose a thousands separator 
+		used in the decimal string to group together three digits.</option>
+		<option name="Accept type suffix, e.g. 'd', 'D', 'f', 'F'">When checked, the type suffix will be
+		accepted, otherwise it fails to parse input like <tt>1d</tt>. These suffixes are typically used
+        in java-style programs to represent floating point numbers ('f' for float and 'd' for double). Default is 
+        not checked. </option>
+		
+		
+	</fullDescription>
+	
+	<ports>
+		<inPort index="0" name="Input">Arbitrary input data.</inPort>
+		<outPort index="0" name="Transformed input">Input data with new DoubleTypes.</outPort>
+	</ports>
+	<keywords>
+		<keyword>Convert</keyword>		
+		<keyword>Parse</keyword>
+	</keywords>
+</knimeNode>

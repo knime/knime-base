@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode icon="loopendvariable.png" type="LoopEnd" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
+    <name>Variable Loop End</name>
+    <shortDescription>Node collecting variables created in a loop. 
+    </shortDescription>
+    <fullDescription>
+        <intro>
+			Node collecting variables created in a loop. This node closes a 
+			loop but does not aggregate data created in the loop but only 
+			variables. It can be used to close loops where all the magic 
+			happens in the loop itself and no aggregated output is needed. One 
+			instance could be a loop over a list of files, whereby each file 
+			is processed in one loop iteration (including writing one output 
+			file for each input). 
+		</intro>
+		<option name="Variable selection">
+			The variables that will be collected and put into the output table.
+		</option>
+		<option name="Propagate modified loop variables">
+			If checked, variables whose values are modified within the loop are exported by this node. These variables
+			must be declared outside the loop, i.e. injected into the loop from a side-branch or be available upstream
+			of the corresponding loop start node. For the latter, any modification of a variable is passed back to the 
+			start node in subsequent iterations (e.g. moving sum calculation). Note that variables defined by the loop 
+			start node itself are excluded as these usually represent loop controls (e.g. <i>"currentIteration"</i>).
+		</option>
+		<link href="https://docs.knime.com/latest/analytics_platform_flow_control_guide/index.html#flow-variables">
+			KNIME Flow Control Guide: Flow Variables
+		</link>
+		<link href="https://docs.knime.com/latest/analytics_platform_flow_control_guide/index.html#loops">
+			KNIME Flow Control Guide: Section Loops
+		</link>
+	</fullDescription>
+		
+	<ports>
+        <inPort name="Flow variables" index="0">
+            Flow variables to collect.
+        </inPort>
+        <outPort name="Data table of flow variables" index="0">
+        	Data table with during the loop collected variables.
+        </outPort>
+	</ports>
+</knimeNode>

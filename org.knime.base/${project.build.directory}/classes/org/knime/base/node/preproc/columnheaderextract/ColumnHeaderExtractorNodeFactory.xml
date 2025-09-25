@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode icon="./extract_col_header.png" type="Manipulator"
+	xmlns="http://knime.org/node/v4.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+    <name>Column Name Extractor</name>
+    
+    <shortDescription>
+        Creates a new table with a single row or column containing the column names of the input table.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+            Creates a new table with a single row or column containing the column names.
+            The node has two output tables: The first table contains the column headers (all columns are of type string),
+            either as a single row containing all headers or as one row per header. The second table contains the
+            input data, whereby the column names are changed to a default pattern (given that the corresponding option
+            is set.)
+        </intro>
+        <option name="Generate new column names">
+        If selected, the column names of both output tables will be replaced with automatically generated names by
+        combining the prefix provided below with the corresponding column number (e.g. "Column 1", "Column 2", and so on).
+        Otherwise, the original column names will be used.
+        </option>
+        <option name="Prefix">Prefix to use when generating new column names</option>
+        <option name="Output format for column names">
+        	The format in which the first output table provides the extracted column names:
+        	<ul>
+        		<li><b>Row</b>: The column names are output as a single row with a column per name.</li>
+        		<li><b>Column</b>: The column names are output as a single column with a row per name.</li>
+        	</ul>
+        </option>
+        <option name="Restrain column types">
+        	Select the type of the columns to extract the names from:
+        	<ul>
+        		<li><b>All</b>: All columns are processed.</li>
+        		<li><b>String</b>: Only string-compatible columns are processed, this includes e.g. XML columns.</li>
+        		<li><b>Integer</b>: Only integer-compatible columns are processed.</li>
+        		<li><b>Double</b>: Only double-compatible columns are processed. This includes integer and long columns.</li>
+        	</ul>
+        </option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input data">Original input data</inPort>
+        <outPort index="0" name="Column Header Table">Table with single row or column containing original column
+            names</outPort>
+        <outPort index="1" name="Input table with replaced column header">Input table with either original or changed
+            column names</outPort>
+    </ports>
+    <keywords>
+    	<keyword>Column header to row</keyword>
+    	<keyword>Column names</keyword>
+    </keywords>
+</knimeNode>

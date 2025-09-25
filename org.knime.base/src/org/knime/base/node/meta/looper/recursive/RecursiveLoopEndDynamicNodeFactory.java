@@ -53,13 +53,33 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.port.PortType;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.node.NodeFactory.NodeType;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.core.node.NodeDescription;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import java.util.Map;
+import org.knime.node.impl.description.PortDescription;
+import java.util.List;
+import org.knime.node.impl.description.ExternalResource;
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+import static org.knime.node.impl.description.PortDescription.dynamicPort;
 
 /**
  * <code>NodeFactory</code> for the Recursive Loop End Node (arbitrary ports).
  *
  * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
+ * @author Benjamin Moser, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.1
  */
-public class RecursiveLoopEndDynamicNodeFactory extends ConfigurableNodeFactory<RecursiveLoopEndDynamicNodeModel> {
+@SuppressWarnings("restriction")
+public class RecursiveLoopEndDynamicNodeFactory extends ConfigurableNodeFactory<RecursiveLoopEndDynamicNodeModel> implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     @Override
     protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
@@ -75,12 +95,6 @@ public class RecursiveLoopEndDynamicNodeFactory extends ConfigurableNodeFactory<
         return new RecursiveLoopEndDynamicNodeModel(config.getInputPorts(), config.getOutputPorts());
     }
 
-    @Override
-    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        final var config = creationConfig.getPortConfig().orElseThrow();
-        return new RecursiveLoopEndDynamicNodeDialog(config.getInputPorts().length - config.getOutputPorts().length,
-            config.getOutputPorts().length);
-    }
 
     @Override
     protected int getNrNodeViews() {
@@ -96,5 +110,90 @@ public class RecursiveLoopEndDynamicNodeFactory extends ConfigurableNodeFactory<
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+    private static final String NODE_NAME = "Recursive Loop End";
+    private static final String NODE_ICON = "./delegateloopend.png";
+    private static final String SHORT_DESCRIPTION = """
+            The loop end node for a recursive loop. This type of loop passes data from the Recursive Loop End node
+                to the Recursive Loop Start node.
+            """;
+    private static final String FULL_DESCRIPTION = """
+            The Recursive Loop node pair enables the passing of data tables from the Recursive Loop End back to the
+                Recursive Loop Start. The Recursive Loop Start requires initialized tables. These tables are output by
+                the Recursive Loop Start in the first iteration of the loop. The tables received by the corresponding
+                Recursive Loop End are passed back to the Recursive Loop Start node. Starting with the second iteration,
+                the Recursive Loop Start node outputs the data as received by the Recursive Loop End. You can add more
+                recursion input tables and collector input and output tables using the “…” menu. The number of recursion
+                ports must be the same as the number of recursion ports of the corresponding Recursive Loop Start node.
+                Recursion and collector ports are independent of each other. The collection ports are always listed
+                first. The loop runs until one of the three stopping criteria is met: Maximum number of iterations: to
+                ensure no endless loop is created, the loop will end after the set number of iterations. Minimal number
+                of rows: to ensure enough rows are present for processing, the loop stops if one of it's recursion input
+                tables contains less rows than the set minimum. This minimum can be set for each recursion input table
+                individually. End loop with variable: the loop ends if the option is enabled and the value of the
+                selected variable equals “true”. The data passed to the collector ports is collected and passed to the n
+                respective output ports. The data at the recursion ports (all ports after input port n) is returned to
+                the Recursive Loop Start node.
+            """;
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Collecting data", """
+                Data to be collected for the output.
+                """),
+            dynamicPort("Collector", "Collecting data", """
+                Data to be collected for the output.
+                """),
+            fixedPort("Recursion data", """
+                Data to be passed back to loop start.
+                """),
+            dynamicPort("Recursion", "Recursion data", """
+                Data to be passed back to loop start.
+                """)
+    );
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Collected data", """
+                The rows collected from the corresponding collector port.
+                """),
+            dynamicPort("Collector", "Collected data", """
+                The rows collected from the corresponding collector port.
+                """)
+    );
+    private static final List<ExternalResource> LINKS = List.of(
+         new ExternalResource(
+            "https://docs.knime.com/latest/analytics_platform_flow_control_guide/index.html#loops", """
+                KNIME Flow Control Guide: Section Loops
+                """)
+    );
+
+    @Override
+    public NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, RecursiveLoopEndDynamicNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(
+            NODE_NAME,
+            NODE_ICON,
+            INPUT_PORTS,
+            OUTPUT_PORTS,
+            SHORT_DESCRIPTION,
+            FULL_DESCRIPTION,
+            LINKS,
+            RecursiveLoopEndDynamicNodeParameters.class,
+            null,
+            NodeType.LoopEnd,
+            List.of(),
+            null
+        );
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, RecursiveLoopEndDynamicNodeParameters.class));
     }
 }

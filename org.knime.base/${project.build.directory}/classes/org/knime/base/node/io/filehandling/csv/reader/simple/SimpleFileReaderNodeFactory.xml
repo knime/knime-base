@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./simplefilereader.png"
+	type="Source"
+	deprecated="true"
+	xmlns="http://knime.org/node/v4.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+	<name>Simple File Reader</name>
+	<shortDescription>
+		Reads simple files of various formats.
+	</shortDescription>
+	<fullDescription>
+		<intro>
+			<p>
+			<i>This file handling node has been replaced by the 
+			</i><a href="https://hub.knime.com/knime/extensions/org.knime.features.base/latest/org.knime.base.node.io.filehandling.csv.reader.FileReaderNodeFactory">
+			<i>File Reader</i></a><i> node. 
+			For further information about the new file handling framework see the </i>
+			<a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a>  
+			</p>
+			<p>
+			This node reads local and remote files. It can be configured to read the most common formats. 
+			If the file has a more complex structure, use the <i>File Reader</i> node which has more configuration
+			options.<br />
+			<br />
+			When you open the node's configuration dialog and provide a filename, 
+			it tries to guess
+			the column specs by analyzing the content of the file. By default, only the first 50 rows are analyzed. 
+			You can change this setting in the 'Limit Rows' tab. The file analysis can also be cut short by clicking
+			the &quot;Stop file scanning&quot; button, which shows up if the analysis takes longer. If the file is not 
+			analyzed completely, it could happen that
+			the preview looks fine, but the execution of the node
+			fails when it reads the lines it didn't analyze.
+			Check the results of the analyzed file in the preview table and increase the number of rows scanned
+			for guessing the spec if necessary.<br />
+	        </p>
+		</intro>
+		<tab name="Settings">
+			<option name="Input location">
+				Enter a valid file name or URL. You can also choose a previously read file from the drop-down list, 
+				or select a file from the "Browse..." dialog.
+			</option>	
+			<option name="Connection timeout [s]">Timeout in seconds for connections when reading remote files.
+			</option>
+			<option name="Autodetect format">
+	          By pressing this button, the "Column delimiter", "Row delimiter", "Quote char" and "Quote escape char" get 
+	          automatically detected, though it is not guaranteed that the correct values are being detected.<br/>
+	          Only a single file is considered for auto-detection, i.e., if "Files in folder" is selected only the first
+	          file is being used.
+	          The auto-detection by default is based on the first 1024 * 1024 characters of the selected file, but
+	          can be adjusted by clicking the settings button next to this option.
+	          The format can only be detected if the read number of characters comprises one full data row and the 
+	          auto-detection will take at most 20 data rows into account. It is assumed that data rows are separated by
+	          line breaks. Note that the "Skip first lines" option as well as the specified  "Comment char" will be used
+	          when guessing the file's format.
+			</option>
+			<option name="Column delimiter">
+			  The character string delimiting columns. Use '\t' for tab character. Can be detected automatically.
+			</option>
+			<option name="Row delimiter">
+				The character string delimiting rows. Can get detected automatically.
+				<ul>
+					<li><i>Line break:</i> Uses the line break character as row delimiter. This option is 
+						platform-agnostic.
+					</li>
+					<li><i>Custom:</i> Uses the provided string as row delimiter.</li>
+				</ul>
+			</option>
+			<option name="Quote char">
+	          The quote character. Can be detected automatically. 
+			</option>			
+			<option name="Quote escape char">
+	          The character is used for escaping quotes inside an already quoted value. Can be detected automatically.
+			</option>
+			<option name="Comment char">
+	          A character indicating line comments.
+			</option>
+			<option name="Has column header">
+	          Select this box if the first row contains column name headers.  
+			</option>
+			<option name="Has row ID">
+	          Select this box if the first column contains row IDs 
+	          (no duplicates allowed).  
+			</option>
+			<option name="Support short data rows">
+	          Select this box if some rows may be shorter than others (filled with missing values).
+			</option>
+		</tab>
+		<tab name="Transformation">
+			<option name="Transformations">
+				This tab displays every column as a row in a table that allows modifying the structure of the output table.
+				It supports reordering, filtering and renaming columns. It is also possible to change the type of the columns.
+				Reordering is done via drag-and-drop. Just drag a column to the position it should have in the output table.
+				Whether and where to add unknown columns during execution is specified via the special row &lt;any unknown new column&gt;.
+				Note that the positions of columns are reset in the dialog if a new file or folder is selected.
+			</option>
+			<option name="Reset order">Resets the order of columns to the order in the input file/folder.</option>
+			<option name="Reset filter">Clicking this button will reset the filters i.e. all columns will be included.</option>
+			<option name="Reset names">Resets the names to the names that are read from file or created if the file/folder doesn't contain column names.</option>
+			<option name="Reset types">Resets the output types to the default types guessed from the input file/folder.</option>
+			<option name="Reset all">Resets all transformations.</option>
+			<option name="Enforce types">
+				Controls how columns whose type changes are dealt with. If selected, we attempt to map to the KNIME type you
+				configured and fail if that's not possible.
+				If unselected, the KNIME type corresponding to the new type is used.
+			</option>
+		</tab>
+		<tab name="Advanced Settings">
+			<option name="Limit memory per column">
+				If selected the memory per column is restricted to 1MB in order to prevent memory exhaustion. Uncheck
+				this option to disable these memory restrictions.
+			</option>
+			<option name="Maximum number of columns">
+				Sets the number of allowed columns (default 8192 columns) to
+				prevent memory exhaustion. The node will fail if the number of columns
+				exceeds the set limit.
+			</option>
+			<option name="Quote options">
+				<ul>
+					<li>Remove quotes and trim whitespaces: Quotes will be removed from the value followed by trimming
+					any leading/trailing whitespaces.</li>
+					<li>Keep quotes: The quotes of a value will be kept. Note: No trimming will be done inside the quotes.</li>
+				</ul>
+			</option>
+			<option name="Replace empty quoted strings with missing values">
+				Select this box if you want <b>quoted</b> empty strings to be replaced by missing value cell.
+			</option>
+			<option name="Table specification">
+			  If enabled, only the specified number of input <i>rows</i> are used to analyze the file (i.e to determine
+	          the column types). This option is recommended for long files where the first <i>n</i> rows are 
+	          representative for the whole file. The "Skip first data rows"
+	          option has no effect on the scanning. Note also, that this option and the "Limit data rows" option are 
+	          independent from each other, i.e., if the value in "Limit data rows" is smaller than the value specified
+	          here, we will still read as many rows as specified here.
+			</option>
+			<option name="Support changing file schemas">
+			  If selected, the reader will compute the table specification on execution.
+			  This behavior is required if the content of the configured file/folder changes between executions, 
+			  i.e., columns are added/removed to/from file(s) or their types change.
+			  NOTE: When checked, the node will not output a table specification during configure and won't apply transformations
+			  (therefore the transformation tab is disabled).
+			</option>
+			<option name="Number format">
+			  Allows to specify the thousands and decimal separator character for parsing numbers.
+			  The thousands separator is used for integer, long and double parsing, while the decimal separator is only used for the parsing of double values.
+			  Note that the two must differ.
+			  While it is possible to leave the thousands separator unspecified, you must always provide a decimal separator.
+			</option>
+		</tab>
+	    <tab name="Limit Rows">
+			<option name="Skip first lines">
+	          If enabled, the specified number of lines are skipped in the input file before the parsing starts. 
+	          Use this option to skip lines that do not fit in the table structure (e.g. mult-line comments) 
+			</option>
+			<option name="Skip first data rows">
+	          If enabled, the specified number of valid data rows are skipped. This has no effect on which row will be 
+	          chosen as column header.
+			</option>
+			<option name="Limit data rows">
+	          If enabled, only the specified number of data rows are read. The column header row (if selected) is 
+	          not taken into account.
+			</option>
+        </tab>
+        <tab name="Simple File Reader Encoding">
+	        <option name="Encoding">
+	            To read a file that contains characters in a different encoding, you can select the character set in this tab (UTF-8, 
+	            UTF-16, etc.), or specify any other encoding supported by your Java VM. The default value uses the default
+	            encoding of the Java VM, which may depend on the locale or the Java property &quot;file.encoding&quot;
+	        </option>
+        </tab>	
+	</fullDescription>
+	<ports>
+		<outPort index="0" name="File Table">
+		  File being read with number and types of columns guessed automatically.
+		</outPort>
+	</ports>
+</knimeNode>   
+        
+        
+        
+        

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode type="Learner" icon="./kmeans.png"
+xmlns="http://knime.org/node/v4.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+	<name>k-Means</name>
+	<shortDescription>Creates a crisp center based clustering.</shortDescription>
+	<fullDescription>
+		<intro>
+			This node outputs the cluster centers for a predefined number of
+			clusters (no dynamic number of clusters).
+			K-means performs a crisp
+			clustering that assigns a data
+			vector to exactly one cluster. The
+			algorithm terminates when the
+			cluster assignments do not change
+			anymore.
+			<br />
+			The clustering algorithm uses the Euclidean distance on the selected
+			attributes. The data is not normalized by the node (if required,
+			you
+			should consider to use the "Normalizer" as a preprocessing step).
+		</intro>
+		<option name="Number of clusters">
+			The number of clusters (cluster centers) to be
+			created.
+		</option>
+		<option name="Centroid initialization">
+			<ul>
+			<li><b>First k rows:</b>
+			Initializes the centroids using the first rows of the input table.
+			</li>
+			<li><b>Random initialization:</b>
+			Initializes the centroids with random rows of the input table.
+			Checking the <i>Use static random seed</i>
+			it is possible to get reproducible results.
+			</li>
+			</ul>
+		</option>
+		<option name="Max number of iterations">
+			The maximum number of iterations after which the algorithm terminates if it
+			hasn't found a stable solution before.
+		</option>
+		<option name="Numeric Column Selection">
+			Move the numeric columns of interest
+			to the "Include" list.
+			<i>Always include all columns</i>
+			option moves all numeric columns to the "Include" list by default.
+		</option>
+		<option name="Enable Hilite Mapping">
+			If enabled, the hiliting of a cluster row (2nd
+			output) will hilite all
+			rows of this
+			cluster in the input table and
+			the
+			1st output table. Depending on the
+			number
+			of rows, enabling this
+			feature might consume a lot of memory.
+		</option>
+	</fullDescription>
+
+	<ports>
+		<inPort index="0" name="Clustering input">Input to clustering. All
+			numerical values
+			and only these are considered for clustering.
+		</inPort>
+		<outPort index="0" name="Labeled input">The input data labeled with the
+			cluster they are contained in.
+		</outPort>
+		<outPort index="1" name="Clusters">The created clusters</outPort>
+		<outPort index="2" name="PMML Cluster Model">PMML cluster model</outPort>
+	</ports>
+
+	<views>
+		<view index="0" name="Cluster View">
+			Displays the cluster prototypes in a
+			tree-like structure, with each
+			node containing the coordinates of the
+			cluster center.
+		</view>
+	</views>
+	<keywords>
+		<keyword>k-centroids</keyword>
+		<keyword>cluster</keyword>
+	</keywords>
+</knimeNode>

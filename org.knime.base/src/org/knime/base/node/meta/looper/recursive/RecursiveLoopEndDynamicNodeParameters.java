@@ -1,0 +1,138 @@
+/*
+ * ------------------------------------------------------------------------
+ *
+ *  Copyright by KNIME AG, Zurich, Switzerland
+ *  Website: http://www.knime.com; Email: contact@knime.com
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License, Version 3, as
+ *  published by the Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful, but
+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, see <http://www.gnu.org/licenses>.
+ *
+ *  Additional permission under GNU GPL version 3 section 7:
+ *
+ *  KNIME interoperates with ECLIPSE solely via ECLIPSE's plug-in APIs.
+ *  Hence, KNIME and ECLIPSE are both independent programs and are not
+ *  derived from each other. Should, however, the interpretation of the
+ *  GNU GPL Version 3 ("License") under any applicable laws result in
+ *  KNIME and ECLIPSE being a combined program, KNIME AG herewith grants
+ *  you the additional permission to use and propagate KNIME together with
+ *  ECLIPSE with only the license terms in place for ECLIPSE applying to
+ *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
+ *  license terms of ECLIPSE themselves allow for the respective use and
+ *  propagation of ECLIPSE together with KNIME.
+ *
+ *  Additional permission relating to nodes for KNIME that extend the Node
+ *  Extension (and in particular that are based on subclasses of NodeModel,
+ *  NodeDialog, and NodeView) and that only interoperate with KNIME through
+ *  standard APIs ("Nodes"):
+ *  Nodes are deemed to be separate and independent programs and to not be
+ *  covered works.  Notwithstanding anything to the contrary in the
+ *  License, the License does not apply to Nodes, you are not required to
+ *  license Nodes under the License, and you are granted a license to
+ *  prepare and propagate Nodes, in each case even if such Nodes are
+ *  propagated with or for interoperation with KNIME.  The owner of a Node
+ *  may freely choose the license terms applicable to such Node, including
+ *  when such Node is propagated with or for interoperation with KNIME.
+ * ------------------------------------------------------------------------
+ */
+    
+package org.knime.base.node.meta.looper.recursive;
+
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
+
+/**
+ * Node parameters for Recursive Loop End.
+ * 
+ * @author Benjamin Moser, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.1
+ */
+@LoadDefaultsForAbsentFields
+class RecursiveLoopEndDynamicNodeParameters implements NodeParameters {
+    
+
+    /**
+     * The maximum number of iterations the loop will run.
+     */
+    @org.knime.node.parameters.widget.number.NumberInputWidget(
+        title = "Maximum number of iterations",
+        description = "The maximum number of iterations the loop will run.",
+        minValidation = org.knime.node.parameters.validation.number.IsPositiveValidation.class
+    )
+    @org.knime.node.parameters.persistence.Persist(configKey = "maxNrIterations")
+    public int maxIterations = 100;
+
+    /**
+     * The minimal number of rows for each recursion input table required to continue iterating.
+     * If one of the tables falls under its set threshold, the recursion will stop.
+     */
+    @org.knime.node.parameters.widget.array.ArrayWidget(
+        title = "Minimal number of rows",
+        description = "The minimal number of rows for each recursion input table required to continue iterating. If one of the tables falls under its set threshold, the recursion will stop.",
+        elementTitle = "Recursion port",
+        elementDescription = "Minimal number of rows for this recursion port.",
+        widget = org.knime.node.parameters.widget.number.NumberInputWidget.class,
+        minValidation = org.knime.node.parameters.validation.number.IsNonNegativeValidation.class
+    )
+    @org.knime.node.parameters.persistence.Persist(configKey = "minNumberOfRows")
+    public long[] minNumberOfRows;
+
+    /**
+     * Whether the node execution is controlled by a variable. When enabled, this allows choosing the
+     * Flow Variable that ends the loop if its value equals "true".
+     */
+    @org.knime.node.parameters.widget.OptionalWidget(
+        title = "End loop with variable",
+        description = "Whether the node execution is controlled by a variable. When enabled, this allows choosing the Flow Variable that ends the loop if its value equals 'true'."
+    )
+    @org.knime.node.parameters.persistence.Persist(configKey = "useFlowVariable")
+    public boolean useFlowVariable = false;
+
+    /**
+     * If this option is checked, only the last input to the corresponding collecting data port is passed through to the outport.
+     * Hence, the data of earlier iterations is discarded. This option can be set for each collector port individually.
+     */
+    @org.knime.node.parameters.widget.array.ArrayWidget(
+        title = "Collect data from last iteration only",
+        description = "If this option is checked, only the last input to the corresponding collecting data port is passed through to the outport. Hence, the data of earlier iterations is discarded. This option can be set for each collector port individually.",
+        elementTitle = "Collector port",
+        elementDescription = "Collect only last iteration for this collector port.",
+        widget = org.knime.node.parameters.widget.choices.ValueSwitchWidget.class
+    )
+    @org.knime.node.parameters.persistence.Persist(configKey = "onlyLastData")
+    public boolean[] onlyLastData;
+
+    /**
+     * Allows you to add a column containing the iteration number to the corresponding collector output table.
+     * This option can be set for each collector port individually.
+     */
+    @org.knime.node.parameters.widget.array.ArrayWidget(
+        title = "Add iteration column",
+        description = "Allows you to add a column containing the iteration number to the corresponding collector output table. This option can be set for each collector port individually.",
+        elementTitle = "Collector port",
+        elementDescription = "Add iteration column for this collector port.",
+        widget = org.knime.node.parameters.widget.choices.ValueSwitchWidget.class
+    )
+    @org.knime.node.parameters.persistence.Persist(configKey = "addIterationColumn")
+    public boolean[] addIterationColumn;
+
+    /**
+     * If checked, variables whose values are modified within the loop are exported by this node.
+     * These variables must be declared outside the loop, i.e. injected into the loop from a side-branch or be available upstream of the corresponding loop start node.
+     */
+    @org.knime.node.parameters.widget.choices.ValueSwitchWidget(
+        title = "Propagate modified loop variables",
+        description = "If checked, variables whose values are modified within the loop are exported by this node. These variables must be declared outside the loop, i.e. injected into the loop from a side-branch or be available upstream of the corresponding loop start node."
+    )
+    @org.knime.node.parameters.persistence.Persist(configKey = "propagateFlowVariables")
+    public boolean propagateVariables = false;
+
+}

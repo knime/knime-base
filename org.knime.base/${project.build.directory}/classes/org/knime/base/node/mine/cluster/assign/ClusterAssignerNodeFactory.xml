@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode icon="./clusterAssigner.png" type = "Predictor"
+xmlns="http://knime.org/node/v4.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+	<name>Cluster Assigner</name>
+	<shortDescription>
+	    Assigns data to a set of prototypes.
+	</shortDescription>
+	
+	<fullDescription>
+		<intro>		
+		<p>
+			This node assigns new data to an existing set of prototypes, which
+			are obtained e.g. by a k-means clustering.
+			Each data point is assigned to its nearest prototype.
+		</p>
+	</intro>
+	
+	</fullDescription>
+	
+	<ports>
+		<inPort index="0" name="Prototypes">Prototype model</inPort>
+		<inPort index="1" name="Input Data">DataTable containing the input data that
+		will be assigned to the prototypes</inPort>
+		<outPort index="0" name="Assigned Data">Input data assigned to cluster
+		prototypes</outPort>
+	</ports>
+	
+	<keywords>
+		<keyword>append cluster</keyword>
+	</keywords>
+</knimeNode>

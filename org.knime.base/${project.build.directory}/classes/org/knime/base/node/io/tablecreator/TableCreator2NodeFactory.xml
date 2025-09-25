@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode icon="./tableCreator.png" type="Source" xmlns="http://knime.org/node/v4.1" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+    <name>Table Creator</name>
+    <shortDescription>
+        Allows the manual creation of a data table with any number of rows and
+        columns.
+    </shortDescription>
+    <fullDescription>
+        <intro>
+            Allows the manual creation of a data table. The data can entered 
+            in a spreadsheet like table.
+        </intro>
+        <option name = "Column Properties (context menu of the column header)">
+        <b>Name</b> and <b>type</b> can be changed. A pattern can be entered 
+        that will cause a <b>missing cell</b>. Additionally, possible values of 
+        the column domain can be updated by selecting <b>Domain</b>. And, 
+        you can choose to <b>skip this column</b> entirely, i.e. it will 
+        not be included in the output table then.
+        </option>
+        <option name = "RowID Properties (context menu of the row header)">
+        Use this to change the naming of all RowIDs. The RowIDs are built of
+        a consecutive number with a <b>prefix</b> and a <b>suffix</b>. Beside
+        the prefix and suffix you can specify the index of the first row.
+        </option>        
+    </fullDescription>
+    <ports>
+        <outPort name="Manually created table" index="0">Manually created table</outPort>
+    </ports>
+</knimeNode>

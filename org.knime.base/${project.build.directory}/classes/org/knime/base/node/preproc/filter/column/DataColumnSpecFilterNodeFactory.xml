@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode icon="./columnfilter.png" type="Manipulator" xmlns="http://knime.org/node/v4.1" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+	<name>Column Filter</name>
+	
+	<shortDescription>
+		The Column Filter allows columns to be excluded from the input table.
+	</shortDescription>
+	
+	<fullDescription>
+		<intro>
+			This node allows columns to be filtered from the input table while 
+			only the remaining columns are passed to the output table. Within 
+			the dialog, columns can be moved between the Include and Exclude 
+			list.
+		</intro>
+		<option name="Include/exclude columns">
+			Select the columns to include in the output table.
+			
+			<br/>
+				
+			<b>Manual selection</b>:
+			<ul>
+				<li><i>Buttons</i>: Use these buttons to move columns between the Include and Exclude 
+	               list. Single-arrow buttons will move all selected columns.
+	               Double-arrow buttons will move all columns (filtering is taken into
+	               account).</li>
+				<li><i>Any unknown columns</i>: Controls what happens with new columns when the input table changes.
+               		If this placeholder is in the include list, then new columns are included, otherwise they are excluded.</li>
+			</ul>
+			
+			<br/>
+			
+			<b>Wildcard/Regex</b>:
+			<ul>
+				<li><i>Pattern</i>: Type a search pattern which matches columns to move into the
+					Include or Exclude list. Which list is used can be specified.
+					You can use either Wildcards ('?' matching any
+					character, '*' matching a sequence of any characters) or Regex.
+					You can specify whether your pattern should be case sensitive and whether the pattern defines the
+					includes or the excludes.</li>
+			</ul>
+			
+			<br/>
+			
+			<b>Types</b>:
+			<ul>
+				<li><i>Selected types</i>: Select the column types that you want to include.</li>
+			</ul>
+		</option>
+
+		<link href="https://www.knime.com/knime-introductory-course/chapter3/section1/column-filter">
+			KNIME E-Learning Course: Column Filter
+		</link>
+
+        <link href="http://download.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html">
+            Java API documentation about regex patterns
+        </link>
+
+        <link href="http://download.oracle.com/javase/6/docs/api/java/util/regex/Matcher.html">
+            Java API documentation about regex matching
+        </link>
+	</fullDescription>
+	
+	<ports>
+		<inPort index="0" name="Table to be filtered">
+			Table from which columns are to be excluded.
+		</inPort>
+		<outPort index="0" name="Filtered table">
+			Table excluding selected columns.
+		</outPort>
+	</ports>
+	<keywords>
+		<keyword>Remove columns</keyword>
+		<keyword>Select</keyword>
+	</keywords>
+</knimeNode>
