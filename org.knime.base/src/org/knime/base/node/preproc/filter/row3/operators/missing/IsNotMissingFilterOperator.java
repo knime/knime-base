@@ -66,7 +66,16 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
 public final class IsNotMissingFilterOperator implements FilterOperator<FilterValueParameters> {
 
     /** Singleton instance of the IsNotMissingFilterOperator. */
-    public static final IsNotMissingFilterOperator INSTANCE = new IsNotMissingFilterOperator();
+    private static final IsNotMissingFilterOperator INSTANCE = new IsNotMissingFilterOperator();
+
+    /**
+     * Returns the singleton instance of the IsNotMissingFilterOperator.
+     *
+     * @return the singleton instance
+     */
+    public static IsNotMissingFilterOperator getInstance() {
+        return INSTANCE;
+    }
 
     private IsNotMissingFilterOperator() {
         // Private constructor for singleton pattern

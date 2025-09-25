@@ -134,7 +134,7 @@ public final class FilterOperatorsUtil {
 
             @Override
             public List<FilterOperator<? extends FilterValueParameters>> getOperators(final DataType dataType) {
-                return null; // TODO
+                return null; // TODO create Equals, NotEquals, NotEqualsNorMissing with case sensitivity parameters
             }
 
             @Override
@@ -142,16 +142,6 @@ public final class FilterOperatorsUtil {
                 return StringCell.TYPE.equals(dataType);
             }
 
-        }, new OperatorGroup() {
-            @Override
-            public List<FilterOperator<? extends FilterValueParameters>> getOperators(final DataType dataType) {
-                return DefaultEqualityOperators.getOperators(dataType);
-            }
-
-            @Override
-            public boolean isApplicable(final DataType dataType) {
-                return StringCell.TYPE.equals(dataType);
-            }
         },
         // Default comparable (fallback)
         new OperatorGroup() {
@@ -170,7 +160,7 @@ public final class FilterOperatorsUtil {
         new OperatorGroup() {
             @Override
             public List<FilterOperator<? extends FilterValueParameters>> getOperators(final DataType dataType) {
-                return List.of(new RegexPatternFilterOperator(), new WildcardPatternFilterOperator());
+                return List.of(RegexPatternFilterOperator.getInstance(), WildcardPatternFilterOperator.getInstance());
             }
 
             @Override
@@ -179,7 +169,7 @@ public final class FilterOperatorsUtil {
             }
         }, //
         // Missing
-        dataType -> List.of(IsMissingFilterOperator.INSTANCE, IsNotMissingFilterOperator.INSTANCE)//
+        dataType -> List.of(IsMissingFilterOperator.getInstance(), IsNotMissingFilterOperator.getInstance())//
     );
 
     /**
@@ -187,8 +177,8 @@ public final class FilterOperatorsUtil {
      */
     private static final List<RowKeyFilterOperator<? extends FilterValueParameters>> DEFAULT_ROW_KEY_OPERATORS =
         List.of(//
-            new RowKeyRegexPatternFilterOperator(), //
-            new RowKeyWildcardPatternFilterOperator() //
+            RowKeyRegexPatternFilterOperator.getInstance(), //
+            RowKeyWildcardPatternFilterOperator.getInstance() //
         );
 
     /**
@@ -196,8 +186,8 @@ public final class FilterOperatorsUtil {
      */
     private static final List<RowNumberFilterOperator<? extends FilterValueParameters>> DEFAULT_ROW_NUMBER_OPERATORS =
         List.of(//
-            new RowNumberRegexPatternFilterOperator(), //
-            new RowNumberWildcardPatternFilterOperator() //
+            RowNumberRegexPatternFilterOperator.getInstance(), //
+            RowNumberWildcardPatternFilterOperator.getInstance() //
         );
 
     /**

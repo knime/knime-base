@@ -61,7 +61,22 @@ import org.knime.core.node.InvalidSettingsException;
  *
  * @author Paul Bärnreuther
  */
-public class RowKeyRegexPatternFilterOperator implements RowKeyFilterOperator<PatternFilterParameters> {
+public final class RowKeyRegexPatternFilterOperator implements RowKeyFilterOperator<PatternFilterParameters> {
+
+    private static final RowKeyRegexPatternFilterOperator INSTANCE = new RowKeyRegexPatternFilterOperator();
+
+    private RowKeyRegexPatternFilterOperator() {
+        // for singleton
+    }
+
+    /**
+     * Gets the singleton instance of this operator.
+     *
+     * @return the singleton instance
+     */
+    public static RowKeyRegexPatternFilterOperator getInstance() {
+        return INSTANCE;
+    }
 
     @Override
     public String getId() {
@@ -74,9 +89,10 @@ public class RowKeyRegexPatternFilterOperator implements RowKeyFilterOperator<Pa
     }
 
     @Override
-    public Predicate<RowKeyValue> createPredicate(final PatternFilterParameters params) throws InvalidSettingsException {
-        final var stringPredicate = StringPredicate.pattern(params.m_pattern, true,
-            params.m_caseSensitivity == CaseSensitivity.CASE_SENSITIVE);
+    public Predicate<RowKeyValue> createPredicate(final PatternFilterParameters params)
+        throws InvalidSettingsException {
+        final var stringPredicate =
+            StringPredicate.pattern(params.m_pattern, true, params.m_caseSensitivity == CaseSensitivity.CASE_SENSITIVE);
         return rowKey -> stringPredicate.test(rowKey.getString());
     }
 

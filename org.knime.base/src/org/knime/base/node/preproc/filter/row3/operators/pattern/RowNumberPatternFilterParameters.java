@@ -52,13 +52,13 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
 import org.knime.node.parameters.Widget;
 
 /**
- * Parameters for row number pattern filter operators.
- * Row numbers are numeric, so case sensitivity is not applicable.
+ * Parameters for row number pattern filter operators. Row numbers are numeric, so case sensitivity is not applicable.
  *
  * @author Paul Bärnreuther
  */
-public class RowNumberPatternFilterParameters implements FilterValueParameters {
+public final class RowNumberPatternFilterParameters implements FilterValueParameters {
 
-    @Widget(title = "Pattern", description = "The pattern to filter for. Format depends on the operator (regex or wildcard).")
+    @Widget(title = "Pattern",
+        description = "The pattern to filter for. Format depends on the operator (regex or wildcard).")
     public String m_pattern = "";
 }

@@ -50,7 +50,6 @@ package org.knime.base.node.preproc.filter.row3.operators.defaults;
 
 import org.knime.base.node.preproc.filter.row3.predicates.StringPredicate;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters.CreateCellValueParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
@@ -60,7 +59,7 @@ import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public class StringEqualsParameters extends SingleStringParameters implements CreateCellValueParameters<StringCell> {
+public class StringEqualsParameters extends SingleStringParameters { //implements CreateCellValueParameters<StringCell> {
 
     StringEqualsParameters() {
         super();
@@ -68,7 +67,8 @@ public class StringEqualsParameters extends SingleStringParameters implements Cr
     }
 
     /**
-     * @param value
+     * Constructs the parameters with the given string value.
+     * @param value the string value
      */
     public StringEqualsParameters(final String value) {
         super(value);
@@ -83,7 +83,10 @@ public class StringEqualsParameters extends SingleStringParameters implements Cr
         return StringPredicate.equality(m_value, m_caseSensitivity == CaseSensitivity.CASE_SENSITIVE);
     }
 
-    @Override
+    /**
+     * Creates a new cell with the current value.
+     * @return the new cell
+     */
     public StringCell createCell() {
         return new StringCell(m_value);
     }

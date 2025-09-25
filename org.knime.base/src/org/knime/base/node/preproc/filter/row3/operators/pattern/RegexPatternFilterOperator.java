@@ -62,7 +62,22 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  *
  * @author Paul Bärnreuther
  */
-public class RegexPatternFilterOperator implements FilterOperator<PatternFilterParameters>, RegexOperator {
+public final class RegexPatternFilterOperator implements FilterOperator<PatternFilterParameters>, RegexOperator {
+
+    private static final RegexPatternFilterOperator INSTANCE = new RegexPatternFilterOperator();
+
+    private RegexPatternFilterOperator() {
+        // for singleton
+    }
+
+    /**
+     * Gets the singleton instance of this operator.
+     *
+     * @return the instance
+     */
+    public static RegexPatternFilterOperator getInstance() {
+        return INSTANCE;
+    }
 
     @Override
     public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
