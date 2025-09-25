@@ -59,6 +59,7 @@ import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.persistence.legacy.LegacyColumnFilterPersistor;
@@ -82,6 +83,7 @@ import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinVa
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction") // LegacyColumnFilterPersistor is not API
+@LoadDefaultsForAbsentFields // needed because the node model does not save defaults to the empty settings
 final class DomainNodeParameters implements NodeParameters {
 
     // ====== Layout
@@ -216,7 +218,7 @@ final class DomainNodeParameters implements NodeParameters {
                 instance numeric ones.
             """)
     @ColumnFilterWidget(choicesProvider = BoundedColumnsProvider.class)
-    @TwinlistWidget(includedLabel = "Calculate min/max values", excludedLabel = "Do not calculate")
+    @TwinlistWidget(includedLabel = "Calculate min/max values", excludedLabel = "Excluded")
     @Persistor(MinMaxColumnsPersistor.class)
     @Layout(MinMaxSection.class)
     ColumnFilter m_minMaxColumns = new ColumnFilter();

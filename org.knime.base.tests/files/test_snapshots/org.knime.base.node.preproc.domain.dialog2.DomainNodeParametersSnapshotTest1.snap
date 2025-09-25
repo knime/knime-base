@@ -360,7 +360,7 @@
           "unknownValuesText" : "Any unknown column",
           "emptyStateLabel" : "No columns in this list.",
           "includedLabel" : "Calculate min/max values",
-          "excludedLabel" : "Do not calculate"
+          "excludedLabel" : "Excluded"
         },
         "providedOptions" : [ "possibleValues" ]
       }, {
