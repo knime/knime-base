@@ -52,35 +52,29 @@ import static org.knime.base.node.preproc.filter.row3.RowIdentifiers.ROW_ID;
 import static org.knime.base.node.preproc.filter.row3.RowIdentifiers.ROW_NUMBER;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
-import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion.OperatorsProvider;
-import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion.SelectedColumnRef;
 import org.knime.base.node.preproc.filter.row3.StringValueParameters.EqualsStringParameters;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.RowKey;
-import org.knime.core.data.def.LongCell;
-import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.ClassIdStrategy;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DefaultClassIdStrategy;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.DynamicParametersProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.EqualsOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorDefinition;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelectionToStringOrEnumMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
@@ -101,7 +95,6 @@ import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
-import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.StringChoice;
 import org.knime.node.parameters.widget.choices.StringChoicesProvider;
@@ -116,6 +109,14 @@ import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
  */
 @SuppressWarnings("restriction") // webui
 abstract class AbstractRowFilterNodeSettings implements NodeParameters {
+
+    AbstractRowFilterNodeSettings() {
+        m_predicates = new FilterCriterion[]{new FilterCriterion()};
+    }
+
+    AbstractRowFilterNodeSettings(final NodeParametersInput context) {
+        m_predicates = new FilterCriterion[]{new FilterCriterion(context)};
+    }
 
     enum Criteria {
             @Label("All criteria")
@@ -287,7 +288,7 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
         @Widget(title = "Operator", description = "") // TODO
         @Layout(Condition.ColumnOperator.Operator.class)
         @ValueReference(OperatorIdRef.class)
-        String m_operator = "EQ"; // TODO use constant from Equals interface
+        String m_operator = EqualsOperator.ID;
 
         static class OperatorIdRef implements ParameterReference<String> {
         }
@@ -309,6 +310,13 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
             }
             m_column = new StringOrEnum<>(lastColumn.getName());
             m_columnType = lastColumn.getType();
+
+            final var validOperatorsIds =
+                OperatorsProvider.getOperators(m_column, ctx).map(FilterOperatorDefinition::getId).toList();
+            if (!validOperatorsIds.contains(EqualsOperator.ID)) {
+                m_operator = validOperatorsIds.get(0);
+            }
+            m_filterValueParameters = FilterValueParametersProvider.createNewParameters(ctx, m_column, m_operator);
         }
 
         private static Optional<RowKey> getFirstRowKey(final NodeParametersInput ctx) {
@@ -476,21 +484,33 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
             }
 
             @Override
-            public FilterValueParameters computeParameters(final NodeParametersInput parametersInput)
+            public FilterValueParameters computeParameters(final NodeParametersInput input)
                 throws StateComputationFailureException {
                 final var selectedColumn = m_selectedColumn.get();
                 final var currentOperatorId = m_currentOperatorId.get();
+                final var currentValue = m_currentValue.get();
+                return toNewParameters(input, selectedColumn, currentOperatorId, currentValue);
 
-                final Class<? extends FilterValueParameters> targetClass = OperatorsProvider
-                    .getOperators(selectedColumn, parametersInput).filter(op -> op.getId().equals(currentOperatorId))
-                    .findFirst().orElseThrow(() -> new StateComputationFailureException(
-                        "Unknown operator \"%s\"".formatted(currentOperatorId)))
-                    .getNodeParametersClass();
+            }
+
+            static FilterValueParameters createNewParameters(final NodeParametersInput input,
+                final StringOrEnum<RowIdentifiers> selectedColumn, final String operatorId) {
+                return toNewParameters(input, selectedColumn, operatorId, null);
+            }
+
+            static FilterValueParameters toNewParameters(final NodeParametersInput input,
+                final StringOrEnum<RowIdentifiers> selectedColumn, final String currentOperatorId,
+                final FilterValueParameters currentValue) {
+                final var operator = OperatorsProvider.getOperators(selectedColumn, input)
+                    .filter(op -> op.getId().equals(currentOperatorId)).findFirst();
+                if (operator.isEmpty()) {
+                    return null;
+                }
+                final var targetClass = operator.get().getNodeParametersClass();
                 if (targetClass == null) {
                     // No class means no parameters
                     return null;
                 }
-                final var currentValue = m_currentValue.get();
                 if (currentValue != null && targetClass.equals(currentValue.getClass())) {
                     return currentValue;
                 }
@@ -506,7 +526,6 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
                     throw new IllegalStateException(
                         "Could not instantiate FilterValueParameters of type " + targetClass, e);
                 }
-
             }
 
         }
@@ -612,57 +631,6 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
 
     abstract boolean isSecondOutputActive();
 
-    // UPDATE HANDLER
-
-    /**
-     * Compute possible enum values for filter operator based on the selected column.
-     */
-    static class TypeBasedOperatorsProvider
-        implements EnumChoicesProvider<org.knime.base.node.preproc.filter.row3.FilterOperator> {
-
-        private Supplier<StringOrEnum<RowIdentifiers>> m_columnSelection;
-
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            initializer.computeAfterOpenDialog();
-            m_columnSelection = initializer.computeFromValueSupplier(SelectedColumnRef.class);
-        }
-
-        @Override
-        public List<org.knime.base.node.preproc.filter.row3.FilterOperator> choices(final NodeParametersInput context)
-            throws WidgetHandlerException {
-            return getFilterOperators(context, m_columnSelection.get());
-        }
-
-        private static List<org.knime.base.node.preproc.filter.row3.FilterOperator>
-            getFilterOperators(final NodeParametersInput context, final StringOrEnum<RowIdentifiers> column) {
-
-            final var rowIdentifierChoice = column.getEnumChoice();
-            final var dataType = rowIdentifierChoice.map(TypeBasedOperatorsProvider::getColumnType)//
-                .or(() -> context.getInTableSpec(0)//
-                    .map(dts -> dts.getColumnSpec(column.getStringChoice()))//
-                    .filter(Objects::nonNull)//
-                    .map(DataColumnSpec::getType));
-
-            if (dataType.isEmpty()) {
-                // we don't know the column, but we know that columns always can contain missing cells
-                return List.of(org.knime.base.node.preproc.filter.row3.FilterOperator.IS_MISSING,
-                    org.knime.base.node.preproc.filter.row3.FilterOperator.IS_NOT_MISSING);
-            }
-            // filter on top-level type
-            return Arrays.stream(org.knime.base.node.preproc.filter.row3.FilterOperator.values()) //
-                .filter(op -> !op.isHidden(rowIdentifierChoice.orElse(null), dataType.get())) //
-                .toList();
-        }
-
-        private static DataType getColumnType(final RowIdentifiers optionalSpecialColumn) {
-            return switch (optionalSpecialColumn) {
-                case ROW_ID -> StringCell.TYPE;
-                case ROW_NUMBER -> LongCell.TYPE;
-            };
-        }
-    }
-
     static class DefaultFilterCriterionProvider implements StateProvider<FilterCriterion> {
 
         @Override
@@ -673,11 +641,7 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
         @Override
         public FilterCriterion computeState(final NodeParametersInput context) {
             final var filterCriterion = new FilterCriterion(context);
-            final var validOperatorsIds = OperatorsProvider.getOperators(filterCriterion.m_column, context)
-                .map(FilterOperatorDefinition::getId).toList();
-            if (!validOperatorsIds.contains("EQ")) {
-                filterCriterion.m_operator = validOperatorsIds.get(0);
-            }
+
             return filterCriterion;
         }
     }

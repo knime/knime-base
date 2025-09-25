@@ -48,6 +48,7 @@
  */
 package org.knime.base.node.preproc.filter.row3;
 
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.widget.choices.Label;
@@ -59,6 +60,14 @@ import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 final class RowSplitterNodeSettings extends AbstractRowFilterNodeSettings {
+
+    RowSplitterNodeSettings() {
+        super();
+    }
+
+    RowSplitterNodeSettings(final NodeParametersInput input) {
+        super(input);
+    }
 
     @Override
     boolean isSecondOutputActive() {
