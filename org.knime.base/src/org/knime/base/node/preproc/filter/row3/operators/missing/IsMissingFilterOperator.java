@@ -52,6 +52,7 @@ import java.util.function.Predicate;
 
 import org.knime.base.node.preproc.filter.row3.FilterOperatorsUtil;
 import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
@@ -83,7 +84,7 @@ public final class IsMissingFilterOperator implements FilterOperator<FilterValue
 
     @Override
     public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
-        final FilterValueParameters params) throws InvalidSettingsException { // TODO plain interface
+        final DataType configureColumnType, final FilterValueParameters params) throws InvalidSettingsException { // TODO plain interface
         return FilterOperatorsUtil.PREDICATE_ALWAYS_FALSE;
     }
 
