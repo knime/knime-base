@@ -228,16 +228,16 @@
             "configPaths" : [ [ "many2OneCols2Condense", "filter-type" ], [ "many2OneCols2Condense", "included_names" ], [ "many2OneCols2Condense", "excluded_names" ], [ "many2OneCols2Condense", "enforce_option" ], [ "many2OneCols2Condense", "name_pattern", "pattern" ], [ "many2OneCols2Condense", "name_pattern", "type" ], [ "many2OneCols2Condense", "name_pattern", "caseSensitive" ], [ "many2OneCols2Condense", "name_pattern", "excludeMatching" ] ]
           },
           "appendedColumnName" : {
-            "configPaths" : [ [ "many2OneCondenseColName" ] ]
+            "configKey" : "many2OneCondenseColName"
           },
           "includeMethod" : {
-            "configPaths" : [ [ "includeMethod" ] ]
+            "configKey" : "includeMethod"
           },
           "pattern" : {
-            "configPaths" : [ [ "many2OneRecoValBox" ] ]
+            "configKey" : "many2OneRecoValBox"
           },
           "keepColumns" : {
-            "configPaths" : [ [ "many2OneRemoveCols" ] ]
+            "configKey" : "many2OneRemoveCols"
           }
         }
       }

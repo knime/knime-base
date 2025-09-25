@@ -28,24 +28,8 @@
             <config key="typelist"/>
         </config>
     </config>
-    <config key="many2OneCondenseColName_Internals">
-        <entry key="SettingsModelID" type="xstring" value="SMID_string"/>
-        <entry key="EnabledStatus" type="xboolean" value="true"/>
-    </config>
     <entry key="many2OneCondenseColName" type="xstring" value="Condensed Column"/>
-    <config key="includeMethod_Internals">
-        <entry key="SettingsModelID" type="xstring" value="SMID_string"/>
-        <entry key="EnabledStatus" type="xboolean" value="true"/>
-    </config>
     <entry key="includeMethod" type="xstring" value="Binary"/>
-    <config key="many2OneRecoValBox_Internals">
-        <entry key="SettingsModelID" type="xstring" value="SMID_string"/>
-        <entry key="EnabledStatus" type="xboolean" value="true"/>
-    </config>
     <entry key="many2OneRecoValBox" type="xstring" value="[^0]*"/>
-    <config key="many2OneRemoveCols_Internals">
-        <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
-        <entry key="EnabledStatus" type="xboolean" value="true"/>
-    </config>
     <entry key="many2OneRemoveCols" type="xboolean" value="true"/>
 </config>

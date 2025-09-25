@@ -54,7 +54,6 @@ import org.knime.core.data.IntValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
@@ -63,6 +62,7 @@ import org.knime.node.parameters.layout.Before;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.persistence.legacy.LegacyColumnFilterPersistor;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
@@ -145,19 +145,12 @@ public final class DoubleToIntNodeSettings implements NodeParameters {
 
     }
 
-    @Persistor(ProdLongPersistor.class)
+    @Persist(configKey = DoubleToIntNodeModel.CFG_LONG)
     @Widget(title = "Create long values",
         description = "Use this option to generate 64bit long values instead of 32bit integer values. "
             + "This is useful if double values in the input are too big to fit into an integer.")
     @Layout(RoundingOptionsSection.class)
     boolean m_prodLong = false; //NOSONAR being explicit is desired here
-
-    static final class ProdLongPersistor extends SettingsModelBooleanPersistor {
-
-        ProdLongPersistor() {
-            super(DoubleToIntNodeModel.CFG_LONG);
-        }
-    }
 
     static final class NumericalColumns implements FilteredInputTableColumnsProvider {
 

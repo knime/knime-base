@@ -50,18 +50,18 @@
       "scope" : "#/properties/model/properties/rowIdTableSelect",
       "options" : {
         "validation" : {
-          "min" : {
-            "errorMessage" : "The value must be at least 1.",
-            "parameters" : {
-              "min" : 1.0,
-              "isExclusive" : false
-            }
-          },
           "max" : {
             "errorMessage" : "The value must not exceed 2147483647.",
             "parameters" : {
-              "max" : 2.147483647E9,
-              "isExclusive" : false
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 1.0
             }
           }
         }
@@ -87,7 +87,7 @@
         "type" : "object",
         "properties" : {
           "rowIdMode" : {
-            "configPaths" : [ [ "selected_rowid_mode" ] ]
+            "configKey" : "selected_rowid_mode"
           },
           "rowIdTableSelect" : {
             "configPaths" : [ [ "selected_rowid_table" ], [ "selected_rowid_table_number" ] ]
@@ -102,11 +102,11 @@
     "values" : [ {
       "indices" : [ ],
       "value" : {
-        "errorMessage" : "Only 1 table input ports available.",
         "parameters" : {
           "max" : 1.0,
           "isExclusive" : false
-        }
+        },
+        "errorMessage" : "Only 1 table input ports available."
       }
     } ]
   } ]

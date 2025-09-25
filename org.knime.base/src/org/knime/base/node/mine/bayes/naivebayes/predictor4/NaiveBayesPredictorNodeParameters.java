@@ -53,15 +53,12 @@ import java.util.function.Supplier;
 
 import org.knime.base.node.mine.util.PredictorHelper;
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.pmml.PMMLPortObjectSpec;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.persistence.legacy.OptionalStringPersistor;
 import org.knime.node.parameters.updates.EffectPredicate;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ParameterReference;
@@ -154,47 +151,6 @@ final class NaiveBayesPredictorNodeParameters implements NodeParameters {
             }
             return PredictorHelper.DEFAULT_PREDICTION_COLUMN;
         }
-    }
-
-    /**
-     * A persistor for loading string setting that is controlled by another boolean setting as an {@link Optional}
-     * string.
-     *
-     * @author Marc Bux, KNIME GmbH, Berlin, Germany
-     */
-    abstract static class OptionalStringPersistor implements NodeParametersPersistor<Optional<String>> {
-
-        private final String m_booleanCfgKey;
-
-        private final String m_stringCfgKey;
-
-        OptionalStringPersistor(final String booleanCfgKey, final String stringCfgKey) {
-            m_booleanCfgKey = booleanCfgKey;
-            m_stringCfgKey = stringCfgKey;
-        }
-
-        @Override
-        public void save(final Optional<String> param, final NodeSettingsWO settings) {
-            if (param.isPresent()) {
-                settings.addBoolean(m_booleanCfgKey, true);
-                settings.addString(m_stringCfgKey, param.get());
-            } else {
-                settings.addBoolean(m_booleanCfgKey, false);
-                settings.addString(m_stringCfgKey, null);
-            }
-        }
-
-        @Override
-        public Optional<String> load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return settings.getBoolean(m_booleanCfgKey) ? Optional.of(settings.getString(m_stringCfgKey))
-                : Optional.empty();
-        }
-
-        @Override
-        public String[][] getConfigPaths() {
-            return new String[][]{{m_booleanCfgKey}, {m_stringCfgKey}};
-        }
-
     }
 
     static final class PredictionColumnNamePersistor extends OptionalStringPersistor {

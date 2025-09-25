@@ -46,7 +46,6 @@ package org.knime.base.node.preproc.domain.dialog2;
 
 import java.util.Optional;
 
-import org.knime.base.node.util.EnumBooleanPersistor.EnumSettingsModelBooleanPersistor;
 import org.knime.core.data.BoundedValue;
 import org.knime.core.data.NominalValue;
 import org.knime.core.data.container.DataContainerSettings;
@@ -62,6 +61,7 @@ import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.persistence.legacy.EnumBooleanPersistor;
 import org.knime.node.parameters.persistence.legacy.LegacyColumnFilterPersistor;
 import org.knime.node.parameters.updates.EffectPredicate;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
@@ -126,7 +126,7 @@ final class DomainNodeParameters implements NodeParameters {
     ColumnFilter m_possibleValuesColumns = new ColumnFilter();
 
     static final class PossibleValuesUnselectedHandlingPersistor
-        extends EnumSettingsModelBooleanPersistor<UnselectedDomainHandling> {
+        extends EnumBooleanPersistor<UnselectedDomainHandling> {
         PossibleValuesUnselectedHandlingPersistor() {
             super(DomainNodeModel.CFG_POSSVAL_RETAIN_UNSELECTED, UnselectedDomainHandling.class,
                 UnselectedDomainHandling.RETAIN);
@@ -223,8 +223,7 @@ final class DomainNodeParameters implements NodeParameters {
     @Layout(MinMaxSection.class)
     ColumnFilter m_minMaxColumns = new ColumnFilter();
 
-    static final class MinMaxUnselectedHandlingPersistor
-        extends EnumSettingsModelBooleanPersistor<UnselectedDomainHandling> {
+    static final class MinMaxUnselectedHandlingPersistor extends EnumBooleanPersistor<UnselectedDomainHandling> {
         MinMaxUnselectedHandlingPersistor() {
             super(DomainNodeModel.CFG_MIN_MAX_RETAIN_UNSELECTED, UnselectedDomainHandling.class,
                 UnselectedDomainHandling.RETAIN);

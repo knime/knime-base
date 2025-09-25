@@ -49,12 +49,10 @@ package org.knime.base.node.preproc.columntrans2;
 
 import org.knime.base.node.preproc.pmml.columntrans2.Many2OneCol2PMMLNodeModel;
 import org.knime.base.node.preproc.pmml.columntrans2.Many2OneCol2PMMLNodeModel.IncludeMethod;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.EnumSettingsModelStringPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelStringPersistor;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.persistence.legacy.LegacyColumnFilterPersistor;
 import org.knime.node.parameters.updates.Effect;
@@ -94,7 +92,7 @@ final class Many2OneCol2NodeParameters implements NodeParameters {
     @ChoicesProvider(AllColumnsProvider.class)
     ColumnFilter m_includedColumns = new ColumnFilter();
 
-    @Persistor(AppendedColumnNamePersistor.class)
+    @Persist(configKey = Many2OneCol2PMMLNodeModel.CONDENSED_COL_NAME)
     @Widget(title = "Appended column name", description = "Name of the aggregate column that will be created.")
     String m_appendedColumnName = "Condensed Column";
 
@@ -102,7 +100,7 @@ final class Many2OneCol2NodeParameters implements NodeParameters {
 
     }
 
-    @Persistor(IncludeMethodPersistor.class)
+    @Persist(configKey = Many2OneCol2PMMLNodeModel.INCLUDE_METHOD)
     @Widget(title = "Include method", //
         description = "Choose the method to determine the matching column:")
     @ValueReference(IncludeMethodRef.class)
@@ -115,13 +113,13 @@ final class Many2OneCol2NodeParameters implements NodeParameters {
         }
     }
 
-    @Persistor(PatternPersistor.class)
+    @Persist(configKey = Many2OneCol2PMMLNodeModel.RECOGNICTION_REGEX)
     @Widget(title = "Include Pattern",
         description = "Enter the regular expression pattern if RegExpPattern was chosen as include method.")
     @Effect(predicate = IsRegExpPattern.class, type = EffectType.SHOW)
     String m_pattern = "[^0]*";
 
-    @Persistor(KeepColumnsPersistor.class)
+    @Persist(configKey = Many2OneCol2PMMLNodeModel.KEEP_COLS)
     @Widget(title = "Keep original columns",
         description = "If checked, the selected columns are kept in the output table, otherwise they are deleted.")
     boolean m_keepColumns = true;
@@ -129,30 +127,6 @@ final class Many2OneCol2NodeParameters implements NodeParameters {
     static final class IncludedColumnsPersistor extends LegacyColumnFilterPersistor {
         IncludedColumnsPersistor() {
             super(Many2OneCol2PMMLNodeModel.SELECTED_COLS);
-        }
-    }
-
-    static final class AppendedColumnNamePersistor extends SettingsModelStringPersistor {
-        AppendedColumnNamePersistor() {
-            super(Many2OneCol2PMMLNodeModel.CONDENSED_COL_NAME);
-        }
-    }
-
-    static final class IncludeMethodPersistor extends EnumSettingsModelStringPersistor<IncludeMethod> {
-        IncludeMethodPersistor() {
-            super(Many2OneCol2PMMLNodeModel.INCLUDE_METHOD, IncludeMethod.class);
-        }
-    }
-
-    static final class PatternPersistor extends SettingsModelStringPersistor {
-        PatternPersistor() {
-            super(Many2OneCol2PMMLNodeModel.RECOGNICTION_REGEX);
-        }
-    }
-
-    static final class KeepColumnsPersistor extends SettingsModelBooleanPersistor {
-        KeepColumnsPersistor() {
-            super(Many2OneCol2PMMLNodeModel.KEEP_COLS);
         }
     }
 }

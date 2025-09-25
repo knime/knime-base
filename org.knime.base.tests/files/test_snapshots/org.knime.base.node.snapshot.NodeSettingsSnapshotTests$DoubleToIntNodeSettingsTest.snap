@@ -208,7 +208,7 @@
             "configPaths" : [ [ "typeofround" ] ]
           },
           "prodLong" : {
-            "configPaths" : [ [ "long" ] ]
+            "configKey" : "long"
           }
         }
       }

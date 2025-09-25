@@ -48,12 +48,12 @@
  */
 package org.knime.base.node.preproc.unpivot2;
 
-import org.knime.node.parameters.NodeParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
 import org.knime.node.parameters.Advanced;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.persistence.legacy.LegacyColumnFilterPersistor;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
@@ -74,7 +74,7 @@ public final class Unpivot2NodeSettings implements NodeParameters {
     @ChoicesProvider(AllColumnsProvider.class)
     ColumnFilter m_valueColumns = new ColumnFilter();
 
-    @Persistor(MissingValuesPersistor.class)
+    @Persist(configKey = Unpivot2NodeModel.CFG_MISSING_VALUES)
     @Widget(title = "Skip rows containing missing cells",
         description = "Skip all rows containing missing cells in the selected value column(s).")
     boolean m_missingValues;
@@ -91,7 +91,7 @@ public final class Unpivot2NodeSettings implements NodeParameters {
     interface PerformanceSection {
     }
 
-    @Persistor(EnableHilitePersistor.class)
+    @Persist(configKey = Unpivot2NodeModel.CFG_HILITING)
     @Widget(title = "Enable hiliting", description = "Select if hiliting is enabled between input and output data.")
     @Layout(PerformanceSection.class)
     boolean m_enableHilite;
@@ -102,21 +102,9 @@ public final class Unpivot2NodeSettings implements NodeParameters {
         }
     }
 
-    static final class MissingValuesPersistor extends SettingsModelBooleanPersistor {
-        MissingValuesPersistor() {
-            super(Unpivot2NodeModel.CFG_MISSING_VALUES);
-        }
-    }
-
     static final class RetainedColumnsPersistor extends LegacyColumnFilterPersistor {
         RetainedColumnsPersistor() {
             super(Unpivot2NodeModel.CFG_RETAINED_COLUMNS);
-        }
-    }
-
-    static final class EnableHilitePersistor extends SettingsModelBooleanPersistor {
-        EnableHilitePersistor() {
-            super(Unpivot2NodeModel.CFG_HILITING);
         }
     }
 }

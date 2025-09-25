@@ -56,14 +56,13 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.node.parameters.NodeParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelStringPersistor;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.updates.Effect;
-import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.updates.util.BooleanReference;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
@@ -75,7 +74,6 @@ import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @since 5.1
  */
-@SuppressWarnings("restriction")
 public final class ColumnHeaderExtractorNodeSettings implements NodeParameters {
 
     interface DontReplaceColHeader {
@@ -95,14 +93,6 @@ public final class ColumnHeaderExtractorNodeSettings implements NodeParameters {
 
     }
 
-    static final class ReplaceColHeaderPersistor extends SettingsModelBooleanPersistor {
-
-        ReplaceColHeaderPersistor() {
-            super("replaceColHeader");
-        }
-    }
-
-    @Persistor(ReplaceColHeaderPersistor.class)
     @Widget(title = "Generate new column names",
         description = "If selected, the column names of both output tables will be replaced "//
             + "with automatically generated names by combining the prefix provided below with the corresponding "//
@@ -111,14 +101,7 @@ public final class ColumnHeaderExtractorNodeSettings implements NodeParameters {
     @ValueReference(ReplaceColHeader.class)
     boolean m_replaceColHeader;
 
-    static final class UnifyHeaderPrefixPersistor extends SettingsModelStringPersistor {
-
-        UnifyHeaderPrefixPersistor() {
-            super("unifyHeaderPrefix");
-        }
-    }
-
-    @Persistor(UnifyHeaderPrefixPersistor.class)
+    @Persist(configKey = "unifyHeaderPrefix")
     @Widget(title = "Prefix", description = "Prefix to use when generating new column names.")
     @Effect(type = EffectType.SHOW, predicate = ReplaceColHeader.class)
     String m_unifyHeaderPrefix;

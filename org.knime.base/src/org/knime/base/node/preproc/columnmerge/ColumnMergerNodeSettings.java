@@ -53,7 +53,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.booleanhelpers.AlwaysSaveTrueBoolean;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelStringPersistor;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
@@ -71,7 +70,6 @@ import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
 import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
-import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.ColumnNameValidation;
 
 /**
  *
@@ -81,29 +79,15 @@ import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.Colu
 @SuppressWarnings("restriction")
 public final class ColumnMergerNodeSettings implements NodeParameters {
 
-    @Persistor(PrimaryColumnPersistor.class)
     @Widget(title = "Primary column",
         description = "The column with the value that will be used, unless it is missing.")
     @ChoicesProvider(AllColumnsProvider.class)
     String m_primaryColumn = "";
 
-    static final class PrimaryColumnPersistor extends SettingsModelStringPersistor {
-        PrimaryColumnPersistor() {
-            super("primaryColumn");
-        }
-    }
-
-    @Persistor(SecondaryColumnPersistor.class)
     @Widget(title = "Secondary column", description = "The column with the value that will be used if it is missing "//
         + "in the primary column.")
     @ChoicesProvider(AllColumnsProvider.class)
     String m_secondaryColumn = "";
-
-    static final class SecondaryColumnPersistor extends SettingsModelStringPersistor {
-        SecondaryColumnPersistor() {
-            super("secondaryColumn");
-        }
-    }
 
     @Persistor(OutputPlacementOptionsPersistor.class)
     @Widget(title = "Replace/append columns", description = "Choose where to put the result column:"//
@@ -120,13 +104,6 @@ public final class ColumnMergerNodeSettings implements NodeParameters {
     @ValueReference(OutputPlacement.Ref.class)
     OutputPlacement m_outputPlacement = OutputPlacement.ReplaceBoth;
 
-    static final class OutputNamePersisor extends SettingsModelStringPersistor {
-        OutputNamePersisor() {
-            super("outputName");
-        }
-    }
-
-    @Persistor(OutputNamePersisor.class)
     @Widget(title = "New column name", description = "The name for the new column.")
     @Effect(predicate = OutputPlacement.IsAppendAsNewColumn.class, type = EffectType.SHOW)
     @TextInputWidget(patternValidation = ColumnNameValidationUtils.ColumnNameValidation.class)
