@@ -184,7 +184,7 @@ public final class FilterOperatorsUtil {
      * @return list of deduplicated filter operators for UI display
      */
     public static List<FilterOperator<FilterValueParameters>> getOperators(final DataType dataType) {
-        return deduplicateOperatorsById(getAllColumnOperators(dataType));
+        return getDisplayedOperators(getAllColumnOperators(dataType));
     }
 
     /**
@@ -272,7 +272,7 @@ public final class FilterOperatorsUtil {
      *         occurrence
      */
     private static List<FilterOperator<FilterValueParameters>>
-        deduplicateOperatorsById(final List<FilterOperator<FilterValueParameters>> operators) {
+        getDisplayedOperators(final List<FilterOperator<FilterValueParameters>> operators) {
         final Map<String, Integer> idToIndex = new HashMap<>();
         final List<FilterOperator<FilterValueParameters>> uniqueOperators = new ArrayList<>();
         for (int i = 0; i < operators.size(); i++) {
@@ -288,7 +288,7 @@ public final class FilterOperatorsUtil {
                 idToIndex.put(operator.getId(), nextIndex);
             }
         }
-        return uniqueOperators;
+        return uniqueOperators.stream().filter(Predicate.not(FilterOperator::isDeprecated)).toList();
 
     }
 
