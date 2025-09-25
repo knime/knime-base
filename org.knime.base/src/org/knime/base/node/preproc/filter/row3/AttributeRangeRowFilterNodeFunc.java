@@ -52,6 +52,7 @@ import java.util.ArrayList;
 
 import org.knime.base.node.io.filereader.DataCellFactory;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterOperator;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
@@ -92,10 +93,10 @@ public final class AttributeRangeRowFilterNodeFunc extends AbstractRowFilterNode
 
         var criteria = new ArrayList<FilterCriterion>();
         if (lowerBound != null) {
-            criteria.add(createCriterion(columnSpec, FilterOperator.GTE, lowerBound));
+            criteria.add(createCriterion(columnSpec, LegacyFilterOperator.GTE, lowerBound));
         }
         if (upperBound != null) {
-            criteria.add(createCriterion(columnSpec, FilterOperator.LTE, upperBound));
+            criteria.add(createCriterion(columnSpec, LegacyFilterOperator.LTE, upperBound));
         }
         return criteria.toArray(FilterCriterion[]::new);
     }
@@ -104,7 +105,7 @@ public final class AttributeRangeRowFilterNodeFunc extends AbstractRowFilterNode
         return bound == null || bound.equals("null") || bound.length() == 0;
     }
 
-    private static FilterCriterion createCriterion(final DataColumnSpec columnSpec, final FilterOperator operator,
+    private static FilterCriterion createCriterion(final DataColumnSpec columnSpec, final LegacyFilterOperator operator,
         final String value) {
         var criterion = new FilterCriterion(columnSpec);
         criterion.m_operator = operator;

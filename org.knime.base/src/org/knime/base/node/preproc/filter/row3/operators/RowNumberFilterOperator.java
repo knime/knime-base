@@ -27,7 +27,7 @@
  *  ECLIPSE with only the license terms in place for ECLIPSE applying to
  *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
  *  license terms of ECLIPSE themselves allow for the respective use and
- *  propagation of ECLIPSE together with KNIME.
+ *  propagation of KNIME.
  *
  *  Additional permission relating to nodes for KNIME that extend the Node
  *  Extension (and in particular that are based on subclasses of NodeModel,
@@ -46,29 +46,54 @@
  * History
  *   Sep 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.base.node.preproc.filter.row3.operators;
 
-import java.util.function.Predicate;
+import java.util.function.LongFunction;
+import java.util.function.LongPredicate;
 
-import org.knime.core.data.RowKeyValue;
+import org.knime.base.data.filter.row.v2.FilterPartition;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorDefinition;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
 
 /**
- * Interface for filter operators that can be applied to row keys.
+ * Interface for filter operators that can be applied to row numbers. Supports both efficient slicing (via OffsetFilter)
+ * and predicate-based filtering.
  *
  * @param <T> type of the parameters
  * @author Paul Bärnreuther
  */
-public interface RowKeyFilterOperator<T extends FilterValueParameters> extends FilterOperatorDefinition<T> {
+public interface RowNumberFilterOperator<T extends FilterValueParameters> extends FilterOperatorDefinition<T> {
 
     /**
-     * Creates a predicate that tests RowKeyValue objects.
+     * Creates an efficient slice filter if the operator supports slicing optimization. This is used for performance
+     * optimization when possible.
      *
      * @param params the filter parameters
-     * @return predicate that tests row keys
+     * @return function from table size to filter partition. Not null in case {@link #supportsSlicing()} returns true.
      * @throws InvalidSettingsException if the parameters are invalid
      */
-    Predicate<RowKeyValue> createPredicate(T params) throws InvalidSettingsException;
+    default LongFunction<FilterPartition> createSliceFilter(final T params) throws InvalidSettingsException {
+        return null;
+    }
+
+    /**
+     * Only in case all current operators support slicing, the slice filters are created.
+     *
+     * @return whether {@link #createSliceFilter} will return a non-null filter spec.
+     */
+    default boolean supportsSlicing() {
+        return false;
+    }
+
+    /**
+     * Creates a predicate that tests row numbers (0-based indices). This is the fallback when slicing is not supported
+     * or not applicable.
+     *
+     * @param params the filter parameters
+     * @param optionalTableSize the table size or -1 on validation
+     * @return predicate that tests row numbers
+     * @throws InvalidSettingsException if the parameters are invalid
+     */
+    LongPredicate createPredicate(T params, long optionalTableSize) throws InvalidSettingsException;
 }

@@ -60,7 +60,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
 import org.knime.base.node.preproc.filter.row3.FilterDummyDataCellExtension;
-import org.knime.base.node.preproc.filter.row3.FilterOperator;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterOperator;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
@@ -83,8 +83,8 @@ final class OrderingPredicateFactoryTest {
     static final String TYPE_MISMATCH_EXCEPTION_MESSAGE =
         "Cannot apply ordering comparison to %s of type \"%s\" and reference value of type \"%s\"";
 
-    private static final EnumSet<FilterOperator> getSupported() {
-        return EnumSet.of(FilterOperator.LT, FilterOperator.LTE, FilterOperator.GT, FilterOperator.GTE);
+    private static final EnumSet<LegacyFilterOperator> getSupported() {
+        return EnumSet.of(LegacyFilterOperator.LT, LegacyFilterOperator.LTE, LegacyFilterOperator.GT, LegacyFilterOperator.GTE);
     }
 
     private static final Stream<Arguments> getUnsupportedOperators() {
@@ -98,7 +98,7 @@ final class OrderingPredicateFactoryTest {
     @SuppressWarnings("static-method")
     @ParameterizedTest
     @MethodSource("getSupportedOperators")
-    void testSupportedOperators(final FilterOperator op) {
+    void testSupportedOperators(final LegacyFilterOperator op) {
         assertThat(OrderingPredicateFactory.Ordering.fromOperator(op)) //
             .as("Filter operator %s is supported".formatted(op)) //
             .isPresent();
@@ -107,14 +107,14 @@ final class OrderingPredicateFactoryTest {
     @SuppressWarnings("static-method")
     @ParameterizedTest
     @MethodSource("getUnsupportedOperators")
-    void testUnsupportedOperators(final FilterOperator op) {
+    void testUnsupportedOperators(final LegacyFilterOperator op) {
         assertThat(OrderingPredicateFactory.Ordering.fromOperator(op)) //
             .as("Filter operator %s is not supported".formatted(op)) //
             .isEmpty();
     }
 
     private static IndexedRowReadPredicate createPredicate(final String columnName, final DataCell referenceCell,
-        final FilterOperator operator) throws InvalidSettingsException {
+        final LegacyFilterOperator operator) throws InvalidSettingsException {
         return OrderingPredicateFactory
             .create(EqualityPredicateFactoryTest.SPEC.getColumnSpec(columnName).getType(), operator).orElseThrow()
             .createPredicate(OptionalInt.of(EqualityPredicateFactoryTest.SPEC.findColumnIndex(columnName)),
@@ -124,7 +124,7 @@ final class OrderingPredicateFactoryTest {
     @SuppressWarnings("static-method")
     @ParameterizedTest
     @MethodSource("getSupportedOperators")
-    void testInt(final FilterOperator operator) {
+    void testInt(final LegacyFilterOperator operator) {
 
         // Int column with Int reference
         assertThatCode(() -> createPredicate("Int1", new IntCell(1), operator)) //
@@ -156,7 +156,7 @@ final class OrderingPredicateFactoryTest {
     @SuppressWarnings("static-method")
     @ParameterizedTest
     @MethodSource("getSupportedOperators")
-    void testLong(final FilterOperator operator) {
+    void testLong(final LegacyFilterOperator operator) {
 
         // Long column with Int reference
         assertThatCode(() -> createPredicate("Long1", new IntCell(1), operator)) //
@@ -184,7 +184,7 @@ final class OrderingPredicateFactoryTest {
     @SuppressWarnings("static-method")
     @ParameterizedTest
     @MethodSource("getSupportedOperators")
-    void testDouble(final FilterOperator operator) {
+    void testDouble(final LegacyFilterOperator operator) {
 
         // Double column with Int reference
         assertThatCode(() -> createPredicate("Double1", new IntCell(1), operator)) //
@@ -214,7 +214,7 @@ final class OrderingPredicateFactoryTest {
     @SuppressWarnings("static-method")
     @ParameterizedTest
     @MethodSource("getSupportedOperators")
-    void testDataCell(final FilterOperator operator) {
+    void testDataCell(final LegacyFilterOperator operator) {
         // test with a dummy cell type
         assertThatCode(() -> createPredicate("Dummy1", new FilterDummyDataCellExtension.FilterDummyCell("1"), operator)) //
             .as("Comparing FilterDummyCell column with FilterDummyCell reference via " + operator) //
@@ -231,7 +231,7 @@ final class OrderingPredicateFactoryTest {
     @SuppressWarnings("static-method")
     @ParameterizedTest
     @MethodSource("getSupportedOperators")
-    void testBooleanUnsupported(final FilterOperator operator) {
+    void testBooleanUnsupported(final LegacyFilterOperator operator) {
         // Boolean columns are unsupported
         assertThat(OrderingPredicateFactory
             .create(EqualityPredicateFactoryTest.SPEC.getColumnSpec("Bool1").getType(), operator)) //

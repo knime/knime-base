@@ -54,6 +54,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterOperator;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
@@ -97,12 +98,12 @@ final class FilterCriterionTest {
             criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_ID);
             criterion.m_predicateValues = DynamicValuesInput.forRowID();
 
-            criterion.m_operator = FilterOperator.EQ;
+            criterion.m_operator = LegacyFilterOperator.EQ;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("RowID with default value via EQ") //
                 .doesNotThrowAnyException();
 
-            criterion.m_operator = FilterOperator.NEQ;
+            criterion.m_operator = LegacyFilterOperator.NEQ;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("RowID with default value via NEQ") //
                 .doesNotThrowAnyException();
@@ -121,17 +122,17 @@ final class FilterCriterionTest {
             criterion.m_predicateValues =
                 DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(LongCell.TYPE);
 
-            criterion.m_operator = FilterOperator.EQ;
+            criterion.m_operator = LegacyFilterOperator.EQ;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Long with default value via EQ") //
                 .doesNotThrowAnyException();
 
-            criterion.m_operator = FilterOperator.NEQ;
+            criterion.m_operator = LegacyFilterOperator.NEQ;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Long with default value via NEQ") //
                 .doesNotThrowAnyException();
 
-            criterion.m_operator = FilterOperator.NEQ_MISS;
+            criterion.m_operator = LegacyFilterOperator.NEQ_MISS;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Long with default value via NEQ_MISS") //
                 .doesNotThrowAnyException();
@@ -151,17 +152,17 @@ final class FilterCriterionTest {
             criterion.m_predicateValues =
                 DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(IntCell.TYPE);
 
-            criterion.m_operator = FilterOperator.EQ;
+            criterion.m_operator = LegacyFilterOperator.EQ;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Int with default value via EQ") //
                 .doesNotThrowAnyException();
 
-            criterion.m_operator = FilterOperator.NEQ;
+            criterion.m_operator = LegacyFilterOperator.NEQ;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Int with default value via NEQ") //
                 .doesNotThrowAnyException();
 
-            criterion.m_operator = FilterOperator.NEQ_MISS;
+            criterion.m_operator = LegacyFilterOperator.NEQ_MISS;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Int with default value via NEQ_MISS") //
                 .doesNotThrowAnyException();
@@ -170,15 +171,15 @@ final class FilterCriterionTest {
             criterion.m_predicateValues =
                 DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(LongCell.TYPE);
 
-            criterion.m_operator = FilterOperator.EQ;
+            criterion.m_operator = LegacyFilterOperator.EQ;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Int with default Long value via EQ") //
                 .doesNotThrowAnyException();
-            criterion.m_operator = FilterOperator.NEQ;
+            criterion.m_operator = LegacyFilterOperator.NEQ;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Int with default Long value via NEQ") //
                 .doesNotThrowAnyException();
-            criterion.m_operator = FilterOperator.NEQ_MISS;
+            criterion.m_operator = LegacyFilterOperator.NEQ_MISS;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Int with default Long value via NEQ_MISS") //
                 .doesNotThrowAnyException();
@@ -187,15 +188,15 @@ final class FilterCriterionTest {
             criterion.m_predicateValues =
                 DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(DoubleCell.TYPE);
 
-            criterion.m_operator = FilterOperator.EQ;
+            criterion.m_operator = LegacyFilterOperator.EQ;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Int with default Double value via EQ") //
                 .doesNotThrowAnyException();
-            criterion.m_operator = FilterOperator.NEQ;
+            criterion.m_operator = LegacyFilterOperator.NEQ;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Int with default Double value via NEQ") //
                 .doesNotThrowAnyException();
-            criterion.m_operator = FilterOperator.NEQ_MISS;
+            criterion.m_operator = LegacyFilterOperator.NEQ_MISS;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Int with default Double value via NEQ_MISS") //
                 .doesNotThrowAnyException();
@@ -212,7 +213,7 @@ final class FilterCriterionTest {
             criterion.m_predicateValues = DynamicValuesInput
                 .singleValueWithCaseMatchingForStringWithDefault(FilterDummyDataCellExtension.FilterDummyCell.TYPE);
 
-            criterion.m_operator = FilterOperator.EQ;
+            criterion.m_operator = LegacyFilterOperator.EQ;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Dummy with default value via EQ") //
                 .doesNotThrowAnyException();
@@ -225,17 +226,17 @@ final class FilterCriterionTest {
             criterion.m_column = new StringOrEnum<>("Int1");
             criterion.m_predicateValues =
                 DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(StringCell.TYPE);
-            criterion.m_operator = FilterOperator.EQ;
+            criterion.m_operator = LegacyFilterOperator.EQ;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Int with default value via EQ") //
                 .hasMessageContaining("Cannot compare input column of type \"" + IntCell.TYPE.getName()
                     + "\" with a value of type \"" + StringCell.TYPE.getName() + "\" for equality");
-            criterion.m_operator = FilterOperator.NEQ;
+            criterion.m_operator = LegacyFilterOperator.NEQ;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Int with default value via NEQ") //
                 .hasMessageContaining("Cannot compare input column of type \"" + IntCell.TYPE.getName()
                     + "\" with a value of type \"" + StringCell.TYPE.getName() + "\" for inequality");
-            criterion.m_operator = FilterOperator.NEQ_MISS;
+            criterion.m_operator = LegacyFilterOperator.NEQ_MISS;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Int with default value via NEQ_MISS") //
                 .hasMessageContaining("Cannot compare input column of type \"" + IntCell.TYPE.getName()
@@ -255,19 +256,19 @@ final class FilterCriterionTest {
             criterion.m_predicateValues =
                 DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(StringCell.TYPE);
 
-            criterion.m_operator = FilterOperator.EQ;
+            criterion.m_operator = LegacyFilterOperator.EQ;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Long with default value via EQ") //
                 .hasMessageContaining("Cannot compare input column of type \"" + LongCell.TYPE.getName()
                     + "\" with a value of type \"" + StringCell.TYPE.getName() + "\" for equality");
 
-            criterion.m_operator = FilterOperator.NEQ;
+            criterion.m_operator = LegacyFilterOperator.NEQ;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Long with default value via NEQ") //
                 .hasMessageContaining("Cannot compare input column of type \"" + LongCell.TYPE.getName()
                     + "\" with a value of type \"" + StringCell.TYPE.getName() + "\" for inequality");
 
-            criterion.m_operator = FilterOperator.NEQ_MISS;
+            criterion.m_operator = LegacyFilterOperator.NEQ_MISS;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Long with default value via NEQ_MISS") //
                 .hasMessageContaining("Cannot compare input column of type \"" + LongCell.TYPE.getName()
@@ -287,17 +288,17 @@ final class FilterCriterionTest {
             criterion.m_predicateValues =
                 DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(BooleanCell.TYPE);
 
-            criterion.m_operator = FilterOperator.IS_TRUE;
+            criterion.m_operator = LegacyFilterOperator.IS_TRUE;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Boolean via IS_TRUE") //
                 .doesNotThrowAnyException();
 
-            criterion.m_operator = FilterOperator.IS_FALSE;
+            criterion.m_operator = LegacyFilterOperator.IS_FALSE;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Boolean via IS_FALSE") //
                 .doesNotThrowAnyException();
 
-            criterion.m_operator = FilterOperator.EQ;
+            criterion.m_operator = LegacyFilterOperator.EQ;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Boolean via EQ") //
                 .hasMessage("Unsupported operator for input column type \"" + BooleanCell.TYPE.getName() + "\"");
@@ -310,12 +311,12 @@ final class FilterCriterionTest {
             criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_ID);
             criterion.m_predicateValues = DynamicValuesInput.forRowID();
 
-            criterion.m_operator = FilterOperator.IS_TRUE;
+            criterion.m_operator = LegacyFilterOperator.IS_TRUE;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("RowID cannot be compared with IS_TRUE") //
                 .hasMessage("Unsupported operator \"IS_TRUE\" for RowID comparison");
 
-            criterion.m_operator = FilterOperator.IS_FALSE;
+            criterion.m_operator = LegacyFilterOperator.IS_FALSE;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("RowID cannot be compared with IS_FALSE") //
                 .hasMessage("Unsupported operator \"IS_FALSE\" for RowID comparison");
@@ -331,7 +332,7 @@ final class FilterCriterionTest {
             // we just show the operators only for the ones that implement BoundedValue
             final var criterion = new FilterCriterion();
 
-            criterion.m_operator = FilterOperator.LT;
+            criterion.m_operator = LegacyFilterOperator.LT;
 
             // Row numbers are orderable, but are handled via slicing, so there will be no predicate (factory) for it
             criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_NUMBER);
@@ -375,12 +376,12 @@ final class FilterCriterionTest {
             criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_ID);
             criterion.m_predicateValues = DynamicValuesInput.forRowID();
 
-            criterion.m_operator = FilterOperator.WILDCARD;
+            criterion.m_operator = LegacyFilterOperator.WILDCARD;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("RowID with default value via wildcard") //
                 .doesNotThrowAnyException();
 
-            criterion.m_operator = FilterOperator.REGEX;
+            criterion.m_operator = LegacyFilterOperator.REGEX;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("RowID with default value via regex") //
                 .doesNotThrowAnyException();
@@ -393,12 +394,12 @@ final class FilterCriterionTest {
             criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_NUMBER);
             criterion.m_predicateValues = DynamicValuesInput.forRowNumber(StringCell.TYPE);
 
-            criterion.m_operator = FilterOperator.WILDCARD;
+            criterion.m_operator = LegacyFilterOperator.WILDCARD;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("RowNumber with default value via wildcard") //
                 .doesNotThrowAnyException();
 
-            criterion.m_operator = FilterOperator.REGEX;
+            criterion.m_operator = LegacyFilterOperator.REGEX;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("RowNumber with default value via regex") //
                 .doesNotThrowAnyException();
@@ -414,12 +415,12 @@ final class FilterCriterionTest {
             criterion.m_predicateValues =
                 DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(StringCell.TYPE);
 
-            criterion.m_operator = FilterOperator.WILDCARD;
+            criterion.m_operator = LegacyFilterOperator.WILDCARD;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Long with default value via wildcard") //
                 .doesNotThrowAnyException();
 
-            criterion.m_operator = FilterOperator.REGEX;
+            criterion.m_operator = LegacyFilterOperator.REGEX;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Long with default value via regex") //
                 .doesNotThrowAnyException();
@@ -435,12 +436,12 @@ final class FilterCriterionTest {
             criterion.m_predicateValues =
                 DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(StringCell.TYPE);
 
-            criterion.m_operator = FilterOperator.WILDCARD;
+            criterion.m_operator = LegacyFilterOperator.WILDCARD;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Int with default value via wildcard") //
                 .doesNotThrowAnyException();
 
-            criterion.m_operator = FilterOperator.REGEX;
+            criterion.m_operator = LegacyFilterOperator.REGEX;
             assertThatCode(() -> criterion.toPredicate(SPEC)) //
                 .as("Int with default value via regex") //
                 .doesNotThrowAnyException();
@@ -456,11 +457,11 @@ final class FilterCriterionTest {
             criterion.m_predicateValues =
                 DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(StringCell.TYPE);
 
-            criterion.m_operator = FilterOperator.WILDCARD;
+            criterion.m_operator = LegacyFilterOperator.WILDCARD;
             assertThatCode(() -> criterion.toPredicate(SPEC)).as("String with default value via wildcard") //
                 .doesNotThrowAnyException();
 
-            criterion.m_operator = FilterOperator.REGEX;
+            criterion.m_operator = LegacyFilterOperator.REGEX;
             assertThatCode(() -> criterion.toPredicate(SPEC)).as("String with default value via regex") //
                 .doesNotThrowAnyException();
         }
@@ -475,12 +476,12 @@ final class FilterCriterionTest {
             criterion.m_predicateValues =
                 DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(StringCell.TYPE);
 
-            criterion.m_operator = FilterOperator.WILDCARD;
+            criterion.m_operator = LegacyFilterOperator.WILDCARD;
             assertThatCode(() -> criterion.toPredicate(SPEC)).as("Double with default value via wildcard") //
                 .hasMessageContaining(
                     "Unsupported operator for input column type \"" + DoubleCell.TYPE.getName() + "\"");
 
-            criterion.m_operator = FilterOperator.REGEX;
+            criterion.m_operator = LegacyFilterOperator.REGEX;
             assertThatCode(() -> criterion.toPredicate(SPEC)).as("Double with default value via regex") //
                 .hasMessageContaining(
                     "Unsupported operator for input column type \"" + DoubleCell.TYPE.getName() + "\"");

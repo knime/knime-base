@@ -49,6 +49,7 @@
 package org.knime.base.node.preproc.filter.row3;
 
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterOperator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
@@ -75,7 +76,7 @@ public class RowIDRowFilterNodeFunc extends AbstractRowFilterNodeFunc {
 
         var criterion = new FilterCriterion();
         criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_ID);
-        criterion.m_operator = FilterOperator.REGEX;
+        criterion.m_operator = LegacyFilterOperator.REGEX;
 
         var stringCell = new StringCell.StringCellFactory().createCell(regex);
         criterion.m_predicateValues = DynamicValuesInput.singleValueWithInitialValue(StringCell.TYPE, stringCell);

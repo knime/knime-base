@@ -46,7 +46,7 @@
  * History
  *   Sep 23, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.base.node.preproc.filter.row3.operators;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,6 +61,9 @@ import java.util.stream.Stream;
 import org.knime.base.node.preproc.filter.row3.operators.defaults.DefaultComparableOperators;
 import org.knime.base.node.preproc.filter.row3.operators.defaults.DefaultEqualityOperators;
 import org.knime.base.node.preproc.filter.row3.operators.defaults.FallbackOperatorParameters;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParameters;
+import org.knime.base.node.preproc.filter.row3.operators.missing.IsMissingFilterOperator;
+import org.knime.base.node.preproc.filter.row3.operators.missing.IsNotMissingFilterOperator;
 import org.knime.base.node.preproc.filter.row3.operators.pattern.PatternFilterUtils;
 import org.knime.base.node.preproc.filter.row3.operators.pattern.RegexPatternFilterOperator;
 import org.knime.base.node.preproc.filter.row3.operators.pattern.RowKeyRegexPatternFilterOperator;
@@ -68,11 +71,13 @@ import org.knime.base.node.preproc.filter.row3.operators.pattern.RowKeyWildcardP
 import org.knime.base.node.preproc.filter.row3.operators.pattern.RowNumberRegexPatternFilterOperator;
 import org.knime.base.node.preproc.filter.row3.operators.pattern.RowNumberWildcardPatternFilterOperator;
 import org.knime.base.node.preproc.filter.row3.operators.pattern.WildcardPatternFilterOperator;
+import org.knime.core.data.BoundedValue;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorsRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.TypeMappingUtils;
 
 /**
  * Utility class that extends the FilterOperatorsRegistry functionality by adding predicate-based operators (like
@@ -115,37 +120,27 @@ public final class FilterOperatorsUtil {
         new OperatorGroup() {
             @Override
             public List<FilterOperator<? extends FilterValueParameters>> getOperators(final DataType dataType) {
-                // TODO provide only non-registered defaults
                 return DefaultEqualityOperators.getOperators(dataType);
             }
 
             @Override
             public boolean isApplicable(final DataType dataType) {
-                // Only provide default equality operators if no registry operators exist for this data type
-                final var registryOperators = FilterOperatorsRegistry.getInstance().getOperators(dataType);
-                final boolean hasRegistryEqualityOperators = registryOperators.stream().anyMatch(
-                    op -> "EQ".equals(op.getId()) || "NEQ".equals(op.getId()) || "NEQ_MISS".equals(op.getId()));
-                return !hasRegistryEqualityOperators;
+                return TypeMappingUtils.supportsDataType(dataType);
             }
         },
         // Default comparable (fallback)
         new OperatorGroup() {
             @Override
             public List<FilterOperator<? extends FilterValueParameters>> getOperators(final DataType dataType) {
-             // TODO provide only non-registered defaults
                 return DefaultComparableOperators.getOperators(dataType);
             }
 
             @Override
             public boolean isApplicable(final DataType dataType) {
-                // Only provide default comparable operators if no registry operators exist for this data type
-                final var registryOperators = FilterOperatorsRegistry.getInstance().getOperators(dataType);
-                final boolean hasRegistryComparableOperators =
-                    registryOperators.stream().anyMatch(op -> "LT".equals(op.getId()) || "LTE".equals(op.getId())
-                        || "GT".equals(op.getId()) || "GTE".equals(op.getId()));
-                return !hasRegistryComparableOperators && DefaultComparableOperators.isSupported(dataType);
+                return TypeMappingUtils.supportsDataType(dataType) && dataType.isCompatible(BoundedValue.class);
             }
-        }, //
+        },
+        //
         // Pattern matching
         new OperatorGroup() {
             @Override
@@ -157,9 +152,9 @@ public final class FilterOperatorsUtil {
             public boolean isApplicable(final DataType dataType) {
                 return PatternFilterUtils.isSupported(dataType);
             }
-        }//, //
-         // Missing
-         //dataType -> List.of(IsMissingFilterOperator.INSTANCE, IsNotMissingFilterOperator.INSTANCE)//
+        }, //
+        // Missing
+        dataType -> List.of(IsMissingFilterOperator.INSTANCE, IsNotMissingFilterOperator.INSTANCE)//
     );
 
     /**
@@ -175,7 +170,10 @@ public final class FilterOperatorsUtil {
      * Default operators available for row number filtering.
      */
     private static final List<RowNumberFilterOperator<? extends FilterValueParameters>> DEFAULT_ROW_NUMBER_OPERATORS =
-        List.of(new RowNumberRegexPatternFilterOperator(), new RowNumberWildcardPatternFilterOperator());
+        List.of(//
+            new RowNumberRegexPatternFilterOperator(), //
+            new RowNumberWildcardPatternFilterOperator() //
+        );
 
     /**
      * Gets all filter operators for the given data type, including both exact-match operators from the registry and
@@ -212,7 +210,7 @@ public final class FilterOperatorsUtil {
      * registry operators and pattern operators both providing "REGEX"), so we use the parameter class to disambiguate
      * and find the exact operator that was used when the workflow was saved.
      */
-    static Optional<FilterOperator<FilterValueParameters>> findMatchingColumnOperator(final DataType columnType,
+    public static Optional<FilterOperator<FilterValueParameters>> findMatchingColumnOperator(final DataType columnType,
         final String operatorId, final FilterValueParameters parameters) {
         final var allAvailableOperators = getAllColumnOperators(columnType);
         final var parameterClass = parameters == null ? null : parameters.getClass();
@@ -242,15 +240,15 @@ public final class FilterOperatorsUtil {
         return Stream.concat(registryClasses.stream(), defaultClasses).distinct().filter(Objects::nonNull).toList();
     }
 
-    static List<RowNumberFilterOperator<? extends FilterValueParameters>> getRowNumberOperators() {
+    public static List<RowNumberFilterOperator<? extends FilterValueParameters>> getRowNumberOperators() {
         return DEFAULT_ROW_NUMBER_OPERATORS;
     }
 
-    static List<RowKeyFilterOperator<? extends FilterValueParameters>> getRowKeyOperators() {
+    public static List<RowKeyFilterOperator<? extends FilterValueParameters>> getRowKeyOperators() {
         return DEFAULT_ROW_KEY_OPERATORS;
     }
 
-    static Optional<RowNumberFilterOperator<? extends FilterValueParameters>>
+    public static Optional<RowNumberFilterOperator<? extends FilterValueParameters>>
         findMatchingRowNumberOperator(final String operatorId) {
         return DEFAULT_ROW_NUMBER_OPERATORS.stream() //
             .filter(op -> op.getId().equals(operatorId)) //

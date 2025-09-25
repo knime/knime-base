@@ -46,7 +46,7 @@
  * History
  *   Sep 8, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.base.node.preproc.filter.row3.operators;
 
 import org.knime.core.data.DataValue;
 import org.knime.core.data.StringValue;

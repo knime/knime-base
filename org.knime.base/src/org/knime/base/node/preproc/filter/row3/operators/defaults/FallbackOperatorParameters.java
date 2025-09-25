@@ -52,11 +52,11 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.StringValue;
-import org.knime.core.data.convert.datacell.JavaToDataCellConverterRegistry;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.TypeMappingUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.TypeMappingUtils.ConverterException;
 import org.knime.node.parameters.Widget;
 
 /**
@@ -70,18 +70,10 @@ public class FallbackOperatorParameters implements FilterValueParameters {
     String m_value = "";
 
     DataCell createCellAs(final DataType dataType) throws InvalidSettingsException { //
-        // Try to find a converter from String to the target data type
-        final var registry = JavaToDataCellConverterRegistry.getInstance();
-        final var factory = registry.getConverterFactories(String.class, dataType).stream().findFirst()
-            .orElseThrow(() -> new InvalidSettingsException(
-                "Cannot convert String to \"%s\", because no converter is available.".formatted(dataType.getName())));
         try {
-            final var converter = factory.create((ExecutionContext)null);
-            return converter.convert(m_value);
-        } catch (Exception e) { // NOSONAR unfortunately, this is what #convert annotates...
-            final var cause = e.getCause();
-            throw new InvalidSettingsException(
-                "Value \"%s\" cannot be parsed to \"%s\"".formatted(m_value, dataType.getName()), cause);
+            return TypeMappingUtils.readDataCellFromString(dataType, m_value);
+        } catch (ConverterException e) {
+            throw new InvalidSettingsException(e);
         }
     }
 
@@ -102,7 +94,11 @@ public class FallbackOperatorParameters implements FilterValueParameters {
         if (first instanceof StringValue str) {
             m_value = str.getStringValue();
         }
-        // TODO try typemapping
+        try {
+            m_value = TypeMappingUtils.getStringFromDataCell(first.materializeDataCell());
+        } catch (ConverterException e) { // NOSONAR
+            // ignore, keep original string
+        }
 
     }
 }

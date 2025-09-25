@@ -58,7 +58,13 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
-import org.knime.base.node.preproc.filter.row3.StringValueParameters.EqualsStringParameters;
+import org.knime.base.node.preproc.filter.row3.operators.FilterOperatorsUtil;
+import org.knime.base.node.preproc.filter.row3.operators.RowKeyFilterOperator;
+import org.knime.base.node.preproc.filter.row3.operators.RowNumberFilterOperator;
+import org.knime.base.node.preproc.filter.row3.operators.RowNumberFilterSpec;
+import org.knime.base.node.preproc.filter.row3.operators.StringValueParameters.EqualsStringParameters;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParameters;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParametersMigration;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
@@ -342,7 +348,7 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
                 && FilterOperatorsUtil.findMatchingRowNumberOperator(m_operator)
                     .map(RowNumberFilterOperator::supportsSlicing).orElse(false);
             if (isSlicingOperator) {
-                RowNumberFilterSpec.toFilterSpec(this);
+                RowNumberFilterSpec.toFilterSpec(m_operator, m_filterValueParameters);
                 return;
             }
 
@@ -592,22 +598,6 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
                         only on the rows output by the node.
                             """)
             COMPUTE;
-    }
-
-    /**
-     * Mode to determine which set of rows is output at the first output port (and second in case of a splitter).
-     */
-    enum FilterMode {
-            /**
-             * Include matching rows at the first port.
-             */
-            @Label("Output matching rows")
-            MATCHING, //
-            /**
-             * Exclude matching rows from the first port.
-             */
-            @Label("Output non-matching rows")
-            NON_MATCHING
     }
 
     /**

@@ -46,11 +46,13 @@
  * History
  *   Sep 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.base.node.preproc.filter.row3.operators.legacy;
 
 import java.util.OptionalInt;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
+import org.knime.base.node.preproc.filter.row3.RowIdentifiers;
+import org.knime.base.node.preproc.filter.row3.operators.RowNumberFilterSpec;
 import org.knime.base.node.preproc.filter.row3.predicates.PredicateFactories;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
@@ -58,6 +60,7 @@ import org.knime.core.data.LongValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 
@@ -67,7 +70,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.St
  */
 public class LegacyFilterParameters implements FilterValueParameters {
 
-    FilterOperator m_operator;
+    LegacyFilterOperator m_operator;
 
     DynamicValuesInput m_predicateValues;
 
@@ -123,7 +126,7 @@ public class LegacyFilterParameters implements FilterValueParameters {
      * @return row number filter specification
      * @throws InvalidSettingsException if the filter criterion contains an unsupported operator or the value is missing
      */
-    RowNumberFilterSpec toFilterSpec() throws InvalidSettingsException {
+    public RowNumberFilterSpec toFilterSpec() throws InvalidSettingsException {
         final var value = (m_predicateValues.getCellAt(0)//
             .filter(cell -> !cell.isMissing())//
             .map(LongValue.class::cast)//

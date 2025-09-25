@@ -54,7 +54,7 @@ import java.util.function.BiPredicate;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
 import org.knime.base.data.filter.row.v2.OffsetFilter;
-import org.knime.base.node.preproc.filter.row3.FilterOperator;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterOperator;
 import org.knime.core.data.BooleanValue;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
@@ -81,7 +81,7 @@ abstract class OrderingPredicateFactory extends AbstractPredicateFactory {
     enum Ordering {
             LT, LTE, GT, GTE;
 
-        static Optional<Ordering> fromOperator(final FilterOperator operator) {
+        static Optional<Ordering> fromOperator(final LegacyFilterOperator operator) {
             return Optional.ofNullable(switch (operator) {
                 case LT -> Ordering.LT;
                 case LTE -> Ordering.LTE;
@@ -127,7 +127,7 @@ abstract class OrderingPredicateFactory extends AbstractPredicateFactory {
      * @param operator filter operator to use
      * @return factory for predicates applying the given operator
      */
-    static Optional<PredicateFactory> create(final DataType columnDataType, final FilterOperator operator) {
+    static Optional<PredicateFactory> create(final DataType columnDataType, final LegacyFilterOperator operator) {
         return Ordering.fromOperator(operator).flatMap(ordering -> mapToFactory(columnDataType, ordering));
     }
 

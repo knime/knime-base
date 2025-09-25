@@ -61,6 +61,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.TypeBasedOperatorsProvider;
+import org.knime.base.node.preproc.filter.row3.operators.RowNumberFilterSpec;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterOperator;
 import org.knime.base.node.preproc.filter.row3.predicates.PredicateFactories;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
@@ -103,52 +105,52 @@ final class FilterOperatorTest {
     void testOperatorChoices() {
         assertThat(operatorChoicesFor("String1")).as("The list of operators for a string column is what is expected")
             .containsExactlyInAnyOrder( //
-                FilterOperator.IS_MISSING, //
-                FilterOperator.IS_NOT_MISSING, //
-                FilterOperator.EQ, //
-                FilterOperator.NEQ, //
-                FilterOperator.NEQ_MISS, //
-                FilterOperator.REGEX, //
-                FilterOperator.WILDCARD //
+                LegacyFilterOperator.IS_MISSING, //
+                LegacyFilterOperator.IS_NOT_MISSING, //
+                LegacyFilterOperator.EQ, //
+                LegacyFilterOperator.NEQ, //
+                LegacyFilterOperator.NEQ_MISS, //
+                LegacyFilterOperator.REGEX, //
+                LegacyFilterOperator.WILDCARD //
             );
         assertThat(operatorChoicesFor("Int1")).as("The list of operators for an integer column is what is expected")
             .containsExactlyInAnyOrder( //
-                FilterOperator.IS_MISSING, //
-                FilterOperator.IS_NOT_MISSING, //
-                FilterOperator.EQ, //
-                FilterOperator.NEQ, //
-                FilterOperator.NEQ_MISS, //
-                FilterOperator.GT, //
-                FilterOperator.GTE, //
-                FilterOperator.LT, //
-                FilterOperator.LTE, //
-                FilterOperator.WILDCARD, //
-                FilterOperator.REGEX //
+                LegacyFilterOperator.IS_MISSING, //
+                LegacyFilterOperator.IS_NOT_MISSING, //
+                LegacyFilterOperator.EQ, //
+                LegacyFilterOperator.NEQ, //
+                LegacyFilterOperator.NEQ_MISS, //
+                LegacyFilterOperator.GT, //
+                LegacyFilterOperator.GTE, //
+                LegacyFilterOperator.LT, //
+                LegacyFilterOperator.LTE, //
+                LegacyFilterOperator.WILDCARD, //
+                LegacyFilterOperator.REGEX //
             );
         assertThat(operatorChoicesFor("Long1")).as("The list of operators for int cells is the same as for long cells")
             .isEqualTo(operatorChoicesFor("Int1"));
         assertThat(operatorChoicesFor("Double1")).as("The list of operators for a double column is what is expected")
             .containsExactlyInAnyOrder( //
-                FilterOperator.IS_MISSING, //
-                FilterOperator.IS_NOT_MISSING, //
-                FilterOperator.EQ, //
-                FilterOperator.NEQ, //
-                FilterOperator.NEQ_MISS, //
-                FilterOperator.GT, //
-                FilterOperator.GTE, //
-                FilterOperator.LT, //
-                FilterOperator.LTE);
+                LegacyFilterOperator.IS_MISSING, //
+                LegacyFilterOperator.IS_NOT_MISSING, //
+                LegacyFilterOperator.EQ, //
+                LegacyFilterOperator.NEQ, //
+                LegacyFilterOperator.NEQ_MISS, //
+                LegacyFilterOperator.GT, //
+                LegacyFilterOperator.GTE, //
+                LegacyFilterOperator.LT, //
+                LegacyFilterOperator.LTE);
         assertThat(operatorChoicesFor("Bool1")).as("The list of operators for a boolean column is what is expected")
             .containsExactlyInAnyOrder( //
-                FilterOperator.IS_MISSING, //
-                FilterOperator.IS_NOT_MISSING, //
-                FilterOperator.IS_TRUE, //
-                FilterOperator.IS_FALSE //
+                LegacyFilterOperator.IS_MISSING, //
+                LegacyFilterOperator.IS_NOT_MISSING, //
+                LegacyFilterOperator.IS_TRUE, //
+                LegacyFilterOperator.IS_FALSE //
             );
         assertThat(operatorChoicesFor("Unknown Column"))
             .as("The list of operators for an unknown column type is what is expected").containsExactlyInAnyOrder( //
-                FilterOperator.IS_MISSING, //
-                FilterOperator.IS_NOT_MISSING //
+                LegacyFilterOperator.IS_MISSING, //
+                LegacyFilterOperator.IS_NOT_MISSING //
             );
     }
 
@@ -156,35 +158,35 @@ final class FilterOperatorTest {
     void testOperatorChoicesForSpecialColumns() {
         assertThat(operatorChoicesFor(RowIdentifiers.ROW_NUMBER))
             .as("The list of operators for the row numbers is what is expected").containsExactlyInAnyOrder( //
-                FilterOperator.EQ, //
-                FilterOperator.NEQ, //
-                FilterOperator.GT, //
-                FilterOperator.GTE, //
-                FilterOperator.LT, //
-                FilterOperator.LTE, //
-                FilterOperator.LAST_N_ROWS, //
-                FilterOperator.FIRST_N_ROWS, //
-                FilterOperator.WILDCARD, //
-                FilterOperator.REGEX //
+                LegacyFilterOperator.EQ, //
+                LegacyFilterOperator.NEQ, //
+                LegacyFilterOperator.GT, //
+                LegacyFilterOperator.GTE, //
+                LegacyFilterOperator.LT, //
+                LegacyFilterOperator.LTE, //
+                LegacyFilterOperator.LAST_N_ROWS, //
+                LegacyFilterOperator.FIRST_N_ROWS, //
+                LegacyFilterOperator.WILDCARD, //
+                LegacyFilterOperator.REGEX //
             );
         assertThat(operatorChoicesFor(RowIdentifiers.ROW_ID))
             .as("The list of operators for the row id column is what is expected").containsExactlyInAnyOrder( //
-                FilterOperator.EQ, //
-                FilterOperator.NEQ, //
-                FilterOperator.REGEX, //
-                FilterOperator.WILDCARD //
+                LegacyFilterOperator.EQ, //
+                LegacyFilterOperator.NEQ, //
+                LegacyFilterOperator.REGEX, //
+                LegacyFilterOperator.WILDCARD //
             );
     }
 
-    static FilterOperator[] operatorChoicesFor(final String col) {
+    static LegacyFilterOperator[] operatorChoicesFor(final String col) {
         return operatorChoicesFor(new StringOrEnum<>(col));
     }
 
-    static FilterOperator[] operatorChoicesFor(final RowIdentifiers col) {
+    static LegacyFilterOperator[] operatorChoicesFor(final RowIdentifiers col) {
         return operatorChoicesFor(new StringOrEnum<>(col));
     }
 
-    static FilterOperator[] operatorChoicesFor(final StringOrEnum<RowIdentifiers> columnSelection) {
+    static LegacyFilterOperator[] operatorChoicesFor(final StringOrEnum<RowIdentifiers> columnSelection) {
         final var ctx = NodeParametersUtil.createDefaultNodeSettingsContext(new DataTableSpec[]{SPEC});
 
         final var provider = new TypeBasedOperatorsProvider();
@@ -206,7 +208,7 @@ final class FilterOperatorTest {
 
         });
 
-        return provider.choices(ctx).toArray(FilterOperator[]::new);
+        return provider.choices(ctx).toArray(LegacyFilterOperator[]::new);
     }
 
     static class TestInitializer implements StateProvider.StateProviderInitializer {
@@ -254,14 +256,14 @@ final class FilterOperatorTest {
 
     @ParameterizedTest
     @EnumSource(names = {"IS_MISSING", "IS_NOT_MISSING", "FIRST_N_ROWS", "LAST_N_ROWS"})
-    void testOperatorsWithoutPredicateFactory(final FilterOperator operator) {
+    void testOperatorsWithoutPredicateFactory(final LegacyFilterOperator operator) {
         assertThat(PredicateFactories.getValuePredicateFactory(operator, null))
             .as("Operator %s has no value predicate factory".formatted(operator)).isEmpty();
     }
 
     private abstract static class BaseTester {
 
-        abstract Stream<FilterOperator> getOperators();
+        abstract Stream<LegacyFilterOperator> getOperators();
 
         final boolean test(final RowIdentifiers specialColumn, final DataType type) {
             // tests that the operator is not hidden and can be applied (i.e. has a predicate factory)
@@ -273,8 +275,8 @@ final class FilterOperatorTest {
 
     private static final class PatternMatchable extends BaseTester {
         @Override
-        Stream<FilterOperator> getOperators() {
-            return Stream.of(FilterOperator.REGEX, FilterOperator.WILDCARD);
+        Stream<LegacyFilterOperator> getOperators() {
+            return Stream.of(LegacyFilterOperator.REGEX, LegacyFilterOperator.WILDCARD);
         }
     }
 
@@ -299,8 +301,8 @@ final class FilterOperatorTest {
 
     private static final class IsEq extends BaseTester {
         @Override
-        Stream<FilterOperator> getOperators() {
-            return Stream.of(FilterOperator.EQ, FilterOperator.NEQ);
+        Stream<LegacyFilterOperator> getOperators() {
+            return Stream.of(LegacyFilterOperator.EQ, LegacyFilterOperator.NEQ);
         }
     }
 
@@ -327,8 +329,8 @@ final class FilterOperatorTest {
     private static final class IsTruthy extends BaseTester {
 
         @Override
-        Stream<FilterOperator> getOperators() {
-            return Stream.of(FilterOperator.IS_TRUE, FilterOperator.IS_FALSE);
+        Stream<LegacyFilterOperator> getOperators() {
+            return Stream.of(LegacyFilterOperator.IS_TRUE, LegacyFilterOperator.IS_FALSE);
         }
     }
 
@@ -352,14 +354,14 @@ final class FilterOperatorTest {
 
     private static final class IsRowNumber extends BaseTester {
 
-        private static final FilterOperator[] SLICED_OPS =
-            {FilterOperator.EQ, FilterOperator.NEQ, FilterOperator.GT, FilterOperator.GTE, FilterOperator.LT,
-                FilterOperator.LTE, FilterOperator.FIRST_N_ROWS, FilterOperator.LAST_N_ROWS};
+        private static final LegacyFilterOperator[] SLICED_OPS =
+            {LegacyFilterOperator.EQ, LegacyFilterOperator.NEQ, LegacyFilterOperator.GT, LegacyFilterOperator.GTE, LegacyFilterOperator.LT,
+                LegacyFilterOperator.LTE, LegacyFilterOperator.FIRST_N_ROWS, LegacyFilterOperator.LAST_N_ROWS};
 
-        private static final FilterOperator[] VALUE_OPS = {FilterOperator.WILDCARD, FilterOperator.REGEX};
+        private static final LegacyFilterOperator[] VALUE_OPS = {LegacyFilterOperator.WILDCARD, LegacyFilterOperator.REGEX};
 
         @Override
-        Stream<FilterOperator> getOperators() {
+        Stream<LegacyFilterOperator> getOperators() {
             return Stream.concat(Arrays.stream(SLICED_OPS), Arrays.stream(VALUE_OPS));
         }
 
@@ -397,8 +399,8 @@ final class FilterOperatorTest {
     private static final class IsOrd extends BaseTester {
 
         @Override
-        Stream<FilterOperator> getOperators() {
-            return Stream.of(FilterOperator.GT, FilterOperator.GTE, FilterOperator.LT, FilterOperator.LTE);
+        Stream<LegacyFilterOperator> getOperators() {
+            return Stream.of(LegacyFilterOperator.GT, LegacyFilterOperator.GTE, LegacyFilterOperator.LT, LegacyFilterOperator.LTE);
         }
 
     }
@@ -421,8 +423,8 @@ final class FilterOperatorTest {
 
     private static final class CanBeMissing extends BaseTester {
         @Override
-        Stream<FilterOperator> getOperators() {
-            return Stream.of(FilterOperator.IS_MISSING, FilterOperator.IS_NOT_MISSING);
+        Stream<LegacyFilterOperator> getOperators() {
+            return Stream.of(LegacyFilterOperator.IS_MISSING, LegacyFilterOperator.IS_NOT_MISSING);
         }
     }
 
@@ -445,8 +447,8 @@ final class FilterOperatorTest {
 
     private static final class IsNeqMiss extends BaseTester {
         @Override
-        Stream<FilterOperator> getOperators() {
-            return Stream.of(FilterOperator.NEQ_MISS);
+        Stream<LegacyFilterOperator> getOperators() {
+            return Stream.of(LegacyFilterOperator.NEQ_MISS);
         }
     }
 
