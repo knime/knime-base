@@ -48,8 +48,10 @@
  */
 package org.knime.base.node.preproc.filter.row3;
 
-import java.util.LinkedHashMap;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
@@ -167,7 +169,7 @@ public final class FilterOperatorsUtil {
         final var defaultOperators = DEFAULT_COLUMN_OPERATOR_GROUPS.stream()
             .filter(group -> group.isApplicable(dataType)).flatMap(group -> group.getOperators().stream());
 
-        return Stream.concat(registryOperators.stream(), defaultOperators)
+        return Stream.concat(defaultOperators, registryOperators.stream())
             .map(c -> (FilterOperator<FilterValueParameters>)c).toList();
     }
 
@@ -229,18 +231,33 @@ public final class FilterOperatorsUtil {
     }
 
     /**
-     * Deduplicates operators by ID, preferring the first occurrence (registry operators come first).
+     * Deduplicates operators by ID. The incoming operators first list the internal default operators and then the ones
+     * from the registry. We keep the order but remove duplicates by ID by using the latter but keeping the position of
+     * the former if two IDs are the same. E.g. for input [A (1), B (2), A (3), C (4)] we return [A (3), B (2), C (4)].
      *
      * @param operators list of operators potentially containing duplicates
-     * @return deduplicated list of operators
+     * @return deduplicated list of operators where the last occurrence of each ID is kept at the position of the first
+     *         occurrence
      */
     private static List<FilterOperator<FilterValueParameters>>
         deduplicateOperatorsById(final List<FilterOperator<FilterValueParameters>> operators) {
-        final var seen = new LinkedHashMap<String, FilterOperator<FilterValueParameters>>();
-        for (final var operator : operators) {
-            seen.putIfAbsent(operator.getId(), operator);
+        final Map<String, Integer> idToIndex = new HashMap<>();
+        final List<FilterOperator<FilterValueParameters>> uniqueOperators = new ArrayList<>();
+        for (int i = 0; i < operators.size(); i++) {
+            final var operator = operators.get(i);
+            if (idToIndex.containsKey(operator.getId())) {
+                // replace existing operator with the new one, keep position
+                final var existingIndex = idToIndex.get(operator.getId());
+                uniqueOperators.set(existingIndex, operator);
+            } else {
+                // new operator, add at the end
+                final var nextIndex = uniqueOperators.size();
+                uniqueOperators.add(operator);
+                idToIndex.put(operator.getId(), nextIndex);
+            }
         }
-        return List.copyOf(seen.values());
+        return uniqueOperators;
+
     }
 
 }
