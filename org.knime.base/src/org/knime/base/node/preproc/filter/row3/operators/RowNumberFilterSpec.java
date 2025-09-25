@@ -72,7 +72,7 @@ public final class RowNumberFilterSpec {
 
     private final long m_value;
 
-    RowNumberFilterSpec(final LegacyFilterOperator operator, final long value) throws InvalidSettingsException {
+    public RowNumberFilterSpec(final LegacyFilterOperator operator, final long value) throws InvalidSettingsException {
         CheckUtils.checkSetting(supportsOperator(operator), "Cannot use operator \"%s\" to filter by row number",
             operator);
         m_operator = operator;

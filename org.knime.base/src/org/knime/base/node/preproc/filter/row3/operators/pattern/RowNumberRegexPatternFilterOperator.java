@@ -60,7 +60,23 @@ import org.knime.core.node.InvalidSettingsException;
  *
  * @author Paul Bärnreuther
  */
-public class RowNumberRegexPatternFilterOperator implements RowNumberFilterOperator<RowNumberPatternFilterParameters> {
+public final class RowNumberRegexPatternFilterOperator
+    implements RowNumberFilterOperator<RowNumberPatternFilterParameters> {
+
+    private static final RowNumberRegexPatternFilterOperator INSTANCE = new RowNumberRegexPatternFilterOperator();
+
+    /**
+     * Get the singleton instance for this operator.
+     *
+     * @return the instance
+     */
+    public static RowNumberRegexPatternFilterOperator getInstance() {
+        return INSTANCE;
+    }
+
+    private RowNumberRegexPatternFilterOperator() {
+        // singleton
+    }
 
     @Override
     public String getId() {

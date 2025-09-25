@@ -62,7 +62,7 @@ import org.knime.base.node.preproc.filter.row3.operators.FilterOperatorsUtil;
 import org.knime.base.node.preproc.filter.row3.operators.RowKeyFilterOperator;
 import org.knime.base.node.preproc.filter.row3.operators.RowNumberFilterOperator;
 import org.knime.base.node.preproc.filter.row3.operators.RowNumberFilterSpec;
-import org.knime.base.node.preproc.filter.row3.operators.StringValueParameters.EqualsStringParameters;
+import org.knime.base.node.preproc.filter.row3.operators.defaults.StringEqualsParameters;
 import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParameters;
 import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParametersMigration;
 import org.knime.core.data.DataColumnSpec;
@@ -311,7 +311,7 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
                 // we don't know how RowIDs look in general, since they can be user-defined, hence we just put
                 // a placeholder here that is not null
                 final var defaulRowKeyValue = getFirstRowKey(ctx).map(RowKey::getString).orElse("");
-                m_filterValueParameters = new EqualsStringParameters(defaulRowKeyValue);
+                m_filterValueParameters = new StringEqualsParameters(defaulRowKeyValue);
                 return;
             }
             m_column = new StringOrEnum<>(lastColumn.getName());
