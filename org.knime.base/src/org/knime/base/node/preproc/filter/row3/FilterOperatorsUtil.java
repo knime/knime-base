@@ -110,7 +110,10 @@ public final class FilterOperatorsUtil {
     private static final List<OperatorGroup> DEFAULT_COLUMN_OPERATOR_GROUPS = List.of(new OperatorGroup() {
         @Override
         public List<FilterOperator<? extends FilterValueParameters>> getOperators() {
-            return List.of(new RegexPatternFilterOperator(), new WildcardPatternFilterOperator());
+            return List.of(//
+                new RegexPatternFilterOperator(), //
+                new WildcardPatternFilterOperator()//
+            );
         }
 
         @Override
@@ -200,7 +203,7 @@ public final class FilterOperatorsUtil {
             Stream.of(LegacyFilterParameters.class)//
         ).flatMap(Function.identity());
 
-        return Stream.concat(registryClasses.stream(), defaultClasses).distinct().toList();
+        return Stream.concat(registryClasses.stream(), defaultClasses).distinct().filter(Objects::nonNull).toList();
     }
 
     static List<RowNumberFilterOperator<? extends FilterValueParameters>> getRowNumberOperators() {
