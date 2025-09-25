@@ -48,15 +48,29 @@
  */
 package org.knime.base.node.preproc.filter.row3;
 
+import java.util.ArrayList;
+
+import org.knime.base.node.io.filereader.DataCellFactory;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
+import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion.FilterValueParametersProvider;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterOperator;
+import org.knime.base.node.preproc.filter.row3.operators.missing.IsMissingFilterOperator;
+import org.knime.base.node.preproc.filter.row3.operators.pattern.PatternFilterParameters;
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.DoubleValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.func.NodeFunc;
 import org.knime.core.node.func.NodeFuncApi;
+import org.knime.core.node.func.NodeFuncApi.Builder;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.CoreFilterValueParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 
 /**
  *
@@ -64,7 +78,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
  *
  * @author Alexander Jauch-Walser, KNIME GmbH, Konstanz, Germany
  */
-abstract class AbstractRowFilterNodeFunc implements NodeFunc {
+abstract class RowFilterNodeFunc implements NodeFunc {
 
     // Whether to include or exclude the rows
     static final String INCLUDE = "include";
@@ -116,5 +130,290 @@ abstract class AbstractRowFilterNodeFunc implements NodeFunc {
     abstract void extendApi(final NodeFuncApi.Builder builder);
 
     abstract String getName();
+
+    /**
+     *
+     * Filters rows based on a regex on a specified column
+     *
+     * @author Alexander Jauch-Walser, KNIME GmbH, Konstanz, Germany
+     */
+    @SuppressWarnings("restriction")
+    private static class AttributePatternRowFilterNodeFunc extends RowFilterNodeFunc {
+
+        private static final String REGEX = "regex";
+
+        @Override
+        FilterCriterion[] getFilterCriteria(final NodeSettingsRO arguments, final DataTableSpec tableSpec)
+            throws InvalidSettingsException {
+            var column = arguments.getString(COLUMN);
+            var regex = arguments.getString(REGEX);
+
+            var criterion = new FilterCriterion();
+            criterion.m_column = new StringOrEnum<>(column);
+            criterion.m_operator = "REGEX";
+
+            criterion.m_filterValueParameters = new PatternFilterParameters(regex);
+
+            return new FilterCriterion[]{criterion};
+        }
+
+        @Override
+        void extendApi(final Builder builder) {
+            builder
+                .withDescription(
+                    "Creates a new table that contains only rows that match the given regex for a given column.")
+                .withStringArgument(COLUMN, "The column on which to filter.")
+                .withStringArgument(REGEX, "Regular expression that is used to match the RowIDs of the input table.");
+        }
+
+        @Override
+        String getName() {
+            return "filter_rows_by_regex";
+        }
+
+    }
+
+    /**
+     * Filters by applying a range filter to a numerical column.
+     *
+     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+     */
+    public final class AttributeRangeRowFilterNodeFunc extends RowFilterNodeFunc {
+
+        private static final String UPPER_BOUND = "upper_bound";
+
+        private static final String LOWER_BOUND = "lower_bound";
+
+        @Override
+        FilterCriterion[] getFilterCriteria(final NodeSettingsRO arguments, final DataTableSpec tableSpec)
+            throws InvalidSettingsException {
+            var lowerBound = arguments.getString(LOWER_BOUND, null);
+            var upperBound = arguments.getString(UPPER_BOUND, null);
+            var columnSpec = tableSpec.getColumnSpec(arguments.getString(COLUMN));
+
+            // TODO: this should be fixed on the framework side and not in here
+            if (columnSpec.getType().isCompatible(DoubleValue.class)) {
+                if (isNotPresent(lowerBound)) {
+                    lowerBound = null;
+                }
+                if (isNotPresent(upperBound)) {
+                    upperBound = null;
+                }
+            }
+
+            var criteria = new ArrayList<FilterCriterion>();
+            if (lowerBound != null) {
+                criteria.add(createCriterion(columnSpec, LegacyFilterOperator.GTE, lowerBound));
+            }
+            if (upperBound != null) {
+                criteria.add(createCriterion(columnSpec, LegacyFilterOperator.LTE, upperBound));
+            }
+            return criteria.toArray(FilterCriterion[]::new);
+        }
+
+        private static boolean isNotPresent(final String bound) {
+            return bound == null || bound.equals("null") || bound.length() == 0;
+        }
+
+        private static FilterCriterion createCriterion(final DataColumnSpec columnSpec,
+            final LegacyFilterOperator operator, final String value) { //
+            var criterion = new FilterCriterion(columnSpec);
+            criterion.m_operator = operator.name();
+            var type = columnSpec.getType();
+            criterion.m_filterValueParameters = FilterValueParametersProvider.createNewParameters(null,
+                new StringOrEnum<>(columnSpec.getName()), operator.name());
+            return criterion;
+        }
+
+        private static DataCell createCell(final DataType type, final String value) {
+            if (value == null) {
+                return null;
+            }
+            var dataCellFactory = new DataCellFactory();
+            return dataCellFactory.createDataCellOfType(type, value);
+        }
+
+        @Override
+        void extendApi(final Builder builder) {
+            builder.withStringArgument(COLUMN, "The column which the criterion will be applied to.").withDescription("""
+                    Filters rows by comparing the value of the specified column against the specified range,
+                    if both upper and lower bound are given, or just against the given bound.
+                    Upper and lower bound are optional so that filtering e.g. only with a lower bound
+                    is possible. Typically used for numerical columns but can be used with any column type
+                    for which a comparison is sensible.
+                    """)//
+                .withOptionalStringArgument(LOWER_BOUND, "Lower bound to include.")//
+                .withOptionalStringArgument(UPPER_BOUND, "Upper bound to include.");
+
+        }
+
+        @Override
+        String getName() {
+            return "filter_rows_by_attribute_range";
+        }
+
+    }
+
+    /**
+     *
+     * Filters rows with missing values from a specified column
+     *
+     * @author Alexander Jauch-Walser, KNIME GmbH, Konstanz, Germany
+     */
+    @SuppressWarnings("restriction")
+    public final class MissingValueRowFilterNodeFunc extends RowFilterNodeFunc {
+
+        @Override
+        FilterCriterion[] getFilterCriteria(final NodeSettingsRO arguments, final DataTableSpec tableSpec)
+            throws InvalidSettingsException {
+            var column = arguments.getString(COLUMN);
+
+            var criterion = new FilterCriterion();
+            criterion.m_column = new StringOrEnum<>(column);
+            criterion.m_operator = IsMissingFilterOperator.getInstance().getId();
+
+            return new FilterCriterion[]{criterion};
+        }
+
+        @Override
+        void extendApi(final Builder builder) {
+            builder.withStringArgument(COLUMN, "The column on which to filter. The column can be of any type.")
+                .withDescription("Matches rows whose value of the specified column are missing.");
+        }
+
+        @Override
+        String getName() {
+            return "filter_missing_rows";
+        }
+
+    }
+
+    /**
+     *
+     * Filters rows based on the row index and a operator e.g. greater than
+     *
+     * @author Alexander Jauch-Walser, KNIME GmbH, Konstanz, Germany
+     */
+    @SuppressWarnings("restriction")
+    public class RowFilterByRowNumberNodeFunc extends RowFilterNodeFunc {
+
+        private static final String OPERATOR = "operator";
+
+        private static final String ROW_NUMBER = "row_number";
+
+        private static final String EQUALS = "equals";
+
+        private static final String NEQUALS = "notEquals";
+
+        private static final String LESSTHAN = "lessThan";
+
+        private static final String LESSTHANEQUALS = "lessThanEquals";
+
+        private static final String GREATERTHAN = "greaterThan";
+
+        private static final String GREATERTHANEQUALS = "greaterThanEquals";
+
+        private static final String FIRSTN = "firstN";
+
+        private static final String LASTN = "lastN";
+
+        @Override
+        FilterCriterion[] getFilterCriteria(final NodeSettingsRO arguments, final DataTableSpec tableSpec)
+            throws InvalidSettingsException {
+
+            var operatorName = arguments.getString(OPERATOR);
+            var rowNumber = arguments.getLong(ROW_NUMBER);
+            if (rowNumber <= 0) {
+                throw new InvalidSettingsException("Row number must be larger than 0.");
+            }
+
+            var criterion = new FilterCriterion();
+            criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_NUMBER);
+            criterion.m_operator = getOperator(operatorName).name();
+            criterion.m_filterValueParameters = new CoreFilterValueParameters.RowNumberParameters(rowNumber);
+
+            return new FilterCriterion[]{criterion};
+        }
+
+        private static LegacyFilterOperator getOperator(final String operatorName) {
+            return switch (operatorName) {
+                case EQUALS -> LegacyFilterOperator.EQ;
+                case NEQUALS -> LegacyFilterOperator.NEQ;
+                case LESSTHAN -> LegacyFilterOperator.LT;
+                case LESSTHANEQUALS -> LegacyFilterOperator.LTE;
+                case GREATERTHAN -> LegacyFilterOperator.GT;
+                case GREATERTHANEQUALS -> LegacyFilterOperator.GTE;
+                case FIRSTN -> LegacyFilterOperator.FIRST_N_ROWS;
+                case LASTN -> LegacyFilterOperator.LAST_N_ROWS;
+                default -> null;
+            };
+        }
+
+        @Override
+        void extendApi(final Builder builder) {
+            builder
+                .withDescription(
+                    "Creates a new table by filtering the range of rows by row number. The first row has row number 1.")//
+                .withStringArgument(OPERATOR,
+                    String.format("The operator which will be used to filter the row numbers on:\n"
+                        + "%s: Returns the row number which equals the specified number.\n"
+                        + "%s: Returns the rows with row number not matching the specified number.\n"
+                        + "%s: Returns the rows with row number which are strictly smaller than specified number\n"
+                        + "%s: Returns the rows with row number which are smaller than or equal to specified number\n"
+                        + "%s: Returns the rows with row number which are strictly larger than specified number\n"
+                        + "%s: Returns the rows with row number which are larger than or equal than specified number\n"
+                        + "%s: Returns the first n rows from the start of the table.\n"
+                        + "%s: Returns the last n rows from the end of the table.", EQUALS, NEQUALS, LESSTHAN,
+                        LESSTHANEQUALS, GREATERTHAN, GREATERTHANEQUALS, FIRSTN, LASTN))
+                .withOptionalLongArgument(ROW_NUMBER,
+                    "The row number which filters rows of the table in combination with an operator.");
+
+        }
+
+        @Override
+        String getName() {
+            return "filter_row_by_row_number";
+        }
+    }
+
+    /**
+     *
+     * Filters Rows based on a regex on the RowID column
+     *
+     * @author Alexander Jauch-Walser, KNIME GmbH, Konstanz, Germany
+     */
+    @SuppressWarnings("restriction")
+    public class RowIDRowFilterNodeFunc extends RowFilterNodeFunc {
+
+        private static final String REGEX = "regex";
+
+        @Override
+        FilterCriterion[] getFilterCriteria(final NodeSettingsRO arguments, final DataTableSpec tableSpec)
+            throws InvalidSettingsException {
+            var regex = arguments.getString(REGEX);
+
+            var criterion = new FilterCriterion();
+            criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_ID);
+            criterion.m_operator = LegacyFilterOperator.REGEX.name();
+
+            criterion.m_filterValueParameters = new PatternFilterParameters(regex);
+
+            return new FilterCriterion[]{criterion};
+        }
+
+        @Override
+        void extendApi(final Builder builder) {
+            builder
+                .withDescription(
+                    "Creates a new table that only contains rows whose RowID matches the given regex pattern.")
+                .withStringArgument(REGEX, "Regular expression that is used to match the RowIDs of the input table.");
+        }
+
+        @Override
+        String getName() {
+            return "filter_row_ids_by_regex";
+        }
+
+    }
 
 }
