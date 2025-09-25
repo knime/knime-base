@@ -55,7 +55,7 @@ import org.knime.node.parameters.widget.choices.Label;
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-enum CaseSensitivity {
+public enum CaseSensitivity {
 
         /**
          * Case sensitive comparison.

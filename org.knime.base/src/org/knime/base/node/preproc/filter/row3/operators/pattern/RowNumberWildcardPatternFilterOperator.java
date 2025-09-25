@@ -60,8 +60,23 @@ import org.knime.core.node.InvalidSettingsException;
  *
  * @author Paul Bärnreuther
  */
-public class RowNumberWildcardPatternFilterOperator
+public final class RowNumberWildcardPatternFilterOperator
     implements RowNumberFilterOperator<RowNumberPatternFilterParameters> {
+
+    private static final RowNumberWildcardPatternFilterOperator INSTANCE = new RowNumberWildcardPatternFilterOperator();
+
+    /**
+     * Get the singleton instance for this operator.
+     *
+     * @return the singleton
+     */
+    public static RowNumberWildcardPatternFilterOperator getInstance() {
+        return INSTANCE;
+    }
+
+    private RowNumberWildcardPatternFilterOperator() {
+        // for singleton
+    }
 
     @Override
     public String getId() {

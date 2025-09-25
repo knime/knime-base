@@ -62,7 +62,22 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  *
  * @author Paul Bärnreuther
  */
-public class WildcardPatternFilterOperator implements FilterOperator<PatternFilterParameters>, WildcardOperator {
+public final class WildcardPatternFilterOperator implements FilterOperator<PatternFilterParameters>, WildcardOperator {
+
+    private static final WildcardPatternFilterOperator INSTANCE = new WildcardPatternFilterOperator();
+
+    private WildcardPatternFilterOperator() {
+        // for singleton
+    }
+
+    /**
+     * Gets the singleton instance of this operator.
+     *
+     * @return the singleton
+     */
+    public static WildcardPatternFilterOperator getInstance() {
+        return INSTANCE;
+    }
 
     @Override
     public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,

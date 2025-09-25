@@ -61,7 +61,22 @@ import org.knime.core.node.InvalidSettingsException;
  *
  * @author Paul Bärnreuther
  */
-public class RowKeyWildcardPatternFilterOperator implements RowKeyFilterOperator<PatternFilterParameters> {
+public final class RowKeyWildcardPatternFilterOperator implements RowKeyFilterOperator<PatternFilterParameters> {
+
+    private static final RowKeyWildcardPatternFilterOperator INSTANCE = new RowKeyWildcardPatternFilterOperator();
+
+    private RowKeyWildcardPatternFilterOperator() {
+        // for singleton
+    }
+
+    /**
+     * Gets the singleton instance of this operator.
+     *
+     * @return the singleton instance
+     */
+    public static RowKeyWildcardPatternFilterOperator getInstance() {
+        return INSTANCE;
+    }
 
     @Override
     public String getId() {
@@ -74,7 +89,8 @@ public class RowKeyWildcardPatternFilterOperator implements RowKeyFilterOperator
     }
 
     @Override
-    public Predicate<RowKeyValue> createPredicate(final PatternFilterParameters params) throws InvalidSettingsException {
+    public Predicate<RowKeyValue> createPredicate(final PatternFilterParameters params)
+        throws InvalidSettingsException {
         final var stringPredicate = StringPredicate.pattern(params.m_pattern, false,
             params.m_caseSensitivity == CaseSensitivity.CASE_SENSITIVE);
         return rowKey -> stringPredicate.test(rowKey.getString());

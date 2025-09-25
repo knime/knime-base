@@ -59,7 +59,6 @@ import org.knime.core.data.DataValue;
 import org.knime.core.data.LongValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 
@@ -131,7 +130,7 @@ public class LegacyFilterParameters implements FilterValueParameters {
             .map(LongValue.class::cast)//
             .orElseThrow(() -> new InvalidSettingsException("Row number value is missing")))//
                 .getLongValue();
-        if (m_operator == FilterOperator.FIRST_N_ROWS || m_operator == FilterOperator.LAST_N_ROWS) {
+        if (m_operator == LegacyFilterOperator.FIRST_N_ROWS || m_operator == LegacyFilterOperator.LAST_N_ROWS) {
             CheckUtils.checkSetting(value >= 0, "Number of rows must not be negative: %d", value);
         } else {
             CheckUtils.checkSetting(value > 0, "Row number must be larger than zero: %d", value);
