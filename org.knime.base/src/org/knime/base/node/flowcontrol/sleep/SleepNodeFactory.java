@@ -66,6 +66,8 @@ import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
 import org.knime.node.impl.description.PortDescription;
 
 /**
+ * The class is the factory for momentarily halting the workflow
+ * depending on condition selected in the dialog.
  * @author M. Berthold, University of Konstanz
  * @author Ali Asghar Marvi, KNIME AG, Zurich, Switzerland
  */
@@ -82,10 +84,11 @@ public class SleepNodeFactory extends NodeFactory<SleepNodeModel>
             """;
 
     private static final String FULL_DESCRIPTION =
-        """
-                This node waits for a certain time, to a certain time or for a file event (such as file creation, modification or deletion). Note that on some
-                operating systems file events need a few seconds to be noticed by the application. This node is derived from the Vernalis community extension.
-                """;
+        "This node waits for a certain time, "
+        + "to a certain time or for a file event "
+        + "(such as file creation, modification or deletion). "
+        + "Note that on some operating systems file events need a few seconds to be noticed by the application. "
+        + "This node is derived from the Vernalis community extension.";
 
     private static final List<PortDescription> INPUT_PORTS = List.of(PortDescription.fixedPort("Input table", """
             The input variables.

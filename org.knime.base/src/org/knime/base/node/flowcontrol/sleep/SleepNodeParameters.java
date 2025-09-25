@@ -192,13 +192,13 @@ class SleepNodeParameters implements NodeParameters {
     @Persist(configKey = SleepNodeModel.CFGKEY_FILEPATH)
     @LocalFileReaderWidget()
     @Effect(predicate = IsWaitForFile.class, type = EffectType.SHOW)
-    String filePath = "";
+    String m_filePath = "";
 
     @Widget(title = "File event", description = "Type of file event to wait for.")
     @RadioButtonsWidget
     @Persistor(FileEventPersistor.class)
     @Effect(predicate = IsWaitForFile.class, type = EffectType.SHOW)
-    FileEvent fileEvent = FileEvent.MODIFICATION;
+    FileEvent m_fileEvent = FileEvent.MODIFICATION;
 
     /**
      * Custom persistor for WaitMode to handle conversion between UI enum and model enum
