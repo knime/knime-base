@@ -51,10 +51,15 @@ package org.knime.base.node.preproc.filter.row3;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.LongFunction;
 
+import org.knime.base.data.filter.row.v2.FilterPartition;
 import org.knime.base.data.filter.row.v2.RowFilter;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.ColumnDomains;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
+import org.knime.base.node.preproc.filter.row3.operators.FilterOperatorsUtil;
+import org.knime.base.node.preproc.filter.row3.operators.RowNumberFilterOperator;
+import org.knime.base.node.preproc.filter.row3.operators.RowNumberFilterSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.DataContainerSettings;
 import org.knime.core.node.BufferedDataTable;
@@ -123,7 +128,7 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
         if (dataCriteria.isEmpty()) {
             // slicing-only is possible since we never look at any column
             final var includedExcludedPartition = RowNumberFilterSpec.computeRowPartition(isAnd,
-                RowNumberFilterSpec.toFilterSpec(rowNumberCriteria), settings.outputMode(), tableSize);
+                toFilterSpec(rowNumberCriteria), settings.outputMode(), tableSize);
             return RowFilter.slice(exec, in, includedExcludedPartition, isSplitter);
         }
         final var inSpec = in.getSpec();
@@ -153,6 +158,24 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
             return nonMatches != null ? new BufferedDataTable[]{matches.finish(), nonMatches.finish()}
                 : new BufferedDataTable[]{matches.finish()};
         }
+    }
+
+    /**
+     * Gets each of the passed criteria as a filter spec, if supported.
+     *
+     * @param rowNumberCriteria criteria to map to filter specs
+     * @return
+     * @throws InvalidSettingsException if not supported
+     * @see {@link #getAsFilterSpec(FilterCriterion)}
+     */
+    static List<LongFunction<FilterPartition>> toFilterSpec(final List<FilterCriterion> rowNumberCriteria)
+        throws InvalidSettingsException {
+        final List<LongFunction<FilterPartition>> rowNumberFilterSpecs = new ArrayList<>();
+        for (final var criterion : rowNumberCriteria) {
+            rowNumberFilterSpecs
+                .add(RowNumberFilterSpec.toFilterSpec(criterion.m_operator, criterion.m_filterValueParameters));
+        }
+        return rowNumberFilterSpecs;
     }
 
     /**
@@ -241,7 +264,7 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
                 final var dataPredicates = rowNumberAndDataPredicates.getSecond();
                 if (!rowNumberPredicates.isEmpty() && dataPredicates.isEmpty()) {
                     // we can only filter based on row numbers
-                    final var filterSpecs = RowNumberFilterSpec.toFilterSpec(rowNumberPredicates);
+                    final var filterSpecs = toFilterSpec(rowNumberPredicates);
                     final var rowPartition = RowNumberFilterSpec.computeRowPartition(settings.m_matchCriteria.isAnd(),
                         filterSpecs, settings.outputMode(), UNKNOWN_SIZE);
                     final var included = (RowOutput)outputs[MATCHING_OUTPUT];

@@ -50,7 +50,7 @@ package org.knime.base.node.preproc.filter.row3.operators.pattern;
 
 import java.util.function.Predicate;
 
-import org.knime.base.node.preproc.filter.row3.CaseSensitivity;
+import org.knime.base.node.preproc.filter.row3.operators.CaseSensitivity;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;

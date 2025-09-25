@@ -59,6 +59,7 @@ import org.junit.jupiter.api.Test;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion.OperatorRef;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion.SelectedColumnRef;
 import org.knime.base.node.preproc.filter.row3.FilterOperatorTest.TestInitializer;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterOperator;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
@@ -93,7 +94,7 @@ final class AbstractRowFilterNodeSettingsTest {
     @SuppressWarnings("static-method")
     @Test
     void testTypeAndOperatorInputRowID() {
-        final var rowIdFilterInput = inputFor(new StringOrEnum<>(ROW_ID), FilterOperator.EQ);
+        final var rowIdFilterInput = inputFor(new StringOrEnum<>(ROW_ID), LegacyFilterOperator.EQ);
         final var expected = DynamicValuesInput.forRowID();
         assertThat(rowIdFilterInput).as("The initial value input for RowIDs is 'RowID = \"\"'").isEqualTo(expected);
     }
@@ -101,7 +102,7 @@ final class AbstractRowFilterNodeSettingsTest {
     @SuppressWarnings("static-method")
     @Test
     void testTypeAndOperatorInputRowNumber() {
-        final var rowNumberFilterInput = inputFor(new StringOrEnum<>(ROW_NUMBER), FilterOperator.EQ);
+        final var rowNumberFilterInput = inputFor(new StringOrEnum<>(ROW_NUMBER), LegacyFilterOperator.EQ);
         final var expected = DynamicValuesInput.forRowNumber(LongCell.TYPE);
         assertThat(rowNumberFilterInput).as("The initial value input for RowNumbers is 'RowNumber = \"1\"'")
             .isEqualTo(expected);
@@ -110,7 +111,7 @@ final class AbstractRowFilterNodeSettingsTest {
     @SuppressWarnings("static-method")
     @Test
     void testTypeAndOperatorInputIntColumn() {
-        final var rowNumberFilterInput = inputFor(new StringOrEnum<>("Int1"), FilterOperator.EQ);
+        final var rowNumberFilterInput = inputFor(new StringOrEnum<>("Int1"), LegacyFilterOperator.EQ);
         final var expected = DynamicValuesInput.singleValueWithCaseMatchingForStringWithDefault(IntCell.TYPE);
         assertThat(rowNumberFilterInput).as("The initial value input for integer column is 'Int1 = \"?\"'")
             .isEqualTo(expected);
@@ -120,7 +121,7 @@ final class AbstractRowFilterNodeSettingsTest {
     @Test
     void testTypeAndOperatorInputBoolColumn() {
         final var rowNumberFilterInput =
-            inputFor(new StringOrEnum<>("Bool1"), FilterOperator.IS_TRUE);
+            inputFor(new StringOrEnum<>("Bool1"), LegacyFilterOperator.IS_TRUE);
         // boolean columns have no input value, since we use IS_TRUE and IS_FALSE as operators
         final var expected = DynamicValuesInput.emptySingle();
         assertThat(rowNumberFilterInput).as("The initial value input for boolean column is 'Bool1 IS TRUE'")
@@ -128,7 +129,7 @@ final class AbstractRowFilterNodeSettingsTest {
     }
 
     private static DynamicValuesInput inputFor(final StringOrEnum<RowIdentifiers> columnSelection,
-        final FilterOperator operator) {
+        final LegacyFilterOperator operator) {
         final var ctx = NodeParametersUtil.createDefaultNodeSettingsContext(new DataTableSpec[]{SPEC});
         final var provider = new AbstractRowFilterNodeSettings.FilterCriterion.TypeAndOperatorBasedInput();
         provider.init(new TestInitializer() {
@@ -174,7 +175,7 @@ final class AbstractRowFilterNodeSettingsTest {
     void testRowNumberPatternFilterCriterion() {
         final var criterion = new AbstractRowFilterNodeSettings.FilterCriterion();
         criterion.m_column = new StringOrEnum<>(ROW_NUMBER);
-        criterion.m_operator = FilterOperator.WILDCARD;
+        criterion.m_operator = LegacyFilterOperator.WILDCARD;
         assertThatCode(() -> criterion.validate((DataTableSpec)null))
             .as("Row number pattern filter criterion should be valid").doesNotThrowAnyException();
     }

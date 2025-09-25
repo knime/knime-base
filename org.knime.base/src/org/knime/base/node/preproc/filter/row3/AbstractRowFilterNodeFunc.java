@@ -49,7 +49,6 @@
 package org.knime.base.node.preproc.filter.row3;
 
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
-import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterMode;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;

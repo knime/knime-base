@@ -55,7 +55,8 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.knime.base.data.filter.row.v2.FilterPartition;
-import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterMode;
+import org.knime.base.node.preproc.filter.row3.operators.RowNumberFilterSpec;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterOperator;
 import org.knime.core.node.InvalidSettingsException;
 
 import com.google.common.collect.ImmutableRangeSet;
@@ -80,232 +81,232 @@ final class RowNumberFilterTest {
     @Test
     void testSliceFromRangesEqNeq() throws InvalidSettingsException {
         // only first
-        checkSymmetrical(FilterOperator.EQ, FilterOperator.NEQ, 1, 1_000,
+        checkSymmetrical(LegacyFilterOperator.EQ, LegacyFilterOperator.NEQ, 1, 1_000,
             asSet(Range.closedOpen(0L, 1L)),
             asSet(Range.closedOpen(1L, 1_000L)));
 
         // only first (open)
-        checkSymmetrical(FilterOperator.EQ, FilterOperator.NEQ, 1, -1,
+        checkSymmetrical(LegacyFilterOperator.EQ, LegacyFilterOperator.NEQ, 1, -1,
             asSet(Range.closedOpen(0L, 1L)),
             asSet(Range.atLeast(1L)));
 
         // only last
-        checkSymmetrical(FilterOperator.EQ, FilterOperator.NEQ, 1_000, 1_000,
+        checkSymmetrical(LegacyFilterOperator.EQ, LegacyFilterOperator.NEQ, 1_000, 1_000,
             asSet(Range.closedOpen(999L, 1_000L)),
             asSet(Range.closedOpen(0L, 999L)));
 
         // somewhere in the middle
-        checkSymmetrical(FilterOperator.EQ, FilterOperator.NEQ, 123, 1_000,
+        checkSymmetrical(LegacyFilterOperator.EQ, LegacyFilterOperator.NEQ, 123, 1_000,
             asSet(Range.closedOpen(122L, 123L)),
             asSet(Range.closedOpen(0L, 122L), Range.closedOpen(123L, 1_000L)));
 
         // somewhere in the middle (open)
-        checkSymmetrical(FilterOperator.EQ, FilterOperator.NEQ, 555, -1,
+        checkSymmetrical(LegacyFilterOperator.EQ, LegacyFilterOperator.NEQ, 555, -1,
             asSet(Range.closedOpen(554L, 555L)),
             asSet(Range.closedOpen(0L, 554L), Range.atLeast(555L)));
 
         // outside
-        checkSymmetrical(FilterOperator.EQ, FilterOperator.NEQ, 7_777, 1_000,
+        checkSymmetrical(LegacyFilterOperator.EQ, LegacyFilterOperator.NEQ, 7_777, 1_000,
             asSet(),
             asSet(Range.closedOpen(0L, 1_000L)));
 
         // special value `Long.MAX_VALUE`
-        checkSymmetrical(FilterOperator.EQ, FilterOperator.NEQ, Long.MAX_VALUE, -1,
+        checkSymmetrical(LegacyFilterOperator.EQ, LegacyFilterOperator.NEQ, Long.MAX_VALUE, -1,
             asSet(Range.closedOpen(Long.MAX_VALUE - 1, Long.MAX_VALUE)), //
             asSet(Range.closedOpen(0L, Long.MAX_VALUE - 1), Range.atLeast(Long.MAX_VALUE)));
-        checkSymmetrical(FilterOperator.EQ, FilterOperator.NEQ, Long.MAX_VALUE, Long.MAX_VALUE,
+        checkSymmetrical(LegacyFilterOperator.EQ, LegacyFilterOperator.NEQ, Long.MAX_VALUE, Long.MAX_VALUE,
             asSet(Range.closedOpen(Long.MAX_VALUE - 1, Long.MAX_VALUE)),
             asSet(Range.closedOpen(0L, Long.MAX_VALUE - 1)));
-        checkSymmetrical(FilterOperator.EQ, FilterOperator.NEQ, 1_000, Long.MAX_VALUE,
+        checkSymmetrical(LegacyFilterOperator.EQ, LegacyFilterOperator.NEQ, 1_000, Long.MAX_VALUE,
             asSet(Range.closedOpen(999L, 1_000L)),
             asSet(Range.closedOpen(0L, 999L), Range.closedOpen(1_000L, Long.MAX_VALUE)));
     }
 
     @Test
     void testSliceFromRangesLtGte() throws InvalidSettingsException {
-        checkSymmetrical(FilterOperator.LT, FilterOperator.GTE, 1, 1_000,
+        checkSymmetrical(LegacyFilterOperator.LT, LegacyFilterOperator.GTE, 1, 1_000,
             asSet(),
             asSet(Range.closedOpen(0L, 1_000L)));
 
-        checkSymmetrical(FilterOperator.LT, FilterOperator.GTE, 1, -1,
+        checkSymmetrical(LegacyFilterOperator.LT, LegacyFilterOperator.GTE, 1, -1,
             asSet(),
             asSet(Range.atLeast(0L)));
 
-        checkSymmetrical(FilterOperator.LT, FilterOperator.GTE, 1_000, 1_000,
+        checkSymmetrical(LegacyFilterOperator.LT, LegacyFilterOperator.GTE, 1_000, 1_000,
             asSet(Range.closedOpen(0L, 999L)),
             asSet(Range.closedOpen(999L, 1_000L)));
 
-        checkSymmetrical(FilterOperator.LT, FilterOperator.GTE, 123, 1_000,
+        checkSymmetrical(LegacyFilterOperator.LT, LegacyFilterOperator.GTE, 123, 1_000,
             asSet(Range.closedOpen(0L, 122L)),
             asSet(Range.closedOpen(122L, 1_000L)));
 
-        checkSymmetrical(FilterOperator.LT, FilterOperator.GTE, 555, -1,
+        checkSymmetrical(LegacyFilterOperator.LT, LegacyFilterOperator.GTE, 555, -1,
             asSet(Range.closedOpen(0L, 554L)),
             asSet(Range.atLeast(554L)));
 
-        checkSymmetrical(FilterOperator.LT, FilterOperator.GTE, 7_777, 1_000,
+        checkSymmetrical(LegacyFilterOperator.LT, LegacyFilterOperator.GTE, 7_777, 1_000,
             asSet(Range.closedOpen(0L, 1000L)),
             asSet());
 
         // special value `Long.MAX_VALUE`
-        checkSymmetrical(FilterOperator.LT, FilterOperator.GTE, Long.MAX_VALUE, -1,
+        checkSymmetrical(LegacyFilterOperator.LT, LegacyFilterOperator.GTE, Long.MAX_VALUE, -1,
             asSet(Range.closedOpen(0L, Long.MAX_VALUE - 1)),
             asSet(Range.atLeast(Long.MAX_VALUE -1)));
-        checkSymmetrical(FilterOperator.LT, FilterOperator.GTE, Long.MAX_VALUE, Long.MAX_VALUE,
+        checkSymmetrical(LegacyFilterOperator.LT, LegacyFilterOperator.GTE, Long.MAX_VALUE, Long.MAX_VALUE,
             asSet(Range.closedOpen(0L, Long.MAX_VALUE - 1)),
             asSet(Range.closedOpen(Long.MAX_VALUE - 1, Long.MAX_VALUE)));
-        checkSymmetrical(FilterOperator.LT, FilterOperator.GTE, 1_000, Long.MAX_VALUE,
+        checkSymmetrical(LegacyFilterOperator.LT, LegacyFilterOperator.GTE, 1_000, Long.MAX_VALUE,
             asSet(Range.closedOpen(0L, 999L)),
             asSet(Range.closedOpen(999L, Long.MAX_VALUE)));
     }
 
     @Test
     void testSliceFromRangesLteGt() throws InvalidSettingsException {
-        checkSymmetrical(FilterOperator.LTE, FilterOperator.GT, 1, 1_000,
+        checkSymmetrical(LegacyFilterOperator.LTE, LegacyFilterOperator.GT, 1, 1_000,
             asSet(Range.closedOpen(0L, 1L)),
             asSet(Range.closedOpen(1L, 1_000L)));
 
-        checkSymmetrical(FilterOperator.LTE, FilterOperator.GT, 1, -1,
+        checkSymmetrical(LegacyFilterOperator.LTE, LegacyFilterOperator.GT, 1, -1,
             asSet(Range.closedOpen(0L, 1L)),
             asSet(Range.atLeast(1L)));
 
-        checkSymmetrical(FilterOperator.LTE, FilterOperator.GT, 1_000, 1_000,
+        checkSymmetrical(LegacyFilterOperator.LTE, LegacyFilterOperator.GT, 1_000, 1_000,
             asSet(Range.closedOpen(0L, 1_000L)),
             asSet());
 
-        checkSymmetrical(FilterOperator.LTE, FilterOperator.GT, 123, 1_000,
+        checkSymmetrical(LegacyFilterOperator.LTE, LegacyFilterOperator.GT, 123, 1_000,
             asSet(Range.closedOpen(0L, 123L)),
             asSet(Range.closedOpen(123L, 1_000L)));
 
-        checkSymmetrical(FilterOperator.LTE, FilterOperator.GT, 555, -1,
+        checkSymmetrical(LegacyFilterOperator.LTE, LegacyFilterOperator.GT, 555, -1,
             asSet(Range.closedOpen(0L, 555L)),
             asSet(Range.atLeast(555L)));
 
-        checkSymmetrical(FilterOperator.LTE, FilterOperator.GT, 7_777, 1_000,
+        checkSymmetrical(LegacyFilterOperator.LTE, LegacyFilterOperator.GT, 7_777, 1_000,
             asSet(Range.closedOpen(0L, 1000L)),
             asSet());
 
         // special value `Long.MAX_VALUE`
-        checkSymmetrical(FilterOperator.LTE, FilterOperator.GT, Long.MAX_VALUE, -1,
+        checkSymmetrical(LegacyFilterOperator.LTE, LegacyFilterOperator.GT, Long.MAX_VALUE, -1,
             asSet(Range.closedOpen(0L, Long.MAX_VALUE)),
             asSet(Range.atLeast(Long.MAX_VALUE)));
-        checkSymmetrical(FilterOperator.LTE, FilterOperator.GT, Long.MAX_VALUE, Long.MAX_VALUE,
+        checkSymmetrical(LegacyFilterOperator.LTE, LegacyFilterOperator.GT, Long.MAX_VALUE, Long.MAX_VALUE,
             asSet(Range.closedOpen(0L, Long.MAX_VALUE)),
             asSet());
-        checkSymmetrical(FilterOperator.LTE, FilterOperator.GT, 1_000, Long.MAX_VALUE,
+        checkSymmetrical(LegacyFilterOperator.LTE, LegacyFilterOperator.GT, 1_000, Long.MAX_VALUE,
             asSet(Range.closedOpen(0L, 1_000L)),
             asSet(Range.closedOpen(1_000L, Long.MAX_VALUE)));
     }
 
     @Test
     void testSliceFromRangesFirstNRows() throws InvalidSettingsException {
-        final var zero = computePartition(FilterOperator.FIRST_N_ROWS, 0, 1_000);
+        final var zero = computePartition(LegacyFilterOperator.FIRST_N_ROWS, 0, 1_000);
         assertThat(zero.matching()).isEqualTo(asSet());
         assertThat(zero.nonMatching()).isEqualTo(asSet(Range.closedOpen(0L, 1_000L)));
 
-        final var zeroOpen = computePartition(FilterOperator.FIRST_N_ROWS, 0, -1);
+        final var zeroOpen = computePartition(LegacyFilterOperator.FIRST_N_ROWS, 0, -1);
         assertThat(zeroOpen.matching()).isEqualTo(asSet());
         assertThat(zeroOpen.nonMatching()).isEqualTo(asSet(Range.atLeast(0L)));
 
-        final var one = computePartition(FilterOperator.FIRST_N_ROWS, 1, 1_000);
+        final var one = computePartition(LegacyFilterOperator.FIRST_N_ROWS, 1, 1_000);
         assertThat(one.matching()).isEqualTo(asSet(Range.closedOpen(0L, 1L)));
         assertThat(one.nonMatching()).isEqualTo(asSet(Range.closedOpen(1L, 1_000L)));
 
-        final var oneOpen = computePartition(FilterOperator.FIRST_N_ROWS, 1, -1);
+        final var oneOpen = computePartition(LegacyFilterOperator.FIRST_N_ROWS, 1, -1);
         assertThat(oneOpen.matching()).isEqualTo(asSet(Range.closedOpen(0L, 1L)));
         assertThat(oneOpen.nonMatching()).isEqualTo(asSet(Range.atLeast(1L)));
 
-        final var some = computePartition(FilterOperator.FIRST_N_ROWS, 123, 1_000);
+        final var some = computePartition(LegacyFilterOperator.FIRST_N_ROWS, 123, 1_000);
         assertThat(some.matching()).isEqualTo(asSet(Range.closedOpen(0L, 123L)));
         assertThat(some.nonMatching()).isEqualTo(asSet(Range.closedOpen(123L, 1_000L)));
 
-        final var someOpen = computePartition(FilterOperator.FIRST_N_ROWS, 555, -1);
+        final var someOpen = computePartition(LegacyFilterOperator.FIRST_N_ROWS, 555, -1);
         assertThat(someOpen.matching()).isEqualTo(asSet(Range.closedOpen(0L, 555L)));
         assertThat(someOpen.nonMatching()).isEqualTo(asSet(Range.atLeast(555L)));
 
-        final var all = computePartition(FilterOperator.FIRST_N_ROWS, 1_000, 1_000);
+        final var all = computePartition(LegacyFilterOperator.FIRST_N_ROWS, 1_000, 1_000);
         assertThat(all.matching()).isEqualTo(asSet(Range.closedOpen(0L, 1_000L)));
         assertThat(all.nonMatching()).isEqualTo(asSet());
 
-        final var overshooting = computePartition(FilterOperator.FIRST_N_ROWS, 7_777, 1_000);
+        final var overshooting = computePartition(LegacyFilterOperator.FIRST_N_ROWS, 7_777, 1_000);
         assertThat(overshooting.matching()).isEqualTo(asSet(Range.closedOpen(0L, 1_000L)));
         assertThat(overshooting.nonMatching()).isEqualTo(asSet());
 
         // special value `Long.MAX_VALUE`
 
-        final var maxOpen = computePartition(FilterOperator.FIRST_N_ROWS, Long.MAX_VALUE, -1);
+        final var maxOpen = computePartition(LegacyFilterOperator.FIRST_N_ROWS, Long.MAX_VALUE, -1);
         assertThat(maxOpen.matching()).isEqualTo(asSet(Range.closedOpen(0L, Long.MAX_VALUE)));
         assertThat(maxOpen.nonMatching()).isEqualTo(asSet(Range.atLeast(Long.MAX_VALUE)));
 
-        final var max = computePartition(FilterOperator.FIRST_N_ROWS, Long.MAX_VALUE, Long.MAX_VALUE);
+        final var max = computePartition(LegacyFilterOperator.FIRST_N_ROWS, Long.MAX_VALUE, Long.MAX_VALUE);
         assertThat(max.matching()).isEqualTo(asSet(Range.closedOpen(0L, Long.MAX_VALUE)));
         assertThat(max.nonMatching()).isEqualTo(asSet());
 
-        final var lenMax = computePartition(FilterOperator.FIRST_N_ROWS, 1_000, Long.MAX_VALUE);
+        final var lenMax = computePartition(LegacyFilterOperator.FIRST_N_ROWS, 1_000, Long.MAX_VALUE);
         assertThat(lenMax.matching()).isEqualTo(asSet(Range.closedOpen(0L, 1_000L)));
         assertThat(lenMax.nonMatching()).isEqualTo(asSet(Range.closedOpen(1_000L, Long.MAX_VALUE)));
     }
 
     @Test
     void testSliceFromRangesLastNRows() throws InvalidSettingsException {
-        final var zero = computePartition(FilterOperator.LAST_N_ROWS, 0, 1_000);
+        final var zero = computePartition(LegacyFilterOperator.LAST_N_ROWS, 0, 1_000);
         assertThat(zero.matching()).isEqualTo(asSet());
         assertThat(zero.nonMatching()).isEqualTo(asSet(Range.closedOpen(0L, 1_000L)));
 
         assertThat(assertThrows(IllegalStateException.class,
-                () -> computePartition(FilterOperator.LAST_N_ROWS, 0, -1),
+                () -> computePartition(LegacyFilterOperator.LAST_N_ROWS, 0, -1),
                 "LAST_N_ROWS needs table size").getMessage())
             .startsWith("Expected table size");
 
-        final var one = computePartition(FilterOperator.LAST_N_ROWS, 1, 1_000);
+        final var one = computePartition(LegacyFilterOperator.LAST_N_ROWS, 1, 1_000);
         assertThat(one.matching()).isEqualTo(asSet(Range.closedOpen(999L, 1_000L)));
         assertThat(one.nonMatching()).isEqualTo(asSet(Range.closedOpen(0L, 999L)));
 
         assertThat(assertThrows(IllegalStateException.class,
-                () -> computePartition(FilterOperator.LAST_N_ROWS, 1, -1),
+                () -> computePartition(LegacyFilterOperator.LAST_N_ROWS, 1, -1),
                 "LAST_N_ROWS needs table size").getMessage())
             .startsWith("Expected table size");
 
-        final var some = computePartition(FilterOperator.LAST_N_ROWS, 123, 1_000);
+        final var some = computePartition(LegacyFilterOperator.LAST_N_ROWS, 123, 1_000);
         assertThat(some.matching()).isEqualTo(asSet(Range.closedOpen(877L, 1_000L)));
         assertThat(some.nonMatching()).isEqualTo(asSet(Range.closedOpen(0L, 877L)));
 
         assertThat(assertThrows(IllegalStateException.class,
-                () -> computePartition(FilterOperator.LAST_N_ROWS, 555, -1),
+                () -> computePartition(LegacyFilterOperator.LAST_N_ROWS, 555, -1),
                 "LAST_N_ROWS needs table size").getMessage())
             .startsWith("Expected table size");
 
-        final var all = computePartition(FilterOperator.LAST_N_ROWS, 1_000, 1_000);
+        final var all = computePartition(LegacyFilterOperator.LAST_N_ROWS, 1_000, 1_000);
         assertThat(all.matching()).isEqualTo(asSet(Range.closedOpen(0L, 1_000L)));
         assertThat(all.nonMatching()).isEqualTo(asSet());
 
-        final var overshooting = computePartition(FilterOperator.LAST_N_ROWS, 7_777, 1_000);
+        final var overshooting = computePartition(LegacyFilterOperator.LAST_N_ROWS, 7_777, 1_000);
         assertThat(overshooting.matching()).isEqualTo(asSet(Range.closedOpen(0L, 1_000L)));
         assertThat(overshooting.nonMatching()).isEqualTo(asSet());
 
         // special value `Long.MAX_VALUE`
 
         assertThat(assertThrows(IllegalStateException.class,
-                () -> computePartition(FilterOperator.LAST_N_ROWS, Long.MAX_VALUE, -1),
+                () -> computePartition(LegacyFilterOperator.LAST_N_ROWS, Long.MAX_VALUE, -1),
                 "LAST_N_ROWS needs table size").getMessage())
             .startsWith("Expected table size");
 
-        final var max = computePartition(FilterOperator.LAST_N_ROWS, Long.MAX_VALUE, Long.MAX_VALUE);
+        final var max = computePartition(LegacyFilterOperator.LAST_N_ROWS, Long.MAX_VALUE, Long.MAX_VALUE);
         assertThat(max.matching()).isEqualTo(asSet(Range.closedOpen(0L, Long.MAX_VALUE)));
         assertThat(max.nonMatching()).isEqualTo(asSet());
 
-        final var lenMax = computePartition(FilterOperator.LAST_N_ROWS, 1_000, Long.MAX_VALUE);
+        final var lenMax = computePartition(LegacyFilterOperator.LAST_N_ROWS, 1_000, Long.MAX_VALUE);
         assertThat(lenMax.matching()).isEqualTo(asSet(Range.closedOpen(Long.MAX_VALUE - 1_000, Long.MAX_VALUE)));
         assertThat(lenMax.nonMatching()).isEqualTo(asSet(Range.closedOpen(0L, Long.MAX_VALUE - 1_000)));
     }
 
-    private static FilterPartition computePartition(final FilterOperator operator, final long rowNumber,
+    private static FilterPartition computePartition(final LegacyFilterOperator operator, final long rowNumber,
         final long optSize) throws InvalidSettingsException {
         return RowNumberFilterSpec.computeRowPartition(true, List.of(new RowNumberFilterSpec(operator, rowNumber)),
             FilterMode.MATCHING, optSize);
     }
 
-    private static void checkSymmetrical(final FilterOperator op1, final FilterOperator op2, final long value,
+    private static void checkSymmetrical(final LegacyFilterOperator op1, final LegacyFilterOperator op2, final long value,
             final long optSize, final RangeSet<Long> included, final RangeSet<Long> excluded) throws InvalidSettingsException {
         final var partition1 = computePartition(op1, value, optSize);
         final var partition2 = computePartition(op2, value, optSize);

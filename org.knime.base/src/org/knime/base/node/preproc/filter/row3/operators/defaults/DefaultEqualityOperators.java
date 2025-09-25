@@ -51,6 +51,7 @@ package org.knime.base.node.preproc.filter.row3.operators.defaults;
 import java.util.List;
 import java.util.function.Predicate;
 
+import org.knime.base.node.preproc.filter.row3.operators.RowKeyFilterOperator;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
@@ -76,6 +77,15 @@ public final class DefaultEqualityOperators {
             new EqualDefault(), //
             new NotEqualDefault(), //
             new NotEqualNorMissingDefault());
+    }
+
+    public static List<RowKeyFilterOperator<? extends FilterValueParameters>>
+        getRowKeyOperators() {
+        return List.of( //
+            //new RowKeyEqualDefault(), //
+            //new RowKeyNotEqualDefault(), //
+            //new RowKeyNotEqualNorMissingDefault() //
+            );
     }
 
     private static final class EqualDefault implements FilterOperator<FallbackOperatorParameters>, EqualsOperator {

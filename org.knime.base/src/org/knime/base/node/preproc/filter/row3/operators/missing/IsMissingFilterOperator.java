@@ -50,7 +50,7 @@ package org.knime.base.node.preproc.filter.row3.operators.missing;
 
 import java.util.function.Predicate;
 
-import org.knime.base.node.preproc.filter.row3.FilterOperatorsUtil;
+import org.knime.base.node.preproc.filter.row3.operators.FilterOperatorsUtil;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;

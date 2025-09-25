@@ -44,23 +44,27 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 24, 2025 (Paul Bärnreuther): created
+ *   Sep 8, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.base.node.preproc.filter.row3.operators;
 
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
+ * Case sensitivity options for string comparisons.
  *
- * @author Paul Bärnreuther
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public class StringCellParameters implements FilterValueParameters {
+public enum CaseSensitivity {
 
-    /**
-     * @param string
-     */
-    public StringCellParameters(final String string) {
-        // TODO Auto-generated constructor stub
-    }
-
+        /**
+         * Case sensitive comparison.
+         */
+        @Label("Case sensitive")
+        CASE_SENSITIVE, //
+        /**
+         * Case-insensitive comparison.
+         */
+        @Label("Case insensitive")
+        CASE_INSENSITIVE;
 }

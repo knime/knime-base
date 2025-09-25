@@ -46,17 +46,17 @@
  * History
  *   16 Dec 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.base.node.preproc.filter.row3.operators;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.LongFunction;
 
 import org.knime.base.data.filter.row.v2.FilterPartition;
 import org.knime.base.data.filter.row.v2.OffsetFilter;
 import org.knime.base.data.filter.row.v2.OffsetFilter.Operator;
-import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
-import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterMode;
+import org.knime.base.node.preproc.filter.row3.FilterMode;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterOperator;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParameters;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
@@ -64,22 +64,22 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
 /**
  * Subset of filter operators that represent a numeric filter on the row number.
  */
-final class RowNumberFilterSpec {
+public final class RowNumberFilterSpec {
 
     static final long UNKNOWN_SIZE = -1;
 
-    private final FilterOperator m_operator;
+    private final LegacyFilterOperator m_operator;
 
     private final long m_value;
 
-    RowNumberFilterSpec(final FilterOperator operator, final long value) throws InvalidSettingsException {
+    RowNumberFilterSpec(final LegacyFilterOperator operator, final long value) throws InvalidSettingsException {
         CheckUtils.checkSetting(supportsOperator(operator), "Cannot use operator \"%s\" to filter by row number",
             operator);
         m_operator = operator;
         m_value = value;
     }
 
-    static boolean supportsOperator(final FilterOperator operator) {
+    static boolean supportsOperator(final LegacyFilterOperator operator) {
         return switch (operator) {
             case EQ, NEQ, NEQ_MISS, LT, LTE, GT, GTE, FIRST_N_ROWS, LAST_N_ROWS -> true;
             case IS_FALSE, IS_TRUE, IS_MISSING, IS_NOT_MISSING, REGEX, WILDCARD -> false;
@@ -89,12 +89,10 @@ final class RowNumberFilterSpec {
     /**
      * Computes the index operator and offset given the filter operator and value.
      *
-     * @param operator filter operator from the node settings
-     * @param value value from the node settings
      * @param optionalTableSize table size if known
      * @return index operator and index value (non-negative offset)
      */
-    OffsetFilter toOffsetFilter(final long optionalTableSize) {
+    public OffsetFilter toOffsetFilter(final long optionalTableSize) {
         // the dialog accepts 1-based row numbers but we use 0-based row offsets internally
         return switch (m_operator) {
             case EQ -> new OffsetFilter(Operator.EQ, m_value - 1);
@@ -115,7 +113,7 @@ final class RowNumberFilterSpec {
         };
     }
 
-    static FilterPartition computeRowPartition(final boolean isAnd,
+    public static FilterPartition computeRowPartition(final boolean isAnd,
         final List<LongFunction<FilterPartition>> rowNumberFilters, final FilterMode outputMode,
         final long optionalTableSize) {
         final var matchedNonMatchedPartition = rowNumberFilters.stream() //
@@ -129,19 +127,22 @@ final class RowNumberFilterSpec {
     /**
      * If supported, get the criterion as a row number filter specification.
      *
-     * @param criterion filter criterion
+     * @param operatorId the operator id
+     * @param filterValueParameters suitable parameters
+     *
      * @return row number filter specification
      * @throws InvalidSettingsException if the filter criterion contains an unsupported operator or the value is missing
      */
-    static LongFunction<FilterPartition> toFilterSpec(final FilterCriterion criterion) throws InvalidSettingsException {
-        if (criterion.m_filterValueParameters instanceof LegacyFilterParameters legacyParameters) {
+    public static LongFunction<FilterPartition> toFilterSpec(final String operatorId,
+        final FilterValueParameters filterValueParameters) throws InvalidSettingsException {
+        if (filterValueParameters instanceof LegacyFilterParameters legacyParameters) {
             final var rowNumberFilterSpec = legacyParameters.toFilterSpec();
             return tableSize -> FilterPartition.computePartition(rowNumberFilterSpec.toOffsetFilter(tableSize),
                 tableSize);
         }
-        final var matchingOperator = FilterOperatorsUtil.findMatchingRowNumberOperator(criterion.m_operator)
-            .orElseThrow(IllegalStateException::new);
-        return toSliceFilter(matchingOperator, criterion.m_filterValueParameters);
+        final var matchingOperator =
+            FilterOperatorsUtil.findMatchingRowNumberOperator(operatorId).orElseThrow(IllegalStateException::new);
+        return toSliceFilter(matchingOperator, filterValueParameters);
     }
 
     static <P extends FilterValueParameters> LongFunction<FilterPartition> toSliceFilter(
@@ -150,20 +151,4 @@ final class RowNumberFilterSpec {
         return matchingOperator.createSliceFilter((P)filterValueParameters);
     }
 
-    /**
-     * Gets each of the passed criteria as a filter spec, if supported.
-     *
-     * @param rowNumberCriteria criteria to map to filter specs
-     * @return
-     * @throws InvalidSettingsException if not supported
-     * @see {@link #getAsFilterSpec(FilterCriterion)}
-     */
-    static List<LongFunction<FilterPartition>> toFilterSpec(final List<FilterCriterion> rowNumberCriteria)
-        throws InvalidSettingsException {
-        final List<LongFunction<FilterPartition>> rowNumberFilterSpecs = new ArrayList<>();
-        for (final var criterion : rowNumberCriteria) {
-            rowNumberFilterSpecs.add(toFilterSpec(criterion));
-        }
-        return rowNumberFilterSpecs;
-    }
 }

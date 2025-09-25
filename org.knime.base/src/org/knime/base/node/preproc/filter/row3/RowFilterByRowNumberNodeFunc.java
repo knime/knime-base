@@ -49,6 +49,7 @@
 package org.knime.base.node.preproc.filter.row3;
 
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterOperator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.node.InvalidSettingsException;
@@ -102,16 +103,16 @@ public class RowFilterByRowNumberNodeFunc extends AbstractRowFilterNodeFunc {
         return new FilterCriterion[]{criterion};
     }
 
-    private static FilterOperator getOperator(final String operatorName) {
+    private static LegacyFilterOperator getOperator(final String operatorName) {
         return switch (operatorName) {
-            case EQUALS -> FilterOperator.EQ;
-            case NEQUALS -> FilterOperator.NEQ;
-            case LESSTHAN -> FilterOperator.LT;
-            case LESSTHANEQUALS -> FilterOperator.LTE;
-            case GREATERTHAN -> FilterOperator.GT;
-            case GREATERTHANEQUALS -> FilterOperator.GTE;
-            case FIRSTN -> FilterOperator.FIRST_N_ROWS;
-            case LASTN -> FilterOperator.LAST_N_ROWS;
+            case EQUALS -> LegacyFilterOperator.EQ;
+            case NEQUALS -> LegacyFilterOperator.NEQ;
+            case LESSTHAN -> LegacyFilterOperator.LT;
+            case LESSTHANEQUALS -> LegacyFilterOperator.LTE;
+            case GREATERTHAN -> LegacyFilterOperator.GT;
+            case GREATERTHANEQUALS -> LegacyFilterOperator.GTE;
+            case FIRSTN -> LegacyFilterOperator.FIRST_N_ROWS;
+            case LASTN -> LegacyFilterOperator.LAST_N_ROWS;
             default -> null;
         };
     }

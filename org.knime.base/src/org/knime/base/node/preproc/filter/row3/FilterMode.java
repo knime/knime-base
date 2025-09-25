@@ -42,29 +42,26 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
+ * 
  * History
- *   Sep 8, 2025 (Paul Bärnreuther): created
+ *   Sep 25, 2025 (Paul Bärnreuther): created
  */
 package org.knime.base.node.preproc.filter.row3;
 
 import org.knime.node.parameters.widget.choices.Label;
 
 /**
- * Case sensitivity options for string comparisons.
- *
- * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * Mode to determine which set of rows is output at the first output port (and second in case of a splitter).
  */
-public enum CaseSensitivity {
-
+public enum FilterMode {
         /**
-         * Case sensitive comparison.
+         * Include matching rows at the first port.
          */
-        @Label("Case sensitive")
-        CASE_SENSITIVE, //
+        @Label("Output matching rows")
+        MATCHING, //
         /**
-         * Case-insensitive comparison.
+         * Exclude matching rows from the first port.
          */
-        @Label("Case insensitive")
-        CASE_INSENSITIVE;
+        @Label("Output non-matching rows")
+        NON_MATCHING
 }
