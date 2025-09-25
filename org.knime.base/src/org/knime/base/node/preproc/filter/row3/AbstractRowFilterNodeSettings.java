@@ -422,8 +422,8 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
             final FilterOperator<P> selectedOperator, final DataTableSpec spec, final int columnIndex)
             throws InvalidSettingsException {
             @SuppressWarnings("unchecked")
-            final var predicate =
-                selectedOperator.createPredicate(spec.getColumnSpec(columnIndex), (P)m_filterValueParameters);
+            final var predicate = selectedOperator.createPredicate(spec.getColumnSpec(columnIndex), m_columnType,
+                (P)m_filterValueParameters);
             final var returnTrueForMissingCells = selectedOperator.returnTrueForMissingCells();
             return (index, read) -> {
                 if (read.isMissing(columnIndex)) {
@@ -457,7 +457,7 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
                                     """))
         @ValueReference(CurrentFilterValueParametersRef.class)
         @Migration(LegacyFilterParametersMigration.class)
-        FilterValueParameters m_filterValueParameters = new EqualsStringParameters("");
+        FilterValueParameters m_filterValueParameters;// = new EqualsStringParameters("");
 
         static final class CurrentFilterValueParametersRef implements ParameterReference<FilterValueParameters> {
         }

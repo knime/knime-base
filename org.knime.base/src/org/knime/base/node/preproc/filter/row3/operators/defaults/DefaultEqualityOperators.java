@@ -27,7 +27,7 @@
  *  ECLIPSE with only the license terms in place for ECLIPSE applying to
  *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
  *  license terms of ECLIPSE themselves allow for the respective use and
- *  propagation of KNIME.
+ *  propagation of ECLIPSE together with KNIME.
  *
  *  Additional permission relating to nodes for KNIME that extend the Node
  *  Extension (and in particular that are based on subclasses of NodeModel,
@@ -44,57 +44,85 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 24, 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   25 Sept 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3.operators.missing;
+package org.knime.base.node.preproc.filter.row3.operators.defaults;
 
+import java.util.List;
 import java.util.function.Predicate;
 
-import org.knime.base.node.preproc.filter.row3.FilterOperatorsUtil;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.EqualsOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.NotEqualsNorMissingOperator;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.NotEqualsOperator;
 
 /**
- * Filter operator that checks if a value is not missing.
+ * Default equality operators for data types that don't have their own registered operators.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public final class IsNotMissingFilterOperator implements FilterOperator<FilterValueParameters> {
+public final class DefaultEqualityOperators {
 
-    /** Singleton instance of the IsNotMissingFilterOperator. */
-    public static final IsNotMissingFilterOperator INSTANCE = new IsNotMissingFilterOperator();
-
-    private IsNotMissingFilterOperator() {
-        // Private constructor for singleton pattern
+    private DefaultEqualityOperators() {
     }
 
-    @Override
-    public String getId() {
-        return "IS_NOT_MISSING";
+    public static List<FilterOperator<? extends FilterValueParameters>> getOperators(final DataType dataType) {
+        return List.of( //
+            new EqualDefault(), //
+            new NotEqualDefault(), //
+            new NotEqualNorMissingDefault());
     }
 
-    @Override
-    public String getLabel() {
-        return "Is not missing";
+    private static final class EqualDefault implements FilterOperator<FallbackOperatorParameters>, EqualsOperator {
+
+        @Override
+        public Class<FallbackOperatorParameters> getNodeParametersClass() {
+            return FallbackOperatorParameters.class;
+        }
+
+        @Override
+        public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
+            final DataType configureDataType, final FallbackOperatorParameters filterParameters)
+            throws InvalidSettingsException {
+            final var type = runtimeColumnSpec.getType();
+            final var cell = filterParameters.createCellAs(type);
+            return v -> cell.equals(v.materializeDataCell());
+        }
+
     }
 
-    @Override
-    public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
-        final DataType configureDataType, final FilterValueParameters parameters) throws InvalidSettingsException {
-        return FilterOperatorsUtil.PREDICATE_ALWAYS_TRUE;
+    private abstract static class NotEqualBase implements FilterOperator<FallbackOperatorParameters> {
+
+        @Override
+        public Class<FallbackOperatorParameters> getNodeParametersClass() {
+            return FallbackOperatorParameters.class;
+        }
+
+        @Override
+        public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
+            final DataType configureDataType, final FallbackOperatorParameters filterParameters)
+            throws InvalidSettingsException {
+            final var type = runtimeColumnSpec.getType();
+            final var cell = filterParameters.createCellAs(type);
+            return v -> !cell.equals(v.materializeDataCell());
+        }
+
     }
 
-    @Override
-    public boolean returnTrueForMissingCells() {
-        return false; // Missing cells should NOT match the "is not missing" filter criterion
+    private static final class NotEqualDefault extends NotEqualBase implements NotEqualsOperator {
+
+        @Override
+        public boolean returnTrueForMissingCells() {
+            return true;
+        }
     }
 
-    @Override
-    public Class<FilterValueParameters> getNodeParametersClass() {
-        return null;
+    private static final class NotEqualNorMissingDefault extends NotEqualBase implements NotEqualsNorMissingOperator {
     }
+
 }

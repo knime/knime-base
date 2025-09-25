@@ -58,8 +58,9 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import org.knime.base.node.preproc.filter.row3.operators.missing.IsMissingFilterOperator;
-import org.knime.base.node.preproc.filter.row3.operators.missing.IsNotMissingFilterOperator;
+import org.knime.base.node.preproc.filter.row3.operators.defaults.DefaultComparableOperators;
+import org.knime.base.node.preproc.filter.row3.operators.defaults.DefaultEqualityOperators;
+import org.knime.base.node.preproc.filter.row3.operators.defaults.FallbackOperatorParameters;
 import org.knime.base.node.preproc.filter.row3.operators.pattern.PatternFilterUtils;
 import org.knime.base.node.preproc.filter.row3.operators.pattern.RegexPatternFilterOperator;
 import org.knime.base.node.preproc.filter.row3.operators.pattern.RowKeyRegexPatternFilterOperator;
@@ -99,7 +100,7 @@ public final class FilterOperatorsUtil {
      * Interface for grouping operators with their applicability logic.
      */
     private interface OperatorGroup {
-        List<FilterOperator<? extends FilterValueParameters>> getOperators();
+        List<FilterOperator<? extends FilterValueParameters>> getOperators(final DataType dataType);
 
         default boolean isApplicable(final DataType dataType) {
             return true;
@@ -109,25 +110,57 @@ public final class FilterOperatorsUtil {
     /**
      * Default operator groups available for column filtering.
      */
-    private static final List<OperatorGroup> DEFAULT_COLUMN_OPERATOR_GROUPS = List.of(new OperatorGroup() {
-        @Override
-        public List<FilterOperator<? extends FilterValueParameters>> getOperators() {
-            return List.of(//
-                new RegexPatternFilterOperator(), //
-                new WildcardPatternFilterOperator()//
-            );
-        }
+    private static final List<OperatorGroup> DEFAULT_COLUMN_OPERATOR_GROUPS = List.of( //
+        // Default equality (fallback)
+        new OperatorGroup() {
+            @Override
+            public List<FilterOperator<? extends FilterValueParameters>> getOperators(final DataType dataType) {
+                // TODO provide only non-registered defaults
+                return DefaultEqualityOperators.getOperators(dataType);
+            }
 
-        @Override
-        public boolean isApplicable(final DataType dataType) {
-            return PatternFilterUtils.isSupported(dataType);
-        }
-    }, new OperatorGroup() {
-        @Override
-        public List<FilterOperator<? extends FilterValueParameters>> getOperators() {
-            return List.of(IsMissingFilterOperator.INSTANCE, IsNotMissingFilterOperator.INSTANCE);
-        }
-    });
+            @Override
+            public boolean isApplicable(final DataType dataType) {
+                // Only provide default equality operators if no registry operators exist for this data type
+                final var registryOperators = FilterOperatorsRegistry.getInstance().getOperators(dataType);
+                final boolean hasRegistryEqualityOperators = registryOperators.stream().anyMatch(
+                    op -> "EQ".equals(op.getId()) || "NEQ".equals(op.getId()) || "NEQ_MISS".equals(op.getId()));
+                return !hasRegistryEqualityOperators;
+            }
+        },
+        // Default comparable (fallback)
+        new OperatorGroup() {
+            @Override
+            public List<FilterOperator<? extends FilterValueParameters>> getOperators(final DataType dataType) {
+             // TODO provide only non-registered defaults
+                return DefaultComparableOperators.getOperators(dataType);
+            }
+
+            @Override
+            public boolean isApplicable(final DataType dataType) {
+                // Only provide default comparable operators if no registry operators exist for this data type
+                final var registryOperators = FilterOperatorsRegistry.getInstance().getOperators(dataType);
+                final boolean hasRegistryComparableOperators =
+                    registryOperators.stream().anyMatch(op -> "LT".equals(op.getId()) || "LTE".equals(op.getId())
+                        || "GT".equals(op.getId()) || "GTE".equals(op.getId()));
+                return !hasRegistryComparableOperators && DefaultComparableOperators.isSupported(dataType);
+            }
+        }, //
+        // Pattern matching
+        new OperatorGroup() {
+            @Override
+            public List<FilterOperator<? extends FilterValueParameters>> getOperators(final DataType dataType) {
+                return List.of(new RegexPatternFilterOperator(), new WildcardPatternFilterOperator());
+            }
+
+            @Override
+            public boolean isApplicable(final DataType dataType) {
+                return PatternFilterUtils.isSupported(dataType);
+            }
+        }//, //
+         // Missing
+         //dataType -> List.of(IsMissingFilterOperator.INSTANCE, IsNotMissingFilterOperator.INSTANCE)//
+    );
 
     /**
      * Default operators available for row key filtering.
@@ -167,7 +200,7 @@ public final class FilterOperatorsUtil {
     public static List<FilterOperator<FilterValueParameters>> getAllColumnOperators(final DataType dataType) {
         final var registryOperators = FilterOperatorsRegistry.getInstance().getOperators(dataType);
         final var defaultOperators = DEFAULT_COLUMN_OPERATOR_GROUPS.stream()
-            .filter(group -> group.isApplicable(dataType)).flatMap(group -> group.getOperators().stream());
+            .filter(group -> group.isApplicable(dataType)).flatMap(group -> group.getOperators(dataType).stream());
 
         return Stream.concat(defaultOperators, registryOperators.stream())
             .map(c -> (FilterOperator<FilterValueParameters>)c).toList();
@@ -198,11 +231,12 @@ public final class FilterOperatorsUtil {
     public static List<Class<? extends FilterValueParameters>> getAllParameterClasses() {
         final var registryClasses = FilterOperatorsRegistry.getInstance().getAllParameterClasses();
         final var defaultClasses = Stream.of(
-            DEFAULT_COLUMN_OPERATOR_GROUPS.stream().flatMap(group -> group.getOperators().stream())
+            DEFAULT_COLUMN_OPERATOR_GROUPS.stream().flatMap(group -> group.getOperators(null).stream())
                 .map(op -> op.getNodeParametersClass()),
             DEFAULT_ROW_KEY_OPERATORS.stream().map(op -> op.getNodeParametersClass()),
             DEFAULT_ROW_NUMBER_OPERATORS.stream().map(op -> op.getNodeParametersClass()),
-            Stream.of(LegacyFilterParameters.class)//
+            Stream.of(LegacyFilterParameters.class), //
+            Stream.of(FallbackOperatorParameters.class) // Add default operator parameters
         ).flatMap(Function.identity());
 
         return Stream.concat(registryClasses.stream(), defaultClasses).distinct().filter(Objects::nonNull).toList();
