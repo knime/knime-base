@@ -27,7 +27,7 @@
  *  ECLIPSE with only the license terms in place for ECLIPSE applying to
  *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
  *  license terms of ECLIPSE themselves allow for the respective use and
- *  propagation of KNIME.
+ *  propagation of ECLIPSE together with KNIME.
  *
  *  Additional permission relating to nodes for KNIME that extend the Node
  *  Extension (and in particular that are based on subclasses of NodeModel,
@@ -44,61 +44,27 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 25, 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   Sep 8, 2025 (Paul Bärnreuther): created
  */
 package org.knime.base.node.preproc.filter.row3.operators.defaults;
 
-import org.knime.core.data.DataCell;
-import org.knime.core.data.DataType;
-import org.knime.core.data.DataValue;
-import org.knime.core.data.StringValue;
-import org.knime.core.data.def.StringCell;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.TypeMappingUtils;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.TypeMappingUtils.ConverterException;
-import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
- * Parameters for default filter operators that work with any data type by using string representation.
+ * Case sensitivity options for string comparisons.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public class FallbackOperatorParameters implements FilterValueParameters {
+enum CaseSensitivity {
 
-    @Widget(title = "Value", description = "The value to compare with.")
-    String m_value = "";
-
-    DataCell createCellAs(final DataType dataType) throws InvalidSettingsException { //
-        try {
-            return TypeMappingUtils.readDataCellFromString(dataType, m_value);
-        } catch (ConverterException e) {
-            throw new InvalidSettingsException(e);
-        }
-    }
-
-    @Override
-    public DataValue[] stash() {
-        return new DataValue[]{new StringCell(m_value)};
-    }
-
-    @Override
-    public void applyStash(final DataValue[] stashedValues) {
-        if (stashedValues.length == 0) {
-            return;
-        }
-        final var first = stashedValues[0];
-        if (first == null) {
-            return;
-        }
-        if (first instanceof StringValue str) {
-            m_value = str.getStringValue();
-        }
-        try {
-            m_value = TypeMappingUtils.getStringFromDataCell(first.materializeDataCell());
-        } catch (ConverterException e) { // NOSONAR
-            // ignore, keep original string
-        }
-
-    }
+        /**
+         * Case sensitive comparison.
+         */
+        @Label("Case sensitive")
+        CASE_SENSITIVE, //
+        /**
+         * Case-insensitive comparison.
+         */
+        @Label("Case insensitive")
+        CASE_INSENSITIVE;
 }

@@ -27,7 +27,7 @@
  *  ECLIPSE with only the license terms in place for ECLIPSE applying to
  *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
  *  license terms of ECLIPSE themselves allow for the respective use and
- *  propagation of ECLIPSE together with KNIME.
+ *  propagation of KNIME.
  *
  *  Additional permission relating to nodes for KNIME that extend the Node
  *  Extension (and in particular that are based on subclasses of NodeModel,
@@ -44,28 +44,32 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 8, 2025 (Paul Bärnreuther): created
+ *   Sep 25, 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3.operators;
+package org.knime.base.node.preproc.filter.row3.operators.defaults;
 
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.TypeMappingUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.TypeMappingUtils.ConverterException;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.Before;
 import org.knime.node.parameters.layout.Layout;
-import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
- * Parameter class for string based filter value parameters.
+ * Parameters for default filter operators that work with any data type by using string representation.
  *
- * @author Paul Bärnreuther
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public class StringValueParameters implements FilterValueParameters {
+public class SingleStringParameters implements FilterValueParameters {
 
     @Before(ValuePart.class)
-    interface CaseSensitivityPart {
+    interface BeforeValuePart {
     }
 
     interface ValuePart {
@@ -73,58 +77,48 @@ public class StringValueParameters implements FilterValueParameters {
     }
 
     @Layout(ValuePart.class)
-    @Widget(title = SingleCellValueParameters.FILTER_VALUE_TITLE,
-        description = SingleCellValueParameters.FILTER_VALUE_DESCRIPTION)
-    String m_value;
+    @Widget(title = "Value", description = "The value to compare with.")
+    String m_value = "";
 
-    /**
-     * @param value
-     */
-    public StringValueParameters(final String value) {
+    SingleStringParameters() {
+        // default constructor called from the framework
+    }
+
+    SingleStringParameters(final String value) {
         m_value = value;
     }
 
-    StringValueParameters() {
-        // for instantiation by framework
+    DataCell createCellAs(final DataType dataType) throws InvalidSettingsException { //
+        try {
+            return TypeMappingUtils.readDataCellFromString(dataType, m_value);
+        } catch (ConverterException e) {
+            throw new InvalidSettingsException(e);
+        }
     }
 
     @Override
-    public StringValue[] stash() {
-        return new StringValue[]{new StringCell(m_value)};
+    public DataValue[] stash() {
+        return new DataValue[]{new StringCell(m_value)};
     }
 
     @Override
     public void applyStash(final DataValue[] stashedValues) {
-        if (stashedValues.length > 0) {
-            final var first = stashedValues[0];
-            if (first instanceof StringValue val) {
-                m_value = val.getStringValue();
-            }
+        if (stashedValues.length == 0) {
+            return;
         }
-    }
-
-    /**
-     * Parameters class to use when literal strings should be compared for equality. It includes a case sensitivity
-     * option.
-     */
-    public static final class EqualsStringParameters extends StringValueParameters {
-
-        EqualsStringParameters() {
-            super();
-            // for instantiation by framework
+        final var first = stashedValues[0];
+        if (first == null) {
+            return;
+        }
+        if (first instanceof StringValue str) {
+            m_value = str.getStringValue();
+        }
+        try {
+            m_value = TypeMappingUtils.getStringFromDataCell(first.materializeDataCell());
+        } catch (ConverterException e) { // NOSONAR
+            // ignore, keep original string
         }
 
-        /**
-         * @param value
-         */
-        public EqualsStringParameters(final String value) {
-            super(value);
-        }
-
-        @Layout(CaseSensitivityPart.class)
-        @ValueSwitchWidget
-        @Widget(title = "Case matching", description = "Whether the comparison should be case sensitive or not.")
-        CaseSensitivity m_caseSensitivity = CaseSensitivity.CASE_SENSITIVE;
     }
 
 }

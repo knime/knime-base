@@ -50,8 +50,8 @@ package org.knime.base.node.preproc.filter.row3.operators.pattern;
 
 import java.util.function.Predicate;
 
-import org.knime.base.node.preproc.filter.row3.operators.CaseSensitivity;
 import org.knime.base.node.preproc.filter.row3.operators.RowKeyFilterOperator;
+import org.knime.base.node.preproc.filter.row3.operators.defaults.CaseSensitivity;
 import org.knime.base.node.preproc.filter.row3.predicates.StringPredicate;
 import org.knime.core.data.RowKeyValue;
 import org.knime.core.node.InvalidSettingsException;
