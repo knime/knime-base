@@ -27,7 +27,7 @@
  *  ECLIPSE with only the license terms in place for ECLIPSE applying to
  *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
  *  license terms of ECLIPSE themselves allow for the respective use and
- *  propagation of ECLIPSE together with KNIME.
+ *  propagation of KNIME.
  *
  *  Additional permission relating to nodes for KNIME that extend the Node
  *  Extension (and in particular that are based on subclasses of NodeModel,
@@ -44,36 +44,65 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 23, 2025 (Paul Bärnreuther): created
+ *   Sep 25, 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3.operators.pattern;
+package org.knime.base.node.preproc.filter.row3.operators.defaults;
 
-import java.util.function.Predicate;
-
-import org.knime.base.node.preproc.filter.row3.CaseSensitivity;
-import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
+import org.knime.core.data.StringValue;
+import org.knime.core.data.convert.datacell.JavaToDataCellConverterRegistry;
+import org.knime.core.data.def.StringCell;
+import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
+import org.knime.node.parameters.Widget;
 
 /**
- * Filter operator for wildcard pattern matching.
+ * Parameters for default filter operators that work with any data type by using string representation.
  *
- * @author Paul Bärnreuther
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public class WildcardPatternFilterOperator implements FilterOperator<PatternFilterParameters>, WildcardOperator {
+public class FallbackOperatorParameters implements FilterValueParameters {
 
-    @Override
-    public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
-        final DataType configureColumnType, final PatternFilterParameters params) throws InvalidSettingsException {
-        return PatternFilterUtils.createPredicate(params.m_pattern, false,
-            params.m_caseSensitivity == CaseSensitivity.CASE_SENSITIVE, runtimeColumnSpec);
+    @Widget(title = "Value", description = "The value to compare with.")
+    String m_value = "";
+
+    DataCell createCellAs(final DataType dataType) throws InvalidSettingsException { //
+        // Try to find a converter from String to the target data type
+        final var registry = JavaToDataCellConverterRegistry.getInstance();
+        final var factory = registry.getConverterFactories(String.class, dataType).stream().findFirst()
+            .orElseThrow(() -> new InvalidSettingsException(
+                "Cannot convert String to \"%s\", because no converter is available.".formatted(dataType.getName())));
+        try {
+            final var converter = factory.create((ExecutionContext)null);
+            return converter.convert(m_value);
+        } catch (Exception e) { // NOSONAR unfortunately, this is what #convert annotates...
+            final var cause = e.getCause();
+            throw new InvalidSettingsException(
+                "Value \"%s\" cannot be parsed to \"%s\"".formatted(m_value, dataType.getName()), cause);
+        }
     }
 
     @Override
-    public Class<PatternFilterParameters> getNodeParametersClass() {
-        return PatternFilterParameters.class;
+    public DataValue[] stash() {
+        return new DataValue[]{new StringCell(m_value)};
     }
 
+    @Override
+    public void applyStash(final DataValue[] stashedValues) {
+        if (stashedValues.length == 0) {
+            return;
+        }
+        final var first = stashedValues[0];
+        if (first == null) {
+            return;
+        }
+        if (first instanceof StringValue str) {
+            m_value = str.getStringValue();
+        }
+        // TODO try typemapping
+
+    }
 }
