@@ -47,18 +47,38 @@
  */
 package org.knime.base.node.mine.regression.predict3;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * Factory for general regression predictor node.
  * <p>Despite being public no official API.
+ *
  * @author Adrian Nembach, KNIME.com
+ * @author Leon Wenzler, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.1
  * @since 3.5
  */
+@SuppressWarnings("restriction")
 public final class RegressionPredictorNodeFactory2
-    extends NodeFactory<RegressionPredictorNodeModel> {
+    extends NodeFactory<RegressionPredictorNodeModel> implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     /**
      * {@inheritDoc}
@@ -93,11 +113,74 @@ public final class RegressionPredictorNodeFactory2
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    private static final String NODE_NAME = "Regression Predictor";
+    private static final String NODE_ICON = "./regression_predict.png";
+    private static final String SHORT_DESCRIPTION = """
+            Predicts the response using a regression model.
+            """;
+    private static final String FULL_DESCRIPTION = """
+            Predicts the response using a regression model. The node needs to be connected to a regression node
+                model* and some test data. It is only executable if the test data contains the columns that are used by
+                the learner model. This node appends a new column to the input table containing the prediction for each
+                row. *You can use the Linear Regression Learner node or the Polynomial Regression Learner node to create
+                regression models.
+            """;
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Regression model", """
+                The regression model
+                """),
+            fixedPort("Data for prediction", """
+                Table for prediction. Missing values will give missing values in the output.
+                """)
+    );
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Predicted data", """
+                Table from input with an additional prediction column.
+                """)
+    );
+
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new RegressionPredictorNodeDialogPane(false);
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.8
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, RegressionPredictorNodeParameters.class);
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.8
+     */
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(
+            NODE_NAME,
+            NODE_ICON,
+            INPUT_PORTS,
+            OUTPUT_PORTS,
+            SHORT_DESCRIPTION,
+            FULL_DESCRIPTION,
+            List.of(),
+            RegressionPredictorNodeParameters.class,
+            null,
+            NodeType.Predictor,
+            List.of(),
+            null
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.8
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, RegressionPredictorNodeParameters.class));
     }
 }

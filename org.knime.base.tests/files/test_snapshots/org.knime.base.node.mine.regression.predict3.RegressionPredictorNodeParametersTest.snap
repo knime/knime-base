@@ -1,0 +1,54 @@
+{
+  "data" : {
+    "model" : {
+      "customPredictionName" : null
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "customPredictionName" : {
+            "type" : [ "string", "null" ],
+            "title" : "Custom prediction column name",
+            "description" : "Allows you to specify a customized name for the prediction column that is appended to the input table. If not checked, \"Prediction (target)\" (where target is the name of the target column of the provided regression model) is used as default.",
+            "default" : null
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/customPredictionName",
+      "options" : {
+        "validation" : {
+          "pattern" : {
+            "errorMessage" : "The string must start and end with a non-whitespace character.",
+            "parameters" : {
+              "pattern" : "\\S(.*\\S)?"
+            }
+          }
+        },
+        "hideOnNull" : true,
+        "default" : ""
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "customPredictionName" : {
+            "configPaths" : [ [ "has_custom_predicition_name" ], [ "custom_prediction_name" ] ]
+          }
+        }
+      }
+    }
+  }
+}
