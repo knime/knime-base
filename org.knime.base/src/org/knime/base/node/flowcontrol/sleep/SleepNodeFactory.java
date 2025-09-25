@@ -53,7 +53,6 @@ import java.util.Map;
 import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeFactory.NodeType;
 import org.knime.core.node.NodeView;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
@@ -68,33 +67,36 @@ import org.knime.node.impl.description.PortDescription;
 
 /**
  * @author M. Berthold, University of Konstanz
- * @author GitHub Copilot
- * @author AI Migration Pipeline v1.1
+ * @author Ali Asghar Marvi, KNIME AG, Zurich, Switzerland
  */
-@SuppressWarnings("restriction")
-public class SleepNodeFactory extends NodeFactory<SleepNodeModel> implements NodeDialogFactory, KaiNodeInterfaceFactory {
+
+public class SleepNodeFactory extends NodeFactory<SleepNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     private static final String NODE_NAME = "Wait...";
+
     private static final String NODE_ICON = "sleep.png";
+
     private static final String SHORT_DESCRIPTION = """
             This node waits for a certain time, to a certain time or for a file event.
             """;
-    private static final String FULL_DESCRIPTION = """
-            This node waits for a certain time, to a certain time or for a file event (such as file creation, modification or deletion). Note that on some
-            operating systems file events need a few seconds to be noticed by the application. This node is derived from the Vernalis community extension.
-            """;
-    private static final List<PortDescription> INPUT_PORTS = List.of(
-            PortDescription.fixedPort("Input table", """
-                The input variables.
-                """)
-    );
-    private static final List<PortDescription> OUTPUT_PORTS = List.of(
-            PortDescription.fixedPort("Output table", """
-                The input variables
-                """)
-    );
 
-    /** Create factory, that instantiates nodes.
+    private static final String FULL_DESCRIPTION =
+        """
+                This node waits for a certain time, to a certain time or for a file event (such as file creation, modification or deletion). Note that on some
+                operating systems file events need a few seconds to be noticed by the application. This node is derived from the Vernalis community extension.
+                """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(PortDescription.fixedPort("Input table", """
+            The input variables.
+            """));
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(PortDescription.fixedPort("Output table", """
+            The input variables
+            """));
+
+    /**
+     * Create factory, that instantiates nodes.
      */
     public SleepNodeFactory() {
         // wow, such empty
@@ -137,20 +139,9 @@ public class SleepNodeFactory extends NodeFactory<SleepNodeModel> implements Nod
 
     @Override
     public NodeDescription createNodeDescription() {
-        return DefaultNodeDescriptionUtil.createNodeDescription(
-            NODE_NAME,
-            NODE_ICON,
-            INPUT_PORTS,
-            OUTPUT_PORTS,
-            SHORT_DESCRIPTION,
-            FULL_DESCRIPTION,
-            List.of(),
-            SleepNodeParameters.class,
-            null,
-            NodeType.Manipulator,
-            List.of(),
-            null
-        );
+        return DefaultNodeDescriptionUtil.createNodeDescription(NODE_NAME, NODE_ICON, INPUT_PORTS, OUTPUT_PORTS,
+            SHORT_DESCRIPTION, FULL_DESCRIPTION, List.of(), SleepNodeParameters.class, null, NodeType.Manipulator,
+            List.of(), null);
     }
 
     @Override
