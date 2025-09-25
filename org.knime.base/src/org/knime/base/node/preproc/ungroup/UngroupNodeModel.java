@@ -88,7 +88,7 @@ import org.knime.core.node.util.filter.NameFilterConfiguration.FilterResult;
  *
  * @author Tobias Koetter, University of Konstanz
  */
-class UngroupNodeModel extends NodeModel {
+final class UngroupNodeModel extends NodeModel {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(UngroupNodeModel.class);
 
