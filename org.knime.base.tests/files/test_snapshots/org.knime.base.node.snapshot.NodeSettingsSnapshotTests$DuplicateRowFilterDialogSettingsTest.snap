@@ -391,13 +391,19 @@
             "configKey" : "add_row_duplicate_flag"
           },
           "uniqueStatusColumnName" : {
-            "configKey" : "unique_flag_column_name"
+            "configKey" : "unique_flag_column_name",
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ ]
+            } ]
           },
           "addRowIdLabel" : {
             "configKey" : "add_row_id_flag"
           },
           "chosenRowIdsColumnName" : {
-            "configKey" : "row_id_flag_column_name"
+            "configKey" : "row_id_flag_column_name",
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ ]
+            } ]
           },
           "doNotAllowEmptyBlankOrPaddedColumnName" : {
             "configPaths" : [ ]

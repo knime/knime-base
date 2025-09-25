@@ -91,10 +91,11 @@ public final class ColumnFilterRefNodeSettings implements NodeParameters {
 
         @Override
         public ColumnReferenceMode load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            if (settings.getString(REFERENCE_MODE_KEY).equals(ColumnFilterRefNodeModel.INCLUDE)) {
-                return ColumnReferenceMode.INCLUDE;
-            } else {
+            // same check as in ColumnFilterRefNodeModel
+            if (settings.getString(REFERENCE_MODE_KEY).equals(ColumnFilterRefNodeModel.EXCLUDE)) {
                 return ColumnReferenceMode.EXCLUDE;
+            } else {
+                return ColumnReferenceMode.INCLUDE;
             }
         }
 

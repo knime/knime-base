@@ -266,7 +266,33 @@ final class CellSplitter2NodeParameters implements NodeParameters {
             + "(The character to escape quotes is always the backslash.) "
             + "If no quotation character is needed leave it empty.")
     @TextInputWidget(placeholder = "(leave empty for none)")
+    @Persistor(QuotePatternPersistor.class)
     String m_quotePattern = "\"";
+
+    /**
+     * empty strings need to be persisted as null
+     */
+    static final class QuotePatternPersistor implements NodeParametersPersistor<String> {
+
+        static final String CONFIG_KEY = "quotePattern";
+
+        @Override
+        public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            final var s = settings.getString(CONFIG_KEY, null);
+            return s == null ? "" : s;
+        }
+
+        @Override
+        public void save(final String param, final NodeSettingsWO settings) {
+            settings.addString(CONFIG_KEY, "".equals(param) ? null : param);
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{{CONFIG_KEY}};
+        }
+
+    }
 
     // this setting is not visible but is used by CellSplitter User settings class
     boolean m_removeQuotes = true;
