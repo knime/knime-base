@@ -84,10 +84,10 @@ public final class RegressionPredictorSettings {
         m_isClassification = expectClassificationModel;
     }
 
-    private static final String CFG_HAS_CUSTOM_PREDICTION_NAME = "has_custom_predicition_name";
-    private static final String CFG_CUSTOM_PREDICTION_NAME = "custom_prediction_name";
-    private static final String CFG_INCLUDE_PROBABILITIES = "include_probabilites";
-    private static final String CFG_PROP_COLUMN_SUFFIX = "propability_columns_suffix";
+    static final String CFG_HAS_CUSTOM_PREDICTION_NAME = "has_custom_predicition_name";
+    static final String CFG_CUSTOM_PREDICTION_NAME = "custom_prediction_name";
+    static final String CFG_INCLUDE_PROBABILITIES = "include_probabilites";
+    static final String CFG_PROP_COLUMN_SUFFIX = "propability_columns_suffix";
 
     /**
      * Loads the settings from the node settings object.

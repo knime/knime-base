@@ -1,0 +1,67 @@
+{
+  "data" : {
+    "model" : {
+      "hasCustomPredictionName" : false,
+      "customPredictionName" : ""
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "customPredictionName" : {
+            "type" : "string",
+            "title" : "Prediction column name",
+            "description" : "The name for the prediction column.",
+            "default" : ""
+          },
+          "hasCustomPredictionName" : {
+            "type" : "boolean",
+            "title" : "Use custom prediction column",
+            "description" : "Allows you to specify a customized name for the prediction column that is appended to the input table. If not checked, \"Prediction (target)\" (where target is the name of the target column of the provided regression model) is used as default.",
+            "default" : false
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/hasCustomPredictionName",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/customPredictionName",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/hasCustomPredictionName",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "hasCustomPredictionName" : {
+            "configKey" : "has_custom_predicition_name"
+          },
+          "customPredictionName" : {
+            "configKey" : "custom_prediction_name"
+          }
+        }
+      }
+    }
+  }
+}
