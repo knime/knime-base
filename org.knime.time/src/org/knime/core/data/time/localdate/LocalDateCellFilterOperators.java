@@ -84,8 +84,7 @@ public class LocalDateCellFilterOperators implements FilterOperators {
         return operators;
     }
 
-    static final class OperatorIsLeapYear
-        implements ValueFilterOperator<LocalDateValue, FilterValueParameters.None> {
+    static final class OperatorIsLeapYear implements ValueFilterOperator<LocalDateValue, FilterValueParameters> {
 
         @Override
         public String getId() {
@@ -98,13 +97,13 @@ public class LocalDateCellFilterOperators implements FilterOperators {
         }
 
         @Override
-        public Class<FilterValueParameters.None> getNodeParametersClass() {
-            return FilterValueParameters.None.class;
+        public Class<FilterValueParameters> getNodeParametersClass() {
+            return null;
         }
 
         @Override
         public Predicate<LocalDateValue> createTypedPredicate(final DataColumnSpec runtimeColumnSpec,
-            final FilterValueParameters.None filterParameters) throws InvalidSettingsException {
+            final FilterValueParameters filterParameters) throws InvalidSettingsException {
             return dv -> dv.getLocalDate().isLeapYear();
         }
 

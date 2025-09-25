@@ -62,7 +62,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public final class IsNotMissingFilterOperator implements FilterOperator<FilterValueParameters.None> {
+public final class IsNotMissingFilterOperator implements FilterOperator<FilterValueParameters> {
 
     /** Singleton instance of the IsNotMissingFilterOperator. */
     public static final IsNotMissingFilterOperator INSTANCE = new IsNotMissingFilterOperator();
@@ -83,7 +83,7 @@ public final class IsNotMissingFilterOperator implements FilterOperator<FilterVa
 
     @Override
     public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
-        final FilterValueParameters.None params) throws InvalidSettingsException {
+        final FilterValueParameters params) throws InvalidSettingsException {
         return FilterOperatorsUtil.PREDICATE_ALWAYS_TRUE;
     }
 
@@ -93,7 +93,7 @@ public final class IsNotMissingFilterOperator implements FilterOperator<FilterVa
     }
 
     @Override
-    public Class<FilterValueParameters.None> getNodeParametersClass() {
-        return FilterValueParameters.None.class;
+    public Class<FilterValueParameters> getNodeParametersClass() {
+        return null;
     }
 }

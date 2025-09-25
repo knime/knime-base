@@ -53,7 +53,6 @@ import static org.knime.base.node.preproc.filter.row3.RowIdentifiers.ROW_NUMBER;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -260,7 +259,7 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
                     .toList();
             }
 
-            static Stream<FilterOperatorDefinition> getOperators(final StringOrEnum<RowIdentifiers> selectedColumn,
+            static Stream<FilterOperatorDefinition<?>> getOperators(final StringOrEnum<RowIdentifiers> selectedColumn,
                 final NodeParametersInput context) {
                 final var rowIdentifierChoice = selectedColumn.getEnumChoice();
 
@@ -457,8 +456,6 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
 
         static class FilterValueParametersProvider implements DynamicParametersProvider<FilterValueParameters> {
 
-            private Supplier<DataType> m_dataType;
-
             private Supplier<String> m_currentOperatorId;
 
             private Supplier<FilterValueParameters> m_currentValue;
@@ -468,7 +465,6 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
             @Override
             public void init(final StateProviderInitializer initializer) {
                 initializer.computeBeforeOpenDialog();
-                m_dataType = initializer.computeFromProvidedState(DataTypeProvider.class);
                 m_currentOperatorId = initializer.computeFromValueSupplier(OperatorIdRef.class);
                 m_currentValue = initializer.getValueSupplier(CurrentFilterValueParametersRef.class);
                 m_selectedColumn = initializer.computeFromValueSupplier(SelectedColumnRef.class);
@@ -476,41 +472,24 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
 
             @Override
             public ClassIdStrategy<FilterValueParameters> getClassIdStrategy() {
-                final Collection<Class<? extends FilterValueParameters>> possibleClasses = new ArrayList<>();
-                possibleClasses.addAll(FilterOperatorsUtil.getAllParameterClasses());
-                possibleClasses.addAll(
-                    org.knime.base.node.preproc.filter.row3.FilterOperator.InternalFilterOperator.ALL_PARAMETER_CLASSES);
-                return new DefaultClassIdStrategy<>(possibleClasses);
+                return new DefaultClassIdStrategy<>(FilterOperatorsUtil.getAllParameterClasses());
             }
 
             @Override
             public FilterValueParameters computeParameters(final NodeParametersInput parametersInput)
                 throws StateComputationFailureException {
                 final var selectedColumn = m_selectedColumn.get();
-                final var rowIdentifierChoice = selectedColumn.getEnumChoice();
                 final var currentOperatorId = m_currentOperatorId.get();
-                Class<? extends FilterValueParameters> targetClass;
 
-                // Get available operators based on column type
-                final List<? extends FilterOperatorDefinition<? extends FilterValueParameters>> availableOperators;
-                if (rowIdentifierChoice.isPresent()) {
-                    availableOperators = switch (rowIdentifierChoice.get()) {
-                        case ROW_ID -> FilterOperatorsUtil.getRowKeyOperators();
-                        case ROW_NUMBER -> FilterOperatorsUtil.getRowNumberOperators();
-                    };
-                } else {
-                    final var dataType = m_dataType.get();
-                    if (dataType == null) {
-                        throw new StateComputationFailureException("No column selected");
-                    }
-                    availableOperators = FilterOperatorsUtil.getOperators(dataType);
-                }
-
-                // Find the target class from available operators
-                targetClass = availableOperators.stream().filter(op -> op.getId().equals(currentOperatorId)).findFirst()
-                    .orElseThrow(() -> new StateComputationFailureException(
+                final Class<? extends FilterValueParameters> targetClass = OperatorsProvider
+                    .getOperators(selectedColumn, parametersInput).filter(op -> op.getId().equals(currentOperatorId))
+                    .findFirst().orElseThrow(() -> new StateComputationFailureException(
                         "Unknown operator \"%s\"".formatted(currentOperatorId)))
                     .getNodeParametersClass();
+                if (targetClass == null) {
+                    // No class means no parameters
+                    return null;
+                }
                 final var currentValue = m_currentValue.get();
                 if (currentValue != null && targetClass.equals(currentValue.getClass())) {
                     return currentValue;
