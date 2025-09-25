@@ -55,6 +55,7 @@ import org.knime.base.node.preproc.filter.row3.operators.RowKeyFilterOperator;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
+import org.knime.core.data.RowKeyValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.EqualsOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
@@ -79,25 +80,23 @@ public final class DefaultEqualityOperators {
             new NotEqualNorMissingDefault());
     }
 
-    public static List<RowKeyFilterOperator<? extends FilterValueParameters>>
-        getRowKeyOperators() {
+    public static List<RowKeyFilterOperator<? extends FilterValueParameters>> getRowKeyOperators() {
         return List.of( //
-            //new RowKeyEqualDefault(), //
-            //new RowKeyNotEqualDefault(), //
-            //new RowKeyNotEqualNorMissingDefault() //
-            );
+            new RowKeyEqualDefault(), //
+            new RowKeyNotEqualDefault() //
+        );
     }
 
-    private static final class EqualDefault implements FilterOperator<FallbackOperatorParameters>, EqualsOperator {
+    private static final class EqualDefault implements FilterOperator<SingleStringParameters>, EqualsOperator {
 
         @Override
-        public Class<FallbackOperatorParameters> getNodeParametersClass() {
-            return FallbackOperatorParameters.class;
+        public Class<SingleStringParameters> getNodeParametersClass() {
+            return SingleStringParameters.class;
         }
 
         @Override
         public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
-            final DataType configureDataType, final FallbackOperatorParameters filterParameters)
+            final DataType configureDataType, final SingleStringParameters filterParameters)
             throws InvalidSettingsException {
             final var type = runtimeColumnSpec.getType();
             final var cell = filterParameters.createCellAs(type);
@@ -106,16 +105,16 @@ public final class DefaultEqualityOperators {
 
     }
 
-    private abstract static class NotEqualBase implements FilterOperator<FallbackOperatorParameters> {
+    private abstract static class NotEqualBase implements FilterOperator<SingleStringParameters> {
 
         @Override
-        public Class<FallbackOperatorParameters> getNodeParametersClass() {
-            return FallbackOperatorParameters.class;
+        public Class<SingleStringParameters> getNodeParametersClass() {
+            return SingleStringParameters.class;
         }
 
         @Override
         public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
-            final DataType configureDataType, final FallbackOperatorParameters filterParameters)
+            final DataType configureDataType, final SingleStringParameters filterParameters)
             throws InvalidSettingsException {
             final var type = runtimeColumnSpec.getType();
             final var cell = filterParameters.createCellAs(type);
@@ -133,6 +132,40 @@ public final class DefaultEqualityOperators {
     }
 
     private static final class NotEqualNorMissingDefault extends NotEqualBase implements NotEqualsNorMissingOperator {
+    }
+
+    private static final class RowKeyEqualDefault
+        implements RowKeyFilterOperator<StringEqualsParameters>, EqualsOperator {
+
+        @Override
+        public Class<StringEqualsParameters> getNodeParametersClass() {
+            return StringEqualsParameters.class;
+        }
+
+        @Override
+        public Predicate<RowKeyValue> createPredicate(final StringEqualsParameters params)
+            throws InvalidSettingsException {
+            final var stringPredicate = params.toStringPredicate();
+            return rowKey -> stringPredicate.test(rowKey.getString());
+        }
+
+    }
+
+    private static class RowKeyNotEqualDefault
+        implements RowKeyFilterOperator<StringEqualsParameters>, NotEqualsOperator {
+
+        @Override
+        public Class<StringEqualsParameters> getNodeParametersClass() {
+            return StringEqualsParameters.class;
+        }
+
+        @Override
+        public Predicate<RowKeyValue> createPredicate(final StringEqualsParameters params)
+            throws InvalidSettingsException {
+            final var stringPredicate = params.toStringPredicate();
+            return rowKey -> !stringPredicate.test(rowKey.getString());
+        }
+
     }
 
 }

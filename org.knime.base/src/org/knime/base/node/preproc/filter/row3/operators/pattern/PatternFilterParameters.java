@@ -48,7 +48,7 @@
  */
 package org.knime.base.node.preproc.filter.row3.operators.pattern;
 
-import org.knime.base.node.preproc.filter.row3.operators.CaseSensitivity;
+import org.knime.base.node.preproc.filter.row3.operators.defaults.CaseSensitivity;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;

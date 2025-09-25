@@ -60,7 +60,7 @@ import java.util.stream.Stream;
 
 import org.knime.base.node.preproc.filter.row3.operators.defaults.DefaultComparableOperators;
 import org.knime.base.node.preproc.filter.row3.operators.defaults.DefaultEqualityOperators;
-import org.knime.base.node.preproc.filter.row3.operators.defaults.FallbackOperatorParameters;
+import org.knime.base.node.preproc.filter.row3.operators.defaults.SingleStringParameters;
 import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParameters;
 import org.knime.base.node.preproc.filter.row3.operators.missing.IsMissingFilterOperator;
 import org.knime.base.node.preproc.filter.row3.operators.missing.IsNotMissingFilterOperator;
@@ -74,6 +74,7 @@ import org.knime.base.node.preproc.filter.row3.operators.pattern.WildcardPattern
 import org.knime.core.data.BoundedValue;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorsRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
@@ -126,6 +127,30 @@ public final class FilterOperatorsUtil {
             @Override
             public boolean isApplicable(final DataType dataType) {
                 return TypeMappingUtils.supportsDataType(dataType);
+            }
+        }, //
+        // Literal strings should have case matching in addition to a string input
+        new OperatorGroup() {
+
+            @Override
+            public List<FilterOperator<? extends FilterValueParameters>> getOperators(final DataType dataType) {
+                return null; // TODO
+            }
+
+            @Override
+            public boolean isApplicable(final DataType dataType) {
+                return StringCell.TYPE.equals(dataType);
+            }
+
+        }, new OperatorGroup() {
+            @Override
+            public List<FilterOperator<? extends FilterValueParameters>> getOperators(final DataType dataType) {
+                return DefaultEqualityOperators.getOperators(dataType);
+            }
+
+            @Override
+            public boolean isApplicable(final DataType dataType) {
+                return StringCell.TYPE.equals(dataType);
             }
         },
         // Default comparable (fallback)
@@ -234,7 +259,7 @@ public final class FilterOperatorsUtil {
             DEFAULT_ROW_KEY_OPERATORS.stream().map(op -> op.getNodeParametersClass()),
             DEFAULT_ROW_NUMBER_OPERATORS.stream().map(op -> op.getNodeParametersClass()),
             Stream.of(LegacyFilterParameters.class), //
-            Stream.of(FallbackOperatorParameters.class) // Add default operator parameters
+            Stream.of(SingleStringParameters.class) // Add default operator parameters
         ).flatMap(Function.identity());
 
         return Stream.concat(registryClasses.stream(), defaultClasses).distinct().filter(Objects::nonNull).toList();

@@ -120,18 +120,18 @@ public final class DefaultComparableOperators {
         boolean test(final int comparisonResult, final int zero);
     }
 
-    abstract static class ComparableOperator implements FilterOperator<FallbackOperatorParameters> {
+    abstract static class ComparableOperator implements FilterOperator<SingleStringParameters> {
 
         abstract Comparison compare();
 
         @Override
-        public Class<FallbackOperatorParameters> getNodeParametersClass() {
-            return FallbackOperatorParameters.class;
+        public Class<SingleStringParameters> getNodeParametersClass() {
+            return SingleStringParameters.class;
         }
 
         @Override
         public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
-            final DataType configureColumnType, final FallbackOperatorParameters filterParameters)
+            final DataType configureColumnType, final SingleStringParameters filterParameters)
             throws InvalidSettingsException {
             final var comparator = new DataValueComparatorDelegator<>(runtimeColumnSpec.getType().getComparator());
             final var reference = filterParameters.createCellAs(runtimeColumnSpec.getType());
