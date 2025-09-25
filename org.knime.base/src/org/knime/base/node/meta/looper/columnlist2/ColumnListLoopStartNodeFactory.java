@@ -47,25 +47,39 @@
  */
 package org.knime.base.node.meta.looper.columnlist2;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.ExternalResource;
+import org.knime.node.impl.description.PortDescription;
 
 /**
- * This is the factory for the column list loop start node that creates all
- * necessary objects.
+ * Factory class for the Column List Loop Start node that creates a loop start node which iterates over selected columns
+ * of an input table.
+ *
  *
  * @author Thorsten Meinl, University of Konstanz
+ * @author Benjamin Moser, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.1
  */
-public class ColumnListLoopStartNodeFactory extends
-        NodeFactory<ColumnListLoopStartNodeModel> {
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new ColumnListLoopStartNodeDialog();
-    }
+@SuppressWarnings("restriction")
+public class ColumnListLoopStartNodeFactory extends NodeFactory<ColumnListLoopStartNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     /**
      * {@inheritDoc}
@@ -79,8 +93,9 @@ public class ColumnListLoopStartNodeFactory extends
      * {@inheritDoc}
      */
     @Override
-    public NodeView<ColumnListLoopStartNodeModel> createNodeView(
-            final int viewIndex, final ColumnListLoopStartNodeModel nodeModel) {
+    @SuppressWarnings("java:S5738")
+    public NodeView<ColumnListLoopStartNodeModel> createNodeView(final int viewIndex,
+        final ColumnListLoopStartNodeModel nodeModel) {
         return null;
     }
 
@@ -96,7 +111,67 @@ public class ColumnListLoopStartNodeFactory extends
      * {@inheritDoc}
      */
     @Override
+    @SuppressWarnings("java:S5738")
     protected boolean hasDialog() {
         return true;
+    }
+
+    private static final String NODE_NAME = "Column List Loop Start";
+
+    private static final String NODE_ICON = "./loop_start_column.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Iterates over columns in the input table
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            This loop starting node iterates over the columns of the input table.
+            In each loop iteration, the columns in the loop body are
+            <ul>
+            <li>all columns configured as <i>excluded</i>, this is constant for each iteration</li>
+            <li>one of the <i>included</i> columns, corresponding to the current iteration</li>
+            </ul>
+            For example, if a table has columns <i>A, B, C</i> and columns <i>B</i> and <i>C</i> are set as
+            <i>included</i>, the loop body will go through two iterations with the following columns, respectively:
+            <ol>
+            <li><i>A</i>, <i>B</i> </li>
+            <li><i>A</i>, <i>C</i> </li>
+            </ol>
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(fixedPort("Any data table", """
+            The input data table
+            """));
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(fixedPort("Filtered columns", """
+            A subset of columns of the input table
+            """));
+
+    private static final List<ExternalResource> LINKS = List.of(
+        new ExternalResource("https://docs.knime.com/latest/analytics_platform_flow_control_guide/index.html#loops", """
+                KNIME Flow Control Guide: Section Loops
+                """));
+
+    @Override
+    @SuppressWarnings("java:S5738")
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, ColumnListLoopStartNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(NODE_NAME, NODE_ICON, INPUT_PORTS, OUTPUT_PORTS,
+            SHORT_DESCRIPTION, FULL_DESCRIPTION, LINKS, ColumnListLoopStartNodeParameters.class, null,
+            NodeType.LoopStart, List.of(), null);
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, ColumnListLoopStartNodeParameters.class));
     }
 }
