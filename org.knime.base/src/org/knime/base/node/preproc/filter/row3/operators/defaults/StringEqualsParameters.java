@@ -27,7 +27,7 @@
  *  ECLIPSE with only the license terms in place for ECLIPSE applying to
  *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
  *  license terms of ECLIPSE themselves allow for the respective use and
- *  propagation of ECLIPSE together with KNIME.
+ *  propagation of KNIME.
  *
  *  Additional permission relating to nodes for KNIME that extend the Node
  *  Extension (and in particular that are based on subclasses of NodeModel,
@@ -44,27 +44,48 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 8, 2025 (Paul Bärnreuther): created
+ *   Sep 25, 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3.operators;
+package org.knime.base.node.preproc.filter.row3.operators.defaults;
 
-import org.knime.node.parameters.widget.choices.Label;
+import org.knime.base.node.preproc.filter.row3.predicates.StringPredicate;
+import org.knime.core.data.def.StringCell;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters.CreateCellValueParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
- * Case sensitivity options for string comparisons.
+ * Parameters for default filter operators that work with any data type by using string representation.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public enum CaseSensitivity {
+public class StringEqualsParameters extends SingleStringParameters implements CreateCellValueParameters<StringCell> {
 
-        /**
-         * Case sensitive comparison.
-         */
-        @Label("Case sensitive")
-        CASE_SENSITIVE, //
-        /**
-         * Case-insensitive comparison.
-         */
-        @Label("Case insensitive")
-        CASE_INSENSITIVE;
+    StringEqualsParameters() {
+        super();
+        // for instantiation by framework
+    }
+
+    /**
+     * @param value
+     */
+    public StringEqualsParameters(final String value) {
+        super(value);
+    }
+
+    @Layout(BeforeValuePart.class)
+    @ValueSwitchWidget
+    @Widget(title = "Case matching", description = "Whether the comparison should be case sensitive or not.")
+    CaseSensitivity m_caseSensitivity = CaseSensitivity.CASE_SENSITIVE;
+
+    StringPredicate toStringPredicate() {
+        return StringPredicate.equality(m_value, m_caseSensitivity == CaseSensitivity.CASE_SENSITIVE);
+    }
+
+    @Override
+    public StringCell createCell() {
+        return new StringCell(m_value);
+    }
+
 }
