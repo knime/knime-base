@@ -44,53 +44,57 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   27 Aug 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   15 May 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3.predicates;
+package org.knime.base.node.preproc.filter.row3.operators.legacy;
 
-import java.util.Optional;
-import java.util.OptionalInt;
-
-import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
-import org.knime.base.node.preproc.filter.row3.operators.legacy.DynamicValuesInput;
-import org.knime.core.data.BooleanValue;
-import org.knime.core.data.DataType;
-import org.knime.core.node.InvalidSettingsException;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
- * Predicate factory for {@link BooleanValue} columns, i.e. column data types that have
- * {@link BooleanValue} as preferred value class.
- *
- * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * Case-matching setting provided by the framework, since we currently lack a flexible extension mechanism for
+ * individual widgets.
  */
-final class BooleanPredicateFactory extends AbstractPredicateFactory {
+final class StringCaseMatchingSettings implements NodeParameters {
 
-    private final boolean m_matchTrue;
+    // TODO Ideally, this settings class is entirely opaque to the framework and the concrete implementation is supplied
+    // by the node that uses it.
 
-    private BooleanPredicateFactory(final boolean matchTrue) {
-        m_matchTrue = matchTrue;
+    // Actual labels/description is hard-coded in the frontend!
+    enum CaseMatching {
+            /** Respect case when matching strings. */
+            @Label("Case sensitive")
+            CASESENSITIVE, //
+            /** Disregard case when matching strings. */
+            @Label("Case insensitive")
+            CASEINSENSITIVE;
+
+        /** Recommended default setting. */
+        public static final CaseMatching DEFAULT = CASESENSITIVE;
     }
 
-    /**
-     * Creates a factory for boolean predicates, if the column data type prefers {@link BooleanValue}.
-     *
-     * @param columnDataType the data type of the column
-     * @param matchTrue whether to match true or false
-     * @return an optional predicate factory
-     */
-    static Optional<PredicateFactory> create(final DataType columnDataType, final boolean matchTrue) {
-        if (BooleanValue.class.equals(columnDataType.getPreferredValueClass())) {
-            return Optional.of(new BooleanPredicateFactory(matchTrue));
-        }
-        return Optional.empty();
+    CaseMatching m_caseMatching = CaseMatching.DEFAULT;
+
+    public boolean isCaseSensitive() {
+        return this.m_caseMatching == CaseMatching.CASESENSITIVE;
     }
 
     @Override
-    public IndexedRowReadPredicate createPredicate(final OptionalInt colIdx, final DynamicValuesInput ignored)
-        throws InvalidSettingsException {
-        final var columnIndex = colIdx.orElseThrow(
-            () -> new IllegalStateException("Boolean predicate operates on column but did not get a column index"));
-        return (i, rowRead) -> rowRead.<BooleanValue> getValue(columnIndex).getBooleanValue() == m_matchTrue;
+    public boolean equals(final Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (!(obj instanceof StringCaseMatchingSettings mod)) {
+            return false;
+        }
+        return m_caseMatching == mod.m_caseMatching;
     }
 
+    @Override
+    public int hashCode() {
+        return m_caseMatching.hashCode();
+    }
 }

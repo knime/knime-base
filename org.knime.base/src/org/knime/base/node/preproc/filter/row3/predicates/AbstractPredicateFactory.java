@@ -52,6 +52,7 @@ import java.util.OptionalInt;
 import java.util.function.UnaryOperator;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.DynamicValuesInput;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
 import org.knime.core.node.InvalidSettingsException;
@@ -59,7 +60,6 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.message.Message;
 import org.knime.core.node.message.MessageBuilder;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
 
 /**
  * Base class that should be used for predicate factories. It provides a helper method to get the input value and a nice

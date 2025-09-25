@@ -49,13 +49,13 @@
 package org.knime.base.node.preproc.filter.row3;
 
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.DynamicValuesInput;
 import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterOperator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.func.NodeFuncApi.Builder;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 
 /**

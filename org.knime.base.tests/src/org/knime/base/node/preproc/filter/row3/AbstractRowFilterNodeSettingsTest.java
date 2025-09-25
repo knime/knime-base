@@ -59,6 +59,7 @@ import org.junit.jupiter.api.Test;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion.OperatorRef;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion.SelectedColumnRef;
 import org.knime.base.node.preproc.filter.row3.FilterOperatorTest.TestInitializer;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.DynamicValuesInput;
 import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterOperator;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
@@ -69,7 +70,6 @@ import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.node.parameters.updates.ParameterReference;
 

@@ -51,9 +51,9 @@ package org.knime.base.node.preproc.filter.row3.predicates;
 import java.util.OptionalInt;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.DynamicValuesInput;
 import org.knime.core.data.v2.RowRead;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
 
 /**
  * Factory for predicates that can be used to filter indexed {@link RowRead rows}.
