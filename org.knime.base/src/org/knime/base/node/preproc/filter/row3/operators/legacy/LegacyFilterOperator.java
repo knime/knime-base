@@ -46,7 +46,7 @@
  * History
  *   25 Mar 2024 (jasper): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.base.node.preproc.filter.row3.operators.legacy;
 
 import java.util.Collection;
 import java.util.List;
@@ -54,6 +54,7 @@ import java.util.Optional;
 import java.util.OptionalInt;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
+import org.knime.base.node.preproc.filter.row3.RowIdentifiers;
 import org.knime.base.node.preproc.filter.row3.operators.pattern.PatternFilterParameters;
 import org.knime.base.node.preproc.filter.row3.operators.pattern.RowNumberPatternFilterParameters;
 import org.knime.base.node.preproc.filter.row3.predicates.PredicateFactories;
@@ -75,7 +76,7 @@ import org.knime.node.parameters.widget.choices.Label;
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction") // new ui
-public enum FilterOperator {
+public enum LegacyFilterOperator {
 
         /** Operator checking equality between values. */
         @Label(value = "Equals", description = """
@@ -184,11 +185,11 @@ public enum FilterOperator {
 
     final boolean m_allowMissing;
 
-    FilterOperator() {
+    LegacyFilterOperator() {
         this(false);
     }
 
-    FilterOperator(final boolean allowMissing) {
+    LegacyFilterOperator(final boolean allowMissing) {
         m_allowMissing = allowMissing;
     }
 
@@ -263,9 +264,9 @@ public enum FilterOperator {
     IndexedRowReadPredicate translateToPredicate(final DynamicValuesInput predicateValues, final int columnIndex,
         final DataType dataType) throws InvalidSettingsException {
         // handle pure missingness tests early
-        if (this == FilterOperator.IS_MISSING || this == FilterOperator.IS_NOT_MISSING) {
+        if (this == LegacyFilterOperator.IS_MISSING || this == LegacyFilterOperator.IS_NOT_MISSING) {
             // only missing value filter, no value predicate present
-            final var isMissing = this == FilterOperator.IS_MISSING;
+            final var isMissing = this == LegacyFilterOperator.IS_MISSING;
             return isMissing ? PredicateFactories.IS_MISSING_FACTORY.apply(columnIndex)
                 : PredicateFactories.IS_NOT_MISSING_FACTORY.apply(columnIndex);
         }

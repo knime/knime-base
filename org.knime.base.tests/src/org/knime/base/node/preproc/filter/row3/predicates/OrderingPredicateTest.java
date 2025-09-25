@@ -54,7 +54,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.OptionalInt;
 
 import org.junit.jupiter.api.Test;
-import org.knime.base.node.preproc.filter.row3.FilterOperator;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterOperator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.RowKey;
@@ -81,7 +81,7 @@ class OrderingPredicateTest {
      */
     @Test
     void testOrderingLongDoubleHandling() throws InvalidSettingsException {
-        final var op = FilterOperator.GT;
+        final var op = LegacyFilterOperator.GT;
 
         final var ref = 42.0d;
         final var factory = OrderingPredicateFactory.create(LongCell.TYPE, op).orElseThrow();
@@ -107,7 +107,7 @@ class OrderingPredicateTest {
 
     @Test
     void testLongColumn() throws InvalidSettingsException {
-        final var op = FilterOperator.GT;
+        final var op = LegacyFilterOperator.GT;
 
         final var ref = 42.0d;
         final var factory = OrderingPredicateFactory.create(LongCell.TYPE, op).orElseThrow();

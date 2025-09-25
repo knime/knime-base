@@ -49,6 +49,7 @@
 package org.knime.base.node.preproc.filter.row3;
 
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
+import org.knime.base.node.preproc.filter.row3.operators.missing.IsMissingFilterOperator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -71,7 +72,7 @@ public final class MissingValueRowFilterNodeFunc extends AbstractRowFilterNodeFu
 
         var criterion = new FilterCriterion();
         criterion.m_column = new StringOrEnum<>(column);
-        criterion.m_operator = FilterOperator.IS_MISSING;
+        criterion.m_operator = IsMissingFilterOperator.INSTANCE.getId();
 
         return new FilterCriterion[]{criterion};
     }

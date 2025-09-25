@@ -78,10 +78,13 @@ public final class DefaultComparableOperators {
         return List.of( //
             new LessThanDefault(), //
             new LessThanOrEqualDefault(), //
-            new GreaterThanDefault(), new GreaterThanOrEqualDefault());
+            new GreaterThanDefault(), //
+            new GreaterThanOrEqualDefault()//
+        );
     }
 
     private static final class LessThanDefault extends ComparableOperator implements LessThanOperator {
+
         @Override
         Comparison compare() {
             return (cmp, zero) -> cmp < zero;
@@ -89,6 +92,7 @@ public final class DefaultComparableOperators {
     }
 
     private static final class LessThanOrEqualDefault extends ComparableOperator implements LessThanOrEqualOperator {
+
         @Override
         Comparison compare() {
             return (cmp, zero) -> cmp <= zero;
@@ -96,6 +100,7 @@ public final class DefaultComparableOperators {
     }
 
     private static final class GreaterThanDefault extends ComparableOperator implements GreaterThanOperator {
+
         @Override
         Comparison compare() {
             return (cmp, zero) -> cmp > zero;
@@ -104,6 +109,7 @@ public final class DefaultComparableOperators {
 
     private static final class GreaterThanOrEqualDefault extends ComparableOperator
         implements GreaterThanOrEqualOperator {
+
         @Override
         Comparison compare() {
             return (cmp, zero) -> cmp >= zero;

@@ -53,7 +53,7 @@ import java.util.function.IntFunction;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
 import org.knime.base.data.filter.row.v2.OffsetFilter;
-import org.knime.base.node.preproc.filter.row3.FilterOperator;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterOperator;
 import org.knime.core.data.DataType;
 import org.knime.core.data.v2.RowRead;
 
@@ -91,7 +91,7 @@ public final class PredicateFactories {
      * @return factory for the given operator and column, or empty if the operator is not supported for the given data
      *         type
      */
-    public static Optional<PredicateFactory> getValuePredicateFactory(final FilterOperator operator, // NOSONAR
+    public static Optional<PredicateFactory> getValuePredicateFactory(final LegacyFilterOperator operator, // NOSONAR
         final DataType dataType) {
         return switch (operator) {
             case EQ:
@@ -99,13 +99,13 @@ public final class PredicateFactories {
             case NEQ, NEQ_MISS:
                 yield EqualityPredicateFactory.create(dataType, false);
             case GT:
-                yield OrderingPredicateFactory.create(dataType, FilterOperator.GT);
+                yield OrderingPredicateFactory.create(dataType, LegacyFilterOperator.GT);
             case GTE:
-                yield OrderingPredicateFactory.create(dataType, FilterOperator.GTE);
+                yield OrderingPredicateFactory.create(dataType, LegacyFilterOperator.GTE);
             case LT:
-                yield OrderingPredicateFactory.create(dataType, FilterOperator.LT);
+                yield OrderingPredicateFactory.create(dataType, LegacyFilterOperator.LT);
             case LTE:
-                yield OrderingPredicateFactory.create(dataType, FilterOperator.LTE);
+                yield OrderingPredicateFactory.create(dataType, LegacyFilterOperator.LTE);
             case IS_TRUE:
                 yield BooleanPredicateFactory.create(dataType, true);
             case IS_FALSE:
@@ -125,7 +125,7 @@ public final class PredicateFactories {
      * @param operator filter operator
      * @return factory for the given operator, or empty if the operator is not supported for row keys
      */
-    public static Optional<PredicateFactory> getRowKeyPredicateFactory(final FilterOperator operator) {
+    public static Optional<PredicateFactory> getRowKeyPredicateFactory(final LegacyFilterOperator operator) {
         return switch (operator) {
             case EQ:
                 yield EqualityPredicateFactory.forRowKey(true);
@@ -147,7 +147,7 @@ public final class PredicateFactories {
      * @param operator filter operator
      * @return factory for the given operator, or empty if the operator is not supported for row numbers
      */
-    public static Optional<PredicateFactory> getRowNumberPredicateFactory(final FilterOperator operator) {
+    public static Optional<PredicateFactory> getRowNumberPredicateFactory(final LegacyFilterOperator operator) {
         return switch (operator) {
             case REGEX:
                 yield Optional.of(PatternMatchingPredicateFactory.forRowNumber(true));
