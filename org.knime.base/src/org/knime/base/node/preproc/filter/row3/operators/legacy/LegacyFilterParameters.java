@@ -52,8 +52,8 @@ import java.util.OptionalInt;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
 import org.knime.base.node.preproc.filter.row3.RowIdentifiers;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.predicates.PredicateFactories;
 import org.knime.base.node.preproc.filter.row3.operators.rownumber.RowNumberFilterSpec;
-import org.knime.base.node.preproc.filter.row3.predicates.PredicateFactories;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.LongValue;
