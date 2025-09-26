@@ -46,15 +46,15 @@
  * History
  *   16 Dec 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3.operators;
+package org.knime.base.node.preproc.filter.row3.operators.rownumber;
 
 import java.util.List;
 import java.util.function.LongFunction;
 
 import org.knime.base.data.filter.row.v2.FilterPartition;
 import org.knime.base.data.filter.row.v2.OffsetFilter;
-import org.knime.base.data.filter.row.v2.OffsetFilter.Operator;
 import org.knime.base.node.preproc.filter.row3.FilterMode;
+import org.knime.base.node.preproc.filter.row3.operators.FilterOperatorsUtil;
 import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterOperator;
 import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParameters;
 import org.knime.core.node.InvalidSettingsException;
@@ -66,23 +66,64 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  */
 public final class RowNumberFilterSpec {
 
+    /**
+     * Operators that produce an {@link OffsetFilter}, i.e. work with a numeric row number.
+     */
+    enum Operator {
+            EQ, NEQ, LT, LTE, GT, GTE, FIRST_N_ROWS, LAST_N_ROWS
+    }
+
     static final long UNKNOWN_SIZE = -1;
 
-    private final LegacyFilterOperator m_operator;
+    private final Operator m_operator;
 
     private final long m_value;
 
-    public RowNumberFilterSpec(final LegacyFilterOperator operator, final long value) throws InvalidSettingsException {
-        CheckUtils.checkSetting(supportsOperator(operator), "Cannot use operator \"%s\" to filter by row number",
-            operator);
+    /**
+     * Creates a row number filter specification. Must be a positive 1-based row number for all but first/last n rows.
+     *
+     * @param operator row number filter operator
+     * @param value 1-based row number or number of last/first rows
+     * @throws InvalidSettingsException in case the value is out of range for the given operator
+     */
+    RowNumberFilterSpec(final Operator operator, final long value) throws InvalidSettingsException {
         m_operator = operator;
+        switch (operator) {
+            case LAST_N_ROWS, FIRST_N_ROWS -> CheckUtils.checkSetting(value >= 0,
+                "Number of first/last rows must be non-negative: %d", value);
+            case EQ, NEQ, LT, LTE, GT, GTE -> CheckUtils.checkSetting(value > 0,
+                "Row number value must be positive: %d", value);
+        }
         m_value = value;
     }
 
-    static boolean supportsOperator(final LegacyFilterOperator operator) {
+    /**
+     * Creates a row number filter specification from legacy filter parameters using a 1-based row number for all but
+     * first/last n rows.
+     *
+     * @param operator legacy filter operator
+     * @param value 1-based row number value or number of last/first rows
+     * @throws InvalidSettingsException in case the legacy operator is not supported for row number filtering
+     */
+    public RowNumberFilterSpec(final LegacyFilterOperator operator, final long value) throws InvalidSettingsException {
+        // map subset of supported legacy operators to offset-based filter
+        this(fromLegacy(operator), value);
+    }
+
+    private static Operator fromLegacy(final LegacyFilterOperator operator) throws InvalidSettingsException {
         return switch (operator) {
-            case EQ, NEQ, NEQ_MISS, LT, LTE, GT, GTE, FIRST_N_ROWS, LAST_N_ROWS -> true;
-            case IS_FALSE, IS_TRUE, IS_MISSING, IS_NOT_MISSING, REGEX, WILDCARD -> false;
+            case EQ -> Operator.EQ;
+            // row number cannot be missing, but we allow it for backwards-compatibility
+            case NEQ, NEQ_MISS -> Operator.NEQ;
+            case LT -> Operator.LT;
+            case LTE -> Operator.LTE;
+            case GT -> Operator.GT;
+            case GTE -> Operator.GTE;
+            case FIRST_N_ROWS -> Operator.FIRST_N_ROWS;
+            case LAST_N_ROWS -> Operator.LAST_N_ROWS;
+            // not supported as offset-based row number filter
+            case IS_FALSE, IS_TRUE, IS_MISSING, IS_NOT_MISSING, REGEX, WILDCARD -> throw new InvalidSettingsException(
+                "Cannot use operator \"%s\" to filter by row number".formatted(operator));
         };
     }
 
@@ -95,21 +136,19 @@ public final class RowNumberFilterSpec {
     public OffsetFilter toOffsetFilter(final long optionalTableSize) {
         // the dialog accepts 1-based row numbers but we use 0-based row offsets internally
         return switch (m_operator) {
-            case EQ -> new OffsetFilter(Operator.EQ, m_value - 1);
-            case NEQ, NEQ_MISS -> new OffsetFilter(Operator.NEQ, m_value - 1);
-            case LT -> new OffsetFilter(Operator.LT, m_value - 1);
-            case LTE -> new OffsetFilter(Operator.LTE, m_value - 1);
-            case GT -> new OffsetFilter(Operator.GT, m_value - 1);
-            case GTE -> new OffsetFilter(Operator.GTE, m_value - 1);
-            case FIRST_N_ROWS -> new OffsetFilter(Operator.LT, m_value);
+            case EQ -> new OffsetFilter(OffsetFilter.Operator.EQ, m_value - 1);
+            case NEQ -> new OffsetFilter(OffsetFilter.Operator.NEQ, m_value - 1);
+            case LT -> new OffsetFilter(OffsetFilter.Operator.LT, m_value - 1);
+            case LTE -> new OffsetFilter(OffsetFilter.Operator.LTE, m_value - 1);
+            case GT -> new OffsetFilter(OffsetFilter.Operator.GT, m_value - 1);
+            case GTE -> new OffsetFilter(OffsetFilter.Operator.GTE, m_value - 1);
+            case FIRST_N_ROWS -> new OffsetFilter(OffsetFilter.Operator.LT, m_value);
             case LAST_N_ROWS -> {
                 CheckUtils.checkState(optionalTableSize != UNKNOWN_SIZE, //
                     "Expected table size for filter operator \"%s\"", m_operator);
                 // if the table has fewer than `n` rows, return the whole table
-                yield new OffsetFilter(Operator.GTE, Math.max(0, optionalTableSize - m_value));
+                yield new OffsetFilter(OffsetFilter.Operator.GTE, Math.max(0, optionalTableSize - m_value));
             }
-            // not supported
-            case IS_FALSE, IS_TRUE, IS_MISSING, IS_NOT_MISSING, REGEX, WILDCARD -> throw new IllegalStateException();
         };
     }
 

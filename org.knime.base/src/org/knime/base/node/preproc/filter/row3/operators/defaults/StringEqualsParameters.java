@@ -55,11 +55,11 @@ import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
- * Parameters for default filter operators that work with any data type by using string representation.
+ * Parameters for string equality comparisons.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public class StringEqualsParameters extends SingleStringParameters { //implements CreateCellValueParameters<StringCell> {
+public final class StringEqualsParameters extends SingleStringParameters {
 
     StringEqualsParameters() {
         super();
