@@ -76,9 +76,6 @@ import org.knime.node.impl.description.PortDescription;
 @SuppressWarnings("restriction")
 public class ColumnListLoopStartNodeFactory extends NodeFactory<ColumnListLoopStartNodeModel>
     implements NodeDialogFactory, KaiNodeInterfaceFactory {
-    /**
-     * {@inheritDoc}
-     */
 
     /**
      * {@inheritDoc}
@@ -121,19 +118,20 @@ public class ColumnListLoopStartNodeFactory extends NodeFactory<ColumnListLoopSt
             Iterates over columns in the input table
             """;
 
-    private static final String FULL_DESCRIPTION =
-        """
-                This loop starting node iterates over the columns of the input table. In each loop iteration, the columns in the loop body are
-                <ul>
-                <li>all columns configured as <i>excluded</i>, this is constant for each iteration</li>
-                <li>one of the <i>included</i> columns, corresponding to the current iteration</li>
-                </ul>
-                For example, if a table has columns <i>A, B, C</i> and columns <i>B</i> and <i>C</i> are set as <i>included</i>, the loop body will go through two iterations with the following columns, respectively:
-                <ol>
-                <li><i>A</i>, <i>B</i> </li>
-                <li><i>A</i>, <i>C</i> </li>
-                </ol>
-                """;
+    private static final String FULL_DESCRIPTION = """
+            This loop starting node iterates over the columns of the input table.
+            In each loop iteration, the columns in the loop body are
+            <ul>
+            <li>all columns configured as <i>excluded</i>, this is constant for each iteration</li>
+            <li>one of the <i>included</i> columns, corresponding to the current iteration</li>
+            </ul>
+            For example, if a table has columns <i>A, B, C</i> and columns <i>B</i> and <i>C</i> are set as
+            <i>included</i>, the loop body will go through two iterations with the following columns, respectively:
+            <ol>
+            <li><i>A</i>, <i>B</i> </li>
+            <li><i>A</i>, <i>C</i> </li>
+            </ol>
+            """;
 
     private static final List<PortDescription> INPUT_PORTS = List.of(fixedPort("Any data table", """
             The input data table

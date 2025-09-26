@@ -46,10 +46,10 @@
 
 package org.knime.base.node.meta.looper.columnlist2;
 
+import org.knime.base.node.util.EnumBooleanPersistor;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
-import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.persistence.legacy.LegacyColumnFilterPersistor;
 import org.knime.node.parameters.widget.choices.Label;
@@ -60,22 +60,42 @@ import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 
 /**
  * Node parameters for Column List Loop Start.
- * 
+ *
  * @author Benjamin Moser, KNIME GmbH, Konstanz, Germany
  * @author AI Migration Pipeline v1.1
  */
 @LoadDefaultsForAbsentFields
-class ColumnListLoopStartNodeParameters implements NodeParameters {
+final class ColumnListLoopStartNodeParameters implements NodeParameters {
+
+    @SuppressWarnings("restriction")
+    static final class ColumnFilterLegacyPersistor extends LegacyColumnFilterPersistor {
+        ColumnFilterLegacyPersistor() {
+            super("column-filter");
+        }
+    }
 
     @Persistor(ColumnListLoopStartNodeParameters.ColumnFilterLegacyPersistor.class)
     @ColumnFilterWidget(choicesProvider = AllColumnsProvider.class)
-    @Widget(title = "Column Filter",
-        description = "Choose the columns to iterate over -- each column that matches the include criteria defines one iteration (so the loop will run as often as there are columns included). Columns excluded are considered static and will always be passed into the loop body.")
+    @Widget(title = "Column Filter", description = """
+            Choose the columns to iterate over -- each column that matches the include criteria defines one
+            iteration (so the loop will run as often as there are columns included). Columns excluded are considered
+            static and will always be passed into the loop body.")
+            """)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
-    @Widget(title = "If include column list is empty",
-        description = "Define the behavior if the include column list is empty. 'Run one iteration' will execute the loop body once with all 'excluded' columns passed unmodified into the loop body (so all columns in the input table). 'Fail' will cause no loop iteration to be run; instead the loop start node will fail with an appropriate error message.")
-    @Persist(configKey = "no_columns_policy")
+    static final class EmptyColumnListPolicyyPersistor extends EnumBooleanPersistor<EmptyColumnListPolicy> {
+        EmptyColumnListPolicyyPersistor() {
+            super("no_columns_policy", EmptyColumnListPolicy.class, EmptyColumnListPolicy.RUN_ONE_ITERATION);
+        }
+    }
+
+    @Widget(title = "If include column list is empty", description = """
+            Define the behavior if the include column list is empty. 'Run one iteration' will execute the loop body
+            once with all 'excluded' columns passed unmodified into the loop body (so all columns in the input table).
+            'Fail' will cause no loop iteration to be run; instead the loop start node will fail with an appropriate
+            error message.
+            """)
+    @Persistor(ColumnListLoopStartNodeParameters.EmptyColumnListPolicyyPersistor.class)
     @RadioButtonsWidget
     EmptyColumnListPolicy m_emptyColumnListPolicy = EmptyColumnListPolicy.RUN_ONE_ITERATION;
 
@@ -86,9 +106,4 @@ class ColumnListLoopStartNodeParameters implements NodeParameters {
             FAIL
     }
 
-    static final class ColumnFilterLegacyPersistor extends LegacyColumnFilterPersistor {
-        ColumnFilterLegacyPersistor() {
-            super("column-filter");
-        }
-    }
 }
