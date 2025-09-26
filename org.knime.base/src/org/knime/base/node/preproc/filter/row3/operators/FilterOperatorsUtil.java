@@ -61,6 +61,7 @@ import java.util.stream.Stream;
 import org.knime.base.node.preproc.filter.row3.operators.defaults.DefaultComparableOperators;
 import org.knime.base.node.preproc.filter.row3.operators.defaults.DefaultEqualityOperators;
 import org.knime.base.node.preproc.filter.row3.operators.defaults.SingleStringParameters;
+import org.knime.base.node.preproc.filter.row3.operators.defaults.StringEqualsParameters;
 import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParameters;
 import org.knime.base.node.preproc.filter.row3.operators.missing.IsMissingFilterOperator;
 import org.knime.base.node.preproc.filter.row3.operators.missing.IsNotMissingFilterOperator;
@@ -71,6 +72,10 @@ import org.knime.base.node.preproc.filter.row3.operators.pattern.RowKeyWildcardP
 import org.knime.base.node.preproc.filter.row3.operators.pattern.RowNumberRegexPatternFilterOperator;
 import org.knime.base.node.preproc.filter.row3.operators.pattern.RowNumberWildcardPatternFilterOperator;
 import org.knime.base.node.preproc.filter.row3.operators.pattern.WildcardPatternFilterOperator;
+import org.knime.base.node.preproc.filter.row3.operators.rowkey.RowKeyEqualityOperators;
+import org.knime.base.node.preproc.filter.row3.operators.rowkey.RowKeyFilterOperator;
+import org.knime.base.node.preproc.filter.row3.operators.rownumber.RowNumberFilterOperator;
+import org.knime.base.node.preproc.filter.row3.operators.rownumber.RowNumberOperators;
 import org.knime.core.data.BoundedValue;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
@@ -134,7 +139,7 @@ public final class FilterOperatorsUtil {
 
             @Override
             public List<FilterOperator<? extends FilterValueParameters>> getOperators(final DataType dataType) {
-                return null; // TODO create Equals, NotEquals, NotEqualsNorMissing with case sensitivity parameters
+                return List.of(); // TODO create Equals, NotEquals, NotEqualsNorMissing with case sensitivity parameters
             }
 
             @Override
@@ -176,19 +181,31 @@ public final class FilterOperatorsUtil {
      * Default operators available for row key filtering.
      */
     private static final List<RowKeyFilterOperator<? extends FilterValueParameters>> DEFAULT_ROW_KEY_OPERATORS =
-        List.of(//
-            RowKeyRegexPatternFilterOperator.getInstance(), //
-            RowKeyWildcardPatternFilterOperator.getInstance() //
-        );
+        createRowKeyOperatorsList();
+
+    @SuppressWarnings("unchecked")
+    private static List<RowKeyFilterOperator<? extends FilterValueParameters>> createRowKeyOperatorsList() {
+        final List<RowKeyFilterOperator<? extends FilterValueParameters>> operators = new ArrayList<>();
+        RowKeyEqualityOperators.getOperators().forEach(operators::add);
+        operators.add(RowKeyRegexPatternFilterOperator.getInstance());
+        operators.add(RowKeyWildcardPatternFilterOperator.getInstance());
+        return operators;
+    }
 
     /**
      * Default operators available for row number filtering.
      */
     private static final List<RowNumberFilterOperator<? extends FilterValueParameters>> DEFAULT_ROW_NUMBER_OPERATORS =
-        List.of(//
-            RowNumberRegexPatternFilterOperator.getInstance(), //
-            RowNumberWildcardPatternFilterOperator.getInstance() //
-        );
+        createRowNumberOperatorsList();
+
+    @SuppressWarnings("unchecked")
+    private static List<RowNumberFilterOperator<? extends FilterValueParameters>> createRowNumberOperatorsList() {
+        final List<RowNumberFilterOperator<? extends FilterValueParameters>> operators = new ArrayList<>();
+        RowNumberOperators.getOperators().forEach(op -> operators.add(op));
+        operators.add(RowNumberRegexPatternFilterOperator.getInstance());
+        operators.add(RowNumberWildcardPatternFilterOperator.getInstance());
+        return operators;
+    }
 
     /**
      * Gets all filter operators for the given data type, including both exact-match operators from the registry and
@@ -244,12 +261,14 @@ public final class FilterOperatorsUtil {
     public static List<Class<? extends FilterValueParameters>> getAllParameterClasses() {
         final var registryClasses = FilterOperatorsRegistry.getInstance().getAllParameterClasses();
         final var defaultClasses = Stream.of(
+            // built-in row key operators
+            DEFAULT_ROW_KEY_OPERATORS.stream().map(op -> op.getNodeParametersClass()),
+            // built-in row number operators
+            DEFAULT_ROW_NUMBER_OPERATORS.stream().map(op -> op.getNodeParametersClass()),
+            // Default implementations for non-implementing types
             DEFAULT_COLUMN_OPERATOR_GROUPS.stream().flatMap(group -> group.getOperators(null).stream())
                 .map(op -> op.getNodeParametersClass()),
-            DEFAULT_ROW_KEY_OPERATORS.stream().map(op -> op.getNodeParametersClass()),
-            DEFAULT_ROW_NUMBER_OPERATORS.stream().map(op -> op.getNodeParametersClass()),
-            Stream.of(LegacyFilterParameters.class), //
-            Stream.of(SingleStringParameters.class) // Add default operator parameters
+            Stream.of(LegacyFilterParameters.class, StringEqualsParameters.class, SingleStringParameters.class) //
         ).flatMap(Function.identity());
 
         return Stream.concat(registryClasses.stream(), defaultClasses).distinct().filter(Objects::nonNull).toList();

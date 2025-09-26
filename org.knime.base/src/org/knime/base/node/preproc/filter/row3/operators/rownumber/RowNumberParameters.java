@@ -44,56 +44,59 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 24, 2025 (Paul Bärnreuther): created
+ *   Sep 25, 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3.operators;
+package org.knime.base.node.preproc.filter.row3.operators.rownumber;
 
-import java.util.function.LongFunction;
-import java.util.function.LongPredicate;
-
-import org.knime.base.data.filter.row.v2.FilterPartition;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorDefinition;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
+import org.knime.core.data.DataType;
+import org.knime.core.data.def.LongCell;
+import org.knime.core.node.util.CheckUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters.SingleCellValueParameters;
+import org.knime.node.parameters.Widget;
 
 /**
- * Interface for filter operators that can be applied to row numbers. Supports both efficient slicing (via OffsetFilter)
- * and predicate-based filtering.
+ * Parameters for row number equality.
  *
- * @param <T> type of the parameters
- * @author Paul Bärnreuther
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public interface RowNumberFilterOperator<T extends FilterValueParameters> extends FilterOperatorDefinition<T> {
+public final class RowNumberParameters implements SingleCellValueParameters<LongCell> {
 
-    /**
-     * Creates an efficient slice filter if the operator supports slicing optimization. This is used for performance
-     * optimization when possible.
-     *
-     * @param params the filter parameters
-     * @return function from table size to filter partition. Not null in case {@link #supportsSlicing()} returns true.
-     * @throws InvalidSettingsException if the parameters are invalid
-     */
-    default LongFunction<FilterPartition> createSliceFilter(final T params) throws InvalidSettingsException {
-        return null;
+    @Widget(title = "Row number", description = "The positive row number to compare with.")
+    long m_value = 1;
+
+    RowNumberParameters() {
+        super();
+        // for instantiation by framework
     }
 
     /**
-     * Only in case all current operators support slicing, the slice filters are created.
+     * Constructs the parameters with the given string value.
      *
-     * @return whether {@link #createSliceFilter} will return a non-null filter spec.
+     * @param value the string value
      */
-    default boolean supportsSlicing() {
-        return false;
+    public RowNumberParameters(final long value) {
+        CheckUtils.checkArgument(value >= 1, "The row number must be at least 1, but was %d", value);
+        m_value = value;
     }
 
     /**
-     * Creates a predicate that tests row numbers (0-based indices). This is the fallback when slicing is not supported
-     * or not applicable.
+     * Creates a new cell with the current value.
      *
-     * @param params the filter parameters
-     * @param optionalTableSize the table size or -1 on validation
-     * @return predicate that tests row numbers
-     * @throws InvalidSettingsException if the parameters are invalid
+     * @return the new cell
      */
-    LongPredicate createPredicate(T params, long optionalTableSize) throws InvalidSettingsException;
+    @Override
+    public LongCell createCell() {
+        return new LongCell(m_value);
+    }
+
+    @Override
+    public void loadFrom(final LongCell valueFromStash) {
+        m_value = valueFromStash.getLongValue();
+    }
+
+    @Override
+    public DataType getSpecificType() {
+        return LongCell.TYPE;
+    }
+
 }

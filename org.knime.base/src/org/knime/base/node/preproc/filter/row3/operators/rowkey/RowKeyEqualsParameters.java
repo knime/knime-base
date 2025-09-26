@@ -27,7 +27,7 @@
  *  ECLIPSE with only the license terms in place for ECLIPSE applying to
  *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
  *  license terms of ECLIPSE themselves allow for the respective use and
- *  propagation of ECLIPSE together with KNIME.
+ *  propagation of KNIME.
  *
  *  Additional permission relating to nodes for KNIME that extend the Node
  *  Extension (and in particular that are based on subclasses of NodeModel,
@@ -44,31 +44,76 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 24, 2025 (Paul Bärnreuther): created
+ *   Sep 25, 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3.operators;
+package org.knime.base.node.preproc.filter.row3.operators.rowkey;
 
 import java.util.function.Predicate;
 
+import org.knime.base.node.preproc.filter.row3.operators.defaults.CaseSensitivity;
+import org.knime.base.node.preproc.filter.row3.predicates.StringPredicate;
+import org.knime.core.data.DataType;
 import org.knime.core.data.RowKeyValue;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorDefinition;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
+import org.knime.core.data.def.StringCell;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters.SingleCellValueParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
- * Interface for filter operators that can be applied to row keys.
+ * Parameters for row key equality comparisons.
  *
- * @param <T> type of the parameters
- * @author Paul Bärnreuther
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public interface RowKeyFilterOperator<T extends FilterValueParameters> extends FilterOperatorDefinition<T> {
+public final class RowKeyEqualsParameters implements SingleCellValueParameters<StringCell> {
+
+    @ValueSwitchWidget
+    @Widget(title = "Case matching", description = "Whether the comparison should be case sensitive or not.")
+    CaseSensitivity m_caseSensitivity = CaseSensitivity.CASE_SENSITIVE;
+
+    @Widget(title = "RowID", description = "The RowID to compare with.")
+    String m_value = "";
+
+    RowKeyEqualsParameters() {
+        super();
+        // for instantiation by framework
+    }
 
     /**
-     * Creates a predicate that tests RowKeyValue objects.
+     * Constructs the parameters with the given string value.
      *
-     * @param params the filter parameters
-     * @return predicate that tests row keys
-     * @throws InvalidSettingsException if the parameters are invalid
+     * @param value the string value
      */
-    Predicate<RowKeyValue> createPredicate(T params) throws InvalidSettingsException;
+    public RowKeyEqualsParameters(final String value) {
+        m_value = value;
+    }
+
+    /**
+     * Gets the parameters as a predicate on row keys.
+     * @return the predicate to test row keys for equality
+     */
+    Predicate<RowKeyValue> toPredicate() {
+        final var pred = StringPredicate.equality(m_value, m_caseSensitivity == CaseSensitivity.CASE_SENSITIVE);
+        return key -> pred.test(key.getString());
+    }
+
+    /**
+     * Creates a new cell with the current value.
+     *
+     * @return the new cell
+     */
+    @Override
+    public StringCell createCell() {
+        return new StringCell(m_value);
+    }
+
+    @Override
+    public void loadFrom(final StringCell valueFromStash) {
+        m_value = valueFromStash.getStringValue();
+    }
+
+    @Override
+    public DataType getSpecificType() {
+        return StringCell.TYPE;
+    }
+
 }

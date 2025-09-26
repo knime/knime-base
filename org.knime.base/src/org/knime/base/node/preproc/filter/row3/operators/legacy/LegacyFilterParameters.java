@@ -52,7 +52,7 @@ import java.util.OptionalInt;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
 import org.knime.base.node.preproc.filter.row3.RowIdentifiers;
-import org.knime.base.node.preproc.filter.row3.operators.RowNumberFilterSpec;
+import org.knime.base.node.preproc.filter.row3.operators.rownumber.RowNumberFilterSpec;
 import org.knime.base.node.preproc.filter.row3.predicates.PredicateFactories;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
@@ -120,7 +120,6 @@ public class LegacyFilterParameters implements FilterValueParameters {
     /**
      * If supported, get the criterion as a row number filter specification.
      *
-     * @param criterion filter criterion
      * @return row number filter specification
      * @throws InvalidSettingsException if the filter criterion contains an unsupported operator or the value is missing
      */
