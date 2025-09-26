@@ -27,7 +27,7 @@
  *  ECLIPSE with only the license terms in place for ECLIPSE applying to
  *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
  *  license terms of ECLIPSE themselves allow for the respective use and
- *  propagation of ECLIPSE together with KNIME.
+ *  propagation of KNIME.
  *
  *  Additional permission relating to nodes for KNIME that extend the Node
  *  Extension (and in particular that are based on subclasses of NodeModel,
@@ -44,74 +44,57 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   16 Dec 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   Sep 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.data.filter.row.v2;
+package org.knime.base.node.preproc.filter.row3.operators.rownumber;
 
+import java.util.function.LongFunction;
 import java.util.function.LongPredicate;
 
-import org.knime.core.data.v2.RowRead;
-import org.knime.core.node.util.CheckUtils;
+import org.knime.base.data.filter.row.v2.FilterPartition;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorDefinition;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
 
 /**
- * A filter using a row offset (aka. row index) from the start of the table.
+ * Interface for filter operators that can be applied to row numbers. Supports both efficient slicing (via OffsetFilter)
+ * and predicate-based filtering.
  *
- * @param operator filter operator taking an offset value
- * @param offset offset value
+ * @param <T> type of the parameters
+ * @author Paul Bärnreuther
  */
-public record OffsetFilter(Operator operator, long offset) {
+public interface RowNumberFilterOperator<T extends FilterValueParameters> extends FilterOperatorDefinition<T> {
 
     /**
-     * Supported operators for row number offset filter.
-     */
-    public enum Operator {
-            /** "Row number equals". */
-            EQ,
-            /** "Row number does not equal". */
-            NEQ,
-            /** "Row number is less than". */
-            LT,
-            /** "Row number is less than or equal to". */
-            LTE,
-            /** "Row number is greater than". */
-            GT,
-            /** "Row number is greater than or equal to". */
-            GTE
-    }
-
-    /**
-     * Creates a new offset filter.
+     * Creates an efficient slice filter if the operator supports slicing optimization. This is used for performance
+     * optimization when possible.
      *
-     * @param operator operator to use
-     * @param offset non-negative offset from start of table
+     * @param params the filter parameters
+     * @return function from table size to filter partition. Not null in case {@link #supportsSlicing()} returns true.
+     * @throws InvalidSettingsException if the parameters are invalid
      */
-    public OffsetFilter {
-        CheckUtils.checkArgument(offset >= 0, "Offset must not be negative: %d", offset);
+    default LongFunction<FilterPartition> createSliceFilter(final T params) throws InvalidSettingsException {
+        return null;
     }
 
     /**
-     * Converts the offset filter definition into a predicate that can be evaluated on an {@link RowRead indexed row
-     * read}.
+     * Only in case all current operators support slicing, the slice filters are created.
      *
-     * @return predicate to evaluate on indexed row read
+     * @return whether {@link #createSliceFilter} will return a non-null filter spec.
      */
-    public IndexedRowReadPredicate asPredicate() {
-        final var pred = asOffsetPredicate();
-        return (rowIndex, read) -> pred.test(rowIndex);
+    default boolean supportsSlicing() {
+        return false;
     }
 
     /**
-     * Converts the offset filter definition into a predicate that can be evaluated on a (0-based) row index.
-     * @return predicate to evaluate on row index
+     * Creates a predicate that tests row numbers (0-based indices). This is the fallback when slicing is not supported
+     * or not applicable.
+     *
+     * @param params the filter parameters
+     * @param optionalTableSize the table size or -1 on validation
+     * @return predicate that tests row numbers
+     * @throws InvalidSettingsException if the parameters are invalid
      */
-    public LongPredicate asOffsetPredicate() {
-        return switch (operator) {
-            case EQ -> rowIndex -> rowIndex == offset;
-            case NEQ -> rowIndex -> rowIndex != offset;
-            case LT -> rowIndex -> rowIndex < offset;
-            case LTE -> rowIndex -> rowIndex <= offset;
-            case GT -> rowIndex -> rowIndex > offset;
-            case GTE -> rowIndex -> rowIndex >= offset;
-        };
-    }
+    LongPredicate createPredicate(T params, long optionalTableSize) throws InvalidSettingsException;
+
 }

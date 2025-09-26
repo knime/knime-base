@@ -61,3 +61,4 @@
  * predicate test} method.
  */
 package org.knime.base.node.preproc.filter.row3.predicates;
+// TODO move to operators.legacy

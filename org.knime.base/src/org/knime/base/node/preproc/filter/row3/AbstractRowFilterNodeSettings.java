@@ -59,12 +59,12 @@ import java.util.stream.Stream;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
 import org.knime.base.node.preproc.filter.row3.operators.FilterOperatorsUtil;
-import org.knime.base.node.preproc.filter.row3.operators.RowKeyFilterOperator;
-import org.knime.base.node.preproc.filter.row3.operators.RowNumberFilterOperator;
-import org.knime.base.node.preproc.filter.row3.operators.RowNumberFilterSpec;
 import org.knime.base.node.preproc.filter.row3.operators.defaults.StringEqualsParameters;
 import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParameters;
 import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParametersMigration;
+import org.knime.base.node.preproc.filter.row3.operators.rowkey.RowKeyFilterOperator;
+import org.knime.base.node.preproc.filter.row3.operators.rownumber.RowNumberFilterOperator;
+import org.knime.base.node.preproc.filter.row3.operators.rownumber.RowNumberFilterSpec;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;

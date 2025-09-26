@@ -44,74 +44,70 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   16 Dec 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   26 Sept 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.data.filter.row.v2;
+package org.knime.base.node.preproc.filter.row3.operators.rowkey;
 
-import java.util.function.LongPredicate;
+import java.util.List;
+import java.util.function.Predicate;
 
-import org.knime.core.data.v2.RowRead;
-import org.knime.core.node.util.CheckUtils;
+import org.knime.core.data.RowKeyValue;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.EqualsOperator;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.NotEqualsOperator;
 
 /**
- * A filter using a row offset (aka. row index) from the start of the table.
+ * Provides equality operators for row keys.
  *
- * @param operator filter operator taking an offset value
- * @param offset offset value
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public record OffsetFilter(Operator operator, long offset) {
+public final class RowKeyEqualityOperators {
 
-    /**
-     * Supported operators for row number offset filter.
-     */
-    public enum Operator {
-            /** "Row number equals". */
-            EQ,
-            /** "Row number does not equal". */
-            NEQ,
-            /** "Row number is less than". */
-            LT,
-            /** "Row number is less than or equal to". */
-            LTE,
-            /** "Row number is greater than". */
-            GT,
-            /** "Row number is greater than or equal to". */
-            GTE
+    private RowKeyEqualityOperators() {
+        // utility class
     }
 
-    /**
-     * Creates a new offset filter.
-     *
-     * @param operator operator to use
-     * @param offset non-negative offset from start of table
-     */
-    public OffsetFilter {
-        CheckUtils.checkArgument(offset >= 0, "Offset must not be negative: %d", offset);
+    public static List<RowKeyFilterOperator<? extends FilterValueParameters>> getOperators() {
+        return List.of(new RowKeyEquals(), //
+            new RowKeyNotEquals() //
+        );
     }
 
-    /**
-     * Converts the offset filter definition into a predicate that can be evaluated on an {@link RowRead indexed row
-     * read}.
-     *
-     * @return predicate to evaluate on indexed row read
-     */
-    public IndexedRowReadPredicate asPredicate() {
-        final var pred = asOffsetPredicate();
-        return (rowIndex, read) -> pred.test(rowIndex);
+    private static final class RowKeyEquals implements RowKeyFilterOperator<RowKeyEqualsParameters>, EqualsOperator {
+
+        @Override
+        public Class<RowKeyEqualsParameters> getNodeParametersClass() {
+            return RowKeyEqualsParameters.class;
+        }
+
+        @Override
+        public Predicate<RowKeyValue> createPredicate(final RowKeyEqualsParameters params)
+            throws InvalidSettingsException {
+            return params.toPredicate();
+        }
+
     }
 
-    /**
-     * Converts the offset filter definition into a predicate that can be evaluated on a (0-based) row index.
-     * @return predicate to evaluate on row index
-     */
-    public LongPredicate asOffsetPredicate() {
-        return switch (operator) {
-            case EQ -> rowIndex -> rowIndex == offset;
-            case NEQ -> rowIndex -> rowIndex != offset;
-            case LT -> rowIndex -> rowIndex < offset;
-            case LTE -> rowIndex -> rowIndex <= offset;
-            case GT -> rowIndex -> rowIndex > offset;
-            case GTE -> rowIndex -> rowIndex >= offset;
-        };
+    private static final class RowKeyNotEquals
+        implements RowKeyFilterOperator<RowKeyEqualsParameters>, NotEqualsOperator {
+
+        @Override
+        public String getLabel() {
+            return "Not equal"; // otherwise, "nor missing" would be appended, which does not make sense for row keys
+        }
+
+        @Override
+        public Class<RowKeyEqualsParameters> getNodeParametersClass() {
+            return RowKeyEqualsParameters.class;
+        }
+
+        @Override
+        public Predicate<RowKeyValue> createPredicate(final RowKeyEqualsParameters params)
+            throws InvalidSettingsException {
+            return Predicate.not(params.toPredicate());
+        }
+
     }
+
 }
