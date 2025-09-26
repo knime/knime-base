@@ -48,7 +48,7 @@
  */
 package org.knime.base.node.preproc.filter.row3.operators.defaults;
 
-import org.knime.base.node.preproc.filter.row3.predicates.StringPredicate;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.predicates.StringPredicate;
 import org.knime.core.data.def.StringCell;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.Layout;
