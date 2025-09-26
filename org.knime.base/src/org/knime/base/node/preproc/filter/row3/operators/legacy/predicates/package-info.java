@@ -49,8 +49,8 @@
 /**
  * <p>
  * This package contains all predicate implementations for the Row Filter and Row Splitter nodes. The primary entrypoint
- * is the {@link org.knime.base.node.preproc.filter.row3.predicates.PredicateFactories} utility. All predicate factories
- * implement the common interface {@link org.knime.base.node.preproc.filter.row3.predicates.PredicateFactory} that
+ * is the {@link org.knime.base.node.preproc.filter.row3.operators.legacy.predicates.PredicateFactories} utility. All predicate factories
+ * implement the common interface {@link org.knime.base.node.preproc.filter.row3.operators.legacy.predicates.PredicateFactory} that
  * creates predicates of the {@link org.knime.base.data.filter.row.v2.IndexedRowReadPredicate} interface required by the
  * {@link org.knime.base.data.filter.row.v2.RowFilter row filter implementation}.
  * </p>
@@ -60,5 +60,4 @@
  * in the {@link org.knime.base.data.filter.row.v2.IndexedRowReadPredicate#test(long, org.knime.core.data.v2.RowRead)
  * predicate test} method.
  */
-package org.knime.base.node.preproc.filter.row3.predicates;
-// TODO move to operators.legacy
+package org.knime.base.node.preproc.filter.row3.operators.legacy.predicates;

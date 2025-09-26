@@ -55,9 +55,9 @@ import java.util.OptionalInt;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
 import org.knime.base.node.preproc.filter.row3.RowIdentifiers;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.predicates.PredicateFactories;
 import org.knime.base.node.preproc.filter.row3.operators.pattern.PatternFilterParameters;
 import org.knime.base.node.preproc.filter.row3.operators.pattern.RowNumberPatternFilterParameters;
-import org.knime.base.node.preproc.filter.row3.predicates.PredicateFactories;
 import org.knime.core.data.BoundedValue;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.BooleanCell;

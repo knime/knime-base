@@ -46,7 +46,7 @@
  * History
  *   27 Aug 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3.predicates;
+package org.knime.base.node.preproc.filter.row3.operators.legacy.predicates;
 
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
