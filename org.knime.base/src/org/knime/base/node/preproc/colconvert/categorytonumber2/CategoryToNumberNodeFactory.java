@@ -47,20 +47,40 @@
  */
 package org.knime.base.node.preproc.colconvert.categorytonumber2;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * The {@link NodeFactory} of the Category2Number node.
  *
  * @author Heiko Hofer
+ * @author Benjamin Moser, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.1
  */
-public class CategoryToNumberNodeFactory extends
-        NodeFactory<CategoryToNumberNodeModel> {
+@SuppressWarnings("restriction")
+public class CategoryToNumberNodeFactory extends NodeFactory<CategoryToNumberNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     private boolean m_pmmlInEnabled;
 
+    @SuppressWarnings({"MissingJavadoc", "java:S1176"})
     public CategoryToNumberNodeFactory() {
         this(true);
     }
@@ -92,9 +112,9 @@ public class CategoryToNumberNodeFactory extends
      * {@inheritDoc}
      */
     @Override
-    public NodeView<CategoryToNumberNodeModel> createNodeView(
-            final int viewIndex,
-            final CategoryToNumberNodeModel nodeModel) {
+    @SuppressWarnings("java:S5738")
+    public NodeView<CategoryToNumberNodeModel> createNodeView(final int viewIndex,
+        final CategoryToNumberNodeModel nodeModel) {
         return null;
     }
 
@@ -102,6 +122,7 @@ public class CategoryToNumberNodeFactory extends
      * {@inheritDoc}
      */
     @Override
+    @SuppressWarnings("java:S5738")
     protected boolean hasDialog() {
         return true;
     }
@@ -109,9 +130,53 @@ public class CategoryToNumberNodeFactory extends
     /**
      * {@inheritDoc}
      */
+    private static final String NODE_NAME = "Category to Number";
+
+    private static final String NODE_ICON = "./categoryToNumber.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Maps each category of a column with nominal data to an integer.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            This node takes columns with nominal data and maps every category to an integer. For your convenience,
+            you can process multiple columns with this node. However, these columns are processed separately as if
+            you would use a single Category To Number node for every column.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(fixedPort("Data to process", """
+            Data
+            """), fixedPort("PMML Document", """
+            Optional PMML document to add the map values operations to.
+            """));
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(fixedPort("Processed data", """
+            Data with transformed columns
+            """), fixedPort("Transformed PMML input", """
+            PMML port object that includes the performed operations.
+            """));
+
     @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new CategoryToNumberNodeDialogPane();
+    @SuppressWarnings("java:S5738")
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, CategoryToNumberNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(NODE_NAME, NODE_ICON, INPUT_PORTS, OUTPUT_PORTS,
+            SHORT_DESCRIPTION, FULL_DESCRIPTION, List.of(), CategoryToNumberNodeParameters.class, null,
+            NodeType.Manipulator, List.of(), null);
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, CategoryToNumberNodeParameters.class));
     }
 
 }
