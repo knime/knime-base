@@ -48,16 +48,36 @@
  */
 package org.knime.base.node.mine.transformation.pca.perform;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * The PCA node factory.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.1
  */
-public final class PCA2NodeFactory extends NodeFactory<PCA2NodeModel> {
+@SuppressWarnings("restriction")
+public final class PCA2NodeFactory extends NodeFactory<PCA2NodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     @Override
     public PCA2NodeModel createNodeModel() {
@@ -78,10 +98,68 @@ public final class PCA2NodeFactory extends NodeFactory<PCA2NodeModel> {
     protected boolean hasDialog() {
         return true;
     }
+    private static final String NODE_NAME = "PCA";
+    private static final String NODE_ICON = "./../../../pca/pca.png";
+    private static final String SHORT_DESCRIPTION = """
+            Principal component analysis
+            """;
+    private static final String FULL_DESCRIPTION = """
+            This node performs a <a href="http://en.wikipedia.org/wiki/Principal_component_analysis">
+            principal component analysis (PCA)</a> on the given data. The input data is projected
+            from its original feature space into a space of (possibly) lower dimension with a minimum of information
+            loss.
+            """;
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Table to transform", """
+                Input data for the PCA
+                """)
+    );
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Transformed data", """
+                Table with input values projected to their principal components
+                """)
+    );
+
+    private static final List<String> KEYWORDS = List.of("principal component analysis");
 
     @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new PCA2NodeDialog();
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
+
+    /**
+     * @since 5.8
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, PCA2NodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(
+            NODE_NAME,
+            NODE_ICON,
+            INPUT_PORTS,
+            OUTPUT_PORTS,
+            SHORT_DESCRIPTION,
+            FULL_DESCRIPTION,
+            List.of(),
+            PCA2NodeParameters.class,
+            null,
+            NodeType.Manipulator,
+            KEYWORDS,
+            null
+        );
+    }
+
+    /**
+     * @since 5.8
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, PCA2NodeParameters.class));
+    }
+
 
 }
