@@ -52,7 +52,7 @@ import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
- * The factory for the modern UI Constant Value Column node.
+ * The factory for the modern UI Constant Value Column Appender node formerly Constant Value Column node.
  *
  * @author David Hickey, TNG Technology Consulting GmbH
  */
@@ -72,7 +72,7 @@ public class ConstantValueColumnNodeFactory2 extends WebUINodeFactory<ConstantVa
     }
 
     static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
-        .name("Constant Value Column") //
+        .name("Constant Value Column Appender") //
         .icon("constant-value2.png") //
         .shortDescription("Adds columns containing a constant cell in each row.") //
         .fullDescription("""
@@ -82,7 +82,6 @@ public class ConstantValueColumnNodeFactory2 extends WebUINodeFactory<ConstantVa
         .modelSettingsClass(ConstantValueColumnNodeSettings.class) //
         .addInputTable("Input table", "The input table.") //
         .addOutputTable("Output table", "The input table with appended/replaced columns containing constant values.") //
-        .keywords() //
         .build();
 
 }

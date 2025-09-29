@@ -68,7 +68,7 @@ import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
 import org.knime.node.impl.description.PortDescription;
 
 /**
- * <code>NodeFactory</code> for the "AddEmptyRows" Node.
+ * <code>NodeFactory</code> for the "Constant Value Row Appender" Node formerly known as "Add Empty Rows" Node.
  * Adds a certain number of empty rows with missing values or a given constant.
  *
  * @author Bernd Wiswedel
@@ -115,7 +115,7 @@ public class AddEmptyRowsNodeFactory
     /**
      * {@inheritDoc}
      */
-    private static final String NODE_NAME = "Add Empty Rows";
+    private static final String NODE_NAME = "Constant Value Row Appender";
     private static final String NODE_ICON = "./add_empty_rows.png";
     private static final String SHORT_DESCRIPTION = """
             Adds a certain number of empty rows with missing values or a given constant to the input table.
@@ -168,7 +168,7 @@ public class AddEmptyRowsNodeFactory
             AddEmptyRowsNodeParameters.class,
             null,
             NodeType.Manipulator,
-            List.of(),
+            List.of("Add", "Empty", "Rows"),
             null
         );
     }

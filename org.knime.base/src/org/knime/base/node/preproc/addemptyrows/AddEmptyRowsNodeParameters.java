@@ -82,7 +82,7 @@ import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternVa
 @LoadDefaultsForAbsentFields
 class AddEmptyRowsNodeParameters implements NodeParameters {
 
-    @Section(title = "Number of rows in output")
+    @Section(title = "Number of Rows in Output")
     interface RowCountSection {
     }
 
@@ -94,10 +94,10 @@ class AddEmptyRowsNodeParameters implements NodeParameters {
     // ====== Row Count Settings ======
 
     enum CountMode {
-        @Label("At least")
-        AT_LEAST,
-        @Label("Additional")
-        ADDITIONAL
+            @Label("At least")
+            AT_LEAST, //
+            @Label("Additional")
+            ADDITIONAL
     }
 
     @Widget(title = "Mode", description = """
@@ -118,7 +118,7 @@ class AddEmptyRowsNodeParameters implements NodeParameters {
     @Persist(configKey = AddEmptyRowsConfig.CFG_KEY_ROW_COUNT)
     int m_rowCount = 15;
 
-    @Widget(title = "RowID Prefix", description = "Prefix for the row IDs of newly added rows.")
+    @Widget(title = "RowID prefix", description = "Prefix for the RowIDs of newly added rows.")
     @Layout(RowCountSection.class)
     @TextInputWidget(minLengthValidation = IsNotEmptyValidation.class)
     @Persist(configKey = AddEmptyRowsConfig.CFG_KEY_NEW_ROW_KEY_PREFIX)
@@ -138,7 +138,8 @@ class AddEmptyRowsNodeParameters implements NodeParameters {
     @Persistor(IntFillValuePersistor.class)
     Optional<Integer> m_fillValueInt = Optional.empty();
 
-    @Widget(title = AddEmptyRowsConfig.CFG_KEY_STRING, description = "Fill value for String columns in newly added rows.")
+    @Widget(title = AddEmptyRowsConfig.CFG_KEY_STRING,
+        description = "Fill value for String columns in newly added rows.")
     @Layout(FillDataSection.class)
     @OptionalWidget(defaultProvider = DefaultStringProvider.class)
     @Persistor(StringFillValuePersistor.class)
@@ -187,7 +188,7 @@ class AddEmptyRowsNodeParameters implements NodeParameters {
         public Optional<Double> load(final NodeSettingsRO settings) throws InvalidSettingsException {
             NodeSettingsRO doubleSet = settings.getNodeSettings(AddEmptyRowsConfig.CFG_KEY_DOUBLE);
             return doubleSet.getBoolean(AddEmptyRowsConfig.CFG_KEY_USE_MISSING) ? Optional.empty()
-                    : Optional.of(doubleSet.getDouble(AddEmptyRowsConfig.CFG_KEY_FILL_VALUE));
+                : Optional.of(doubleSet.getDouble(AddEmptyRowsConfig.CFG_KEY_FILL_VALUE));
         }
 
         @Override

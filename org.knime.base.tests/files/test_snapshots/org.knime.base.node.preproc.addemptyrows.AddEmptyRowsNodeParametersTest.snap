@@ -49,8 +49,8 @@
           },
           "newRowKeyPrefix" : {
             "type" : "string",
-            "title" : "RowID Prefix",
-            "description" : "Prefix for the row IDs of newly added rows.",
+            "title" : "RowID prefix",
+            "description" : "Prefix for the RowIDs of newly added rows.",
             "default" : "Empty "
           },
           "rowCount" : {
@@ -66,7 +66,7 @@
   },
   "ui_schema" : {
     "elements" : [ {
-      "label" : "Number of rows in output",
+      "label" : "Number of Rows in Output",
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
