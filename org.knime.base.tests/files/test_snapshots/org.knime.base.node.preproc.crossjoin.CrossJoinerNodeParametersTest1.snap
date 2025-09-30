@@ -1,0 +1,193 @@
+{
+  "data" : {
+    "model" : {
+      "rightColumnNameSuffix" : "_",
+      "rowKeySeparator" : "",
+      "cacheSize" : 1,
+      "showFirstRowIds" : true,
+      "firstRowIdsColumnName" : "asdf",
+      "showSecondRowIds" : false,
+      "secondRowIdsColumnName" : "SecondRowIDs"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "cacheSize" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Chunk size",
+            "description" : "Number of rows read at once. Increasing this value yields faster execution time\nbut also increases memory consumption.\n",
+            "default" : 1
+          },
+          "firstRowIdsColumnName" : {
+            "type" : "string",
+            "title" : "Column name (top)",
+            "description" : "Name of the column containing the RowIDs from the top table",
+            "default" : "FirstRowIDs"
+          },
+          "rightColumnNameSuffix" : {
+            "type" : "string",
+            "title" : "Bottom table's column name suffix",
+            "description" : "The suffix attached to a column's name if the bottom table contains a column\nwith the same name. The column names of the first inport are always retained.\nIf there are duplicates found in the second table the suffix is added once or\nmultiple times to ensure uniqueness.\n",
+            "default" : " (#1)"
+          },
+          "rowKeySeparator" : {
+            "type" : "string",
+            "title" : "Separator for new RowIDs",
+            "description" : "This string will separate the RowIDs in the new data table. E.g. <i>RowID1 + sep + RowID2</i>\n",
+            "default" : "_"
+          },
+          "secondRowIdsColumnName" : {
+            "type" : "string",
+            "title" : "Column name (bottom)",
+            "description" : "Name of the column containing the RowIDs from the bottom table",
+            "default" : "SecondRowIDs"
+          },
+          "showFirstRowIds" : {
+            "type" : "boolean",
+            "title" : "Append top data table's RowIDs",
+            "description" : "If selected a new column will be attached to the output, containing the RowIDs\nof the top data table.\n",
+            "default" : false
+          },
+          "showSecondRowIds" : {
+            "type" : "boolean",
+            "title" : "Append bottom data table's RowIDs",
+            "description" : "If selected a new column will be attached to the output, containing the RowIDs\nof the bottom data table.\n",
+            "default" : false
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/rightColumnNameSuffix",
+      "options" : {
+        "validation" : {
+          "pattern" : {
+            "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
+            "parameters" : {
+              "pattern" : ".*\\S.*"
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/rowKeySeparator"
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/cacheSize",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 1.0
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/showFirstRowIds",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/firstRowIdsColumnName",
+      "options" : {
+        "validation" : {
+          "pattern" : {
+            "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
+            "parameters" : {
+              "pattern" : ".*\\S.*"
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/showFirstRowIds",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/showSecondRowIds",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/secondRowIdsColumnName",
+      "options" : {
+        "validation" : {
+          "pattern" : {
+            "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
+            "parameters" : {
+              "pattern" : ".*\\S.*"
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/showSecondRowIds",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "rightColumnNameSuffix" : {
+            "configKey" : "rigthSuffix"
+          },
+          "rowKeySeparator" : {
+            "configKey" : "CFG_SEPARATOR"
+          },
+          "cacheSize" : {
+            "configKey" : "CFG_CACHE"
+          },
+          "showFirstRowIds" : {
+            "configKey" : "CFG_SHOW_FIRST"
+          },
+          "firstRowIdsColumnName" : {
+            "configKey" : "CFG_FIRST_COLUMNNAME"
+          },
+          "showSecondRowIds" : {
+            "configKey" : "CFG_SHOW_SECOND"
+          },
+          "secondRowIdsColumnName" : {
+            "configKey" : "CFG_SECOND_COLUMNNAME"
+          }
+        }
+      }
+    }
+  }
+}
