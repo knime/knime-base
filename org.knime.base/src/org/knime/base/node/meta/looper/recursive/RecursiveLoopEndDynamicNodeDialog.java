@@ -45,10 +45,7 @@
  */
 package org.knime.base.node.meta.looper.recursive;
 
-import java.awt.Component;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
@@ -56,13 +53,7 @@ import java.util.Map;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.JCheckBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerNumberModel;
+import javax.swing.*;
 import javax.swing.border.Border;
 
 import org.knime.core.node.InvalidSettingsException;
@@ -80,6 +71,7 @@ import org.knime.core.node.workflow.FlowVariable;
  * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
  * @author based on RecursiveLoopEndNodeDialog by Iris Adae
  */
+// TODO delete me
 final class RecursiveLoopEndDynamicNodeDialog extends NodeDialogPane {
 
     private final RecursiveLoopEndDynamicNodeSettings m_settings;
