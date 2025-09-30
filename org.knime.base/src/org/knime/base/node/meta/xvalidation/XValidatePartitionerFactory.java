@@ -45,18 +45,37 @@
  */
 package org.knime.base.node.meta.xvalidation;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * This factory creates all necessary classes for the cross validation
  * partioning node.
  *
  * @author Thorsten Meinl, University of Konstanz
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.1
  */
+@SuppressWarnings("restriction")
 public class XValidatePartitionerFactory extends
-        NodeFactory<XValidatePartitionModel> {
+        NodeFactory<XValidatePartitionModel> implements NodeDialogFactory, KaiNodeInterfaceFactory {
     /**
      * {@inheritDoc}
      */
@@ -84,10 +103,6 @@ public class XValidatePartitionerFactory extends
     /**
      * {@inheritDoc}
      */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new XValidateDialog();
-    }
 
     /**
      * {@inheritDoc}
@@ -96,5 +111,70 @@ public class XValidatePartitionerFactory extends
     public NodeView<XValidatePartitionModel> createNodeView(final int index,
             final XValidatePartitionModel model) {
         return null;
+    }
+    private static final String NODE_NAME = "X-Partitioner";
+    private static final String NODE_ICON = "x_partitioner.png";
+    private static final String SHORT_DESCRIPTION = """
+            Data partitioner for use in a cross-validation flow
+            """;
+    private static final String FULL_DESCRIPTION = """
+            This node is the first in a cross validation loop. At the end of the loop there must be a X-Aggregator
+                to collect the results from each iteration. All nodes in between these two node are executed as many
+                times as iterations should be performed.
+            """;
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Any datatable", """
+                The datatable that is to be split
+                """)
+    );
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Training data", """
+                The data table with the training data
+                """),
+            fixedPort("Test data", """
+                The data table with the test data
+                """)
+    );
+
+    /**
+     * @since 5.8
+     */
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * @since 5.8
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, XValidatePartitionerParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(
+            NODE_NAME,
+            NODE_ICON,
+            INPUT_PORTS,
+            OUTPUT_PORTS,
+            SHORT_DESCRIPTION,
+            FULL_DESCRIPTION,
+            List.of(),
+            XValidatePartitionerParameters.class,
+            null,
+            NodeType.LoopStart,
+            List.of(),
+            null
+        );
+    }
+
+    /**
+     * @since 5.8
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, XValidatePartitionerParameters.class));
     }
 }

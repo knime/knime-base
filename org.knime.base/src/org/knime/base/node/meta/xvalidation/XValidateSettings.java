@@ -55,6 +55,15 @@ import org.knime.core.node.NodeSettingsWO;
  * @author Thorsten Meinl, University of Konstanz
  */
 public class XValidateSettings {
+
+    static final String CFG_VALIDATIONS = "validations";
+    static final String CFG_RANDOM_SAMPLING = "randomSampling";
+    static final String CFG_LEAVE_ONE_OUT = "leaveOneOut";
+    static final String CFG_STRATIFIED_SAMPLING = "stratifiedSampling";
+    static final String CFG_CLASS_COLUMN = "classColumn";
+    static final String CFG_USE_RANDOM_SEED = "useRandomSeed";
+    static final String CFG_RANDOM_SEED = "randomSeed";
+
     private short m_validations = 10;
 
     private boolean m_randomSampling = true;
@@ -95,13 +104,13 @@ public class XValidateSettings {
      * @param settings a node settings object
      */
     public void saveSettingsTo(final NodeSettingsWO settings) {
-        settings.addShort("validations", m_validations);
-        settings.addBoolean("randomSampling", m_randomSampling);
-        settings.addBoolean("leaveOneOut", m_leaveOneOut);
-        settings.addBoolean("stratifiedSampling", m_stratifiedSampling);
-        settings.addString("classColumn", m_classColumn);
-        settings.addBoolean("useRandomSeed", m_useRandomSeed);
-        settings.addLong("randomSeed", m_randomSeed);
+        settings.addShort(CFG_VALIDATIONS, m_validations);
+        settings.addBoolean(CFG_RANDOM_SAMPLING, m_randomSampling);
+        settings.addBoolean(CFG_LEAVE_ONE_OUT, m_leaveOneOut);
+        settings.addBoolean(CFG_STRATIFIED_SAMPLING, m_stratifiedSampling);
+        settings.addString(CFG_CLASS_COLUMN, m_classColumn);
+        settings.addBoolean(CFG_USE_RANDOM_SEED, m_useRandomSeed);
+        settings.addLong(CFG_RANDOM_SEED, m_randomSeed);
     }
 
     /**
@@ -112,18 +121,18 @@ public class XValidateSettings {
      */
     public void loadSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
-        m_validations = settings.getShort("validations");
-        m_randomSampling = settings.getBoolean("randomSampling");
-        m_leaveOneOut = settings.getBoolean("leaveOneOut");
+        m_validations = settings.getShort(CFG_VALIDATIONS);
+        m_randomSampling = settings.getBoolean(CFG_RANDOM_SAMPLING);
+        m_leaveOneOut = settings.getBoolean(CFG_LEAVE_ONE_OUT);
 
         // added in v2.1
-        m_stratifiedSampling = settings.getBoolean("stratifiedSampling", false);
-        m_classColumn = settings.getString("classColumn", null);
+        m_stratifiedSampling = settings.getBoolean(CFG_STRATIFIED_SAMPLING, false);
+        m_classColumn = settings.getString(CFG_CLASS_COLUMN, null);
 
         // added in 2.6
-        m_useRandomSeed = settings.getBoolean("useRandomSeed", false);
+        m_useRandomSeed = settings.getBoolean(CFG_USE_RANDOM_SEED, false);
         m_randomSeed =
-                settings.getLong("randomSeed", System.currentTimeMillis());
+                settings.getLong(CFG_RANDOM_SEED, System.currentTimeMillis());
     }
 
     /**
@@ -134,14 +143,14 @@ public class XValidateSettings {
      * @since 2.6
      */
     public void loadSettingsForDialog(final NodeSettingsRO settings) {
-        m_validations = settings.getShort("validations", (short)10);
-        m_randomSampling = settings.getBoolean("randomSampling", true);
-        m_leaveOneOut = settings.getBoolean("leaveOneOut", false);
-        m_stratifiedSampling = settings.getBoolean("stratifiedSampling", false);
-        m_classColumn = settings.getString("classColumn", null);
-        m_useRandomSeed = settings.getBoolean("useRandomSeed", false);
+        m_validations = settings.getShort(CFG_VALIDATIONS, (short)10);
+        m_randomSampling = settings.getBoolean(CFG_RANDOM_SAMPLING, true);
+        m_leaveOneOut = settings.getBoolean(CFG_LEAVE_ONE_OUT, false);
+        m_stratifiedSampling = settings.getBoolean(CFG_STRATIFIED_SAMPLING, false);
+        m_classColumn = settings.getString(CFG_CLASS_COLUMN, null);
+        m_useRandomSeed = settings.getBoolean(CFG_USE_RANDOM_SEED, false);
         m_randomSeed =
-                settings.getLong("randomSeed", System.currentTimeMillis());
+                settings.getLong(CFG_RANDOM_SEED, System.currentTimeMillis());
     }
 
     /**

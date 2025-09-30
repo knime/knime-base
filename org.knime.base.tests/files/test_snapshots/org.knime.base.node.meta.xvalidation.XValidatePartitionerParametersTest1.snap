@@ -1,0 +1,231 @@
+{
+  "data" : {
+    "model" : {
+      "validations" : 10,
+      "samplingMethod" : "RANDOM",
+      "classColumn" : "Cluster Membership",
+      "useRandomSeed" : false,
+      "randomSeed" : "0"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "classColumn" : {
+            "type" : "string",
+            "title" : "Class column",
+            "description" : "The name of the column with the class labels for stratified sampling.\n",
+            "default" : "Cluster Membership"
+          },
+          "randomSeed" : {
+            "type" : "string",
+            "title" : "Random seed",
+            "description" : "The seed value for the random number generator.\n",
+            "default" : "0"
+          },
+          "samplingMethod" : {
+            "oneOf" : [ {
+              "const" : "LINEAR",
+              "title" : "Linear sampling"
+            }, {
+              "const" : "RANDOM",
+              "title" : "Random sampling"
+            }, {
+              "const" : "STRATIFIED",
+              "title" : "Stratified sampling"
+            }, {
+              "const" : "LEAVE_ONE_OUT",
+              "title" : "Leave-one-out"
+            } ],
+            "title" : "Sampling method",
+            "description" : "Choose the sampling method for partitioning the data:\n<ul>\n<li><b>Linear sampling</b>: The input table is cut into consecutive pieces.</li>\n<li><b>Random sampling</b>: The partitions are sampled randomly from the input table.</li>\n<li><b>Stratified sampling</b>: The partitions are sampled randomly but the class distribution\nfrom the column selected below is maintained.\n</li>\n<li><b>Leave-one-out</b>: Performs a leave-one-out cross validation, i.e. there are as many iterations as data points and\nin each iteration another point's target value is predicted by using all remaining points as\ntraining set.\n</li>\n</ul>",
+            "default" : "RANDOM"
+          },
+          "useRandomSeed" : {
+            "type" : "boolean",
+            "title" : "Use random seed",
+            "description" : "For random and stratified sampling you can choose a seed for the random number generator in order\nto get reproducible results. Otherwise you get different partitions every time.\n",
+            "default" : false
+          },
+          "validations" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Number of validations",
+            "description" : "The number of cross validation iterations that should be performed.\n",
+            "default" : 10
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/validations",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 100.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 100.0
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 2.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 2.0
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "DISABLE",
+        "condition" : {
+          "scope" : "#/properties/model/properties/samplingMethod",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "LEAVE_ONE_OUT"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/samplingMethod",
+      "options" : {
+        "format" : "radio",
+        "radioLayout" : "vertical"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/classColumn",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ],
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/samplingMethod",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "STRATIFIED"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/useRandomSeed",
+      "options" : {
+        "format" : "checkbox"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/samplingMethod",
+          "schema" : {
+            "not" : {
+              "oneOf" : [ {
+                "const" : "LINEAR"
+              } ]
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/randomSeed",
+      "options" : {
+        "validation" : {
+          "pattern" : {
+            "errorMessage" : "Please enter a valid integer number between -9223372036854775808 to 9223372036854775807.",
+            "parameters" : {
+              "pattern" : "[+-]?(0|[1-9][0-9]{0,18})"
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "type" : "AND",
+          "conditions" : [ {
+            "scope" : "#/properties/model/properties/useRandomSeed",
+            "schema" : {
+              "const" : true
+            }
+          }, {
+            "scope" : "#/properties/model/properties/samplingMethod",
+            "schema" : {
+              "not" : {
+                "oneOf" : [ {
+                  "const" : "LINEAR"
+                } ]
+              }
+            }
+          } ]
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "validations" : {
+            "configPaths" : [ [ "validations" ] ]
+          },
+          "samplingMethod" : {
+            "configPaths" : [ [ "randomSampling" ], [ "stratifiedSampling" ], [ "leaveOneOut" ] ]
+          },
+          "classColumn" : {
+            "configKey" : "classColumn"
+          },
+          "useRandomSeed" : {
+            "configKey" : "useRandomSeed"
+          },
+          "randomSeed" : {
+            "configPaths" : [ [ "randomSeed" ] ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/classColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "feature1",
+        "text" : "feature1",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "feature2",
+        "text" : "feature2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ]
+}
