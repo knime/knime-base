@@ -57,6 +57,11 @@ import org.knime.core.node.NodeSettingsWO;
  * @author Thorsten Meinl, University of Konstanz
  */
 public class AggregateSettings {
+
+    static final String CFG_KEY_PREDICTION_COLUMN = "predictionColumn";
+    static final String CFG_KEY_TARGET_COLUMN = "targetColumn";
+    static final String CFG_KEY_ADD_FOLD_ID = "addFoldId";
+
     private String m_targetColumn;
 
     private String m_predictionColumn;
@@ -129,9 +134,9 @@ public class AggregateSettings {
      * @param settings the node settings
      */
     public void saveSettings(final NodeSettingsWO settings) {
-        settings.addString("predictionColumn", m_predictionColumn);
-        settings.addString("targetColumn", m_targetColumn);
-        settings.addBoolean("addFoldId", m_addFoldId);
+        settings.addString(CFG_KEY_PREDICTION_COLUMN, m_predictionColumn);
+        settings.addString(CFG_KEY_TARGET_COLUMN, m_targetColumn);
+        settings.addBoolean(CFG_KEY_ADD_FOLD_ID, m_addFoldId);
     }
 
     /**
@@ -142,10 +147,10 @@ public class AggregateSettings {
      */
     public void loadSettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
-        m_predictionColumn = settings.getString("predictionColumn");
-        m_targetColumn = settings.getString("targetColumn");
+        m_predictionColumn = settings.getString(CFG_KEY_PREDICTION_COLUMN);
+        m_targetColumn = settings.getString(CFG_KEY_TARGET_COLUMN);
         /** @since 2.4 */
-        m_addFoldId = settings.getBoolean("addFoldId", false);
+        m_addFoldId = settings.getBoolean(CFG_KEY_ADD_FOLD_ID, false);
     }
 
     /**
@@ -154,8 +159,8 @@ public class AggregateSettings {
      * @param settings the node settings
      */
     public void loadSettingsForDialog(final NodeSettingsRO settings) {
-        m_predictionColumn = settings.getString("predictionColumn", null);
-        m_targetColumn = settings.getString("targetColumn", null);
-        m_addFoldId = settings.getBoolean("addFoldId", false);
+        m_predictionColumn = settings.getString(CFG_KEY_PREDICTION_COLUMN, null);
+        m_targetColumn = settings.getString(CFG_KEY_TARGET_COLUMN, null);
+        m_addFoldId = settings.getBoolean(CFG_KEY_ADD_FOLD_ID, false);
     }
 }

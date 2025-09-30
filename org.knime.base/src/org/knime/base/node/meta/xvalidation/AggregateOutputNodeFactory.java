@@ -47,56 +47,121 @@
  */
 package org.knime.base.node.meta.xvalidation;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * This factory creates all necessary classes for the Cross validation
  * aggregator node.
  *
  * @author Bernd Wiswedel, University of Konstanz
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.1
  */
+@SuppressWarnings("restriction")
 public class AggregateOutputNodeFactory extends
-        NodeFactory<AggregateOutputNodeModel> {
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new AggregateOutputNodeDialogPane();
-    }
+        NodeFactory<AggregateOutputNodeModel> implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public AggregateOutputNodeModel createNodeModel() {
         return new AggregateOutputNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected boolean hasDialog() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<AggregateOutputNodeModel> createNodeView(final int index,
             final AggregateOutputNodeModel model) {
         return null;
+    }
+    private static final String NODE_NAME = "X-Aggregator";
+    private static final String NODE_ICON = "x_aggregator.png";
+    private static final String SHORT_DESCRIPTION = """
+            Node that aggregates the result for cross validation.
+            """;
+    private static final String FULL_DESCRIPTION = """
+            This node must be the end of a cross validation loop and must follow a X-Partitioner node. It collects
+                the result from a predictor node, compares predicted class and real class and outputs the predictions
+                for all rows and the iteration statistics.
+            """;
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Outport from predictor", """
+                Contains the class column and the prediction column to compare
+                """)
+    );
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Prediction table", """
+                Collected output tables from the predictor
+                """),
+            fixedPort("Error rates", """
+                Error rates for all iterations
+                """)
+    );
+
+    /**
+     * @since 5.8
+     */
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * @since 5.8
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, AggregateOutputNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(
+            NODE_NAME,
+            NODE_ICON,
+            INPUT_PORTS,
+            OUTPUT_PORTS,
+            SHORT_DESCRIPTION,
+            FULL_DESCRIPTION,
+            List.of(),
+            AggregateOutputNodeParameters.class,
+            null,
+            NodeType.LoopEnd,
+            List.of(),
+            null
+        );
+    }
+
+    /**
+     * @since 5.8
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, AggregateOutputNodeParameters.class));
     }
 }

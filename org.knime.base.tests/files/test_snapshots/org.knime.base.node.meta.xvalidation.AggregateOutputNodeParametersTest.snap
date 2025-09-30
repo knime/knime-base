@@ -1,0 +1,150 @@
+{
+  "data" : {
+    "model" : {
+      "targetColumn" : "Universe_1_0",
+      "predictionColumn" : "Universe_1_1",
+      "addFoldId" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "addFoldId" : {
+            "type" : "boolean",
+            "title" : "Add column with fold id",
+            "description" : "If selected an additional column is added to the first output table that contains the fold's id in which the row was produced.",
+            "default" : false
+          },
+          "predictionColumn" : {
+            "type" : "string",
+            "title" : "Prediction column",
+            "description" : "Column containing the prediction label",
+            "default" : "Universe_1_1"
+          },
+          "targetColumn" : {
+            "type" : "string",
+            "title" : "Target column",
+            "description" : "Column containing the true class label",
+            "default" : "Universe_1_0"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/targetColumn",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/predictionColumn",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/addFoldId",
+      "options" : {
+        "format" : "checkbox"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "targetColumn" : {
+            "configKey" : "targetColumn"
+          },
+          "predictionColumn" : {
+            "configKey" : "predictionColumn"
+          },
+          "addFoldId" : {
+            "configKey" : "addFoldId"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/predictionColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Universe_1_0",
+        "text" : "Universe_1_0",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Universe_1_1",
+        "text" : "Universe_1_1",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "target_col",
+        "text" : "target_col",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "prediction_col",
+        "text" : "prediction_col",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/targetColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Universe_1_0",
+        "text" : "Universe_1_0",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Universe_1_1",
+        "text" : "Universe_1_1",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "target_col",
+        "text" : "target_col",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "prediction_col",
+        "text" : "prediction_col",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      } ]
+    } ]
+  } ]
+}
