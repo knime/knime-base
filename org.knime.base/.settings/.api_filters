@@ -80,6 +80,14 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="src/org/knime/base/node/preproc/columnrenameregex/ColumnNameReplacerUtils.java" type="org.knime.base.node.preproc.columnrenameregex.ColumnNameReplacerUtils">
+        <filter id="338792546">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.columnrenameregex.ColumnNameReplacerUtils"/>
+                <message_argument value="columnRenameMappingsWithWildcardBug(String[], String, PatternType, CaseMatching, ReplacementStrategy, boolean, boolean, String)"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="src/org/knime/base/node/preproc/ungroup/UngroupNodeFactory.java" type="org.knime.base.node.preproc.ungroup.UngroupNodeFactory">
         <filter id="338792546">
             <message_arguments>
