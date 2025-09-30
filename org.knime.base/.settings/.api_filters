@@ -84,7 +84,25 @@
         <filter id="338792546">
             <message_arguments>
                 <message_argument value="org.knime.base.node.preproc.columnrenameregex.ColumnNameReplacerUtils"/>
+                <message_argument value="columnRenameMappings(String[], String, PatternType, CaseMatching, ReplacementStrategy, boolean, boolean, String)"/>
+            </message_arguments>
+        </filter>
+        <filter id="338792546">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.columnrenameregex.ColumnNameReplacerUtils"/>
                 <message_argument value="columnRenameMappingsWithWildcardBug(String[], String, PatternType, CaseMatching, ReplacementStrategy, boolean, boolean, String)"/>
+            </message_arguments>
+        </filter>
+        <filter id="338792546">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.columnrenameregex.ColumnNameReplacerUtils"/>
+                <message_argument value="fixCollisions(Set&lt;String&gt;, Map&lt;String,String&gt;)"/>
+            </message_arguments>
+        </filter>
+        <filter id="338792546">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.columnrenameregex.ColumnNameReplacerUtils"/>
+                <message_argument value="renamesHaveCollisions(Map&lt;String,String&gt;)"/>
             </message_arguments>
         </filter>
     </resource>

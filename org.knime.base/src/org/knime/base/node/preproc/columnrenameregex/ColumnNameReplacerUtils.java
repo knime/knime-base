@@ -55,16 +55,11 @@ import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.knime.base.node.util.regex.CaseMatching;
-import org.knime.base.node.util.regex.PatternType;
 import org.knime.base.node.util.regex.RegexReplaceUtils;
 import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalReplacementException;
 import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalSearchPatternException;
-import org.knime.base.node.util.regex.ReplacementStrategy;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.util.UniqueNameGenerator;
-
-import com.google.common.collect.Sets;
 
 /**
  * Utilities for renaming columns and fixing resulting name collisions.
@@ -92,43 +87,29 @@ public final class ColumnNameReplacerUtils {
      * </ul>
      *
      * @param oldNames the list of column names that we want to rename.
-     * @param patternString a string that will be compiled to a regex and used to match the old column names.
-     * @param patternType the type of pattern to use (literal, wildcard, regex).
-     * @param caseMatching the case matching to use for the pattern (case sensitive or insensitive).
-     * @param replacementStrategy the strategy to use for replacement (e.g. replace all, replace whole string).
-     * @param escapeWildcards whether to escape wildcards. If true, this means that wildcard parameters may use their
-     *            special meaning when escaped, that is, the wildcard string "\*" would match a literal asterisk if this
-     *            parameter is true. If it is false, it would match a literal backslash followed by any number of
-     *            characters. This is only relevant for WILDCARD patterns.
-     * @param supportUnicodeCase whether to support unicode case matching. This should be true unless this would
-     *            introduce breaking changes regarding backwards-compatibility
-     * @param replacement a replacement string that will be used to replace the matched parts of the old column names.
-     *            It will be escaped if necessary (i.e. if the pattern type is anything other than regex).
+     * @param settings the settings to use for the renaming.
      * @return a map of old names to new names.
      * @throws IllegalSearchPatternException if the pattern string is not a valid regex.
      * @throws IllegalReplacementException if the replacement string is not valid, e.g. if it contains backreferences
      *             that aren't specified in the pattern string.
      */
-    public static Map<String, String> columnRenameMappings(final String[] oldNames, final String patternString,
-        final PatternType patternType, final CaseMatching caseMatching, final ReplacementStrategy replacementStrategy,
-        final boolean escapeWildcards, final boolean supportUnicodeCase, String replacement)
+    private static Map<String, String> columnRenameMappings(final String[] oldNames,
+        final ColumnNameReplacerNodeSettings settings)
         throws IllegalSearchPatternException, IllegalReplacementException {
 
-        var pattern = RegexReplaceUtils.compilePattern(patternString, patternType, caseMatching, escapeWildcards,
-            supportUnicodeCase);
+        var pattern = RegexReplaceUtils.compilePattern(settings.m_pattern, settings.m_patternType,
+            settings.m_caseSensitivity, settings.m_enableEscapingWildcard, settings.m_properlySupportUnicodeCharacters);
 
-        replacement = RegexReplaceUtils.processReplacementString(replacement, patternType);
+        final var replacement =
+            RegexReplaceUtils.processReplacementString(settings.m_replacement, settings.m_patternType);
 
         LinkedHashMap<String, String> nameMapping = new LinkedHashMap<>(oldNames.length);
         for (int i = 0; i < oldNames.length; i++) {
             final var oldName = oldNames[i];
             var replacementWithIndex = getReplaceStringWithIndex(replacement, i);
-            var replacementResult = RegexReplaceUtils.doReplacement(pattern, replacementStrategy, patternType, oldName,
-                replacementWithIndex);
-            if (replacementResult.wasReplaced()) {
-                // if the replacement was successful, add the new name to the map
-                nameMapping.put(oldName, replacementResult.result());
-            }
+            var replacementResult = RegexReplaceUtils.doReplacement(pattern, settings.m_replacementStrategy,
+                settings.m_patternType, oldName, replacementWithIndex);
+            settings.addToRenamesMap(nameMapping, oldName, replacementResult);
         }
 
         return nameMapping;
@@ -146,39 +127,33 @@ public final class ColumnNameReplacerUtils {
     }
 
     /**
-     * Check if the new column names have any collisions, i.e. if there are duplicates in the new set of column names,
-     * which would usually cause node execution to fail. If this returns true, you could use {@link #fixCollisions} to
-     * adjust the names to enforce uniqueness.
-     *
-     * @param renames a map of old names to new names.
-     * @return true if there are any collisions in the new names.
-     */
-    public static boolean renamesHaveCollisions(final Map<String, String> renames) {
-        return renames.values().stream().distinct().count() < renames.size();
-    }
-
-    /**
      * Use a {@link UniqueNameGenerator} to fix collisions in a map of old names to new names. Any duplicate target
      * names will be adjusted to be unique.
      *
      * @param extantColumnNames the set of all columns that exist prior to the renaming.
      * @param renames a map of old names to new names.
+     * @param comparisonNames the set of names to compare against when checking for uniqueness.
+     * @param warningMessageConsumer to warn the user if collisions were found and fixed.
      * @return a map of old names to new names with all collisions resolved
      */
-    public static Map<String, String> fixCollisions(final Set<String> extantColumnNames,
-        final Map<String, String> renames) {
+    private static Map<String, String> fixCollisions(final Map<String, String> renames,
+        final Set<String> comparisonNames, final Consumer<String> warningMessageConsumer) {
 
-        // we should consider only extant names that aren't about to get replaced
-        final Set<String> extantUnchangedNames = Sets.difference(extantColumnNames, renames.keySet());
-
-        var uniqueNameGenerator = new UniqueNameGenerator(extantUnchangedNames);
+        var uniqueNameGenerator = new UniqueNameGenerator(comparisonNames);
 
         var fixed = new LinkedHashMap<String, String>();
+        var hadCollisions = false;
         for (var entry : renames.entrySet()) {
+            final var renamedName = entry.getValue();
             var newName = uniqueNameGenerator.newName(entry.getValue());
+            if (!hadCollisions && !renamedName.trim().equals(newName)) {
+                hadCollisions = true;
+                warningMessageConsumer
+                    .accept("Pattern replace resulted in duplicate column names. Conflicts were resolved by adding "
+                        + "\"(#index)\" suffix.");
+            }
             fixed.put(entry.getKey(), newName);
         }
-
         return fixed;
     }
 
@@ -214,8 +189,7 @@ public final class ColumnNameReplacerUtils {
 
         Map<String, String> renameMapping;
         try {
-            renameMapping = callColumnRenameMappingMethod( //
-                originalNames, //
+            renameMapping = columnRenameMappings(originalNames, //
                 settings //
             );
         } catch (IllegalSearchPatternException e) {
@@ -225,33 +199,9 @@ public final class ColumnNameReplacerUtils {
             throw new InvalidSettingsException("Error in replacement string: " + e.getCauseMessage(), e);
         }
 
-        if (renameMapping.isEmpty()) {
-            warningMessageConsumer.accept("Pattern did not match any column names. Input remains unchanged.");
-        } else if (ColumnNameReplacerUtils.renamesHaveCollisions(renameMapping)) {
-            // if there are now duplicate column names, we should warn. But we'll use a unique name generator
-            // so we don't actually have an error.
-            warningMessageConsumer
-                .accept("Pattern replace resulted in duplicate column names. Conflicts were resolved by adding "
-                    + "\"(#index)\" suffix.");
-        }
-
-        return ColumnNameReplacerUtils.fixCollisions(Set.of(originalNames), renameMapping);
-    }
-
-    private static Map<String, String> callColumnRenameMappingMethod( //
-        final String[] originalNames, //
-        final ColumnNameReplacerNodeSettings settings //
-    ) throws InvalidSettingsException, IllegalSearchPatternException, IllegalReplacementException {
-        return ColumnNameReplacerUtils.columnRenameMappings( //
-            originalNames, //
-            settings.m_pattern, //
-            settings.m_patternType, //
-            settings.m_caseSensitivity, //
-            settings.m_replacementStrategy, //
-            settings.m_enableEscapingWildcard, //
-            settings.m_properlySupportUnicodeCharacters, //
-            settings.m_replacement //
-        );
+        final var comparisonNames =
+            settings.getColumnsToCompareAgainstForCollisions(Set.of(originalNames), renameMapping);
+        return ColumnNameReplacerUtils.fixCollisions(renameMapping, comparisonNames, warningMessageConsumer);
     }
 
 }

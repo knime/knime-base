@@ -11,6 +11,7 @@
         <entry key="searchString" type="xstring" value="(\s)"/>
         <entry key="replaceString" type="xstring" value="something$1"/>
         <entry key="replacementStrategy" type="xstring" value="ALL_OCCURRENCES"/>
+        <entry key="properlySupportUnicodeCharacters" type="xboolean" value="true"/>
     </config>
     <config key="variables"/>
     <entry key="customDescription" type="xstring" isnull="true" value=""/>

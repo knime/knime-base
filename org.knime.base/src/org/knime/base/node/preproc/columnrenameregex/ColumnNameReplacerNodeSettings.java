@@ -49,9 +49,12 @@
 package org.knime.base.node.preproc.columnrenameregex;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.knime.base.node.util.regex.CaseMatching;
 import org.knime.base.node.util.regex.PatternType;
+import org.knime.base.node.util.regex.RegexReplaceUtils.ReplacementResult;
 import org.knime.base.node.util.regex.ReplacementStrategy;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.node.parameters.NodeParameters;
@@ -70,6 +73,8 @@ import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
+import com.google.common.collect.Sets;
+
 /**
  * Settings for the Column Name Replacer node (formerly Column Rename (Regex)). Made public, since other column rename
  * nodes (e.g., in knime-database) use these settings as well.
@@ -79,7 +84,7 @@ import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public final class ColumnNameReplacerNodeSettings implements NodeParameters {
+public class ColumnNameReplacerNodeSettings implements NodeParameters {
 
     static final class PatternTypeRef implements ParameterReference<PatternType> {
     }
@@ -212,4 +217,33 @@ public final class ColumnNameReplacerNodeSettings implements NodeParameters {
             return false;
         }
     }
+
+    /**
+     * Per default all non-renamed columns are the initial comparison columns.
+     *
+     * @param extantColumnNames the names of the columns in the input table
+     * @param renames the renames added with {@link #addToRenamesMap(Map, String, ReplacementResult)}
+     * @return the set of column names to compare against for collisions apart from previous the rename-results
+     * @since 5.8
+     */
+    protected Set<String> getColumnsToCompareAgainstForCollisions(final Set<String> extantColumnNames,
+        final Map<String, String> renames) {
+        return Sets.difference(extantColumnNames, renames.keySet());
+
+    }
+
+    /**
+     * Per default whenever a replacement result exists (i.e. the pattern matched) it is added to the renames map.
+     *
+     * @param renames the map to add the rename to
+     * @param oldName the old name of the column
+     * @param replacement  the replacement result
+     * @since 5.8
+     */
+    protected void addToRenamesMap(final Map<String, String> renames,final String oldName, final ReplacementResult replacement) {
+        if (replacement.wasReplaced()) {
+            renames.put(oldName, replacement.result());
+        }
+    }
+
 }

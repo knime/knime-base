@@ -65,14 +65,16 @@ import org.knime.core.webui.node.impl.WebUINodeModel;
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-final class ColumnNameReplacerNodeModel extends WebUINodeModel<ColumnNameReplacerNodeSettings> {
+final class ColumnNameReplacerNodeModel
+    extends WebUINodeModel<ColumnNameReplacerNodeParametersWithLegacyReplacementStrategy1> {
 
     ColumnNameReplacerNodeModel(final WebUINodeConfiguration config) {
-        super(config, ColumnNameReplacerNodeSettings.class);
+        super(config, ColumnNameReplacerNodeParametersWithLegacyReplacementStrategy1.class);
     }
 
     @Override
-    protected void validateSettings(final ColumnNameReplacerNodeSettings settings) throws InvalidSettingsException {
+    protected void validateSettings(final ColumnNameReplacerNodeParametersWithLegacyReplacementStrategy1 settings)
+        throws InvalidSettingsException {
         try {
             ColumnNameReplacerUtils.createColumnRenamePattern(settings);
         } catch (IllegalSearchPatternException e) {
@@ -81,36 +83,44 @@ final class ColumnNameReplacerNodeModel extends WebUINodeModel<ColumnNameReplace
     }
 
     @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final ColumnNameReplacerNodeSettings settings)
-        throws InvalidSettingsException {
+    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs,
+        final ColumnNameReplacerNodeParametersWithLegacyReplacementStrategy1 settings) throws InvalidSettingsException {
         final var inSpec = inSpecs[0];
-        final var renameMapping = ColumnNameReplacerUtils.createColumnRenameMappings( //
-            inSpec.getColumnNames(), //
-            settings, //
-            this::setWarningMessage //
-        );
-        final var outSpec = getSpecWithRenamedColumns(inSpec, renameMapping);
+        final var renameMapping = getRenameMapping(settings, inSpec);
+        final var outSpec = performRenamings(inSpec, renameMapping);
         return new DataTableSpec[]{outSpec};
 
     }
 
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec,
-        final ColumnNameReplacerNodeSettings settings) throws Exception {
+        final ColumnNameReplacerNodeParametersWithLegacyReplacementStrategy1 settings) throws Exception {
         BufferedDataTable in = inData[0];
         DataTableSpec oldSpec = in.getDataTableSpec();
-        final var renameMapping = ColumnNameReplacerUtils.createColumnRenameMappings( //
-            oldSpec.getColumnNames(), //
-            settings, //
-            this::setWarningMessage //
-        );
-        DataTableSpec newSpec = getSpecWithRenamedColumns(oldSpec, renameMapping);
+        final var renameMapping = getRenameMapping(settings, oldSpec);
+        DataTableSpec newSpec = performRenamings(oldSpec, renameMapping);
         BufferedDataTable result = exec.createSpecReplacerTable(in, newSpec);
         return new BufferedDataTable[]{result};
     }
 
-    private static DataTableSpec getSpecWithRenamedColumns(final DataTableSpec in,
-        final Map<String, String> renameMappings) throws InvalidSettingsException {
+    private Map<String, String> getRenameMapping(final ColumnNameReplacerNodeSettings settings,
+        final DataTableSpec inSpec) throws InvalidSettingsException {
+        final var renameMapping = ColumnNameReplacerUtils.createColumnRenameMappings( //
+            inSpec.getColumnNames(), //
+            settings, //
+            this::setWarningMessage //
+        );
+        if (renameMapping.isEmpty() || renameMapping.entrySet().stream().allMatch(e -> e.getKey().equals(e.getValue()))) {
+            setWarningMessage("Pattern did not match any column names. Input remains unchanged.");
+        }
+        return renameMapping;
+    }
+
+    /**
+     * Convert old to new spec. Note that naming collisions are already resolved
+     */
+    private static DataTableSpec performRenamings(final DataTableSpec in, final Map<String, String> renameMappings)
+        throws InvalidSettingsException {
         DataColumnSpec[] cols = new DataColumnSpec[in.getNumColumns()];
         for (int i = 0; i < cols.length; i++) {
             final DataColumnSpec oldCol = in.getColumnSpec(i);

@@ -44,63 +44,69 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 19, 2025 (david): created
+ *   Sep 30, 2025 (Paul Bärnreuther): created
  */
 package org.knime.base.node.preproc.columnrenameregex;
 
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataType;
-import org.knime.core.data.def.StringCell.StringCellFactory;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettings;
-import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
-import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
-import org.knime.testing.node.dialog.SnapshotTestConfiguration;
+import org.knime.base.node.util.regex.RegexReplaceUtils.ReplacementResult;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.DefaultProvider;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
 
 /**
+ * Before 5.5 renaming a column to an other existing one while also renaming that other one lead to this being treated
+ * as a case where the first renaming needed to be adjusted although it does not lead to any collisions. E.g. columns
  *
- * @author David Hickey, TNG Technology Consulting GmbH
+ * "A" and "B" and renaming "A" to "B" and "B" to "C" lead to "B (#1)", "C" whereas since 5.5 the result would be "B"
+ * and "C".
+ *
+ * @since 5.8
+ * @author Paul Bärnreuther
  */
-final class ColumnNameReplacerNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+public class ColumnNameReplacerNodeParametersWithLegacyReplacementStrategy2 extends ColumnNameReplacerNodeSettings {
 
-    static final PortObjectSpec[] TEST_TABLE_SPECS =
-        new PortObjectSpec[]{new DataTableSpec(new String[]{"test"}, new DataType[]{StringCellFactory.TYPE})};
+    @Migration(LoadFalseForOldNodes2.class)
+    boolean m_respectRenamedColumnSourcesWhenResolvingNamingCollisions = true;
 
-    ColumnNameReplacerNodeSettingsTest() {
-        super(getConfig());
+    /**
+     * The flag was added with 5.8, so we need to load depending on a field added with 5.5 instead of using a
+     * {@link DefaultProvider}.
+     */
+    static final class LoadFalseForOldNodes2 implements NodeParametersMigration<Boolean> {
+
+        @Override
+        public List<ConfigMigration<Boolean>> getConfigMigrations() {
+            return List.of(ConfigMigration
+                .builder(settings -> settings.getBoolean("properlySupportUnicodeCharacters", false)).build());
+        }
+
     }
 
-    private static SnapshotTestConfiguration getConfig() {
-        return SnapshotTestConfiguration.builder() //
-            .withInputPortObjectSpecs(TEST_TABLE_SPECS) //
-            .testJsonFormsForModel(ColumnNameReplacerNodeParametersWithLegacyReplacementStrategy1.class) //
-            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings("ColumnNameReplacerNodeSettings.xml")) //
-            .testNodeSettingsStructure(() -> readSettings("ColumnNameReplacerNodeSettings.xml")) //
-            /**
-             * the old non-webui version of this node
-             */
-            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings("ColumnRenameRegex.xml")) //
-            .testNodeSettingsStructure(() -> readSettings("ColumnRenameRegex.xml")) //
-
-            .build();
+    @Override
+    protected Set<String> getColumnsToCompareAgainstForCollisions(final Set<String> extantColumnNames,
+        final Map<String, String> renames) {
+        if (m_respectRenamedColumnSourcesWhenResolvingNamingCollisions) {
+            return super.getColumnsToCompareAgainstForCollisions(extantColumnNames, renames);
+        }
+        return extantColumnNames;
     }
 
-    private static ColumnNameReplacerNodeParametersWithLegacyReplacementStrategy1 readSettings(final String fileName) {
-        try {
-            var path = getSnapshotPath(ColumnNameReplacerNodeSettings.class).getParent().resolve("node_settings")
-                .resolve(fileName);
-            try (var fis = new FileInputStream(path.toFile())) {
-                var nodeSettings = NodeSettings.loadFromXML(fis);
-                return NodeParametersUtil.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
-                    ColumnNameReplacerNodeParametersWithLegacyReplacementStrategy1.class);
+    @Override
+    protected void addToRenamesMap(final Map<String, String> renames, final String oldName,
+        final ReplacementResult replacement) {
+        if (m_respectRenamedColumnSourcesWhenResolvingNamingCollisions) {
+            super.addToRenamesMap(renames, oldName, replacement);
+        } else {
+            // Only add renamings that change the name, otherwise they are compared against themselves.
+            if (replacement.wasReplaced() && !oldName.equals(replacement.result())) {
+                renames.put(oldName, replacement.result());
             }
-        } catch (IOException | InvalidSettingsException e) {
-            throw new IllegalStateException(e);
         }
     }
+
 }

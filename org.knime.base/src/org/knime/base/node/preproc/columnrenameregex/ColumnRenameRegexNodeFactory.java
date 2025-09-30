@@ -132,7 +132,7 @@ public final class ColumnRenameRegexNodeFactory extends WebUINodeFactory<ColumnN
         .icon("column_rename_regex.png") //
         .shortDescription(SHORT_DESCRIPTION) //
         .fullDescription(FULL_DESCRIPTION) //
-        .modelSettingsClass(ColumnNameReplacerNodeSettings.class) //
+        .modelSettingsClass(ColumnNameReplacerNodeParametersWithLegacyReplacementStrategy1.class) //
         .keywords("regex", "replace", "rename", "column", "Column Rename (Regex)", "Column Rename (Replace)") //
         .addInputTable("Input table", "The table with columns to rename.") //
         .addOutputTable("Output table", "The table with renamed columns.") //

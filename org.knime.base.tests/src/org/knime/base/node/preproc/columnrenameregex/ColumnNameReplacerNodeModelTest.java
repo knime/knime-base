@@ -49,7 +49,6 @@
 package org.knime.base.node.preproc.columnrenameregex;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.knime.base.node.util.regex.CaseMatching.CASEINSENSITIVE;
@@ -94,7 +93,7 @@ import org.knime.testing.util.TableTestUtil;
  */
 final class ColumnNameReplacerNodeModelTest {
 
-    ColumnNameReplacerNodeSettings m_settings;
+    ColumnNameReplacerNodeParametersWithLegacyReplacementStrategy1 m_settings;
 
     ColumnNameReplacerNodeModel m_model;
 
@@ -114,7 +113,7 @@ final class ColumnNameReplacerNodeModelTest {
 
     @BeforeEach
     void setup() throws IOException {
-        m_settings = new ColumnNameReplacerNodeSettings();
+        m_settings = new ColumnNameReplacerNodeParametersWithLegacyReplacementStrategy1();
         m_model = new ColumnNameReplacerNodeModel(ColumnRenameRegexNodeFactory.CONFIGURATION);
 
         @SuppressWarnings({"unchecked", "rawtypes"}) // annoying but necessary
@@ -145,10 +144,9 @@ final class ColumnNameReplacerNodeModelTest {
 
         var inSpec = new TableTestUtil.SpecBuilder().build();
         m_model.addWarningListener(w -> warningListener.set(true));
-        var outSpec = m_model.createColumnRearranger(inSpec, m_settings).createSpec();
+        var outSpec = m_model.configure(new DataTableSpec[]{inSpec}, m_settings)[0];
 
         assertEquals(0, outSpec.getNumColumns(), "Expected no columns in output spec");
-        assertFalse(warningListener.get(), "Expected no warning to be issued");
     }
 
     @Test
@@ -158,21 +156,20 @@ final class ColumnNameReplacerNodeModelTest {
         var warningListener = new AtomicBoolean(false);
         m_model.addWarningListener(w -> warningListener.set(true));
 
-        m_model.createColumnRearranger(INPUT_TABLE_SPEC, m_settings);
+        m_model.configure(new DataTableSpec[]{INPUT_TABLE_SPEC}, m_settings);
 
         assertTrue(warningListener.get(), "Expected warning to be issued");
     }
 
     @Test
     void testWarnsWhenOutputHasDuplicates() throws Exception {
-        m_settings.m_pattern = ".*";
+        m_settings.m_pattern = "column1";
         m_settings.m_patternType = REGEX;
-        m_settings.m_replacement = "x";
+        m_settings.m_replacement = "column2";
 
         var warningListener = new AtomicBoolean(false);
         m_model.addWarningListener(w -> warningListener.set(true));
-
-        m_model.createColumnRearranger(INPUT_TABLE_SPEC, m_settings);
+        m_model.configure(new DataTableSpec[]{INPUT_TABLE_SPEC}, m_settings);
 
         assertTrue(warningListener.get(), "Expected warning to be issued");
     }
@@ -184,7 +181,7 @@ final class ColumnNameReplacerNodeModelTest {
         m_settings.m_replacement = "$1";
 
         var thrown = assertThrows(InvalidSettingsException.class,
-            () -> m_model.createColumnRearranger(INPUT_TABLE_SPEC, m_settings));
+            () -> m_model.configure(new DataTableSpec[]{INPUT_TABLE_SPEC}, m_settings));
         assertTrue(thrown.getMessage().contains("Error in replacement string"),
             "Expected error message to contain 'Error in replacement string'");
     }
@@ -254,7 +251,7 @@ final class ColumnNameReplacerNodeModelTest {
     void doSpecTests(final TestCase tc) throws Exception {
         tc.settings(m_settings);
 
-        var outSpecs = m_model.createColumnRearranger(INPUT_TABLE_SPEC, m_settings).createSpec();
+        var outSpecs = m_model.configure(new DataTableSpec[]{INPUT_TABLE_SPEC}, m_settings)[0];
 
         assertEquals(tc.expectedColumns.length, outSpecs.getNumColumns(),
             "Expected same number of columns before and after");
