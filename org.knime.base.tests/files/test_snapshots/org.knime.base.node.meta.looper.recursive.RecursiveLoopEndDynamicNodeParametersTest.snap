@@ -1,0 +1,265 @@
+{
+  "data" : {
+    "model" : {
+      "recursionPortSettings" : [ ],
+      "maxNrIterations" : 100,
+      "useFlowVariable" : false,
+      "flowVariableName" : "",
+      "dataCollectionPortSettings" : [ ],
+      "propagateFlowVariables" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "dataCollectionPortSettings" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "addIterationColumn" : {
+                  "type" : "boolean",
+                  "title" : "Add iteration column",
+                  "description" : "Append an iteration index column to label rows by iteration. Disabled when only the last iteration is collected.",
+                  "default" : false
+                },
+                "collectDataFromLastIterationOnly" : {
+                  "type" : "boolean",
+                  "title" : "Collect data from last iteration only",
+                  "description" : "Return only the output of the final iteration and disable accumulation from earlier iterations.",
+                  "default" : false
+                }
+              }
+            },
+            "title" : "Collection port settings",
+            "description" : "Configure how data from each collection port is collected across iterations.",
+            "default" : [ ]
+          },
+          "flowVariableName" : {
+            "type" : "string",
+            "title" : "Flow variable to end loop with",
+            "description" : "Select the flow variable that will end the loop if its value is \"true\".",
+            "default" : ""
+          },
+          "maxNrIterations" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Maximum number of iterations",
+            "description" : "The maximum number of iterations the loop will run. Prevents endless loops.",
+            "default" : 100
+          },
+          "propagateFlowVariables" : {
+            "type" : "boolean",
+            "title" : "Propagate modified loop variables",
+            "description" : "Export variables modified within the loop.",
+            "default" : false
+          },
+          "recursionPortSettings" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "minNrOfRows" : {
+                  "type" : "integer",
+                  "format" : "int64",
+                  "title" : "Minimal number of rows",
+                  "description" : "Minimal number of rows for each recursion input table required to continue iterating.",
+                  "default" : 1
+                }
+              }
+            },
+            "title" : "Minimum number of rows",
+            "description" : "Configure the minimal number of rows required on each recursion input table before the loop continues.\n",
+            "default" : [ ]
+          },
+          "useFlowVariable" : {
+            "type" : "boolean",
+            "title" : "End loop with variable",
+            "description" : "The loop ends if the option is enabled and the value of the selected variable equals “true”.\n",
+            "default" : false
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Recursion",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/recursionPortSettings",
+        "options" : {
+          "detail" : [ {
+            "type" : "Control",
+            "scope" : "#/properties/minNrOfRows",
+            "options" : {
+              "validation" : {
+                "max" : {
+                  "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
+                  "parameters" : {
+                    "isExclusive" : false,
+                    "max" : 9.007199254740991E15
+                  }
+                },
+                "min" : {
+                  "errorMessage" : "The value must be greater than 0.",
+                  "parameters" : {
+                    "isExclusive" : true,
+                    "min" : 0.0
+                  }
+                }
+              }
+            }
+          } ],
+          "arrayElementTitle" : "Recursion port",
+          "hasFixedSize" : true
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/maxNrIterations",
+        "options" : {
+          "validation" : {
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 2.147483647E9
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be greater than 0.",
+              "parameters" : {
+                "isExclusive" : true,
+                "min" : 0.0
+              }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/useFlowVariable",
+        "options" : {
+          "format" : "checkbox"
+        },
+        "rule" : {
+          "effect" : "HIDE",
+          "condition" : {
+            "schema" : { }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/flowVariableName",
+        "options" : {
+          "format" : "dropDown"
+        },
+        "providedOptions" : [ "possibleValues" ],
+        "rule" : {
+          "effect" : "HIDE",
+          "condition" : {
+            "type" : "OR",
+            "conditions" : [ {
+              "schema" : { }
+            }, {
+              "scope" : "#/properties/model/properties/useFlowVariable",
+              "schema" : {
+                "const" : false
+              }
+            } ]
+          }
+        }
+      } ]
+    }, {
+      "label" : "Data Collection",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/dataCollectionPortSettings",
+        "options" : {
+          "detail" : [ {
+            "type" : "Control",
+            "scope" : "#/properties/collectDataFromLastIterationOnly",
+            "options" : {
+              "format" : "checkbox"
+            }
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/addIterationColumn",
+            "options" : {
+              "format" : "checkbox"
+            },
+            "rule" : {
+              "effect" : "DISABLE",
+              "condition" : {
+                "scope" : "#/properties/collectDataFromLastIterationOnly",
+                "schema" : {
+                  "const" : true
+                }
+              }
+            }
+          } ],
+          "arrayElementTitle" : "Collection port",
+          "hasFixedSize" : true
+        }
+      } ]
+    }, {
+      "label" : "Flow Variables",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/propagateFlowVariables",
+        "options" : {
+          "format" : "checkbox"
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "recursionPortSettings" : {
+            "configPaths" : [ [ "minNumberOfRows" ] ]
+          },
+          "maxNrIterations" : {
+            "configKey" : "maxNrIterations"
+          },
+          "useFlowVariable" : { },
+          "flowVariableName" : { },
+          "dataCollectionPortSettings" : {
+            "configPaths" : [ [ "onlyLastData" ], [ "addIterationColumn" ] ]
+          },
+          "propagateFlowVariables" : {
+            "configKey" : "propagateFlowVariables"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/dataCollectionPortSettings",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/flowVariableName",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/recursionPortSettings",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ ]
+    } ]
+  } ]
+}
