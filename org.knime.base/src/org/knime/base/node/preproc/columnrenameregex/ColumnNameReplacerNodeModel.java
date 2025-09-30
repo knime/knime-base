@@ -47,17 +47,17 @@
  */
 package org.knime.base.node.preproc.columnrenameregex;
 
+import java.util.Map;
+
 import org.knime.base.node.util.regex.RegexReplaceUtils.IllegalSearchPatternException;
-import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
-import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.container.ColumnRearranger;
-import org.knime.core.data.container.SingleCellFactory;
+import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
+import org.knime.core.webui.node.impl.WebUINodeModel;
 
 /**
  * Model for the Column Name Replacer node (formerly Column Rename (Regex)).
@@ -65,7 +65,7 @@ import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-final class ColumnNameReplacerNodeModel extends WebUISimpleStreamableFunctionNodeModel<ColumnNameReplacerNodeSettings> {
+final class ColumnNameReplacerNodeModel extends WebUINodeModel<ColumnNameReplacerNodeSettings> {
 
     ColumnNameReplacerNodeModel(final WebUINodeConfiguration config) {
         super(config, ColumnNameReplacerNodeSettings.class);
@@ -81,57 +81,51 @@ final class ColumnNameReplacerNodeModel extends WebUISimpleStreamableFunctionNod
     }
 
     @Override
-    protected ColumnRearranger createColumnRearranger(final DataTableSpec inSpec,
-        final ColumnNameReplacerNodeSettings settings) throws InvalidSettingsException {
-        // if there are no columns in the input we can just return right now
-        if (inSpec.getNumColumns() == 0) {
-            return new ColumnRearranger(inSpec);
-        }
-
+    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final ColumnNameReplacerNodeSettings settings)
+        throws InvalidSettingsException {
+        final var inSpec = inSpecs[0];
         final var renameMapping = ColumnNameReplacerUtils.createColumnRenameMappings( //
             inSpec.getColumnNames(), //
             settings, //
             this::setWarningMessage //
         );
+        final var outSpec = getSpecWithRenamedColumns(inSpec, renameMapping);
+        return new DataTableSpec[]{outSpec};
 
-        final var rearranger = new ColumnRearranger(inSpec);
-
-        for (final var entry : renameMapping.entrySet()) {
-            // add the new column name to the rearranger
-            final var inColIndex = inSpec.findColumnIndex(entry.getKey());
-            var newCellFactory = new ColumnRenamingCellFactory( //
-                entry.getValue(), //
-                inSpec.getColumnSpec(inColIndex), //
-                inColIndex//
-            );
-            rearranger.replace(newCellFactory, entry.getKey());
-        }
-
-        return rearranger;
     }
 
-    /**
-     * Cell factory that returns the original cell but with a new column name.
-     */
-    private static class ColumnRenamingCellFactory extends SingleCellFactory {
-
-        private int m_targetColumnIndex;
-
-        ColumnRenamingCellFactory(final String newName, final DataColumnSpec oldSpec, final int targetColumnIndex) {
-            super(renameColumn(oldSpec, newName));
-
-            m_targetColumnIndex = targetColumnIndex;
-        }
-
-        private static DataColumnSpec renameColumn(final DataColumnSpec column, final String name) {
-            var creator = new DataColumnSpecCreator(column);
-            creator.setName(name);
-            return creator.createSpec();
-        }
-
-        @Override
-        public DataCell getCell(final DataRow row) {
-            return row.getCell(m_targetColumnIndex);
-        }
+    @Override
+    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec,
+        final ColumnNameReplacerNodeSettings settings) throws Exception {
+        BufferedDataTable in = inData[0];
+        DataTableSpec oldSpec = in.getDataTableSpec();
+        final var renameMapping = ColumnNameReplacerUtils.createColumnRenameMappings( //
+            oldSpec.getColumnNames(), //
+            settings, //
+            this::setWarningMessage //
+        );
+        DataTableSpec newSpec = getSpecWithRenamedColumns(oldSpec, renameMapping);
+        BufferedDataTable result = exec.createSpecReplacerTable(in, newSpec);
+        return new BufferedDataTable[]{result};
     }
+
+    private static DataTableSpec getSpecWithRenamedColumns(final DataTableSpec in,
+        final Map<String, String> renameMappings) throws InvalidSettingsException {
+        DataColumnSpec[] cols = new DataColumnSpec[in.getNumColumns()];
+        for (int i = 0; i < cols.length; i++) {
+            final DataColumnSpec oldCol = in.getColumnSpec(i);
+            final String oldName = oldCol.getName();
+            DataColumnSpecCreator creator = new DataColumnSpecCreator(oldCol);
+            final String newName = renameMappings.getOrDefault(oldName, oldName);
+
+            if (newName.length() == 0) {
+                throw new InvalidSettingsException(
+                    "Replacement in column '" + oldName + "' leads to an empty column name.");
+            }
+            creator.setName(newName);
+            cols[i] = creator.createSpec();
+        }
+        return new DataTableSpec(in.getName(), cols);
+    }
+
 }
