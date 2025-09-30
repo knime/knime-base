@@ -1,0 +1,176 @@
+{
+  "data" : {
+    "model" : {
+      "clusterCount" : "2, 2",
+      "universeSizes" : "2, 2",
+      "patternCount" : 5400,
+      "standardDeviation" : 0.1,
+      "noiseFraction" : 0.0,
+      "randomSeed" : 411910861
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "clusterCount" : {
+            "type" : "string",
+            "title" : "Cluster count",
+            "description" : "Comma-separated list defining the number of clusters to generate in each universe (e.g., \"2, 3\" creates 2 clusters in the first universe and 3 in the second).",
+            "default" : "2, 2"
+          },
+          "noiseFraction" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Noise fraction",
+            "description" : "Proportion of randomly distributed data points that don't belong to any cluster. Value between 0 (no noise) and 1 (all noise).",
+            "default" : 0.0
+          },
+          "patternCount" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Pattern count",
+            "description" : "Total number of data patterns to generate across all clusters and universes.",
+            "default" : 5400
+          },
+          "randomSeed" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Random seed",
+            "description" : "Fixed value to ensure reproducible data generation. Use the same seed to generate identical datasets.",
+            "default" : 1
+          },
+          "standardDeviation" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Standard deviation",
+            "description" : "Controls the spread of data points within each cluster. Smaller values create tighter clusters.",
+            "default" : 0.1
+          },
+          "universeSizes" : {
+            "type" : "string",
+            "title" : "Universe sizes",
+            "description" : "Comma-separated list specifying the number of attributes (dimensions) for each universe (e.g., \"2, 3\" means first universe has 2 attributes, second has 3).",
+            "default" : "2, 2"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/clusterCount"
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/universeSizes"
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/patternCount",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 0.0
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/standardDeviation",
+      "options" : {
+        "validation" : {
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 0.0
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/noiseFraction",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 1.0
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 0.0
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/randomSeed",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least -2147483648.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : -2.147483648E9
+            }
+          }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "clusterCount" : {
+            "configPaths" : [ [ "clustercount" ] ]
+          },
+          "universeSizes" : {
+            "configPaths" : [ [ "unisize" ] ]
+          },
+          "patternCount" : {
+            "configKey" : "patcount"
+          },
+          "standardDeviation" : {
+            "configKey" : "stddeviation"
+          },
+          "noiseFraction" : {
+            "configKey" : "noise"
+          },
+          "randomSeed" : {
+            "configKey" : "seed"
+          }
+        }
+      }
+    }
+  }
+}

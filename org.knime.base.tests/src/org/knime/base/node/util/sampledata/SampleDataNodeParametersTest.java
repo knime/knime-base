@@ -72,6 +72,8 @@ final class SampleDataNodeParametersTest extends DefaultNodeSettingsSnapshotTest
     private static SnapshotTestConfiguration getConfig() {
         return SnapshotTestConfiguration.builder() //
             .testNodeSettingsStructure(() -> readSettings()) //
+            .testJsonFormsForModel(SampleDataNodeParameters.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
             .build();
     }
 
