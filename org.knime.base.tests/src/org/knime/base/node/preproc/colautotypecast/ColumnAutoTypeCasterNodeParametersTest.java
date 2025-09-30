@@ -50,7 +50,16 @@ package org.knime.base.node.preproc.colautotypecast;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.Locale;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.StringCell;
@@ -59,11 +68,55 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 import org.knime.testing.node.dialog.SnapshotTestConfiguration;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 @SuppressWarnings("restriction")
 final class ColumnAutoTypeCasterNodeParametersTest extends DefaultNodeSettingsSnapshotTest {
+
+
+    private Locale m_defaultLocale;
+
+    private MockedStatic<ZonedDateTime> m_mockedStaticLocalZonedDateTime;
+
+    private MockedStatic<DateTimeFormatStringHistoryManager> m_mockedStaticDateTimeFormatStringHistoryManager;
+
+    private static final ZoneId MOCKED_ZONE_ID = ZoneId.of("Europe/Berlin");
+
+    private static final List<String> MOCKED_RECENT_FORMATS = List.of("yyyy", "HH:ss");
+
+    /**
+     * We need to mock 'now' because we use it for generating examples for each date/time format.
+     */
+    private static final ZonedDateTime MOCKED_NOW =
+        LocalDateTime.of(LocalDate.of(1, 1, 1), LocalTime.of(14, 00)).atZone(MOCKED_ZONE_ID);
+
+    @BeforeEach
+    void setDefaultLocaleAndMockStatics() {
+        m_defaultLocale = Locale.getDefault();
+        Locale.setDefault(Locale.ENGLISH);
+
+        m_mockedStaticLocalZonedDateTime = Mockito.mockStatic(ZonedDateTime.class, Mockito.CALLS_REAL_METHODS);
+        m_mockedStaticLocalZonedDateTime.when(ZonedDateTime::now).thenReturn(MOCKED_NOW);
+
+        m_mockedStaticDateTimeFormatStringHistoryManager =
+            Mockito.mockStatic(DateTimeFormatStringHistoryManager.class, Mockito.CALLS_REAL_METHODS);
+        m_mockedStaticDateTimeFormatStringHistoryManager
+            .when(() -> DateTimeFormatStringHistoryManager.getRecentFormats()).thenReturn(MOCKED_RECENT_FORMATS);
+
+    }
+
+    @AfterEach
+    void resetDefaultLocaleAndStaticMocks() {
+        Locale.setDefault(m_defaultLocale);
+        m_mockedStaticLocalZonedDateTime.close();
+        m_mockedStaticDateTimeFormatStringHistoryManager.close();
+    }
+
+
     static final PortObjectSpec[] TEST_TABLE_SPECS = new PortObjectSpec[]{
         new DataTableSpec(new String[]{"column1", "column2", "column3", "column4", "column5"},
             new DataType[]{StringCell.TYPE, StringCell.TYPE, StringCell.TYPE, StringCell.TYPE, StringCell.TYPE}) //

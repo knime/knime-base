@@ -46,6 +46,10 @@ package org.knime.base.node.preproc.colautotypecast;
 
 import static org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil.getStringColumnsOfFirstPort;
 
+import java.util.Locale;
+
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
@@ -99,15 +103,36 @@ final class ColumnAutoTypeCasterNodeParameters implements NodeParameters {
     ColumnFilter m_columnFilter = new ColumnFilter();
 
     @Persist(configKey = ColumnAutoTypeCasterNodeModel.CFGKEY_DATEFORMAT)
-    @Widget(title = "Choose a date&time format",
-        description = "Choose or enter a date, time, or date&amp;time pattern used to detect dates in the"
-            + " selected columns. The used locale will be the system default. For further configurations use the "
-            + "<i>String to Date&amp;Time</i> node." //
-            + "<ul>" //
-            + "<li><b>Examples</b>: 'dd.MM.yy', 'dd.MM.yy HH:mm:ss', 'dd.MM.yy HH:mm:ss:SSS', 'HH:mm:ss'.</li>"
-            + "<li><b>Pattern symbols</b>: y=Year, M=Month, d=Day, H=Hour, m=Minute, s=Second, S=Millisecond.</li>"
-            + "</ul>")
+    @Widget(title = "Choose a date&time format", description = """
+            Choose or enter a date, time, or date&amp;time pattern used to detect dates in the selected columns. The
+             used locale will be the system default. For further configurations use the <i>String to Date&amp;Time</i>
+             node.<br />
+             The used parser depends on the setting <i>Use legacy date&amp;time type</i>. When checked, the
+             <a href="https://docs.oracle.com/javase/8/docs/api/java/text/DateFormat.html">DateFormat</a> is used, else
+             the <a href="
+            """ + ComprehensiveDateTimeFormatProvider.LINK_TO_FORMAT_JAVADOC + """
+            ">DateTimeFormatter</a>. The <i>DateFormat</i> might not support every placeholder specified below.
+            <br />
+            <b>Examples:</b>
+            <ul>
+                <li>"yyyy.MM.dd HH:mm:ss.SSS" produces dates such as "2001.07.04 12:08:56.000"
+                </li>
+                <li>"yyyy-MM-dd'T'HH:mm:ss.SSSZ" produces dates such as "2001-07-04T12:08:56.235-0700"
+                </li>
+                <li>"yyyy-MM-dd'T'HH:mm:ss.SSSXXX'['VV']'" produces dates such as
+                "2001-07-04T12:08:56.235+02:00[Europe/Berlin]"
+                </li>
+            </ul>
+            <b>Supported placeholders in the pattern are:</b>
+            """ + ComprehensiveDateTimeFormatProvider.DATE_FORMAT_LIST_FOR_DOCS)
+    @DateTimeFormatPickerWidget(formatProvider = DateTimeFormatProvider.class)
     String m_dateFormat = "dd.MM.yy";
+
+    static final class DateTimeFormatProvider extends ComprehensiveDateTimeFormatProvider {
+        DateTimeFormatProvider() {
+            super(Locale.getDefault().toLanguageTag());
+        }
+    }
 
     @Persist(configKey = ColumnAutoTypeCasterNodeModel.CFGKEY_MISSVALPAT)
     @Widget(title = "Missing value pattern",

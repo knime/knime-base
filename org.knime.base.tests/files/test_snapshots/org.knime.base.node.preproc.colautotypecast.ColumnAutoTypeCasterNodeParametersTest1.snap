@@ -145,7 +145,7 @@
           "dateFormat" : {
             "type" : "string",
             "title" : "Choose a date&time format",
-            "description" : "Choose or enter a date, time, or date&amp;time pattern used to detect dates in the selected columns. The used locale will be the system default. For further configurations use the <i>String to Date&amp;Time</i> node.<ul><li><b>Examples</b>: 'dd.MM.yy', 'dd.MM.yy HH:mm:ss', 'dd.MM.yy HH:mm:ss:SSS', 'HH:mm:ss'.</li><li><b>Pattern symbols</b>: y=Year, M=Month, d=Day, H=Hour, m=Minute, s=Second, S=Millisecond.</li></ul>",
+            "description" : "Choose or enter a date, time, or date&amp;time pattern used to detect dates in the selected columns. The\n used locale will be the system default. For further configurations use the <i>String to Date&amp;Time</i>\n node.<br />\n The used parser depends on the setting <i>Use legacy date&amp;time type</i>. When checked, the\n <a href=\"https://docs.oracle.com/javase/8/docs/api/java/text/DateFormat.html\">DateFormat</a> is used, else\n the <a href=\"\nhttps://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html\">DateTimeFormatter</a>. The <i>DateFormat</i> might not support every placeholder specified below.\n<br />\n<b>Examples:</b>\n<ul>\n    <li>\"yyyy.MM.dd HH:mm:ss.SSS\" produces dates such as \"2001.07.04 12:08:56.000\"\n    </li>\n    <li>\"yyyy-MM-dd'T'HH:mm:ss.SSSZ\" produces dates such as \"2001-07-04T12:08:56.235-0700\"\n    </li>\n    <li>\"yyyy-MM-dd'T'HH:mm:ss.SSSXXX'['VV']'\" produces dates such as\n    \"2001-07-04T12:08:56.235+02:00[Europe/Berlin]\"\n    </li>\n</ul>\n<b>Supported placeholders in the pattern are:</b>\n<ul>\n    <li>G: era</li>\n    <li>u: year</li>\n    <li>y: year of era</li>\n    <li>D: day of year</li>\n    <li>M: month in year (context sensitive)</li>\n    <li>L: month in year (standalone form)</li>\n    <li>d: day of month</li>\n    <li>Q/q: quarter of year</li>\n    <li>Y: week based year (you probably want to use y instead)</li>\n    <li>w: week of week based year</li>\n    <li>W: week of month</li>\n    <li>E: day of week</li>\n    <li>e: localized day of week\n        <ul>\n            <li>e: 4</li>\n            <li>ee: 04</li>\n            <li>eee: Wed</li>\n            <li>eeee: Wednesday</li>\n            <li>eeeee: W</li>\n        </ul>\n    </li>\n    <li>c: day of week</li>\n    <li>F: day-of-week in month</li>\n    <li>a: am/pm of day</li>\n    <li>h: clock hour of am/pm (1-12)</li>\n    <li>K: hour of am/pm (0-11)</li>\n    <li>k: clock hour of am/pm (1-24)</li>\n    <li>H: hour of day (0-23)</li>\n    <li>m: minute of hour</li>\n    <li>s: second of minute</li>\n    <li>S: fraction of second</li>\n    <li>A: milli of day</li>\n    <li>n: nano of second</li>\n    <li>N: nano of day</li>\n    <li>V: time zone ID</li>\n    <li>z: time zone name</li>\n    <li>O: localized zone offset</li>\n    <li>x: zone offset (ISO8601)\n          <ul>\n              <li>X: +08 or +0830</li>\n              <li>XX: +0800 or +0830 (no colons)</li>\n              <li>XXX: +08:00 or +08:30 (with colons)</li>\n              <li>XXXX: +0800 or +083015 (i.e. including offset seconds, no colons)</li>\n              <li>XXXXX: +08:00 or +08:30:15 (i.e. including offset seconds, with colons)</li>\n          </ul>\n    </li>\n    <li>X: same as x, but outputs Z when offset is 0</li>\n    <li>Z: zone offset (RFC822)\n        <ul>\n            <li>Z, ZZ, ZZZ: +0800 or +0830</li>\n            <li>ZZZZ: GMT+08:00 or GMT+08:30</li>\n            <li>ZZZZZ: +08:00 or +08:30:15</li>\n        </ul>\n    </li>\n    <li>p: pad next</li>\n    <li>' : escape for text</li>\n    <li>'': single quote</li>\n    <li>[: optional section start</li>\n    <li>]: optional section end</li>\n</ul>\n",
             "default" : "dd.MM.yy"
           },
           "missingValuePattern" : {
@@ -195,7 +195,12 @@
       "providedOptions" : [ "possibleValues" ]
     }, {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/dateFormat"
+      "scope" : "#/properties/model/properties/dateFormat",
+      "options" : {
+        "format" : "dateTimeFormat",
+        "externalValidationHandler" : "org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidationUtil$DateTimeStringFormatValidation"
+      },
+      "providedOptions" : [ "dateTimeFormats" ]
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/missingValuePattern"
@@ -326,6 +331,958 @@
           "id" : "org.knime.core.data.StringValue",
           "text" : "String"
         }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/dateFormat",
+    "providedOptionName" : "dateTimeFormats",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "format" : "yyyy",
+        "temporalType" : "DATE",
+        "category" : "RECENT",
+        "example" : "0001"
+      }, {
+        "format" : "yyyy",
+        "temporalType" : "DATE_TIME",
+        "category" : "RECENT",
+        "example" : "0001"
+      }, {
+        "format" : "yyyy",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "RECENT",
+        "example" : "0001"
+      }, {
+        "format" : "HH:ss",
+        "temporalType" : "TIME",
+        "category" : "RECENT",
+        "example" : "14:00"
+      }, {
+        "format" : "HH:ss",
+        "temporalType" : "DATE_TIME",
+        "category" : "RECENT",
+        "example" : "14:00"
+      }, {
+        "format" : "HH:ss",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "RECENT",
+        "example" : "14:00"
+      }, {
+        "format" : "yyyy-MM-dd",
+        "temporalType" : "DATE",
+        "category" : "STANDARD",
+        "example" : "0001-01-01"
+      }, {
+        "format" : "yyyy-MM",
+        "temporalType" : "DATE",
+        "category" : "STANDARD",
+        "example" : "0001-01"
+      }, {
+        "format" : "yyyyMMdd",
+        "temporalType" : "DATE",
+        "category" : "STANDARD",
+        "example" : "00010101"
+      }, {
+        "format" : "YYYY-MM",
+        "temporalType" : "DATE",
+        "category" : "STANDARD",
+        "example" : "0001-01"
+      }, {
+        "format" : "yyyy-M-d",
+        "temporalType" : "DATE",
+        "category" : "STANDARD",
+        "example" : "0001-1-1"
+      }, {
+        "format" : "yyyy-MMMM-dd",
+        "temporalType" : "DATE",
+        "category" : "STANDARD",
+        "example" : "0001-January-01"
+      }, {
+        "format" : "yyyy-MMM-dd",
+        "temporalType" : "DATE",
+        "category" : "STANDARD",
+        "example" : "0001-Jan-01"
+      }, {
+        "format" : "yyyy-ww",
+        "temporalType" : "DATE",
+        "category" : "STANDARD",
+        "example" : "0001-01"
+      }, {
+        "format" : "yyyy-D",
+        "temporalType" : "DATE",
+        "category" : "STANDARD",
+        "example" : "0001-1"
+      }, {
+        "format" : "YYYYwwee",
+        "temporalType" : "DATE",
+        "category" : "STANDARD",
+        "example" : "00010102"
+      }, {
+        "format" : "yyyy-QQ",
+        "temporalType" : "DATE",
+        "category" : "STANDARD",
+        "example" : "0001-01"
+      }, {
+        "format" : "yyyy-QQQ",
+        "temporalType" : "DATE",
+        "category" : "STANDARD",
+        "example" : "0001-Q1"
+      }, {
+        "format" : "yyyy-'W'ww",
+        "temporalType" : "DATE",
+        "category" : "STANDARD",
+        "example" : "0001-W01"
+      }, {
+        "format" : "dd/MM/yyyy",
+        "temporalType" : "DATE",
+        "category" : "EUROPEAN",
+        "example" : "01/01/0001"
+      }, {
+        "format" : "dd.MM.yyyy",
+        "temporalType" : "DATE",
+        "category" : "EUROPEAN",
+        "example" : "01.01.0001"
+      }, {
+        "format" : "dd/MM/yy",
+        "temporalType" : "DATE",
+        "category" : "EUROPEAN",
+        "example" : "01/01/01"
+      }, {
+        "format" : "dd.MM.yy",
+        "temporalType" : "DATE",
+        "category" : "EUROPEAN",
+        "example" : "01.01.01"
+      }, {
+        "format" : "d. MMMM yyyy",
+        "temporalType" : "DATE",
+        "category" : "EUROPEAN",
+        "example" : "1. January 0001"
+      }, {
+        "format" : "dd MMM yyyy",
+        "temporalType" : "DATE",
+        "category" : "EUROPEAN",
+        "example" : "01 Jan 0001"
+      }, {
+        "format" : "d. MMMM YYYY",
+        "temporalType" : "DATE",
+        "category" : "EUROPEAN",
+        "example" : "1. January 0001"
+      }, {
+        "format" : "d/M/yyyy",
+        "temporalType" : "DATE",
+        "category" : "EUROPEAN",
+        "example" : "1/1/0001"
+      }, {
+        "format" : "dd MMMM yyyy",
+        "temporalType" : "DATE",
+        "category" : "EUROPEAN",
+        "example" : "01 January 0001"
+      }, {
+        "format" : "yyyy/MM/dd",
+        "temporalType" : "DATE",
+        "category" : "EUROPEAN",
+        "example" : "0001/01/01"
+      }, {
+        "format" : "yyyy.MM.dd",
+        "temporalType" : "DATE",
+        "category" : "EUROPEAN",
+        "example" : "0001.01.01"
+      }, {
+        "format" : "yyyy-MM-dd",
+        "temporalType" : "DATE",
+        "category" : "EUROPEAN",
+        "example" : "0001-01-01"
+      }, {
+        "format" : "MMM yyyy",
+        "temporalType" : "DATE",
+        "category" : "EUROPEAN",
+        "example" : "Jan 0001"
+      }, {
+        "format" : "MMMM yyyy",
+        "temporalType" : "DATE",
+        "category" : "EUROPEAN",
+        "example" : "January 0001"
+      }, {
+        "format" : "dd/M/yyyy",
+        "temporalType" : "DATE",
+        "category" : "EUROPEAN",
+        "example" : "01/1/0001"
+      }, {
+        "format" : "MM-yyyy",
+        "temporalType" : "DATE",
+        "category" : "EUROPEAN",
+        "example" : "01-0001"
+      }, {
+        "format" : "Q/yyyy",
+        "temporalType" : "DATE",
+        "category" : "EUROPEAN",
+        "example" : "1/0001"
+      }, {
+        "format" : "MMM. yyyy",
+        "temporalType" : "DATE",
+        "category" : "EUROPEAN",
+        "example" : "Jan. 0001"
+      }, {
+        "format" : "d-MMM-yy",
+        "temporalType" : "DATE",
+        "category" : "EUROPEAN",
+        "example" : "1-Jan-01"
+      }, {
+        "format" : "d.M.yyyy",
+        "temporalType" : "DATE",
+        "category" : "EUROPEAN",
+        "example" : "1.1.0001"
+      }, {
+        "format" : "d/MM/yyyy",
+        "temporalType" : "DATE",
+        "category" : "EUROPEAN",
+        "example" : "1/01/0001"
+      }, {
+        "format" : "d. MMM. yyyy",
+        "temporalType" : "DATE",
+        "category" : "EUROPEAN",
+        "example" : "1. Jan. 0001"
+      }, {
+        "format" : "yyyy MMM dd",
+        "temporalType" : "DATE",
+        "category" : "EUROPEAN",
+        "example" : "0001 Jan 01"
+      }, {
+        "format" : "QQQ/yyyy",
+        "temporalType" : "DATE",
+        "category" : "EUROPEAN",
+        "example" : "Q1/0001"
+      }, {
+        "format" : "yyyy/QQQ",
+        "temporalType" : "DATE",
+        "category" : "EUROPEAN",
+        "example" : "0001/Q1"
+      }, {
+        "format" : "MM/dd/yyyy",
+        "temporalType" : "DATE",
+        "category" : "AMERICAN",
+        "example" : "01/01/0001"
+      }, {
+        "format" : "MM/dd/yy",
+        "temporalType" : "DATE",
+        "category" : "AMERICAN",
+        "example" : "01/01/01"
+      }, {
+        "format" : "MMM d, yyyy",
+        "temporalType" : "DATE",
+        "category" : "AMERICAN",
+        "example" : "Jan 1, 0001"
+      }, {
+        "format" : "MMMM yyyy",
+        "temporalType" : "DATE",
+        "category" : "AMERICAN",
+        "example" : "January 0001"
+      }, {
+        "format" : "MM/yy",
+        "temporalType" : "DATE",
+        "category" : "AMERICAN",
+        "example" : "01/01"
+      }, {
+        "format" : "MM/dd/YYYY",
+        "temporalType" : "DATE",
+        "category" : "AMERICAN",
+        "example" : "01/01/0001"
+      }, {
+        "format" : "yyyy/MM/dd",
+        "temporalType" : "DATE",
+        "category" : "AMERICAN",
+        "example" : "0001/01/01"
+      }, {
+        "format" : "yyyy-MM-dd",
+        "temporalType" : "DATE",
+        "category" : "AMERICAN",
+        "example" : "0001-01-01"
+      }, {
+        "format" : "yyyyMMdd",
+        "temporalType" : "DATE",
+        "category" : "AMERICAN",
+        "example" : "00010101"
+      }, {
+        "format" : "M/d/yyyy",
+        "temporalType" : "DATE",
+        "category" : "AMERICAN",
+        "example" : "1/1/0001"
+      }, {
+        "format" : "M/d/yy",
+        "temporalType" : "DATE",
+        "category" : "AMERICAN",
+        "example" : "1/1/01"
+      }, {
+        "format" : "MM-dd-yyyy",
+        "temporalType" : "DATE",
+        "category" : "AMERICAN",
+        "example" : "01-01-0001"
+      }, {
+        "format" : "MMM. yyyy",
+        "temporalType" : "DATE",
+        "category" : "AMERICAN",
+        "example" : "Jan. 0001"
+      }, {
+        "format" : "MMM yyyy",
+        "temporalType" : "DATE",
+        "category" : "AMERICAN",
+        "example" : "Jan 0001"
+      }, {
+        "format" : "MM/yyyy",
+        "temporalType" : "DATE",
+        "category" : "AMERICAN",
+        "example" : "01/0001"
+      }, {
+        "format" : "MMM dd, yyyy",
+        "temporalType" : "DATE",
+        "category" : "AMERICAN",
+        "example" : "Jan 01, 0001"
+      }, {
+        "format" : "Q/yyyy",
+        "temporalType" : "DATE",
+        "category" : "AMERICAN",
+        "example" : "1/0001"
+      }, {
+        "format" : "QQ/yyyy",
+        "temporalType" : "DATE",
+        "category" : "AMERICAN",
+        "example" : "01/0001"
+      }, {
+        "format" : "HH:mm",
+        "temporalType" : "TIME",
+        "category" : "STANDARD",
+        "example" : "14:00"
+      }, {
+        "format" : "HH:mm:ss",
+        "temporalType" : "TIME",
+        "category" : "STANDARD",
+        "example" : "14:00:00"
+      }, {
+        "format" : "H:mm",
+        "temporalType" : "TIME",
+        "category" : "STANDARD",
+        "example" : "14:00"
+      }, {
+        "format" : "H:mm:ss",
+        "temporalType" : "TIME",
+        "category" : "STANDARD",
+        "example" : "14:00:00"
+      }, {
+        "format" : "HH:mm:ss.SSS",
+        "temporalType" : "TIME",
+        "category" : "STANDARD",
+        "example" : "14:00:00.000"
+      }, {
+        "format" : "HH:mm:ss[.SSS]",
+        "temporalType" : "TIME",
+        "category" : "STANDARD",
+        "example" : "14:00:00.000"
+      }, {
+        "format" : "HH:mm:ss.nnn",
+        "temporalType" : "TIME",
+        "category" : "STANDARD",
+        "example" : "14:00:00.000"
+      }, {
+        "format" : "HH:mm:ss[.n]",
+        "temporalType" : "TIME",
+        "category" : "STANDARD",
+        "example" : "14:00:00.0"
+      }, {
+        "format" : "HH:mm[:ss[.SSS]]",
+        "temporalType" : "TIME",
+        "category" : "STANDARD",
+        "example" : "14:00:00.000"
+      }, {
+        "format" : "hh:mma",
+        "temporalType" : "TIME",
+        "category" : "STANDARD",
+        "example" : "02:00PM"
+      }, {
+        "format" : "h:mm a",
+        "temporalType" : "TIME",
+        "category" : "STANDARD",
+        "example" : "2:00 PM"
+      }, {
+        "format" : "h:mm:ss a",
+        "temporalType" : "TIME",
+        "category" : "STANDARD",
+        "example" : "2:00:00 PM"
+      }, {
+        "format" : "HH:mm",
+        "temporalType" : "TIME",
+        "category" : "EUROPEAN",
+        "example" : "14:00"
+      }, {
+        "format" : "HH:mm:ss",
+        "temporalType" : "TIME",
+        "category" : "EUROPEAN",
+        "example" : "14:00:00"
+      }, {
+        "format" : "H:mm",
+        "temporalType" : "TIME",
+        "category" : "EUROPEAN",
+        "example" : "14:00"
+      }, {
+        "format" : "H:mm:ss",
+        "temporalType" : "TIME",
+        "category" : "EUROPEAN",
+        "example" : "14:00:00"
+      }, {
+        "format" : "HH:mm:ss.SSS",
+        "temporalType" : "TIME",
+        "category" : "EUROPEAN",
+        "example" : "14:00:00.000"
+      }, {
+        "format" : "HH:mm:ss[.SSS]",
+        "temporalType" : "TIME",
+        "category" : "EUROPEAN",
+        "example" : "14:00:00.000"
+      }, {
+        "format" : "HH:mm:ss.nnn",
+        "temporalType" : "TIME",
+        "category" : "EUROPEAN",
+        "example" : "14:00:00.000"
+      }, {
+        "format" : "HH:mm:ss[.n]",
+        "temporalType" : "TIME",
+        "category" : "EUROPEAN",
+        "example" : "14:00:00.0"
+      }, {
+        "format" : "HH:mm[:ss[.SSS]]",
+        "temporalType" : "TIME",
+        "category" : "EUROPEAN",
+        "example" : "14:00:00.000"
+      }, {
+        "format" : "hh:mma",
+        "temporalType" : "TIME",
+        "category" : "EUROPEAN",
+        "example" : "02:00PM"
+      }, {
+        "format" : "h:mm a",
+        "temporalType" : "TIME",
+        "category" : "EUROPEAN",
+        "example" : "2:00 PM"
+      }, {
+        "format" : "h:mm:ss a",
+        "temporalType" : "TIME",
+        "category" : "EUROPEAN",
+        "example" : "2:00:00 PM"
+      }, {
+        "format" : "HH:mm",
+        "temporalType" : "TIME",
+        "category" : "AMERICAN",
+        "example" : "14:00"
+      }, {
+        "format" : "HH:mm:ss",
+        "temporalType" : "TIME",
+        "category" : "AMERICAN",
+        "example" : "14:00:00"
+      }, {
+        "format" : "H:mm",
+        "temporalType" : "TIME",
+        "category" : "AMERICAN",
+        "example" : "14:00"
+      }, {
+        "format" : "H:mm:ss",
+        "temporalType" : "TIME",
+        "category" : "AMERICAN",
+        "example" : "14:00:00"
+      }, {
+        "format" : "HH:mm:ss.SSS",
+        "temporalType" : "TIME",
+        "category" : "AMERICAN",
+        "example" : "14:00:00.000"
+      }, {
+        "format" : "HH:mm:ss[.SSS]",
+        "temporalType" : "TIME",
+        "category" : "AMERICAN",
+        "example" : "14:00:00.000"
+      }, {
+        "format" : "HH:mm:ss.nnn",
+        "temporalType" : "TIME",
+        "category" : "AMERICAN",
+        "example" : "14:00:00.000"
+      }, {
+        "format" : "HH:mm:ss[.n]",
+        "temporalType" : "TIME",
+        "category" : "AMERICAN",
+        "example" : "14:00:00.0"
+      }, {
+        "format" : "HH:mm[:ss[.SSS]]",
+        "temporalType" : "TIME",
+        "category" : "AMERICAN",
+        "example" : "14:00:00.000"
+      }, {
+        "format" : "hh:mma",
+        "temporalType" : "TIME",
+        "category" : "AMERICAN",
+        "example" : "02:00PM"
+      }, {
+        "format" : "h:mm a",
+        "temporalType" : "TIME",
+        "category" : "AMERICAN",
+        "example" : "2:00 PM"
+      }, {
+        "format" : "h:mm:ss a",
+        "temporalType" : "TIME",
+        "category" : "AMERICAN",
+        "example" : "2:00:00 PM"
+      }, {
+        "format" : "yyyy-MM-dd HH:mm",
+        "temporalType" : "DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-01-01 14:00"
+      }, {
+        "format" : "yyyy-MM-dd HH:mm:ss",
+        "temporalType" : "DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-01-01 14:00:00"
+      }, {
+        "format" : "yyyy-MM-dd;HH:mm",
+        "temporalType" : "DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-01-01;14:00"
+      }, {
+        "format" : "yyyy-MM-dd HH:mm:ss.S",
+        "temporalType" : "DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-01-01 14:00:00.0"
+      }, {
+        "format" : "yyyy-MM-dd;HH:mm:ss.S",
+        "temporalType" : "DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-01-01;14:00:00.0"
+      }, {
+        "format" : "yyyy-MM-dd;HH:mm:ss",
+        "temporalType" : "DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-01-01;14:00:00"
+      }, {
+        "format" : "yyyy-MM-dd HH:mm[:ss[.SSS]]",
+        "temporalType" : "DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-01-01 14:00:00.000"
+      }, {
+        "format" : "yyyy-MM-dd HH:mm[:ss]",
+        "temporalType" : "DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-01-01 14:00:00"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm",
+        "temporalType" : "DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-01-01T14:00"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss",
+        "temporalType" : "DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-01-01T14:00:00"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss[.SSS]",
+        "temporalType" : "DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-01-01T14:00:00.000"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss.SSS",
+        "temporalType" : "DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-01-01T14:00:00.000"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm[:ss[.SSS]]",
+        "temporalType" : "DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-01-01T14:00:00.000"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm[:ss]",
+        "temporalType" : "DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-01-01T14:00:00"
+      }, {
+        "format" : "yyyy-MMM-dd HH:mm",
+        "temporalType" : "DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-Jan-01 14:00"
+      }, {
+        "format" : "yyyy-MMM-dd HH:mm:ss",
+        "temporalType" : "DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-Jan-01 14:00:00"
+      }, {
+        "format" : "yyyy-MMM-dd'T'HH:mm",
+        "temporalType" : "DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-Jan-01T14:00"
+      }, {
+        "format" : "yyyy-MMM-dd'T'HH:mm:ss",
+        "temporalType" : "DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-Jan-01T14:00:00"
+      }, {
+        "format" : "yyyy-MMM-dd;HH:mm",
+        "temporalType" : "DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-Jan-01;14:00"
+      }, {
+        "format" : "yyyy-MMM-dd;HH:mm:ss",
+        "temporalType" : "DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-Jan-01;14:00:00"
+      }, {
+        "format" : "yyyy-MM-dd HH:mm",
+        "temporalType" : "DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "0001-01-01 14:00"
+      }, {
+        "format" : "yyyy-MM-dd HH:mm:ss",
+        "temporalType" : "DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "0001-01-01 14:00:00"
+      }, {
+        "format" : "yyyy-MM-dd HH:mm:ss.SSS",
+        "temporalType" : "DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "0001-01-01 14:00:00.000"
+      }, {
+        "format" : "yyyy-MMM-dd HH:mm",
+        "temporalType" : "DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "0001-Jan-01 14:00"
+      }, {
+        "format" : "yyyy-MMM-dd HH:mm:ss",
+        "temporalType" : "DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "0001-Jan-01 14:00:00"
+      }, {
+        "format" : "yyyy-MMM-dd'T'HH:mm",
+        "temporalType" : "DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "0001-Jan-01T14:00"
+      }, {
+        "format" : "yyyy-MMM-dd'T'HH:mm:ss",
+        "temporalType" : "DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "0001-Jan-01T14:00:00"
+      }, {
+        "format" : "yyyy-MMM-dd;HH:mm",
+        "temporalType" : "DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "0001-Jan-01;14:00"
+      }, {
+        "format" : "yyyy-MMM-dd;HH:mm:ss",
+        "temporalType" : "DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "0001-Jan-01;14:00:00"
+      }, {
+        "format" : "dd/MM/yyyy HH:mm",
+        "temporalType" : "DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "01/01/0001 14:00"
+      }, {
+        "format" : "dd/MM/yyyy HH:mm:ss",
+        "temporalType" : "DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "01/01/0001 14:00:00"
+      }, {
+        "format" : "dd/MM/yyyy hh:mm a",
+        "temporalType" : "DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "01/01/0001 02:00 PM"
+      }, {
+        "format" : "dd.MM.yyyy HH:mm",
+        "temporalType" : "DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "01.01.0001 14:00"
+      }, {
+        "format" : "dd.MM.yyyy HH:mm:ss",
+        "temporalType" : "DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "01.01.0001 14:00:00"
+      }, {
+        "format" : "dd.MM.yyyy hh:mm a",
+        "temporalType" : "DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "01.01.0001 02:00 PM"
+      }, {
+        "format" : "dd MMM yyyy HH:mm ",
+        "temporalType" : "DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "01 Jan 0001 14:00 "
+      }, {
+        "format" : "dd MMM yyyy HH:mm:ss",
+        "temporalType" : "DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "01 Jan 0001 14:00:00"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss",
+        "temporalType" : "DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "0001-01-01T14:00:00"
+      }, {
+        "format" : "MM/dd/yyyy HH:mm",
+        "temporalType" : "DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "01/01/0001 14:00"
+      }, {
+        "format" : "MM/dd/yyyy HH:mm:ss",
+        "temporalType" : "DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "01/01/0001 14:00:00"
+      }, {
+        "format" : "MM/dd/yyyy HH:mm:ss.SSS",
+        "temporalType" : "DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "01/01/0001 14:00:00.000"
+      }, {
+        "format" : "yyyy-MM-dd HH:mm",
+        "temporalType" : "DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "0001-01-01 14:00"
+      }, {
+        "format" : "yyyy-MM-dd HH:mm:ss",
+        "temporalType" : "DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "0001-01-01 14:00:00"
+      }, {
+        "format" : "yyyy-MM-dd HH:mm:ss.SSS",
+        "temporalType" : "DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "0001-01-01 14:00:00.000"
+      }, {
+        "format" : "MM/dd/yyyy h:mm a",
+        "temporalType" : "DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "01/01/0001 2:00 PM"
+      }, {
+        "format" : "M/d/yyyy h:mm:ss a",
+        "temporalType" : "DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "1/1/0001 2:00:00 PM"
+      }, {
+        "format" : "MM/dd/yyyy h:mm:ss a",
+        "temporalType" : "DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "01/01/0001 2:00:00 PM"
+      }, {
+        "format" : "yyyyMMdd HH:mm:ss",
+        "temporalType" : "DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "00010101 14:00:00"
+      }, {
+        "format" : "yyyyMMdd HH:mm",
+        "temporalType" : "DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "00010101 14:00"
+      }, {
+        "format" : "MMM dd, yyyy h:mm a",
+        "temporalType" : "DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "Jan 01, 0001 2:00 PM"
+      }, {
+        "format" : "MMM dd, yyyy HH:mm:ss",
+        "temporalType" : "DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "Jan 01, 0001 14:00:00"
+      }, {
+        "format" : "MMM dd, yyyy HH:mm",
+        "temporalType" : "DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "Jan 01, 0001 14:00"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss",
+        "temporalType" : "DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "0001-01-01T14:00:00"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm",
+        "temporalType" : "DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "0001-01-01T14:00"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss'Z'",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-01-01T14:00:00Z"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-01-01T14:00:00"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-01-01T14:00:00.000+00:53"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss.SSSVV",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-01-01T14:00:00.000Europe/Berlin"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss.SSSZ",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-01-01T14:00:00.000+0053"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss.SSS[Z]",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-01-01T14:00:00.000+0053"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ssXXX",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-01-01T14:00:00+00:53"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss'['VV']'",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-01-01T14:00:00[Europe/Berlin]"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss.SSS[ZZZZ]",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-01-01T14:00:00.000GMT+00:53:28"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss.SSSVV'['zzzz']'",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-01-01T14:00:00.000Europe/Berlin[Central European Standard Time]"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ssVV",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-01-01T14:00:00Europe/Berlin"
+      }, {
+        "format" : "yyyy-MM-dd HH:mm:ss VV",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "STANDARD",
+        "example" : "0001-01-01 14:00:00 Europe/Berlin"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss'Z'",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "0001-01-01T14:00:00Z"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "0001-01-01T14:00:00"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "0001-01-01T14:00:00.000+00:53"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss.SSSVV",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "0001-01-01T14:00:00.000Europe/Berlin"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss.SSSZ",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "0001-01-01T14:00:00.000+0053"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss.SSS[Z]",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "0001-01-01T14:00:00.000+0053"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ssXXX",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "0001-01-01T14:00:00+00:53"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss'['VV']'",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "0001-01-01T14:00:00[Europe/Berlin]"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss.SSS[ZZZZ]",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "0001-01-01T14:00:00.000GMT+00:53:28"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss.SSSVV'['zzzz']'",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "0001-01-01T14:00:00.000Europe/Berlin[Central European Standard Time]"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ssVV",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "0001-01-01T14:00:00Europe/Berlin"
+      }, {
+        "format" : "yyyy-MM-dd HH:mm:ss VV",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "EUROPEAN",
+        "example" : "0001-01-01 14:00:00 Europe/Berlin"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss'Z'",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "0001-01-01T14:00:00Z"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "0001-01-01T14:00:00"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "0001-01-01T14:00:00.000+00:53"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss.SSSVV",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "0001-01-01T14:00:00.000Europe/Berlin"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss.SSSZ",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "0001-01-01T14:00:00.000+0053"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss.SSS[Z]",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "0001-01-01T14:00:00.000+0053"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss'['VV']'",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "0001-01-01T14:00:00[Europe/Berlin]"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss.SSS[ZZZZ]",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "0001-01-01T14:00:00.000GMT+00:53:28"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss.SSSVV'['zzzz']'",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "0001-01-01T14:00:00.000Europe/Berlin[Central European Standard Time]"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ssVV",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "0001-01-01T14:00:00Europe/Berlin"
+      }, {
+        "format" : "yyyy-MM-dd HH:mm:ss VV",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "0001-01-01 14:00:00 Europe/Berlin"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ss.SSS",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "0001-01-01T14:00:00.000"
+      }, {
+        "format" : "yyyy-MM-dd'T'HH:mm:ssXXX",
+        "temporalType" : "ZONED_DATE_TIME",
+        "category" : "AMERICAN",
+        "example" : "0001-01-01T14:00:00+00:53"
       } ]
     } ]
   } ]
