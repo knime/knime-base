@@ -53,6 +53,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Locale;
+import java.util.Set;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -101,6 +102,8 @@ final class ModifyDateNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         m_mockedStaticLocalDate.when(LocalDate::now).thenReturn(MOCKED_NOW);
         m_mockedStaticZoneId = Mockito.mockStatic(ZoneId.class, Mockito.CALLS_REAL_METHODS);
         m_mockedStaticZoneId.when(ZoneId::systemDefault).thenReturn(MOCKED_ZONE_ID);
+        m_mockedStaticZoneId.when(ZoneId::getAvailableZoneIds)
+            .thenReturn(Set.of("Europe/Berlin", "America/New_York", "Asia/Karachi", "UTC"));
     }
 
     @AfterEach
