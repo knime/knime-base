@@ -64,7 +64,7 @@ import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.Typ
 import org.knime.base.node.preproc.filter.row3.operators.RowNumberFilterSpec;
 import org.knime.base.node.preproc.filter.row3.operators.legacy.DynamicValuesInput;
 import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterOperator;
-import org.knime.base.node.preproc.filter.row3.predicates.PredicateFactories;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.predicates.PredicateFactories;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;

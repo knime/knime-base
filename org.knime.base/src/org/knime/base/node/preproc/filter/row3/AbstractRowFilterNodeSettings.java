@@ -363,7 +363,7 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
                 && FilterOperatorsUtil.findMatchingRowNumberOperator(m_operator)
                     .map(RowNumberFilterOperator::supportsSlicing).orElse(false);
             if (isSlicingOperator) {
-                RowNumberFilterSpec.toFilterSpec(m_operator, m_filterValueParameters);
+                RowNumberFilterSpec.toPartitionFunction(m_operator, m_filterValueParameters);
                 return;
             }
 
